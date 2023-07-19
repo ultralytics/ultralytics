@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the extensive functionalities of the YOLOv5 object detection model, renowned for its speed and precision. Dive into our comprehensive guide for installation, architectural insights, use-cases, and more to unlock the full potential of YOLOv5 for your computer vision applications.
-keywords: ultralytics, yolov5, object detection, deep learning, pytorch, computer vision, tutorial, architecture, documentation, frameworks, real-time, model training, multicore, multithreading
+description: Deep dive into Ultralytics' YOLOv5. Learn about object detection model - YOLOv5, how to train it on custom data, multi-GPU training and more.
+keywords: Ultralytics, YOLOv5, Deep Learning, Object detection, PyTorch, Tutorial, Multi-GPU training, Custom data training
 ---
 
 # Comprehensive Guide to Ultralytics YOLOv5

@@ -1,6 +1,6 @@
 ---
-description: Explore convolutional neural network modules & techniques such as LightConv, DWConv, ConvTranspose, GhostConv, CBAM & autopad with Ultralytics Docs.
-keywords: Ultralytics, Convolutional Neural Network, Conv2, DWConv, ConvTranspose, GhostConv, ChannelAttention, CBAM, autopad
+description: Explore various Ultralytics convolution modules including Conv2, DWConv, ConvTranspose, GhostConv, Channel Attention and more.
+keywords: Ultralytics, Convolution Modules, Conv2, DWConv, ConvTranspose, GhostConv, ChannelAttention, CBAM, autopad
 ---
 
 ## Conv

@@ -1,14 +1,14 @@
 ---
 comments: true
-description: MobileSAM is a lightweight adaptation of the Segment Anything Model (SAM) designed for mobile applications. It maintains the full functionality of the original SAM while significantly improving speed, making it suitable for CPU-only edge devices, such as mobile phones.
-keywords: MobileSAM, Faster Segment Anything, Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI
+description: Learn more about MobileSAM, its implementation, comparison with the original SAM, and how to download and test it in the Ultralytics framework. Improve your mobile applications today.
+keywords: MobileSAM, Ultralytics, SAM, mobile applications, Arxiv, GPU, API, image encoder, mask decoder, model download, testing method
 ---
 
 ![MobileSAM Logo](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true)
 
-# Faster Segment Anything (MobileSAM)
+# Mobile Segment Anything (MobileSAM)
 
-The MobileSAM paper is now available on [ResearchGate](https://www.researchgate.net/publication/371851844_Faster_Segment_Anything_Towards_Lightweight_SAM_for_Mobile_Applications) and [arXiv](https://arxiv.org/pdf/2306.14289.pdf). The most recent version will initially appear on ResearchGate due to the delayed content update on arXiv.
+The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289.pdf).
 
 A demonstration of MobileSAM running on a CPU can be accessed at this [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). The performance on a Mac i5 CPU takes approximately 3 seconds. On the Hugging Face demo, the interface and lower-performance CPUs contribute to a slower response, but it continues to function effectively.
 

@@ -9,9 +9,9 @@ FROM arm64v8/ubuntu:22.10
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages
+# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 RUN apt update \
-    && apt install --no-install-recommends -y python3-pip git zip curl htop gcc libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+    && apt install --no-install-recommends -y python3-pip git zip curl htop gcc libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 # RUN alias python=python3
 
 # Create working directory
@@ -33,5 +33,8 @@ RUN pip install --no-cache -e . thop
 # Build and Push
 # t=ultralytics/ultralytics:latest-arm64 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-arm64 -t $t . && sudo docker push $t
 
-# Pull and Run
+# Run
+# t=ultralytics/ultralytics:latest-arm64 && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:latest-arm64 && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

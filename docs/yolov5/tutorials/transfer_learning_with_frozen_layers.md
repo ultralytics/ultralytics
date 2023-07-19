@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to freeze YOLOv5 when transfer learning. Retrain a pre-trained model on new data faster and with fewer resources.
-keywords: Freeze YOLOv5, Transfer Learning YOLOv5, Freeze Layers, Reduce Resources, Speed up Training, Increase Accuracy
+description: Learn to freeze YOLOv5 layers for efficient transfer learning. Optimize your model retraining with less resources and faster training times.
+keywords: YOLOv5, freeze layers, transfer learning, model retraining, Ultralytics
 ---
 
 📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **transfer learning**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.  

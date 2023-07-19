@@ -11,9 +11,8 @@ from pathlib import Path
 import requests
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT,
-                                    TryExcept, __version__, colorstr, get_git_origin_url, is_colab, is_git_dir,
-                                    is_pip_package)
+from ultralytics.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT, TryExcept,
+                               __version__, colorstr, get_git_origin_url, is_colab, is_git_dir, is_pip_package)
 
 PREFIX = colorstr('Ultralytics HUB: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'

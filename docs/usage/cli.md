@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use YOLOv8 from the Command Line Interface (CLI) through simple, single-line commands with `yolo` without Python code.
-keywords: YOLO, CLI, command line interface, detect, segment, classify, train, validate, predict, export, Ultralytics Docs
+description: 'Learn how to use Ultralytics YOLO through Command Line: train models, run predictions and exports models to different formats easily using terminal commands.'
+keywords: Ultralytics, YOLO, CLI, train, validation, prediction, command line interface, YOLO CLI, YOLO terminal, model training, prediction, exporting
 ---
 
 # Command Line Interface Usage
@@ -70,7 +70,7 @@ Where:
 - `MODE` (required) is one of `[train, val, predict, export, track]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
   For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
-  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
+  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 !!! warning "Warning"
 

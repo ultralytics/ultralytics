@@ -2,10 +2,10 @@
 
 import requests
 
+from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.utils import PREFIX
-from ultralytics.yolo.data.utils import HUBDatasetStats
-from ultralytics.yolo.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
+from ultralytics.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 
 
 def login(api_key=''):
@@ -65,7 +65,7 @@ def reset_model(model_id=''):
 
 def export_fmts_hub():
     """Returns a list of HUB-supported export formats."""
-    from ultralytics.yolo.engine.exporter import export_formats
+    from ultralytics.engine.exporter import export_formats
     return list(export_formats()['Argument'][1:]) + ['ultralytics_tflite', 'ultralytics_coreml']
 
 

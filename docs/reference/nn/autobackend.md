@@ -1,6 +1,6 @@
 ---
-description: Ensure class names match filenames for easy imports. Use AutoBackend to automatically rename and refactor model files.
-keywords: AutoBackend, ultralytics, nn, autobackend, check class names, neural network
+description: Get to know more about Ultralytics nn.autobackend.check_class_names functionality. Optimize your YOLO models seamlessly.
+keywords: Ultralytics, AutoBackend, check_class_names, YOLO, YOLO models, optimization
 ---
 
 ## AutoBackend

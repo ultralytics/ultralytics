@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Test and debug object detection models with Ultralytics COCO8-Pose Dataset - a small, versatile pose detection dataset with 8 images.
-keywords: coco8-pose dataset, ultralytics, object detection, pose detection, yolo, hub
+description: Discover the versatile COCO8-Pose dataset, perfect for testing and debugging pose detection models. Learn how to get started with YOLOv8-pose model training.
+keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, model training, YAML
 ---
 
 # COCO8-Pose Dataset
@@ -19,12 +19,12 @@ and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Pose dataset, the `coco8-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8-pose.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Pose dataset, the `coco8-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
 
-!!! example "ultralytics/datasets/coco8-pose.yaml"
+!!! example "ultralytics/cfg/datasets/coco8-pose.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco8-pose.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
     ```
 
 ## Usage

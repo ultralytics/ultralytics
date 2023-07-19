@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to quickly start using YOLOv5 including installation, inference, and training on this Ultralytics Docs page.
-keywords: YOLOv5, object detection, PyTorch, quickstart, detect.py, training, Ultralytics Docs
+description: Kickstart your journey with YOLOv5. Learn how to install, run inference, and train models on your own images. Dive headfirst into object detection with PyTorch.
+keywords: YOLOv5, Quickstart, Installation, Inference, Training, Object detection, PyTorch, Ultralytics
 ---
 
 # YOLOv5 Quickstart

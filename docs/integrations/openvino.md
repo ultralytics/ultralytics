@@ -92,6 +92,8 @@ YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model fo
 
     The benchmarking results below are for reference and might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run.
 
+    All benchmarks run with `openvino` python package version [2023.0.1](https://pypi.org/project/openvino/2023.0.1/).
+
 ### Intel Flex GPU
 
 The Intel® Data Center GPU Flex Series is a versatile and robust solution designed for the intelligent visual cloud. This GPU supports a wide array of workloads including media streaming, cloud gaming, AI visual inference, and virtual desktop Infrastructure workloads. It stands out for its open architecture and built-in support for the AV1 encode, providing a standards-based software stack for high-performance, cross-architecture applications. The Flex Series GPU is optimized for density and quality, offering high reliability, availability, and scalability.
@@ -207,7 +209,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/254402495-e351de30-0d0c-4a8b-b915-d08be7128c1d.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/254559985-727bfa43-93fa-4fec-a417-800f869f3f9e.jpg">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |

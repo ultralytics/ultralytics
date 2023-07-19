@@ -40,5 +40,8 @@ ENV OMP_NUM_THREADS=1
 # Build and Push
 # t=ultralytics/ultralytics:latest-jetson && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson -t $t . && sudo docker push $t
 
-# Pull and Run
+# Run
+# t=ultralytics/ultralytics:latest-jetson && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:jetson && sudo docker pull $t && sudo docker run -it --runtime=nvidia $t

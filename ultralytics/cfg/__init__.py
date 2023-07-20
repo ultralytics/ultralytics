@@ -372,6 +372,9 @@ def entrypoint(debug=''):
     if 'rtdetr' in model.lower():  # guess architecture
         from ultralytics import RTDETR
         model = RTDETR(model)  # no task argument
+    elif 'fastsam' in model.lower():
+        from ultralytics import FastSAM
+        model = FastSAM(model)
     elif 'sam' in model.lower():
         from ultralytics import SAM
         model = SAM(model)

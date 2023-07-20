@@ -58,6 +58,16 @@ class Detect(nn.Module):
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+
+        if self.export and self.format in ('tflite', 'edgetpu'):
+            # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
+            # https://github.com/ultralytics/yolov5/blob/0c8de3fca4a702f8ff5c435e67f378d1fce70243/models/tf.py#L307-L309
+            # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
+            img_h = shape[2] * self.stride[0]
+            img_w = shape[3] * self.stride[0]
+            img_size = torch.tensor([img_w, img_h, img_w, img_h], device=dbox.device).reshape(1, 4, 1)
+            dbox /= img_size
+
         y = torch.cat((dbox, cls.sigmoid()), 1)
         return y if self.export else (y, x)
 

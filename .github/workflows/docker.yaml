@@ -6,6 +6,17 @@ name: Publish Docker Images
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      image:
+        type: choice
+        description: Select Docker Image
+        options:
+          - Arm64
+          - Jetson
+          - Python
+          - CPU
+          - GPU
 
 jobs:
   docker:
@@ -29,6 +40,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push arm64 image
+        if: github.event_name == 'push' || github.event.inputs.image == 'Arm64'
         uses: docker/build-push-action@v4
         continue-on-error: true
         with:
@@ -39,6 +51,7 @@ jobs:
           tags: ultralytics/ultralytics:latest-arm64
 
       - name: Build and push Jetson image
+        if: github.event_name == 'push' || github.event.inputs.image == 'Jetson'
         uses: docker/build-push-action@v4
         continue-on-error: true
         with:
@@ -48,7 +61,18 @@ jobs:
           push: true
           tags: ultralytics/ultralytics:latest-jetson
 
+      - name: Build and push Python image
+        if: github.event_name == 'push' || github.event.inputs.image == 'Python'
+        uses: docker/build-push-action@v4
+        continue-on-error: true
+        with:
+          context: .
+          file: docker/Dockerfile-python
+          push: true
+          tags: ultralytics/ultralytics:latest-python
+
       - name: Build and push CPU image
+        if: github.event_name == 'push' || github.event.inputs.image == 'CPU'
         uses: docker/build-push-action@v4
         continue-on-error: true
         with:
@@ -58,6 +82,7 @@ jobs:
           tags: ultralytics/ultralytics:latest-cpu
 
       - name: Build and push GPU image
+        if: github.event_name == 'push' || github.event.inputs.image == 'GPU'
         uses: docker/build-push-action@v4
         continue-on-error: true
         with:

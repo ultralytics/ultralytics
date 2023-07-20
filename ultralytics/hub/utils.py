@@ -11,9 +11,9 @@ from pathlib import Path
 import requests
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT,
-                                    TryExcept, __version__, colorstr, get_git_origin_url, is_colab, is_git_dir,
-                                    is_pip_package)
+from ultralytics.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT, TryExcept,
+                               __version__, colorstr, get_git_origin_url, is_colab, is_git_dir, is_pip_package)
+from ultralytics.utils.downloads import GITHUB_ASSET_NAMES
 
 PREFIX = colorstr('Ultralytics HUB: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -78,10 +78,13 @@ def requests_with_progress(method, url, **kwargs):
         return requests.request(method, url, **kwargs)
     response = requests.request(method, url, stream=True, **kwargs)
     total = int(response.headers.get('content-length', 0))  # total size
-    pbar = tqdm(total=total, unit='B', unit_scale=True, unit_divisor=1024, bar_format=TQDM_BAR_FORMAT)
-    for data in response.iter_content(chunk_size=1024):
-        pbar.update(len(data))
-    pbar.close()
+    try:
+        pbar = tqdm(total=total, unit='B', unit_scale=True, unit_divisor=1024, bar_format=TQDM_BAR_FORMAT)
+        for data in response.iter_content(chunk_size=1024):
+            pbar.update(len(data))
+        pbar.close()
+    except requests.exceptions.ChunkedEncodingError:  # avoid 'Connection broken: IncompleteRead' warnings
+        response.close()
     return response
 
 
@@ -191,7 +194,9 @@ class Events:
 
         # Attempt to add to events
         if len(self.events) < 25:  # Events list limited to 25 events (drop any events past this)
-            params = {**self.metadata, **{'task': cfg.task}}
+            params = {
+                **self.metadata, 'task': cfg.task,
+                'model': cfg.model if cfg.model in GITHUB_ASSET_NAMES else 'custom'}
             if cfg.mode == 'export':
                 params['format'] = cfg.format
             self.events.append({'name': cfg.mode, 'params': params})

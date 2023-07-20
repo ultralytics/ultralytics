@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Learn about the CIFAR-100 dataset, a collection of images that are commonly used to train machine learning and computer vision algorithms.
+description: Discover how to leverage the CIFAR-100 dataset for machine learning and computer vision tasks with YOLO. Gain insights on its structure, use, and utilization for model training.
+keywords: Ultralytics, YOLO, CIFAR-100 dataset, image classification, machine learning, computer vision, YOLO model training
 ---
 
 # CIFAR-100 Dataset

@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Discover the datasets compatible with Multi-Object Detector. Train your trackers and make your detections more efficient with Ultralytics' YOLO.
+description: Understand multi-object tracking datasets, upcoming features and how to use them with YOLO in Python and CLI. Dive in now!.
+keywords: Ultralytics, YOLO, multi-object tracking, datasets, detection, segmentation, pose models, Python, CLI
 ---
 
 # Multi-object Tracking Datasets Overview

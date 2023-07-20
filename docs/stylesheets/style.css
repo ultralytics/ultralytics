@@ -33,6 +33,7 @@ th, td {
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 
 /* Code block vertical scroll */
-.md-typeset pre > code {
+div.highlight {
     max-height: 20rem;
+    overflow-y: auto; /* for adding a scrollbar when needed */
 }

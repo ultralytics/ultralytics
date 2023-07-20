@@ -3,15 +3,15 @@
 # Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLOv8 deployments
 
 # Start FROM Ubuntu image https://hub.docker.com/_/ubuntu
-FROM ubuntu:22.10
+FROM ubuntu:lunar-20230615
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' package
+# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 RUN apt update \
-    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 # RUN alias python=python3
 
 # Create working directory
@@ -23,6 +23,9 @@ WORKDIR /usr/src/ultralytics
 RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
 
+# Remove python3.11/EXTERNALLY-MANAGED or use 'pip install --break-system-packages' avoid 'externally-managed-environment' Ubuntu nightly error
+RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
+
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache -e . thop --extra-index-url https://download.pytorch.org/whl/cpu
@@ -33,5 +36,8 @@ RUN pip install --no-cache -e . thop --extra-index-url https://download.pytorch.
 # Build and Push
 # t=ultralytics/ultralytics:latest-cpu && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
 
-# Pull and Run
+# Run
+# t=ultralytics/ultralytics:latest-cpu && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

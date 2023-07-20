@@ -1,6 +1,7 @@
 ---
 comments: true
-description: 'Export mode: Create a deployment-ready YOLOv8 model by converting it to various formats. Export to ONNX or OpenVINO for up to 3x CPU speedup.'
+description: Step-by-step guide on exporting your YOLOv8 models to various format like ONNX, TensorRT, CoreML and more for deployment. Explore now!.
+keywords: YOLO, YOLOv8, Ultralytics, Model export, ONNX, TensorRT, CoreML, TensorFlow SavedModel, OpenVINO, PyTorch, export model
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
@@ -84,3 +85,4 @@ i.e. `format='onnx'` or `format='engine'`.
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |

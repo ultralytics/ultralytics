@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Read the Ultralytics Contributor Covenant Code of Conduct. Learn ways to create a welcoming community & consequences for inappropriate conduct.
+description: Explore Ultralytics community’s Code of Conduct, ensuring a supportive, inclusive environment for contributors & members at all levels. Find our guidelines on acceptable behavior & enforcement.
+keywords: Ultralytics, code of conduct, community, contribution, behavior guidelines, enforcement, open source contributions
 ---
 
 # Ultralytics Contributor Covenant Code of Conduct

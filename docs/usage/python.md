@@ -243,7 +243,7 @@ their specific use case based on their requirements for speed and accuracy.
         from ultralytics.utils.benchmarks import benchmark
         
         # Benchmark
-        benchmark(model='yolov8n.pt', imgsz=640, half=False, device=0)
+        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
         ```
 
 [Benchmark Examples](../modes/benchmark.md){ .md-button .md-button--primary}

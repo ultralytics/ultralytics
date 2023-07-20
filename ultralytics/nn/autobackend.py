@@ -3,7 +3,6 @@
 import ast
 import contextlib
 import json
-import os
 import platform
 import zipfile
 from collections import OrderedDict, namedtuple
@@ -267,7 +266,6 @@ class AutoBackend(nn.Module):
             check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires ncnn
             import ncnn as pyncnn
             net = pyncnn.Net()
-            net.opt.num_threads = os.cpu_count()
             net.opt.use_vulkan_compute = cuda
             w = Path(w)
             if not w.is_file():  # if not *.param

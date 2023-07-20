@@ -53,7 +53,6 @@ the benchmarks to their specific needs and compare the performance of different 
 | `device`    | `None`  | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu       |
 | `hard_fail` | `False` | do not continue on error (bool), or val floor threshold (float)            |
 
-
 ## Export Formats
 
 Benchmarks will attempt to run automatically on all possible export formats below.

@@ -263,7 +263,7 @@ class AutoBackend(nn.Module):
             metadata = w.parents[1] / 'metadata.yaml'
         elif ncnn:  # ncnn
             LOGGER.info(f'Loading {w} for ncnn inference...')
-            check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires NCNN
+            check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires ncnn
             import ncnn as pyncnn
             net = pyncnn.Net()
             net.opt.use_vulkan_compute = cuda
@@ -413,6 +413,14 @@ class AutoBackend(nn.Module):
                     if int8:
                         scale, zero_point = output['quantization']
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
+                    if x.ndim > 2:  # if task is not classification
+                        # Unnormalize xywh with input image size
+                        # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
+                        # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
+                        x[:, 0] *= w
+                        x[:, 1] *= h
+                        x[:, 2] *= w
+                        x[:, 3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed
@@ -420,7 +428,6 @@ class AutoBackend(nn.Module):
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
                 y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
-            # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 
         # for x in y:
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes

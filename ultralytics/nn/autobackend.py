@@ -419,7 +419,7 @@ class AutoBackend(nn.Module):
                         # Unnormalize xywh with input image size
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
-                        x[:, :4] *= [w, h, w, h]
+                        x[:, :4] *= np.array([w, h, w, h], dtype=x.dtype)[:, np.newaxis]
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed

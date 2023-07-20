@@ -410,7 +410,6 @@ class AutoBackend(nn.Module):
                 self.interpreter.set_tensor(input['index'], im)
                 self.interpreter.invoke()
                 y = []
-                whwh = np.array([w, h, w, h])
                 for output in self.output_details:
                     x = self.interpreter.get_tensor(output['index'])
                     if int8:
@@ -420,8 +419,10 @@ class AutoBackend(nn.Module):
                         # Unnormalize xywh with input image size
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
-                        # This construction ensures whwh gets broadcasted correctly
-                        x[:, :4] *= whwh.reshape(whwh.shape + (1, ) * (x.ndim - 2))
+                        x[:, 0] *= w
+                        x[:, 1] *= h
+                        x[:, 2] *= w
+                        x[:, 3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed

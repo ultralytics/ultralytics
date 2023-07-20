@@ -56,7 +56,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     Args:
         model (str | Path | optional): Path to the model file or directory. Default is
             Path(SETTINGS['weights_dir']) / 'yolov8n.pt'.
-        data (int, optional): Data yaml file to locate the validation dataset.
+        data (str, optional): Dataset to evaluate on, inherited from TASK2DATA if not passed. Default is None.
         imgsz (int, optional): Image size for the benchmark. Default is 160.
         half (bool, optional): Use half-precision for the model if True. Default is False.
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.

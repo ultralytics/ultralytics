@@ -682,7 +682,7 @@ class Exporter:
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
-        if " " in str(f_pb):
+        if ' ' in str(f_pb):
             LOGGER.warning(f'{prefix} WARNING ⚠️ TensorFlow.js export does not support spaces in filenames. '
                            f'Please rename {f_pb} to {str(f_pb).replace(" ", "_")} and try again.')
         # this is broken for paths with spaces, but the tensorflow converter commands chokes when the paths are escaped

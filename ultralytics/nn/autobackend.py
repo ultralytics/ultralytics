@@ -421,7 +421,7 @@ class AutoBackend(nn.Module):
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
                         # This construction ensures whwh gets broadcasted correctly
-                        x[:, :4] *= whwh.reshape(whwh.shape + (1, ) * (b.ndim - 2))
+                        x[:, :4] *= whwh.reshape(whwh.shape + (1, ) * (x.ndim - 2))
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed

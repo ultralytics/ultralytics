@@ -659,9 +659,9 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
-        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir {Path(f).parent} {tflite_model}'
+        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir {Path(f).parent} {tflite_model}'  # this probably breaks for spaces in filenames
         LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd.split(), check=True)
+        subprocess.run(cmd.split(), check=True)  # split explicitly breaks this for spaces in filenames
         self._add_tflite_metadata(f)
         return f, None
 
@@ -682,6 +682,11 @@ class Exporter:
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
+        if " " in str(f_pb):
+            LOGGER.warning(f'{prefix} WARNING ⚠️ TensorFlow.js export does not support spaces in filenames. '
+                           f'Please rename {f_pb} to {str(f_pb).replace(" ", "_")} and try again.')
+        # this is broken for paths with spaces, but the tensorflow converter commands chokes when the paths are escaped
+        # with ' or " or `
         cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} {f_pb} {f}'
         subprocess.run(cmd.split(), check=True)
 

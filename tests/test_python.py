@@ -23,6 +23,7 @@ im = Image.open(SOURCE)
 im.convert('L').save(SOURCE_GREYSCALE)  # greyscale
 im.convert('RGBA').save(SOURCE_RGBA)  # 4-ch PNG with alpha
 
+_ = YOLO(MODEL)  # seed model
 # create model with spaces in path
 MODEL_SPACE = Path(SETTINGS['weights_dir']) / 'path with space for no reason' / 'yolov8n.pt'
 MODEL_SPACE.parent.mkdir(exist_ok=True, parents=True)

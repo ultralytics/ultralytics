@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+import shutil
 from pathlib import Path
 
 import cv2
@@ -22,6 +22,11 @@ SOURCE_RGBA = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
 im = Image.open(SOURCE)
 im.convert('L').save(SOURCE_GREYSCALE)  # greyscale
 im.convert('RGBA').save(SOURCE_RGBA)  # 4-ch PNG with alpha
+
+# create model with spaces in path
+MODEL_SPACE = Path(SETTINGS['weights_dir']) / 'path with space for no reason' / 'yolov8n.pt'
+MODEL_SPACE.parent.mkdir(exist_ok=True, parents=True)
+shutil.copy(MODEL, MODEL_SPACE)
 
 
 def test_model_forward():
@@ -131,14 +136,32 @@ def test_export_torchscript_scratch():
     YOLO(f)(SOURCE)  # exported model inference
 
 
+def test_export_torchscript_space():
+    model = YOLO(MODEL_SPACE)
+    f = model.export(format='torchscript')
+    YOLO(f)(SOURCE)  # exported model inference
+
+
 def test_export_onnx():
     model = YOLO(MODEL)
     f = model.export(format='onnx')
     YOLO(f)(SOURCE)  # exported model inference
 
 
+def test_export_onnx_space():
+    model = YOLO(MODEL_SPACE)
+    f = model.export(format='onnx')
+    YOLO(f)(SOURCE)  # exported model inference
+
+
 def test_export_openvino():
     model = YOLO(MODEL)
+    f = model.export(format='openvino')
+    YOLO(f)(SOURCE)  # exported model inference
+
+
+def test_export_openvino_space():
+    model = YOLO(MODEL_SPACE)
     f = model.export(format='openvino')
     YOLO(f)(SOURCE)  # exported model inference
 
@@ -150,6 +173,11 @@ def test_export_coreml():  # sourcery skip: move-assign
     #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
+def test_export_coreml_space():  # sourcery skip: move-assign
+    model = YOLO(MODEL_SPACE)
+    model.export(format='coreml')
+
+
 def test_export_tflite(enabled=False):
     # TF suffers from install conflicts on Windows and macOS
     if enabled and LINUX:
@@ -158,10 +186,26 @@ def test_export_tflite(enabled=False):
         YOLO(f)(SOURCE)
 
 
+def test_export_tflite_space(enabled=False):
+    # TF suffers from install conflicts on Windows and macOS
+    if enabled and LINUX:
+        model = YOLO(MODEL_SPACE)
+        f = model.export(format='tflite')
+        YOLO(f)(SOURCE)
+
+
 def test_export_pb(enabled=False):
     # TF suffers from install conflicts on Windows and macOS
     if enabled and LINUX:
         model = YOLO(MODEL)
+        f = model.export(format='pb')
+        YOLO(f)(SOURCE)
+
+
+def test_export_pb_space(enabled=False):
+    # TF suffers from install conflicts on Windows and macOS
+    if enabled and LINUX:
+        model = YOLO(MODEL_SPACE)
         f = model.export(format='pb')
         YOLO(f)(SOURCE)
 

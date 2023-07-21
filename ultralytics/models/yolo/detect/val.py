@@ -7,13 +7,13 @@ import numpy as np
 import torch
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
+from ultralytics.engine.results import Results
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
-from ultralytics.utils.plotting import output_to_target, plot_images, Colors
+from ultralytics.utils.plotting import Colors, output_to_target, plot_images
 from ultralytics.utils.torch_utils import de_parallel
-from ultralytics.engine.results import Results
 
 colors = Colors()
 

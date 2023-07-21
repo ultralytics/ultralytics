@@ -14,7 +14,7 @@ You can install the required dependencies by running the following command:
 pip install -r requirements.txt
 ```
 
-### Installing `tflite-runtime` 
+### Installing `tflite-runtime`
 
 ```bash
 pip install tflite-runtime
@@ -25,6 +25,7 @@ pip install tflite-runtime
 ```
 yolo model=yolov8s.pt format=tflite imgsz=320
 ```
+
 To export model in quantized int8 format:
 
 ```

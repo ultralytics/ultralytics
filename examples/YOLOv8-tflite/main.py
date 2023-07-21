@@ -1,10 +1,12 @@
+import argparse
+
 import cv2
 import numpy as np
 import supervision as sv
-import argparse
-from ultralytics.yolo.utils import ROOT, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml, check_requirements
 from tflite_runtime.interpreter import Interpreter
+
+from ultralytics.yolo.utils import ROOT, yaml_load
+from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 
 
 class YOLOv8Tflite:
@@ -142,8 +144,7 @@ class YOLOv8Tflite:
         pad = (delta_w, delta_h)
 
         color = [100, 100, 100]
-        new_im = cv2.copyMakeBorder(image, 0, delta_h, 0, delta_w, cv2.BORDER_CONSTANT,
-                                    value=color)
+        new_im = cv2.copyMakeBorder(image, 0, delta_h, 0, delta_w, cv2.BORDER_CONSTANT, value=color)
         return new_im, pad
 
     def get_image_tensor(self, img, input_size: int):
@@ -190,8 +191,9 @@ if __name__ == '__main__':
     detections = detector.infer(img=img)
 
     box_annotator = sv.BoxAnnotator()
-    label = [f"{detector.classes[class_id]}-{round(confidence, 2)}"
-             for class_id, confidence in zip(detections.class_id, detections.confidence)]
+    label = [
+        f'{detector.classes[class_id]}-{round(confidence, 2)}'
+        for class_id, confidence in zip(detections.class_id, detections.confidence)]
     annotated_img = box_annotator.annotate(scene=img.copy(), detections=detections, labels=label)
 
     # Display the output image in a window

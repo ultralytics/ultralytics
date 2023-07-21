@@ -14,6 +14,7 @@ This repository features a collection of real-world applications and walkthrough
 | [YOLOv8 ONNXRuntime Python](./YOLOv8-ONNXRuntime)                                                              | Python/ONNXRuntime | [Semih Demirel](https://github.com/semihhdemirel)   |
 | [YOLOv8-ONNXRuntime-CPP](./YOLOv8-ONNXRuntime-CPP)                                                             | C++/ONNXRuntime    | [DennisJcy](https://github.com/DennisJcy)           |
 | [RTDETR ONNXRuntime C#](https://github.com/Kayzwer/yolo-cs/blob/master/RTDETR.cs)                              | C#/ONNX            | [Kayzwer](https://github.com/Kayzwer)               |
+| [YOLOv8 TFliteRuntime Python](./YOLOv8-tflite-Python)                                                          | Python/tflit       | [Kayzwer](https://github.com/hardikdava)            |
 
 ### How to Contribute
 

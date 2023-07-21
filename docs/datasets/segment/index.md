@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the Ultralytics YOLO dataset format for segmentation models. Use YAML to train Detection Models. Convert COCO to YOLO format using Python.
-keywords: instance segmentation datasets, yolov8 segmentations, yaml dataset format, auto annotation, convert label formats
+description: Learn how Ultralytics YOLO supports various dataset formats for instance segmentation. This guide includes information on data conversions, auto-annotations, and dataset usage.
+keywords: Ultralytics, YOLO, Instance Segmentation, Dataset, YAML, COCO, Auto-Annotation, Image Segmentation
 ---
 
 # Instance Segmentation Datasets Overview
@@ -104,7 +104,7 @@ If you have your own dataset and would like to use it for training segmentation 
 You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
 ```python
-from ultralytics.yolo.data.converter import convert_coco
+from ultralytics.data.converter import convert_coco
 
 convert_coco(labels_dir='../coco/annotations/', use_segments=True)
 ```
@@ -122,7 +122,7 @@ Auto-annotation is an essential feature that allows you to generate a segmentati
 To auto-annotate your dataset using the Ultralytics framework, you can use the `auto_annotate` function as shown below:
 
 ```python
-from ultralytics.yolo.data.annotator import auto_annotate
+from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
 ```

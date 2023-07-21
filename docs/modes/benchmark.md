@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Benchmark mode compares speed and accuracy of various YOLOv8 export formats like ONNX or OpenVINO. Optimize formats for speed or accuracy.
-keywords: YOLOv8, Benchmark Mode, Export Formats, ONNX, OpenVINO, TensorRT, Ultralytics Docs
+description: Learn how to profile speed and accuracy of YOLOv8 across various export formats; get insights on mAP50-95, accuracy_top5 metrics, and more.
+keywords: Ultralytics, YOLOv8, benchmarking, speed profiling, accuracy profiling, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO export formats
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
@@ -27,30 +27,31 @@ full list of export arguments.
     === "Python"
     
         ```python
-        from ultralytics.yolo.utils.benchmarks import benchmark
+        from ultralytics.utils.benchmarks import benchmark
         
         # Benchmark on GPU
-        benchmark(model='yolov8n.pt', imgsz=640, half=False, device=0)
+        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
         ```
     === "CLI"
     
         ```bash
-        yolo benchmark model=yolov8n.pt imgsz=640 half=False device=0
+        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
         ```
 
 ## Arguments
 
-Arguments such as `model`, `imgsz`, `half`, `device`, and `hard_fail` provide users with the flexibility to fine-tune
+Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `hard_fail` provide users with the flexibility to fine-tune
 the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
-| Key         | Value   | Description                                                          |
-|-------------|---------|----------------------------------------------------------------------|
-| `model`     | `None`  | path to model file, i.e. yolov8n.pt, yolov8n.yaml                    |
-| `imgsz`     | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                 |
-| `half`      | `False` | FP16 quantization                                                    |
-| `int8`      | `False` | INT8 quantization                                                    |
-| `device`    | `None`  | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu |
-| `hard_fail` | `False` | do not continue on error (bool), or val floor threshold (float)      |
+| Key         | Value   | Description                                                                |
+|-------------|---------|----------------------------------------------------------------------------|
+| `model`     | `None`  | path to model file, i.e. yolov8n.pt, yolov8n.yaml                          |
+| `data`      | `None`  | path to yaml referencing the benchmarking dataset (under `val` label)      |
+| `imgsz`     | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                       |
+| `half`      | `False` | FP16 quantization                                                          |
+| `int8`      | `False` | INT8 quantization                                                          |
+| `device`    | `None`  | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu       |
+| `hard_fail` | `False` | do not continue on error (bool), or val floor threshold (float)            |
 
 ## Export Formats
 
@@ -70,5 +71,6 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

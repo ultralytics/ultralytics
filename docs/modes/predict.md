@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get started with YOLOv8 Predict mode and input sources. Accepts various input sources such as images, videos, and directories.
-keywords: YOLOv8, predict mode, generator, streaming mode, input sources, video formats, arguments customization
+description: Discover how to use YOLOv8 predict mode for various tasks. Learn about different inference sources like images, videos, and data formats.
+keywords: Ultralytics, YOLOv8, predict mode, inference sources, prediction tasks, streaming mode, image processing, video processing, machine learning, AI
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
@@ -316,7 +316,7 @@ All supported arguments:
 
 ## Image and Video Formats
 
-YOLOv8 supports various image and video formats, as specified in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). See the tables below for the valid suffixes and example predict commands.
+YOLOv8 supports various image and video formats, as specified in [data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.
 
 ### Image Suffixes
 
@@ -451,7 +451,7 @@ operations are cached, meaning they're only calculated once per object, and thos
     keypoints.data  # raw probs tensor, (num_class, ) 
     ```
 
-Class reference documentation for `Results` module and its components can be found [here](../reference/yolo/engine/results.md)
+Class reference documentation for `Results` module and its components can be found [here](../reference/engine/results.md)
 
 ## Plotting results
 

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Train your custom dataset with YOLOv5. Learn to collect, label and annotate images, and train and deploy models. Get started now.
-keywords: YOLOv5, train custom dataset, object detection, artificial intelligence, deep learning, computer vision
+description: Learn how to train your data on custom datasets using YOLOv5. Simple and updated guide on collection and organization of images, labelling, model training and deployment.
+keywords: YOLOv5, train on custom dataset, image collection, model training, object detection, image labelling, Ultralytics, PyTorch, machine learning
 ---
 
 📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.  
@@ -30,12 +30,12 @@ Creating a custom model to detect your objects is an iterative process of collec
 
 YOLOv5 models must be trained on labelled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
 
-<details markdown>
-<summary>Use <a href="https://roboflow.com/?ref=ultralytics">Roboflow</a> to create your dataset in YOLO format</summary>
+<details open markdown>
+<summary>Use <a href="https://roboflow.com/?ref=ultralytics">Roboflow</a> to create your dataset in YOLO format 🌟</summary>
 
-!!! warning
+!!! note
 
-    Roboflow users can use Ultralytics under the [AGPL license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) or procure an [Enterprise license](https://ultralytics.com/license) directly from Ultralytics. Be aware that Roboflow does **not** provide Ultralytics licenses, and it is the responsibility of the user to ensure appropriate licensing.
+    Roboflow users can use Ultralytics under the [AGPL license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) or can request an [Enterprise license](https://ultralytics.com/license) directly from Ultralytics. Be aware that Roboflow does not provide Ultralytics licenses, and it is the responsibility of the user to ensure appropriate licensing.
 
 ### 1.1 Collect Images
 
@@ -84,7 +84,7 @@ script or notebook to download your dataset.
 Now continue with `2. Select a Model`.
 </details>
 
-<details open markdown>
+<details markdown>
 <summary>Or manually prepare your dataset</summary>
 
 ### 1.1 Create dataset.yaml

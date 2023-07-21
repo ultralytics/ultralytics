@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Deploy YOLOv5 on NVIDIA Jetson using TensorRT and DeepStream SDK for high performance inference. Step-by-step guide with code snippets.
-keywords: YOLOv5, NVIDIA Jetson, TensorRT, DeepStream SDK, deployment, AI at edge, PyTorch, computer vision, object detection, CUDA
+description: Detailed guide on deploying trained models on NVIDIA Jetson using TensorRT and DeepStream SDK. Optimize the inference performance on Jetson with Ultralytics.
+keywords: TensorRT, NVIDIA Jetson, DeepStream SDK, deployment, Ultralytics, YOLO, Machine Learning, AI, Deep Learning, model optimization, inference performance
 ---
 
 # Deploy on NVIDIA Jetson using TensorRT and DeepStream SDK

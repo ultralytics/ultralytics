@@ -585,7 +585,8 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
-        int8 = ['-oiqt', '-qt' 'per-tensor'] if self.args.int8 else ['']
+        int8 = ['-oiqt', '-qt'
+                'per-tensor'] if self.args.int8 else ['']
         cmd = 'onnx2tf', '-i', f_onnx, '-o', f, '-nuo', '--non_verbose', *int8
         LOGGER.info(f"\n{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
@@ -648,7 +649,8 @@ class Exporter:
         assert LINUX, f'export only supported on Linux. See {help_url}'
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
-            sudo = subprocess.run(['sudo', '--version' '>/dev/null']).returncode == 0  # sudo installed
+            sudo = subprocess.run(['sudo', '--version'
+                                   '>/dev/null']).returncode == 0  # sudo installed
             for c in (
                     'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
                     'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',

@@ -50,6 +50,7 @@ TensorFlow.js:
 """
 import json
 import os
+import pathlib
 import shutil
 import subprocess
 import time
@@ -586,8 +587,8 @@ class Exporter:
 
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
+        # onnx2tf can handle spaces in filenames, if they are properly escaped
         cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'
-        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
@@ -659,9 +660,9 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
-        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir {Path(f).parent} {tflite_model}'  # this probably breaks for spaces in filenames
+        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
         LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd.split(), check=True)  # split explicitly breaks this for spaces in filenames
+        subprocess.run(cmd, check=True, shell=True)
         self._add_tflite_metadata(f)
         return f, None
 
@@ -681,14 +682,27 @@ class Exporter:
             gd.ParseFromString(file.read())
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
-
+        # the tensorflow js converter CAN NOT handle spaces in arguments as of 21.07.23,
+        # so we need to switch to the model directory, if the space is within the complete file path,
+        # if the space is within the actual model filename, we can not do anything about it
         if ' ' in str(f_pb):
-            LOGGER.warning(f'{prefix} WARNING ⚠️ TensorFlow.js export does not support spaces in filenames. '
-                           f'Please rename {f_pb} to {str(f_pb).replace(" ", "_")} and try again.')
-        # this is broken for paths with spaces, but the tensorflow converter commands chokes when the paths are escaped
-        # with ' or " or `
-        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} {f_pb} {f}'
-        subprocess.run(cmd.split(), check=True)
+            previous_working_directory = Path.cwd()
+            f_name = pathlib.Path(f).name
+            if ' ' in f_name:
+                LOGGER.warning(f'{prefix} WARNING ⚠️ TensorFlow.js export does not support spaces in filenames. '
+                               f'Please rename {f_name} to {str(f_name).replace(" ", "_")} and try again.')
+
+            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} {f_pb.name} {f_name}'
+            try:
+                LOGGER.info(f"{prefix} switching working dir to {f_pb.parent} running '{cmd}'")
+                os.chdir(f_pb.parent)
+                subprocess.run(cmd, shell=True, check=True)
+            finally:
+                os.chdir(previous_working_directory)
+        else:
+            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{f_pb}" "{f}"'
+            LOGGER.info(f"{prefix} running '{cmd}'")
+            subprocess.run(cmd, shell=True, check=True)
 
         # f_json = Path(f) / 'model.json'  # *.json path
         # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order

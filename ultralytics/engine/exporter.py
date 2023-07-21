@@ -340,7 +340,7 @@ class Exporter:
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
-                # subprocess.run(f'onnxsim {f} {f}', shell=True)
+                # subprocess.run(('onnxsim', f, f), check=True)
                 model_onnx, check = onnxsim.simplify(model_onnx)
                 assert check, 'Simplified ONNX model could not be validated'
             except Exception as e:
@@ -585,10 +585,10 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
-        int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
-        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
-        subprocess.run(cmd, shell=True)
+        int8 = ['-oiqt', '-qt' 'per-tensor'] if self.args.int8 else ['']
+        cmd = 'onnx2tf', '-i', f_onnx, '-o', f, '-nuo', '--non_verbose', *int8
+        LOGGER.info(f"\n{prefix} running '{' '.join(cmd)}'")
+        subprocess.run(cmd, check=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Remove/rename TFLite models
@@ -643,25 +643,25 @@ class Exporter:
         """YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
         LOGGER.warning(f'{prefix} WARNING ⚠️ Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185')
 
-        cmd = 'edgetpu_compiler --version'
+        cmd = 'edgetpu_compiler', '--version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
         assert LINUX, f'export only supported on Linux. See {help_url}'
-        if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
+        if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
-            sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
+            sudo = subprocess.run(['sudo', '--version' '>/dev/null']).returncode == 0  # sudo installed
             for c in (
                     'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
                     'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
                     'sudo apt-get update', 'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
-        ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
+        ver = subprocess.run(cmd, capture_output=True, check=True).stdout.decode().split()[-1]
 
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
-        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir {Path(f).parent} {tflite_model}'
-        LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd.split(), check=True)
+        cmd = 'edgetpu_compiler', '-s', '-d', '-k', '10', '--out_dir', Path(f).parent, tflite_model
+        LOGGER.info(f"\n{prefix} running '{' '.join(cmd)}'")
+        subprocess.run(cmd, check=True)
         self._add_tflite_metadata(f)
         return f, None
 
@@ -682,8 +682,9 @@ class Exporter:
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
-        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} {f_pb} {f}'
-        subprocess.run(cmd.split(), check=True)
+        cmd = 'tensorflowjs_converter', '--input_format=tf_frozen_model', f'--output_node_names={outputs}', f_pb, f
+        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
+        subprocess.run(cmd, check=True)
 
         # f_json = Path(f) / 'model.json'  # *.json path
         # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order

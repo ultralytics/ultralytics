@@ -276,7 +276,9 @@ def handle_yolo_settings(args: List[str]) -> None:
             SETTINGS.reset()  # create new settings
             LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
         else:
-            SETTINGS.update(dot_notation_to_nested_dict(dict(parse_key_value_pair(a) for a in args)))
+            new = dict(parse_key_value_pair(a) for a in args)
+            check_dict_alignment(SETTINGS, new)
+            SETTINGS.update(new)
 
     yaml_print(SETTINGS_YAML)  # print the current settings
 

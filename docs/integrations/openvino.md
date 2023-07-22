@@ -129,7 +129,6 @@ Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
 
 This table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across four different formats (PyTorch, TorchScript, ONNX, OpenVINO), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
-
 ### Intel Arc GPU
 
 Intel® Arc™ represents Intel's foray into the dedicated GPU market. The Arc™ series, designed to compete with leading GPU manufacturers like AMD and Nvidia, caters to both the laptop and desktop markets. The series includes mobile versions for compact devices like laptops, and larger, more powerful versions for desktop computers.
@@ -202,7 +201,7 @@ Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
 | YOLOv8x | ONNX        | ✅      | 260.4     | 0.5371              | 111.02                 |
 | YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.5371              | 83.28                  |
 
-## Intel Core CPU
+### Intel Core CPU
 
 The Intel® Core® series is a range of high-performance processors by Intel. The lineup includes Core i3 (entry-level), Core i5 (mid-range), Core i7 (high-end), and Core i9 (extreme performance). Each series caters to different computing needs and budgets, from everyday tasks to demanding professional workloads. With each new generation, improvements are made to performance, energy efficiency, and features.
 
@@ -234,6 +233,30 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 | YOLOv8x | TorchScript | ✅      | 260.8     | 0.6650              | 921.46                 |
 | YOLOv8x | ONNX        | ✅      | 260.4     | 0.6650              | 526.66                 |
 | YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.6619              | 158.73                 |
+
+## Reproduce Ultralytics Benchmarks
+
+To reproduce the above benchmark results on your specific hardware and software run this code:
+
+!!! example ""
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+        
+        # Load a YOLOv8n PyTorch model
+        model = YOLO('yolov8n.pt')
+        
+        # Benchmark the model speed and accuracy on the COCO128 dataset
+        results= model.benchmarks(data='coco128.yaml')
+        ```
+    === "CLI"
+    
+        ```bash
+        # Benchmark a YOLOv8n model speed and accuracy on the COCO128 dataset
+        yolo benchmark model=yolov8n.pt data=coco128.yaml
+        ```
 
 ## Conclusion
 

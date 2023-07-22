@@ -141,12 +141,10 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ['3.11']
-        model: [yolov8n]
         torch: [latest]
         include:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
-            model: yolov8n
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v3

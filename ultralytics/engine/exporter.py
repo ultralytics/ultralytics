@@ -230,7 +230,7 @@ class Exporter:
         if model.task == 'pose':
             self.metadata['kpt_shape'] = model.model[-1].kpt_shape
 
-        LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
+        LOGGER.info(f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
                     f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)')
 
         # Exports
@@ -643,10 +643,10 @@ class Exporter:
         """YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
         LOGGER.warning(f'{prefix} WARNING ⚠️ Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185')
 
-        cmd = 'edgetpu_compiler', '--version'
+        cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
         assert LINUX, f'export only supported on Linux. See {help_url}'
-        if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+        if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run(['sudo', '--version'
                                    '>/dev/null']).returncode == 0  # sudo installed
@@ -655,14 +655,14 @@ class Exporter:
                     'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
                     'sudo apt-get update', 'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
-        ver = subprocess.run(cmd, capture_output=True, check=True).stdout.decode().split()[-1]
+        ver = subprocess.run(cmd, capture_output=True, shell=True).stdout.decode().split()[-1]
 
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
-        cmd = 'edgetpu_compiler', '-s', '-d', '-k', '10', '--out_dir', str(Path(f).parent), str(tflite_model)
-        LOGGER.info(f"\n{prefix} running '{' '.join(cmd)}'")
-        subprocess.run(cmd, check=True)
+        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
+        LOGGER.info(f"\n{prefix} running '{cmd}'")
+        subprocess.run(cmd, shell=True)
         self._add_tflite_metadata(f)
         return f, None
 

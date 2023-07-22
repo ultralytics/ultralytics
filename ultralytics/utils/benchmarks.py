@@ -5,7 +5,7 @@ Benchmark a YOLO model formats for speed and accuracy
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
     ProfileModels(['yolov8n.yaml', 'yolov8s.yaml']).profile()
-    run_benchmarks(model='yolov8n.pt', imgsz=160)
+    benchmark(model='yolov8n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -44,6 +44,7 @@ from ultralytics.utils.torch_utils import select_device
 
 
 def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
+              data=None,
               imgsz=160,
               data=None,
               half=False,
@@ -56,6 +57,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     Args:
         model (str | Path | optional): Path to the model file or directory. Default is
             Path(SETTINGS['weights_dir']) / 'yolov8n.pt'.
+        data (str, optional): Dataset to evaluate on, inherited from TASK2DATA if not passed. Default is None.
         imgsz (int, optional): Image size for the benchmark. Default is 160.
         data (str, optional): Dataset to evaluate on, inherited from TASK2DATA if not passed. Default is None.
         half (bool, optional): Use half-precision for the model if True. Default is False.

@@ -124,10 +124,10 @@ class PoseValidator(DetectionValidator):
             iou = kpt_iou(gt_kpts, pred_kpts, sigma=self.sigma, area=area)
         else:  # boxes
             iou = box_iou(labels[:, 1:], detections[:, :4])
-            
+
         if iou.numel() == 0:
             return torch.full((0, self.iouv.shape[0]), False, device=detections.device)
-            
+
         # calculate class matching matrix
         class_matching = labels[:, 0:1] == detections[:, 5]
         # find best matches for each detection
@@ -137,7 +137,7 @@ class PoseValidator(DetectionValidator):
         # true positive = IoU > threshold and classes match
         correct = matching.values.view(-1, 1) >= self.iouv.to(iou.device)
         correct = correct & class_matching[:, None]
-        
+
         return correct
 
     def plot_val_samples(self, batch, ni):

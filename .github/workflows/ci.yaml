@@ -80,7 +80,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ['3.10']
-        model: [yolov8n]
+        model: ['dir/path with spaces/yolov8n']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

@@ -80,7 +80,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.10']
-        model: ['dir/path with spaces/yolov8n']
+        model: ['weights/path with spaces/yolov8n']  # test spaces in model path
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

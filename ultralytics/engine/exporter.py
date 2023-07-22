@@ -585,9 +585,9 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
-        int8 = ['-oiqt', '-qt'
-                'per-tensor'] if self.args.int8 else ['']
-        cmd = 'onnx2tf', '-i', f_onnx, '-o', f, '-nuo', '--non_verbose', *int8
+        cmd = 'onnx2tf', '-i', f_onnx, '-o', f, '-nuo', '--non_verbose'
+        if self.args.int8:
+            cmd += '-oiqt', '-qt' 'per-tensor'
         LOGGER.info(f"\n{prefix} running '{' '.join(str(x) for x in cmd)}'")
         subprocess.run(cmd, check=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

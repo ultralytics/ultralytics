@@ -158,20 +158,21 @@ class DetectionValidator(BaseValidator):
             correct (array[N, 10]), for 10 IoU levels
         """
         iou = box_iou(labels[:, 1:], detections[:, :4])
-        correct = np.zeros((detections.shape[0], self.iouv.shape[0])).astype(bool)
-        correct_class = labels[:, 0:1] == detections[:, 5]
-        for i in range(len(self.iouv)):
-            x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
-            if x[0].shape[0]:
-                matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
-                                    1).cpu().numpy()  # [label, detect, iou]
-                if x[0].shape[0] > 1:
-                    matches = matches[matches[:, 2].argsort()[::-1]]
-                    matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                    # matches = matches[matches[:, 2].argsort()[::-1]]
-                    matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-                correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=detections.device)
+        
+        if iou.numel() == 0:
+            return torch.full((0, self.iouv.shape[0]), False, device=detections.device)
+            
+        # calculate class matching matrix
+        class_matching = labels[:, 0:1] == detections[:, 5]
+        # find best matches for each detection
+        matching = iou.max(0)
+        # for each best match, find out if the classes match
+        class_matching = class_matching[matching.indices, range(class_matching.shape[1])]
+        # true positive = IoU > threshold and classes match
+        correct = matching.values.view(-1, 1) >= self.iouv.to(iou.device)
+        correct = correct & class_matching[:, None]
+        
+        return correct
 
     def build_dataset(self, img_path, mode='val', batch=None):
         """Build YOLO Dataset

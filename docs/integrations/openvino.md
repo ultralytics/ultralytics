@@ -234,9 +234,9 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 | YOLOv8x | ONNX        | ✅      | 260.4     | 0.6650              | 526.66                 |
 | YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.6619              | 158.73                 |
 
-## Reproduce Ultralytics Benchmarks
+## Reproduce Our Results
 
-To reproduce the above benchmark results on your specific hardware and software run this code:
+To reproduce the Ultralytics benchmarks above run this code:
 
 !!! example ""
 
@@ -257,6 +257,10 @@ To reproduce the above benchmark results on your specific hardware and software 
         # Benchmark a YOLOv8n model speed and accuracy on the COCO128 dataset
         yolo benchmark model=yolov8n.pt data=coco128.yaml
         ```
+
+!!! note
+
+    Benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. 
 
 ## Conclusion
 

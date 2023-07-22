@@ -174,13 +174,13 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
         base (dict): a dictionary of base configuration options
     """
     custom = _handle_deprecation(custom)
-    base, custom = (set(x.keys()) for x in (base, custom))
-    mismatched = [x for x in custom if x not in base]
+    base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
+    mismatched = [k for k in custom_keys if k not in base_keys]
     if mismatched:
         string = ''
         for x in mismatched:
-            matches = get_close_matches(x, base)  # key list
-            matches = [f'{k}={DEFAULT_CFG_DICT[k]}' if DEFAULT_CFG_DICT.get(k) is not None else k for k in matches]
+            matches = get_close_matches(x, base_keys)  # key list
+            matches = [f'{k}={base[k]}' if base.get(k) is not None else k for k in matches]
             match_str = f'Similar arguments are i.e. {matches}.' if matches else ''
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
         raise SyntaxError(string + CLI_HELP_MSG) from e
@@ -250,11 +250,37 @@ def handle_yolo_settings(args: List[str]) -> None:
     Example:
         python my_script.py yolo settings reset
     """
-    if any(args) and args[0] == 'reset':
-        SETTINGS_YAML.unlink()  # delete the settings file
-        SETTINGS.reset()  # create new settings
-        LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
+    if any(args):
+        if args[0] == 'reset':
+            SETTINGS_YAML.unlink()  # delete the settings file
+            SETTINGS.reset()  # create new settings
+            LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
+        else:
+            SETTINGS.update(dict(parse_key_value_pair(a) for a in args))
+
     yaml_print(SETTINGS_YAML)  # print the current settings
+
+
+def parse_key_value_pair(pair):
+    """Parse one 'key=value' pair and return key and value."""
+    re.sub(r' *= *', '=', pair)  # remove spaces around equals sign
+    k, v = pair.split('=', 1)  # split on first '=' sign
+    assert v, f"missing '{k}' value"
+    return k, smart_value(v)
+
+
+def smart_value(v):
+    """Convert a string to an underlying type such as int, float, bool, etc."""
+    if v.lower() == 'none':
+        return None
+    elif v.lower() == 'true':
+        return True
+    elif v.lower() == 'false':
+        return False
+    else:
+        with contextlib.suppress(Exception):
+            return eval(v)
+        return v
 
 
 def entrypoint(debug=''):
@@ -303,22 +329,11 @@ def entrypoint(debug=''):
             a = a[:-1]
         if '=' in a:
             try:
-                re.sub(r' *= *', '=', a)  # remove spaces around equals sign
-                k, v = a.split('=', 1)  # split on first '=' sign
-                assert v, f"missing '{k}' value"
+                k, v = parse_key_value_pair(a)
                 if k == 'cfg':  # custom.yaml passed
                     LOGGER.info(f'Overriding {DEFAULT_CFG_PATH} with {v}')
                     overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != 'cfg'}
                 else:
-                    if v.lower() == 'none':
-                        v = None
-                    elif v.lower() == 'true':
-                        v = True
-                    elif v.lower() == 'false':
-                        v = False
-                    else:
-                        with contextlib.suppress(Exception):
-                            v = eval(v)
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
                 check_cfg_mismatch(full_args_dict, {a: ''}, e)

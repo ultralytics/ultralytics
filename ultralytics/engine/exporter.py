@@ -68,7 +68,7 @@ from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, W
                                colorstr, get_default_args, yaml_save)
 from ultralytics.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
-from ultralytics.utils.files import file_size
+from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
@@ -675,7 +675,6 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
         f_pb = str(self.file.with_suffix('.pb'))  # *.pb path
-        assert ' ' not in str(self.file), f"model path '{self.file}' must not contains spaces."
 
         gd = tf.Graph().as_graph_def()  # TF GraphDef
         with open(f_pb, 'rb') as file:
@@ -683,9 +682,13 @@ class Exporter:
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
-        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{f_pb}" "{f}"'
-        LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd, shell=True)
+        with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
+            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{fpb_}" "{f_}"'
+            LOGGER.info(f"{prefix} running '{cmd}'")
+            if ' ' in str(f):
+                LOGGER.warning(f"WARNING ⚠️ your TF.js model may not work correctly with spaces in path '{f}'.")
+
+            subprocess.run(cmd, shell=True)
 
         # f_json = Path(f) / 'model.json'  # *.json path
         # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order

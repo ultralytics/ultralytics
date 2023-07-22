@@ -718,11 +718,11 @@ class SettingsManager(dict):
     Manages Ultralytics settings stored in a YAML file.
 
     Args:
-        file (Path): Path to the Ultralytics settings YAML file.
-        version (str): Settings version.
+        file (str | Path): Path to the Ultralytics settings YAML file. Default is USER_CONFIG_DIR / 'settings.yaml'.
+        version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
 
-    def __init__(self, file: Path = SETTINGS_YAML, version: str = '0.0.3'):
+    def __init__(self, file=SETTINGS_YAML, version='0.0.3'):
         import hashlib
 
         from ultralytics.utils.checks import check_version
@@ -732,7 +732,7 @@ class SettingsManager(dict):
         root = git_dir or Path()
         datasets_root = (root.parent if git_dir and is_dir_writeable(root.parent) else root).resolve()
 
-        self.file = file
+        self.file = Path(file)
         self.version = version
         self.defaults = {
             'datasets_dir': str(datasets_root / 'datasets'),

@@ -112,7 +112,7 @@ def try_export(inner_func):
         try:
             with Profile() as dt:
                 f, model = inner_func(*args, **kwargs)
-            LOGGER.info(f'{prefix} export success ✅ {dt.t:.1f}s, saved as {f} ({file_size(f):.1f} MB)')
+            LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
             return f, model
         except Exception as e:
             LOGGER.info(f'{prefix} export failure ❌ {dt.t:.1f}s: {e}')
@@ -682,9 +682,9 @@ class Exporter:
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
-        cmd = 'tensorflowjs_converter', '--input_format=tf_frozen_model', f'--output_node_names={outputs}', f_pb, f
-        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
-        subprocess.run(cmd, check=True)
+        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{f_pb}" "{f}"'
+        LOGGER.info(f"{prefix} running '{cmd}'")
+        subprocess.run(cmd, shell=True)
 
         # f_json = Path(f) / 'model.json'  # *.json path
         # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order

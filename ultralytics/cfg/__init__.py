@@ -9,9 +9,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
-                               IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, get_settings,
-                               yaml_load, yaml_print)
+from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, SETTINGS, USER_CONFIG_DIR,
+                               IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
+                               yaml_print)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
@@ -254,7 +254,7 @@ def handle_yolo_settings(args: List[str]) -> None:
     path = USER_CONFIG_DIR / 'settings.yaml'  # get SETTINGS YAML file path
     if any(args) and args[0] == 'reset':
         path.unlink()  # delete the settings file
-        get_settings()  # create new settings
+        SETTINGS.reset()  # create new settings
         LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
     yaml_print(path)  # print the current settings
 

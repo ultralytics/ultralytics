@@ -236,7 +236,7 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 ## Reproduce Our Results
 
-To reproduce the Ultralytics benchmarks above run this code:
+To reproduce the Ultralytics benchmarks above on all export [formats](/modes/export.md) run this code:
 
 !!! example ""
 
@@ -248,19 +248,17 @@ To reproduce the Ultralytics benchmarks above run this code:
         # Load a YOLOv8n PyTorch model
         model = YOLO('yolov8n.pt')
         
-        # Benchmark the model speed and accuracy on the COCO128 dataset
+        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
         results= model.benchmarks(data='coco128.yaml')
         ```
     === "CLI"
     
         ```bash
-        # Benchmark a YOLOv8n model speed and accuracy on the COCO128 dataset
+        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
         yolo benchmark model=yolov8n.pt data=coco128.yaml
         ```
 
-!!! note
-
-    Benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. 
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco128.yaml' (128 val images), or `data='coco.yaml'` (5000 val images).
 
 ## Conclusion
 

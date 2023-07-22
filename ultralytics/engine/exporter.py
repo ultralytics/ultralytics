@@ -675,7 +675,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
         f_pb = str(self.file.with_suffix('.pb'))  # *.pb path
-        assert ' ' not in self.file, f"model path '{self.file}' must not contains spaces."
+        assert ' ' not in str(self.file), f"model path '{self.file}' must not contains spaces."
 
         gd = tf.Graph().as_graph_def()  # TF GraphDef
         with open(f_pb, 'rb') as file:

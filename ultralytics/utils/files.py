@@ -4,6 +4,8 @@ import contextlib
 import glob
 import os
 import shutil
+import tempfile
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -23,6 +25,57 @@ class WorkingDirectory(contextlib.ContextDecorator):
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Restore the current working directory on context exit."""
         os.chdir(self.cwd)
+
+
+@contextmanager
+def spaces_in_path(path):
+    """
+    Context manager to handle paths with spaces in their names.
+    If a path contains spaces, it replaces them with underscores, copies the file/directory to the new path,
+    executes the context code block, then copies the file/directory back to its original location.
+
+    Args:
+        path (str | Path): The original path.
+
+    Yields:
+        Path: Temporary path with spaces replaced by underscores if spaces were present, otherwise the original path.
+
+    Examples:
+        with spaces_in_path('/path/with spaces') as new_path:
+            # your code here
+    """
+
+    # If path has spaces, replace them with underscores
+    if ' ' in str(path):
+        string = isinstance(path, str)  # input type
+        path = Path(path)
+
+        # Create a temporary directory and construct the new path
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir) / path.name.replace(' ', '_')
+
+            # Copy file/directory
+            if path.is_dir():
+                # tmp_path.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(path, tmp_path)
+            elif path.is_file():
+                tmp_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(path, tmp_path)
+
+            try:
+                # Yield the temporary path
+                yield str(tmp_path) if string else tmp_path
+
+            finally:
+                # Copy file/directory back
+                if tmp_path.is_dir():
+                    shutil.copytree(tmp_path, path, dirs_exist_ok=True)
+                elif tmp_path.is_file():
+                    shutil.copy2(tmp_path, path)  # Copy back the file
+
+    else:
+        # If there are no spaces, just yield the original path
+        yield path
 
 
 def increment_path(path, exist_ok=False, sep='', mkdir=False):

@@ -146,9 +146,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 
 
 def _handle_deprecation(custom):
-    """
-    Hardcoded function to handle deprecated config keys
-    """
+    """Hardcoded function to handle deprecated config keys"""
 
     for key in custom.copy().keys():
         if key == 'hide_labels':
@@ -237,6 +235,28 @@ def handle_yolo_hub(args: List[str]) -> None:
         hub.logout()
 
 
+def dot_notation_to_nested_dict(dot_dict):
+    """
+    Converts a dictionary with dot notation keys into a nested dictionary.
+
+    Args:
+        dot_dict (dict): Dictionary with dot notation keys.
+            Example: {"integrations.hub": True}
+
+    Returns:
+        (dict): Nested dictionary constructed from the input.
+            Example: {"integrations": {"hub": True}}
+    """
+    nested_dict = {}
+    for k, v in dot_dict.items():
+        keys = k.split('.')
+        current_level = nested_dict
+        for key in keys[:-1]:
+            current_level = current_level.setdefault(key, {})
+        current_level[keys[-1]] = v
+    return nested_dict
+
+
 def handle_yolo_settings(args: List[str]) -> None:
     """
     Handle YOLO settings command-line interface (CLI) commands.
@@ -256,7 +276,7 @@ def handle_yolo_settings(args: List[str]) -> None:
             SETTINGS.reset()  # create new settings
             LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
         else:
-            SETTINGS.update(dict(parse_key_value_pair(a) for a in args))
+            SETTINGS.update(dot_notation_to_nested_dict(dict(parse_key_value_pair(a) for a in args)))
 
     yaml_print(SETTINGS_YAML)  # print the current settings
 
@@ -357,7 +377,7 @@ def entrypoint(debug=''):
     check_dict_alignment(full_args_dict, overrides)
 
     # Mode
-    mode = overrides.get('mode', None)
+    mode = overrides.get('mode')
     if mode is None:
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")

@@ -713,6 +713,24 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
+def update_dict_recursive(d, u):
+    """
+    Recursively updates the dictionary `d` with the key-value pairs from the dictionary `u` without overwriting
+    entire sub-dictionaries. Note that function recursion is intended and not a problem, as this allows for updating
+    nested dictionaries at any arbitrary depth.
+
+    Args:
+        d (dict): The dictionary to be updated.
+        u (dict): The dictionary to update `d` with.
+
+    Returns:
+        (dict): The recursively updated dictionary.
+    """
+    for k, v in u.items():
+        d[k] = update_dict_recursive(d.get(k, {}), v) if isinstance(v, dict) else v
+    return d
+
+
 class SettingsManager(dict):
     """
     Manages Ultralytics settings stored in a YAML file.
@@ -723,6 +741,7 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version='0.0.3'):
+        import copy
         import hashlib
 
         from ultralytics.utils.checks import check_version
@@ -753,7 +772,7 @@ class SettingsManager(dict):
                 'tensorboard': True,
                 'wandb': True}}
 
-        super().__init__(self.defaults)
+        super().__init__(copy.deepcopy(self.defaults))
 
         with torch_distributed_zero_first(RANK):
             if not self.file.exists():
@@ -779,7 +798,12 @@ class SettingsManager(dict):
 
     def update(self, *args, **kwargs):
         """Updates a setting value in the current settings and saves the settings."""
-        super().update(*args, **kwargs)
+        new = dict(*args, **kwargs)
+        if any(isinstance(v, dict) for v in new.values()):
+            update_dict_recursive(self, new)
+        else:
+            # super().update(*args, **kwargs)
+            super().update(new)
         self.save()
 
     def reset(self):

@@ -410,7 +410,7 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with ncnn {ncnn.__version__}...')
         f = Path(str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}'))
-        f_ts = str(self.file.with_suffix('.torchscript'))
+        f_ts = self.file.with_suffix('.torchscript')
 
         pnnx_filename = 'pnnx.exe' if WINDOWS else 'pnnx'
         if Path(pnnx_filename).is_file():
@@ -434,7 +434,7 @@ class Exporter:
 
         cmd = [
             str(pnnx),
-            f_ts,
+            str(f_ts),
             f'pnnxparam={f / "model.pnnx.param"}',
             f'pnnxbin={f / "model.pnnx.bin"}',
             f'pnnxpy={f / "model_pnnx.py"}',
@@ -446,7 +446,7 @@ class Exporter:
             f'device={self.device.type}',
             f'inputshape="{[self.args.batch, 3, *self.imgsz]}"', ]
         f.mkdir(exist_ok=True)  # make ncnn_model directory
-        LOGGER.info(f"{prefix} running '{' '.join(str(x) for x in cmd)}'")
+        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
         for f_debug in 'debug.bin', 'debug.param', 'debug2.bin', 'debug2.param':  # remove debug files
             Path(f_debug).unlink(missing_ok=True)
@@ -585,10 +585,10 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
-        cmd = 'onnx2tf', '-i', f_onnx, '-o', f, '-nuo', '--non_verbose'
+        cmd = 'onnx2tf', '-i', str(f_onnx), '-o', str(f), '-nuo', '--non_verbose'
         if self.args.int8:
             cmd += '-oiqt', '-qt' 'per-tensor'
-        LOGGER.info(f"\n{prefix} running '{' '.join(str(x) for x in cmd)}'")
+        LOGGER.info(f"\n{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
@@ -661,8 +661,8 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
-        cmd = 'edgetpu_compiler', '-s', '-d', '-k', '10', '--out_dir', Path(f).parent, tflite_model
-        LOGGER.info(f"\n{prefix} running '{' '.join(str(x) for x in cmd)}'")
+        cmd = 'edgetpu_compiler', '-s', '-d', '-k', '10', '--out_dir', str(Path(f).parent), str(tflite_model)
+        LOGGER.info(f"\n{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
         self._add_tflite_metadata(f)
         return f, None
@@ -676,7 +676,7 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
-        f_pb = self.file.with_suffix('.pb')  # *.pb path
+        f_pb = str(self.file.with_suffix('.pb'))  # *.pb path
 
         gd = tf.Graph().as_graph_def()  # TF GraphDef
         with open(f_pb, 'rb') as file:
@@ -685,7 +685,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
         cmd = 'tensorflowjs_converter', '--input_format=tf_frozen_model', f'--output_node_names={outputs}', f_pb, f
-        LOGGER.info(f"{prefix} running '{' '.join(str(x) for x in cmd)}'")
+        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
 
         # f_json = Path(f) / 'model.json'  # *.json path

@@ -685,10 +685,10 @@ class Exporter:
         with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
             cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{fpb_}" "{f_}"'
             LOGGER.info(f"{prefix} running '{cmd}'")
-            if ' ' in str(f):
-                LOGGER.warning(f"WARNING ⚠️ your TF.js model may not work correctly with spaces in path '{f}'.")
-
             subprocess.run(cmd, shell=True)
+
+        if ' ' in str(f):
+            LOGGER.warning(f"WARNING ⚠️ your TF.js model may not work correctly with spaces in path '{f}'.")
 
         # f_json = Path(f) / 'model.json'  # *.json path
         # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order

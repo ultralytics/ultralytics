@@ -7,7 +7,7 @@ try:
 
     assert hasattr(wb, '__version__')
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS['integrations']['wandb'] is True  # verify integration is enabled
+    assert SETTINGS['wandb'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     wb = None
 

@@ -6,7 +6,7 @@ try:
     from torch.utils.tensorboard import SummaryWriter
 
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS['integrations']['tensorboard'] is True  # verify integration is enabled
+    assert SETTINGS['tensorboard'] is True  # verify integration is enabled
 
 # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
 except (ImportError, AssertionError, TypeError):

@@ -754,23 +754,22 @@ class SettingsManager(dict):
         self.file = Path(file)
         self.version = version
         self.defaults = {
+            'settings_version': version,
             'datasets_dir': str(datasets_root / 'datasets'),
             'weights_dir': str(root / 'weights'),
             'runs_dir': str(root / 'runs'),
             'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),
             'sync': True,
             'api_key': '',
-            'settings_version': version,
-            'integrations': {
-                'clearml': True,
-                'comet': True,
-                'dvc': True,
-                'hub': True,
-                'mlflow': True,
-                'neptune': True,
-                'raytune': True,
-                'tensorboard': True,
-                'wandb': True}}
+            'clearml': True,  # integrations
+            'comet': True,
+            'dvc': True,
+            'hub': True,
+            'mlflow': True,
+            'neptune': True,
+            'raytune': True,
+            'tensorboard': True,
+            'wandb': True}
 
         super().__init__(copy.deepcopy(self.defaults))
 
@@ -782,10 +781,12 @@ class SettingsManager(dict):
             correct_keys = self.keys() == self.defaults.keys()
             correct_types = all(type(a) == type(b) for a, b in zip(self.values(), self.defaults.values()))
             correct_version = check_version(self['settings_version'], self.version)
-            if not correct_keys and correct_types and correct_version:
-                LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. This is normal and may be due to a '
-                               'recent ultralytics package update, but may have overwritten previous settings. '
-                               f"\nView and update settings with 'yolo settings' or at '{self.file}'")
+            if not (correct_keys and correct_types and correct_version):
+                LOGGER.warning(
+                    'WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem '
+                    'with your settings or a recent ultralytics package update. '
+                    f"\nView settings with 'yolo settings' or at '{self.file}'"
+                    "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'.")
                 self.reset()
 
     def load(self):

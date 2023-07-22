@@ -12,7 +12,7 @@ try:
 
     assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(neptune, '__version__')
-    assert SETTINGS['integrations']['neptune'] is True  # verify integration is enabled
+    assert SETTINGS['neptune'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     neptune = None
 

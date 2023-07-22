@@ -11,7 +11,7 @@ try:
 
     assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(comet_ml, '__version__')  # verify package is not directory
-    assert SETTINGS['integrations']['comet'] is True  # verify integration is enabled
+    assert SETTINGS['comet'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     comet_ml = None
 

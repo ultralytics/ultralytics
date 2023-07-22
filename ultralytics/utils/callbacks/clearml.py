@@ -16,7 +16,7 @@ try:
 
     assert hasattr(clearml, '__version__')  # verify package is not directory
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS['integrations']['clearml'] is True  # verify integration is enabled
+    assert SETTINGS['clearml'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     clearml = None
 

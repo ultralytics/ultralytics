@@ -7,7 +7,7 @@ try:
     from ray import tune
     from ray.air import session
 
-    assert SETTINGS['integrations']['raytune'] is True  # verify integration is enabled
+    assert SETTINGS['raytune'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     tune = None
 

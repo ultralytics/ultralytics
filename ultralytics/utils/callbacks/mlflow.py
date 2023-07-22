@@ -11,7 +11,7 @@ try:
 
     assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(mlflow, '__version__')  # verify package is not directory
-    assert SETTINGS['integrations']['mlflow'] is True  # verify integration is enabled
+    assert SETTINGS['mlflow'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     mlflow = None
 

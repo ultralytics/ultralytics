@@ -12,7 +12,7 @@ try:
     import dvclive
 
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS['integrations']['dvc'] is True  # verify integration is enabled
+    assert SETTINGS['dvc'] is True  # verify integration is enabled
 
     ver = version('dvclive')
     if pkg.parse_version(ver) < pkg.parse_version('2.11.0'):

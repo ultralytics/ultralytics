@@ -446,7 +446,7 @@ class Exporter:
             f'device={self.device.type}',
             f'inputshape="{[self.args.batch, 3, *self.imgsz]}"', ]
         f.mkdir(exist_ok=True)  # make ncnn_model directory
-        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
+        LOGGER.info(f"{prefix} running '{' '.join(str(x) for x in cmd)}'")
         subprocess.run(cmd, check=True)
         for f_debug in 'debug.bin', 'debug.param', 'debug2.bin', 'debug2.param':  # remove debug files
             Path(f_debug).unlink(missing_ok=True)
@@ -588,7 +588,7 @@ class Exporter:
         int8 = ['-oiqt', '-qt'
                 'per-tensor'] if self.args.int8 else ['']
         cmd = 'onnx2tf', '-i', f_onnx, '-o', f, '-nuo', '--non_verbose', *int8
-        LOGGER.info(f"\n{prefix} running '{' '.join(cmd)}'")
+        LOGGER.info(f"\n{prefix} running '{' '.join(str(x) for x in cmd)}'")
         subprocess.run(cmd, check=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
@@ -662,7 +662,7 @@ class Exporter:
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
         cmd = 'edgetpu_compiler', '-s', '-d', '-k', '10', '--out_dir', Path(f).parent, tflite_model
-        LOGGER.info(f"\n{prefix} running '{' '.join(cmd)}'")
+        LOGGER.info(f"\n{prefix} running '{' '.join(str(x) for x in cmd)}'")
         subprocess.run(cmd, check=True)
         self._add_tflite_metadata(f)
         return f, None
@@ -685,7 +685,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
         cmd = 'tensorflowjs_converter', '--input_format=tf_frozen_model', f'--output_node_names={outputs}', f_pb, f
-        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
+        LOGGER.info(f"{prefix} running '{' '.join(str(x) for x in cmd)}'")
         subprocess.run(cmd, check=True)
 
         # f_json = Path(f) / 'model.json'  # *.json path

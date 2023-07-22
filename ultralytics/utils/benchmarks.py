@@ -46,7 +46,6 @@ from ultralytics.utils.torch_utils import select_device
 def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
               data=None,
               imgsz=160,
-              data=None,
               half=False,
               int8=False,
               device='cpu',
@@ -59,7 +58,6 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             Path(SETTINGS['weights_dir']) / 'yolov8n.pt'.
         data (str, optional): Dataset to evaluate on, inherited from TASK2DATA if not passed. Default is None.
         imgsz (int, optional): Image size for the benchmark. Default is 160.
-        data (str, optional): Dataset to evaluate on, inherited from TASK2DATA if not passed. Default is None.
         half (bool, optional): Use half-precision for the model if True. Default is False.
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.

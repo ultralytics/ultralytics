@@ -688,7 +688,7 @@ class Exporter:
             subprocess.run(cmd, shell=True)
 
         if ' ' in str(f):
-            LOGGER.warning(f"WARNING ⚠️ your TF.js model may not work correctly with spaces in path '{f}'.")
+            LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
 
         # f_json = Path(f) / 'model.json'  # *.json path
         # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order

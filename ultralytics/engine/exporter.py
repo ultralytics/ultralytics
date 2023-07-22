@@ -648,20 +648,19 @@ class Exporter:
         assert LINUX, f'export only supported on Linux. See {help_url}'
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
-            sudo = subprocess.run(['sudo', '--version'
-                                   '>/dev/null']).returncode == 0  # sudo installed
+            sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
             for c in (
                     'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
                     'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
                     'sudo apt-get update', 'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
-        ver = subprocess.run(cmd, capture_output=True, shell=True).stdout.decode().split()[-1]
+        ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
         cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
-        LOGGER.info(f"\n{prefix} running '{cmd}'")
+        LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         self._add_tflite_metadata(f)
         return f, None

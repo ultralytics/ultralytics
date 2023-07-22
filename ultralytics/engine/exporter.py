@@ -340,7 +340,7 @@ class Exporter:
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
-                # subprocess.run(('onnxsim', f, f), check=True)
+                # subprocess.run(f'onnxsim "{f}" "{f}"', shell=True)
                 model_onnx, check = onnxsim.simplify(model_onnx)
                 assert check, 'Simplified ONNX model could not be validated'
             except Exception as e:

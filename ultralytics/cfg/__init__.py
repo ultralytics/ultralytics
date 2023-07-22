@@ -9,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, SETTINGS, USER_CONFIG_DIR,
+from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, SETTINGS, SETTINGS_YAML,
                                IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
                                yaml_print)
 
@@ -27,7 +27,6 @@ TASK2METRIC = {
     'segment': 'metrics/mAP50-95(M)',
     'classify': 'metrics/accuracy_top1',
     'pose': 'metrics/mAP50-95(P)'}
-
 
 CLI_HELP_MSG = \
     f"""
@@ -251,12 +250,11 @@ def handle_yolo_settings(args: List[str]) -> None:
     Example:
         python my_script.py yolo settings reset
     """
-    path = USER_CONFIG_DIR / 'settings.yaml'  # get SETTINGS YAML file path
     if any(args) and args[0] == 'reset':
-        path.unlink()  # delete the settings file
+        SETTINGS_YAML.unlink()  # delete the settings file
         SETTINGS.reset()  # create new settings
         LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
-    yaml_print(path)  # print the current settings
+    yaml_print(SETTINGS_YAML)  # print the current settings
 
 
 def entrypoint(debug=''):

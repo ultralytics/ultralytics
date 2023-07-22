@@ -65,7 +65,7 @@ Here is an example:
 
 ```python
 """
-   What the function does. Performs NMS on given detection predictions.
+    What the function does. Performs NMS on given detection predictions.
 
     Args:
         arg1: The description of the 1st argument

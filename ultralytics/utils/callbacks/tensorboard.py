@@ -7,7 +7,9 @@ try:
 
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['integrations']['tensorboard'] is True  # verify integration is enabled
-except (ImportError, AssertionError):
+
+# TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
+except (ImportError, AssertionError, TypeError):
     SummaryWriter = None
 
 writer = None  # TensorBoard SummaryWriter instance

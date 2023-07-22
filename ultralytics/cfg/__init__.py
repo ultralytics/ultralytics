@@ -110,7 +110,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     # Merge overrides
     if overrides:
         overrides = cfg2dict(overrides)
-        check_cfg_mismatch(cfg, overrides)
+        check_dict_alignment(cfg, overrides)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
     # Special handling for numeric project/name
@@ -164,7 +164,7 @@ def _handle_deprecation(custom):
     return custom
 
 
-def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
+def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
     This function checks for any mismatched keys between a custom configuration list and a base configuration list.
     If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
@@ -336,7 +336,7 @@ def entrypoint(debug=''):
                 else:
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
-                check_cfg_mismatch(full_args_dict, {a: ''}, e)
+                check_dict_alignment(full_args_dict, {a: ''}, e)
 
         elif a in TASKS:
             overrides['task'] = a
@@ -351,10 +351,10 @@ def entrypoint(debug=''):
             raise SyntaxError(f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
                               f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}")
         else:
-            check_cfg_mismatch(full_args_dict, {a: ''})
+            check_dict_alignment(full_args_dict, {a: ''})
 
     # Check keys
-    check_cfg_mismatch(full_args_dict, overrides)
+    check_dict_alignment(full_args_dict, overrides)
 
     # Mode
     mode = overrides.get('mode', None)

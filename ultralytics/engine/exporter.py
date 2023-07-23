@@ -68,7 +68,7 @@ from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, W
                                colorstr, get_default_args, yaml_save)
 from ultralytics.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
-from ultralytics.utils.files import file_size
+from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
@@ -112,7 +112,7 @@ def try_export(inner_func):
         try:
             with Profile() as dt:
                 f, model = inner_func(*args, **kwargs)
-            LOGGER.info(f'{prefix} export success ✅ {dt.t:.1f}s, saved as {f} ({file_size(f):.1f} MB)')
+            LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
             return f, model
         except Exception as e:
             LOGGER.info(f'{prefix} export failure ❌ {dt.t:.1f}s: {e}')
@@ -230,7 +230,7 @@ class Exporter:
         if model.task == 'pose':
             self.metadata['kpt_shape'] = model.model[-1].kpt_shape
 
-        LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
+        LOGGER.info(f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
                     f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)')
 
         # Exports
@@ -340,7 +340,7 @@ class Exporter:
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
-                # subprocess.run(f'onnxsim {f} {f}', shell=True)
+                # subprocess.run(f'onnxsim "{f}" "{f}"', shell=True)
                 model_onnx, check = onnxsim.simplify(model_onnx)
                 assert check, 'Simplified ONNX model could not be validated'
             except Exception as e:
@@ -410,7 +410,7 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with ncnn {ncnn.__version__}...')
         f = Path(str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}'))
-        f_ts = str(self.file.with_suffix('.torchscript'))
+        f_ts = self.file.with_suffix('.torchscript')
 
         pnnx_filename = 'pnnx.exe' if WINDOWS else 'pnnx'
         if Path(pnnx_filename).is_file():
@@ -434,7 +434,7 @@ class Exporter:
 
         cmd = [
             str(pnnx),
-            f_ts,
+            str(f_ts),
             f'pnnxparam={f / "model.pnnx.param"}',
             f'pnnxbin={f / "model.pnnx.bin"}',
             f'pnnxpy={f / "model_pnnx.py"}',
@@ -586,8 +586,8 @@ class Exporter:
 
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
-        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'
+        LOGGER.info(f"\n{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
@@ -659,9 +659,9 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
-        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir {Path(f).parent} {tflite_model}'
+        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
         LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd.split(), check=True)
+        subprocess.run(cmd, shell=True)
         self._add_tflite_metadata(f)
         return f, None
 
@@ -674,7 +674,7 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
-        f_pb = self.file.with_suffix('.pb')  # *.pb path
+        f_pb = str(self.file.with_suffix('.pb'))  # *.pb path
 
         gd = tf.Graph().as_graph_def()  # TF GraphDef
         with open(f_pb, 'rb') as file:
@@ -682,8 +682,13 @@ class Exporter:
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
-        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} {f_pb} {f}'
-        subprocess.run(cmd.split(), check=True)
+        with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
+            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{fpb_}" "{f_}"'
+            LOGGER.info(f"{prefix} running '{cmd}'")
+            subprocess.run(cmd, shell=True)
+
+        if ' ' in str(f):
+            LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
 
         # f_json = Path(f) / 'model.json'  # *.json path
         # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order

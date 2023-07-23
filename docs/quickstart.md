@@ -240,7 +240,7 @@ Sure, here's the updated table:
 | `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                               |
 | `comet`            | `True`                | `bool`    | Whether to use Comet ML logging                                              |
 | `dvc`              | `True`                | `bool`    | Whether to use DVC for version control                                       |
-| `hub`              | `True`                | `bool`    | Whether to use Ultralytics HUB integration                                   |
+| `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB](https://hub.ultralytics.com) integration    |
 | `mlflow`           | `True`                | `bool`    | Whether to use MLFlow for experiment tracking                                |
 | `neptune`          | `True`                | `bool`    | Whether to use Neptune for experiment tracking                               |
 | `raytune`          | `True`                | `bool`    | Whether to use Ray Tune for hyperparameter tuning                            |

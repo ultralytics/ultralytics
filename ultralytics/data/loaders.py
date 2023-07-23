@@ -164,17 +164,21 @@ class LoadImages:
 
     def __init__(self, path, imgsz=640, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
+        parent = None
         if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
+            parent = Path(path).parent
             path = Path(path).read_text().rsplit()
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
-            p = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
-            if '*' in p:
-                files.extend(sorted(glob.glob(p, recursive=True)))  # glob
-            elif os.path.isdir(p):
-                files.extend(sorted(glob.glob(os.path.join(p, '*.*'))))  # dir
-            elif os.path.isfile(p):
-                files.append(p)  # files
+            a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
+            if '*' in a:
+                files.extend(sorted(glob.glob(a, recursive=True)))  # glob
+            elif os.path.isdir(a):
+                files.extend(sorted(glob.glob(os.path.join(a, '*.*'))))  # dir
+            elif os.path.isfile(a):
+                files.append(a)  # files (absolute or relative to CWD)
+            elif parent and (parent / p).is_file():
+                files.append(str((parent / p).absolute()))  # files (relative to *.txt file parent)
             else:
                 raise FileNotFoundError(f'{p} does not exist')
 

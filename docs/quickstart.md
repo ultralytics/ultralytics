@@ -181,3 +181,70 @@ For example, users can load a model, train it, evaluate its performance on a val
     ```
 
 [Python Guide](usage/python.md){.md-button .md-button--primary}
+
+## Ultralytics Settings
+
+Ultralytics provides a flexible settings management system for configuring and managing your experiments. The settings are managed by the `SettingsManager` in the `ultralytics.utils` module. The settings are stored in a YAML file, and you can view and modify these settings directly through Python code or through the command-line interface (CLI).
+
+### Viewing Settings
+
+!!! example "Viewing settings"
+
+    === "Python"
+    You can view your settings in Python by importing the `settings` object from the `ultralytics.utils` module:
+    ```python
+    from ultralytics import settings
+    
+    print(settings)
+    ```
+
+    === "CLI"
+    You can also view your settings from the command line by running the following command:
+    ```bash
+    yolo settings
+    ```
+
+### Updating Settings
+
+!!! example "Updating settings"
+
+    === "Python"
+    You can update your settings in Python by calling the `update` method on the `settings` object:
+    ```python
+    from ultralytics import settings
+    
+    settings.update({'runs_dir':'/path/to/runs'})
+    ```
+    
+    === "CLI"
+    You can also update your settings from the command line as follows:
+    ```
+    yolo settings runs_dir=/path/to/runs
+    ```
+
+### Settings Descriptions
+
+Below is a table detailing the available settings that can be adjusted.
+
+Sure, here's the updated table:
+
+| Name               | Example Value         | Data Type | Description                                                                  |
+|--------------------|-----------------------|-----------|------------------------------------------------------------------------------|
+| `settings_version` | `'0.0.3'`             | `str`     | Ultralytics settings version number                                          |
+| `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                  |
+| `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                             |
+| `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                           |
+| `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                               |
+| `sync`             | `True`                | `bool`    | Whether to sync the settings across different instances                      |
+| `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys) |
+| `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                               |
+| `comet`            | `True`                | `bool`    | Whether to use Comet ML logging                                              |
+| `dvc`              | `True`                | `bool`    | Whether to use DVC for version control                                       |
+| `hub`              | `True`                | `bool`    | Whether to use Ultralytics HUB integration                                   |
+| `mlflow`           | `True`                | `bool`    | Whether to use MLFlow for experiment tracking                                |
+| `neptune`          | `True`                | `bool`    | Whether to use Neptune for experiment tracking                               |
+| `raytune`          | `True`                | `bool`    | Whether to use Ray Tune for hyperparameter tuning                            |
+| `tensorboard`      | `True`                | `bool`    | Whether to use TensorBoard for visualization                                 |
+| `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases for experiment tracking and visualization    |
+
+Please remember to review and update your settings as necessary for your specific project or experiment needs.

@@ -214,7 +214,7 @@ To gain insight into the current configuration of your settings, you can view th
 
 Ultralytics allows users to easily modify their settings. Changes can be performed in the following ways:
 
-!!! example "Updating settings"
+!!! example "Update settings"
 
     === "Python"
         Within the Python environment, call the `update` method on the `settings` object to change your settings:

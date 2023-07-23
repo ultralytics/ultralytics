@@ -562,7 +562,6 @@ class Exporter:
         return f, None
 
     @try_export
-@try_export
     def export_saved_model(self, prefix=colorstr('TensorFlow SavedModel:')):
         """YOLOv8 TensorFlow SavedModel export."""
         try:
@@ -618,10 +617,11 @@ class Exporter:
 
         # Remove/rename TFLite models
         if self.args.int8:
+            calib_file.unlink()
+            for file in f.rglob('*_dynamic_range_quant.tflite'):
+                file.rename(file.with_name(file.stem.replace('_dynamic_range_quant', '_int8') + file.suffix))
             for file in f.rglob('*_integer_quant_with_int16_act.tflite'):
                 file.unlink()  # delete extra fp16 activation TFLite files
-            # Remove caliblation data file
-            calib_file.unlink()
 
         # Add TFLite metadata
         for file in f.rglob('*.tflite'):

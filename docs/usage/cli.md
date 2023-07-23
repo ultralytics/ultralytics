@@ -74,7 +74,7 @@ Where:
 
 !!! warning "Warning"
 
-    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` beteen arguments.
+    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
     - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
@@ -88,7 +88,7 @@ the [Configuration](cfg.md) page.
 !!! example "Example"
 
     === "Train"
-        
+
         Start training YOLOv8n on COCO128 for 100 epochs at image-size 640.
         ```bash
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640

@@ -41,20 +41,20 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a ful
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.yaml')  # build a new model from YAML
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
         model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
-        
+
         # Train the model
         model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
-    
+
         ```bash
         # Build a new model from YAML and start training from scratch
         yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
@@ -77,14 +77,14 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
         metrics.box.map    # map50-95
@@ -93,7 +93,7 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
         metrics.box.maps   # a list contains map50-95 of each category
         ```
     === "CLI"
-    
+
         ```bash
         yolo detect val model=yolov8n.pt  # val official model
         yolo detect val model=path/to/best.pt  # val custom model
@@ -106,19 +106,19 @@ Use a trained YOLOv8n model to run predictions on images.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
     === "CLI"
-    
+
         ```bash
         yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
         yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
@@ -133,19 +133,19 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom trained
-        
+
         # Export the model
         model.export(format='onnx')
         ```
     === "CLI"
-    
+
         ```bash
         yolo export model=yolov8n.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model

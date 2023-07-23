@@ -47,10 +47,10 @@ To train a YOLOv8n model on the VOC dataset for 100 epochs with an image size of
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='VOC.yaml', epochs=100, imgsz=640)
         ```
@@ -79,7 +79,7 @@ If you use the VOC dataset in your research or development work, please cite the
 
 ```bibtex
 @misc{everingham2010pascal,
-      title={The PASCAL Visual Object Classes (VOC) Challenge}, 
+      title={The PASCAL Visual Object Classes (VOC) Challenge},
       author={Mark Everingham and Luc Van Gool and Christopher K. I. Williams and John Winn and Andrew Zisserman},
       year={2010},
       eprint={0909.5206},

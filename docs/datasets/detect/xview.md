@@ -50,10 +50,10 @@ To train a model on the xView dataset for 100 epochs with an image size of 640, 
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='xView.yaml', epochs=100, imgsz=640)
         ```
@@ -81,7 +81,7 @@ If you use the xView dataset in your research or development work, please cite t
 
 ```bibtex
 @misc{lam2018xview,
-      title={xView: Objects in Context in Overhead Imagery}, 
+      title={xView: Objects in Context in Overhead Imagery},
       author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
       year={2018},
       eprint={1802.07856},

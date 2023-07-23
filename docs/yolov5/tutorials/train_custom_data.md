@@ -4,7 +4,7 @@ description: Learn how to train your data on custom datasets using YOLOv5. Simpl
 keywords: YOLOv5, train on custom dataset, image collection, model training, object detection, image labelling, Ultralytics, PyTorch, machine learning
 ---
 
-📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.  
+📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.
 UPDATED 7 June 2023.
 
 ## Before You Start
@@ -152,11 +152,11 @@ python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
 
 !!! tip "Tip"
 
-    💡 Add `--cache ram` or `--cache disk` to speed up training (requires significant RAM/disk resources).  
+    💡 Add `--cache ram` or `--cache disk` to speed up training (requires significant RAM/disk resources).
 
 !!! tip "Tip"
 
-    💡 Always train from a local dataset. Mounted or network drives like Google Drive will be very slow. 
+    💡 Always train from a local dataset. Mounted or network drives like Google Drive will be very slow.
 
 All training results are saved to `runs/train/` with incrementing run directories, i.e. `runs/train/exp2`, `runs/train/exp3` etc. For more details see the Training section of our tutorial notebook. <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 

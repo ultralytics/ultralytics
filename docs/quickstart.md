@@ -182,7 +182,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 [Python Guide](usage/python.md){.md-button .md-button--primary}
 
-## Working with Ultralytics Settings
+## Ultralytics Settings
 
 The Ultralytics library provides a powerful settings management system to enable fine-grained control over your experiments. By making use of the `SettingsManager` housed within the `ultralytics.utils` module, users can readily access and alter their settings. These are stored in a YAML file and can be viewed or modified either directly within the Python environment or via the Command-Line Interface (CLI).
 
@@ -193,17 +193,22 @@ To gain insight into the current configuration of your settings, you can view th
 !!! example "View settings"
 
     === "Python"
-        You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics.utils` module. Print the settings using the following commands:
+        You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print the settings using the following commands:
         ```python
         from ultralytics import settings
         
+        # View all settings
         print(settings)
+
+        # Return a specific setting
+        value = settings['runs_dir']
         ```
+
     === "CLI"
         Alternatively, the command-line interface allows you to check your settings with a simple command:
         ```bash
         yolo settings
-    ```
+        ```
 
 ### Modifying Settings
 
@@ -216,13 +221,27 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         ```python
         from ultralytics import settings
         
-        settings.update({'runs_dir':'/path/to/runs'})
+        # Update a setting
+        settings.update({'runs_dir': '/path/to/runs'})
+
+        # Update multiple settings
+        settings.update({'runs_dir': '/path/to/runs', 'tensorboard': False})
+
+        # Reset settings to default values
+        settings.reset()
         ```
     
     === "CLI"
         If you prefer using the command-line interface, the following command will allow you to modify your settings:
-        ```
-        yolo settings runs_dir=/path/to/runs
+        ```bash
+        # Update a setting
+        yolo settings runs_dir='/path/to/runs'
+
+        # Update multiple settings
+        yolo settings runs_dir='/path/to/runs' tensorboard=False
+
+        # Reset settings to default values
+        yolo settings reset
         ```
 
 ### Understanding Settings

@@ -33,9 +33,24 @@ keywords: Ultralytics, YOLO, Configuration, cfg2dict, handle_deprecation, merge_
 ### ::: ultralytics.cfg.handle_yolo_hub
 <br><br>
 
+## dot_notation_to_nested_dict
+---
+### ::: ultralytics.cfg.dot_notation_to_nested_dict
+<br><br>
+
 ## handle_yolo_settings
 ---
 ### ::: ultralytics.cfg.handle_yolo_settings
+<br><br>
+
+## parse_key_value_pair
+---
+### ::: ultralytics.cfg.parse_key_value_pair
+<br><br>
+
+## smart_value
+---
+### ::: ultralytics.cfg.smart_value
 <br><br>
 
 ## entrypoint

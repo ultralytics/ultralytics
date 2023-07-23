@@ -235,28 +235,6 @@ def handle_yolo_hub(args: List[str]) -> None:
         hub.logout()
 
 
-def dot_notation_to_nested_dict(dot_dict):
-    """
-    Converts a dictionary with dot notation keys into a nested dictionary.
-
-    Args:
-        dot_dict (dict): Dictionary with dot notation keys.
-            Example: {"integrations.hub": True}
-
-    Returns:
-        (dict): Nested dictionary constructed from the input.
-            Example: {"integrations": {"hub": True}}
-    """
-    nested_dict = {}
-    for k, v in dot_dict.items():
-        keys = k.split('.')
-        current_level = nested_dict
-        for key in keys[:-1]:
-            current_level = current_level.setdefault(key, {})
-        current_level[keys[-1]] = v
-    return nested_dict
-
-
 def handle_yolo_settings(args: List[str]) -> None:
     """
     Handle YOLO settings command-line interface (CLI) commands.

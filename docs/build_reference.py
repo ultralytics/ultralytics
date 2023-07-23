@@ -38,9 +38,10 @@ def create_markdown(py_filepath, module_path, classes, functions):
     if md_filepath.exists():
         with open(md_filepath, 'r') as file:
             existing_content = file.read()
-            header_parts = existing_content.split('---', 2)
-            if 'description:' in header_parts or 'comments:' in header_parts and len(header_parts) >= 3:
-                header_content = f"{header_parts[0]}---{header_parts[1]}---\n\n"
+            header_parts = existing_content.split('---')
+            for part in header_parts:
+                if 'description:' in part or 'comments:' in part:
+                    header_content += f"---{part}---\n\n"
 
     module_path = module_path.replace('.__init__', '')
     md_content = [f"## {class_name}\n---\n### ::: {module_path}.{class_name}\n<br><br>\n" for class_name in classes]

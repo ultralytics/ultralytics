@@ -8,6 +8,11 @@ keywords: Ultralytics, utility functions, file operations, working directory, fi
 ### ::: ultralytics.utils.files.WorkingDirectory
 <br><br>
 
+## spaces_in_path
+---
+### ::: ultralytics.utils.files.spaces_in_path
+<br><br>
+
 ## increment_path
 ---
 ### ::: ultralytics.utils.files.increment_path

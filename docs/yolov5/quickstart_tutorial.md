@@ -1,3 +1,9 @@
+---
+comments: true
+description: Kickstart your journey with YOLOv5. Learn how to install, run inference, and train models on your own images. Dive headfirst into object detection with PyTorch.
+keywords: YOLOv5, Quickstart, Installation, Inference, Training, Object detection, PyTorch, Ultralytics
+---
+
 # YOLOv5 Quickstart
 
 See below for quickstart examples.
@@ -14,11 +20,9 @@ cd yolov5
 pip install -r requirements.txt  # install
 ```
 
-
-
 ## Inference
 
-YOLOv5 [PyTorch Hub](https://github.com/ultralytics/yolov5/issues/36) inference. [Models](https://github.com/ultralytics/yolov5/tree/master/models) download automatically from the latest
+YOLOv5 [PyTorch Hub](https://docs.ultralytics.com/yolov5/tutorials/pytorch_hub_model_loading) inference. [Models](https://github.com/ultralytics/yolov5/tree/master/models) download automatically from the latest
 YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```python
@@ -61,7 +65,7 @@ The commands below reproduce YOLOv5 [COCO](https://github.com/ultralytics/yolov5
 results. [Models](https://github.com/ultralytics/yolov5/tree/master/models)
 and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest
 YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training times for YOLOv5n/s/m/l/x are
-1/2/4/6/8 days on a V100 GPU ([Multi-GPU](https://github.com/ultralytics/yolov5/issues/475) times faster). Use the
+1/2/4/6/8 days on a V100 GPU ([Multi-GPU](https://docs.ultralytics.com/yolov5/tutorials/multi_gpu_training) times faster). Use the
 largest `--batch-size` possible, or pass `--batch-size -1` for
 YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092). Batch sizes shown for V100-16GB.
 

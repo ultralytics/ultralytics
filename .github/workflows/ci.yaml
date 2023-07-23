@@ -19,8 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10']
-        model: [yolov5n]
+        python-version: ['3.11']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -56,6 +55,23 @@ jobs:
           hub.reset_model(model_id)
           model = YOLO('https://hub.ultralytics.com/models/' + model_id)
           model.train()
+      - name: Test HUB inference API
+        shell: python
+        env:
+          API_KEY: ${{ secrets.ULTRALYTICS_HUB_API_KEY }}
+          MODEL_ID: ${{ secrets.ULTRALYTICS_HUB_MODEL_ID }}
+        run: |
+          import os
+          import requests
+          import json
+          api_key, model_id = os.environ['API_KEY'], os.environ['MODEL_ID']
+          url = f"https://api.ultralytics.com/v1/predict/{model_id}"
+          headers = {"x-api-key": api_key}
+          data = {"size": 320, "confidence": 0.25, "iou": 0.45}
+          with open("ultralytics/assets/zidane.jpg", "rb") as f:
+              response = requests.post(url, headers=headers, data=data, files={"image": f})
+          assert response.status_code == 200, f'Status code {response.status_code}, Reason {response.reason}'
+          print(json.dumps(response.json(), indent=2))
 
   Benchmarks:
     runs-on: ${{ matrix.os }}
@@ -95,23 +111,23 @@ jobs:
       - name: Benchmark DetectionModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.20)
+          from ultralytics.utils.benchmarks import benchmark
+          benchmark(model='path with spaces/${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.26)
       - name: Benchmark SegmentationModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.14)
+          from ultralytics.utils.benchmarks import benchmark
+          benchmark(model='path with spaces/${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.30)
       - name: Benchmark ClassificationModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.61)
+          from ultralytics.utils.benchmarks import benchmark
+          benchmark(model='path with spaces/${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.36)
       - name: Benchmark PoseModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-pose.pt', imgsz=160, half=False, hard_fail=0.0)
+          from ultralytics.utils.benchmarks import benchmark
+          benchmark(model='path with spaces/${{ matrix.model }}-pose.pt', imgsz=160, half=False, hard_fail=0.17)
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -124,13 +140,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
-        model: [yolov8n]
+        python-version: ['3.11']
         torch: [latest]
         include:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
-            model: yolov8n
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v3
@@ -158,38 +172,20 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test Detect
-        shell: bash  # for Windows compatibility
-        run: |
-          yolo detect train data=coco8.yaml model=yolov8n.yaml epochs=1 imgsz=32
-          yolo detect train data=coco8.yaml model=yolov8n.pt epochs=1 imgsz=32
-          yolo detect val data=coco8.yaml model=runs/detect/train/weights/last.pt imgsz=32
-          yolo detect predict model=runs/detect/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo export model=runs/detect/train/weights/last.pt imgsz=32 format=torchscript
-      - name: Test Segment
-        shell: bash  # for Windows compatibility
-        run: |
-          yolo segment train data=coco8-seg.yaml model=yolov8n-seg.yaml epochs=1 imgsz=32
-          yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=1 imgsz=32
-          yolo segment val data=coco8-seg.yaml model=runs/segment/train/weights/last.pt imgsz=32
-          yolo segment predict model=runs/segment/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo export model=runs/segment/train/weights/last.pt imgsz=32 format=torchscript
-      - name: Test Classify
-        shell: bash  # for Windows compatibility
-        run: |
-          yolo classify train data=imagenet10 model=yolov8n-cls.yaml epochs=1 imgsz=32
-          yolo classify train data=imagenet10 model=yolov8n-cls.pt epochs=1 imgsz=32
-          yolo classify val data=imagenet10 model=runs/classify/train/weights/last.pt imgsz=32
-          yolo classify predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
-      - name: Test Pose
-        shell: bash  # for Windows compatibility
-        run: |
-          yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=1 imgsz=32
-          yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=1 imgsz=32
-          yolo pose val data=coco8-pose.yaml model=runs/pose/train/weights/last.pt imgsz=32
-          yolo pose predict model=runs/pose/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo export model=runs/pose/train/weights/last.pt imgsz=32 format=torchscript
       - name: Pytest tests
         shell: bash  # for Windows compatibility
         run: pytest tests
+
+  Summary:
+    runs-on: ubuntu-latest
+    needs: [HUB, Benchmarks, Tests] # Add job names that you want to check for failure
+    if: always() # This ensures the job runs even if previous jobs fail
+    steps:
+      - name: Check for failure and notify
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

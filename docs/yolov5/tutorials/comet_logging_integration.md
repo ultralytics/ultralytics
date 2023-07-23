@@ -1,3 +1,9 @@
+---
+comments: true
+description: Learn how to set up and use Comet to enhance your YOLOv5 model training, metrics tracking and visualization. Includes a step by step guide to integrate Comet with YOLOv5.
+keywords: YOLOv5, Comet, Machine Learning, Ultralytics, Real time metrics tracking, Hyperparameters, Model checkpoints, Model predictions, YOLOv5 training, Comet Credentials
+---
+
 <img src="https://cdn.comet.ml/img/notebook_logo.png">
 
 # YOLOv5 with Comet
@@ -214,7 +220,7 @@ If your training run is interrupted for any reason, e.g. disrupted internet conn
 
 The Run Path has the following format `comet://<your workspace name>/<your project name>/<experiment id>`.
 
-This will restore the run to its state before the interruption, which includes restoring the  model from a checkpoint, restoring all hyperparameters and training arguments and downloading Comet dataset Artifacts if they were used in the original run. The resumed run will continue logging to the existing Experiment in the Comet UI
+This will restore the run to its state before the interruption, which includes restoring the model from a checkpoint, restoring all hyperparameters and training arguments and downloading Comet dataset Artifacts if they were used in the original run. The resumed run will continue logging to the existing Experiment in the Comet UI
 
 ```shell
 python train.py \

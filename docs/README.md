@@ -1,3 +1,8 @@
+---
+description: Learn how to install Ultralytics in developer mode, build and serve it locally for testing, and deploy your documentation site on platforms like GitHub Pages, GitLab Pages, and Amazon S3.
+keywords: Ultralytics, documentation, mkdocs, installation, developer mode, building, deployment, local server, GitHub Pages, GitLab Pages, Amazon S3
+---
+
 # Ultralytics Docs
 
 Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).

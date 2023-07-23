@@ -1,10 +1,17 @@
+---
+comments: true
+description: Learn about the cornerstone computer vision tasks YOLOv8 can perform including detection, segmentation, classification, and pose estimation. Understand their uses in your AI projects.
+keywords: Ultralytics, YOLOv8, Detection, Segmentation, Classification, Pose Estimation, AI Framework, Computer Vision Tasks
+---
+
 # Ultralytics YOLOv8 Tasks
 
 YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The framework can be used to
 perform [detection](detect.md), [segmentation](segment.md), [classification](classify.md),
 and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
+<br>
+<img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png">
 
 ## [Detection](detect.md)
 
@@ -31,7 +38,7 @@ images based on their content. It uses a variant of the EfficientNet architectur
 
 ## [Pose](pose.md)
 
-Pose/keypoint detection is a task that involves detecting specific points in an image or video frame. These points are 
+Pose/keypoint detection is a task that involves detecting specific points in an image or video frame. These points are
 referred to as keypoints and are used to track movement or pose estimation. YOLOv8 can detect keypoints in an image or
 video frame with high accuracy and speed.
 

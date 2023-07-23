@@ -11,7 +11,6 @@ FILE = Path(__file__).resolve()
 PARENT = FILE.parent  # root directory
 README = (PARENT / 'README.md').read_text(encoding='utf-8')
 REQUIREMENTS = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements((PARENT / 'requirements.txt').read_text())]
-PKG_REQUIREMENTS = ['sentry_sdk']  # pip-only requirements
 
 
 def get_version():
@@ -24,7 +23,8 @@ setup(
     version=get_version(),  # version of pypi package
     python_requires='>=3.7',
     license='AGPL-3.0',
-    description='Ultralytics YOLOv8',
+    description=('Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, '
+                 'pose estimation and image classification.'),
     long_description=README,
     long_description_content_type='text/markdown',
     url='https://github.com/ultralytics/ultralytics',
@@ -36,10 +36,20 @@ setup(
     author_email='hello@ultralytics.com',
     packages=find_packages(),  # required
     include_package_data=True,
-    install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
+    install_requires=REQUIREMENTS,
     extras_require={
-        'dev': ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]'],
-        'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflowjs'],  # automatically installs tensorflow
+        'dev': [
+            'check-manifest',
+            'pytest',
+            'pytest-cov',
+            'coverage',
+            'mkdocs-material',
+            'mkdocstrings[python]',
+            'mkdocs-redirects',  # for 301 redirects
+            'mkdocs-ultralytics-plugin>=0.0.21',  # for meta descriptions and images, dates and authors
+        ],
+        'export': ['coremltools>=6.0,<=6.2', 'openvino-dev>=2023.0',
+                   'tensorflowjs'],  # automatically installs tensorflow
     },
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -61,5 +71,4 @@ setup(
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows', ],
     keywords='machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics',
-    entry_points={
-        'console_scripts': ['yolo = ultralytics.yolo.cfg:entrypoint', 'ultralytics = ultralytics.yolo.cfg:entrypoint']})
+    entry_points={'console_scripts': ['yolo = ultralytics.cfg:entrypoint', 'ultralytics = ultralytics.cfg:entrypoint']})

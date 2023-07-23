@@ -3,7 +3,7 @@
 import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, request_with_credentials
-from ultralytics.yolo.utils import LOGGER, SETTINGS, emojis, is_colab, set_settings
+from ultralytics.utils import LOGGER, SETTINGS, emojis, is_colab
 
 API_KEY_URL = 'https://hub.ultralytics.com/settings?tab=api+keys'
 
@@ -45,7 +45,7 @@ class Auth:
 
         # Update SETTINGS with the new API key after successful authentication
         if success:
-            set_settings({'api_key': self.api_key})
+            SETTINGS.update({'api_key': self.api_key})
             # Log that the new login was successful
             if verbose:
                 LOGGER.info(f'{PREFIX}New authentication successful ✅')

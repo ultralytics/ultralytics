@@ -1,6 +1,12 @@
+---
+comments: true
+description: Learn how to export a trained YOLOv5 model from PyTorch to different formats including TorchScript, ONNX, OpenVINO, TensorRT, and CoreML, and how to use these models.
+keywords: Ultralytics, YOLOv5, model export, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TensorFlow
+---
+
 # TFLite, ONNX, CoreML, TensorRT Export
 
-📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.  
+📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.
 UPDATED 8 December 2022.
 
 ## Before You Start
@@ -37,10 +43,10 @@ YOLOv5 inference is officially supported in 11 formats:
 | [TensorFlow.js](https://www.tensorflow.org/js)                             | `tfjs`                | `yolov5s_web_model/`      |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                            | `paddle`              | `yolov5s_paddle_model/`   |
 
-
 ## Benchmarks
 
 Benchmarks below run on a Colab Pro with the YOLOv5 tutorial notebook <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>. To reproduce:
+
 ```bash
 python benchmarks.py --weights yolov5s.pt --imgsz 640 --device 0
 ```
@@ -94,6 +100,7 @@ Benchmarks complete (241.20s)
 ## Export a Trained YOLOv5 Model
 
 This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats. `yolov5s.pt` is the 'small' model, the second-smallest model available. Other options are `yolov5n.pt`, `yolov5m.pt`, `yolov5l.pt` and `yolov5x.pt`, along with their P6 counterparts i.e. `yolov5s6.pt` or you own custom training checkpoint i.e. `runs/exp/weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+
 ```bash
 python export.py --weights yolov5s.pt --include torchscript onnx
 ```
@@ -101,6 +108,7 @@ python export.py --weights yolov5s.pt --include torchscript onnx
 💡 ProTip: Add `--half` to export models at FP16 half precision for smaller file sizes
 
 Output:
+
 ```bash
 export: data=data/coco128.yaml, weights=['yolov5s.pt'], imgsz=[640, 640], batch_size=1, device=cpu, half=False, inplace=False, train=False, keras=False, optimize=False, int8=False, dynamic=False, simplify=False, opset=12, verbose=False, workspace=4, nms=False, agnostic_nms=False, topk_per_class=100, topk_all=100, iou_thres=0.45, conf_thres=0.25, include=['torchscript', 'onnx']
 YOLOv5 🚀 v6.2-104-ge3e5122 Python-3.7.13 torch-1.12.1+cu113 CPU
@@ -108,7 +116,7 @@ YOLOv5 🚀 v6.2-104-ge3e5122 Python-3.7.13 torch-1.12.1+cu113 CPU
 Downloading https://github.com/ultralytics/yolov5/releases/download/v6.2/yolov5s.pt to yolov5s.pt...
 100% 14.1M/14.1M [00:00<00:00, 274MB/s]
 
-Fusing layers... 
+Fusing layers...
 YOLOv5s summary: 213 layers, 7225885 parameters, 0 gradients
 
 PyTorch: starting from yolov5s.pt with output shape (1, 25200, 85) (14.1 MB)
@@ -121,8 +129,8 @@ ONNX: export success ✅ 2.3s, saved as yolov5s.onnx (28.0 MB)
 
 Export complete (5.5s)
 Results saved to /content/yolov5
-Detect:          python detect.py --weights yolov5s.onnx 
-Validate:        python val.py --weights yolov5s.onnx 
+Detect:          python detect.py --weights yolov5s.onnx
+Validate:        python val.py --weights yolov5s.onnx
 PyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.onnx')
 Visualize:       https://netron.app/
 ```
@@ -133,10 +141,10 @@ The 3 exported models will be saved alongside the original PyTorch model:
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
 <p align="center"><img width="850" src="https://user-images.githubusercontent.com/26833433/191003260-f94011a7-5b2e-4fe3-93c1-e1a935e0a728.png"></p>
 
-
 ## Exported Model Usage Examples
 
 `detect.py` runs inference on exported models:
+
 ```bash
 python detect.py --weights yolov5s.pt                 # PyTorch
                            yolov5s.torchscript        # TorchScript
@@ -152,6 +160,7 @@ python detect.py --weights yolov5s.pt                 # PyTorch
 ```
 
 `val.py` runs validation on exported models:
+
 ```bash
 python val.py --weights yolov5s.pt                 # PyTorch
                         yolov5s.torchscript        # TorchScript
@@ -167,6 +176,7 @@ python val.py --weights yolov5s.pt                 # PyTorch
 ```
 
 Use PyTorch Hub with exported YOLOv5 models:
+
 ``` python
 import torch
 
@@ -196,6 +206,7 @@ results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 ## OpenCV DNN inference
 
 OpenCV inference with ONNX models:
+
 ```bash
 python export.py --weights yolov5s.pt --include onnx
 
@@ -221,13 +232,12 @@ YOLOv5 OpenVINO C++ inference examples:
 
 ## Environments
 
-YOLOv5 may be run in any of the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
+YOLOv5 is designed to be run in the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
 
 - **Notebooks** with free GPU: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
-- **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/GCP-Quickstart)
-- **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/AWS-Quickstart)
-- **Docker Image**. See [Docker Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/Docker-Quickstart) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
-
+- **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial/)
+- **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/)
+- **Docker Image**. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 ## Status
 

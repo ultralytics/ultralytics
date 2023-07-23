@@ -1,3 +1,9 @@
+---
+comments: true
+description: Master YOLOv8 settings and hyperparameters for improved model performance. Learn to use YOLO CLI commands, adjust training settings, and optimize YOLO tasks & modes.
+keywords: YOLOv8, settings, hyperparameters, YOLO CLI commands, YOLO tasks, YOLO modes, Ultralytics documentation, model optimization, YOLOv8 training
+---
+
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings
 and hyperparameters can affect the model's behavior at various stages of the model development process, including
 training, validation, and prediction.
@@ -7,19 +13,19 @@ YOLOv8 'yolo' CLI commands use the following syntax:
 !!! example ""
 
     === "CLI"
-    
+
         ```bash
         yolo TASK MODE ARGS
         ```
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a YOLOv8 model from a pre-trained weights file
         model = YOLO('yolov8n.pt')
-         
+
         # Run MODE mode using the custom arguments ARGS (guess TASK)
         model.MODE(ARGS)
         ```
@@ -32,16 +38,16 @@ Where:
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
   For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
-  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
+  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 #### Tasks
 
 YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks
 differ in the type of output they produce and the specific problem they are designed to solve.
 
-**Detect**: For identifying and localizing objects or regions of interest in an image or video.  
-**Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.  
-**Classify**: For predicting the class label of an input image.  
+**Detect**: For identifying and localizing objects or regions of interest in an image or video.
+**Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
+**Classify**: For predicting the class label of an input image.
 **Pose**: For identifying objects and estimating their keypoints in an image or video.
 
 | Key    | Value      | Description                                     |
@@ -55,11 +61,11 @@ differ in the type of output they produce and the specific problem they are desi
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes
 include:
 
-**Train**: For training a YOLOv8 model on a custom dataset.  
-**Val**: For validating a YOLOv8 model after it has been trained.  
-**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.  
-**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.  
-**Track**: For tracking objects in real-time using a YOLOv8 model.  
+**Train**: For training a YOLOv8 model on a custom dataset.
+**Val**: For validating a YOLOv8 model after it has been trained.
+**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
+**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
+**Track**: For tracking objects in real-time using a YOLOv8 model.
 **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
 | Key    | Value     | Description                                                   |
@@ -72,52 +78,53 @@ include:
 
 The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, learning rate, momentum, and weight decay. Additionally, the choice of optimizer, loss function, and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
 
-| Key               | Value    | Description                                                                 |
-|-------------------|----------|-----------------------------------------------------------------------------|
-| `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                           |
-| `data`            | `None`   | path to data file, i.e. coco128.yaml                                        |
-| `epochs`          | `100`    | number of epochs to train for                                               |
-| `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training |
-| `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                               |
-| `imgsz`           | `640`    | size of input images as integer or w,h                                      |
-| `save`            | `True`   | save train checkpoints and predict results                                  |
-| `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if < 1)                            |
-| `cache`           | `False`  | True/ram, disk or False. Use cache for data loading                         |
-| `device`          | `None`   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu        |
-| `workers`         | `8`      | number of worker threads for data loading (per RANK if DDP)                 |
-| `project`         | `None`   | project name                                                                |
-| `name`            | `None`   | experiment name                                                             |
-| `exist_ok`        | `False`  | whether to overwrite existing experiment                                    |
-| `pretrained`      | `False`  | whether to use a pretrained model                                           |
-| `optimizer`       | `'SGD'`  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']               |
-| `verbose`         | `False`  | whether to print verbose output                                             |
-| `seed`            | `0`      | random seed for reproducibility                                             |
-| `deterministic`   | `True`   | whether to enable deterministic mode                                        |
-| `single_cls`      | `False`  | train multi-class data as single-class                                      |
-| `image_weights`   | `False`  | use weighted image selection for training                                   |
-| `rect`            | `False`  | rectangular training with each batch collated for minimum padding           |
-| `cos_lr`          | `False`  | use cosine learning rate scheduler                                          |
-| `close_mosaic`    | `0`      | (int) disable mosaic augmentation for final epochs                          |
-| `resume`          | `False`  | resume training from last checkpoint                                        |
-| `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]             |
-| `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                            |
-| `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                             |
-| `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                     |
-| `weight_decay`    | `0.0005` | optimizer weight decay 5e-4                                                 |
-| `warmup_epochs`   | `3.0`    | warmup epochs (fractions ok)                                                |
-| `warmup_momentum` | `0.8`    | warmup initial momentum                                                     |
-| `warmup_bias_lr`  | `0.1`    | warmup initial bias lr                                                      |
-| `box`             | `7.5`    | box loss gain                                                               |
-| `cls`             | `0.5`    | cls loss gain (scale with pixels)                                           |
-| `dfl`             | `1.5`    | dfl loss gain                                                               |
-| `pose`            | `12.0`   | pose loss gain (pose-only)                                                  |
-| `kobj`            | `2.0`    | keypoint obj loss gain (pose-only)                                          |
-| `label_smoothing` | `0.0`    | label smoothing (fraction)                                                  |
-| `nbs`             | `64`     | nominal batch size                                                          |
-| `overlap_mask`    | `True`   | masks should overlap during training (segment train only)                   |
-| `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                  |
-| `dropout`         | `0.0`    | use dropout regularization (classify train only)                            |
-| `val`             | `True`   | validate/test during training                                               |
+| Key               | Value    | Description                                                                       |
+|-------------------|----------|-----------------------------------------------------------------------------------|
+| `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                 |
+| `data`            | `None`   | path to data file, i.e. coco128.yaml                                              |
+| `epochs`          | `100`    | number of epochs to train for                                                     |
+| `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training       |
+| `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                     |
+| `imgsz`           | `640`    | size of input images as integer or w,h                                            |
+| `save`            | `True`   | save train checkpoints and predict results                                        |
+| `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if < 1)                                  |
+| `cache`           | `False`  | True/ram, disk or False. Use cache for data loading                               |
+| `device`          | `None`   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu              |
+| `workers`         | `8`      | number of worker threads for data loading (per RANK if DDP)                       |
+| `project`         | `None`   | project name                                                                      |
+| `name`            | `None`   | experiment name                                                                   |
+| `exist_ok`        | `False`  | whether to overwrite existing experiment                                          |
+| `pretrained`      | `False`  | whether to use a pretrained model                                                 |
+| `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
+| `verbose`         | `False`  | whether to print verbose output                                                   |
+| `seed`            | `0`      | random seed for reproducibility                                                   |
+| `deterministic`   | `True`   | whether to enable deterministic mode                                              |
+| `single_cls`      | `False`  | train multi-class data as single-class                                            |
+| `rect`            | `False`  | rectangular training with each batch collated for minimum padding                 |
+| `cos_lr`          | `False`  | use cosine learning rate scheduler                                                |
+| `close_mosaic`    | `0`      | (int) disable mosaic augmentation for final epochs                                |
+| `resume`          | `False`  | resume training from last checkpoint                                              |
+| `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]                   |
+| `fraction`        | `1.0`    | dataset fraction to train on (default is 1.0, all images in train set)            |
+| `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                      |
+| `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                                  |
+| `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                                   |
+| `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                           |
+| `weight_decay`    | `0.0005` | optimizer weight decay 5e-4                                                       |
+| `warmup_epochs`   | `3.0`    | warmup epochs (fractions ok)                                                      |
+| `warmup_momentum` | `0.8`    | warmup initial momentum                                                           |
+| `warmup_bias_lr`  | `0.1`    | warmup initial bias lr                                                            |
+| `box`             | `7.5`    | box loss gain                                                                     |
+| `cls`             | `0.5`    | cls loss gain (scale with pixels)                                                 |
+| `dfl`             | `1.5`    | dfl loss gain                                                                     |
+| `pose`            | `12.0`   | pose loss gain (pose-only)                                                        |
+| `kobj`            | `2.0`    | keypoint obj loss gain (pose-only)                                                |
+| `label_smoothing` | `0.0`    | label smoothing (fraction)                                                        |
+| `nbs`             | `64`     | nominal batch size                                                                |
+| `overlap_mask`    | `True`   | masks should overlap during training (segment train only)                         |
+| `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                        |
+| `dropout`         | `0.0`    | use dropout regularization (classify train only)                                  |
+| `val`             | `True`   | validate/test during training                                                     |
 
 [Train Guide](../modes/train.md){ .md-button .md-button--primary}
 
@@ -125,29 +132,29 @@ The training settings for YOLO models encompass various hyperparameters and conf
 
 The prediction settings for YOLO models encompass a range of hyperparameters and configurations that influence the model's performance, speed, and accuracy during inference on new data. Careful tuning and experimentation with these settings are essential to achieve optimal performance for a specific task. Key settings include the confidence threshold, Non-Maximum Suppression (NMS) threshold, and the number of classes considered. Additional factors affecting the prediction process are input data size and format, the presence of supplementary features such as masks or multiple labels per box, and the particular task the model is employed for.
 
-| Key              | Value                  | Description                                              |
-|------------------|------------------------|----------------------------------------------------------|
-| `source`         | `'ultralytics/assets'` | source directory for images or videos                    |
-| `conf`           | `0.25`                 | object confidence threshold for detection                |
-| `iou`            | `0.7`                  | intersection over union (IoU) threshold for NMS          |
-| `half`           | `False`                | use half precision (FP16)                                |
-| `device`         | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu |
-| `show`           | `False`                | show results if possible                                 |
-| `save`           | `False`                | save images with results                                 |
-| `save_txt`       | `False`                | save results as .txt file                                |
-| `save_conf`      | `False`                | save results with confidence scores                      |
-| `save_crop`      | `False`                | save cropped images with results                         |
-| `show_labels`    | `True`                 | show object labels in plots                              |
-| `show_conf`      | `True`                 | show object confidence scores in plots                   |
-| `max_det`        | `300`                  | maximum number of detections per image                   |
-| `vid_stride`     | `False`                | video frame-rate stride                                  |
-| `line_thickness` | `3`                    | bounding box thickness (pixels)                          |
-| `visualize`      | `False`                | visualize model features                                 |
-| `augment`        | `False`                | apply image augmentation to prediction sources           |
-| `agnostic_nms`   | `False`                | class-agnostic NMS                                       |
-| `retina_masks`   | `False`                | use high-resolution segmentation masks                   |
-| `classes`        | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]  |
-| `boxes`          | `True`                 | Show boxes in segmentation predictions                   |
+| Key            | Value                  | Description                                                                    |
+|----------------|------------------------|--------------------------------------------------------------------------------|
+| `source`       | `'ultralytics/assets'` | source directory for images or videos                                          |
+| `conf`         | `0.25`                 | object confidence threshold for detection                                      |
+| `iou`          | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
+| `half`         | `False`                | use half precision (FP16)                                                      |
+| `device`       | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
+| `show`         | `False`                | show results if possible                                                       |
+| `save`         | `False`                | save images with results                                                       |
+| `save_txt`     | `False`                | save results as .txt file                                                      |
+| `save_conf`    | `False`                | save results with confidence scores                                            |
+| `save_crop`    | `False`                | save cropped images with results                                               |
+| `show_labels`  | `True`                 | show object labels in plots                                                    |
+| `show_conf`    | `True`                 | show object confidence scores in plots                                         |
+| `max_det`      | `300`                  | maximum number of detections per image                                         |
+| `vid_stride`   | `False`                | video frame-rate stride                                                        |
+| `line_width`   | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
+| `visualize`    | `False`                | visualize model features                                                       |
+| `augment`      | `False`                | apply image augmentation to prediction sources                                 |
+| `agnostic_nms` | `False`                | class-agnostic NMS                                                             |
+| `retina_masks` | `False`                | use high-resolution segmentation masks                                         |
+| `classes`      | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]                        |
+| `boxes`        | `True`                 | Show boxes in segmentation predictions                                         |
 
 [Predict Guide](../modes/predict.md){ .md-button .md-button--primary}
 

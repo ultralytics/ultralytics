@@ -12,7 +12,7 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import LINUX, ONLINE, ROOT, SETTINGS
 
-MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
+MODEL = Path(SETTINGS['weights_dir']) / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
 SOURCE_GREYSCALE = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')

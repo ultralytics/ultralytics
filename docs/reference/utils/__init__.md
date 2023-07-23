@@ -28,6 +28,11 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 ### ::: ultralytics.utils.TryExcept
 <br><br>
 
+## SettingsManager
+---
+### ::: ultralytics.utils.SettingsManager
+<br><br>
+
 ## plt_settings
 ---
 ### ::: ultralytics.utils.plt_settings
@@ -148,14 +153,9 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 ### ::: ultralytics.utils.set_sentry
 <br><br>
 
-## get_settings
+## update_dict_recursive
 ---
-### ::: ultralytics.utils.get_settings
-<br><br>
-
-## set_settings
----
-### ::: ultralytics.utils.set_settings
+### ::: ultralytics.utils.update_dict_recursive
 <br><br>
 
 ## deprecation_warn

@@ -23,19 +23,19 @@ export arguments.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom trained
-        
+
         # Export the model
         model.export(format='onnx')
         ```
     === "CLI"
-    
+
         ```bash
         yolo export model=yolov8n.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model

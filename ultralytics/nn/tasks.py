@@ -698,7 +698,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in (Detect, Segment, Pose, RTDETRDecoder):
+        elif m in (Detect, Segment, Pose):
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
@@ -710,6 +710,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c1, c2 = [ch[f[0]], ch[f[1]], ch[f[2]]], args[0]
             c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [c1, c2, *args[1:]]
+        elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
+            args.insert(1, [ch[x] for x in f])
         else:
             c2 = ch[f]
 

@@ -713,62 +713,105 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def get_settings(file=SETTINGS_YAML, version='0.0.3'):
+def update_dict_recursive(d, u):
     """
-    Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
+    Recursively updates the dictionary `d` with the key-value pairs from the dictionary `u` without overwriting
+    entire sub-dictionaries. Note that function recursion is intended and not a problem, as this allows for updating
+    nested dictionaries at any arbitrary depth.
 
     Args:
-        file (Path): Path to the Ultralytics settings YAML file. Defaults to 'settings.yaml' in the USER_CONFIG_DIR.
-        version (str): Settings version. If min settings version not met, new default settings will be saved.
+        d (dict): The dictionary to be updated.
+        u (dict): The dictionary to update `d` with.
 
     Returns:
-        (dict): Dictionary of settings key-value pairs.
+        (dict): The recursively updated dictionary.
     """
-    import hashlib
-
-    from ultralytics.utils.checks import check_version
-    from ultralytics.utils.torch_utils import torch_distributed_zero_first
-
-    git_dir = get_git_dir()
-    root = git_dir or Path()
-    datasets_root = (root.parent if git_dir and is_dir_writeable(root.parent) else root).resolve()
-    defaults = {
-        'datasets_dir': str(datasets_root / 'datasets'),  # default datasets directory.
-        'weights_dir': str(root / 'weights'),  # default weights directory.
-        'runs_dir': str(root / 'runs'),  # default runs directory.
-        'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # SHA-256 anonymized UUID hash
-        'sync': True,  # sync analytics to help with YOLO development
-        'api_key': '',  # Ultralytics HUB API key (https://hub.ultralytics.com/)
-        'settings_version': version}  # Ultralytics settings version
-
-    with torch_distributed_zero_first(RANK):
-        if not file.exists():
-            yaml_save(file, defaults)
-        settings = yaml_load(file)
-
-        # Check that settings keys and types match defaults
-        correct = \
-            settings \
-            and settings.keys() == defaults.keys() \
-            and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
-            and check_version(settings['settings_version'], version)
-        if not correct:
-            LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. This is normal and may be due to a '
-                           'recent ultralytics package update, but may have overwritten previous settings. '
-                           f"\nView and update settings with 'yolo settings' or at '{file}'")
-            settings = defaults  # merge **defaults with **settings (prefer **settings)
-            yaml_save(file, settings)  # save updated defaults
-
-        return settings
+    for k, v in u.items():
+        d[k] = update_dict_recursive(d.get(k, {}), v) if isinstance(v, dict) else v
+    return d
 
 
-def set_settings(kwargs, file=SETTINGS_YAML):
+class SettingsManager(dict):
     """
-    Function that runs on a first-time ultralytics package installation to set up global settings and create necessary
-    directories.
+    Manages Ultralytics settings stored in a YAML file.
+
+    Args:
+        file (str | Path): Path to the Ultralytics settings YAML file. Default is USER_CONFIG_DIR / 'settings.yaml'.
+        version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
-    SETTINGS.update(kwargs)
-    yaml_save(file, SETTINGS)
+
+    def __init__(self, file=SETTINGS_YAML, version='0.0.4'):
+        import copy
+        import hashlib
+
+        from ultralytics.utils.checks import check_version
+        from ultralytics.utils.torch_utils import torch_distributed_zero_first
+
+        git_dir = get_git_dir()
+        root = git_dir or Path()
+        datasets_root = (root.parent if git_dir and is_dir_writeable(root.parent) else root).resolve()
+
+        self.file = Path(file)
+        self.version = version
+        self.defaults = {
+            'settings_version': version,
+            'datasets_dir': str(datasets_root / 'datasets'),
+            'weights_dir': str(root / 'weights'),
+            'runs_dir': str(root / 'runs'),
+            'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),
+            'sync': True,
+            'api_key': '',
+            'clearml': True,  # integrations
+            'comet': True,
+            'dvc': True,
+            'hub': True,
+            'mlflow': True,
+            'neptune': True,
+            'raytune': True,
+            'tensorboard': True,
+            'wandb': True}
+
+        super().__init__(copy.deepcopy(self.defaults))
+
+        with torch_distributed_zero_first(RANK):
+            if not self.file.exists():
+                self.save()
+
+            self.load()
+            correct_keys = self.keys() == self.defaults.keys()
+            correct_types = all(type(a) == type(b) for a, b in zip(self.values(), self.defaults.values()))
+            correct_version = check_version(self['settings_version'], self.version)
+            if not (correct_keys and correct_types and correct_version):
+                LOGGER.warning(
+                    'WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem '
+                    'with your settings or a recent ultralytics package update. '
+                    f"\nView settings with 'yolo settings' or at '{self.file}'"
+                    "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'.")
+                self.reset()
+
+    def load(self):
+        """Loads settings from the YAML file."""
+        self.update(yaml_load(self.file))
+
+    def save(self):
+        """Saves the current settings to the YAML file."""
+        yaml_save(self.file, dict(self))
+
+    def update(self, *args, **kwargs):
+        """Updates a setting value in the current settings and saves the settings."""
+        new = dict(*args, **kwargs)
+        if any(isinstance(v, dict) for v in new.values()):
+            update_dict_recursive(self, new)
+        else:
+            # super().update(*args, **kwargs)
+            super().update(new)
+        self.save()
+
+    def reset(self):
+        """Resets the settings to default and saves them."""
+        self.clear()
+        self.update(self.defaults)
+        self.save()
 
 
 def deprecation_warn(arg, new_arg, version=None):
@@ -794,7 +837,7 @@ def url2file(url):
 
 # Check first-install steps
 PREFIX = colorstr('Ultralytics: ')
-SETTINGS = get_settings()
+SETTINGS = SettingsManager()  # initialize settings
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
     'Docker' if is_docker() else platform.system()

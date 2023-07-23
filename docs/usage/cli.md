@@ -74,7 +74,7 @@ Where:
 
 !!! warning "Warning"
 
-    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` beteen arguments.
+    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
     - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
@@ -88,7 +88,7 @@ the [Configuration](cfg.md) page.
 !!! example "Example"
 
     === "Train"
-        
+
         Start training YOLOv8n on COCO128 for 100 epochs at image-size 640.
         ```bash
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -179,6 +179,7 @@ i.e. `format='onnx'` or `format='engine'`.
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        |
 
 ---
 

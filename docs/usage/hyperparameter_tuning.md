@@ -29,7 +29,7 @@ To install the required packages, run:
 !!! tip "Installation"
 
     ```bash
-    # Install and update Ultralytics and Ray Tune pacakges
+    # Install and update Ultralytics and Ray Tune packages
     pip install -U ultralytics 'ray[tune]'
 
     # Optionally install W&B for logging

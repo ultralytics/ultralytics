@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
 import math
 import os
 import platform
@@ -57,7 +56,11 @@ def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
     check_requirements('py-cpuinfo')
     import cpuinfo  # noqa
-    return cpuinfo.get_cpu_info()['brand_raw'].replace('(R)', '').replace('CPU ', '').replace('@ ', '')
+
+    k = 'brand_raw', 'hardware_raw', 'arch_string_raw'  # info keys sorted by preference (not all keys always available)
+    info = cpuinfo.get_cpu_info()  # info dict
+    string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], 'unknown')
+    return string.replace('(R)', '').replace('CPU ', '').replace('@ ', '')
 
 
 def select_device(device='', batch=0, newline=False, verbose=True):

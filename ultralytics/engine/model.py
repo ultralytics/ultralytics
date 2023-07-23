@@ -320,9 +320,10 @@ class YOLO:
         overrides['mode'] = 'benchmark'
         overrides = {**DEFAULT_CFG_DICT, **overrides}  # fill in missing overrides keys with defaults
         return benchmark(model=self,
-                         imgsz=overrides['imgsz'],
                          data=overrides['data'],
+                         imgsz=overrides['imgsz'],
                          half=overrides['half'],
+                         int8=overrides['int8'],
                          device=overrides['device'])
 
     def export(self, **kwargs):

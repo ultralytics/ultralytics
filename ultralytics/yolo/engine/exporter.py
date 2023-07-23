@@ -512,15 +512,15 @@ class Exporter:
 
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'
-        LOGGER.info(f"\n{prefix} running '{cmd}'")
+        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
+        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Remove/rename TFLite models
         if self.args.int8:
             for file in f.rglob('*_dynamic_range_quant.tflite'):
-                file.rename(file.with_name(file.stem.replace('_dynamic_range_quant', '_int8') + file.suffix))
+                file.rename(file.with_stem(file.stem.replace('_dynamic_range_quant', '_int8')))
             for file in f.rglob('*_integer_quant_with_int16_act.tflite'):
                 file.unlink()  # delete extra fp16 activation TFLite files
 
@@ -532,7 +532,6 @@ class Exporter:
         keras_model = tf.saved_model.load(f, tags=None, options=None)
 
         return str(f), keras_model
-
 
     @try_export
     def export_pb(self, keras_model, prefix=colorstr('TensorFlow GraphDef:')):

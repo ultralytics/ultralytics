@@ -600,10 +600,13 @@ class Exporter:
                 for n, batch in enumerate(dataset):
                     if n >= n_images:
                         break
-                    im = batch['img'].numpy().transpose(1, 2, 0)[None]  # list to nparray, CHW to BHWC,
+                    im = batch['img'].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC,
                     images.append(im)
                 f.mkdir()
-                np.save(str(tmp_file), np.vstack(images))  # BHWC
+                images = torch.cat(images, 0).float()
+                # mean = images.view(-1, 3).mean(0)  # imagenet mean [123.675, 116.28, 103.53]
+                # std = images.view(-1, 3).std(0)  # imagenet std [58.395, 57.12, 57.375]
+                np.save(str(tmp_file), images.numpy())  # BHWC
                 int8 = f'-oiqt -qt per-tensor -cind images "{tmp_file}" "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
             else:
                 int8 = '-oiqt -qt per-tensor'

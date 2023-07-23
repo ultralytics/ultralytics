@@ -88,7 +88,7 @@ the [Configuration](cfg.md) page.
 !!! example "Example"
 
     === "Train"
-        
+
         Start training YOLOv8n on COCO128 for 100 epochs at image-size 640.
         ```bash
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640

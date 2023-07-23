@@ -99,7 +99,7 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     ```python
     from ultralytics import YOLO
 
-    # Define a YOLO model    
+    # Define a YOLO model
     model = YOLO("yolov8n.pt")
 
     # Run Ray Tune on the model

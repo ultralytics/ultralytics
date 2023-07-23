@@ -234,10 +234,10 @@ We love your input! YOLOv5 and YOLOv8 would not be possible without help from ou
 
 ## <div align="center">License</div>
 
-YOLOv8 is available under two different licenses:
+Ultralytics offers two licensing options to accommodate diverse use cases:
 
-- **AGPL-3.0 License**: See [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for details.
-- **Enterprise License**: Provides greater flexibility for commercial product development without the open-source requirements of AGPL-3.0. Typical use cases are embedding Ultralytics software and AI models in commercial products and applications. Request an Enterprise License at [Ultralytics Licensing](https://ultralytics.com/license).
+- **AGPL-3.0 License**: This OSI-approved open-source license is ideal for students and hobbyists, promoting open collaboration and knowledge sharing. For details, see our [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file.
+- **Enterprise License**: Designed for commercial use, this license allows seamless integration of Ultralytics software and AI models into commercial products and services without the open-source obligations of AGPL-3.0. If your use case involves embedding our technology into a commercial offering, consider requesting an Enterprise License via [Ultralytics Licensing](https://ultralytics.com/license).
 
 ## <div align="center">Contact</div>
 

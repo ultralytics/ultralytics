@@ -193,7 +193,7 @@ To gain insight into the current configuration of your settings, you can view th
 !!! example "View settings"
 
     === "Python"
-        You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print the settings using the following commands:
+        You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
         ```python
         from ultralytics import settings
         
@@ -255,7 +255,7 @@ The table below provides an overview of the settings available for adjustment wi
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                             |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                           |
 | `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                               |
-| `sync`             | `True`                | `bool`    | Whether to sync the settings across different instances                      |
+| `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                 |
 | `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys) |
 | `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                               |
 | `comet`            | `True`                | `bool`    | Whether to use Comet ML logging                                              |

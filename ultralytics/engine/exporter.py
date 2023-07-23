@@ -586,38 +586,40 @@ class Exporter:
 
         # Export to TF
         if self.args.int8:
-            import numpy as np
+            tmp_file = Path(f / 'tmp_tflite_int8_calibration_images.npy')  # calibration images file
+            if self.args.data:
+                import numpy as np
 
-            from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-            from ultralytics.yolo.data.utils import check_det_dataset
+                from ultralytics.data.loaders import LoadImages
+                from ultralytics.data.utils import check_det_dataset
 
-            # Generate calibration data for integer quantization
-            _, _, *imgsz = list(self.im.shape)  # BCHW
-            dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz, auto=False)
-            calib_data = []
-            n_images = 100
-            for n, (_, img, _, _, _) in enumerate(dataset):
-                if n >= n_images:
-                    break
-                img = img.transpose(1, 2, 0)  # CHW to HWC
-                img = img[np.newaxis]
-                calib_data.append(img)
-            f.mkdir()
-            calib_file = Path(f / 'calib_data.npy')
-            np.save(calib_file, np.vstack(calib_data))  # BHWC
-
-            int8 = f'-oiqt -qt per-tensor -cind images {calib_file} "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
+                # Generate calibration data for integer quantization
+                _, _, *imgsz = list(self.im.shape)  # BCHW
+                dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz)
+                images = []
+                n_images = 100  # maximum number of images
+                for n, (_, im, _, _, _) in enumerate(dataset):
+                    if n >= n_images:
+                        break
+                    im = im.transpose(1, 2, 0)  # CHW to HWC
+                    im = im[np.newaxis]
+                    images.append(im)
+                f.mkdir()
+                np.save(tmp_file, np.vstack(images))  # BHWC
+                int8 = f'-oiqt -qt per-tensor -cind images {tmp_file} "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
+            else:
+                int8 = '-oiqt -qt per-tensor'
         else:
             int8 = ''
 
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'
-        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'.strip()
+        LOGGER.info(f"\n{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Remove/rename TFLite models
         if self.args.int8:
-            calib_file.unlink()
+            tmp_file.unlink(missing_ok=True)
             for file in f.rglob('*_dynamic_range_quant.tflite'):
                 file.rename(file.with_name(file.stem.replace('_dynamic_range_quant', '_int8') + file.suffix))
             for file in f.rglob('*_integer_quant_with_int16_act.tflite'):

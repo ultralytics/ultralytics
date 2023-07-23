@@ -258,13 +258,13 @@ The table below provides an overview of the settings available for adjustment wi
 | `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                                     |
 | `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys)                                     |
 | `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                                                                   |
-| `comet`            | `True`                | `bool`    | Whether to use Comet ML logging                                                                                  |
+| `comet`            | `True`                | `bool`    | Whether to use [Comet ML](https://bit.ly/yolov8-readme-comet) for experiment tracking and visualization          |
 | `dvc`              | `True`                | `bool`    | Whether to use DVC for version control                                                                           |
 | `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB](https://hub.ultralytics.com) integration                                        |
 | `mlflow`           | `True`                | `bool`    | Whether to use MLFlow for experiment tracking                                                                    |
 | `neptune`          | `True`                | `bool`    | Whether to use Neptune for experiment tracking                                                                   |
 | `raytune`          | `True`                | `bool`    | Whether to use Ray Tune for hyperparameter tuning                                                                |
 | `tensorboard`      | `True`                | `bool`    | Whether to use TensorBoard for visualization                                                                     |
-| `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases for experiment tracking and visualization                                        |
+| `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases logging                                                                          |
 
 As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.

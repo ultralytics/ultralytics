@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import contextlib
+import math
 import os
 import platform
 import random
@@ -9,7 +10,6 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Union
 
-import math
 import numpy as np
 import torch
 import torch.distributed as dist

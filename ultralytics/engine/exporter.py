@@ -585,7 +585,7 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
-        tmp_file = Path(f / 'tmp_tflite_int8_calibration_images.npy')  # calibration images file
+        tmp_file = f / 'tmp_tflite_int8_calibration_images.npy'  # int8 calibration images file
         if self.args.int8:
             if self.args.data:
                 import numpy as np

@@ -18,9 +18,9 @@ keywords: Ultralytics, YOLO, Configuration, cfg2dict, handle_deprecation, merge_
 ### ::: ultralytics.cfg._handle_deprecation
 <br><br>
 
-## check_cfg_mismatch
+## check_dict_alignment
 ---
-### ::: ultralytics.cfg.check_cfg_mismatch
+### ::: ultralytics.cfg.check_dict_alignment
 <br><br>
 
 ## merge_equals_args
@@ -36,6 +36,16 @@ keywords: Ultralytics, YOLO, Configuration, cfg2dict, handle_deprecation, merge_
 ## handle_yolo_settings
 ---
 ### ::: ultralytics.cfg.handle_yolo_settings
+<br><br>
+
+## parse_key_value_pair
+---
+### ::: ultralytics.cfg.parse_key_value_pair
+<br><br>
+
+## smart_value
+---
+### ::: ultralytics.cfg.smart_value
 <br><br>
 
 ## entrypoint

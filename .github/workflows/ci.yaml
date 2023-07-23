@@ -112,22 +112,22 @@ jobs:
         shell: python
         run: |
           from ultralytics.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.26)
+          benchmark(model='path with spaces/${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.26)
       - name: Benchmark SegmentationModel
         shell: python
         run: |
           from ultralytics.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.30)
+          benchmark(model='path with spaces/${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.30)
       - name: Benchmark ClassificationModel
         shell: python
         run: |
           from ultralytics.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.36)
+          benchmark(model='path with spaces/${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.36)
       - name: Benchmark PoseModel
         shell: python
         run: |
           from ultralytics.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-pose.pt', imgsz=160, half=False, hard_fail=0.17)
+          benchmark(model='path with spaces/${{ matrix.model }}-pose.pt', imgsz=160, half=False, hard_fail=0.17)
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -141,12 +141,10 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ['3.11']
-        model: [yolov8n]
         torch: [latest]
         include:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
-            model: yolov8n
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v3

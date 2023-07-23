@@ -145,7 +145,7 @@ An example request, using Python's `requests` package:
 import requests, json
 
 # list of images for inference (local files on client side)
-path = ['basilica.jpg'] 
+path = ['basilica.jpg']
 files = [('request', open(img, 'rb')) for img in path]
 
 # send request over HTTP to /predict/from_files endpoint

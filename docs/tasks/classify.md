@@ -49,15 +49,15 @@ see the [Configuration](../usage/cfg.md) page.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.yaml')  # build a new model from YAML
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
         model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # build from YAML and transfer weights
-        
+
         # Train the model
         model.train(data='mnist160', epochs=100, imgsz=64)
         ```
@@ -87,21 +87,21 @@ it's training `data` and arguments as model attributes.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
         metrics.top1   # top1 accuracy
         metrics.top5   # top5 accuracy
         ```
     === "CLI"
-    
+
         ```bash
         yolo classify val model=yolov8n-cls.pt  # val official model
         yolo classify val model=path/to/best.pt  # val custom model
@@ -114,19 +114,19 @@ Use a trained YOLOv8n-cls model to run predictions on images.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
     === "CLI"
-    
+
         ```bash
         yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
         yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
@@ -141,19 +141,19 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom trained
-        
+
         # Export the model
         model.export(format='onnx')
         ```
     === "CLI"
-    
+
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model

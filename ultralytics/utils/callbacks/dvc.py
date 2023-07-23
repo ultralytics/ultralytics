@@ -3,7 +3,7 @@ import os
 
 import pkg_resources as pkg
 
-from ultralytics.utils import LOGGER, TESTS_RUNNING
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
@@ -12,6 +12,7 @@ try:
     import dvclive
 
     assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['dvc'] is True  # verify integration is enabled
 
     ver = version('dvclive')
     if pkg.parse_version(ver) < pkg.parse_version('2.11.0'):

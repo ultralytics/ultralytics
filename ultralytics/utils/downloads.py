@@ -149,7 +149,7 @@ def safe_download(url,
     elif not f.is_file():  # URL and file do not exist
         assert dir or file, 'dir or file required for download'
         f = dir / url2file(url) if dir else Path(file)
-        desc = f'Downloading {clean_url(url)} to {f}'
+        desc = f"Downloading {clean_url(url)} to '{f}'"
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url)

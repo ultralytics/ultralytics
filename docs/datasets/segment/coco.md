@@ -47,10 +47,10 @@ To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 epochs with an imag
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='coco-seg.yaml', epochs=100, imgsz=640)
         ```
@@ -78,7 +78,7 @@ If you use the COCO-Seg dataset in your research or development work, please cit
 
 ```bibtex
 @misc{lin2015microsoft,
-      title={Microsoft COCO: Common Objects in Context}, 
+      title={Microsoft COCO: Common Objects in Context},
       author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
       year={2015},
       eprint={1405.0312},

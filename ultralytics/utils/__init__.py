@@ -740,7 +740,7 @@ class SettingsManager(dict):
         version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
 
-    def __init__(self, file=SETTINGS_YAML, version='0.0.3'):
+    def __init__(self, file=SETTINGS_YAML, version='0.0.4'):
         import copy
         import hashlib
 

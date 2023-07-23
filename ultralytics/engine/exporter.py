@@ -585,28 +585,26 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
+        tmp_file = Path(f / 'tmp_tflite_int8_calibration_images.npy')  # calibration images file
         if self.args.int8:
-            tmp_file = Path(f / 'tmp_tflite_int8_calibration_images.npy')  # calibration images file
             if self.args.data:
                 import numpy as np
 
-                from ultralytics.data.loaders import LoadImages
+                from ultralytics.data.dataset import YOLODataset
                 from ultralytics.data.utils import check_det_dataset
 
                 # Generate calibration data for integer quantization
-                _, _, *imgsz = list(self.im.shape)  # BCHW
-                dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz)
+                dataset = YOLODataset(check_det_dataset(self.args.data)['val'], imgsz=self.imgsz[0], augment=False)
                 images = []
                 n_images = 100  # maximum number of images
-                for n, (_, im, _, _, _) in enumerate(dataset):
+                for n, batch in enumerate(dataset):
                     if n >= n_images:
                         break
-                    im = im.transpose(1, 2, 0)  # CHW to HWC
-                    im = im[np.newaxis]
+                    im = batch['img'].numpy().transpose(1, 2, 0)[None]  # list to nparray, CHW to BHWC,
                     images.append(im)
                 f.mkdir()
-                np.save(tmp_file, np.vstack(images))  # BHWC
-                int8 = f'-oiqt -qt per-tensor -cind images {tmp_file} "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
+                np.save(str(tmp_file), np.vstack(images))  # BHWC
+                int8 = f'-oiqt -qt per-tensor -cind images "{tmp_file}" "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
             else:
                 int8 = '-oiqt -qt per-tensor'
         else:

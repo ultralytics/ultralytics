@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Pre-commit hooks. For more information see https://github.com/pre-commit/pre-commit-hooks/blob/main/README.md
 
-#exclude: 'docs/'
+exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
@@ -21,6 +21,46 @@ repos:
       - id: double-quote-string-fixer
       - id: detect-private-key
 
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.8.0
+    hooks:
+      - id: pyupgrade
+        name: Upgrade code
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: Sort imports
+
+  - repo: https://github.com/google/yapf
+    rev: v0.40.0
+    hooks:
+      - id: yapf
+        name: YAPF formatting
+
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.16
+    hooks:
+      - id: mdformat
+        name: MD formatting
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-black
+        # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        name: PEP8
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.5
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=crate,nd,strack,dota,ane
 
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0

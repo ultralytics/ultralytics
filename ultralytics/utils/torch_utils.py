@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-import contextlib
 import math
 import os
 import platform
@@ -55,15 +54,13 @@ def smart_inference_mode():
 
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    with contextlib.suppress(Exception):
-        check_requirements('py-cpuinfo')
-        import cpuinfo  # noqa
+    check_requirements('py-cpuinfo')
+    import cpuinfo  # noqa
 
-        k = 'brand_raw', 'hardware_raw', 'arch_string_raw'  # info keys sorted by preference
-        info = cpuinfo.get_cpu_info()  # info dict
-        string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], 'unknown')
-        return string.replace('(R)', '').replace('CPU ', '').replace('@ ', '')
-    return 'unknown'
+    k = 'brand_raw', 'hardware_raw', 'arch_string_raw'  # info keys sorted by preference (not all keys always available)
+    info = cpuinfo.get_cpu_info()  # info dict
+    string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], 'unknown')
+    return string.replace('(R)', '').replace('CPU ', '').replace('@ ', '')
 
 
 def select_device(device='', batch=0, newline=False, verbose=True):

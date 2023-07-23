@@ -55,7 +55,7 @@ We would like to acknowledge the YOLOv4 authors for their significant contributi
 
 ```bibtex
 @misc{bochkovskiy2020yolov4,
-      title={YOLOv4: Optimal Speed and Accuracy of Object Detection}, 
+      title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
       author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
       year={2020},
       eprint={2004.10934},

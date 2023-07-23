@@ -34,10 +34,10 @@ To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='caltech256', epochs=100, imgsz=416)
         ```

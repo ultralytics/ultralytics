@@ -44,10 +44,10 @@ To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image si
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='VisDrone.yaml', epochs=100, imgsz=640)
         ```
@@ -76,8 +76,8 @@ If you use the VisDrone dataset in your research or development work, please cit
 ```bibtex
 @ARTICLE{9573394,
   author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
-  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
-  title={Detection and Tracking Meet Drones Challenge}, 
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  title={Detection and Tracking Meet Drones Challenge},
   year={2021},
   volume={},
   number={},

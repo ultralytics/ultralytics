@@ -4,7 +4,7 @@ import json
 from time import time
 
 from ultralytics.hub.utils import PREFIX, events
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, SETTINGS
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 
@@ -84,4 +84,4 @@ callbacks = {
     'on_train_start': on_train_start,
     'on_val_start': on_val_start,
     'on_predict_start': on_predict_start,
-    'on_export_start': on_export_start}
+    'on_export_start': on_export_start} if SETTINGS['hub'] is True else {}  # verify enabled

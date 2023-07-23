@@ -27,21 +27,21 @@ Use a trained YOLOv8n/YOLOv8n-seg model to run tracker on video streams.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load an official detection model
         model = YOLO('yolov8n-seg.pt')  # load an official segmentation model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Track with the model
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True) 
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml") 
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True)
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml")
         ```
     === "CLI"
-    
+
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc"  # official detection model
         yolo track model=yolov8n-seg.pt source=...   # official segmentation model
@@ -62,15 +62,15 @@ to [predict page](https://docs.ultralytics.com/modes/predict/).
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True) 
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True)
         ```
     === "CLI"
-    
+
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" conf=0.3, iou=0.5 show
 
@@ -84,15 +84,15 @@ any configurations(expect the `tracker_type`) you need to.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", tracker='custom_tracker.yaml') 
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", tracker='custom_tracker.yaml')
         ```
     === "CLI"
-    
+
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" tracker='custom_tracker.yaml'
         ```

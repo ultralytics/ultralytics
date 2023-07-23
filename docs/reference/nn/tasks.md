@@ -1,8 +1,3 @@
----
-description: Explore Ultralytics YOLO docs to understand task-specific models like DetectionModel, PoseModel, RTDETRDetectionModel and more. Plus, learn about ensemble, model loading.
-keywords: Ultralytics, YOLO docs, DetectionModel, SegmentationModel, ClassificationModel, Ensemble, torch_safe_load, yaml_model_load, guess_model_task
----
-
 ## BaseModel
 ---
 ### ::: ultralytics.nn.tasks.BaseModel

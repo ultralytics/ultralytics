@@ -16,15 +16,15 @@ Support for training trackers alone is coming soon
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True) 
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True)
         ```
     === "CLI"
-    
+
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" conf=0.3, iou=0.5 show
         ```

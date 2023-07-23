@@ -51,10 +51,10 @@ Here's how you can use these formats to train your model:
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
@@ -62,7 +62,7 @@ Here's how you can use these formats to train your model:
         model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640

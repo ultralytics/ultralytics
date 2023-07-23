@@ -19,22 +19,22 @@ format with just a few lines of code.
 
     ```python
     from ultralytics import YOLO
-    
+
     # Create a new YOLO model from scratch
     model = YOLO('yolov8n.yaml')
-    
+
     # Load a pretrained YOLO model (recommended for training)
     model = YOLO('yolov8n.pt')
-    
+
     # Train the model using the 'coco128.yaml' dataset for 3 epochs
     results = model.train(data='coco128.yaml', epochs=3)
-    
+
     # Evaluate the model's performance on the validation set
     results = model.val()
-    
+
     # Perform object detection on an image using the model
     results = model('https://ultralytics.com/images/bus.jpg')
-    
+
     # Export the model to ONNX format
     success = model.export(format='onnx')
     ```
@@ -135,7 +135,7 @@ predicts the classes and locations of objects in the input images or videos.
     === "Results usage"
         ```python
         # results would be a list of Results object including all the predictions by default
-        # but be careful as it could occupy a lot memory when there're many images, 
+        # but be careful as it could occupy a lot memory when there're many images,
         # especially the task is segmentation.
         # 1. return as a list
         results = model.predict(source="folder")
@@ -161,7 +161,7 @@ predicts the classes and locations of objects in the input images or videos.
             # Classification
             result.probs     # cls prob, (num_class, )
 
-        # Each result is composed of torch.Tensor by default, 
+        # Each result is composed of torch.Tensor by default,
         # in which you can easily use following functionality:
         result = result.cuda()
         result = result.cpu()
@@ -210,18 +210,18 @@ for applications such as surveillance systems or self-driving cars.
 !!! example "Track"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load an official detection model
         model = YOLO('yolov8n-seg.pt')  # load an official segmentation model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Track with the model
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True) 
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml") 
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True)
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml")
         ```
 
 [Track Examples](../modes/track.md){ .md-button .md-button--primary}
@@ -237,11 +237,11 @@ their specific use case based on their requirements for speed and accuracy.
 !!! example "Benchmark"
 
     === "Python"
-    
+
         Benchmark an official YOLOv8n model across all export formats.
         ```python
         from ultralytics.utils.benchmarks import benchmark
-        
+
         # Benchmark
         benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
         ```

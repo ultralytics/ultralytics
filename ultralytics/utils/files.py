@@ -38,7 +38,7 @@ def spaces_in_path(path):
         path (str | Path): The original path.
 
     Yields:
-        Path: Temporary path with spaces replaced by underscores if spaces were present, otherwise the original path.
+        (Path): Temporary path with spaces replaced by underscores if spaces were present, otherwise the original path.
 
     Examples:
         with spaces_in_path('/path/with spaces') as new_path:

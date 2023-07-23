@@ -562,6 +562,7 @@ class Exporter:
         return f, None
 
     @try_export
+@try_export
     def export_saved_model(self, prefix=colorstr('TensorFlow SavedModel:')):
         """YOLOv8 TensorFlow SavedModel export."""
         try:
@@ -570,7 +571,7 @@ class Exporter:
             cuda = torch.cuda.is_available()
             check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(('onnx', 'onnx2tf>=1.7.7', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
+        check_requirements(('onnx', 'onnx2tf>=1.9.1', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
                             'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
                            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 
@@ -585,18 +586,42 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
-        int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'
-        LOGGER.info(f"\n{prefix} running '{cmd}'")
+        if self.args.int8:
+            import numpy as np
+
+            from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
+            from ultralytics.yolo.data.utils import check_det_dataset
+
+            # Generate calibration data for integer quantization
+            _, _, *imgsz = list(self.im.shape)  # BCHW
+            dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz, auto=False)
+            calib_data = []
+            n_images = 100
+            for n, (_, img, _, _, _) in enumerate(dataset):
+                if n >= n_images:
+                    break
+                img = img.transpose(1, 2, 0)  # CHW to HWC
+                img = img[np.newaxis]
+                calib_data.append(img)
+            f.mkdir()
+            calib_file = Path(f / 'calib_data.npy')
+            np.save(calib_file, np.vstack(calib_data))  # BHWC
+
+            int8 = f'-oiqt -qt per-tensor -cind images {calib_file} "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
+        else:
+            int8 = ''
+
+        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
+        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Remove/rename TFLite models
         if self.args.int8:
-            for file in f.rglob('*_dynamic_range_quant.tflite'):
-                file.rename(file.with_name(file.stem.replace('_dynamic_range_quant', '_int8') + file.suffix))
             for file in f.rglob('*_integer_quant_with_int16_act.tflite'):
                 file.unlink()  # delete extra fp16 activation TFLite files
+            # Remove caliblation data file
+            calib_file.unlink()
 
         # Add TFLite metadata
         for file in f.rglob('*.tflite'):

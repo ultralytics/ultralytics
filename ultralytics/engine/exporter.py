@@ -432,16 +432,24 @@ class Exporter:
             Path(asset).unlink()  # delete zip
             pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
 
-        cmd = [
-            str(pnnx),
-            str(f_ts),
+        use_ncnn = True
+        ncnn_args = [
+            f'ncnnparam={f / "model.ncnn.param"}',
+            f'ncnnbin={f / "model.ncnn.bin"}',
+            f'ncnnpy={f / "model_ncnn.py"}', ] if use_ncnn else []
+
+        use_pnnx = False
+        pnnx_args = [
             f'pnnxparam={f / "model.pnnx.param"}',
             f'pnnxbin={f / "model.pnnx.bin"}',
             f'pnnxpy={f / "model_pnnx.py"}',
-            f'pnnxonnx={f / "model.pnnx.onnx"}',
-            f'ncnnparam={f / "model.ncnn.param"}',
-            f'ncnnbin={f / "model.ncnn.bin"}',
-            f'ncnnpy={f / "model_ncnn.py"}',
+            f'pnnxonnx={f / "model.pnnx.onnx"}', ] if use_pnnx else []
+
+        cmd = [
+            str(pnnx),
+            str(f_ts),
+            *ncnn_args,
+            *pnnx_args,
             f'fp16={int(self.args.half)}',
             f'device={self.device.type}',
             f'inputshape="{[self.args.batch, 3, *self.imgsz]}"', ]
@@ -570,7 +578,7 @@ class Exporter:
             cuda = torch.cuda.is_available()
             check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(('onnx', 'onnx2tf>=1.7.7', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
+        check_requirements(('onnx', 'onnx2tf>=1.9.1', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
                             'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
                            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 

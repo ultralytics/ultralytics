@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import sys
+import inspect
 from pathlib import Path
 from typing import Union
 
@@ -121,7 +122,7 @@ class Model:
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
-        model = model or self.task_map[self.task]["model"]
+        model = model or self.smart_load("model")
         self.model = model(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
 
@@ -234,7 +235,7 @@ class Model:
             overrides['save'] = kwargs.get('save', False)  # do not save by default if called in Python
         if not self.predictor:
             self.task = overrides.get('task') or self.task
-            predictor = predictor or self.task_map[self.task]["predictor"]
+            predictor = predictor or self.smart_load("predictor")
             self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
@@ -290,7 +291,7 @@ class Model:
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
-        validator = validator or self.task_map[self.task]["validator"]
+        validator = validator or self.smart_load("validator")
         validator = validator(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
@@ -357,7 +358,7 @@ class Model:
         if overrides.get('resume'):
             overrides['resume'] = self.ckpt_path
         self.task = overrides.get('task') or self.task
-        trainer = trainer or self.task_map[self.task]["trainer"]
+        trainer = trainer or self.smart_load("trainer")
         self.trainer = trainer(overrides=overrides, _callbacks=self.callbacks)
         if not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
@@ -432,6 +433,15 @@ class Model:
         """Raises error if object has no requested attribute."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
+    def smart_load(self, key):
+        """Load model/trainer/validator/predictor."""
+        try:
+            return self.task_map[self.task][key]
+        except Exception:
+            name = self.__class__.__name__
+            mode = inspect.stack()[1][3]   # get the function name.
+            raise NotImplementedError(f"error ❌ `{name}` model does not support `{mode}` mode for `{self.task}` task yet.")
 
     @property
     def task_map(self):

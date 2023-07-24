@@ -22,11 +22,6 @@ class FastSAM(Model):
             model = "FastSAM-x.pt"
         assert Path(model).suffix != ".yaml", "FastSAM models only support pre-trained models."
         super().__init__(model=model, task="segment")
-        # any additional initialization code for FastSAM
-
-    def train(self, **kwargs):
-        """Function trains models but raises an error as FastSAM models do not support training."""
-        raise NotImplementedError("FastSAM models don't support training")
 
     @property
     def task_map(self):

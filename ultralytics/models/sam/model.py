@@ -20,7 +20,6 @@ class SAM(Model):
             # Should raise AssertionError instead?
             raise NotImplementedError('Segment anything prediction requires pre-trained checkpoint')
         super().__init__(model=model, task="segment")
-        self.model = build_sam(model)
 
     def _load(self, weights: str, task=None):
         self.model = build_sam(weights)
@@ -35,14 +34,6 @@ class SAM(Model):
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source, stream=stream, bboxes=bboxes, points=points, labels=labels)
-
-    def train(self, **kwargs):
-        """Function trains models but raises an error as SAM models do not support training."""
-        raise NotImplementedError("SAM models don't support training")
-
-    def val(self, **kwargs):
-        """Run validation given dataset."""
-        raise NotImplementedError("SAM models don't support validation")
 
     def __call__(self, source=None, stream=False, bboxes=None, points=None, labels=None, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""

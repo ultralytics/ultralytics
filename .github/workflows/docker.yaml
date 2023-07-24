@@ -78,7 +78,7 @@ jobs:
       - name: Run benchmarks
         if: matrix.dockerfile == 'Dockerfile-python'
         run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmarks model=yolov8n.pt imgsz=160
+          docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160
 
       - name: Push image
         uses: docker/build-push-action@v4

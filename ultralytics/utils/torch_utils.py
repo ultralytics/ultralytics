@@ -54,8 +54,7 @@ def smart_inference_mode():
 
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    check_requirements('py-cpuinfo')
-    import cpuinfo  # noqa
+    import cpuinfo  # pip install py-cpuinfo
 
     k = 'brand_raw', 'hardware_raw', 'arch_string_raw'  # info keys sorted by preference (not all keys always available)
     info = cpuinfo.get_cpu_info()  # info dict

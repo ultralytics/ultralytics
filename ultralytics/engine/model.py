@@ -67,13 +67,13 @@ class Model:
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
-        self.task = None  # task type
         self.ckpt = None  # if loaded from *.pt
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
+        self.task = task  # task type
         model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com

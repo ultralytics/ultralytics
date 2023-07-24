@@ -74,7 +74,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install 'ultralytics[dev]' && pytest tests"
+          docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run benchmarks
         if: matrix.dockerfile == 'Dockerfile-python'

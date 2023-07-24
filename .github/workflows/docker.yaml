@@ -6,23 +6,44 @@ name: Publish Docker Images
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
-      image:
+      dockerfile:
         type: choice
-        description: Select Docker Image
+        description: Select Dockerfile
         options:
-          - Arm64
-          - Jetson
-          - Python
-          - CPU
-          - GPU
+          - Dockerfile-arm64
+          - Dockerfile-jetson
+          - Dockerfile-python
+          - Dockerfile-cpu
+          - Dockerfile
 
 jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
-    name: Push Docker image to Docker Hub
+    name: Push to Docker Hub
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+      matrix:
+        include:
+          - dockerfile: "Dockerfile-arm64"
+            tags: "latest-arm64"
+            platforms: "linux/arm64"
+          - dockerfile: "Dockerfile-jetson"
+            tags: "latest-jetson"
+            platforms: "linux/arm64"
+          - dockerfile: "Dockerfile-python"
+            tags: "latest-python"
+            platforms: "linux/amd64"
+          - dockerfile: "Dockerfile-cpu"
+            tags: "latest-cpu"
+            platforms: "linux/amd64"
+          - dockerfile: "Dockerfile"
+            tags: "latest"
+            platforms: "linux/amd64"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -39,54 +60,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push arm64 image
-        if: github.event_name == 'push' || github.event.inputs.image == 'Arm64'
+      - name: Build image
+        if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         uses: docker/build-push-action@v4
-        continue-on-error: true
         with:
           context: .
-          platforms: linux/arm64
-          file: docker/Dockerfile-arm64
-          push: true
-          tags: ultralytics/ultralytics:latest-arm64
+          platforms: ${{ matrix.platforms }}
+          file: docker/${{ matrix.dockerfile }}
+          push: false
+          load: true
+          tags: ultralytics/ultralytics:${{ matrix.tags }}
 
-      - name: Build and push Jetson image
-        if: github.event_name == 'push' || github.event.inputs.image == 'Jetson'
-        uses: docker/build-push-action@v4
-        continue-on-error: true
-        with:
-          context: .
-          platforms: linux/arm64
-          file: docker/Dockerfile-jetson
-          push: true
-          tags: ultralytics/ultralytics:latest-jetson
+      - name: Run tests
+        if: matrix.dockerfile == 'Dockerfile-python'
+        run: |
+          docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install 'ultralytics[dev]' && pytest tests"
 
-      - name: Build and push Python image
-        if: github.event_name == 'push' || github.event.inputs.image == 'Python'
+      - name: Push image
         uses: docker/build-push-action@v4
-        continue-on-error: true
         with:
           context: .
-          file: docker/Dockerfile-python
+          platforms: ${{ matrix.platforms }}
+          file: docker/${{ matrix.dockerfile }}
           push: true
-          tags: ultralytics/ultralytics:latest-python
-
-      - name: Build and push CPU image
-        if: github.event_name == 'push' || github.event.inputs.image == 'CPU'
-        uses: docker/build-push-action@v4
-        continue-on-error: true
-        with:
-          context: .
-          file: docker/Dockerfile-cpu
-          push: true
-          tags: ultralytics/ultralytics:latest-cpu
-
-      - name: Build and push GPU image
-        if: github.event_name == 'push' || github.event.inputs.image == 'GPU'
-        uses: docker/build-push-action@v4
-        continue-on-error: true
-        with:
-          context: .
-          file: docker/Dockerfile
-          push: true
-          tags: ultralytics/ultralytics:latest
+          tags: ultralytics/ultralytics:${{ matrix.tags }}

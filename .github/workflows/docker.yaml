@@ -61,7 +61,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build image
-        if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
+        # if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         uses: docker/build-push-action@v4
         with:
           context: .

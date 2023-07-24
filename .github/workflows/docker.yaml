@@ -73,11 +73,12 @@ jobs:
           tags: ultralytics/ultralytics:${{ matrix.tags }}
 
       - name: Run tests
+        if: matrix.platforms == 'linux/amd64'  # GitHub CI runners not available for arm64
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run benchmarks
-        if: matrix.dockerfile == 'Dockerfile-python'
+        if: matrix.platforms == 'linux/amd64' && matrix.dockerfile == 'Dockerfile-python'
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160
 

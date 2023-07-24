@@ -287,11 +287,11 @@ class Model:
             self.task = args.task
         else:
             args.task = self.task
+        validator = validator or self.smart_load("validator")
         if args.imgsz == DEFAULT_CFG.imgsz and not isinstance(self.model, (str, Path)):
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
-        validator = validator or self.smart_load("validator")
         validator = validator(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics

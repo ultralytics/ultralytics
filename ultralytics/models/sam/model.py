@@ -12,7 +12,9 @@ from .predict import Predictor
 
 
 class SAM(Model):
-
+    """
+    SAM model interface.
+    """
     def __init__(self, model='sam_b.pt') -> None:
         if model and not model.endswith('.pt') and not model.endswith('.pth'):
             # Should raise AssertionError instead?

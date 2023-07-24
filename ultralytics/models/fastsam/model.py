@@ -1,13 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-FastSAM model interface.
-
-Usage - Predict:
-    from ultralytics import FastSAM
-
-    model = FastSAM('last.pt')
-    results = model.predict('ultralytics/assets/bus.jpg')
-"""
 from ultralytics.engine.model import Model
 from pathlib import Path
 
@@ -16,6 +7,15 @@ from .val import FastSAMValidator
 
 
 class FastSAM(Model):
+    """
+    FastSAM model interface.
+
+    Usage - Predict:
+        from ultralytics import FastSAM
+
+        model = FastSAM('last.pt')
+        results = model.predict('ultralytics/assets/bus.jpg')
+    """
     def __init__(self, model="FastSAM-x.pt"):
         """Call the __init__ method of the parent class (YOLO) with the updated default model"""
         if model == "FastSAM.pt":

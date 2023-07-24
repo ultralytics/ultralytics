@@ -428,6 +428,11 @@ class Model:
         for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
+    def __getattr__(self, attr):
+        """Raises error if object has no requested attribute."""
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
     @property
     def task_map(self):
         """Map head to model, trainer, validator, and predictor classes

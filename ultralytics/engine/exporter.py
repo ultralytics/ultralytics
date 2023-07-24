@@ -432,16 +432,24 @@ class Exporter:
             Path(asset).unlink()  # delete zip
             pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
 
-        cmd = [
-            str(pnnx),
-            str(f_ts),
+        use_ncnn = True
+        ncnn_args = [
+            f'ncnnparam={f / "model.ncnn.param"}',
+            f'ncnnbin={f / "model.ncnn.bin"}',
+            f'ncnnpy={f / "model_ncnn.py"}', ] if use_ncnn else []
+
+        use_pnnx = False
+        pnnx_args = [
             f'pnnxparam={f / "model.pnnx.param"}',
             f'pnnxbin={f / "model.pnnx.bin"}',
             f'pnnxpy={f / "model_pnnx.py"}',
-            f'pnnxonnx={f / "model.pnnx.onnx"}',
-            f'ncnnparam={f / "model.ncnn.param"}',
-            f'ncnnbin={f / "model.ncnn.bin"}',
-            f'ncnnpy={f / "model_ncnn.py"}',
+            f'pnnxonnx={f / "model.pnnx.onnx"}', ] if use_pnnx else []
+
+        cmd = [
+            str(pnnx),
+            str(f_ts),
+            *ncnn_args,
+            *pnnx_args,
             f'fp16={int(self.args.half)}',
             f'device={self.device.type}',
             f'inputshape="{[self.args.batch, 3, *self.imgsz]}"', ]

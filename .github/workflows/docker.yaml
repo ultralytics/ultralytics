@@ -23,7 +23,7 @@ on:
 jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
-    name: Push to Docker Hub
+    name: Push
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
@@ -72,9 +72,13 @@ jobs:
           tags: ultralytics/ultralytics:${{ matrix.tags }}
 
       - name: Run tests
-        if: matrix.dockerfile == 'Dockerfile-python'
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install 'ultralytics[dev]' && pytest tests"
+
+      - name: Run benchmarks
+        if: matrix.dockerfile == 'Dockerfile-python'
+        run: |
+          docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmarks model=yolov8n.pt imgsz=160
 
       - name: Push image
         uses: docker/build-push-action@v4

@@ -26,6 +26,7 @@ jobs:
     name: Push
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       max-parallel: 5
       matrix:
         include:

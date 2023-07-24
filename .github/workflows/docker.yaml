@@ -75,12 +75,12 @@ jobs:
       - name: Run tests
         # if: matrix.platforms == 'linux/amd64'  # GitHub CI runners not available for arm64
         run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} --platform ${{ matrix.platforms }} /bin/bash -c "pip install pytest && pytest tests"
+          docker run --platform ${{ matrix.platforms }} ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run benchmarks
         if: matrix.platforms == 'linux/amd64' && matrix.dockerfile == 'Dockerfile-python'
         run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} --platform ${{ matrix.platforms }} yolo benchmark model=yolov8n.pt imgsz=160
+          docker run --platform ${{ matrix.platforms }} ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160
 
       - name: Push image
         uses: docker/build-push-action@v4

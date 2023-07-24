@@ -1,6 +1,3 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# Builds ultralytics/ultralytics:latest images on DockerHub https://hub.docker.com/r/ultralytics
-
 name: Publish Docker Images
 
 on:
@@ -61,32 +58,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build image
-        # if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: ${{ matrix.platforms }}
-          file: docker/${{ matrix.dockerfile }}
-          push: false
-          load: true
-          tags: user/app:test
+      - name: Build Image
+        run: |
+          docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} -t ultralytics/ultralytics:${{ matrix.tags }} .
 
-      - name: Run tests
+      - name: Run Tests
         if: matrix.platforms == 'linux/amd64'  # GitHub CI runners not available for arm64
         run: |
-          docker run --platform ${{ matrix.platforms }} user/app:test /bin/bash -c "pip install pytest && pytest tests"
+          docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
-      - name: Run benchmarks
+      - name: Run Benchmarks
         if: matrix.platforms == 'linux/amd64' && matrix.dockerfile == 'Dockerfile-python'
         run: |
-          docker run --platform ${{ matrix.platforms }} user/app:test yolo benchmark model=yolov8n.pt imgsz=160
+          docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160
 
-      - name: Push image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: ${{ matrix.platforms }}
-          file: docker/${{ matrix.dockerfile }}
-          push: true
-          tags: ultralytics/ultralytics:${{ matrix.tags }}
+      - name: Push Image
+        run: |
+          docker push ultralytics/ultralytics:${{ matrix.tags }}

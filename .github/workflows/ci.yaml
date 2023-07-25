@@ -14,15 +14,15 @@ on:
     inputs:
       hub:
         description: 'Run HUB'
-        default: true
+        default: false
         type: boolean
       tests:
         description: 'Run Tests'
-        default: true
+        default: false
         type: boolean
       benchmarks:
         description: 'Run Benchmarks'
-        default: true
+        default: false
         type: boolean
 
 jobs:

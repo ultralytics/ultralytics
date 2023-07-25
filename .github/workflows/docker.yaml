@@ -69,17 +69,17 @@ jobs:
           docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} -t ultralytics/ultralytics:${{ matrix.tags }} .
 
       - name: Run Tests
-        if: matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
-        if: matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
       - name: Push Image
-        if: github.event_name == 'push' || github.event.inputs.push == true
+        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == true)
         run: |
           docker push ultralytics/ultralytics:${{ matrix.tags }}
 

@@ -125,16 +125,16 @@ jobs:
           pip list
       - name: Benchmark DetectionModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160, verbose=0.26
+        run: yolo benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
       - name: Benchmark SegmentationModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160, verbose=0.30
+        run: yolo benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.30
       - name: Benchmark ClassificationModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160, verbose=0.36
+        run: yolo benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.36
       - name: Benchmark PoseModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160, verbose=0.17
+        run: yolo benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.17
       - name: Benchmark Summary
         run: |
           cat benchmarks.log

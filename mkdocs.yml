@@ -35,6 +35,7 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+    - announce.dismiss
     - content.action.edit
     - content.code.annotate
     - content.code.copy
@@ -207,6 +208,10 @@ nav:
           - MNIST: datasets/classify/mnist.md
       - Multi-Object Tracking:
           - datasets/track/index.md
+  - Integrations:
+      - integrations/index.md
+      - OpenVINO: integrations/openvino.md
+      - Ray Tune: integrations/ray-tune.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md
@@ -406,6 +411,7 @@ plugins:
         quick-start.md: quickstart.md
         app.md: hub/app/index.md
         sdk.md: index.md
+        usage/hyperparameter_tuning.md: integrations/ray-tune.md
         reference/base_pred.md: reference/engine/predictor.md
         reference/base_trainer.md: reference/engine/trainer.md
         reference/exporter.md: reference/engine/exporter.md

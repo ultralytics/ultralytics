@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import sys
 import inspect
+import sys
 from pathlib import Path
 from typing import Union
 
@@ -122,7 +122,7 @@ class Model:
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
-        model = model or self.smart_load("model")
+        model = model or self.smart_load('model')
         self.model = model(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
 
@@ -227,7 +227,7 @@ class Model:
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
         # Check prompts for SAM/FastSAM
-        prompts = kwargs.pop("prompts", None)
+        prompts = kwargs.pop('prompts', None)
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
         overrides.update(kwargs)  # prefer kwargs
@@ -237,7 +237,7 @@ class Model:
             overrides['save'] = kwargs.get('save', False)  # do not save by default if called in Python
         if not self.predictor:
             self.task = overrides.get('task') or self.task
-            predictor = predictor or self.smart_load("predictor")
+            predictor = predictor or self.smart_load('predictor')
             self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
@@ -245,7 +245,7 @@ class Model:
             if 'project' in overrides or 'name' in overrides:
                 self.predictor.save_dir = self.predictor.get_save_dir()
         # Set prompts for SAM/FastSAM
-        if len and hasattr(self.predictor, "set_prompts"):
+        if len and hasattr(self.predictor, 'set_prompts'):
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
@@ -292,7 +292,7 @@ class Model:
             self.task = args.task
         else:
             args.task = self.task
-        validator = validator or self.smart_load("validator")
+        validator = validator or self.smart_load('validator')
         if args.imgsz == DEFAULT_CFG.imgsz and not isinstance(self.model, (str, Path)):
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
@@ -367,7 +367,7 @@ class Model:
         if overrides.get('resume'):
             overrides['resume'] = self.ckpt_path
         self.task = overrides.get('task') or self.task
-        trainer = trainer or self.smart_load("trainer")
+        trainer = trainer or self.smart_load('trainer')
         self.trainer = trainer(overrides=overrides, _callbacks=self.callbacks)
         if not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
@@ -449,8 +449,9 @@ class Model:
             return self.task_map[self.task][key]
         except Exception:
             name = self.__class__.__name__
-            mode = inspect.stack()[1][3]   # get the function name.
-            raise NotImplementedError(f"error ❌ `{name}` model does not support `{mode}` mode for `{self.task}` task yet.")
+            mode = inspect.stack()[1][3]  # get the function name.
+            raise NotImplementedError(
+                f'error ❌ `{name}` model does not support `{mode}` mode for `{self.task}` task yet.')
 
     @property
     def task_map(self):
@@ -459,4 +460,4 @@ class Model:
         Returns:
             task_map (dict)
         """
-        raise NotImplementedError("Please provide task map for your model!")
+        raise NotImplementedError('Please provide task map for your model!')

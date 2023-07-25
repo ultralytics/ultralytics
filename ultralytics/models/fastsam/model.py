@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-from ultralytics.engine.model import Model
 from pathlib import Path
+
+from ultralytics.engine.model import Model
 
 from .predict import FastSAMPredictor
 from .val import FastSAMValidator
@@ -16,13 +17,14 @@ class FastSAM(Model):
         model = FastSAM('last.pt')
         results = model.predict('ultralytics/assets/bus.jpg')
     """
-    def __init__(self, model="FastSAM-x.pt"):
+
+    def __init__(self, model='FastSAM-x.pt'):
         """Call the __init__ method of the parent class (YOLO) with the updated default model"""
-        if model == "FastSAM.pt":
-            model = "FastSAM-x.pt"
-        assert Path(model).suffix != ".yaml", "FastSAM models only support pre-trained models."
-        super().__init__(model=model, task="segment")
+        if model == 'FastSAM.pt':
+            model = 'FastSAM-x.pt'
+        assert Path(model).suffix != '.yaml', 'FastSAM models only support pre-trained models.'
+        super().__init__(model=model, task='segment')
 
     @property
     def task_map(self):
-        return {"segment": {"predictor": FastSAMPredictor, "validator": FastSAMValidator}}
+        return {'segment': {'predictor': FastSAMPredictor, 'validator': FastSAMValidator}}

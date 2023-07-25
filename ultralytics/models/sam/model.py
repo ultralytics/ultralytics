@@ -15,11 +15,12 @@ class SAM(Model):
     """
     SAM model interface.
     """
+
     def __init__(self, model='sam_b.pt') -> None:
         if model and not model.endswith('.pt') and not model.endswith('.pth'):
             # Should raise AssertionError instead?
             raise NotImplementedError('Segment anything prediction requires pre-trained checkpoint')
-        super().__init__(model=model, task="segment")
+        super().__init__(model=model, task='segment')
 
     def _load(self, weights: str, task=None):
         self.model = build_sam(weights)
@@ -47,4 +48,4 @@ class SAM(Model):
 
     @property
     def task_map(self):
-        return {"segment": {"predictor": Predictor}}
+        return {'segment': {'predictor': Predictor}}

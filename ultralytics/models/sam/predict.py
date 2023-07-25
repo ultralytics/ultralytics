@@ -95,9 +95,9 @@ class Predictor(BasePredictor):
                 a subsequent iteration as mask input.
         """
         # Get prompts from self.prompts first
-        bboxes = self.prompts.pop("bboxes", bboxes)
-        points = self.prompts.pop("points", points)
-        masks = self.prompts.pop("masks", masks)
+        bboxes = self.prompts.pop('bboxes', bboxes)
+        points = self.prompts.pop('points', points)
+        masks = self.prompts.pop('masks', masks)
         if all(i is None for i in [bboxes, points, masks]):
             return self.generate(im, *args, **kwargs)
         return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)

@@ -465,7 +465,7 @@ class Exporter:
     @try_export
     def export_coreml(self, prefix=colorstr('CoreML:')):
         """YOLOv8 CoreML export."""
-        check_requirements('coremltools>=6.0,<=6.2')
+        check_requirements('coremltools>=6.0,<=6.2' if self.args.nms else 'coremltools>=6.0')
         import coremltools as ct  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')

@@ -40,18 +40,18 @@ full list of export arguments.
 
 ## Arguments
 
-Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `hard_fail` provide users with the flexibility to fine-tune
+Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune
 the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
-| Key         | Value   | Description                                                                |
-|-------------|---------|----------------------------------------------------------------------------|
-| `model`     | `None`  | path to model file, i.e. yolov8n.pt, yolov8n.yaml                          |
-| `data`      | `None`  | path to yaml referencing the benchmarking dataset (under `val` label)      |
-| `imgsz`     | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                       |
-| `half`      | `False` | FP16 quantization                                                          |
-| `int8`      | `False` | INT8 quantization                                                          |
-| `device`    | `None`  | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu       |
-| `hard_fail` | `False` | do not continue on error (bool), or val floor threshold (float)            |
+| Key       | Value   | Description                                                           |
+|-----------|---------|-----------------------------------------------------------------------|
+| `model`   | `None`  | path to model file, i.e. yolov8n.pt, yolov8n.yaml                     |
+| `data`    | `None`  | path to yaml referencing the benchmarking dataset (under `val` label) |
+| `imgsz`   | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                  |
+| `half`    | `False` | FP16 quantization                                                     |
+| `int8`    | `False` | INT8 quantization                                                     |
+| `device`  | `None`  | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu  |
+| `verbose` | `False` | do not continue on error (bool), or val floor threshold (float)       |
 
 ## Export Formats
 

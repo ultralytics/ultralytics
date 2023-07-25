@@ -9,12 +9,12 @@ Usage - Predict:
     results = model.predict('ultralytics/assets/bus.jpg')
 """
 
+from pathlib import Path
 
 import torch
 
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info, smart_inference_mode
-from pathlib import Path
 
 from .predict import NASPredictor
 from .val import NASValidator
@@ -56,4 +56,4 @@ class NAS(Model):
 
     @property
     def task_map(self):
-        return {"detect": {"predictor": NASPredictor, "validator": NASValidator}}
+        return {'detect': {'predictor': NASPredictor, 'validator': NASValidator}}

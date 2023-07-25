@@ -232,7 +232,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         ```
 
     === "CLI"
-        If you prefer using the command-line interface, the following command will allow you to modify your settings:
+        If you prefer using the command-line interface, the following commands will allow you to modify your settings:
         ```bash
         # Update a setting
         yolo settings runs_dir='/path/to/runs'

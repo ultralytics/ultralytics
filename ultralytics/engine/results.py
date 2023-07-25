@@ -114,6 +114,7 @@ class Results(SimpleClass):
     def update(self, boxes=None, masks=None, probs=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
+            ops.clip_boxes(boxes, self.orig_shape)  # clip boxes
             self.boxes = Boxes(boxes, self.orig_shape)
         if masks is not None:
             self.masks = Masks(masks, self.orig_shape)

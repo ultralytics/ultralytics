@@ -13,15 +13,15 @@ on:
   workflow_dispatch:
     inputs:
       hub:
-        description: 'Run HUB job'
+        description: 'Run HUB'
         default: true
         type: boolean
       tests:
-        description: 'Run Tests job'
+        description: 'Run Tests'
         default: true
         type: boolean
       benchmarks:
-        description: 'Run Benchmarks job'
+        description: 'Run Benchmarks'
         default: true
         type: boolean
 

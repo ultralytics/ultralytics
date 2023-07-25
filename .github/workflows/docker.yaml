@@ -49,7 +49,6 @@ jobs:
             platforms: "linux/amd64"
     steps:
       - name: Checkout repo
-        if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         uses: actions/checkout@v3
 
       - name: Set up QEMU
@@ -65,6 +64,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Image
+        if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         run: |
           docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} -t ultralytics/ultralytics:${{ matrix.tags }} .
 

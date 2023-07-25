@@ -226,6 +226,8 @@ class Model:
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
+        # Check prompts for SAM/FastSAM
+        prompts = kwargs.pop("prompts", None)
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
         overrides.update(kwargs)  # prefer kwargs
@@ -242,6 +244,9 @@ class Model:
             self.predictor.args = get_cfg(self.predictor.args, overrides)
             if 'project' in overrides or 'name' in overrides:
                 self.predictor.save_dir = self.predictor.get_save_dir()
+        # Set prompts for SAM/FastSAM
+        if len and hasattr(self.predictor, "set_prompts"):
+            self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):

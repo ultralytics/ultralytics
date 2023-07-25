@@ -27,13 +27,16 @@ class SAM(Model):
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, **kwargs):
         """Predicts and returns segmentation masks for given image or video source."""
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024)
-        overrides.update(kwargs)  # prefer kwargs
-        if not self.predictor:
-            self.predictor = Predictor(overrides=overrides)
-            self.predictor.setup_model(model=self.model)
-        else:  # only update args if predictor is already setup
-            self.predictor.args = get_cfg(self.predictor.args, overrides)
-        return self.predictor(source, stream=stream, bboxes=bboxes, points=points, labels=labels)
+        kwargs.update(overrides)
+        prompts = dict(bboxes=bboxes, points=points, labels=labels)
+        super().predict(source, stream, prompts=prompts, **kwargs)
+        # overrides.update(kwargs)  # prefer kwargs
+        # if not self.predictor:
+        #     self.predictor = Predictor(overrides=overrides)
+        #     self.predictor.setup_model(model=self.model)
+        # else:  # only update args if predictor is already setup
+        #     self.predictor.args = get_cfg(self.predictor.args, overrides)
+        # return self.predictor(source, stream=stream, bboxes=bboxes, points=points, labels=labels)
 
     def __call__(self, source=None, stream=False, bboxes=None, points=None, labels=None, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""
@@ -48,3 +51,7 @@ class SAM(Model):
             verbose (bool): Controls verbosity.
         """
         return model_info(self.model, detailed=detailed, verbose=verbose)
+
+    @property
+    def task_map(self):
+        return {"segment": {"predictor": Predictor}}

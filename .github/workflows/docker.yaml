@@ -4,8 +4,7 @@
 name: Publish Docker Images
 
 on:
-  #push:
-  pull_request:
+  push:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -50,7 +49,7 @@ jobs:
             platforms: "linux/amd64"
     steps:
       - name: Checkout repo
-        if: github.event_name == 'pull_request' || github.event.inputs.dockerfile == matrix.dockerfile
+        if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         uses: actions/checkout@v3
 
       - name: Set up QEMU
@@ -85,7 +84,7 @@ jobs:
           docker push ultralytics/ultralytics:${{ matrix.tags }}
 
       - name: Notify on failure
-        if: github.event_name == 'pull_request' && (cancelled() || failure())
+        if: github.event_name == 'push' && (cancelled() || failure())
         uses: slackapi/slack-github-action@v1.23.0
         with:
           payload: |

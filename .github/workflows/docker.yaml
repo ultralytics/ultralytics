@@ -49,7 +49,6 @@ jobs:
             platforms: "linux/amd64"
     steps:
       - name: Checkout repo
-        if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         uses: actions/checkout@v3
 
       - name: Set up QEMU
@@ -65,21 +64,22 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Image
+        if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         run: |
           docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} -t ultralytics/ultralytics:${{ matrix.tags }} .
 
       - name: Run Tests
-        if: matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
-        if: matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
       - name: Push Image
-        if: github.event_name == 'push' || github.event.inputs.push == true
+        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == true)
         run: |
           docker push ultralytics/ultralytics:${{ matrix.tags }}
 

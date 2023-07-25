@@ -3,7 +3,6 @@
 SAM model interface
 """
 
-from ultralytics.cfg import get_cfg
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
 

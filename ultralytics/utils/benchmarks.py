@@ -122,7 +122,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
         except Exception as e:
             if hard_fail:
-                assert type(e) is AssertionError, f'Benchmark hard_fail for {name}: {e}'
+                assert type(e) is AssertionError, f'Benchmark failure for {name}: {e}'
             LOGGER.warning(f'ERROR ❌️ Benchmark failure for {name}: {e}')
             y.append([name, emoji, round(file_size(filename), 1), None, None])  # mAP, t_inference
 
@@ -139,7 +139,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     if hard_fail and isinstance(hard_fail, float):
         metrics = df[key].array  # values to compare to floor
         floor = hard_fail  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
-        assert all(x > floor for x in metrics if pd.notna(x)), f'HARD FAIL: one or more metric(s) < floor {floor}'
+        assert all(x > floor for x in metrics if pd.notna(x)), f'Benchmark failure: metric(s) < floor {floor}'
 
     return df
 

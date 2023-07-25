@@ -30,13 +30,6 @@ class SAM(Model):
         kwargs.update(overrides)
         prompts = dict(bboxes=bboxes, points=points, labels=labels)
         super().predict(source, stream, prompts=prompts, **kwargs)
-        # overrides.update(kwargs)  # prefer kwargs
-        # if not self.predictor:
-        #     self.predictor = Predictor(overrides=overrides)
-        #     self.predictor.setup_model(model=self.model)
-        # else:  # only update args if predictor is already setup
-        #     self.predictor.args = get_cfg(self.predictor.args, overrides)
-        # return self.predictor(source, stream=stream, bboxes=bboxes, points=points, labels=labels)
 
     def __call__(self, source=None, stream=False, bboxes=None, points=None, labels=None, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""

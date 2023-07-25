@@ -324,7 +324,8 @@ class YOLO:
                          imgsz=overrides['imgsz'],
                          half=overrides['half'],
                          int8=overrides['int8'],
-                         device=overrides['device'])
+                         device=overrides['device'],
+                         verbose=overrides['verbose'])
 
     def export(self, **kwargs):
         """

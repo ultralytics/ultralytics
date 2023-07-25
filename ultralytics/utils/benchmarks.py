@@ -26,6 +26,7 @@ ncnn                    | `ncnn`                    | yolov8n_ncnn_model/
 
 import glob
 import platform
+import sys
 import time
 from pathlib import Path
 
@@ -49,7 +50,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
               half=False,
               int8=False,
               device='cpu',
-              hard_fail=False):
+              verbose=False):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
 
@@ -61,7 +62,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
         half (bool, optional): Use half-precision for the model if True. Default is False.
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
-        hard_fail (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
+        verbose (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
             Default is False.
 
     Returns:
@@ -84,6 +85,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
             if i == 10:
                 assert MACOS or LINUX, 'TF.js export only supported on macOS and Linux'
+            elif i == 11:
+                assert sys.version_info < (3, 11), 'PaddlePaddle export only supported on Python<=3.10'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:
@@ -121,7 +124,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             metric, speed = results.results_dict[key], results.speed['inference']
             y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
         except Exception as e:
-            if hard_fail:
+            if verbose:
                 assert type(e) is AssertionError, f'Benchmark failure for {name}: {e}'
             LOGGER.warning(f'ERROR ❌️ Benchmark failure for {name}: {e}')
             y.append([name, emoji, round(file_size(filename), 1), None, None])  # mAP, t_inference
@@ -136,9 +139,9 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     with open('benchmarks.log', 'a', errors='ignore', encoding='utf-8') as f:
         f.write(s)
 
-    if hard_fail and isinstance(hard_fail, float):
+    if verbose and isinstance(verbose, float):
         metrics = df[key].array  # values to compare to floor
-        floor = hard_fail  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
+        floor = verbose  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
         assert all(x > floor for x in metrics if pd.notna(x)), f'Benchmark failure: metric(s) < floor {floor}'
 
     return df

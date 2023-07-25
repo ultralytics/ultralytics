@@ -76,7 +76,7 @@ jobs:
       - name: Run Benchmarks
         if: matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
         run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160
+          docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
       - name: Push Image
         if: github.event_name == 'push' || github.event.inputs.push == true

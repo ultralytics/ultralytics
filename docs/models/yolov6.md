@@ -70,7 +70,7 @@ We would like to acknowledge the authors for their significant contributions in 
 
 ```bibtex
 @misc{li2023yolov6,
-      title={YOLOv6 v3.0: A Full-Scale Reloading}, 
+      title={YOLOv6 v3.0: A Full-Scale Reloading},
       author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
       year={2023},
       eprint={2301.05586},

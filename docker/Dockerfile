@@ -30,7 +30,15 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e . albumentations comet thop pycocotools onnx onnx-simplifier onnxruntime-gpu
+RUN pip install --no-cache -e '.[export]' thop albumentations comet pycocotools
+
+# Run exports to AutoInstall packages
+RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
+RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
+# Requires <= Python 3.10, bug with paddlepaddle==2.5.0
+RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
+# Remove exported models
+RUN rm -rf tmp
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

@@ -3,7 +3,7 @@
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 
-from ultralytics.utils import LOGGER, TESTS_RUNNING
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
@@ -12,6 +12,7 @@ try:
 
     assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(neptune, '__version__')
+    assert SETTINGS['neptune'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     neptune = None
 

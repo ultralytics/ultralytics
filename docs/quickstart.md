@@ -19,7 +19,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         # Install the ultralytics package using pip
         pip install ultralytics
         ```
-    
+
     === "Conda install"
         Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
 
@@ -30,16 +30,16 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         # Install the ultralytics package using conda
         conda install ultralytics
         ```
-    
+
     === "Git clone"
         Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
         ```bash
         # Clone the ultralytics repository
         git clone https://github.com/ultralytics/ultralytics
-        
+
         # Navigate to the cloned directory
         cd ultralytics
-        
+
         # Install the package in editable mode for development
         pip install -e .
         ```
@@ -48,27 +48,27 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         Utilize Docker to execute the `ultralytics` package in an isolated container. By employing the official `ultralytics` image from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you can avoid local installation. Below are the commands to get the latest image and execute it:
 
         <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
-    
+
         ```bash
         # Set image name as a variable
         t=ultralytics/ultralytics:latest
-        
+
         # Pull the latest ultralytics image from Docker Hub
         sudo docker pull $t
-        
+
         # Run the ultralytics image in a container with GPU support
         sudo docker run -it --ipc=host --gpus all $t
         ```
-    
+
         The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flag assigns a pseudo-TTY and maintains stdin open, enabling you to interact with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, which is crucial for tasks that require GPU computation.
-    
+
         Note: To work with files on your local machine within the container, use Docker volumes for mounting a local directory into the container:
-    
+
         ```bash
         # Mount local directory to a directory inside the container
         sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
         ```
-    
+
         Alter `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container for accessibility.
 
 See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) file for a list of dependencies. Note that all examples above install all required dependencies.
@@ -160,24 +160,111 @@ For example, users can load a model, train it, evaluate its performance on a val
 
     ```python
     from ultralytics import YOLO
-    
+
     # Create a new YOLO model from scratch
     model = YOLO('yolov8n.yaml')
-    
+
     # Load a pretrained YOLO model (recommended for training)
     model = YOLO('yolov8n.pt')
-    
+
     # Train the model using the 'coco128.yaml' dataset for 3 epochs
     results = model.train(data='coco128.yaml', epochs=3)
-    
+
     # Evaluate the model's performance on the validation set
     results = model.val()
-    
+
     # Perform object detection on an image using the model
     results = model('https://ultralytics.com/images/bus.jpg')
-    
+
     # Export the model to ONNX format
     success = model.export(format='onnx')
     ```
 
 [Python Guide](usage/python.md){.md-button .md-button--primary}
+
+## Ultralytics Settings
+
+The Ultralytics library provides a powerful settings management system to enable fine-grained control over your experiments. By making use of the `SettingsManager` housed within the `ultralytics.utils` module, users can readily access and alter their settings. These are stored in a YAML file and can be viewed or modified either directly within the Python environment or via the Command-Line Interface (CLI).
+
+### Inspecting Settings
+
+To gain insight into the current configuration of your settings, you can view them directly:
+
+!!! example "View settings"
+
+    === "Python"
+        You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
+        ```python
+        from ultralytics import settings
+
+        # View all settings
+        print(settings)
+
+        # Return a specific setting
+        value = settings['runs_dir']
+        ```
+
+    === "CLI"
+        Alternatively, the command-line interface allows you to check your settings with a simple command:
+        ```bash
+        yolo settings
+        ```
+
+### Modifying Settings
+
+Ultralytics allows users to easily modify their settings. Changes can be performed in the following ways:
+
+!!! example "Update settings"
+
+    === "Python"
+        Within the Python environment, call the `update` method on the `settings` object to change your settings:
+        ```python
+        from ultralytics import settings
+
+        # Update a setting
+        settings.update({'runs_dir': '/path/to/runs'})
+
+        # Update multiple settings
+        settings.update({'runs_dir': '/path/to/runs', 'tensorboard': False})
+
+        # Reset settings to default values
+        settings.reset()
+        ```
+
+    === "CLI"
+        If you prefer using the command-line interface, the following command will allow you to modify your settings:
+        ```bash
+        # Update a setting
+        yolo settings runs_dir='/path/to/runs'
+
+        # Update multiple settings
+        yolo settings runs_dir='/path/to/runs' tensorboard=False
+
+        # Reset settings to default values
+        yolo settings reset
+        ```
+
+### Understanding Settings
+
+The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
+
+| Name               | Example Value         | Data Type | Description                                                                                                      |
+|--------------------|-----------------------|-----------|------------------------------------------------------------------------------------------------------------------|
+| `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip](https://pypi.org/project/ultralytics/) version) |
+| `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                      |
+| `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                 |
+| `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                                                               |
+| `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                                                                   |
+| `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                                     |
+| `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys)                                     |
+| `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                                                                   |
+| `comet`            | `True`                | `bool`    | Whether to use [Comet ML](https://bit.ly/yolov8-readme-comet) for experiment tracking and visualization          |
+| `dvc`              | `True`                | `bool`    | Whether to use DVC for version control                                                                           |
+| `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB](https://hub.ultralytics.com) integration                                        |
+| `mlflow`           | `True`                | `bool`    | Whether to use MLFlow for experiment tracking                                                                    |
+| `neptune`          | `True`                | `bool`    | Whether to use Neptune for experiment tracking                                                                   |
+| `raytune`          | `True`                | `bool`    | Whether to use Ray Tune for hyperparameter tuning                                                                |
+| `tensorboard`      | `True`                | `bool`    | Whether to use TensorBoard for visualization                                                                     |
+| `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases logging                                                                          |
+
+As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.

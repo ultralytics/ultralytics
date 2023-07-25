@@ -48,9 +48,11 @@ setup(
             'mkdocs-redirects',  # for 301 redirects
             'mkdocs-ultralytics-plugin>=0.0.21',  # for meta descriptions and images, dates and authors
         ],
-        'export': ['coremltools>=6.0,<=6.2', 'openvino-dev>=2023.0',
-                   'tensorflowjs'],  # automatically installs tensorflow
-    },
+        'export': [
+            'coremltools>=6.0,<=6.2',
+            'openvino-dev>=2023.0',
+            'tensorflowjs',  # automatically installs tensorflow
+        ], },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -58,7 +60,6 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',

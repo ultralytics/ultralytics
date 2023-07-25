@@ -17,7 +17,7 @@ import torch.nn.functional as F
 import torchvision
 
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, __version__
-from ultralytics.utils.checks import check_requirements, check_version
+from ultralytics.utils.checks import check_version
 
 try:
     import thop
@@ -54,8 +54,7 @@ def smart_inference_mode():
 
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    check_requirements('py-cpuinfo')
-    import cpuinfo  # noqa
+    import cpuinfo  # pip install py-cpuinfo
 
     k = 'brand_raw', 'hardware_raw', 'arch_string_raw'  # info keys sorted by preference (not all keys always available)
     info = cpuinfo.get_cpu_info()  # info dict

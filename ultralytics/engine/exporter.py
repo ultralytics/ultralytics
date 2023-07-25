@@ -594,6 +594,7 @@ class Exporter:
                 from ultralytics.data.utils import check_det_dataset
 
                 # Generate calibration data for integer quantization
+                LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
                 dataset = YOLODataset(check_det_dataset(self.args.data)['val'], imgsz=self.imgsz[0], augment=False)
                 images = []
                 n_images = 100  # maximum number of images
@@ -614,7 +615,7 @@ class Exporter:
             int8 = ''
 
         cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'.strip()
-        LOGGER.info(f"\n{prefix} running '{cmd}'")
+        LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 

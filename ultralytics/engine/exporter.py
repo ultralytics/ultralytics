@@ -116,7 +116,7 @@ def try_export(inner_func):
             return f, model
         except Exception as e:
             LOGGER.info(f'{prefix} export failure ❌ {dt.t:.1f}s: {e}')
-            return None, None
+            raise e
 
     return outer_func
 

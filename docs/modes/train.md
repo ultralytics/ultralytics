@@ -143,7 +143,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `epochs`          | `100`    | number of epochs to train for                                                     |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training       |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                     |
-| `imgsz`           | `640`    | size of input images as integer or w,h                                            |
+| `imgsz`           | `640`    | size of input images as integer                                                   |
 | `save`            | `True`   | save train checkpoints and predict results                                        |
 | `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if < 1)                                  |
 | `cache`           | `False`  | True/ram, disk or False. Use cache for data loading                               |

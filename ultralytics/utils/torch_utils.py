@@ -28,7 +28,7 @@ TORCHVISION_0_10 = check_version(torchvision.__version__, '0.10.0')
 TORCH_1_9 = check_version(torch.__version__, '1.9.0')
 TORCH_1_11 = check_version(torch.__version__, '1.11.0')
 TORCH_1_12 = check_version(torch.__version__, '1.12.0')
-TORCH_2_0 = check_version(torch.__version__, minimum='2.0')
+TORCH_2_0 = check_version(torch.__version__, '2.0.0')
 
 
 @contextmanager

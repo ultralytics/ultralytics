@@ -74,7 +74,8 @@ jobs:
           docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
-        if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
+        # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
+        if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile'  # arm64 images not supported on GitHub CI runners
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 

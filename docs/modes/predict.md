@@ -295,6 +295,7 @@ All supported arguments:
 | `source`       | `'ultralytics/assets'` | source directory for images or videos                                          |
 | `conf`         | `0.25`                 | object confidence threshold for detection                                      |
 | `iou`          | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
+| `imgsz`        | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                           |
 | `half`         | `False`                | use half precision (FP16)                                                      |
 | `device`       | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
 | `show`         | `False`                | show results if possible                                                       |

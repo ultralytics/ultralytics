@@ -319,7 +319,11 @@ class YOLO:
         overrides.update(kwargs)
         overrides['mode'] = 'benchmark'
         overrides = {**DEFAULT_CFG_DICT, **overrides}  # fill in missing overrides keys with defaults
-        return benchmark(model=self, imgsz=overrides['imgsz'], half=overrides['half'], device=overrides['device'])
+        return benchmark(model=self,
+                         imgsz=overrides['imgsz'],
+                         half=overrides['half'],
+                         device=overrides['device'],
+                         verbose=overrides['verbose'])
 
     def export(self, **kwargs):
         """

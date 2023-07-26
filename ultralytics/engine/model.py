@@ -449,7 +449,7 @@ class Model:
             name = self.__class__.__name__
             mode = inspect.stack()[1][3]  # get the function name.
             raise NotImplementedError(
-                f'Warning ⚠️ `{name}` model does not support `{mode}` mode for `{self.task}` task yet.')
+                f'WARNING ⚠️ `{name}` model does not support `{mode}` mode for `{self.task}` task yet.')
 
     @property
     def task_map(self):

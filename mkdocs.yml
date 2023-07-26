@@ -317,6 +317,7 @@ nav:
                   - predict: reference/models/yolo/detect/predict.md
                   - train: reference/models/yolo/detect/train.md
                   - val: reference/models/yolo/detect/val.md
+              - model: reference/models/yolo/model.md
               - pose:
                   - predict: reference/models/yolo/pose/predict.md
                   - train: reference/models/yolo/pose/train.md

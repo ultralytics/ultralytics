@@ -3,7 +3,7 @@ description: Explore the detailed guide on using the Ultralytics YOLO Engine Mod
 keywords: Ultralytics, YOLO, engine model, documentation, guide, implementation, training, evaluation
 ---
 
-## YOLO
+## Model
 ---
-### ::: ultralytics.engine.model.YOLO
+### ::: ultralytics.engine.model.Model
 <br><br>

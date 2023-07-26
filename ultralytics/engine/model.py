@@ -343,6 +343,8 @@ class YOLO:
             overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         if 'batch' not in kwargs:
             overrides['batch'] = 1  # default to 1 if not modified
+        if 'data' not in kwargs:
+            overrides['data'] = None  # default to None if not modified (avoid int8 calibration with coco.yaml)
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)

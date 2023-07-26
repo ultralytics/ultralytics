@@ -400,21 +400,21 @@ class AutoBackend(nn.Module):
                     nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
                     self.names = {i: f'class{i}' for i in range(nc)}
             else:  # Lite or Edge TPU
-                input = self.input_details[0]
-                int8 = input['dtype'] == np.int8  # is TFLite quantized int8 model
-                if int8:
-                    scale, zero_point = input['quantization']
-                    im = (im / scale + zero_point).astype(np.int8)  # de-scale
-                self.interpreter.set_tensor(input['index'], im)
+                details = self.input_details[0]
+                integer = details['dtype'] in (np.int8, np.int16)  # is TFLite quantized int8 or int16 model
+                if integer:
+                    scale, zero_point = details['quantization']
+                    im = (im / scale + zero_point).astype(details['dtype'])  # de-scale
+                self.interpreter.set_tensor(details['index'], im)
                 self.interpreter.invoke()
                 y = []
                 for output in self.output_details:
                     x = self.interpreter.get_tensor(output['index'])
-                    if int8:
+                    if integer:
                         scale, zero_point = output['quantization']
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     if x.ndim > 2:  # if task is not classification
-                        # Unnormalize xywh with input image size
+                        # Denormalize xywh with input image size
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
                         x[:, 0] *= w

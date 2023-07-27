@@ -1,14 +1,18 @@
 ---
 comments: true
-description: Learn how to perform K-Fold cross validation on the Ultralytics object detection dataset with Python packages like Ultralytics, sklearn, pandas, and PyYAML.
-keywords: K-Fold cross validation, Ultralytics, object detection, YOLO detection format, sklearn, pandas, PyYAML
+description: A comprehensive guide to implementing K-Fold Cross Validation in Ultralytics for object detection datasets using Python, YOLO, and sklearn.
+keywords: K-Fold cross validation, Ultralytics, YOLO detection format, Python, sklearn, object detection
 ---
-​
+
 # K-Fold cross validation for Ultralytics
-​
+
 ## Introduction
-​
-- TODO
+
+This tutorial presents a detailed walkthrough on implementing K-Fold Cross Validation for object detection datasets in the Ultralytics ecosystem. Leveraging the YOLO detection format and essential Python libraries such as sklearn, pandas, and PyYaml, we'll guide you through the setup, generating feature vectors, and executing K-Fold dataset split.
+
+Whether you're using the Fruit Detection dataset or your own custom data, this guide is designed to help you understand how K-Fold Cross Validation can be applied to enhance the reliability and robustness of your machine learning models. The tutorial uses `k=5` folds, but remember that the optimal number of folds may vary based on your dataset and the specific project requirements. 
+
+Let's get started!
 ​
 ## Setup
 ​

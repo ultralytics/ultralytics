@@ -1,5 +1,8 @@
-### Author  :: Burhan Qaddoumi
-### Date    :: 2023-07-22
+---
+comments: true
+description: Learn how to perform K-Fold cross validation on the Ultralytics object detection dataset with Python packages like Ultralytics, sklearn, pandas, and PyYAML.
+keywords: K-Fold cross validation, Ultralytics, object detection, YOLO detection format, sklearn, pandas, PyYAML
+---
 ​
 # K-Fold cross validation for Ultralytics
 ​

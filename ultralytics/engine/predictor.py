@@ -178,7 +178,8 @@ class BasePredictor:
         if self.args.save_txt:
             result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
         if self.args.save_crop:
-            result.save_crop(save_dir=self.save_dir / 'crops', file_name=self.data_path.stem)
+            result.save_crop(save_dir=self.save_dir / 'crops',
+                             file_name=self.data_path.stem + ('' if self.dataset.mode == 'image' else f'_{frame}'))
 
         return log_string
 

@@ -4,7 +4,7 @@ import requests
 
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
-from ultralytics.hub.utils import PREFIX
+from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX
 from ultralytics.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 
 
@@ -50,13 +50,13 @@ WARNING ⚠️ ultralytics.start() is deprecated after 8.0.60. Updated usage to 
 from ultralytics import YOLO, hub
 
 hub.login('{api_key}')
-model = YOLO('https://hub.ultralytics.com/models/{model_id}')
+model = YOLO('{HUB_WEB_ROOT}/models/{model_id}')
 model.train()""")
 
 
 def reset_model(model_id=''):
     """Reset a trained model to an untrained state."""
-    r = requests.post('https://api.ultralytics.com/model-reset', json={'apiKey': Auth().api_key, 'modelId': model_id})
+    r = requests.post(f'{HUB_API_ROOT}/model-reset', json={'apiKey': Auth().api_key, 'modelId': model_id})
     if r.status_code == 200:
         LOGGER.info(f'{PREFIX}Model reset successfully')
         return
@@ -72,7 +72,7 @@ def export_fmts_hub():
 def export_model(model_id='', format='torchscript'):
     """Export a model to all formats."""
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
-    r = requests.post(f'https://api.ultralytics.com/v1/models/{model_id}/export',
+    r = requests.post(f'{HUB_API_ROOT}/v1/models/{model_id}/export',
                       json={'format': format},
                       headers={'x-api-key': Auth().api_key})
     assert r.status_code == 200, f'{PREFIX}{format} export failure {r.status_code} {r.reason}'
@@ -82,7 +82,7 @@ def export_model(model_id='', format='torchscript'):
 def get_export(model_id='', format='torchscript'):
     """Get an exported model dictionary with download URL."""
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
-    r = requests.post('https://api.ultralytics.com/get-export',
+    r = requests.post(f'{HUB_API_ROOT}/get-export',
                       json={
                           'apiKey': Auth().api_key,
                           'modelId': model_id,
@@ -110,7 +110,7 @@ def check_dataset(path='', task='detect'):
         ```
     """
     HUBDatasetStats(path=path, task=task).get_json()
-    LOGGER.info('Checks completed correctly ✅. Upload this dataset to https://hub.ultralytics.com/datasets/.')
+    LOGGER.info(f'Checks completed correctly ✅. Upload this dataset to {HUB_WEB_ROOT}/datasets/.')
 
 
 if __name__ == '__main__':

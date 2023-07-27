@@ -3,7 +3,7 @@
 import json
 from time import time
 
-from ultralytics.hub.utils import PREFIX, events
+from ultralytics.hub.utils import HUB_WEB_ROOT, PREFIX, events
 from ultralytics.utils import LOGGER, SETTINGS
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -13,7 +13,7 @@ def on_pretrain_routine_end(trainer):
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Start timer for upload rate limit
-        LOGGER.info(f'{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀')
+        LOGGER.info(f'{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model_id} 🚀')
         session.timers = {'metrics': time(), 'ckpt': time()}  # start timer on session.rate_limit
 
 
@@ -39,7 +39,7 @@ def on_model_save(trainer):
         # Upload checkpoints with rate limiting
         is_best = trainer.best_fitness == trainer.fitness
         if time() - session.timers['ckpt'] > session.rate_limits['ckpt']:
-            LOGGER.info(f'{PREFIX}Uploading checkpoint https://hub.ultralytics.com/models/{session.model_id}')
+            LOGGER.info(f'{PREFIX}Uploading checkpoint {HUB_WEB_ROOT}/models/{session.model_id}')
             session.upload_model(trainer.epoch, trainer.last, is_best)
             session.timers['ckpt'] = time()  # reset timer
 
@@ -53,7 +53,7 @@ def on_train_end(trainer):
         session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics.get('metrics/mAP50-95(B)', 0), final=True)
         session.alive = False  # stop heartbeats
         LOGGER.info(f'{PREFIX}Done ✅\n'
-                    f'{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀')
+                    f'{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model_id} 🚀')
 
 
 def on_train_start(trainer):

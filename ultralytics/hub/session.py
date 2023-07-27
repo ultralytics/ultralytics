@@ -6,7 +6,7 @@ from time import sleep
 
 import requests
 
-from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, smart_request
+from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX, smart_request
 from ultralytics.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
 from ultralytics.utils.errors import HUBModelError
 
@@ -49,21 +49,21 @@ class HUBTrainingSession:
         from ultralytics.hub.auth import Auth
 
         # Parse input
-        if url.startswith('https://hub.ultralytics.com/models/'):
-            url = url.split('https://hub.ultralytics.com/models/')[-1]
+        if url.startswith(f'{HUB_WEB_ROOT}/models/'):
+            url = url.split(f'{HUB_WEB_ROOT}/models/')[-1]
         if [len(x) for x in url.split('_')] == [42, 20]:
             key, model_id = url.split('_')
         elif len(url) == 20:
             key, model_id = '', url
         else:
             raise HUBModelError(f"model='{url}' not found. Check format is correct, i.e. "
-                                f"model='https://hub.ultralytics.com/models/MODEL_ID' and try again.")
+                                f"model='{HUB_WEB_ROOT}/models/MODEL_ID' and try again.")
 
         # Authorize
         auth = Auth(key)
         self.agent_id = None  # identifies which instance is communicating with server
         self.model_id = model_id
-        self.model_url = f'https://hub.ultralytics.com/models/{model_id}'
+        self.model_url = f'{HUB_WEB_ROOT}/models/{model_id}'
         self.api_url = f'{HUB_API_ROOT}/v1/models/{model_id}'
         self.auth_header = auth.get_auth_header()
         self.rate_limits = {'metrics': 3.0, 'ckpt': 900.0, 'heartbeat': 300.0}  # rate limits (seconds)

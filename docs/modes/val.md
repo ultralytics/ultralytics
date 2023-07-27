@@ -48,7 +48,7 @@ Validation settings for YOLO models refer to the various hyperparameters and con
 | Key           | Value   | Description                                                        |
 |---------------|---------|--------------------------------------------------------------------|
 | `data`        | `None`  | path to data file, i.e. coco128.yaml                               |
-| `imgsz`       | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)               |
+| `imgsz`       | `640`   | size of input images as integer                                    |
 | `batch`       | `16`    | number of images per batch (-1 for AutoBatch)                      |
 | `save_json`   | `False` | save results to JSON file                                          |
 | `save_hybrid` | `False` | save hybrid version of labels (labels + additional predictions)    |

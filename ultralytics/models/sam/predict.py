@@ -28,6 +28,8 @@ class Predictor(BasePredictor):
         # Args for set_image
         self.im = None
         self.features = None
+        # Args for set_prompts
+        self.prompts = {}
         # Args for segment everything
         self.segment_all = False
 
@@ -92,6 +94,10 @@ class Predictor(BasePredictor):
                 of masks and H=W=256. These low resolution logits can be passed to
                 a subsequent iteration as mask input.
         """
+        # Get prompts from self.prompts first
+        bboxes = self.prompts.pop('bboxes', bboxes)
+        points = self.prompts.pop('points', points)
+        masks = self.prompts.pop('masks', masks)
         if all(i is None for i in [bboxes, points, masks]):
             return self.generate(im, *args, **kwargs)
         return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)
@@ -347,6 +353,10 @@ class Predictor(BasePredictor):
             self.features = self.model.image_encoder(im)
             self.im = im
             break
+
+    def set_prompts(self, prompts):
+        """Set prompts in advance."""
+        self.prompts = prompts
 
     def reset_image(self):
         self.im = None

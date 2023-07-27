@@ -3,7 +3,7 @@
 import json
 from time import time
 
-from ultralytics.hub.utils import PREFIX, events
+from ultralytics.hub.utils import HUB_WEB_ROOT, PREFIX, events
 from ultralytics.utils import LOGGER, SETTINGS
 from ultralytics.utils.torch_utils import model_info_for_loggers
 

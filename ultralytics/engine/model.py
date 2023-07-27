@@ -14,6 +14,9 @@ from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_a
 from ultralytics.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode
 
+from ultralytics.data.utils import HUBDatasetStats
+from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT
+
 
 class Model:
     """
@@ -100,7 +103,7 @@ class Model:
     def is_hub_model(model):
         """Check if the provided model is a HUB model."""
         return any((
-            model.startswith('https://hub.ultralytics.com/models/'),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
+            model.startswith(f'{HUB_WEB_ROOT}/models/'),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
             [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
             len(model) == 20 and not Path(model).exists() and all(x not in model for x in './\\')))  # MODELID
 

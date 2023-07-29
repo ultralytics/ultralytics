@@ -41,7 +41,7 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 - [YOLOv7](https://github.com/WongKinYiu/yolov7) added additional tasks such as pose estimation on the COCO keypoints dataset.
 - [YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of YOLO by Ultralytics. As a cutting-edge, state-of-the-art (SOTA) model, YOLOv8 builds on the success of previous versions, introducing new features and improvements for enhanced performance, flexibility, and efficiency. YOLOv8 supports a full range of vision AI tasks, including [detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md). This versatility allows users to leverage YOLOv8's capabilities across diverse applications and domains.
 
-## YOLO: Ultralytics Licensing Options
+## YOLO Licenses: How is Ultralytics YOLO licensed?
 
 Ultralytics offers two licensing options to accommodate diverse use cases:
 

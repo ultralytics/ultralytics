@@ -294,7 +294,7 @@ class Predictor(BasePredictor):
 
     def setup_model(self, model, verbose=True):
         """Set up YOLO model with specified thresholds and device."""
-        device = select_device(self.args.device)
+        device = select_device(self.args.device, verbose=verbose)
         if model is None:
             model = build_sam(self.args.model)
         model.eval()

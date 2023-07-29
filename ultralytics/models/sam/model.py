@@ -29,7 +29,7 @@ class SAM(Model):
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024)
         kwargs.update(overrides)
         prompts = dict(bboxes=bboxes, points=points, labels=labels)
-        super().predict(source, stream, prompts=prompts, **kwargs)
+        return super().predict(source, stream, prompts=prompts, **kwargs)
 
     def __call__(self, source=None, stream=False, bboxes=None, points=None, labels=None, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""

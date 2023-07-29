@@ -456,9 +456,10 @@ class Model:
 
     @property
     def task_map(self):
-        """Map head to model, trainer, validator, and predictor classes
+        """
+        Map head to model, trainer, validator, and predictor classes.
 
         Returns:
-            task_map (dict)
+            task_map (dict): The map of model task to mode classes.
         """
         raise NotImplementedError('Please provide task map for your model!')

@@ -236,7 +236,7 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 ## Reproduce Our Results
 
-To reproduce the Ultralytics benchmarks above on all export [formats](/modes/export.md) run this code:
+To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md) run this code:
 
 !!! example ""
 

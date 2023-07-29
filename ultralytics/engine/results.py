@@ -76,7 +76,6 @@ class Results(SimpleClass):
         probs (torch.tensor, optional): A 1D tensor of probabilities of each class for classification task.
         keypoints (List[List[float]], optional): A list of detected keypoints for each object.
 
-
     Attributes:
         orig_img (numpy.ndarray): The original image as a numpy array.
         orig_shape (tuple): The original image shape in (height, width) format.

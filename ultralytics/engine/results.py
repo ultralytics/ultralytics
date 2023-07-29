@@ -76,7 +76,6 @@ class Results(SimpleClass):
         probs (torch.tensor, optional): A 1D tensor of probabilities of each class for classification task.
         keypoints (List[List[float]], optional): A list of detected keypoints for each object.
 
-
     Attributes:
         orig_img (numpy.ndarray): The original image as a numpy array.
         orig_shape (tuple): The original image shape in (height, width) format.
@@ -172,6 +171,7 @@ class Results(SimpleClass):
             pil=False,
             img=None,
             im_gpu=None,
+            kpt_radius=5,
             kpt_line=True,
             labels=True,
             boxes=True,
@@ -190,6 +190,7 @@ class Results(SimpleClass):
             pil (bool): Whether to return the image as a PIL Image.
             img (numpy.ndarray): Plot to another image. if not, plot to original image.
             im_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
+            kpt_radius (int, optional): Radius of the drawn keypoints. Default is 5.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot the label of bounding boxes.
             boxes (bool): Whether to plot the bounding boxes.
@@ -251,7 +252,7 @@ class Results(SimpleClass):
         # Plot Pose results
         if self.keypoints is not None:
             for k in reversed(self.keypoints.data):
-                annotator.kpts(k, self.orig_shape, kpt_line=kpt_line)
+                annotator.kpts(k, self.orig_shape, radius=kpt_radius, kpt_line=kpt_line)
 
         return annotator.result()
 

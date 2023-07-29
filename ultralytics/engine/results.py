@@ -172,7 +172,7 @@ class Results(SimpleClass):
             pil=False,
             img=None,
             im_gpu=None,
-			kpt_radius=5,
+            kpt_radius=5,
             kpt_line=True,
             labels=True,
             boxes=True,

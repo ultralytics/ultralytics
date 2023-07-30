@@ -502,7 +502,14 @@ class Exporter:
         ct_model.license = m.pop('license')
         ct_model.version = m.pop('version')
         ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
-        ct_model.save(str(f))
+        try:
+            ct_model.save(str(f))  # save *.mlpackage
+        except Exception as e:
+            LOGGER.warning(
+                f"{prefix} WARNING ⚠️ CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
+                f"Known coremltools Python 3.11 bug. See https://github.com/apple/coremltools/issues/1928.")
+            f = f.with_suffix('.mlmodel')
+            ct_model.save(str(f))
         return f, ct_model
 
     @try_export

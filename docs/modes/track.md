@@ -105,3 +105,113 @@ Ultralytics also allows you to use a modified tracker configuration file. To do 
         ```
 
 For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) page.
+
+## Python Examples
+
+### Persisting Tracks Loop
+
+Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`).
+
+!!! example "Streaming for-loop with tracking"
+
+    ```python
+    import cv2
+    from ultralytics import YOLO
+
+    # Load the YOLOv8 model
+    model = YOLO('yolov8n.pt')
+
+    # Open the video file
+    video_path = "path/to/your/video/file.mp4"
+    cap = cv2.VideoCapture(video_path)
+
+    # Loop through the video frames
+    while cap.isOpened():
+        # Read a frame from the video
+        success, frame = cap.read()
+
+        if success:
+            # Run YOLOv8 tracking on the frame, persisting tracks between frames
+            results = model.track(frame, persist=True)
+
+            # Visualize the results on the frame
+            annotated_frame = results[0].plot()
+
+            # Display the annotated frame
+            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+
+            # Break the loop if 'q' is pressed
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        else:
+            # Break the loop if the end of the video is reached
+            break
+
+    # Release the video capture object and close the display window
+    cap.release()
+    cv2.destroyAllWindows()
+    ```
+
+Please note the change from `model(frame)` to `model.track(frame)`, which enables object tracking instead of simple detection. This modified script will run the tracker on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
+
+### Multithreaded Tracking
+
+Multithreaded tracking provides the capability to run object tracking on multiple video streams simultaneously. This is particularly useful when handling multiple video inputs, such as from multiple surveillance cameras, where concurrent processing can greatly enhance efficiency and performance.
+
+In the provided Python script, we make use of Python's `threading` module to run multiple instances of the tracker concurrently. Each thread is responsible for running the tracker on one video file, and all the threads run simultaneously in the background.
+
+To ensure that each thread receives the correct parameters (the video file and the model to use), we define a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and displays the results.
+
+Two different models are used in this example: `yolov8n.pt` and `yolov8n-seg.pt`, each tracking objects in a different video file. The video files are specified in `video_file1` and `video_file2`.
+
+The `daemon=True` parameter in `threading.Thread` means that these threads will be closed as soon as the main program finishes. We then start the threads with `start()` and use `join()` to make the main thread wait until both tracker threads have finished.
+
+Finally, after all threads have completed their task, the windows displaying the results are closed using `cv2.destroyAllWindows()`.
+
+!!! example "Streaming for-loop with tracking"
+
+    ```python
+    import threading
+    
+    import cv2
+    from ultralytics import YOLO
+    
+    
+    def run_tracker_in_thread(filename, model):
+        video = cv2.VideoCapture(filename)
+        frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+        for _ in range(frames):
+            ret, frame = video.read()
+            if ret:
+                results = model.track(source=frame, persist=True)
+                res_plotted = results[0].plot()
+                cv2.imshow('p', res_plotted)
+                if cv2.waitKey(1) == ord('q'):
+                    break
+    
+    
+    # Load the models
+    model1 = YOLO('yolov8n.pt')
+    model2 = YOLO('yolov8n-seg.pt')
+    
+    # Define the video files for the trackers
+    video_file1 = 'path/to/video1.mp4'
+    video_file2 = 'path/to/video2.mp4'
+    
+    # Create the tracker threads
+    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1), daemon=True)
+    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2), daemon=True)
+    
+    # Start the tracker threads
+    tracker_thread1.start()
+    tracker_thread2.start()
+    
+    # Wait for the tracker threads to finish
+    tracker_thread1.join()
+    tracker_thread2.join()
+    
+    # Clean up and close windows
+    cv2.destroyAllWindows()
+    ```
+
+This example can easily be extended to handle more video files and models by creating more threads and applying the same methodology.

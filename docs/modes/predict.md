@@ -524,3 +524,5 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
     cap.release()
     cv2.destroyAllWindows()
     ```
+
+This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.

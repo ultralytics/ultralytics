@@ -489,5 +489,9 @@ class AutoBackend(nn.Module):
         types = [s in name for s in sf]
         types[5] |= name.endswith('.mlmodel')  # retain support for older Apple CoreML *.mlmodel formats
         types[8] &= not types[9]  # tflite &= not edgetpu
-        triton = not any(types) and all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
+        if any(types):
+            triton = False
+        else:
+            url = urlparse(p)  # if url may be Triton inference server
+            triton = all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
         return types + [triton]

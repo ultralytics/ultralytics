@@ -554,9 +554,9 @@ def torch_safe_load(weight):
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
         with temporary_modules({
-            'ultralytics.yolo.utils': 'ultralytics.utils',
-            'ultralytics.yolo.v8': 'ultralytics.models.yolo',
-            'ultralytics.yolo.data': 'ultralytics.data'}):  # for legacy 8.0 Classify and Pose models
+                'ultralytics.yolo.utils': 'ultralytics.utils',
+                'ultralytics.yolo.v8': 'ultralytics.models.yolo',
+                'ultralytics.yolo.data': 'ultralytics.data'}):  # for legacy 8.0 Classify and Pose models
             return torch.load(file, map_location='cpu'), file  # load
 
     except ModuleNotFoundError as e:  # e.name is missing module name

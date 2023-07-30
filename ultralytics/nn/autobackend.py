@@ -68,7 +68,7 @@ class AutoBackend(nn.Module):
             | ONNX Runtime          | *.onnx           |
             | ONNX OpenCV DNN       | *.onnx dnn=True  |
             | OpenVINO              | *.xml            |
-            | CoreML                | *.mlmodel        |
+            | CoreML                | *.mlpackage      |
             | TensorRT              | *.engine         |
             | TensorFlow SavedModel | *_saved_model    |
             | TensorFlow GraphDef   | *.pb             |

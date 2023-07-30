@@ -148,7 +148,7 @@ The 3 exported models will be saved alongside the original PyTorch model:
 ```bash
 python detect.py --weights yolov5s.pt                 # PyTorch
                            yolov5s.torchscript        # TorchScript
-                           yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+                           yolov5s.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
                            yolov5s_openvino_model     # OpenVINO
                            yolov5s.engine             # TensorRT
                            yolov5s.mlmodel            # CoreML (macOS only)
@@ -164,7 +164,7 @@ python detect.py --weights yolov5s.pt                 # PyTorch
 ```bash
 python val.py --weights yolov5s.pt                 # PyTorch
                         yolov5s.torchscript        # TorchScript
-                        yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+                        yolov5s.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
                         yolov5s_openvino_model     # OpenVINO
                         yolov5s.engine             # TensorRT
                         yolov5s.mlmodel            # CoreML (macOS Only)

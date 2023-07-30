@@ -507,8 +507,8 @@ class Exporter:
             ct_model.save(str(f))  # save *.mlpackage
         except Exception as e:
             LOGGER.warning(
-                f"{prefix} WARNING ⚠️ CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
-                f"Known coremltools Python 3.11 bug. See https://github.com/apple/coremltools/issues/1928.")
+                f'{prefix} WARNING ⚠️ CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. '
+                f'Known coremltools Python 3.11 bug. See https://github.com/apple/coremltools/issues/1928.')
             f = f.with_suffix('.mlmodel')
             ct_model.save(str(f))
         return f, ct_model

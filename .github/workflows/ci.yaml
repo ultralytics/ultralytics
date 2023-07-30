@@ -93,7 +93,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: ['3.10']
         model: [yolov8n]
     steps:
@@ -147,8 +147,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        os: [ubuntu-latest]
+        python-version: ['3.11']
         torch: [latest]
         include:
           - os: ubuntu-latest

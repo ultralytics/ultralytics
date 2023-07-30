@@ -1,9 +1,10 @@
 ---
 comments: true
-description: Explore YOLOv8n-based object tracking with Ultralytics' BoT-SORT and ByteTrack. Learn configuration, usage, and customization tips.
+description: Learn how to use Ultralytics YOLO for object tracking in video streams. Guides to use different trackers and customise tracker configurations.
+keywords: Ultralytics, YOLO, object tracking, video streams, BoT-SORT, ByteTrack, Python guide, CLI guide
 ---
 
-<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418637-1d6250fd-1515-4c10-a844-a32818ae6d46.png">
 
 Object tracking is a task that involves identifying the location and class of objects, then assigning a unique ID to
 that detection in video streams.
@@ -26,21 +27,21 @@ Use a trained YOLOv8n/YOLOv8n-seg model to run tracker on video streams.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load an official detection model
         model = YOLO('yolov8n-seg.pt')  # load an official segmentation model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Track with the model
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True) 
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml") 
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True)
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml")
         ```
     === "CLI"
-    
+
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc"  # official detection model
         yolo track model=yolov8n-seg.pt source=...   # official segmentation model
@@ -61,15 +62,15 @@ to [predict page](https://docs.ultralytics.com/modes/predict/).
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True) 
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True)
         ```
     === "CLI"
-    
+
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" conf=0.3, iou=0.5 show
 
@@ -78,24 +79,23 @@ to [predict page](https://docs.ultralytics.com/modes/predict/).
 ### Tracker
 
 We also support using a modified tracker config file, just copy a config file i.e `custom_tracker.yaml`
-from [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg) and modify
+from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify
 any configurations(expect the `tracker_type`) you need to.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", tracker='custom_tracker.yaml') 
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", tracker='custom_tracker.yaml')
         ```
     === "CLI"
-    
+
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" tracker='custom_tracker.yaml'
         ```
 
-Please refer to [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg)
+Please refer to [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)
 page
-

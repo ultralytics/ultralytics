@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Learn about the MNIST dataset, a large database of handwritten digits commonly used for training various image processing systems and machine learning models.
+description: Detailed guide on the MNIST Dataset, a benchmark in the machine learning community for image classification tasks. Learn about its structure, usage and application.
+keywords: MNIST dataset, Ultralytics, image classification, machine learning, computer vision, deep learning, AI, dataset guide
 ---
 
 # MNIST Dataset
@@ -39,10 +40,10 @@ To train a CNN model on the MNIST dataset for 100 epochs with an image size of 3
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='mnist', epochs=100, imgsz=32)
         ```

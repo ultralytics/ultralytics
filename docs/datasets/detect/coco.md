@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Learn about the COCO dataset, designed to encourage research on object detection, segmentation, and captioning with standardized evaluation metrics.
+description: Learn how COCO, a leading dataset for object detection and segmentation, integrates with Ultralytics. Discover ways to use it for training YOLO models.
+keywords: Ultralytics, COCO dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
 ---
 
 # COCO Dataset
@@ -28,12 +29,12 @@ The COCO dataset is widely used for training and evaluating deep learning models
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
-!!! example "ultralytics/datasets/coco.yaml"
+!!! example "ultralytics/cfg/datasets/coco.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco.yaml"
     ```
 
 ## Usage
@@ -46,10 +47,10 @@ To train a YOLOv8n model on the COCO dataset for 100 epochs with an image size o
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='coco.yaml', epochs=100, imgsz=640)
         ```
@@ -77,7 +78,7 @@ If you use the COCO dataset in your research or development work, please cite th
 
 ```bibtex
 @misc{lin2015microsoft,
-      title={Microsoft COCO: Common Objects in Context}, 
+      title={Microsoft COCO: Common Objects in Context},
       author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
       year={2015},
       eprint={1405.0312},

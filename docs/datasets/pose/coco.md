@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Learn about the COCO-Pose dataset, designed to encourage research on pose estimation tasks with standardized evaluation metrics.
+description: Detailed guide on the special COCO-Pose Dataset in Ultralytics. Learn about its key features, structure, and usage in pose estimation tasks with YOLO.
+keywords: Ultralytics YOLO, COCO-Pose Dataset, Deep Learning, Pose Estimation, Training Models, Dataset YAML, openpose, YOLO
 ---
 
 # COCO-Pose Dataset
@@ -29,12 +30,12 @@ The COCO-Pose dataset is specifically used for training and evaluating deep lear
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Pose dataset, the `coco-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-pose.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Pose dataset, the `coco-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
 
-!!! example "ultralytics/datasets/coco-pose.yaml"
+!!! example "ultralytics/cfg/datasets/coco-pose.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco-pose.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco-pose.yaml"
     ```
 
 ## Usage
@@ -47,10 +48,10 @@ To train a YOLOv8n-pose model on the COCO-Pose dataset for 100 epochs with an im
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='coco-pose.yaml', epochs=100, imgsz=640)
         ```
@@ -78,7 +79,7 @@ If you use the COCO-Pose dataset in your research or development work, please ci
 
 ```bibtex
 @misc{lin2015microsoft,
-      title={Microsoft COCO: Common Objects in Context}, 
+      title={Microsoft COCO: Common Objects in Context},
       author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
       year={2015},
       eprint={1405.0312},

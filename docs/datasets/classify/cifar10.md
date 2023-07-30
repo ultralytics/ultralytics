@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Learn about the CIFAR-10 dataset, a collection of images that are commonly used to train machine learning and computer vision algorithms.
+description: Explore the CIFAR-10 dataset, widely used for training in machine learning and computer vision, and learn how to use it with Ultralytics YOLO.
+keywords: CIFAR-10, dataset, machine learning, image classification, computer vision, YOLO, Ultralytics, training, testing, deep learning, Convolutional Neural Networks, Support Vector Machines
 ---
 
 # CIFAR-10 Dataset
@@ -36,10 +37,10 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='cifar10', epochs=100, imgsz=32)
         ```

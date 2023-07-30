@@ -483,7 +483,7 @@ masks, classification probabilities, etc.) found in the results object
 
 ## Streaming Source `for`-loop
 
-Here's a Python script using OpenCV (cv2) and YOLOv8 to run inference on video frames. This script assumes you have already installed the necessary packages (opencv-python and ultralytics).
+Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video frames. This script assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`).
 
 !!! example "Streaming for-loop"
 

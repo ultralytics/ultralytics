@@ -19,7 +19,7 @@ class PoseValidator(DetectionValidator):
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'pose'
         self.metrics = PoseMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
-        if self.args.device in ('mps', 'MPS'):
+        if isinstance(self.args.device, str) and self.args.device.lower() == 'mps':
             LOGGER.warning(f"WARNING ⚠️ Apple MPS known Pose issue. Recommend 'device=cpu' for Pose models.\n"
                            f'For details see https://github.com/ultralytics/ultralytics/issues/4031.')
 

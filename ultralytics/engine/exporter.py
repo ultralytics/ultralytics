@@ -35,7 +35,7 @@ Inference:
                          yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
                          yolov8n_openvino_model     # OpenVINO
                          yolov8n.engine             # TensorRT
-                         yolov8n.mlpackage            # CoreML (macOS-only)
+                         yolov8n.mlpackage          # CoreML (macOS-only)
                          yolov8n_saved_model        # TensorFlow SavedModel
                          yolov8n.pb                 # TensorFlow GraphDef
                          yolov8n.tflite             # TensorFlow Lite

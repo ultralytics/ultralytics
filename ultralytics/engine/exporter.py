@@ -468,8 +468,6 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
-        if WINDOWS:
-            raise OSError('CoreML export is not supported on Windows https://github.com/apple/coremltools/issues/1928')
         f = self.file.with_suffix('.mlpackage')
 
         bias = [0.0, 0.0, 0.0]
@@ -509,7 +507,7 @@ class Exporter:
         except Exception as e:
             LOGGER.warning(
                 f'{prefix} WARNING ⚠️ CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. '
-                f'Known coremltools Python 3.11 bug. See https://github.com/apple/coremltools/issues/1928.')
+                f'Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928.')
             f = f.with_suffix('.mlmodel')
             ct_model.save(str(f))
         return f, ct_model

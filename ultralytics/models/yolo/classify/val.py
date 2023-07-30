@@ -76,7 +76,7 @@ class ClassificationValidator(BaseValidator):
         """Plot validation image samples."""
         plot_images(images=batch['img'],
                     batch_idx=torch.arange(len(batch['img'])),
-                    cls=batch['cls'].squeeze(-1),
+                    cls=batch['cls'].view(-1),  # warning: use .view(), not .squeeze() for Classify models
                     fname=self.save_dir / f'val_batch{ni}_labels.jpg',
                     names=self.names,
                     on_plot=self.on_plot)

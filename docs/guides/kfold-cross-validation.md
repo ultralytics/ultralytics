@@ -145,61 +145,61 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
 2. The dataset has now been split into `k` folds, each having a list of `train` and `val` indices. We will construct a DataFrame to display these results more clearly.
 
-```python
-folds = [f'split_{n}' for n in range(1, ksplit + 1)]
-folds_df = pd.DataFrame(index=indx, columns=folds)
-
-for idx, (train, val) in enumerate(kfolds, start=1):
-    folds_df[f'split_{idx}'].loc[labels_df.iloc[train].index] = 'train'
-    folds_df[f'split_{idx}'].loc[labels_df.iloc[val].index] = 'val'
-```
+    ```python
+    folds = [f'split_{n}' for n in range(1, ksplit + 1)]
+    folds_df = pd.DataFrame(index=indx, columns=folds)
+    
+    for idx, (train, val) in enumerate(kfolds, start=1):
+        folds_df[f'split_{idx}'].loc[labels_df.iloc[train].index] = 'train'
+        folds_df[f'split_{idx}'].loc[labels_df.iloc[val].index] = 'val'
+    ```
 
 3. Now we will calculate the distribution of class labels for each fold as a ratio of the classes present in `val` to those present in `train`.
 
-```python
-fold_lbl_distrb = pd.DataFrame(index=folds, columns=cls_idx)
-
-for n, (train_indices, val_indices) in enumerate(kfolds, start=1):
-    train_totals = labels_df.iloc[train_indices].sum()
-    val_totals = labels_df.iloc[val_indices].sum()
-
-    # To avoid division by zero, we add a small value (1E-7) to the denominator
-    ratio = val_totals / (train_totals + 1E-7)
-    fold_lbl_distrb.loc[f'split_{n}'] = ratio
-```
+    ```python
+    fold_lbl_distrb = pd.DataFrame(index=folds, columns=cls_idx)
+    
+    for n, (train_indices, val_indices) in enumerate(kfolds, start=1):
+        train_totals = labels_df.iloc[train_indices].sum()
+        val_totals = labels_df.iloc[val_indices].sum()
+    
+        # To avoid division by zero, we add a small value (1E-7) to the denominator
+        ratio = val_totals / (train_totals + 1E-7)
+        fold_lbl_distrb.loc[f'split_{n}'] = ratio
+    ```
 
 The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
 
 4. Next, we create the directories and dataset YAML files for each split.
 
-```python
-save_path = Path(dataset_path / f'{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val')
-save_path.mkdir(parents=True, exist_ok=True)
-
-images = sorted((dataset_path / 'images').rglob("*.jpg"))  # change file extension as needed
-ds_yamls = []
-
-for split in folds_df.columns:
-    # Create directories
-    split_dir = save_path / split
-    split_dir.mkdir(parents=True, exist_ok=True)
-    (split_dir / 'train' / 'images').mkdir(parents=True, exist_ok=True)
-    (split_dir / 'train' / 'labels').mkdir(parents=True, exist_ok=True)
-    (split_dir / 'val' / 'images').mkdir(parents=True, exist_ok=True)
-    (split_dir / 'val' / 'labels').mkdir(parents=True, exist_ok=True)
-
-    # Create dataset YAML files
-    dataset_yaml = split_dir / f'{split}_dataset.yaml'
-    ds_yamls.append(dataset_yaml)
-
-    with open(dataset_yaml, 'w') as ds_y:
-        yaml.safe_dump({
-            'path': save_path.as_posix(),
-            'train': 'train',
-            'val': 'val',
-            'names': classes
-        }, ds_y)
-```
+    ```python
+    save_path = Path(dataset_path / f'{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val')
+    save_path.mkdir(parents=True, exist_ok=True)
+    
+    images = sorted((dataset_path / 'images').rglob("*.jpg"))  # change file extension as needed
+    ds_yamls = []
+    
+    for split in folds_df.columns:
+        # Create directories
+        split_dir = save_path / split
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / 'train' / 'images').mkdir(parents=True, exist_ok=True)
+        (split_dir / 'train' / 'labels').mkdir(parents=True, exist_ok=True)
+        (split_dir / 'val' / 'images').mkdir(parents=True, exist_ok=True)
+        (split_dir / 'val' / 'labels').mkdir(parents=True, exist_ok=True)
+    
+        # Create dataset YAML files
+        dataset_yaml = split_dir / f'{split}_dataset.yaml'
+        ds_yamls.append(dataset_yaml)
+    
+        with open(dataset_yaml, 'w') as ds_y:
+            yaml.safe_dump({
+                'path': save_path.as_posix(),
+                'train': 'train',
+                'val': 'val',
+                'names': classes
+            }, ds_y)
+    ```
 
 5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
 
@@ -245,8 +245,6 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
         model.train(data=dataset_yaml, *args, **kwargs)  # Include any training arguments
         results[k] = model.metrics  # save output metrics for further analysis
     ```
-
-In this updated section, I have replaced manual string joining with the built-in `Path` method for constructing directories, which makes the code more Pythonic. I have also improved the explanation and clarity of the instructions.
 
 ## Conclusion
 

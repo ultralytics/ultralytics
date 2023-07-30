@@ -32,8 +32,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        os: [ubuntu-latest]
+        python-version: ['3.11']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -147,8 +147,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.11']
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
         torch: [latest]
         include:
           - os: ubuntu-latest

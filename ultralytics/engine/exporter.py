@@ -320,7 +320,7 @@ class Exporter:
                 dynamic['output0'] = {0: 'batch', 2: 'anchors'}  # shape(1, 84, 8400)
 
         torch.onnx.export(
-            self.model.cpu() if dynamic else self.model,  # --dynamic only compatible with cpu
+            self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
             self.im.cpu() if dynamic else self.im,
             f,
             verbose=False,
@@ -462,7 +462,6 @@ class Exporter:
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return str(f), None
 
-    @try_export
     def export_coreml(self, prefix=colorstr('CoreML:')):
         """YOLOv8 CoreML export."""
         check_requirements('coremltools>=6.3.0')
@@ -480,7 +479,9 @@ class Exporter:
         elif self.model.task == 'detect':
             model = iOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
-            # TODO CoreML Segment and Pose model pipelining
+            if self.args.nms:
+                LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolov8n.pt'.")
+                # TODO CoreML Segment and Pose model pipelining
             model = self.model
 
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
@@ -547,7 +548,7 @@ class Exporter:
         if self.args.dynamic:
             shape = self.im.shape
             if shape[0] <= 1:
-                LOGGER.warning(f'{prefix} WARNING ⚠️ --dynamic model requires maximum --batch-size argument')
+                LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
             profile = builder.create_optimization_profile()
             for inp in inputs:
                 profile.set_shape(inp.name, (1, *shape[1:]), (max(1, shape[0] // 2), *shape[1:]), shape)

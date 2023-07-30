@@ -6,23 +6,22 @@ keywords: Ultralytics, YOLO, object tracking, video streams, BoT-SORT, ByteTrack
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/243418637-1d6250fd-1515-4c10-a844-a32818ae6d46.png">
 
-Object tracking is a task that involves identifying the location and class of objects, then assigning a unique ID to
-that detection in video streams.
+Object tracking is a task that involves identifying the location and class of objects, then assigning a unique ID to that detection in video streams.
 
 The output of tracker is the same as detection with an added object ID.
 
 ## Available Trackers
 
-The following tracking algorithms have been implemented and can be enabled by passing `tracker=tracker_type.yaml`
+Ultralytics YOLO supports the following tracking algorithms. They can be enabled by passing the relevant YAML configuration file such as `tracker=tracker_type.yaml`:
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - `botsort.yaml`
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - `bytetrack.yaml`
+* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Use `botsort.yaml` to enable this tracker.
+* [ByteTrack](https://github.com/ifzhang/ByteTrack) - Use `bytetrack.yaml` to enable this tracker.
 
 The default tracker is BoT-SORT.
 
 ## Tracking
 
-Use a trained YOLOv8n/YOLOv8n-seg model to run tracker on video streams.
+To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLOv8n, YOLOv8n-seg and YOLOv8n-pose.
 
 !!! example ""
 
@@ -31,34 +30,38 @@ Use a trained YOLOv8n/YOLOv8n-seg model to run tracker on video streams.
         ```python
         from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load an official detection model
-        model = YOLO('yolov8n-seg.pt')  # load an official segmentation model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        # Load an official or custom model
+        model = YOLO('yolov8n.pt')  # Load an official Detect model
+        model = YOLO('yolov8n-seg.pt')  # Load an official Segment model
+        model = YOLO('yolov8n-pose.pt')  # Load an official Pose model
+        model = YOLO('path/to/best.pt')  # Load a custom trained model
 
-        # Track with the model
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True)
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml")
+        # Perform tracking with the model
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True)  # Tracking with default tracker
+        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml")  # Tracking with ByteTrack tracker
         ```
+
     === "CLI"
 
         ```bash
-        yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc"  # official detection model
-        yolo track model=yolov8n-seg.pt source=...   # official segmentation model
-        yolo track model=path/to/best.pt source=...  # custom model
-        yolo track model=path/to/best.pt  tracker="bytetrack.yaml" # bytetrack tracker
+        # Perform tracking with various models using the command line interface
+        yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Detect model
+        yolo track model=yolov8n-seg.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Segment model
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Pose model
+        yolo track model=path/to/best.pt source="https://youtu.be/Zgi9g1ksQHc"  # Custom trained model
 
+        # Track using ByteTrack tracker
+        yolo track model=path/to/best.pt tracker="bytetrack.yaml" 
         ```
 
-As in the above usage, we support both the detection and segmentation models for tracking and the only thing you need to
-do is loading the corresponding (detection or segmentation) model.
+As can be seen in the above usage, tracking is available for all Detect, Segment and Pose models run on videos or streaming sources.
 
 ## Configuration
 
-### Tracking
+### Tracking Arguments
 
-Tracking shares the configuration with predict, i.e `conf`, `iou`, `show`. More configurations please refer
-to [predict page](https://docs.ultralytics.com/modes/predict/).
+Tracking configuration shares properties with Predict mode, such as `conf`, `iou`, and `show`. For further configurations, refer to the [Predict](https://docs.ultralytics.com/modes/predict/) model page.
+
 !!! example ""
 
     === "Python"
@@ -66,21 +69,22 @@ to [predict page](https://docs.ultralytics.com/modes/predict/).
         ```python
         from ultralytics import YOLO
 
+        # Configure the tracking parameters and run the tracker
         model = YOLO('yolov8n.pt')
         results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True)
         ```
+
     === "CLI"
 
         ```bash
+        # Configure tracking parameters and run the tracker using the command line interface
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" conf=0.3, iou=0.5 show
-
         ```
 
-### Tracker
+### Tracker Selection
 
-We also support using a modified tracker config file, just copy a config file i.e `custom_tracker.yaml`
-from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify
-any configurations(expect the `tracker_type`) you need to.
+Ultralytics also allows you to use a modified tracker configuration file. To do this, simply make a copy of a tracker config file (for example, `custom_tracker.yaml`) from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify any configurations (except the `tracker_type`) as per your needs.
+
 !!! example ""
 
     === "Python"
@@ -88,14 +92,126 @@ any configurations(expect the `tracker_type`) you need to.
         ```python
         from ultralytics import YOLO
 
+        # Load the model and run the tracker with a custom configuration file
         model = YOLO('yolov8n.pt')
         results = model.track(source="https://youtu.be/Zgi9g1ksQHc", tracker='custom_tracker.yaml')
         ```
+
     === "CLI"
 
         ```bash
+        # Load the model and run the tracker with a custom configuration file using the command line interface
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" tracker='custom_tracker.yaml'
         ```
 
-Please refer to [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)
-page
+For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) page.
+
+## Python Examples
+
+### Persisting Tracks Loop
+
+Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`).
+
+!!! example "Streaming for-loop with tracking"
+
+    ```python
+    import cv2
+    from ultralytics import YOLO
+
+    # Load the YOLOv8 model
+    model = YOLO('yolov8n.pt')
+
+    # Open the video file
+    video_path = "path/to/your/video/file.mp4"
+    cap = cv2.VideoCapture(video_path)
+
+    # Loop through the video frames
+    while cap.isOpened():
+        # Read a frame from the video
+        success, frame = cap.read()
+
+        if success:
+            # Run YOLOv8 tracking on the frame, persisting tracks between frames
+            results = model.track(frame, persist=True)
+
+            # Visualize the results on the frame
+            annotated_frame = results[0].plot()
+
+            # Display the annotated frame
+            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+
+            # Break the loop if 'q' is pressed
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        else:
+            # Break the loop if the end of the video is reached
+            break
+
+    # Release the video capture object and close the display window
+    cap.release()
+    cv2.destroyAllWindows()
+    ```
+
+Please note the change from `model(frame)` to `model.track(frame)`, which enables object tracking instead of simple detection. This modified script will run the tracker on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
+
+### Multithreaded Tracking
+
+Multithreaded tracking provides the capability to run object tracking on multiple video streams simultaneously. This is particularly useful when handling multiple video inputs, such as from multiple surveillance cameras, where concurrent processing can greatly enhance efficiency and performance.
+
+In the provided Python script, we make use of Python's `threading` module to run multiple instances of the tracker concurrently. Each thread is responsible for running the tracker on one video file, and all the threads run simultaneously in the background.
+
+To ensure that each thread receives the correct parameters (the video file and the model to use), we define a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and displays the results.
+
+Two different models are used in this example: `yolov8n.pt` and `yolov8n-seg.pt`, each tracking objects in a different video file. The video files are specified in `video_file1` and `video_file2`.
+
+The `daemon=True` parameter in `threading.Thread` means that these threads will be closed as soon as the main program finishes. We then start the threads with `start()` and use `join()` to make the main thread wait until both tracker threads have finished.
+
+Finally, after all threads have completed their task, the windows displaying the results are closed using `cv2.destroyAllWindows()`.
+
+!!! example "Streaming for-loop with tracking"
+
+    ```python
+    import threading
+    
+    import cv2
+    from ultralytics import YOLO
+    
+    
+    def run_tracker_in_thread(filename, model):
+        video = cv2.VideoCapture(filename)
+        frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+        for _ in range(frames):
+            ret, frame = video.read()
+            if ret:
+                results = model.track(source=frame, persist=True)
+                res_plotted = results[0].plot()
+                cv2.imshow('p', res_plotted)
+                if cv2.waitKey(1) == ord('q'):
+                    break
+    
+    
+    # Load the models
+    model1 = YOLO('yolov8n.pt')
+    model2 = YOLO('yolov8n-seg.pt')
+    
+    # Define the video files for the trackers
+    video_file1 = 'path/to/video1.mp4'
+    video_file2 = 'path/to/video2.mp4'
+    
+    # Create the tracker threads
+    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1), daemon=True)
+    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2), daemon=True)
+    
+    # Start the tracker threads
+    tracker_thread1.start()
+    tracker_thread2.start()
+    
+    # Wait for the tracker threads to finish
+    tracker_thread1.join()
+    tracker_thread2.join()
+    
+    # Clean up and close windows
+    cv2.destroyAllWindows()
+    ```
+
+This example can easily be extended to handle more video files and models by creating more threads and applying the same methodology.

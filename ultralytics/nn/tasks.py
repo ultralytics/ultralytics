@@ -104,11 +104,11 @@ class BaseModel(nn.Module):
         Returns:
             None
         """
-        c = m == self.model[-1] and isinstance(x, list)  # is final layer, copy input as inplace fix
-        flops = thop.profile(m, inputs=[[y.clone() for y in x] if c else x], verbose=False)[0] / 1E9 * 2 if thop else 0
+        c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
+        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1E9 * 2 if thop else 0  # FLOPs
         t = time_sync()
         for _ in range(10):
-            m([y.clone() for y in x] if c else x)
+            m(x.copy() if c else x)
         dt.append((time_sync() - t) * 100)
         if m == self.model[0]:
             LOGGER.info(f"{'time (ms)':>10s} {'GFLOPs':>10s} {'params':>10s}  module")
@@ -554,9 +554,9 @@ def torch_safe_load(weight):
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
         with temporary_modules({
-                'ultralytics.yolo.utils': 'ultralytics.utils',
-                'ultralytics.yolo.v8': 'ultralytics.models.yolo',
-                'ultralytics.yolo.data': 'ultralytics.data'}):  # for legacy 8.0 Classify and Pose models
+            'ultralytics.yolo.utils': 'ultralytics.utils',
+            'ultralytics.yolo.v8': 'ultralytics.models.yolo',
+            'ultralytics.yolo.data': 'ultralytics.data'}):  # for legacy 8.0 Classify and Pose models
             return torch.load(file, map_location='cpu'), file  # load
 
     except ModuleNotFoundError as e:  # e.name is missing module name

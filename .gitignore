@@ -123,6 +123,7 @@ venv.bak/
 
 # mkdocs documentation
 /site
+mkdocs_github_authors.yaml
 
 # mypy
 .mypy_cache/

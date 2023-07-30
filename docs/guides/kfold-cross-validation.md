@@ -171,7 +171,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
 The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
 
 4. Next, we create the directories and dataset YAML files for each split.
-    
+
     ```python
     save_path = Path(dataset_path / f'{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val')
     save_path.mkdir(parents=True, exist_ok=True)
@@ -245,8 +245,6 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
         model.train(data=dataset_yaml, *args, **kwargs)  # Include any training arguments
         results[k] = model.metrics  # save output metrics for further analysis
     ```
-
-In this updated section, I have replaced manual string joining with the built-in `Path` method for constructing directories, which makes the code more Pythonic. I have also improved the explanation and clarity of the instructions.
 
 ## Conclusion
 

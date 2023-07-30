@@ -74,12 +74,13 @@ class ClassificationValidator(BaseValidator):
 
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
-        plot_images(images=batch['img'],
-                    batch_idx=torch.arange(len(batch['img'])),
-                    cls=batch['cls'].squeeze(-1),
-                    fname=self.save_dir / f'val_batch{ni}_labels.jpg',
-                    names=self.names,
-                    on_plot=self.on_plot)
+        plot_images(
+            images=batch['img'],
+            batch_idx=torch.arange(len(batch['img'])),
+            cls=batch['cls'].view(-1),  # warning: use .view(), not .squeeze() for Classify models
+            fname=self.save_dir / f'val_batch{ni}_labels.jpg',
+            names=self.names,
+            on_plot=self.on_plot)
 
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""

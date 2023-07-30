@@ -156,7 +156,7 @@ class LoadScreenshots:
         s = f'screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: '
 
         self.frame += 1
-        return str(self.screen), im0, None, s  # screen, img, original img, im0s, s
+        return [str(self.screen)], [im0], None, s  # screen, img, vid_cap, string
 
 
 class LoadImages:

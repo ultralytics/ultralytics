@@ -9,7 +9,7 @@ TorchScript             | `torchscript`             | yolov8n.torchscript
 ONNX                    | `onnx`                    | yolov8n.onnx
 OpenVINO                | `openvino`                | yolov8n_openvino_model/
 TensorRT                | `engine`                  | yolov8n.engine
-CoreML                  | `coreml`                  | yolov8n.mlmodel
+CoreML                  | `coreml`                  | yolov8n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolov8n.pb
 TensorFlow Lite         | `tflite`                  | yolov8n.tflite
@@ -35,7 +35,7 @@ Inference:
                          yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
                          yolov8n_openvino_model     # OpenVINO
                          yolov8n.engine             # TensorRT
-                         yolov8n.mlmodel            # CoreML (macOS-only)
+                         yolov8n.mlpackage            # CoreML (macOS-only)
                          yolov8n_saved_model        # TensorFlow SavedModel
                          yolov8n.pb                 # TensorFlow GraphDef
                          yolov8n.tflite             # TensorFlow Lite
@@ -82,7 +82,7 @@ def export_formats():
         ['ONNX', 'onnx', '.onnx', True, True],
         ['OpenVINO', 'openvino', '_openvino_model', True, False],
         ['TensorRT', 'engine', '.engine', False, True],
-        ['CoreML', 'coreml', '.mlmodel', True, False],
+        ['CoreML', 'coreml', '.mlpackage', True, False],
         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
         ['TensorFlow GraphDef', 'pb', '.pb', True, True],
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
@@ -469,7 +469,7 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
-        f = self.file.with_suffix('.mlmodel')
+        f = self.file.with_suffix('.mlpackage')
 
         bias = [0.0, 0.0, 0.0]
         scale = 1 / 255

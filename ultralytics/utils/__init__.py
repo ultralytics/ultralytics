@@ -568,9 +568,10 @@ def get_user_config_dir(sub_dir='Ultralytics'):
         raise ValueError(f'Unsupported operating system: {platform.system()}')
 
     # GCP and AWS lambda fix, only /tmp is writeable
-    if not is_dir_writeable(str(path.parent)):
-        path = Path('/tmp') / sub_dir
-        LOGGER.warning(f"WARNING ⚠️ user config directory is not writeable, defaulting to '{path}'.")
+    if not is_dir_writeable(path.parent):
+        LOGGER.warning(f"WARNING ⚠️ user config directory {path} is not writeable, defaulting to '/tmp' or CWD."
+                       f'Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path.')
+        path = Path('/tmp') / sub_dir if is_dir_writeable('/tmp') else Path().cwd() / sub_dir
 
     # Create the subdirectory if it does not exist
     path.mkdir(parents=True, exist_ok=True)
@@ -578,13 +579,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
     return path
 
 
-# Ultralytics settings dir, avoid calling function in any case
-USER_CONFIG_DIR = os.getenv('YOLO_CONFIG_DIR')
-if USER_CONFIG_DIR is None:
-    USER_CONFIG_DIR = Path(get_user_config_dir())
-else:
-    USER_CONFIG_DIR = Path(USER_CONFIG_DIR)
-
+USER_CONFIG_DIR = Path(os.getenv('YOLO_CONFIG_DIR') or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_YAML = USER_CONFIG_DIR / 'settings.yaml'
 
 

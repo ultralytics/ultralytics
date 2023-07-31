@@ -506,6 +506,9 @@ class Exporter:
         ct_model.version = m.pop('version')
         ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
         try:
+            if not check_version(ct.__version__, '7.0.0'):
+                # Missing metadata bug fix until coremltools==7.0.0 https://github.com/apple/coremltools/issues/1680
+                ct_model = ct.models.MLModel(ct_model._spec, weights_dir=ct_model._weights_dir, is_temp_package=True)
             ct_model.save(str(f))  # save *.mlpackage
         except Exception as e:
             LOGGER.warning(

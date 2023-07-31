@@ -485,11 +485,10 @@ class Exporter:
             model = self.model
 
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
-        ct_model = ct.convert(
-            ts,
-            inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
-            classifier_config=classifier_config,
-            convert_to='mlprogram')  # or convert_to='neuralnetwork' for *.mlmodel
+        ct_model = ct.convert(ts,
+                              inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
+                              classifier_config=classifier_config,
+                              convert_to='mlprogram')  # or convert_to='neuralnetwork' for *.mlmodel
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
             if 'kmeans' in mode:

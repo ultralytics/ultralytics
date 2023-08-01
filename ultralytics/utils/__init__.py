@@ -714,24 +714,6 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def update_dict_recursive(d, u):
-    """
-    Recursively updates the dictionary `d` with the key-value pairs from the dictionary `u` without overwriting
-    entire sub-dictionaries. Note that function recursion is intended and not a problem, as this allows for updating
-    nested dictionaries at any arbitrary depth.
-
-    Args:
-        d (dict): The dictionary to be updated.
-        u (dict): The dictionary to update `d` with.
-
-    Returns:
-        (dict): The recursively updated dictionary.
-    """
-    for k, v in u.items():
-        d[k] = update_dict_recursive(d.get(k, {}), v) if isinstance(v, dict) else v
-    return d
-
-
 class SettingsManager(dict):
     """
     Manages Ultralytics settings stored in a YAML file.
@@ -792,20 +774,15 @@ class SettingsManager(dict):
 
     def load(self):
         """Loads settings from the YAML file."""
-        self.update(yaml_load(self.file))
+        super().update(yaml_load(self.file))
 
     def save(self):
         """Saves the current settings to the YAML file."""
         yaml_save(self.file, dict(self))
 
     def update(self, *args, **kwargs):
-        """Updates a setting value in the current settings and saves the settings."""
-        new = dict(*args, **kwargs)
-        if any(isinstance(v, dict) for v in new.values()):
-            update_dict_recursive(self, new)
-        else:
-            # super().update(*args, **kwargs)
-            super().update(new)
+        """Updates a setting value in the current settings."""
+        super().update(*args, **kwargs)
         self.save()
 
     def reset(self):

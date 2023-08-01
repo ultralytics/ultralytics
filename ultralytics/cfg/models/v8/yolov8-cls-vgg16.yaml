@@ -1,0 +1,37 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# YOLOv8-cls image classification model. For Usage examples see https://docs.ultralytics.com/tasks/classify
+
+# Parameters
+nc: 1000  # number of classes
+scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 1024]
+  l: [1.00, 1.00, 1024]
+  x: [1.00, 1.25, 1024]
+
+# VGG 16 backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 1]]  # 0
+  - [-1, 1, Conv, [64, 3, 1]]
+  - [-1, 1, nn.MaxPool2d, [2, 2]]   # 2-P1/2
+  - [-1, 1, Conv, [128, 3, 1]]
+  - [-1, 1, Conv, [128, 3, 1]]
+  - [-1, 1, nn.MaxPool2d, [2, 2]]   # 5-P2/4
+  - [-1, 1, Conv, [256, 3, 1]]
+  - [-1, 1, Conv, [256, 3, 1]]
+  - [-1, 1, nn.MaxPool2d, [2, 2]]   # 8-P3/8
+  - [-1, 1, Conv, [512, 3, 1]]
+  - [-1, 1, Conv, [512, 3, 1]]
+  - [-1, 1, Conv, [512, 3, 1]]
+  - [-1, 1, nn.MaxPool2d, [2, 2]]  # 13-P4/16
+  - [-1, 1, Conv, [512, 3, 1]]
+  - [-1, 1, Conv, [512, 3, 1]]
+  - [-1, 1, Conv, [512, 3, 1]]
+  - [-1, 1, nn.MaxPool2d, [2, 2]]   # 16-P5/32
+
+# YOLOv8.0n head
+head:
+  - [-1, 1, Classify, [nc]]  # Classify

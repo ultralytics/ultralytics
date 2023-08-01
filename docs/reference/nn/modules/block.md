@@ -1,6 +1,6 @@
 ---
-description: Explore ultralytics.nn.modules.block to build powerful YOLO object detection models. Master DFL, HGStem, SPP, CSP components and more.
-keywords: Ultralytics, NN Modules, Blocks, DFL, HGStem, SPP, C1, C2f, C3x, C3TR, GhostBottleneck, BottleneckCSP, Computer Vision
+description: Explore Ultralytics YOLO neural network modules, Proto to BottleneckCSP. Detailed explanation of each module with easy-to-follow code examples.
+keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, SPPF, C2, C3, RepC3, C3Ghost, Bottleneck, BottleneckCSP
 ---
 
 ## DFL

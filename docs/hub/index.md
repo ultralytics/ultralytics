@@ -1,7 +1,7 @@
 ---
 comments: true
-description: 'Ultralytics HUB: Train & deploy YOLO models from one spot! Use drag-and-drop interface with templates & pre-training models. Check quickstart, datasets, and more.'
-keywords: Ultralytics HUB, YOLOv5, YOLOv8, object detection, instance segmentation, classification, drag-and-drop interface, pre-trained models, integrations, mobile app, Inference API, datasets, projects, models
+description: Gain seamless experience in training and deploying your YOLOv5 and YOLOv8 models with Ultralytics HUB. Explore pre-trained models, templates and various integrations.
+keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, model deployment, pretrained models, model integrations
 ---
 
 # Ultralytics HUB
@@ -29,7 +29,7 @@ easily upload their data and train new models quickly. It offers a range of pre-
 templates to choose from, making it easy for users to get started with training their own models. Once a model is
 trained, it can be easily deployed and used for real-time object detection, instance segmentation and classification tasks.
 
-We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://discord.gg/bNc8wwx7Qy">Discord</a> community for questions and discussions!
+We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
 
 - [**Quickstart**](./quickstart.md). Start training and deploying YOLO models with HUB in seconds.
 - [**Datasets: Preparing and Uploading**](./datasets.md). Learn how to prepare and upload your datasets to HUB in YOLO format.

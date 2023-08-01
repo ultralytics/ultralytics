@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn how to freeze YOLOv5 when transfer learning. Retrain a pre-trained model on new data faster and with fewer resources.
-keywords: Freeze YOLOv5, Transfer Learning YOLOv5, Freeze Layers, Reduce Resources, Speed up Training, Increase Accuracy
+description: Learn to freeze YOLOv5 layers for efficient transfer learning. Optimize your model retraining with less resources and faster training times.
+keywords: YOLOv5, freeze layers, transfer learning, model retraining, Ultralytics
 ---
 
-📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **transfer learning**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.  
+📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **transfer learning**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.
 UPDATED 25 September 2022.
 
 ## Before You Start
@@ -22,13 +22,13 @@ pip install -r requirements.txt  # install
 All layers that match the train.py `freeze` list in train.py will be frozen by setting their gradients to zero before training starts.
 
 ```python
- # Freeze 
- freeze = [f'model.{x}.' for x in range(freeze)]  # layers to freeze 
- for k, v in model.named_parameters(): 
-     v.requires_grad = True  # train all layers 
-     if any(x in k for x in freeze): 
-         print(f'freezing {k}') 
-         v.requires_grad = False 
+ # Freeze
+ freeze = [f'model.{x}.' for x in range(freeze)]  # layers to freeze
+ for k, v in model.named_parameters():
+     v.requires_grad = True  # train all layers
+     if any(x in k for x in freeze):
+         print(f'freezing {k}')
+         v.requires_grad = False
 ```
 
 To see a list of module names:
@@ -60,43 +60,43 @@ model.24.m.2.bias
 Looking at the model architecture we can see that the model backbone is layers 0-9:
 
 ```yaml
-# YOLOv5 backbone 
- backbone: 
-   # [from, number, module, args] 
-   [[-1, 1, Focus, [64, 3]],  # 0-P1/2 
-    [-1, 1, Conv, [128, 3, 2]],  # 1-P2/4 
-    [-1, 3, BottleneckCSP, [128]], 
-    [-1, 1, Conv, [256, 3, 2]],  # 3-P3/8 
-    [-1, 9, BottleneckCSP, [256]], 
-    [-1, 1, Conv, [512, 3, 2]],  # 5-P4/16 
-    [-1, 9, BottleneckCSP, [512]], 
-    [-1, 1, Conv, [1024, 3, 2]],  # 7-P5/32 
-    [-1, 1, SPP, [1024, [5, 9, 13]]], 
-    [-1, 3, BottleneckCSP, [1024, False]],  # 9 
-   ] 
-  
- # YOLOv5 head 
- head: 
-   [[-1, 1, Conv, [512, 1, 1]], 
-    [-1, 1, nn.Upsample, [None, 2, 'nearest']], 
-    [[-1, 6], 1, Concat, [1]],  # cat backbone P4 
-    [-1, 3, BottleneckCSP, [512, False]],  # 13 
-  
-    [-1, 1, Conv, [256, 1, 1]], 
-    [-1, 1, nn.Upsample, [None, 2, 'nearest']], 
-    [[-1, 4], 1, Concat, [1]],  # cat backbone P3 
-    [-1, 3, BottleneckCSP, [256, False]],  # 17 (P3/8-small) 
-  
-    [-1, 1, Conv, [256, 3, 2]], 
-    [[-1, 14], 1, Concat, [1]],  # cat head P4 
-    [-1, 3, BottleneckCSP, [512, False]],  # 20 (P4/16-medium) 
-  
-    [-1, 1, Conv, [512, 3, 2]], 
-    [[-1, 10], 1, Concat, [1]],  # cat head P5 
-    [-1, 3, BottleneckCSP, [1024, False]],  # 23 (P5/32-large) 
-  
-    [[17, 20, 23], 1, Detect, [nc, anchors]],  # Detect(P3, P4, P5) 
-   ] 
+# YOLOv5 backbone
+ backbone:
+   # [from, number, module, args]
+   [[-1, 1, Focus, [64, 3]],  # 0-P1/2
+    [-1, 1, Conv, [128, 3, 2]],  # 1-P2/4
+    [-1, 3, BottleneckCSP, [128]],
+    [-1, 1, Conv, [256, 3, 2]],  # 3-P3/8
+    [-1, 9, BottleneckCSP, [256]],
+    [-1, 1, Conv, [512, 3, 2]],  # 5-P4/16
+    [-1, 9, BottleneckCSP, [512]],
+    [-1, 1, Conv, [1024, 3, 2]],  # 7-P5/32
+    [-1, 1, SPP, [1024, [5, 9, 13]]],
+    [-1, 3, BottleneckCSP, [1024, False]],  # 9
+   ]
+
+ # YOLOv5 head
+ head:
+   [[-1, 1, Conv, [512, 1, 1]],
+    [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+    [[-1, 6], 1, Concat, [1]],  # cat backbone P4
+    [-1, 3, BottleneckCSP, [512, False]],  # 13
+
+    [-1, 1, Conv, [256, 1, 1]],
+    [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+    [[-1, 4], 1, Concat, [1]],  # cat backbone P3
+    [-1, 3, BottleneckCSP, [256, False]],  # 17 (P3/8-small)
+
+    [-1, 1, Conv, [256, 3, 2]],
+    [[-1, 14], 1, Concat, [1]],  # cat head P4
+    [-1, 3, BottleneckCSP, [512, False]],  # 20 (P4/16-medium)
+
+    [-1, 1, Conv, [512, 3, 2]],
+    [[-1, 10], 1, Concat, [1]],  # cat head P5
+    [-1, 3, BottleneckCSP, [1024, False]],  # 23 (P5/32-large)
+
+    [[17, 20, 23], 1, Detect, [nc, anchors]],  # Detect(P3, P4, P5)
+   ]
 ```
 
 so we can define the freeze list to contain all modules with 'model.0.' - 'model.9.' in their names:

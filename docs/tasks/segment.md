@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn what Instance segmentation is. Get pretrained YOLOv8 segment models, and how to train and export them to segments masks. Check the preformance metrics!
-keywords: instance segmentation, YOLOv8, Ultralytics, pretrained models, train, predict, export, datasets
+description: Learn how to use instance segmentation models with Ultralytics YOLO. Instructions on training, validation, image prediction, and model export.
+keywords: yolov8, instance segmentation, Ultralytics, COCO dataset, image segmentation, object detection, model training, model validation, image prediction, model export
 ---
 
 Instance segmentation goes a step further than object detection and involves identifying individual objects in an image
@@ -15,16 +15,16 @@ segmentation is useful when you need to know not only where objects are in an im
 
 !!! tip "Tip"
 
-    YOLOv8 Segment models use the `-seg` suffix, i.e. `yolov8n-seg.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml).
+    YOLOv8 Segment models use the `-seg` suffix, i.e. `yolov8n-seg.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
+## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
 YOLOv8 pretrained Segment models are shown here. Detect, Segment and Pose models are pretrained on
-the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
+the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify
 models are pretrained on
-the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
+the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
@@ -49,20 +49,20 @@ arguments see the [Configuration](../usage/cfg.md) page.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-seg.yaml')  # build a new model from YAML
         model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
         model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
-        
+
         # Train the model
         model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
-    
+
         ```bash
         # Build a new model from YAML and start training from scratch
         yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
@@ -86,14 +86,14 @@ retains it's training `data` and arguments as model attributes.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-seg.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
         metrics.box.map    # map50-95(B)
@@ -106,7 +106,7 @@ retains it's training `data` and arguments as model attributes.
         metrics.seg.maps   # a list contains map50-95(M) of each category
         ```
     === "CLI"
-    
+
         ```bash
         yolo segment val model=yolov8n-seg.pt  # val official model
         yolo segment val model=path/to/best.pt  # val custom model
@@ -119,19 +119,19 @@ Use a trained YOLOv8n-seg model to run predictions on images.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-seg.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
     === "CLI"
-    
+
         ```bash
         yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
         yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
@@ -146,19 +146,19 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-seg.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom trained
-        
+
         # Export the model
         model.export(format='onnx')
         ```
     === "CLI"
-    
+
         ```bash
         yolo export model=yolov8n-seg.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
@@ -181,5 +181,6 @@ i.e. `yolo predict model=yolov8n-seg.onnx`. Usage examples are shown for your mo
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅        | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-seg_web_model/`      | ✅        | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅        | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

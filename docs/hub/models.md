@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Train and Deploy your Model to 13 different formats, including TensorFlow, ONNX, OpenVINO, CoreML, Paddle or directly on Mobile.
-keywords: Ultralytics, HUB, models, artificial intelligence, APIs, export models, TensorFlow, ONNX, Paddle, OpenVINO, CoreML, iOS, Android
+description: Learn how to use Ultralytics HUB models for efficient and user-friendly AI model training. For easy model creation, training, evaluation and deployment, follow our detailed guide.
+keywords: Ultralytics, HUB Models, AI model training, model creation, model training, model evaluation, model deployment
 ---
 
 # Ultralytics HUB Models

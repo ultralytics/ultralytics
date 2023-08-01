@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Dive into YOLO-NAS, Deci's next-generation object detection model, offering breakthroughs in speed and accuracy. Learn how to utilize pre-trained models using the Ultralytics Python API for various tasks.
-keywords: YOLO-NAS, Deci AI, Ultralytics, object detection, deep learning, neural architecture search, Python API, pre-trained models, quantization
+description: Explore detailed documentation of YOLO-NAS, a superior object detection model. Learn about its features, pre-trained models, usage with Ultralytics Python API, and more.
+keywords: YOLO-NAS, Deci AI, object detection, deep learning, neural architecture search, Ultralytics Python API, YOLO model, pre-trained models, quantization, optimization, COCO, Objects365, Roboflow 100
 ---
 
 # YOLO-NAS

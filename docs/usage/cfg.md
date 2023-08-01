@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about YOLO settings and modes for different tasks like detection, segmentation etc. Train and predict with custom argparse commands.
-keywords: YOLO settings, hyperparameters, YOLOv8, Ultralytics, YOLO guide, YOLO commands, YOLO tasks, YOLO modes, YOLO training, YOLO detect, YOLO segment, YOLO classify, YOLO pose, YOLO train, YOLO val, YOLO predict, YOLO export, YOLO track, YOLO benchmark
+description: Master YOLOv8 settings and hyperparameters for improved model performance. Learn to use YOLO CLI commands, adjust training settings, and optimize YOLO tasks & modes.
+keywords: YOLOv8, settings, hyperparameters, YOLO CLI commands, YOLO tasks, YOLO modes, Ultralytics documentation, model optimization, YOLOv8 training
 ---
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings
@@ -13,19 +13,19 @@ YOLOv8 'yolo' CLI commands use the following syntax:
 !!! example ""
 
     === "CLI"
-    
+
         ```bash
         yolo TASK MODE ARGS
         ```
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a YOLOv8 model from a pre-trained weights file
         model = YOLO('yolov8n.pt')
-         
+
         # Run MODE mode using the custom arguments ARGS (guess TASK)
         model.MODE(ARGS)
         ```
@@ -38,16 +38,16 @@ Where:
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
   For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
-  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
+  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 #### Tasks
 
 YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks
 differ in the type of output they produce and the specific problem they are designed to solve.
 
-**Detect**: For identifying and localizing objects or regions of interest in an image or video.  
-**Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.  
-**Classify**: For predicting the class label of an input image.  
+**Detect**: For identifying and localizing objects or regions of interest in an image or video.
+**Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
+**Classify**: For predicting the class label of an input image.
 **Pose**: For identifying objects and estimating their keypoints in an image or video.
 
 | Key    | Value      | Description                                     |
@@ -61,11 +61,11 @@ differ in the type of output they produce and the specific problem they are desi
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes
 include:
 
-**Train**: For training a YOLOv8 model on a custom dataset.  
-**Val**: For validating a YOLOv8 model after it has been trained.  
-**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.  
-**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.  
-**Track**: For tracking objects in real-time using a YOLOv8 model.  
+**Train**: For training a YOLOv8 model on a custom dataset.
+**Val**: For validating a YOLOv8 model after it has been trained.
+**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
+**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
+**Track**: For tracking objects in real-time using a YOLOv8 model.
 **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
 | Key    | Value     | Description                                                   |

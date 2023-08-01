@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how torchvision organizes classification image datasets. Use this code to create and train models. CLI and Python code shown.
-keywords: image classification, datasets, format, torchvision, YOLO, Ultralytics
+description: Explore image classification datasets supported by Ultralytics, learn the standard dataset format, and set up your own dataset for training models.
+keywords: Ultralytics, image classification, dataset, machine learning, CIFAR-10, ImageNet, MNIST, torchvision
 ---
 
 # Image Classification Datasets Overview
@@ -83,10 +83,10 @@ In this example, the `train` directory contains subdirectories for each class in
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
@@ -94,7 +94,7 @@ In this example, the `train` directory contains subdirectories for each class in
         model.train(data='path/to/dataset', epochs=100, imgsz=640)
         ```
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=path/to/data model=yolov8n-cls.pt epochs=100 imgsz=640

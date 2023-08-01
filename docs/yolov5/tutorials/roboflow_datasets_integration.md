@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Use Roboflow to organize, label, prepare, version & host datasets for training YOLOv5 models. Upload via UI, API, or Python, making versions with custom preprocessing and offline augmentation. Export in YOLOv5 format and access custom training tutorials. Use active learning to improve model deployments.
-keywords: YOLOv5, Roboflow, Dataset, Labeling, Versioning, Darknet, Export, Python, Upload, Active Learning, Preprocessing
+description: Learn how to use Roboflow for organizing, labelling, preparing, and hosting your datasets for YOLOv5 models. Enhance your model deployments with our platform.
+keywords: Ultralytics, YOLOv5, Roboflow, data organization, data labelling, data preparation, model deployment, active learning, machine learning pipeline
 ---
 
 # Roboflow Datasets
 
-You can now use Roboflow to organize, label, prepare, version, and host your datasets for training YOLOv5 🚀 models. Roboflow is free to use with YOLOv5 if you make your workspace public.  
+You can now use Roboflow to organize, label, prepare, version, and host your datasets for training YOLOv5 🚀 models. Roboflow is free to use with YOLOv5 if you make your workspace public.
 UPDATED 7 June 2023.
 
 !!! warning

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use YOLOv8 pose estimation models to identify the position of keypoints on objects in an image, and how to train, validate, predict, and export these models for use with various formats such as ONNX or CoreML.
-keywords: YOLOv8, Pose Models, Keypoint Detection, COCO dataset, COCO val2017, Amazon EC2 P4d, PyTorch
+description: Learn how to use Ultralytics YOLOv8 for pose estimation tasks. Find pretrained models, learn how to train, validate, predict, and export your own.
+keywords: Ultralytics, YOLO, YOLOv8, pose estimation, keypoints detection, object detection, pre-trained models, machine learning, artificial intelligence
 ---
 
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred
@@ -17,16 +17,16 @@ parts of an object in a scene, and their location in relation to each other.
 
 !!! tip "Tip"
 
-    YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
+    YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
+## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
 YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models are pretrained on
-the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
+the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify
 models are pretrained on
-the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
+the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
@@ -52,20 +52,20 @@ Train a YOLOv8-pose model on the COCO128-pose dataset.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-pose.yaml')  # build a new model from YAML
         model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
         model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # build from YAML and transfer weights
-        
+
         # Train the model
         model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
-    
+
         ```bash
         # Build a new model from YAML and start training from scratch
         yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
@@ -90,14 +90,14 @@ training `data` and arguments as model attributes.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-pose.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
         metrics.box.map    # map50-95
@@ -106,7 +106,7 @@ training `data` and arguments as model attributes.
         metrics.box.maps   # a list contains map50-95 of each category
         ```
     === "CLI"
-    
+
         ```bash
         yolo pose val model=yolov8n-pose.pt  # val official model
         yolo pose val model=path/to/best.pt  # val custom model
@@ -119,19 +119,19 @@ Use a trained YOLOv8n-pose model to run predictions on images.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-pose.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
     === "CLI"
-    
+
         ```bash
         yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
         yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
@@ -146,19 +146,19 @@ Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-pose.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom trained
-        
+
         # Export the model
         model.export(format='onnx')
         ```
     === "CLI"
-    
+
         ```bash
         yolo export model=yolov8n-pose.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
@@ -181,5 +181,6 @@ i.e. `yolo predict model=yolov8n-pose.onnx`. Usage examples are shown for your m
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-pose_edgetpu.tflite`  | ✅        | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-pose_web_model/`      | ✅        | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-pose_paddle_model/`   | ✅        | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-pose_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Check YOLO class label with only one class for the whole image, using image classification. Get strategies for training and validation models.
-keywords: YOLOv8n-cls, image classification, pretrained models
+description: Learn about YOLOv8 Classify models for image classification. Get detailed information on List of Pretrained Models & how to Train, Validate, Predict & Export models.
+keywords: Ultralytics, YOLOv8, Image Classification, Pretrained Models, YOLOv8n-cls, Training, Validation, Prediction, Model Export
 ---
 
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of
@@ -15,16 +15,16 @@ of that class are located or what their exact shape is.
 
 !!! tip "Tip"
 
-    YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml).
+    YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
+## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
 YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose models are pretrained on
-the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
+the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify
 models are pretrained on
-the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
+the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
@@ -49,15 +49,15 @@ see the [Configuration](../usage/cfg.md) page.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.yaml')  # build a new model from YAML
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
         model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # build from YAML and transfer weights
-        
+
         # Train the model
         model.train(data='mnist160', epochs=100, imgsz=64)
         ```
@@ -87,21 +87,21 @@ it's training `data` and arguments as model attributes.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
         metrics.top1   # top1 accuracy
         metrics.top5   # top5 accuracy
         ```
     === "CLI"
-    
+
         ```bash
         yolo classify val model=yolov8n-cls.pt  # val official model
         yolo classify val model=path/to/best.pt  # val custom model
@@ -114,19 +114,19 @@ Use a trained YOLOv8n-cls model to run predictions on images.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
-        
+
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
     === "CLI"
-    
+
         ```bash
         yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
         yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
@@ -141,19 +141,19 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 !!! example ""
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom trained
-        
+
         # Export the model
         model.export(format='onnx')
         ```
     === "CLI"
-    
+
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
@@ -176,5 +176,6 @@ i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your mo
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅        | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-cls_web_model/`      | ✅        | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅        | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the xView Dataset, a large-scale overhead imagery dataset for object detection tasks, featuring 1M instances, 60 classes, and high-resolution images.
-keywords: xView dataset, overhead imagery, computer vision, deep learning models, satellite imagery analysis, object detection
+description: Explore xView, a large-scale, high resolution satellite imagery dataset for object detection. Dive into dataset structure, usage examples & its potential applications.
+keywords: Ultralytics, YOLO, computer vision, xView dataset, satellite imagery, object detection, overhead imagery, training, deep learning, dataset YAML
 ---
 
 # xView Dataset
@@ -32,12 +32,12 @@ The xView dataset is widely used for training and evaluating deep learning model
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the xView dataset, the `xView.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/xView.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/xView.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the xView dataset, the `xView.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/xView.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/xView.yaml).
 
-!!! example "ultralytics/datasets/xView.yaml"
+!!! example "ultralytics/cfg/datasets/xView.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/xView.yaml"
+    --8<-- "ultralytics/cfg/datasets/xView.yaml"
     ```
 
 ## Usage
@@ -50,10 +50,10 @@ To train a model on the xView dataset for 100 epochs with an image size of 640, 
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='xView.yaml', epochs=100, imgsz=640)
         ```
@@ -81,7 +81,7 @@ If you use the xView dataset in your research or development work, please cite t
 
 ```bibtex
 @misc{lam2018xview,
-      title={xView: Objects in Context in Overhead Imagery}, 
+      title={xView: Objects in Context in Overhead Imagery},
       author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
       year={2018},
       eprint={1802.07856},

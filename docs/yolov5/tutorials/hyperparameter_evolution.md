@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn to find optimum YOLOv5 hyperparameters via **evolution**. A guide to learn hyperparameter tuning with Genetic Algorithms.
-keywords: YOLOv5, Hyperparameter Evolution, Genetic Algorithm, Hyperparameter Optimization, Fitness, Evolve, Visualize
+description: Learn how to optimize YOLOv5 with hyperparameter evolution using Genetic Algorithm. This guide provides steps to initialize, define, evolve and visualize hyperparameters for top performance.
+keywords: Ultralytics, YOLOv5, Hyperparameter Optimization, Genetic Algorithm, Machine Learning, Deep Learning, AI, Object Detection, Image Classification, Python
 ---
 
 📚 This guide explains **hyperparameter evolution** for YOLOv5 🚀. Hyperparameter evolution is a method of [Hyperparameter Optimization](https://en.wikipedia.org/wiki/Hyperparameter_optimization) using a [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (GA) for optimization. UPDATED 25 September 2022.
@@ -64,10 +64,10 @@ copy_paste: 0.0  # segment copy-paste (probability)
 Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: `mAP@0.5` contributes 10% of the weight and `mAP@0.5:0.95` contributes the remaining 90%, with [Precision `P` and Recall `R`](https://en.wikipedia.org/wiki/Precision_and_recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended).
 
 ```python
-def fitness(x): 
-    # Model fitness as a weighted combination of metrics 
-    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95] 
-    return (x[:, :4] * w).sum(1) 
+def fitness(x):
+    # Model fitness as a weighted combination of metrics
+    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+    return (x[:, :4] * w).sum(1)
 ```
 
 ## 3. Evolve

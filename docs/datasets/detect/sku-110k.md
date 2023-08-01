@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the SKU-110k dataset, designed for object detection in densely packed retail shelf images, featuring over 110k unique SKU categories and annotations.
-keywords: SKU-110k, object detection, retail shelves, dataset, computer vision
+description: 'Explore the SKU-110k dataset: densely packed retail shelf images for object detection research. Learn how to use it with Ultralytics.'
+keywords: SKU-110k dataset, object detection, retail shelf images, Ultralytics, YOLO, computer vision, deep learning models
 ---
 
 # SKU-110k Dataset
@@ -30,12 +30,12 @@ The SKU-110k dataset is widely used for training and evaluating deep learning mo
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the SKU-110K dataset, the `SKU-110K.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/SKU-110K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/SKU-110K.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the SKU-110K dataset, the `SKU-110K.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml).
 
-!!! example "ultralytics/datasets/SKU-110K.yaml"
+!!! example "ultralytics/cfg/datasets/SKU-110K.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/SKU-110K.yaml"
+    --8<-- "ultralytics/cfg/datasets/SKU-110K.yaml"
     ```
 
 ## Usage
@@ -48,10 +48,10 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='SKU-110K.yaml', epochs=100, imgsz=640)
         ```

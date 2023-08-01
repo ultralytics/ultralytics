@@ -9,9 +9,9 @@ FROM ubuntu:lunar-20230615
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages
+# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 RUN apt update \
-    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 # RUN alias python=python3
 
 # Create working directory
@@ -28,13 +28,23 @@ RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e . thop --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache -e '.[export]' thop --extra-index-url https://download.pytorch.org/whl/cpu
 
+# Run exports to AutoInstall packages
+RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
+RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
+# Requires <= Python 3.10, bug with paddlepaddle==2.5.0
+# RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
+# Remove exported models
+RUN rm -rf tmp
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
 # t=ultralytics/ultralytics:latest-cpu && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
 
-# Pull and Run
+# Run
+# t=ultralytics/ultralytics:latest-cpu && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

@@ -40,7 +40,7 @@ jobs:
           import os
           import pkg_resources as pkg
           import ultralytics
-          from ultralytics.yolo.utils.checks import check_latest_pypi_version
+          from ultralytics.utils.checks import check_latest_pypi_version
 
           v_local = pkg.parse_version(ultralytics.__version__).release
           v_pypi = pkg.parse_version(check_latest_pypi_version()).release

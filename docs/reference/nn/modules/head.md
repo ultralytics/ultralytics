@@ -1,6 +1,6 @@
 ---
-description: 'Learn about Ultralytics YOLO modules: Segment, Classify, and RTDETRDecoder. Optimize object detection and classification in your project.'
-keywords: Ultralytics, YOLO, object detection, pose estimation, RTDETRDecoder, modules, classes, documentation
+description: Explore docs covering Ultralytics YOLO detection, pose & RTDETRDecoder. Comprehensive guides to help you understand Ultralytics nn modules.
+keywords: Ultralytics, YOLO, Detection, Pose, RTDETRDecoder, nn modules, guides
 ---
 
 ## Detect

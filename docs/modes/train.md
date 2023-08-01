@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to train custom YOLOv8 models on various datasets, configure hyperparameters, and use Ultralytics' YOLO for seamless training.
-keywords: YOLOv8, train mode, train a custom YOLOv8 model, hyperparameters, train a model, Comet, ClearML, TensorBoard, logging, loggers
+description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO with examples of single-GPU and multi-GPU training. Efficient way for object detection training.
+keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
@@ -21,20 +21,20 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Argum
     Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.yaml')  # build a new model from YAML
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
         model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
-        
+
         # Train the model
         model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
-    
+
         ```bash
         # Build a new model from YAML and start training from scratch
         yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
@@ -53,18 +53,18 @@ The training device can be specified using the `device` argument. If no argument
 !!! example "Multi-GPU Training Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model with 2 GPUs
         model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
         ```
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model using GPUs 0 and 1
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
@@ -79,18 +79,18 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
 !!! example "MPS Training Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model with 2 GPUs
         model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
         ```
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model using GPUs 0 and 1
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
@@ -111,18 +111,18 @@ Below is an example of how to resume an interrupted training using Python and vi
 !!! example "Resume Training Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('path/to/last.pt')  # load a partially trained model
-        
+
         # Resume training
         model.train(resume=True)
         ```
     === "CLI"
-    
+
         ```bash
         # Resume an interrupted training
         yolo train resume model=path/to/last.pt
@@ -143,7 +143,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `epochs`          | `100`    | number of epochs to train for                                                     |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training       |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                     |
-| `imgsz`           | `640`    | size of input images as integer or w,h                                            |
+| `imgsz`           | `640`    | size of input images as integer                                                   |
 | `save`            | `True`   | save train checkpoints and predict results                                        |
 | `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if < 1)                                  |
 | `cache`           | `False`  | True/ram, disk or False. Use cache for data loading                               |

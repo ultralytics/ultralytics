@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the VisDrone dataset, a comprehensive benchmark for drone-based computer vision tasks, including object detection, tracking, and crowd counting.
-keywords: VisDrone Dataset, Ultralytics YOLO Docs, AISKYEYE, Lab of Machine Learning and Data Mining, Computer Vision tasks, drone-based image analysis, object detection, object tracking, crowd counting, YOLOv8n model
+description: Explore the VisDrone Dataset, a large-scale benchmark for drone-based image analysis, and learn how to train a YOLO model using it.
+keywords: VisDrone Dataset, Ultralytics, drone-based image analysis, YOLO model, object detection, object tracking, crowd counting
 ---
 
 # VisDrone Dataset
@@ -26,12 +26,12 @@ The VisDrone dataset is widely used for training and evaluating deep learning mo
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Visdrone dataset, the `VisDrone.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/VisDrone.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/VisDrone.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Visdrone dataset, the `VisDrone.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VisDrone.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VisDrone.yaml).
 
-!!! example "ultralytics/datasets/VisDrone.yaml"
+!!! example "ultralytics/cfg/datasets/VisDrone.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/VisDrone.yaml"
+    --8<-- "ultralytics/cfg/datasets/VisDrone.yaml"
     ```
 
 ## Usage
@@ -44,10 +44,10 @@ To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image si
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='VisDrone.yaml', epochs=100, imgsz=640)
         ```
@@ -76,8 +76,8 @@ If you use the VisDrone dataset in your research or development work, please cit
 ```bibtex
 @ARTICLE{9573394,
   author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
-  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
-  title={Detection and Tracking Meet Drones Challenge}, 
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  title={Detection and Tracking Meet Drones Challenge},
   year={2021},
   volume={},
   number={},

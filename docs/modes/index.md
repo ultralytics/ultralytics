@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Use Ultralytics YOLOv8 Modes (Train, Val, Predict, Export, Track, Benchmark) to train, validate, predict, track, export or benchmark.
-keywords: yolov8, yolo, ultralytics, training, validation, prediction, export, tracking, benchmarking, real-time object detection, object tracking
+description: From training to tracking, make the most of YOLOv8 with Ultralytics. Get insights and examples for each supported mode including validation, export, and benchmarking.
+keywords: Ultralytics, YOLOv8, Machine Learning, Object Detection, Training, Validation, Prediction, Export, Tracking, Benchmarking
 ---
 
 # Ultralytics YOLOv8 Modes

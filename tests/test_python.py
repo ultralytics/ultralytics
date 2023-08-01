@@ -9,10 +9,10 @@ from PIL import Image
 from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
-from ultralytics.yolo.data.build import load_inference_source
-from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.data.build import load_inference_source
+from ultralytics.utils import LINUX, ONLINE, ROOT, SETTINGS
 
-MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
+MODEL = Path(SETTINGS['weights_dir']) / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
 SOURCE_GREYSCALE = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
@@ -102,7 +102,7 @@ def test_val_scratch():
 
 def test_amp():
     if torch.cuda.is_available():
-        from ultralytics.yolo.utils.checks import check_amp
+        from ultralytics.utils.checks import check_amp
         model = YOLO(MODEL).model.cuda()
         assert check_amp(model)
 

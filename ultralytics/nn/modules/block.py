@@ -346,5 +346,5 @@ class CARAFE(nn.Module):
         out_tensor = out_tensor.permute(0, 3, 1, 2)
         out_tensor = F.pixel_shuffle(out_tensor, self.up_factor)
         out_tensor = self.out(out_tensor)
-        #print("up shape:",out_tensor.shape)
+        # print("up shape:",out_tensor.shape)
         return out_tensor

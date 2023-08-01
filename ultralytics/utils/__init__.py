@@ -774,17 +774,14 @@ class SettingsManager(dict):
 
     def load(self):
         """Loads settings from the YAML file."""
-        print('SETTINGS LOAD')
         super().update(yaml_load(self.file))
 
     def save(self):
         """Saves the current settings to the YAML file."""
-        print('SETTINGS SAVE')
         yaml_save(self.file, dict(self))
 
     def update(self, *args, **kwargs):
         """Updates a setting value in the current settings."""
-        print('SETTINGS UPDATE')
         super().update(*args, **kwargs)
 
     def reset(self):

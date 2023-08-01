@@ -20,8 +20,8 @@ Usage - formats:
 """
 import json
 import time
-from pathlib import Path
 from os.path import isfile
+from pathlib import Path
 
 import torch
 from tqdm import tqdm

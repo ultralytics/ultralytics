@@ -13,8 +13,8 @@ torch.onnx.export(m, x, f)
 os.system(f'onnxsim {f} {f} && open {f}')
 """
 
-from .block import (C1, C2, C3, C3TR, DFL, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, GhostBottleneck,
-                    HGBlock, HGStem, Proto, RepC3, CARAFE)
+from .block import (C1, C2, C3, C3TR, CARAFE, DFL, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
+                    GhostBottleneck, HGBlock, HGStem, Proto, RepC3)
 from .conv import (CBAM, ChannelAttention, Concat, Conv, Conv2, ConvTranspose, DWConv, DWConvTranspose2d, Focus,
                    GhostConv, LightConv, RepConv, SpatialAttention)
 from .head import Classify, Detect, Pose, RTDETRDecoder, Segment

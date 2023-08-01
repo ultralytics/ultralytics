@@ -42,3 +42,4 @@ py-cpuinfo  # display CPU info
 # albumentations>=1.0.3  # training augmentations
 # pycocotools>=2.0.6  # COCO mAP
 # roboflow
+numpy>=1.22.2 # not directly required, pinned by Snyk to avoid a vulnerability

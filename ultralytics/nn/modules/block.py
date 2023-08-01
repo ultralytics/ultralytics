@@ -305,7 +305,7 @@ class BottleneckCSP(nn.Module):
 
 
 class CARAFE(nn.Module):
-    # CARAFE: Content-Aware ReAssembly of FEatures "https://arxiv.org/pdf/1905.02188.pdf"
+    """CARAFE: Content-Aware ReAssembly of FEatures https://arxiv.org/pdf/1905.02188.pdf"""
     def __init__(self, c1, c2, kernel_size=3, up_factor=2):
         super().__init__()
         self.kernel_size = kernel_size

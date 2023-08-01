@@ -253,7 +253,7 @@ def handle_yolo_settings(args: List[str]) -> None:
             SETTINGS_YAML.unlink()  # delete the settings file
             SETTINGS.reset()  # create new settings
             LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
-        else:
+        else:  # save a new setting
             new = dict(parse_key_value_pair(a) for a in args)
             check_dict_alignment(SETTINGS, new)
             SETTINGS.update(new)

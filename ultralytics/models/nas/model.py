@@ -23,7 +23,7 @@ from .val import NASValidator
 class NAS(Model):
 
     def __init__(self, model='yolo_nas_s.pt') -> None:
-        assert Path(model).suffix != '.yaml', 'YOLO-NAS models only support pre-trained models.'
+        assert Path(model).suffix not in ('.yaml', '.yml'), 'YOLO-NAS models only support pre-trained models.'
         super().__init__(model, task='detect')
 
     @smart_inference_mode()

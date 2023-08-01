@@ -257,7 +257,6 @@ def handle_yolo_settings(args: List[str]) -> None:
             new = dict(parse_key_value_pair(a) for a in args)
             check_dict_alignment(SETTINGS, new)
             SETTINGS.update(new)
-            SETTINGS.save()
 
     yaml_print(SETTINGS_YAML)  # print the current settings
 

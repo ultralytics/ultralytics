@@ -16,8 +16,8 @@ class RTDETR(Model):
     """
 
     def __init__(self, model='rtdetr-l.pt') -> None:
-        if model and not model.endswith('.pt') and not model.endswith('.yaml'):
-            raise NotImplementedError('RT-DETR only supports creating from pt file or yaml file.')
+        if model and not model.split('.')[-1] in ('pt', 'yaml', 'yml'):
+            raise NotImplementedError('RT-DETR only supports creating from *.pt file or *.yaml file.')
         super().__init__(model=model, task='detect')
 
     @property

@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel build twine
-          pip install -e '.[dev]' --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check PyPI version
         shell: python
         run: |

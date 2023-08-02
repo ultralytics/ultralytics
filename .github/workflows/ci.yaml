@@ -107,9 +107,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
-              pip install -e '.[export]' --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
             else
-              pip install -e '.[export]' --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           yolo export format=tflite imgsz=32
       - name: Check environment
@@ -165,9 +165,9 @@ jobs:
         run: |  # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest 'coremltools>=6.0,<=6.2' --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest "coremltools>=6.0,<=6.2" --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -e . pytest 'coremltools>=6.0,<=6.2' --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . pytest "coremltools>=6.0,<=6.2" --extra-index-url https://download.pytorch.org/whl/cpu
           fi
       - name: Check environment
         run: |

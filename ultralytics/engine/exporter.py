@@ -19,7 +19,7 @@ PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 ncnn                    | `ncnn`                    | yolov8n_ncnn_model/
 
 Requirements:
-    $ pip install ultralytics[export]
+    $ pip install "ultralytics[export]"
 
 Python:
     from ultralytics import YOLO

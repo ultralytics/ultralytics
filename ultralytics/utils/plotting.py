@@ -330,12 +330,16 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
         save (bool, optional): If True, the cropped image will be saved to disk. Defaults to True.
 
     Returns:
-        numpy.ndarray: The cropped image.
+        (numpy.ndarray): The cropped image.
 
     Examples:
-        >>> xyxy = [50, 50, 150, 150]
-        >>> im = cv2.imread('image.jpg')
-        >>> cropped_im = save_one_box(xyxy, im, file='cropped.jpg', square=True)
+        ```python
+        from ultralytics.utils.plotting import save_one_box
+
+        xyxy = [50, 50, 150, 150]
+        im = cv2.imread('image.jpg')
+        cropped_im = save_one_box(xyxy, im, file='cropped.jpg', square=True)
+        ```
     """
 
     if not isinstance(xyxy, torch.Tensor):  # may be list

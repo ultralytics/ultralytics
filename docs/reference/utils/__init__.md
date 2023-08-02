@@ -153,11 +153,6 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 ### ::: ultralytics.utils.set_sentry
 <br><br>
 
-## update_dict_recursive
----
-### ::: ultralytics.utils.update_dict_recursive
-<br><br>
-
 ## deprecation_warn
 ---
 ### ::: ultralytics.utils.deprecation_warn

@@ -318,7 +318,7 @@ class RTDETRDecoder(nn.Module):
         top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         # (bs, num_queries, 4)
         top_k_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
-        
+
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
 
         enc_bboxes = refer_bbox.sigmoid()

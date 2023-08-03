@@ -3,7 +3,12 @@ description: Learn about Ultralytics BasePredictor, an essential component of ou
 keywords: Ultralytics, BasePredictor, YOLO, prediction, engine
 ---
 
-## BasePredictor
+# Reference for `ultralytics/engine/predictor.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/predictor.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/predictor.py).
+
 ---
-### ::: ultralytics.engine.predictor.BasePredictor
+## ::: ultralytics.engine.predictor.BasePredictor
 <br><br>

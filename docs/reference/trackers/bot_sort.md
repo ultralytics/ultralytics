@@ -3,12 +3,16 @@ description: Master the use of Ultralytics BOTrack, a key component of the power
 keywords: Ultralytics, BOTSORT, BOTrack, tracking system, official documentation, machine learning, AI tracking
 ---
 
-## BOTrack
+# Reference for `ultralytics/trackers/bot_sort.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/bot_sort.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/bot_sort.py).
+
 ---
-### ::: ultralytics.trackers.bot_sort.BOTrack
+## ::: ultralytics.trackers.bot_sort.BOTrack
 <br><br>
 
-## BOTSORT
 ---
-### ::: ultralytics.trackers.bot_sort.BOTSORT
+## ::: ultralytics.trackers.bot_sort.BOTSORT
 <br><br>

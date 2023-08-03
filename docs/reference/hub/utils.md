@@ -3,22 +3,24 @@ description: Explore Ultralytics docs for various Events, including "request_wit
 keywords: Ultralytics, Events, request_with_credentials, smart_request, Ultralytics hub utils, requests_with_progress
 ---
 
-## Events
+# Reference for `ultralytics/hub/utils.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py).
+
 ---
-### ::: ultralytics.hub.utils.Events
+## ::: ultralytics.hub.utils.Events
 <br><br>
 
-## request_with_credentials
 ---
-### ::: ultralytics.hub.utils.request_with_credentials
+## ::: ultralytics.hub.utils.request_with_credentials
 <br><br>
 
-## requests_with_progress
 ---
-### ::: ultralytics.hub.utils.requests_with_progress
+## ::: ultralytics.hub.utils.requests_with_progress
 <br><br>
 
-## smart_request
 ---
-### ::: ultralytics.hub.utils.smart_request
+## ::: ultralytics.hub.utils.smart_request
 <br><br>

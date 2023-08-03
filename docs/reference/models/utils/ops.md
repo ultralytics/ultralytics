@@ -3,17 +3,20 @@ description: Discover details for "HungarianMatcher" & "inverse_sigmoid" functio
 keywords: Ultralytics, YOLO, HungarianMatcher, inverse_sigmoid, detection models, model utilities, ops
 ---
 
-## HungarianMatcher
+# Reference for `ultralytics/models/utils/ops.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/utils/ops.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/utils/ops.py).
+
 ---
-### ::: ultralytics.models.utils.ops.HungarianMatcher
+## ::: ultralytics.models.utils.ops.HungarianMatcher
 <br><br>
 
-## get_cdn_group
 ---
-### ::: ultralytics.models.utils.ops.get_cdn_group
+## ::: ultralytics.models.utils.ops.get_cdn_group
 <br><br>
 
-## inverse_sigmoid
 ---
-### ::: ultralytics.models.utils.ops.inverse_sigmoid
+## ::: ultralytics.models.utils.ops.inverse_sigmoid
 <br><br>

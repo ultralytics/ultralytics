@@ -3,7 +3,12 @@ description: Get detailed insights about Ultralytics FastSAMPredictor. Learn to 
 keywords: Ultralytics, FastSAMPredictor, predictive modeling, AI optimization, machine learning, deep learning, Ultralytics documentation
 ---
 
-## FastSAMPredictor
+# Reference for `ultralytics/models/fastsam/predict.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/predict.py).
+
 ---
-### ::: ultralytics.models.fastsam.predict.FastSAMPredictor
+## ::: ultralytics.models.fastsam.predict.FastSAMPredictor
 <br><br>

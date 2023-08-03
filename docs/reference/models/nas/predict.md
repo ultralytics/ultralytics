@@ -3,7 +3,12 @@ description: Explore Ultralytics NASPredictor. Understand high-level architectur
 keywords: NASPredictor, Ultralytics, Ultralytics model, model architecture, efficient predictions
 ---
 
-## NASPredictor
+# Reference for `ultralytics/models/nas/predict.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/nas/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/nas/predict.py).
+
 ---
-### ::: ultralytics.models.nas.predict.NASPredictor
+## ::: ultralytics.models.nas.predict.NASPredictor
 <br><br>

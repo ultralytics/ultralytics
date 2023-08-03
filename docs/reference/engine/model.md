@@ -3,7 +3,12 @@ description: Explore the detailed guide on using the Ultralytics YOLO Engine Mod
 keywords: Ultralytics, YOLO, engine model, documentation, guide, implementation, training, evaluation
 ---
 
-## Model
+# Reference for `ultralytics/engine/model.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/model.py).
+
 ---
-### ::: ultralytics.engine.model.Model
+## ::: ultralytics.engine.model.Model
 <br><br>

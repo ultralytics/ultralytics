@@ -3,22 +3,24 @@ description: Learn about Ultralytics utils patches including imread, imshow and 
 keywords: Ultralytics, Utils, Patches, imread, imshow, torch_save, image processing
 ---
 
-## imread
+# Reference for `ultralytics/utils/patches.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/patches.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/patches.py).
+
 ---
-### ::: ultralytics.utils.patches.imread
+## ::: ultralytics.utils.patches.imread
 <br><br>
 
-## imwrite
 ---
-### ::: ultralytics.utils.patches.imwrite
+## ::: ultralytics.utils.patches.imwrite
 <br><br>
 
-## imshow
 ---
-### ::: ultralytics.utils.patches.imshow
+## ::: ultralytics.utils.patches.imshow
 <br><br>
 
-## torch_save
 ---
-### ::: ultralytics.utils.patches.torch_save
+## ::: ultralytics.utils.patches.torch_save
 <br><br>

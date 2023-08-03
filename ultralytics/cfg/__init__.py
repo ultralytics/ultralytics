@@ -222,7 +222,9 @@ def handle_yolo_hub(args: List[str]) -> None:
         args (List[str]): A list of command line arguments
 
     Example:
+        ```python
         python my_script.py hub login your_api_key
+        ```
     """
     from ultralytics import hub
 
@@ -246,7 +248,9 @@ def handle_yolo_settings(args: List[str]) -> None:
         args (List[str]): A list of command line arguments for YOLO settings management.
 
     Example:
+        ```python
         python my_script.py yolo settings reset
+        ```
     """
     if any(args):
         if args[0] == 'reset':

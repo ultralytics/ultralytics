@@ -552,7 +552,7 @@ Here's a table summarizing the methods and properties for the `Probs` class:
 
 For more details see the `Probs` class [documentation](../reference/engine/results.md).
 
-## Plotting ResultsF
+## Plotting Results
 
 You can the `plot()` method of a `Result` objects to plot predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object.
 

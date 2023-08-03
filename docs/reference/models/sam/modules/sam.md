@@ -3,7 +3,12 @@ description: Explore the Sam module of Ultralytics. Discover detailed methods, c
 keywords: Ultralytics, Sam module, deep learning, model training, Ultralytics documentation
 ---
 
-## Sam
+# Reference for `ultralytics/models/sam/modules/sam.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/sam.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/sam.py).
+
 ---
-### ::: ultralytics.models.sam.modules.sam.Sam
+## ::: ultralytics.models.sam.modules.sam.Sam
 <br><br>

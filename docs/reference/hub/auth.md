@@ -3,7 +3,12 @@ description: Dive into the Ultralytics Auth API documentation & learn how to man
 keywords: Ultralytics, Auth, API documentation, User Authentication, AI, Machine Learning
 ---
 
-## Auth
+# Reference for `ultralytics/hub/auth.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/auth.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/auth.py).
+
 ---
-### ::: ultralytics.hub.auth.Auth
+## ::: ultralytics.hub.auth.Auth
 <br><br>

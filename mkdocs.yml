@@ -390,8 +390,15 @@ nav:
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
-  - mkdocstrings
   - search
+  - mkdocstrings:
+      enabled: true
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_root_heading: true
+            show_source: true
   - ultralytics:
       add_desc: False
       add_image: True

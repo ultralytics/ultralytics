@@ -332,7 +332,7 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
     Returns:
         (numpy.ndarray): The cropped image.
 
-    Examples:
+    Example:
         ```python
         from ultralytics.utils.plotting import save_one_box
 

@@ -3,7 +3,12 @@ description: Discover the functionality of the on_fit_epoch_end callback in the 
 keywords: Ultralytics, YOLO, on_fit_epoch_end, callbacks, documentation, deep learning, YOLO framework
 ---
 
-## on_fit_epoch_end
+# Reference for `ultralytics/utils/callbacks/raytune.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/raytune.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/raytune.py).
+
 ---
-### ::: ultralytics.utils.callbacks.raytune.on_fit_epoch_end
+## ::: ultralytics.utils.callbacks.raytune.on_fit_epoch_end
 <br><br>

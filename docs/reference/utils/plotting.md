@@ -3,42 +3,40 @@ description: Master advanced plotting utils from Ultralytics including color ann
 keywords: Ultralytics, plotting, utils, color annotation, label plotting, image plotting, feature visualization
 ---
 
-## Colors
+# Reference for `ultralytics/utils/plotting.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/plotting.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/plotting.py).
+
 ---
-### ::: ultralytics.utils.plotting.Colors
+## ::: ultralytics.utils.plotting.Colors
 <br><br>
 
-## Annotator
 ---
-### ::: ultralytics.utils.plotting.Annotator
+## ::: ultralytics.utils.plotting.Annotator
 <br><br>
 
-## plot_labels
 ---
-### ::: ultralytics.utils.plotting.plot_labels
+## ::: ultralytics.utils.plotting.plot_labels
 <br><br>
 
-## save_one_box
 ---
-### ::: ultralytics.utils.plotting.save_one_box
+## ::: ultralytics.utils.plotting.save_one_box
 <br><br>
 
-## plot_images
 ---
-### ::: ultralytics.utils.plotting.plot_images
+## ::: ultralytics.utils.plotting.plot_images
 <br><br>
 
-## plot_results
 ---
-### ::: ultralytics.utils.plotting.plot_results
+## ::: ultralytics.utils.plotting.plot_results
 <br><br>
 
-## output_to_target
 ---
-### ::: ultralytics.utils.plotting.output_to_target
+## ::: ultralytics.utils.plotting.output_to_target
 <br><br>
 
-## feature_visualization
 ---
-### ::: ultralytics.utils.plotting.feature_visualization
+## ::: ultralytics.utils.plotting.feature_visualization
 <br><br>

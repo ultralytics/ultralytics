@@ -3,12 +3,10 @@ description: Discover how to profile your models using Ultralytics utilities. En
 keywords: Ultralytics, ProfileModels, benchmarks, model profiling, performance optimization
 ---
 
-## ProfileModels
 ---
-### ::: ultralytics.utils.benchmarks.ProfileModels
+## ::: ultralytics.utils.benchmarks.ProfileModels
 <br><br>
 
-## benchmark
 ---
-### ::: ultralytics.utils.benchmarks.benchmark
+## ::: ultralytics.utils.benchmarks.benchmark
 <br><br>

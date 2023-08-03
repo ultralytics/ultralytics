@@ -3,12 +3,10 @@ description: Explore Ultralytics PoseTrainer for YOLO models. Get a step-by-step
 keywords: Ultralytics, YOLO, PoseTrainer, pose training, AI modeling, custom data training
 ---
 
-## PoseTrainer
 ---
-### ::: ultralytics.models.yolo.pose.train.PoseTrainer
+## ::: ultralytics.models.yolo.pose.train.PoseTrainer
 <br><br>
 
-## train
 ---
-### ::: ultralytics.models.yolo.pose.train.train
+## ::: ultralytics.models.yolo.pose.train.train
 <br><br>

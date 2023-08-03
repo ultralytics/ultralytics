@@ -3,7 +3,6 @@ description: Explore the utilities and functions of the Ultralytics NASValidator
 keywords: Ultralytics, NASValidator, models.nas.val.NASValidator, AI models, allocation, optimization
 ---
 
-## NASValidator
 ---
-### ::: ultralytics.models.nas.val.NASValidator
+## ::: ultralytics.models.nas.val.NASValidator
 <br><br>

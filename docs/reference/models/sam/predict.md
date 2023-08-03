@@ -3,7 +3,6 @@ description: Master the ultralytics.models.sam.predict.Predictor class with our 
 keywords: Ultralytics, predictor, models, sam.predict.Predictor, AI, machine learning, predictive models
 ---
 
-## Predictor
 ---
-### ::: ultralytics.models.sam.predict.Predictor
+## ::: ultralytics.models.sam.predict.Predictor
 <br><br>

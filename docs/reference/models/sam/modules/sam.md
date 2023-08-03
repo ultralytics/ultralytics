@@ -3,7 +3,6 @@ description: Explore the Sam module of Ultralytics. Discover detailed methods, c
 keywords: Ultralytics, Sam module, deep learning, model training, Ultralytics documentation
 ---
 
-## Sam
 ---
-### ::: ultralytics.models.sam.modules.sam.Sam
+## ::: ultralytics.models.sam.modules.sam.Sam
 <br><br>

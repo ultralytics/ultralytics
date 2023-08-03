@@ -3,7 +3,6 @@ description: Explore details about the HUBTrainingSession in Ultralytics framewo
 keywords: Ultralytics, HUBTrainingSession, Documentation, Model Training, AI, Machine Learning, YOLO
 ---
 
-## HUBTrainingSession
 ---
-### ::: ultralytics.hub.session.HUBTrainingSession
+## ::: ultralytics.hub.session.HUBTrainingSession
 <br><br>

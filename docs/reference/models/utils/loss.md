@@ -3,12 +3,10 @@ description: Learn to use the DETRLoss function provided by Ultralytics YOLO. Un
 keywords: Ultralytics, YOLO, Documentation, DETRLoss, Detection Loss, Loss function, DETR, RTDETR Detection Models
 ---
 
-## DETRLoss
 ---
-### ::: ultralytics.models.utils.loss.DETRLoss
+## ::: ultralytics.models.utils.loss.DETRLoss
 <br><br>
 
-## RTDETRDetectionLoss
 ---
-### ::: ultralytics.models.utils.loss.RTDETRDetectionLoss
+## ::: ultralytics.models.utils.loss.RTDETRDetectionLoss
 <br><br>

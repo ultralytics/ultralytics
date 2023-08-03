@@ -3,7 +3,6 @@ description: Learn about the Ultralytics BaseValidator module. Understand its pr
 keywords: Ultralytics, BaseValidator, Ultralytics engine, module, components
 ---
 
-## BaseValidator
 ---
-### ::: ultralytics.engine.validator.BaseValidator
+## ::: ultralytics.engine.validator.BaseValidator
 <br><br>

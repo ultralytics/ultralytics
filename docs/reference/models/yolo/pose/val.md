@@ -3,12 +3,10 @@ description: Explore the PoseValidator—review how Ultralytics YOLO validates p
 keywords: PoseValidator, Ultralytics, YOLO, Object detection, Pose validation
 ---
 
-## PoseValidator
 ---
-### ::: ultralytics.models.yolo.pose.val.PoseValidator
+## ::: ultralytics.models.yolo.pose.val.PoseValidator
 <br><br>
 
-## val
 ---
-### ::: ultralytics.models.yolo.pose.val.val
+## ::: ultralytics.models.yolo.pose.val.val
 <br><br>

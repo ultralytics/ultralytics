@@ -3,7 +3,6 @@ description: Explore the specifics of using the RTDETR model in Ultralytics. Det
 keywords: Ultralytics, RTDETR model, Ultralytics models, object detection, Ultralytics documentation
 ---
 
-## RTDETR
 ---
-### ::: ultralytics.models.rtdetr.model.RTDETR
+## ::: ultralytics.models.rtdetr.model.RTDETR
 <br><br>

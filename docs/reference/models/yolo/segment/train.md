@@ -3,12 +3,10 @@ description: Maximize your YOLO model's performance with our SegmentationTrainer
 keywords: Ultralytics, YOLO, SegmentationTrainer, image segmentation, object detection, model training, YOLO model
 ---
 
-## SegmentationTrainer
 ---
-### ::: ultralytics.models.yolo.segment.train.SegmentationTrainer
+## ::: ultralytics.models.yolo.segment.train.SegmentationTrainer
 <br><br>
 
-## train
 ---
-### ::: ultralytics.models.yolo.segment.train.train
+## ::: ultralytics.models.yolo.segment.train.train
 <br><br>

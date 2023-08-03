@@ -3,7 +3,6 @@ description: Get detailed insights about Ultralytics FastSAMPredictor. Learn to 
 keywords: Ultralytics, FastSAMPredictor, predictive modeling, AI optimization, machine learning, deep learning, Ultralytics documentation
 ---
 
-## FastSAMPredictor
 ---
-### ::: ultralytics.models.fastsam.predict.FastSAMPredictor
+## ::: ultralytics.models.fastsam.predict.FastSAMPredictor
 <br><br>

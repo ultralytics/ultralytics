@@ -3,7 +3,6 @@ description: Explore BaseDataset in Ultralytics docs. Learn how this implementat
 keywords: Ultralytics, docs, BaseDataset, data manipulation, dataset creation
 ---
 
-## BaseDataset
 ---
-### ::: ultralytics.data.base.BaseDataset
+## ::: ultralytics.data.base.BaseDataset
 <br><br>

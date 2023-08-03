@@ -3,12 +3,10 @@ description: Explore MaskDecoder, a part of the Ultralytics models. Gain insight
 keywords: Ultralytics, MaskDecoder, SAM modules, decoders, MLP, YOLO, machine learning, image recognition
 ---
 
-## MaskDecoder
 ---
-### ::: ultralytics.models.sam.modules.decoders.MaskDecoder
+## ::: ultralytics.models.sam.modules.decoders.MaskDecoder
 <br><br>
 
-## MLP
 ---
-### ::: ultralytics.models.sam.modules.decoders.MLP
+## ::: ultralytics.models.sam.modules.decoders.MLP
 <br><br>

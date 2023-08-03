@@ -3,12 +3,10 @@ description: Get familiar with TrackState in Ultralytics. Learn how it is used i
 keywords: Ultralytics, TrackState, BaseTrack, Ultralytics tracker, Ultralytics documentation
 ---
 
-## TrackState
 ---
-### ::: ultralytics.trackers.basetrack.TrackState
+## ::: ultralytics.trackers.basetrack.TrackState
 <br><br>
 
-## BaseTrack
 ---
-### ::: ultralytics.trackers.basetrack.BaseTrack
+## ::: ultralytics.trackers.basetrack.BaseTrack
 <br><br>

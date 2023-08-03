@@ -3,12 +3,10 @@ description: Master the use of Ultralytics BOTrack, a key component of the power
 keywords: Ultralytics, BOTSORT, BOTrack, tracking system, official documentation, machine learning, AI tracking
 ---
 
-## BOTrack
 ---
-### ::: ultralytics.trackers.bot_sort.BOTrack
+## ::: ultralytics.trackers.bot_sort.BOTrack
 <br><br>
 
-## BOTSORT
 ---
-### ::: ultralytics.trackers.bot_sort.BOTSORT
+## ::: ultralytics.trackers.bot_sort.BOTSORT
 <br><br>

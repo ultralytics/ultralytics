@@ -3,12 +3,10 @@ description: Explore KalmanFilterXYAH, a key component of Ultralytics trackers. 
 keywords: Ultralytics, KalmanFilterXYAH, tracker, documentation, guide
 ---
 
-## KalmanFilterXYAH
 ---
-### ::: ultralytics.trackers.utils.kalman_filter.KalmanFilterXYAH
+## ::: ultralytics.trackers.utils.kalman_filter.KalmanFilterXYAH
 <br><br>
 
-## KalmanFilterXYWH
 ---
-### ::: ultralytics.trackers.utils.kalman_filter.KalmanFilterXYWH
+## ::: ultralytics.trackers.utils.kalman_filter.KalmanFilterXYWH
 <br><br>

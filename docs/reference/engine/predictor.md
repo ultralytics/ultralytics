@@ -3,7 +3,6 @@ description: Learn about Ultralytics BasePredictor, an essential component of ou
 keywords: Ultralytics, BasePredictor, YOLO, prediction, engine
 ---
 
-## BasePredictor
 ---
-### ::: ultralytics.engine.predictor.BasePredictor
+## ::: ultralytics.engine.predictor.BasePredictor
 <br><br>

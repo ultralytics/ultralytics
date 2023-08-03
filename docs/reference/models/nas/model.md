@@ -3,7 +3,6 @@ description: Learn how our NAS model operates in Ultralytics. Comprehensive guid
 keywords: Ultralytics, NAS model, NAS guide, machine learning, model documentation
 ---
 
-## NAS
 ---
-### ::: ultralytics.models.nas.model.NAS
+## ::: ultralytics.models.nas.model.NAS
 <br><br>

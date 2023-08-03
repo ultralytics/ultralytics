@@ -3,7 +3,6 @@ description: Learn all about Ultralytics FastSAM model. Dive into our comprehens
 keywords: Ultralytics, FastSAM model, Model documentation, Efficient model training
 ---
 
-## FastSAM
 ---
-### ::: ultralytics.models.fastsam.model.FastSAM
+## ::: ultralytics.models.fastsam.model.FastSAM
 <br><br>

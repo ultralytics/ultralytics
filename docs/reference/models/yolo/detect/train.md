@@ -3,12 +3,10 @@ description: Maximize your model's potential with Ultralytics YOLO Detection Tra
 keywords: Ultralytics YOLO, YOLO, Detection Trainer, Model Training, Machine Learning, Deep Learning, Computer Vision
 ---
 
-## DetectionTrainer
 ---
-### ::: ultralytics.models.yolo.detect.train.DetectionTrainer
+## ::: ultralytics.models.yolo.detect.train.DetectionTrainer
 <br><br>
 
-## train
 ---
-### ::: ultralytics.models.yolo.detect.train.train
+## ::: ultralytics.models.yolo.detect.train.train
 <br><br>

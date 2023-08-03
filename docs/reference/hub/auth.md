@@ -3,7 +3,6 @@ description: Dive into the Ultralytics Auth API documentation & learn how to man
 keywords: Ultralytics, Auth, API documentation, User Authentication, AI, Machine Learning
 ---
 
-## Auth
 ---
-### ::: ultralytics.hub.auth.Auth
+## ::: ultralytics.hub.auth.Auth
 <br><br>

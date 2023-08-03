@@ -3,7 +3,6 @@ description: Learn to effectively utilize FastSAMPrompt model from Ultralytics. 
 keywords: Ultralytics, FastSAMPrompt, machine learning, model, guide, documentation
 ---
 
-## FastSAMPrompt
 ---
-### ::: ultralytics.models.fastsam.prompt.FastSAMPrompt
+## ::: ultralytics.models.fastsam.prompt.FastSAMPrompt
 <br><br>

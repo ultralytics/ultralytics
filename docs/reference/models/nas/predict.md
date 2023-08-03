@@ -3,7 +3,6 @@ description: Explore Ultralytics NASPredictor. Understand high-level architectur
 keywords: NASPredictor, Ultralytics, Ultralytics model, model architecture, efficient predictions
 ---
 
-## NASPredictor
 ---
-### ::: ultralytics.models.nas.predict.NASPredictor
+## ::: ultralytics.models.nas.predict.NASPredictor
 <br><br>

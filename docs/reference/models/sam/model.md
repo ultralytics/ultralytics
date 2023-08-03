@@ -3,7 +3,6 @@ description: Dive into the SAM model details in the Ultralytics YOLO documentati
 keywords: Ultralytics, YOLO, SAM Model, Documentations, Machine Learning, AI, Convolutional neural network
 ---
 
-## SAM
 ---
-### ::: ultralytics.models.sam.model.SAM
+## ::: ultralytics.models.sam.model.SAM
 <br><br>

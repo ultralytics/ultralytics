@@ -3,12 +3,10 @@ description: Discover how to utilize the YOLO Segmentation Predictor in Ultralyt
 keywords: YOLO, Ultralytics, object detection, segmentation predictor
 ---
 
-## SegmentationPredictor
 ---
-### ::: ultralytics.models.yolo.segment.predict.SegmentationPredictor
+## ::: ultralytics.models.yolo.segment.predict.SegmentationPredictor
 <br><br>
 
-## predict
 ---
-### ::: ultralytics.models.yolo.segment.predict.predict
+## ::: ultralytics.models.yolo.segment.predict.predict
 <br><br>

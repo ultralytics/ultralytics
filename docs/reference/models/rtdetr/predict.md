@@ -3,7 +3,6 @@ description: Learn how to use the RTDETRPredictor model of the Ultralytics packa
 keywords: Ultralytics, RTDETRPredictor, model documentation, guide, real-time object detection
 ---
 
-## RTDETRPredictor
 ---
-### ::: ultralytics.models.rtdetr.predict.RTDETRPredictor
+## ::: ultralytics.models.rtdetr.predict.RTDETRPredictor
 <br><br>

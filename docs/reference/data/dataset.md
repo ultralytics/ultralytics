@@ -3,17 +3,14 @@ description: Explore the YOLODataset and SemanticDataset classes in YOLO data. L
 keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data manipulation
 ---
 
-## YOLODataset
 ---
-### ::: ultralytics.data.dataset.YOLODataset
+## ::: ultralytics.data.dataset.YOLODataset
 <br><br>
 
-## ClassificationDataset
 ---
-### ::: ultralytics.data.dataset.ClassificationDataset
+## ::: ultralytics.data.dataset.ClassificationDataset
 <br><br>
 
-## SemanticDataset
 ---
-### ::: ultralytics.data.dataset.SemanticDataset
+## ::: ultralytics.data.dataset.SemanticDataset
 <br><br>

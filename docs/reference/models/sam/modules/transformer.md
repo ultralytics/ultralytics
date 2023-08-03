@@ -3,17 +3,14 @@ description: Learn about TwoWayTransformer and Attention modules in Ultralytics.
 keywords: Ultralytics, TwoWayTransformer, Attention, AI models, transformers
 ---
 
-## TwoWayTransformer
 ---
-### ::: ultralytics.models.sam.modules.transformer.TwoWayTransformer
+## ::: ultralytics.models.sam.modules.transformer.TwoWayTransformer
 <br><br>
 
-## TwoWayAttentionBlock
 ---
-### ::: ultralytics.models.sam.modules.transformer.TwoWayAttentionBlock
+## ::: ultralytics.models.sam.modules.transformer.TwoWayAttentionBlock
 <br><br>
 
-## Attention
 ---
-### ::: ultralytics.models.sam.modules.transformer.Attention
+## ::: ultralytics.models.sam.modules.transformer.Attention
 <br><br>

@@ -3,12 +3,10 @@ description: Explore RTDETRDataset in Ultralytics Models. Learn about the RTDETR
 keywords: Ultralytics, RTDETRDataset, RTDETRValidator, real-time object detection, models documentation
 ---
 
-## RTDETRDataset
 ---
-### ::: ultralytics.models.rtdetr.val.RTDETRDataset
+## ::: ultralytics.models.rtdetr.val.RTDETRDataset
 <br><br>
 
-## RTDETRValidator
 ---
-### ::: ultralytics.models.rtdetr.val.RTDETRValidator
+## ::: ultralytics.models.rtdetr.val.RTDETRValidator
 <br><br>

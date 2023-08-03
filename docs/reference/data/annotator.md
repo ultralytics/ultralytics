@@ -3,7 +3,6 @@ description: Enhance your machine learning model with Ultralytics’ auto_annota
 keywords: Ultralytics, Auto-Annotate, Machine Learning, AI, Annotation, Data Processing, Model Training
 ---
 
-## auto_annotate
 ---
-### ::: ultralytics.data.annotator.auto_annotate
+## ::: ultralytics.data.annotator.auto_annotate
 <br><br>

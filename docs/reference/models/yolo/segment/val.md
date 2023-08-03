@@ -3,12 +3,10 @@ description: Get practical insights about our SegmentationValidator in YOLO Ultr
 keywords: Ultralytics, YOLO, SegmentationValidator, model segmentation, image classification, object detection
 ---
 
-## SegmentationValidator
 ---
-### ::: ultralytics.models.yolo.segment.val.SegmentationValidator
+## ::: ultralytics.models.yolo.segment.val.SegmentationValidator
 <br><br>
 
-## val
 ---
-### ::: ultralytics.models.yolo.segment.val.val
+## ::: ultralytics.models.yolo.segment.val.val
 <br><br>

@@ -3,7 +3,6 @@ description: Explore the Ultralytics GMC tool in our comprehensive documentation
 keywords: Ultralytics, GMC utility, Ultralytics documentation, Ultralytics tracker, machine learning tools
 ---
 
-## GMC
 ---
-### ::: ultralytics.trackers.utils.gmc.GMC
+## ::: ultralytics.trackers.utils.gmc.GMC
 <br><br>

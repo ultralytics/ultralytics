@@ -3,12 +3,10 @@ description: Explore the Ultralytics ClassificationPredictor guide for model pre
 keywords: Ultralytics, classification predictor, predict, YOLO, AI models, model visualization
 ---
 
-## ClassificationPredictor
 ---
-### ::: ultralytics.models.yolo.classify.predict.ClassificationPredictor
+## ::: ultralytics.models.yolo.classify.predict.ClassificationPredictor
 <br><br>
 
-## predict
 ---
-### ::: ultralytics.models.yolo.classify.predict.predict
+## ::: ultralytics.models.yolo.classify.predict.predict
 <br><br>

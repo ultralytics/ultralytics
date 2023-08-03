@@ -3,7 +3,6 @@ description: Discover the Ultralytics YOLO model class. Learn advanced technique
 keywords: Ultralytics YOLO, YOLO, YOLO model, Model Training, Machine Learning, Deep Learning, Computer Vision
 ---
 
-## YOLO
 ---
-### ::: ultralytics.models.yolo.model.YOLO
+## ::: ultralytics.models.yolo.model.YOLO
 <br><br>

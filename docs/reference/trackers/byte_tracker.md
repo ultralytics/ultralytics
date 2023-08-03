@@ -3,12 +3,10 @@ description: Step-in to explore in-depth the functionalities of Ultralytics BYTE
 keywords: STrack, Ultralytics, BYTETracker, documentation, Ultralytics tracker, object tracking, YOLO
 ---
 
-## STrack
 ---
-### ::: ultralytics.trackers.byte_tracker.STrack
+## ::: ultralytics.trackers.byte_tracker.STrack
 <br><br>
 
-## BYTETracker
 ---
-### ::: ultralytics.trackers.byte_tracker.BYTETracker
+## ::: ultralytics.trackers.byte_tracker.BYTETracker
 <br><br>

@@ -208,8 +208,10 @@ class Results(SimpleClass):
             model = YOLO('yolov8n.pt')
             results = model('bus.jpg')  # results list
             for r in results:
-                im = r.plot()  # BGR numpy array
-                Image.fromarray(im[..., ::-1]).show()  # show RGB image
+                im_array = r.plot()  # plot a BGR numpy array of predictions
+                im = Image.fromarray(im[..., ::-1])  # RGB PIL image
+                im.show()  # show image
+                im.save('results.jpg')  # save image
             ```
         """
         if img is None and isinstance(self.orig_img, torch.Tensor):

@@ -362,25 +362,39 @@ The below table contains valid Ultralytics video formats.
 
 ## Working with Results
 
-The `Results` object contains the following components:
+`Results` objects have the following attributes:
 
-- `Results.boxes`: `Boxes` object with properties and methods for manipulating bounding boxes
-- `Results.masks`: `Masks` object for indexing masks or getting segment coordinates
-- `Results.keypoints`: `Keypoints` object for with properties and methods for manipulating predicted keypoints.
-- `Results.probs`: `Probs` object for containing class probabilities.
-- `Results.orig_img`: Original image loaded in memory
-- `Results.path`: `Path` containing the path to the input image
+| Name         | Type                  | Description                                                                              |
+|--------------|-----------------------|------------------------------------------------------------------------------------------|
+| `orig_img`   | `numpy.ndarray`       | The original image as a numpy array.                                                     |
+| `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
+| `boxes`      | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
+| `masks`      | `Masks, optional`     | A Masks object containing the detection masks.                                           |
+| `probs`      | `Probs, optional`     | A Probs object containing probabilities of each class for classification task.           |
+| `keypoints`  | `Keypoints, optional` | A Keypoints object containing detected keypoints for each object.                        |
+| `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
+| `names`      | `dict`                | A dictionary of class names.                                                             |
+| `path`       | `str`                 | The path to the image file.                                                              |
 
-Each result is composed of a `torch.Tensor` by default, which allows for easy manipulation:
+`Results` objects have the following methods:
 
-!!! example "Results"
-
-    ```python
-    results = results.cuda()
-    results = results.cpu()
-    results = results.to('cpu')
-    results = results.numpy()
-    ```
+| Name          | Return Type   | Description                                                                         |
+|---------------|---------------|-------------------------------------------------------------------------------------|
+| `__getitem__` | Results       | Return a Results object for the specified index.                                    |
+| `__len__`     | int           | Return the number of detections in the Results object.                              |
+| `update`      | None          | Update the boxes, masks, and probs attributes of the Results object.                |
+| `cpu`         | Results       | Return a copy of the Results object with all tensors on CPU memory.                 |
+| `numpy`       | Results       | Return a copy of the Results object with all tensors as numpy arrays.               |
+| `cuda`        | Results       | Return a copy of the Results object with all tensors on GPU memory.                 |
+| `to`          | Results       | Return a copy of the Results object with tensors on the specified device and dtype. |
+| `new`         | Results       | Return a new Results object with the same image, path, and names.                   |
+| `keys`        | List[str]     | Return a list of non-empty attribute names.                                         |
+| `plot`        | numpy.ndarray | Plots the detection results. Returns a numpy array of the annotated image.          |
+| `verbose`     | str           | Return log string for each task.                                                    |
+| `save_txt`    | None          | Save predictions into a txt file.                                                   |
+| `save_crop`   | None          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
+| `pandas`      | None          | Convert the object to a pandas DataFrame (not yet implemented).                     |
+| `tojson`      | None          | Convert the object to JSON format.                                                  |
 
 ### Boxes
 
@@ -395,20 +409,6 @@ Each result is composed of a `torch.Tensor` by default, which allows for easy ma
     boxes = results[0].boxes
     box = boxes[0]  # returns one box
     box.xyxy
-    ```
-
-- Properties and conversions
-
-!!! example "Boxes Properties"
-
-    ```python
-    boxes.xyxy  # box with xyxy format, (N, 4)
-    boxes.xywh  # box with xywh format, (N, 4)
-    boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
-    boxes.xywhn  # box with xywh format but normalized, (N, 4)
-    boxes.conf  # confidence score, (N, )
-    boxes.cls  # cls, (N, )
-    boxes.data  # raw bboxes tensor, (N, 6) or boxes.boxes
     ```
 
 ### Masks
@@ -495,7 +495,6 @@ You can use `plot()` function of `Result` object to plot results on in image obj
 | `boxes`      | `bool`          | Whether to plot the bounding boxes.                                            | `True`        |
 | `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
 | `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
-
 
 ## Streaming Source `for`-loop
 

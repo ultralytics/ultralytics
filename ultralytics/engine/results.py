@@ -82,28 +82,11 @@ class Results(SimpleClass):
         boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
         masks (Masks, optional): A Masks object containing the detection masks.
         probs (Probs, optional): A Probs object containing probabilities of each class for classification task.
-        names (dict): A dictionary of class names.
-        path (str): The path to the image file.
         keypoints (Keypoints, optional): A Keypoints object containing detected keypoints for each object.
         speed (dict): A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image.
+        names (dict): A dictionary of class names.
+        path (str): The path to the image file.
         _keys (tuple): A tuple of attribute names for non-empty attributes.
-
-    Methods:
-        __getitem__(idx): Return a Results object for the specified index.
-        __len__(): Return the number of detections in the Results object.
-        update(boxes, masks, probs): Update the boxes, masks, and probs attributes of the Results object.
-        cpu(): Return a copy of the Results object with all tensors on CPU memory.
-        numpy(): Return a copy of the Results object with all tensors as numpy arrays.
-        cuda(): Return a copy of the Results object with all tensors on GPU memory.
-        to(*args, **kwargs): Return a copy of the Results object with tensors on the specified device and dtype.
-        new(): Return a new Results object with the same image, path, and names.
-        keys(): Return a list of non-empty attribute names.
-        plot(conf, line_width, font_size, font, pil, img, im_gpu, kpt_radius, kpt_line, labels, boxes, masks, probs): Plots the detection results on an input RGB image.
-        verbose(): Return log string for each task.
-        save_txt(txt_file, save_conf): Save predictions into txt file.
-        save_crop(save_dir, file_name): Save cropped predictions to specified directory and file name.
-        pandas(): Convert the object to a pandas DataFrame (not yet implemented).
-        tojson(normalize): Convert the object to JSON format.
     """
 
     def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None) -> None:

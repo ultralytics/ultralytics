@@ -6,9 +6,7 @@ keywords: Ultralytics, YOLOv8, predict mode, inference sources, prediction tasks
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-YOLOv8 **predict mode** can generate predictions for various tasks, returning either a list of `Results` objects or a
-memory-efficient generator of `Results` objects when using the streaming mode. Enable streaming mode by
-passing `stream=True` in the predictor's call method.
+YOLOv8 **predict mode** can generate predictions for various tasks, returning either a list of `Results` objects or a memory-efficient generator of `Results` objects when using the streaming mode. Enable streaming mode by passing `stream=True` in the predictor's call method.
 
 !!! example "Predict"
 
@@ -282,10 +280,17 @@ Below are code examples for using each source type:
 ## Inference Arguments
 
 `model.predict` accepts multiple arguments that control the prediction operation. These arguments can be passed directly to `model.predict`:
+
 !!! example
 
     ```python
-    model.predict(source, save=True, imgsz=320, conf=0.5)
+    from ultralytics import YOLO
+
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+
+    # Run inference on 'bus.jpg' with arguments
+    model.predict('bus.jpg', save=True, imgsz=320, conf=0.5)
     ```
 
 All supported arguments:
@@ -379,8 +384,7 @@ Each result is composed of a `torch.Tensor` by default, which allows for easy ma
 
 ### Boxes
 
-`Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats. Box format conversion
-operations are cached, meaning they're only calculated once per object, and those values are reused for future calls.
+`Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats. Box format conversion operations are cached, meaning they're only calculated once per object, and those values are reused for future calls.
 
 - Indexing a `Boxes` object returns a `Boxes` object:
 
@@ -456,8 +460,7 @@ Class reference documentation for `Results` module and its components can be fou
 
 ## Plotting results
 
-You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes,
-masks, classification probabilities, etc.) found in the results object
+You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes, masks, classification probabilities, etc.) found in the results object.
 
 !!! example "Plotting"
 

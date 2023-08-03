@@ -397,13 +397,13 @@ class Boxes(BaseTensor):
 
     Args:
         boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes,
-            with shape (num_boxes, 6). The last two columns should contain confidence and class values.
+            with shape (num_boxes, 6) or (num_boxes, 7). The last two columns contain confidence and class values.
+            If present, the third last column contains track IDs.
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        boxes (torch.Tensor | numpy.ndarray): The detection boxes with shape (num_boxes, 6).
-        orig_shape (torch.Tensor | numpy.ndarray): Original image size, in the format (height, width).
-        is_track (bool): True if the boxes also include track IDs, False otherwise.
+        orig_shape (tuple): Original image size, in the format (height, width).
+        is_track (bool): True if the boxes include track IDs, False otherwise.
 
     Properties:
         xyxy (torch.Tensor | numpy.ndarray): The boxes in xyxy format.
@@ -413,14 +413,13 @@ class Boxes(BaseTensor):
         xywh (torch.Tensor | numpy.ndarray): The boxes in xywh format.
         xyxyn (torch.Tensor | numpy.ndarray): The boxes in xyxy format normalized by original image size.
         xywhn (torch.Tensor | numpy.ndarray): The boxes in xywh format normalized by original image size.
-        data (torch.Tensor): The raw bboxes tensor
+        data (torch.Tensor): The raw bboxes tensor (alias for `boxes`).
 
     Methods:
         cpu(): Move the object to CPU memory.
         numpy(): Convert the object to a numpy array.
         cuda(): Move the object to CUDA memory.
         to(*args, **kwargs): Move the object to the specified device.
-        pandas(): Convert the object to a pandas DataFrame (not yet implemented).
     """
 
     def __init__(self, boxes, orig_shape) -> None:
@@ -493,22 +492,24 @@ class Masks(BaseTensor):
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        masks (torch.Tensor | np.ndarray): A tensor containing the detection masks, with shape (num_masks, height, width).
+        data (torch.Tensor | np.ndarray): A tensor containing the detection masks, with shape (num_masks, height, width).
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Properties:
-        xy (list): A list of segments (pixels) which includes x, y segments of each detection.
-        xyn (list): A list of segments (normalized) which includes x, y segments of each detection.
+        segments (list): Deprecated property for segments (normalized).
+        xy (list): A list of segments in pixel coordinates.
+        xyn (list): A list of normalized segments.
 
     Methods:
-        cpu(): Returns a copy of the masks tensor on CPU memory.
-        numpy(): Returns a copy of the masks tensor as a numpy array.
-        cuda(): Returns a copy of the masks tensor on GPU memory.
-        to(): Returns a copy of the masks tensor with the specified device and dtype.
+        cpu(): Returns the masks tensor on CPU memory.
+        numpy(): Returns the masks tensor as a numpy array.
+        cuda(): Returns the masks tensor on GPU memory.
+        to(device, dtype): Returns the masks tensor with the specified device and dtype.
+        pandas(): Returns the object as a pandas DataFrame (not yet implemented).
     """
 
     def __init__(self, masks, orig_shape) -> None:
-        """Initialize the Masks class."""
+        """Initialize the Masks class with the given masks tensor and original image shape."""
         if masks.ndim == 2:
             masks = masks[None, :]
         super().__init__(masks, orig_shape)
@@ -516,15 +517,15 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def segments(self):
-        """Return segments (deprecated; normalized)."""
-        LOGGER.warning("WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
-                       "'Masks.xy' for segments (pixels) instead.")
+        """Return segments (normalized). Deprecated; use xyn property instead."""
+        LOGGER.warning(
+            "WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and 'Masks.xy' for segments (pixels) instead.")
         return self.xyn
 
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
-        """Return segments (normalized)."""
+        """Return normalized segments."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
             for x in ops.masks2segments(self.data)]
@@ -532,19 +533,19 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self):
-        """Return segments (pixels)."""
+        """Return segments in pixel coordinates."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]
 
     @property
     def masks(self):
-        """Return the raw masks tensor (deprecated)."""
+        """Return the raw masks tensor. Deprecated; use data attribute instead."""
         LOGGER.warning("WARNING ⚠️ 'Masks.masks' is deprecated. Use 'Masks.data' instead.")
         return self.data
 
     def pandas(self):
-        """Convert the object to a pandas DataFrame (not yet implemented)."""
+        """Convert the object to a pandas DataFrame. Not yet implemented."""
         LOGGER.warning("WARNING ⚠️ 'Masks.pandas' method is not yet implemented.")
 
 
@@ -553,25 +554,29 @@ class Keypoints(BaseTensor):
     A class for storing and manipulating detection keypoints.
 
     Args:
-        keypoints (torch.Tensor | np.ndarray): A tensor containing the detection keypoints, with shape (num_dets, num_kpts, 2/3).
+        keypoints (torch.Tensor | np.ndarray): A tensor containing keypoints with shape (num_dets, num_kpts, 2/3).
+            The last dimension can have 2 or 3 values, representing the x, y coordinates and an optional confidence.
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        keypoints (torch.Tensor | np.ndarray): A tensor containing the detection keypoints, with shape (num_dets, num_kpts, 2/3).
+        keypoints (torch.Tensor | np.ndarray): A tensor containing keypoints with shape (num_dets, num_kpts, 2/3).
         orig_shape (tuple): Original image size, in the format (height, width).
+        has_visible (bool): Indicates whether keypoints include a visibility/confidence value.
 
     Properties:
-        xy (list): A list of keypoints (pixels) which includes x, y keypoints of each detection.
-        xyn (list): A list of keypoints (normalized) which includes x, y keypoints of each detection.
+        xy (array-like): A collection of keypoints containing x, y coordinates for each detection.
+        xyn (array-like): A normalized version of xy with coordinates in the range [0, 1].
+        conf (array-like): Confidence values associated with keypoints if available, otherwise None.
 
     Methods:
         cpu(): Returns a copy of the keypoints tensor on CPU memory.
         numpy(): Returns a copy of the keypoints tensor as a numpy array.
         cuda(): Returns a copy of the keypoints tensor on GPU memory.
-        to(): Returns a copy of the keypoints tensor with the specified device and dtype.
+        to(device, dtype): Returns a copy of the keypoints tensor with the specified device and dtype.
     """
 
     def __init__(self, keypoints, orig_shape) -> None:
+        """Initializes the Keypoints object with detection keypoints and original image size."""
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
         super().__init__(keypoints, orig_shape)
@@ -580,11 +585,13 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self):
+        """Returns x, y coordinates of keypoints."""
         return self.data[..., :2]
 
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
+        """Returns normalized x, y coordinates of keypoints."""
         xy = self.xy.clone() if isinstance(self.xy, torch.Tensor) else np.copy(self.xy)
         xy[..., 0] /= self.orig_shape[1]
         xy[..., 1] /= self.orig_shape[0]
@@ -593,22 +600,25 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def conf(self):
+        """Returns confidence values of keypoints if available, else None."""
         return self.data[..., 2] if self.has_visible else None
 
 
 class Probs(BaseTensor):
     """
-    A class for storing and manipulating classify predictions.
+    A class for storing and manipulating classification predictions.
 
     Args:
-        probs (torch.Tensor | np.ndarray): A tensor containing the detection keypoints, with shape (num_class, ).
+        probs (torch.Tensor | np.ndarray): A tensor containing the class probabilities, with shape (num_class, ).
 
     Attributes:
-        probs (torch.Tensor | np.ndarray): A tensor containing the detection keypoints, with shape (num_class).
+        probs (torch.Tensor | np.ndarray): A tensor containing the class probabilities, with shape (num_class).
 
     Properties:
-        top5 (list[int]): Top 1 indice.
-        top1 (int): Top 5 indices.
+        top5 (list[int]): Indices of the top 5 classes.
+        top1 (int): Index of the top 1 class.
+        top5conf (torch.Tensor): Confidences of the top 5 classes.
+        top1conf (torch.Tensor): Confidence of the top 1 class.
 
     Methods:
         cpu(): Returns a copy of the probs tensor on CPU memory.
@@ -629,7 +639,7 @@ class Probs(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def top1(self):
-        """Return the indices of top 1."""
+        """Return the index of top 1."""
         return int(self.data.argmax())
 
     @property
@@ -641,5 +651,5 @@ class Probs(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def top1conf(self):
-        """Return the confidences of top 1."""
+        """Return the confidence of top 1."""
         return self.data[self.top1]

@@ -410,7 +410,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `save_crop()`   | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
 | `tojson()`      | `None`          | Convert the object to JSON format.                                                  |
 
-For more details see the `Results` class [documentation](../reference/engine/results.md#-results).
+For more details see the `Results` class [documentation](../reference/engine/results.md).
 
 ### Boxes
 
@@ -448,7 +448,7 @@ Here is a table for the `Boxes` class methods and properties, including their na
 | `xyxyn`   | Property (`torch.Tensor`) | Return the boxes in xyxy format normalized by original image size. |
 | `xywhn`   | Property (`torch.Tensor`) | Return the boxes in xywh format normalized by original image size. |
 
-For more details see the `Boxes` class [documentation](../reference/engine/results.md#boxes).
+For more details see the `Boxes` class [documentation](../reference/engine/results.md).
 
 ### Masks
 
@@ -481,7 +481,7 @@ Here is a table for the `Masks` class methods and properties, including their na
 | `xyn`      | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
 | `xy`       | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
 
-For more details see the `Masks` class [documentation](../reference/engine/results.md#masks).
+For more details see the `Masks` class [documentation](../reference/engine/results.md).
 
 ### Keypoints
 
@@ -515,7 +515,7 @@ Here is a table for the `Keypoints` class methods and properties, including thei
 | `xy`      | Property (`torch.Tensor`) | A list of keypoints in pixel coordinates represented as tensors.  |
 | `conf`    | Property (`torch.Tensor`) | Returns confidence values of keypoints if available, else None.   |
 
-For more details see the `Keypoints` class [documentation](../reference/engine/results.md#keypoints).
+For more details see the `Keypoints` class [documentation](../reference/engine/results.md).
 
 ### Probs
 
@@ -539,20 +539,20 @@ For more details see the `Keypoints` class [documentation](../reference/engine/r
 
 Here's a table summarizing the methods and properties for the `Probs` class:
 
-| Name       | Type                    | Description                                                             |
-|------------|-------------------------|-------------------------------------------------------------------------|
-| `cpu()`    | Method                  | Returns a copy of the probs tensor on CPU memory.                       |
-| `numpy()`  | Method                  | Returns a copy of the probs tensor as a numpy array.                    |
-| `cuda()`   | Method                  | Returns a copy of the probs tensor on GPU memory.                       |
-| `to()`     | Method                  | Returns a copy of the probs tensor with the specified device and dtype. |
-| `top1`     | Property `int`          | Index of the top 1 class.                                               |
-| `top5`     | Property `list[int]`    | Indices of the top 5 classes.                                           |
-| `top1conf` | Property `torch.Tensor` | Confidence of the top 1 class.                                          |
-| `top5conf` | Property `torch.Tensor` | Confidences of the top 5 classes.                                       |
+| Name       | Type                      | Description                                                             |
+|------------|---------------------------|-------------------------------------------------------------------------|
+| `cpu()`    | Method                    | Returns a copy of the probs tensor on CPU memory.                       |
+| `numpy()`  | Method                    | Returns a copy of the probs tensor as a numpy array.                    |
+| `cuda()`   | Method                    | Returns a copy of the probs tensor on GPU memory.                       |
+| `to()`     | Method                    | Returns a copy of the probs tensor with the specified device and dtype. |
+| `top1`     | Property (`int`)          | Index of the top 1 class.                                               |
+| `top5`     | Property (`list[int]`)    | Indices of the top 5 classes.                                           |
+| `top1conf` | Property (`torch.Tensor`) | Confidence of the top 1 class.                                          |
+| `top5conf` | Property (`torch.Tensor`) | Confidences of the top 5 classes.                                       |
 
-For more details see the `Probs` class [documentation](../reference/engine/results.md#probs).
+For more details see the `Probs` class [documentation](../reference/engine/results.md).
 
-## Plotting Results
+## Plotting ResultsF
 
 You can the `plot()` method of a `Result` objects to plot predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object.
 

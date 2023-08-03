@@ -21,7 +21,16 @@ from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 
 
 class Colors:
-    """Ultralytics color palette https://ultralytics.com/."""
+    """Ultralytics default color palette https://ultralytics.com/.
+
+    This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
+    RGB values.
+
+    Attributes:
+        palette (list of tuple): List of RGB color values.
+        n (int): The number of colors in the palette.
+        pose_palette (np.array): A specific color palette array with dtype np.uint8.
+    """
 
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
@@ -36,12 +45,13 @@ class Colors:
                                      dtype=np.uint8)
 
     def __call__(self, i, bgr=False):
-        """Converts hex color codes to rgb values."""
+        """Converts hex color codes to RGB values."""
         c = self.palette[int(i) % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
-    def hex2rgb(h):  # rgb order (PIL)
+    def hex2rgb(h):
+        """Converts hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4))
 
 
@@ -49,7 +59,17 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    """YOLOv8 Annotator for train/val mosaics and jpgs and detect/hub inference annotations."""
+    """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
+
+    Attributes:
+        im (Image.Image or numpy array): The image to annotate.
+        pil (bool): Whether to use PIL or cv2 for drawing annotations.
+        font (ImageFont.truetype or ImageFont.load_default): Font used for text annotations.
+        lw (float): Line width for drawing.
+        skeleton (List[List[int]]): Skeleton structure for keypoints.
+        limb_color (List[int]): Color palette for limbs.
+        kpt_color (List[int]): Color palette for keypoints.
+    """
 
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
@@ -113,6 +133,7 @@ class Annotator:
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
         """Plot masks at once.
+
         Args:
             masks (tensor): predicted masks on cuda, shape: [n, h, w]
             colors (List[List[Int]]): colors for predicted masks, [[r, g, b] * n]
@@ -292,7 +313,37 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
 
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):
-    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop."""
+    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
+
+    This function takes a bounding box and an image, and then saves a cropped portion of the image according
+    to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
+    adjustments to the bounding box.
+
+    Args:
+        xyxy (torch.Tensor or list): A tensor or list representing the bounding box in xyxy format.
+        im (numpy.ndarray): The input image.
+        file (Path, optional): The path where the cropped image will be saved. Defaults to 'im.jpg'.
+        gain (float, optional): A multiplicative factor to increase the size of the bounding box. Defaults to 1.02.
+        pad (int, optional): The number of pixels to add to the width and height of the bounding box. Defaults to 10.
+        square (bool, optional): If True, the bounding box will be transformed into a square. Defaults to False.
+        BGR (bool, optional): If True, the image will be saved in BGR format, otherwise in RGB. Defaults to False.
+        save (bool, optional): If True, the cropped image will be saved to disk. Defaults to True.
+
+    Returns:
+        (numpy.ndarray): The cropped image.
+
+    Examples:
+        ```python
+        from ultralytics.utils.plotting import save_one_box
+
+        xyxy = [50, 50, 150, 150]
+        im = cv2.imread('image.jpg')
+        cropped_im = save_one_box(xyxy, im, file='cropped.jpg', square=True)
+        ```
+    """
+
+    if not isinstance(xyxy, torch.Tensor):  # may be list
+        xyxy = torch.stack(xyxy)
     b = xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square

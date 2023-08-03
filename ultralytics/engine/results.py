@@ -219,12 +219,14 @@ class Results(SimpleClass):
 
         Example:
             ```python
+            from PIL import Image
             from ultralytics import YOLO
 
             model = YOLO('yolov8n.pt')
-            results = model('bus.jpg')
+            results = model('bus.jpg')  # results list
             for r in results:
-                im = r.plot()
+                im = r.plot()  # BGR numpy array
+                Image.fromarray(im[...,::-1]).show()  # show RGB image
             ```
         """
         if img is None and isinstance(self.orig_img, torch.Tensor):

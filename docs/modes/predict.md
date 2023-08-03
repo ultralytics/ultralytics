@@ -462,9 +462,14 @@ masks, classification probabilities, etc.) found in the results object
 !!! example "Plotting"
 
     ```python
-    res = model(img)
-    res_plotted = res[0].plot()
-    cv2.imshow("result", res_plotted)
+    from PIL import Image
+    from ultralytics import YOLO
+
+    model = YOLO('yolov8n.pt')
+    results = model('bus.jpg')  # results list
+    for r in results:
+        im = r.plot()  # BGR numpy array
+        Image.fromarray(im[...,::-1]).show()  # show RGB image
     ```
 
 | Name         | Type            | Description                                                                    | Default       |

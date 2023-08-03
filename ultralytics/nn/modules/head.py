@@ -319,20 +319,18 @@ class RTDETRDecoder(nn.Module):
         # (bs, num_queries, 4)
         top_k_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
 
+        # dynamic anchors + static content
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
 
         enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
-        if self.training:
-            refer_bbox = refer_bbox.detach()
         enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
-        if self.learnt_init_query:
-            embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)
-        else:
-            embeddings = top_k_features
-            if self.training:
+        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        if self.training:
+            refer_bbox = refer_bbox.detach()
+            if not self.learnt_init_query:
                 embeddings = embeddings.detach()
         if dn_embed is not None:
             embeddings = torch.cat([dn_embed, embeddings], 1)

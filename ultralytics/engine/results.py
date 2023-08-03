@@ -311,8 +311,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
-                    line += (*kpt.reshape(-1).tolist(), )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                    line += (*kpt.reshape(-1).tolist(),)
+                line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:
@@ -339,10 +339,6 @@ class Results(SimpleClass):
                          self.orig_img.copy(),
                          file=save_dir / self.names[int(d.cls)] / f'{file_name.stem}.jpg',
                          BGR=True)
-
-    def pandas(self):
-        """Convert the object to a pandas DataFrame (not yet implemented)."""
-        LOGGER.warning("WARNING ⚠️ 'Results.pandas' method is not yet implemented.")
 
     def tojson(self, normalize=False):
         """Convert the object to JSON format."""
@@ -385,10 +381,6 @@ class Boxes(BaseTensor):
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        orig_shape (tuple): Original image size, in the format (height, width).
-        is_track (bool): True if the boxes include track IDs, False otherwise.
-
-    Properties:
         xyxy (torch.Tensor | numpy.ndarray): The boxes in xyxy format.
         conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
         cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
@@ -470,15 +462,7 @@ class Masks(BaseTensor):
     """
     A class for storing and manipulating detection masks.
 
-    Args:
-        masks (torch.Tensor | np.ndarray): A tensor containing the detection masks, with shape (num_masks, height, width).
-        orig_shape (tuple): Original image size, in the format (height, width).
-
     Attributes:
-        data (torch.Tensor | np.ndarray): A tensor containing the detection masks, with shape (num_masks, height, width).
-        orig_shape (tuple): Original image size, in the format (height, width).
-
-    Properties:
         segments (list): Deprecated property for segments (normalized).
         xy (list): A list of segments in pixel coordinates.
         xyn (list): A list of normalized segments.
@@ -488,7 +472,6 @@ class Masks(BaseTensor):
         numpy(): Returns the masks tensor as a numpy array.
         cuda(): Returns the masks tensor on GPU memory.
         to(device, dtype): Returns the masks tensor with the specified device and dtype.
-        pandas(): Returns the object as a pandas DataFrame (not yet implemented).
     """
 
     def __init__(self, masks, orig_shape) -> None:
@@ -528,26 +511,12 @@ class Masks(BaseTensor):
         LOGGER.warning("WARNING ⚠️ 'Masks.masks' is deprecated. Use 'Masks.data' instead.")
         return self.data
 
-    def pandas(self):
-        """Convert the object to a pandas DataFrame. Not yet implemented."""
-        LOGGER.warning("WARNING ⚠️ 'Masks.pandas' method is not yet implemented.")
-
 
 class Keypoints(BaseTensor):
     """
     A class for storing and manipulating detection keypoints.
 
-    Args:
-        keypoints (torch.Tensor | np.ndarray): A tensor containing keypoints with shape (num_dets, num_kpts, 2/3).
-            The last dimension can have 2 or 3 values, representing the x, y coordinates and an optional confidence.
-        orig_shape (tuple): Original image size, in the format (height, width).
-
     Attributes:
-        keypoints (torch.Tensor | np.ndarray): A tensor containing keypoints with shape (num_dets, num_kpts, 2/3).
-        orig_shape (tuple): Original image size, in the format (height, width).
-        has_visible (bool): Indicates whether keypoints include a visibility/confidence value.
-
-    Properties:
         xy (torch.Tensor): A collection of keypoints containing x, y coordinates for each detection.
         xyn (torch.Tensor): A normalized version of xy with coordinates in the range [0, 1].
         conf (torch.Tensor): Confidence values associated with keypoints if available, otherwise None.
@@ -592,13 +561,7 @@ class Probs(BaseTensor):
     """
     A class for storing and manipulating classification predictions.
 
-    Args:
-        probs (torch.Tensor | np.ndarray): A tensor containing the class probabilities, with shape (num_class, ).
-
     Attributes:
-        probs (torch.Tensor | np.ndarray): A tensor containing the class probabilities, with shape (num_class).
-
-    Properties:
         top1 (int): Index of the top 1 class.
         top5 (list[int]): Indices of the top 5 classes.
         top1conf (torch.Tensor): Confidence of the top 1 class.

@@ -408,7 +408,6 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `verbose()`     | `str`           | Return log string for each task.                                                    |
 | `save_txt()`    | `None`          | Save predictions into a txt file.                                                   |
 | `save_crop()`   | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
-| `pandas()`      | `None`          | Convert the object to a pandas DataFrame (not yet implemented).                     |
 | `tojson()`      | `None`          | Convert the object to JSON format.                                                  |
 
 For more details see the `Results` class [documentation](../reference/engine/results.md#-results).
@@ -479,7 +478,6 @@ Here is a table for the `Masks` class methods and properties, including their na
 | `numpy()`  | Method                    | Returns the masks tensor as a numpy array.                      |
 | `cuda()`   | Method                    | Returns the masks tensor on GPU memory.                         |
 | `to()`     | Method                    | Returns the masks tensor with the specified device and dtype.   |
-| `pandas()` | Method                    | Returns the object as a pandas DataFrame (not yet implemented). |
 | `xyn`      | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
 | `xy`       | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
 

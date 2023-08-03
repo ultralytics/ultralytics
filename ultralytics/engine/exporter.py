@@ -578,9 +578,10 @@ class Exporter:
             cuda = torch.cuda.is_available()
             check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(('onnx', 'onnx2tf>=1.15.4', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.33', 'onnx_graphsurgeon>=0.3.26',
-                            'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
-                           cmds='--extra-index-url https://pypi.ngc.nvidia.com')
+        check_requirements(
+            ('onnx', 'onnx2tf>=1.15.4', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.33', 'onnx_graphsurgeon>=0.3.26',
+             'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
+            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))

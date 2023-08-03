@@ -405,10 +405,17 @@ The below table contains valid Ultralytics video formats.
 !!! example "Boxes"
 
     ```python
-    results = model(img)
-    boxes = results[0].boxes
-    box = boxes[0]  # returns one box
-    box.xyxy
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+    
+    # View results
+    for r in results:
+        print(r.boxes)  # print the Boxes object containing the detection bounding boxes
     ```
 
 ### Masks
@@ -418,11 +425,17 @@ The below table contains valid Ultralytics video formats.
 !!! example "Masks"
 
     ```python
-    results = model(inputs)
-    masks = results[0].masks  # Masks object
-    masks.xy  # x, y segments (pixels), List[segment] * N
-    masks.xyn  # x, y segments (normalized), List[segment] * N
-    masks.data  # raw masks tensor, (N, H, W) or masks.masks
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n-seg Segment model
+    model = YOLO('yolov8n-seg.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+    
+    # View results
+    for r in results:
+        print(r.masks)  # print the Masks object containing the detected instance masks
     ```
 
 ### Keypoints
@@ -432,12 +445,17 @@ The below table contains valid Ultralytics video formats.
 !!! example "Keypoints"
 
     ```python
-    results = model(inputs)
-    keypoints = results[0].keypoints  # Masks object
-    keypoints.xy  # x, y keypoints (pixels), (num_dets, num_kpts, 2/3), the last dimension can be 2 or 3, depends the model.
-    keypoints.xyn  # x, y keypoints (normalized), (num_dets, num_kpts, 2/3)
-    keypoints.conf  # confidence score(num_dets, num_kpts) of each keypoint if the last dimension is 3.
-    keypoints.data  # raw keypoints tensor, (num_dets, num_kpts, 2/3)
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n-pose Pose model
+    model = YOLO('yolov8n-pose.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+    
+    # View results
+    for r in results:
+        print(r.keypoints)  # print the Keypoints object containing the detected keypoints
     ```
 
 ### Probs
@@ -447,13 +465,17 @@ The below table contains valid Ultralytics video formats.
 !!! example "Probs"
 
     ```python
-    results = model(inputs)
-    probs = results[0].probs  # cls prob, (num_class, )
-    probs.top5    # The top5 indices of classification, List[Int] * 5.
-    probs.top1    # The top1 indices of classification, a value with Int type.
-    probs.top5conf  # The top5 scores of classification, a tensor with shape (5, ).
-    probs.top1conf  # The top1 scores of classification. a value with torch.tensor type.
-    keypoints.data  # raw probs tensor, (num_class, )
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n-cls Classify model
+    model = YOLO('yolov8n-cls.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+    
+    # View results
+    for r in results:
+        print(r.probs)  # print the Probs object containing the detected class probabilities
     ```
 
 Class reference documentation for `Results` module and its components can be found [here](../reference/engine/results.md)

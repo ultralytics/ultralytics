@@ -6,9 +6,7 @@ keywords: Ultralytics, YOLOv8, predict mode, inference sources, prediction tasks
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-YOLOv8 **predict mode** can generate predictions for various tasks, returning either a list of `Results` objects or a
-memory-efficient generator of `Results` objects when using the streaming mode. Enable streaming mode by
-passing `stream=True` in the predictor's call method.
+YOLOv8 **predict mode** can generate predictions for various tasks, returning either a list of `Results` objects or a memory-efficient generator of `Results` objects when using the streaming mode. Enable streaming mode by passing `stream=True` in the predictor's call method.
 
 !!! example "Predict"
 
@@ -27,7 +25,7 @@ passing `stream=True` in the predictor's call method.
             boxes = result.boxes  # Boxes object for bbox outputs
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Class probabilities for classification outputs
+            probs = result.probs  # Probs object for classification outputs
         ```
 
     === "Return a generator with `stream=True`"
@@ -45,7 +43,7 @@ passing `stream=True` in the predictor's call method.
             boxes = result.boxes  # Boxes object for bbox outputs
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Class probabilities for classification outputs
+            probs = result.probs  # Probs object for classification outputs
         ```
 
 ## Inference Sources
@@ -281,45 +279,52 @@ Below are code examples for using each source type:
 
 ## Inference Arguments
 
-`model.predict` accepts multiple arguments that control the prediction operation. These arguments can be passed directly to `model.predict`:
+`model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
+
 !!! example
 
     ```python
-    model.predict(source, save=True, imgsz=320, conf=0.5)
+    from ultralytics import YOLO
+
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+
+    # Run inference on 'bus.jpg' with arguments
+    model.predict('bus.jpg', save=True, imgsz=320, conf=0.5)
     ```
 
 All supported arguments:
 
-| Key            | Value                  | Description                                                                    |
-|----------------|------------------------|--------------------------------------------------------------------------------|
-| `source`       | `'ultralytics/assets'` | source directory for images or videos                                          |
-| `conf`         | `0.25`                 | object confidence threshold for detection                                      |
-| `iou`          | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
-| `imgsz`        | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                           |
-| `half`         | `False`                | use half precision (FP16)                                                      |
-| `device`       | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
-| `show`         | `False`                | show results if possible                                                       |
-| `save`         | `False`                | save images with results                                                       |
-| `save_txt`     | `False`                | save results as .txt file                                                      |
-| `save_conf`    | `False`                | save results with confidence scores                                            |
-| `save_crop`    | `False`                | save cropped images with results                                               |
-| `hide_labels`  | `False`                | hide labels                                                                    |
-| `hide_conf`    | `False`                | hide confidence scores                                                         |
-| `max_det`      | `300`                  | maximum number of detections per image                                         |
-| `vid_stride`   | `False`                | video frame-rate stride                                                        |
-| `line_width`   | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
-| `visualize`    | `False`                | visualize model features                                                       |
-| `augment`      | `False`                | apply image augmentation to prediction sources                                 |
-| `agnostic_nms` | `False`                | class-agnostic NMS                                                             |
-| `retina_masks` | `False`                | use high-resolution segmentation masks                                         |
-| `classes`      | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]                        |
-| `boxes`        | `True`                 | Show boxes in segmentation predictions                                         |
+| Name           | Type           | Default                | Description                                                                    |
+|----------------|----------------|------------------------|--------------------------------------------------------------------------------|
+| `source`       | `str`          | `'ultralytics/assets'` | source directory for images or videos                                          |
+| `conf`         | `float`        | `0.25`                 | object confidence threshold for detection                                      |
+| `iou`          | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
+| `imgsz`        | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                           |
+| `half`         | `bool`         | `False`                | use half precision (FP16)                                                      |
+| `device`       | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
+| `show`         | `bool`         | `False`                | show results if possible                                                       |
+| `save`         | `bool`         | `False`                | save images with results                                                       |
+| `save_txt`     | `bool`         | `False`                | save results as .txt file                                                      |
+| `save_conf`    | `bool`         | `False`                | save results with confidence scores                                            |
+| `save_crop`    | `bool`         | `False`                | save cropped images with results                                               |
+| `hide_labels`  | `bool`         | `False`                | hide labels                                                                    |
+| `hide_conf`    | `bool`         | `False`                | hide confidence scores                                                         |
+| `max_det`      | `int`          | `300`                  | maximum number of detections per image                                         |
+| `vid_stride`   | `bool`         | `False`                | video frame-rate stride                                                        |
+| `line_width`   | `None or int`  | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
+| `visualize`    | `bool`         | `False`                | visualize model features                                                       |
+| `augment`      | `bool`         | `False`                | apply image augmentation to prediction sources                                 |
+| `agnostic_nms` | `bool`         | `False`                | class-agnostic NMS                                                             |
+| `retina_masks` | `bool`         | `False`                | use high-resolution segmentation masks                                         |
+| `classes`      | `None or list` | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]                        |
+| `boxes`        | `bool`         | `True`                 | Show boxes in segmentation predictions                                         |
 
 ## Image and Video Formats
 
 YOLOv8 supports various image and video formats, as specified in [data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.
 
-### Image Suffixes
+### Images
 
 The below table contains valid Ultralytics image formats.
 
@@ -336,7 +341,7 @@ The below table contains valid Ultralytics image formats.
 | .webp          | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
 | .pfm           | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)        |
 
-### Video Suffixes
+### Videos
 
 The below table contains valid Ultralytics video formats.
 
@@ -357,129 +362,235 @@ The below table contains valid Ultralytics video formats.
 
 ## Working with Results
 
-The `Results` object contains the following components:
-
-- `Results.boxes`: `Boxes` object with properties and methods for manipulating bounding boxes
-- `Results.masks`: `Masks` object for indexing masks or getting segment coordinates
-- `Results.keypoints`: `Keypoints` object for with properties and methods for manipulating predicted keypoints.
-- `Results.probs`: `Probs` object for containing class probabilities.
-- `Results.orig_img`: Original image loaded in memory
-- `Results.path`: `Path` containing the path to the input image
-
-Each result is composed of a `torch.Tensor` by default, which allows for easy manipulation:
+All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 !!! example "Results"
 
     ```python
-    results = results.cuda()
-    results = results.cpu()
-    results = results.to('cpu')
-    results = results.numpy()
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # list of 1 Results object
+    results = model(['bus.jpg', 'zidane.jpg'])  # list of 2 Results objects
     ```
+
+`Results` objects have the following attributes:
+
+| Attribute    | Type                  | Description                                                                              |
+|--------------|-----------------------|------------------------------------------------------------------------------------------|
+| `orig_img`   | `numpy.ndarray`       | The original image as a numpy array.                                                     |
+| `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
+| `boxes`      | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
+| `masks`      | `Masks, optional`     | A Masks object containing the detection masks.                                           |
+| `probs`      | `Probs, optional`     | A Probs object containing probabilities of each class for classification task.           |
+| `keypoints`  | `Keypoints, optional` | A Keypoints object containing detected keypoints for each object.                        |
+| `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
+| `names`      | `dict`                | A dictionary of class names.                                                             |
+| `path`       | `str`                 | The path to the image file.                                                              |
+
+`Results` objects have the following methods:
+
+| Method          | Return Type     | Description                                                                         |
+|-----------------|-----------------|-------------------------------------------------------------------------------------|
+| `__getitem__()` | `Results`       | Return a Results object for the specified index.                                    |
+| `__len__()`     | `int`           | Return the number of detections in the Results object.                              |
+| `update()`      | `None`          | Update the boxes, masks, and probs attributes of the Results object.                |
+| `cpu()`         | `Results`       | Return a copy of the Results object with all tensors on CPU memory.                 |
+| `numpy()`       | `Results`       | Return a copy of the Results object with all tensors as numpy arrays.               |
+| `cuda()`        | `Results`       | Return a copy of the Results object with all tensors on GPU memory.                 |
+| `to()`          | `Results`       | Return a copy of the Results object with tensors on the specified device and dtype. |
+| `new()`         | `Results`       | Return a new Results object with the same image, path, and names.                   |
+| `keys()`        | `List[str]`     | Return a list of non-empty attribute names.                                         |
+| `plot()`        | `numpy.ndarray` | Plots the detection results. Returns a numpy array of the annotated image.          |
+| `verbose()`     | `str`           | Return log string for each task.                                                    |
+| `save_txt()`    | `None`          | Save predictions into a txt file.                                                   |
+| `save_crop()`   | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
+| `tojson()`      | `None`          | Convert the object to JSON format.                                                  |
+
+For more details see the `Results` class [documentation](../reference/engine/results.md#-results).
 
 ### Boxes
 
-`Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats. Box format conversion
-operations are cached, meaning they're only calculated once per object, and those values are reused for future calls.
-
-- Indexing a `Boxes` object returns a `Boxes` object:
+`Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats.
 
 !!! example "Boxes"
 
     ```python
-    results = model(img)
-    boxes = results[0].boxes
-    box = boxes[0]  # returns one box
-    box.xyxy
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+    
+    # View results
+    for r in results:
+        print(r.boxes)  # print the Boxes object containing the detection bounding boxes
     ```
 
-- Properties and conversions
+Here is a table for the `Boxes` class methods and properties, including their name, type, and description:
 
-!!! example "Boxes Properties"
+| Name      | Type                      | Description                                                        |
+|-----------|---------------------------|--------------------------------------------------------------------|
+| `cpu()`   | Method                    | Move the object to CPU memory.                                     |
+| `numpy()` | Method                    | Convert the object to a numpy array.                               |
+| `cuda()`  | Method                    | Move the object to CUDA memory.                                    |
+| `to()`    | Method                    | Move the object to the specified device.                           |
+| `xyxy`    | Property (`torch.Tensor`) | Return the boxes in xyxy format.                                   |
+| `conf`    | Property (`torch.Tensor`) | Return the confidence values of the boxes.                         |
+| `cls`     | Property (`torch.Tensor`) | Return the class values of the boxes.                              |
+| `id`      | Property (`torch.Tensor`) | Return the track IDs of the boxes (if available).                  |
+| `xywh`    | Property (`torch.Tensor`) | Return the boxes in xywh format.                                   |
+| `xyxyn`   | Property (`torch.Tensor`) | Return the boxes in xyxy format normalized by original image size. |
+| `xywhn`   | Property (`torch.Tensor`) | Return the boxes in xywh format normalized by original image size. |
 
-    ```python
-    boxes.xyxy  # box with xyxy format, (N, 4)
-    boxes.xywh  # box with xywh format, (N, 4)
-    boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
-    boxes.xywhn  # box with xywh format but normalized, (N, 4)
-    boxes.conf  # confidence score, (N, )
-    boxes.cls  # cls, (N, )
-    boxes.data  # raw bboxes tensor, (N, 6) or boxes.boxes
-    ```
+For more details see the `Boxes` class [documentation](../reference/engine/results.md#boxes).
 
 ### Masks
 
-`Masks` object can be used index, manipulate and convert masks to segments. The segment conversion operation is cached.
+`Masks` object can be used index, manipulate and convert masks to segments.
 
 !!! example "Masks"
 
     ```python
-    results = model(inputs)
-    masks = results[0].masks  # Masks object
-    masks.xy  # x, y segments (pixels), List[segment] * N
-    masks.xyn  # x, y segments (normalized), List[segment] * N
-    masks.data  # raw masks tensor, (N, H, W) or masks.masks
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n-seg Segment model
+    model = YOLO('yolov8n-seg.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+    
+    # View results
+    for r in results:
+        print(r.masks)  # print the Masks object containing the detected instance masks
     ```
+
+Here is a table for the `Masks` class methods and properties, including their name, type, and description:
+
+| Name       | Type                      | Description                                                     |
+|------------|---------------------------|-----------------------------------------------------------------|
+| `cpu()`    | Method                    | Returns the masks tensor on CPU memory.                         |
+| `numpy()`  | Method                    | Returns the masks tensor as a numpy array.                      |
+| `cuda()`   | Method                    | Returns the masks tensor on GPU memory.                         |
+| `to()`     | Method                    | Returns the masks tensor with the specified device and dtype.   |
+| `xyn`      | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
+| `xy`       | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
+
+For more details see the `Masks` class [documentation](../reference/engine/results.md#masks).
 
 ### Keypoints
 
-`Keypoints` object can be used index, manipulate and normalize coordinates. The keypoint conversion operation is cached.
+`Keypoints` object can be used index, manipulate and normalize coordinates.
 
 !!! example "Keypoints"
 
     ```python
-    results = model(inputs)
-    keypoints = results[0].keypoints  # Masks object
-    keypoints.xy  # x, y keypoints (pixels), (num_dets, num_kpts, 2/3), the last dimension can be 2 or 3, depends the model.
-    keypoints.xyn  # x, y keypoints (normalized), (num_dets, num_kpts, 2/3)
-    keypoints.conf  # confidence score(num_dets, num_kpts) of each keypoint if the last dimension is 3.
-    keypoints.data  # raw keypoints tensor, (num_dets, num_kpts, 2/3)
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n-pose Pose model
+    model = YOLO('yolov8n-pose.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+    
+    # View results
+    for r in results:
+        print(r.keypoints)  # print the Keypoints object containing the detected keypoints
     ```
 
-### probs
+Here is a table for the `Keypoints` class methods and properties, including their name, type, and description:
 
-`Probs` object can be used index, get top1&top5 indices and scores of classification.
+| Name      | Type                      | Description                                                       |
+|-----------|---------------------------|-------------------------------------------------------------------|
+| `cpu()`   | Method                    | Returns the keypoints tensor on CPU memory.                       |
+| `numpy()` | Method                    | Returns the keypoints tensor as a numpy array.                    |
+| `cuda()`  | Method                    | Returns the keypoints tensor on GPU memory.                       |
+| `to()`    | Method                    | Returns the keypoints tensor with the specified device and dtype. |
+| `xyn`     | Property (`torch.Tensor`) | A list of normalized keypoints represented as tensors.            |
+| `xy`      | Property (`torch.Tensor`) | A list of keypoints in pixel coordinates represented as tensors.  |
+| `conf`    | Property (`torch.Tensor`) | Returns confidence values of keypoints if available, else None.   |
+
+For more details see the `Keypoints` class [documentation](../reference/engine/results.md#keypoints).
+
+### Probs
+
+`Probs` object can be used index, get `top1` and `top5` indices and scores of classification.
 
 !!! example "Probs"
 
     ```python
-    results = model(inputs)
-    probs = results[0].probs  # cls prob, (num_class, )
-    probs.top5    # The top5 indices of classification, List[Int] * 5.
-    probs.top1    # The top1 indices of classification, a value with Int type.
-    probs.top5conf  # The top5 scores of classification, a tensor with shape (5, ).
-    probs.top1conf  # The top1 scores of classification. a value with torch.tensor type.
-    keypoints.data  # raw probs tensor, (num_class, )
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n-cls Classify model
+    model = YOLO('yolov8n-cls.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+    
+    # View results
+    for r in results:
+        print(r.probs)  # print the Probs object containing the detected class probabilities
     ```
 
-Class reference documentation for `Results` module and its components can be found [here](../reference/engine/results.md)
+Here's a table summarizing the methods and properties for the `Probs` class:
 
-## Plotting results
+| Name       | Type                    | Description                                                             |
+|------------|-------------------------|-------------------------------------------------------------------------|
+| `cpu()`    | Method                  | Returns a copy of the probs tensor on CPU memory.                       |
+| `numpy()`  | Method                  | Returns a copy of the probs tensor as a numpy array.                    |
+| `cuda()`   | Method                  | Returns a copy of the probs tensor on GPU memory.                       |
+| `to()`     | Method                  | Returns a copy of the probs tensor with the specified device and dtype. |
+| `top1`     | Property `int`          | Index of the top 1 class.                                               |
+| `top5`     | Property `list[int]`    | Indices of the top 5 classes.                                           |
+| `top1conf` | Property `torch.Tensor` | Confidence of the top 1 class.                                          |
+| `top5conf` | Property `torch.Tensor` | Confidences of the top 5 classes.                                       |
 
-You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes,
-masks, classification probabilities, etc.) found in the results object
+For more details see the `Probs` class [documentation](../reference/engine/results.md#probs).
+
+## Plotting Results
+
+You can the `plot()` method of a `Result` objects to plot predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object.
 
 !!! example "Plotting"
 
     ```python
-    res = model(img)
-    res_plotted = res[0].plot()
-    cv2.imshow("result", res_plotted)
-    ```
+    from PIL import Image
+    from ultralytics import YOLO
 
-| Argument                      | Description                                                                            |
-|-------------------------------|----------------------------------------------------------------------------------------|
-| `conf (bool)`                 | Whether to plot the detection confidence score.                                        |
-| `line_width (int, optional)`  | The line width of the bounding boxes. If None, it is scaled to the image size.         |
-| `font_size (float, optional)` | The font size of the text. If None, it is scaled to the image size.                    |
-| `font (str)`                  | The font to use for the text.                                                          |
-| `pil (bool)`                  | Whether to use PIL for image plotting.                                                 |
-| `example (str)`               | An example string to display. Useful for indicating the expected format of the output. |
-| `img (numpy.ndarray)`         | Plot to another image. if not, plot to original image.                                 |
-| `labels (bool)`               | Whether to plot the label of bounding boxes.                                           |
-| `boxes (bool)`                | Whether to plot the bounding boxes.                                                    |
-| `masks (bool)`                | Whether to plot the masks.                                                             |
-| `probs (bool)`                | Whether to plot classification probability.                                            |
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+
+    # Run inference on 'bus.jpg'
+    results = model('bus.jpg')  # results list
+
+    # Show the results
+    for r in results:
+        im = r.plot()  # plot a BGR numpy array of predictions
+        Image.fromarray(im[..., ::-1]).show()  # show RGB image
+    ```
+    
+    The `plot()` method has the following arguments available:
+    
+    | Argument     | Type            | Description                                                                    | Default       |
+    |--------------|-----------------|--------------------------------------------------------------------------------|---------------|
+    | `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |
+    | `line_width` | `float`         | The line width of the bounding boxes. If None, it is scaled to the image size. | `None`        |
+    | `font_size`  | `float`         | The font size of the text. If None, it is scaled to the image size.            | `None`        |
+    | `font`       | `str`           | The font to use for the text.                                                  | `'Arial.ttf'` |
+    | `pil`        | `bool`          | Whether to return the image as a PIL Image.                                    | `False`       |
+    | `img`        | `numpy.ndarray` | Plot to another image. if not, plot to original image.                         | `None`        |
+    | `im_gpu`     | `torch.Tensor`  | Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting. | `None`        |
+    | `kpt_radius` | `int`           | Radius of the drawn keypoints. Default is 5.                                   | `5`           |
+    | `kpt_line`   | `bool`          | Whether to draw lines connecting keypoints.                                    | `True`        |
+    | `labels`     | `bool`          | Whether to plot the label of bounding boxes.                                   | `True`        |
+    | `boxes`      | `bool`          | Whether to plot the bounding boxes.                                            | `True`        |
+    | `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
+    | `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
 
 ## Streaming Source `for`-loop
 

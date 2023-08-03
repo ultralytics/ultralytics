@@ -3,7 +3,12 @@ description: Discover the Ultralytics YOLO model class. Learn advanced technique
 keywords: Ultralytics YOLO, YOLO, YOLO model, Model Training, Machine Learning, Deep Learning, Computer Vision
 ---
 
-## YOLO
+# Reference for `ultralytics/models/yolo/model.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/model.py).
+
 ---
-### ::: ultralytics.models.yolo.model.YOLO
+## ::: ultralytics.models.yolo.model.YOLO
 <br><br>

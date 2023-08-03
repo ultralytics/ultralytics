@@ -3,17 +3,20 @@ description: Explore the YOLODataset and SemanticDataset classes in YOLO data. L
 keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data manipulation
 ---
 
-## YOLODataset
+# Reference for `ultralytics/data/dataset.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py).
+
 ---
-### ::: ultralytics.data.dataset.YOLODataset
+## ::: ultralytics.data.dataset.YOLODataset
 <br><br>
 
-## ClassificationDataset
 ---
-### ::: ultralytics.data.dataset.ClassificationDataset
+## ::: ultralytics.data.dataset.ClassificationDataset
 <br><br>
 
-## SemanticDataset
 ---
-### ::: ultralytics.data.dataset.SemanticDataset
+## ::: ultralytics.data.dataset.SemanticDataset
 <br><br>

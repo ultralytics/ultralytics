@@ -3,12 +3,16 @@ description: Get insights into RTDETRTrainer, a crucial component of Ultralytics
 keywords: Ultralytics, RTDETRTrainer, model training, Ultralytics models, PyTorch models, neural networks, machine learning, deep learning
 ---
 
-## RTDETRTrainer
+# Reference for `ultralytics/models/rtdetr/train.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/rtdetr/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/rtdetr/train.py).
+
 ---
-### ::: ultralytics.models.rtdetr.train.RTDETRTrainer
+## ::: ultralytics.models.rtdetr.train.RTDETRTrainer
 <br><br>
 
-## train
 ---
-### ::: ultralytics.models.rtdetr.train.train
+## ::: ultralytics.models.rtdetr.train.train
 <br><br>

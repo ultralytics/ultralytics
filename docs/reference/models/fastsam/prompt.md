@@ -3,7 +3,12 @@ description: Learn to effectively utilize FastSAMPrompt model from Ultralytics. 
 keywords: Ultralytics, FastSAMPrompt, machine learning, model, guide, documentation
 ---
 
-## FastSAMPrompt
+# Reference for `ultralytics/models/fastsam/prompt.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/prompt.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/prompt.py).
+
 ---
-### ::: ultralytics.models.fastsam.prompt.FastSAMPrompt
+## ::: ultralytics.models.fastsam.prompt.FastSAMPrompt
 <br><br>

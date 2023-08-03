@@ -3,17 +3,20 @@ description: Dive into Ultralytics detailed utility guide. Learn about Bboxes, _
 keywords: Ultralytics, Bboxes, _ntuple, utility, ultralytics utils.instance
 ---
 
-## Bboxes
+# Reference for `ultralytics/utils/instance.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/instance.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/instance.py).
+
 ---
-### ::: ultralytics.utils.instance.Bboxes
+## ::: ultralytics.utils.instance.Bboxes
 <br><br>
 
-## Instances
 ---
-### ::: ultralytics.utils.instance.Instances
+## ::: ultralytics.utils.instance.Instances
 <br><br>
 
-## _ntuple
 ---
-### ::: ultralytics.utils.instance._ntuple
+## ::: ultralytics.utils.instance._ntuple
 <br><br>

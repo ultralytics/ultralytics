@@ -3,12 +3,16 @@ description: Get familiar with TrackState in Ultralytics. Learn how it is used i
 keywords: Ultralytics, TrackState, BaseTrack, Ultralytics tracker, Ultralytics documentation
 ---
 
-## TrackState
+# Reference for `ultralytics/trackers/basetrack.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/basetrack.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/basetrack.py).
+
 ---
-### ::: ultralytics.trackers.basetrack.TrackState
+## ::: ultralytics.trackers.basetrack.TrackState
 <br><br>
 
-## BaseTrack
 ---
-### ::: ultralytics.trackers.basetrack.BaseTrack
+## ::: ultralytics.trackers.basetrack.BaseTrack
 <br><br>

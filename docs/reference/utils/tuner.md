@@ -3,7 +3,12 @@ description: Learn to utilize the run_ray_tune function with Ultralytics. Make y
 keywords: Ultralytics, run_ray_tune, machine learning tuning, machine learning efficiency
 ---
 
-## run_ray_tune
+# Reference for `ultralytics/utils/tuner.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tuner.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tuner.py).
+
 ---
-### ::: ultralytics.utils.tuner.run_ray_tune
+## ::: ultralytics.utils.tuner.run_ray_tune
 <br><br>

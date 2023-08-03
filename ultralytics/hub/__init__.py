@@ -16,8 +16,10 @@ def login(api_key=''):
         api_key (str, optional): May be an API key or a combination API key and model ID, i.e. key_id
 
     Example:
+        ```python
         from ultralytics import hub
         hub.login('API_KEY')
+        ```
     """
     Auth(api_key, verbose=True)
 
@@ -27,8 +29,10 @@ def logout():
     Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo hub login'.
 
     Example:
+        ```python
         from ultralytics import hub
         hub.logout()
+        ```
     """
     SETTINGS['api_key'] = ''
     yaml_save(USER_CONFIG_DIR / 'settings.yaml', SETTINGS)

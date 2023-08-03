@@ -3,7 +3,12 @@ description: Enhance your machine learning model with Ultralytics’ auto_annota
 keywords: Ultralytics, Auto-Annotate, Machine Learning, AI, Annotation, Data Processing, Model Training
 ---
 
-## auto_annotate
+# Reference for `ultralytics/data/annotator.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/annotator.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/annotator.py).
+
 ---
-### ::: ultralytics.data.annotator.auto_annotate
+## ::: ultralytics.data.annotator.auto_annotate
 <br><br>

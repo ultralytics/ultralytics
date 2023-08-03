@@ -3,12 +3,16 @@ description: Explore Ultralytics PoseTrainer for YOLO models. Get a step-by-step
 keywords: Ultralytics, YOLO, PoseTrainer, pose training, AI modeling, custom data training
 ---
 
-## PoseTrainer
+# Reference for `ultralytics/models/yolo/pose/train.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/pose/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/pose/train.py).
+
 ---
-### ::: ultralytics.models.yolo.pose.train.PoseTrainer
+## ::: ultralytics.models.yolo.pose.train.PoseTrainer
 <br><br>
 
-## train
 ---
-### ::: ultralytics.models.yolo.pose.train.train
+## ::: ultralytics.models.yolo.pose.train.train
 <br><br>

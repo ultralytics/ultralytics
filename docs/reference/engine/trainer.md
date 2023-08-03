@@ -3,7 +3,12 @@ description: Learn about the BaseTrainer class in the Ultralytics library. From 
 keywords: Ultralytics, BaseTrainer, Machine Learning, Training Control, Python library
 ---
 
-## BaseTrainer
+# Reference for `ultralytics/engine/trainer.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/trainer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/trainer.py).
+
 ---
-### ::: ultralytics.engine.trainer.BaseTrainer
+## ::: ultralytics.engine.trainer.BaseTrainer
 <br><br>

@@ -519,7 +519,8 @@ class Masks(BaseTensor):
     def segments(self):
         """Return segments (normalized). Deprecated; use xyn property instead."""
         LOGGER.warning(
-            "WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and 'Masks.xy' for segments (pixels) instead.")
+            "WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and 'Masks.xy' for segments (pixels) instead."
+        )
         return self.xyn
 
     @property

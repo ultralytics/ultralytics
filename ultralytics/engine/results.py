@@ -226,7 +226,7 @@ class Results(SimpleClass):
             results = model('bus.jpg')  # results list
             for r in results:
                 im = r.plot()  # BGR numpy array
-                Image.fromarray(im[...,::-1]).show()  # show RGB image
+                Image.fromarray(im[..., ::-1]).show()  # show RGB image
             ```
         """
         if img is None and isinstance(self.orig_img, torch.Tensor):
@@ -328,8 +328,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
-                    line += (*kpt.reshape(-1).tolist(), )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                    line += (*kpt.reshape(-1).tolist(),)
+                line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:

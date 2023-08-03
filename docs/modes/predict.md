@@ -279,7 +279,7 @@ Below are code examples for using each source type:
 
 ## Inference Arguments
 
-`model.predict` accepts multiple arguments that control the prediction operation. These arguments can be passed directly to `model.predict`:
+`model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
 !!! example
 
@@ -440,9 +440,9 @@ Each result is composed of a `torch.Tensor` by default, which allows for easy ma
     keypoints.data  # raw keypoints tensor, (num_dets, num_kpts, 2/3)
     ```
 
-### probs
+### Probs
 
-`Probs` object can be used index, get top1&top5 indices and scores of classification.
+`Probs` object can be used index, get `top1` and `top5` indices and scores of classification.
 
 !!! example "Probs"
 
@@ -468,11 +468,16 @@ You can use `plot()` function of `Result` object to plot results on in image obj
     from PIL import Image
     from ultralytics import YOLO
 
+    # Load a pretrained YOLOv8n model
     model = YOLO('yolov8n.pt')
+
+    # Run inference on 'bus.jpg'
     results = model('bus.jpg')  # results list
+
+    # Show the results
     for r in results:
-        im = r.plot()  # BGR numpy array
-        Image.fromarray(im[...,::-1]).show()  # show RGB image
+        im = r.plot()  # plot a BGR numpy array of predictions
+        Image.fromarray(im[..., ::-1]).show()  # show RGB image
     ```
 
 | Name         | Type            | Description                                                                    | Default       |

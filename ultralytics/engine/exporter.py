@@ -578,7 +578,7 @@ class Exporter:
             cuda = torch.cuda.is_available()
             check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(('onnx', 'onnx2tf>=1.9.1', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
+        check_requirements(('onnx', 'onnx2tf>=1.15.4', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.33', 'onnx_graphsurgeon>=0.3.26',
                             'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
                            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 
@@ -619,10 +619,13 @@ class Exporter:
                 int8 = f'-oiqt -qt per-tensor -cind images "{tmp_file}" "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
             else:
                 int8 = '-oiqt -qt per-tensor'
+
+            verbosity = '--verbosity info'
         else:
+            verbosity = '--non_verbose'
             int8 = ''
 
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'.strip()
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8}'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

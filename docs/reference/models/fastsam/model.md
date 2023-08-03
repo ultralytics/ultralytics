@@ -3,6 +3,12 @@ description: Learn all about Ultralytics FastSAM model. Dive into our comprehens
 keywords: Ultralytics, FastSAM model, Model documentation, Efficient model training
 ---
 
+# Reference for `ultralytics/models/fastsam/model.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/model.py).
+
 ---
 ## ::: ultralytics.models.fastsam.model.FastSAM
 <br><br>

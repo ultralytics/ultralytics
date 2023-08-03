@@ -3,6 +3,12 @@ description: Learn about the download utilities in Ultralytics YOLO, featuring f
 keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_github_assets, download, documentation
 ---
 
+# Reference for `ultralytics/utils/downloads.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py).
+
 ---
 ## ::: ultralytics.utils.downloads.is_url
 <br><br>

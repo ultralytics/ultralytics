@@ -3,6 +3,12 @@ description: Explore Ultralytics YOLO metrics tools - from confusion matrix, det
 keywords: Ultralytics, YOLO, YOLOv3, YOLOv4, metrics, confusion matrix, detection metrics, pose metrics, box IOU, mask IOU, plot precision-recall curves, compute average precision
 ---
 
+# Reference for `ultralytics/utils/metrics.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/metrics.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/metrics.py).
+
 ---
 ## ::: ultralytics.utils.metrics.ConfusionMatrix
 <br><br>

@@ -3,6 +3,12 @@ description: Explore various Ultralytics convolution modules including Conv2, DW
 keywords: Ultralytics, Convolution Modules, Conv2, DWConv, ConvTranspose, GhostConv, ChannelAttention, CBAM, autopad
 ---
 
+# Reference for `ultralytics/nn/modules/conv.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py).
+
 ---
 ## ::: ultralytics.nn.modules.conv.Conv
 <br><br>

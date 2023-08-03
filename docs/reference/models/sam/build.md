@@ -3,6 +3,12 @@ description: Master building SAM ViT models with Ultralytics. Discover steps to 
 keywords: Ultralytics, SAM, build sam, vision transformer, vits, build_sam_vit_l, build_sam_vit_b, build_sam
 ---
 
+# Reference for `ultralytics/models/sam/build.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/build.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/build.py).
+
 ---
 ## ::: ultralytics.models.sam.build.build_sam_vit_h
 <br><br>

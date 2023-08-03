@@ -3,6 +3,12 @@ description: Get in-depth insights about Ultralytics Tiny Encoder Modules such a
 keywords: Ultralytics, Tiny Encoder, Conv2d_BN, MBConv, ConvLayer, Attention, BasicLayer, TinyViT, Machine learning modules, Ultralytics models
 ---
 
+# Reference for `ultralytics/models/sam/modules/tiny_encoder.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/tiny_encoder.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/tiny_encoder.py).
+
 ---
 ## ::: ultralytics.models.sam.modules.tiny_encoder.Conv2d_BN
 <br><br>

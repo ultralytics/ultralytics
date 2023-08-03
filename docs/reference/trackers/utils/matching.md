@@ -3,6 +3,12 @@ description: Explore in-depth guidance for using Ultralytics trackers utils matc
 keywords: Ultralytics, Trackers Utils, Matching, merge_matches, linear_assignment, iou_distance, embedding_distance, fuse_motion, fuse_score, documentation
 ---
 
+# Reference for `ultralytics/trackers/utils/matching.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py).
+
 ---
 ## ::: ultralytics.trackers.utils.matching.merge_matches
 <br><br>

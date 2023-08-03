@@ -3,6 +3,12 @@ description: Detailed exploration into Ultralytics data augmentation methods inc
 keywords: Ultralytics, Data Augmentation, BaseTransform, MixUp, RandomHSV, LetterBox, Albumentations, classify_transforms, classify_albumentations
 ---
 
+# Reference for `ultralytics/data/augment.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py).
+
 ---
 ## ::: ultralytics.data.augment.BaseTransform
 <br><br>

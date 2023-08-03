@@ -3,6 +3,12 @@ description: Explore the Ultralytics Utils package, with handy functions like co
 keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_logging, is_kaggle, is_docker, clean_url
 ---
 
+# Reference for `ultralytics/utils.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils.py).
+
 ---
 ## ::: ultralytics.utils.SimpleClass
 <br><br>

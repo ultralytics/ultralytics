@@ -3,6 +3,12 @@ description: Discover the role of dist.find_free_network_port & dist.generate_dd
 keywords: Ultralytics, DDP, DDP utility functions, Distributed Data Processing, find free network port, generate DDP command
 ---
 
+# Reference for `ultralytics/utils/dist.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py).
+
 ---
 ## ::: ultralytics.utils.dist.find_free_network_port
 <br><br>

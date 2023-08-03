@@ -3,6 +3,12 @@ description: Explore docs covering Ultralytics YOLO detection, pose & RTDETRDeco
 keywords: Ultralytics, YOLO, Detection, Pose, RTDETRDecoder, nn modules, guides
 ---
 
+# Reference for `ultralytics/nn/modules/head.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py).
+
 ---
 ## ::: ultralytics.nn.modules.head.Detect
 <br><br>

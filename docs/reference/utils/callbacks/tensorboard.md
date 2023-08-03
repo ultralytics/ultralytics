@@ -3,6 +3,12 @@ description: Explore Ultralytics YOLO Docs for a deep understanding of log_scala
 keywords: Ultralytics, YOLO, documentation, callback utilities, log_scalars, on_batch_end, tensorboard
 ---
 
+# Reference for `ultralytics/utils/callbacks/tensorboard.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/tensorboard.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/tensorboard.py).
+
 ---
 ## ::: ultralytics.utils.callbacks.tensorboard._log_scalars
 <br><br>

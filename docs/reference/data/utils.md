@@ -3,6 +3,12 @@ description: Uncover a detailed guide to Ultralytics data utilities. Learn funct
 keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mask, polygons2masks_overlap, check_cls_dataset, delete_dsstore, autosplit
 ---
 
+# Reference for `ultralytics/data/utils.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py).
+
 ---
 ## ::: ultralytics.data.utils.HUBDatasetStats
 <br><br>

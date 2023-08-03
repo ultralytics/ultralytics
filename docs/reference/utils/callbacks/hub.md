@@ -3,6 +3,12 @@ description: Explore the detailed information on key Ultralytics callbacks such 
 keywords: Ultralytics, callbacks, on_pretrain_routine_end, on_model_save, on_train_start, on_predict_start, hub, training
 ---
 
+# Reference for `ultralytics/utils/callbacks/hub.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py).
+
 ---
 ## ::: ultralytics.utils.callbacks.hub.on_pretrain_routine_end
 <br><br>

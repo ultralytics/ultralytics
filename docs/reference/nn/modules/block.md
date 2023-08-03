@@ -3,6 +3,12 @@ description: Explore Ultralytics YOLO neural network modules, Proto to Bottlenec
 keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, SPPF, C2, C3, RepC3, C3Ghost, Bottleneck, BottleneckCSP
 ---
 
+# Reference for `ultralytics/nn/modules/block.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py).
+
 ---
 ## ::: ultralytics.nn.modules.block.DFL
 <br><br>

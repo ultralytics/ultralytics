@@ -3,6 +3,12 @@ description: Explore Ultralytics methods for mask data processing, transformatio
 keywords: Ultralytics, Mask Data, Transformation, Encoding, RLE encoding, Image cropping, Pytorch, SAM, AMG, Ultralytics model
 ---
 
+# Reference for `ultralytics/models/sam/amg.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py).
+
 ---
 ## ::: ultralytics.models.sam.amg.MaskData
 <br><br>

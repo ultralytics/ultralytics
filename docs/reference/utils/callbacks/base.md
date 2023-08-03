@@ -3,6 +3,12 @@ description: Explore how to use the on-train, on-validation, on-pretrain, and on
 keywords: Ultralytics, Callbacks, On-train, On-validation, On-pretrain, On-predict, Parameters update, Model saving, Integration callbacks
 ---
 
+# Reference for `ultralytics/utils/callbacks/base.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py).
+
 ---
 ## ::: ultralytics.utils.callbacks.base.on_pretrain_routine_start
 <br><br>

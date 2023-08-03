@@ -3,6 +3,12 @@ description: Explore comprehensive documentation for utilising Comet Callbacks i
 keywords: Ultralytics, Comet Callbacks, Training optimisation, Logging, Experiment Workflows
 ---
 
+# Reference for `ultralytics/utils/callbacks/comet.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/comet.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/comet.py).
+
 ---
 ## ::: ultralytics.utils.callbacks.comet._get_comet_mode
 <br><br>

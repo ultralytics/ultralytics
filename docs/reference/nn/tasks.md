@@ -1,3 +1,9 @@
+# Reference for `ultralytics/nn/tasks.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py).
+
 ---
 ## ::: ultralytics.nn.tasks.BaseModel
 <br><br>

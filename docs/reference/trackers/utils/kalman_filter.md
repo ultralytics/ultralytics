@@ -3,6 +3,12 @@ description: Explore KalmanFilterXYAH, a key component of Ultralytics trackers. 
 keywords: Ultralytics, KalmanFilterXYAH, tracker, documentation, guide
 ---
 
+# Reference for `ultralytics/trackers/utils/kalman_filter.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py).
+
 ---
 ## ::: ultralytics.trackers.utils.kalman_filter.KalmanFilterXYAH
 <br><br>

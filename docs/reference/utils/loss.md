@@ -3,6 +3,12 @@ description: Explore Ultralytics' versatile loss functions - VarifocalLoss, Bbox
 keywords: Ultralytics, Loss functions, VarifocalLoss, BboxLoss, v8DetectionLoss, v8PoseLoss, YOLO, Ultralytics Documentation
 ---
 
+# Reference for `ultralytics/utils/loss.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/loss.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/loss.py).
+
 ---
 ## ::: ultralytics.utils.loss.VarifocalLoss
 <br><br>

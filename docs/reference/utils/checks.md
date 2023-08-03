@@ -3,6 +3,12 @@ description: Learn about our routine checks that safeguard Ultralytics operation
 keywords: Ultralytics, utility checks, ASCII, check_version, pip_update, check_python, check_torchvision, check_yaml, YOLO filename
 ---
 
+# Reference for `ultralytics/utils/checks.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/checks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/checks.py).
+
 ---
 ## ::: ultralytics.utils.checks.is_ascii
 <br><br>

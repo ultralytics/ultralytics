@@ -3,6 +3,12 @@ description: Explore the Ultralytics YOLO v3 data build procedures, including th
 keywords: Ultralytics, YOLO v3, Data build, DataLoader, InfiniteDataLoader, seed_worker, build_dataloader, load_inference_source
 ---
 
+# Reference for `ultralytics/data/build.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/build.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/build.py).
+
 ---
 ## ::: ultralytics.data.build.InfiniteDataLoader
 <br><br>

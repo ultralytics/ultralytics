@@ -3,6 +3,12 @@ description: Explore exhaustive details about Ultralytics callbacks in Neptune, 
 keywords: Ultralytics, Neptune callbacks, on_train_epoch_end, on_val_end, _log_plot, _log_images, on_pretrain_routine_start, on_fit_epoch_end, on_train_end
 ---
 
+# Reference for `ultralytics/utils/callbacks/neptune.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py).
+
 ---
 ## ::: ultralytics.utils.callbacks.neptune._log_scalars
 <br><br>

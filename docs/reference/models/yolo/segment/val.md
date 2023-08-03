@@ -3,6 +3,12 @@ description: Get practical insights about our SegmentationValidator in YOLO Ultr
 keywords: Ultralytics, YOLO, SegmentationValidator, model segmentation, image classification, object detection
 ---
 
+# Reference for `ultralytics/models/yolo/segment/val.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/val.py).
+
 ---
 ## ::: ultralytics.models.yolo.segment.val.SegmentationValidator
 <br><br>

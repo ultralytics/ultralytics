@@ -3,6 +3,12 @@ description: Learn about Ultralytics transformer encoder, layer, MLP block, Laye
 keywords: Ultralytics, Ultralytics documentation, TransformerEncoderLayer, TransformerLayer, MLPBlock, LayerNorm2d, DeformableTransformerDecoderLayer
 ---
 
+# Reference for `ultralytics/nn/modules/transformer.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/transformer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/transformer.py).
+
 ---
 ## ::: ultralytics.nn.modules.transformer.TransformerEncoderLayer
 <br><br>

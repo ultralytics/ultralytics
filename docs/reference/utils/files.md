@@ -3,6 +3,12 @@ description: Discover how to use Ultralytics utility functions for file-related 
 keywords: Ultralytics, utility functions, file operations, working directory, file age, file size, create directories
 ---
 
+# Reference for `ultralytics/utils/files.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/files.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/files.py).
+
 ---
 ## ::: ultralytics.utils.files.WorkingDirectory
 <br><br>

@@ -3,6 +3,12 @@ description: Find detailed guides on Ultralytics YOLO data loaders, including Lo
 keywords: Ultralytics, data loaders, LoadStreams, LoadImages, LoadTensor, YOLO, YouTube URLs
 ---
 
+# Reference for `ultralytics/data/loaders.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py).
+
 ---
 ## ::: ultralytics.data.loaders.SourceTypes
 <br><br>

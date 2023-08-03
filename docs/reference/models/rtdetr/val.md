@@ -3,6 +3,12 @@ description: Explore RTDETRDataset in Ultralytics Models. Learn about the RTDETR
 keywords: Ultralytics, RTDETRDataset, RTDETRValidator, real-time object detection, models documentation
 ---
 
+# Reference for `ultralytics/models/rtdetr/val.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/rtdetr/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/rtdetr/val.py).
+
 ---
 ## ::: ultralytics.models.rtdetr.val.RTDETRDataset
 <br><br>

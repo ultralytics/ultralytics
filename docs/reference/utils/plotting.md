@@ -3,6 +3,12 @@ description: Master advanced plotting utils from Ultralytics including color ann
 keywords: Ultralytics, plotting, utils, color annotation, label plotting, image plotting, feature visualization
 ---
 
+# Reference for `ultralytics/utils/plotting.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/plotting.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/plotting.py).
+
 ---
 ## ::: ultralytics.utils.plotting.Colors
 <br><br>

@@ -3,6 +3,12 @@ description: Learn to use the DETRLoss function provided by Ultralytics YOLO. Un
 keywords: Ultralytics, YOLO, Documentation, DETRLoss, Detection Loss, Loss function, DETR, RTDETR Detection Models
 ---
 
+# Reference for `ultralytics/models/utils/loss.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/utils/loss.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/utils/loss.py).
+
 ---
 ## ::: ultralytics.models.utils.loss.DETRLoss
 <br><br>

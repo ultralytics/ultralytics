@@ -3,6 +3,12 @@ description: Master Ultralytics engine results including base tensors, boxes, an
 keywords: Ultralytics, engine, results, base tensor, boxes, keypoints
 ---
 
+# Reference for `ultralytics/engine/results.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/results.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/results.py).
+
 ---
 ## ::: ultralytics.engine.results.BaseTensor
 <br><br>

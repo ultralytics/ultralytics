@@ -3,6 +3,12 @@ description: Discover detailed information on ImageEncoderViT, PositionEmbedding
 keywords: Ultralytics, Encoders, Modules, Documentation, ImageEncoderViT, PositionEmbeddingRandom, Attention, window_partition, get_rel_pos
 ---
 
+# Reference for `ultralytics/models/sam/modules/encoders.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py).
+
 ---
 ## ::: ultralytics.models.sam.modules.encoders.ImageEncoderViT
 <br><br>

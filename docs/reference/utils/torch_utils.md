@@ -3,6 +3,12 @@ description: Explore Ultralytics-tailored torch utility features like Model EMA,
 keywords: Ultralytics, Torch Utils, Model EMA, Early Stopping, Smart Inference, Get CPU Info, Time Sync, Fuse Deconv and bn, Get num params, Get FLOPs, Scale img, Copy attr, Intersect dicts, De_parallel, Init seeds, Profile
 ---
 
+# Reference for `ultralytics/utils/torch_utils.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/torch_utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/torch_utils.py).
+
 ---
 ## ::: ultralytics.utils.torch_utils.ModelEMA
 <br><br>

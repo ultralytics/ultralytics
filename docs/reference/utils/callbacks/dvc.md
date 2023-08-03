@@ -3,6 +3,12 @@ description: Browse through Ultralytics YOLO docs to learn about important loggi
 keywords: Ultralytics, YOLO, callbacks, logger, training, pretraining, machine learning, models
 ---
 
+# Reference for `ultralytics/utils/callbacks/dvc.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py).
+
 ---
 ## ::: ultralytics.utils.callbacks.dvc._logger_disabled
 <br><br>

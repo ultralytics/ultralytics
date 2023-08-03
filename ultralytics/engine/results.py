@@ -199,6 +199,16 @@ class Results(SimpleClass):
 
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
+
+        Example:
+            ```python
+            from ultralytics import YOLO
+
+            model = YOLO('yolov8n.pt')
+            results = model('bus.jpg')
+            for r in results:
+                im = r.plot()
+            ```
         """
         if img is None and isinstance(self.orig_img, torch.Tensor):
             img = np.ascontiguousarray(self.orig_img[0].permute(1, 2, 0).cpu().detach().numpy()) * 255
@@ -299,8 +309,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
-                    line += (*kpt.reshape(-1).tolist(), )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                    line += (*kpt.reshape(-1).tolist(),)
+                line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:

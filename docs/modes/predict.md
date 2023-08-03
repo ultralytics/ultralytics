@@ -290,30 +290,30 @@ Below are code examples for using each source type:
 
 All supported arguments:
 
-| Key            | Value                  | Description                                                                    |
-|----------------|------------------------|--------------------------------------------------------------------------------|
-| `source`       | `'ultralytics/assets'` | source directory for images or videos                                          |
-| `conf`         | `0.25`                 | object confidence threshold for detection                                      |
-| `iou`          | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
-| `imgsz`        | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                           |
-| `half`         | `False`                | use half precision (FP16)                                                      |
-| `device`       | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
-| `show`         | `False`                | show results if possible                                                       |
-| `save`         | `False`                | save images with results                                                       |
-| `save_txt`     | `False`                | save results as .txt file                                                      |
-| `save_conf`    | `False`                | save results with confidence scores                                            |
-| `save_crop`    | `False`                | save cropped images with results                                               |
-| `hide_labels`  | `False`                | hide labels                                                                    |
-| `hide_conf`    | `False`                | hide confidence scores                                                         |
-| `max_det`      | `300`                  | maximum number of detections per image                                         |
-| `vid_stride`   | `False`                | video frame-rate stride                                                        |
-| `line_width`   | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
-| `visualize`    | `False`                | visualize model features                                                       |
-| `augment`      | `False`                | apply image augmentation to prediction sources                                 |
-| `agnostic_nms` | `False`                | class-agnostic NMS                                                             |
-| `retina_masks` | `False`                | use high-resolution segmentation masks                                         |
-| `classes`      | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]                        |
-| `boxes`        | `True`                 | Show boxes in segmentation predictions                                         |
+| Name           | Type           | Default                | Description                                                                    |
+|----------------|----------------|------------------------|--------------------------------------------------------------------------------|
+| `source`       | `str`          | `'ultralytics/assets'` | source directory for images or videos                                          |
+| `conf`         | `float`        | `0.25`                 | object confidence threshold for detection                                      |
+| `iou`          | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
+| `imgsz`        | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                           |
+| `half`         | `bool`         | `False`                | use half precision (FP16)                                                      |
+| `device`       | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
+| `show`         | `bool`         | `False`                | show results if possible                                                       |
+| `save`         | `bool`         | `False`                | save images with results                                                       |
+| `save_txt`     | `bool`         | `False`                | save results as .txt file                                                      |
+| `save_conf`    | `bool`         | `False`                | save results with confidence scores                                            |
+| `save_crop`    | `bool`         | `False`                | save cropped images with results                                               |
+| `hide_labels`  | `bool`         | `False`                | hide labels                                                                    |
+| `hide_conf`    | `bool`         | `False`                | hide confidence scores                                                         |
+| `max_det`      | `int`          | `300`                  | maximum number of detections per image                                         |
+| `vid_stride`   | `bool`         | `False`                | video frame-rate stride                                                        |
+| `line_width`   | `None or int`  | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
+| `visualize`    | `bool`         | `False`                | visualize model features                                                       |
+| `augment`      | `bool`         | `False`                | apply image augmentation to prediction sources                                 |
+| `agnostic_nms` | `bool`         | `False`                | class-agnostic NMS                                                             |
+| `retina_masks` | `bool`         | `False`                | use high-resolution segmentation masks                                         |
+| `classes`      | `None or list` | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]                        |
+| `boxes`        | `bool`         | `True`                 | Show boxes in segmentation predictions                                         |
 
 ## Image and Video Formats
 
@@ -467,19 +467,23 @@ masks, classification probabilities, etc.) found in the results object
     cv2.imshow("result", res_plotted)
     ```
 
-| Argument                      | Description                                                                            |
-|-------------------------------|----------------------------------------------------------------------------------------|
-| `conf (bool)`                 | Whether to plot the detection confidence score.                                        |
-| `line_width (int, optional)`  | The line width of the bounding boxes. If None, it is scaled to the image size.         |
-| `font_size (float, optional)` | The font size of the text. If None, it is scaled to the image size.                    |
-| `font (str)`                  | The font to use for the text.                                                          |
-| `pil (bool)`                  | Whether to use PIL for image plotting.                                                 |
-| `example (str)`               | An example string to display. Useful for indicating the expected format of the output. |
-| `img (numpy.ndarray)`         | Plot to another image. if not, plot to original image.                                 |
-| `labels (bool)`               | Whether to plot the label of bounding boxes.                                           |
-| `boxes (bool)`                | Whether to plot the bounding boxes.                                                    |
-| `masks (bool)`                | Whether to plot the masks.                                                             |
-| `probs (bool)`                | Whether to plot classification probability.                                            |
+| Name         | Type            | Description                                                                    | Default       |
+|--------------|-----------------|--------------------------------------------------------------------------------|---------------|
+| `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |
+| `line_width` | `float`         | The line width of the bounding boxes. If None, it is scaled to the image size. | `None`        |
+| `font_size`  | `float`         | The font size of the text. If None, it is scaled to the image size.            | `None`        |
+| `font`       | `str`           | The font to use for the text.                                                  | `'Arial.ttf'` |
+| `pil`        | `bool`          | Whether to return the image as a PIL Image.                                    | `False`       |
+| `img`        | `numpy.ndarray` | Plot to another image. if not, plot to original image.                         | `None`        |
+| `im_gpu`     | `torch.Tensor`  | Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting. | `None`        |
+| `kpt_radius` | `int`           | Radius of the drawn keypoints. Default is 5.                                   | `5`           |
+| `kpt_line`   | `bool`          | Whether to draw lines connecting keypoints.                                    | `True`        |
+| `labels`     | `bool`          | Whether to plot the label of bounding boxes.                                   | `True`        |
+| `boxes`      | `bool`          | Whether to plot the bounding boxes.                                            | `True`        |
+| `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
+| `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
+
+You can copy and paste this into your Markdown file or editor, and it will render as a table.
 
 ## Streaming Source `for`-loop
 

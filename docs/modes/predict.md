@@ -362,6 +362,21 @@ The below table contains valid Ultralytics video formats.
 
 ## Working with Results
 
+All Ultralytics `predict()` calls will return a list of `Results` objects:
+
+!!! example "Results"
+
+    ```python
+    from ultralytics import YOLO
+    
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+    
+    # Run inference on an image
+    results = model('bus.jpg')  # list of 1 Results object
+    results = model(['bus.jpg', 'zidane.jpg'])  # list of 2 Results objects
+    ```
+
 `Results` objects have the following attributes:
 
 | Name         | Type                  | Description                                                                              |
@@ -482,7 +497,7 @@ Class reference documentation for `Results` module and its components can be fou
 
 ## Plotting results
 
-You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes, masks, classification probabilities, etc.) found in the results object.
+You can the `plot()` method of a `Result` objects to plot predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object.
 
 !!! example "Plotting"
 
@@ -501,22 +516,24 @@ You can use `plot()` function of `Result` object to plot results on in image obj
         im = r.plot()  # plot a BGR numpy array of predictions
         Image.fromarray(im[..., ::-1]).show()  # show RGB image
     ```
-
-| Name         | Type            | Description                                                                    | Default       |
-|--------------|-----------------|--------------------------------------------------------------------------------|---------------|
-| `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |
-| `line_width` | `float`         | The line width of the bounding boxes. If None, it is scaled to the image size. | `None`        |
-| `font_size`  | `float`         | The font size of the text. If None, it is scaled to the image size.            | `None`        |
-| `font`       | `str`           | The font to use for the text.                                                  | `'Arial.ttf'` |
-| `pil`        | `bool`          | Whether to return the image as a PIL Image.                                    | `False`       |
-| `img`        | `numpy.ndarray` | Plot to another image. if not, plot to original image.                         | `None`        |
-| `im_gpu`     | `torch.Tensor`  | Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting. | `None`        |
-| `kpt_radius` | `int`           | Radius of the drawn keypoints. Default is 5.                                   | `5`           |
-| `kpt_line`   | `bool`          | Whether to draw lines connecting keypoints.                                    | `True`        |
-| `labels`     | `bool`          | Whether to plot the label of bounding boxes.                                   | `True`        |
-| `boxes`      | `bool`          | Whether to plot the bounding boxes.                                            | `True`        |
-| `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
-| `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
+    
+    The `plot()` method has the following arguments available:
+    
+    | Name         | Type            | Description                                                                    | Default       |
+    |--------------|-----------------|--------------------------------------------------------------------------------|---------------|
+    | `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |
+    | `line_width` | `float`         | The line width of the bounding boxes. If None, it is scaled to the image size. | `None`        |
+    | `font_size`  | `float`         | The font size of the text. If None, it is scaled to the image size.            | `None`        |
+    | `font`       | `str`           | The font to use for the text.                                                  | `'Arial.ttf'` |
+    | `pil`        | `bool`          | Whether to return the image as a PIL Image.                                    | `False`       |
+    | `img`        | `numpy.ndarray` | Plot to another image. if not, plot to original image.                         | `None`        |
+    | `im_gpu`     | `torch.Tensor`  | Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting. | `None`        |
+    | `kpt_radius` | `int`           | Radius of the drawn keypoints. Default is 5.                                   | `5`           |
+    | `kpt_line`   | `bool`          | Whether to draw lines connecting keypoints.                                    | `True`        |
+    | `labels`     | `bool`          | Whether to plot the label of bounding boxes.                                   | `True`        |
+    | `boxes`      | `bool`          | Whether to plot the bounding boxes.                                            | `True`        |
+    | `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
+    | `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
 
 ## Streaming Source `for`-loop
 

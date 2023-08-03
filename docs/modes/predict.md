@@ -472,14 +472,14 @@ For more details see the `Boxes` class [documentation](../reference/engine/resul
 
 Here is a table for the `Masks` class methods and properties, including their name, type, and description:
 
-| Name       | Type                      | Description                                                     |
-|------------|---------------------------|-----------------------------------------------------------------|
-| `cpu()`    | Method                    | Returns the masks tensor on CPU memory.                         |
-| `numpy()`  | Method                    | Returns the masks tensor as a numpy array.                      |
-| `cuda()`   | Method                    | Returns the masks tensor on GPU memory.                         |
-| `to()`     | Method                    | Returns the masks tensor with the specified device and dtype.   |
-| `xyn`      | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
-| `xy`       | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
+| Name      | Type                      | Description                                                     |
+|-----------|---------------------------|-----------------------------------------------------------------|
+| `cpu()`   | Method                    | Returns the masks tensor on CPU memory.                         |
+| `numpy()` | Method                    | Returns the masks tensor as a numpy array.                      |
+| `cuda()`  | Method                    | Returns the masks tensor on GPU memory.                         |
+| `to()`    | Method                    | Returns the masks tensor with the specified device and dtype.   |
+| `xyn`     | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
+| `xy`      | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
 
 For more details see the `Masks` class [documentation](../reference/engine/results.md).
 
@@ -554,7 +554,7 @@ For more details see the `Probs` class [documentation](../reference/engine/resul
 
 ## Plotting ResultsF
 
-You can the `plot()` method of a `Result` objects to plot predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object.
+You can use the `plot()` method of a `Result` objects to visualize predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object onto a numpy array that can then be shown or saved.
 
 !!! example "Plotting"
 
@@ -570,8 +570,10 @@ You can the `plot()` method of a `Result` objects to plot predictions. It plots 
 
     # Show the results
     for r in results:
-        im = r.plot()  # plot a BGR numpy array of predictions
-        Image.fromarray(im[..., ::-1]).show()  # show RGB image
+        im_array = r.plot()  # plot a BGR numpy array of predictions
+        im = Image.fromarray(im[..., ::-1])  # RGB PIL image
+        im.show()  # show image
+        im.save('results.jpg')  # save image
     ```
     
     The `plot()` method has the following arguments available:

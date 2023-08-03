@@ -25,7 +25,7 @@ YOLOv8 **predict mode** can generate predictions for various tasks, returning ei
             boxes = result.boxes  # Boxes object for bbox outputs
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Class probabilities for classification outputs
+            probs = result.probs  # Probs object for classification outputs
         ```
 
     === "Return a generator with `stream=True`"
@@ -43,7 +43,7 @@ YOLOv8 **predict mode** can generate predictions for various tasks, returning ei
             boxes = result.boxes  # Boxes object for bbox outputs
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Class probabilities for classification outputs
+            probs = result.probs  # Probs object for classification outputs
         ```
 
 ## Inference Sources
@@ -324,7 +324,7 @@ All supported arguments:
 
 YOLOv8 supports various image and video formats, as specified in [data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.
 
-### Image Suffixes
+### Image Formats
 
 The below table contains valid Ultralytics image formats.
 
@@ -341,7 +341,7 @@ The below table contains valid Ultralytics image formats.
 | .webp          | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
 | .pfm           | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)        |
 
-### Video Suffixes
+### Video Formats
 
 The below table contains valid Ultralytics video formats.
 
@@ -496,7 +496,6 @@ You can use `plot()` function of `Result` object to plot results on in image obj
 | `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
 | `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
 
-You can copy and paste this into your Markdown file or editor, and it will render as a table.
 
 ## Streaming Source `for`-loop
 

@@ -311,8 +311,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
-                    line += (*kpt.reshape(-1).tolist(), )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                    line += (*kpt.reshape(-1).tolist(),)
+                line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:
@@ -548,9 +548,9 @@ class Keypoints(BaseTensor):
         has_visible (bool): Indicates whether keypoints include a visibility/confidence value.
 
     Properties:
-        xy (array-like): A collection of keypoints containing x, y coordinates for each detection.
-        xyn (array-like): A normalized version of xy with coordinates in the range [0, 1].
-        conf (array-like): Confidence values associated with keypoints if available, otherwise None.
+        xy (torch.Tensor): A collection of keypoints containing x, y coordinates for each detection.
+        xyn (torch.Tensor): A normalized version of xy with coordinates in the range [0, 1].
+        conf (torch.Tensor): Confidence values associated with keypoints if available, otherwise None.
 
     Methods:
         cpu(): Returns a copy of the keypoints tensor on CPU memory.
@@ -599,10 +599,10 @@ class Probs(BaseTensor):
         probs (torch.Tensor | np.ndarray): A tensor containing the class probabilities, with shape (num_class).
 
     Properties:
-        top5 (list[int]): Indices of the top 5 classes.
         top1 (int): Index of the top 1 class.
-        top5conf (torch.Tensor): Confidences of the top 5 classes.
+        top5 (list[int]): Indices of the top 5 classes.
         top1conf (torch.Tensor): Confidence of the top 1 class.
+        top5conf (torch.Tensor): Confidences of the top 5 classes.
 
     Methods:
         cpu(): Returns a copy of the probs tensor on CPU memory.
@@ -616,24 +616,24 @@ class Probs(BaseTensor):
 
     @property
     @lru_cache(maxsize=1)
-    def top5(self):
-        """Return the indices of top 5."""
-        return (-self.data).argsort(0)[:5].tolist()  # this way works with both torch and numpy.
-
-    @property
-    @lru_cache(maxsize=1)
     def top1(self):
         """Return the index of top 1."""
         return int(self.data.argmax())
 
     @property
     @lru_cache(maxsize=1)
-    def top5conf(self):
-        """Return the confidences of top 5."""
-        return self.data[self.top5]
+    def top5(self):
+        """Return the indices of top 5."""
+        return (-self.data).argsort(0)[:5].tolist()  # this way works with both torch and numpy.
 
     @property
     @lru_cache(maxsize=1)
     def top1conf(self):
         """Return the confidence of top 1."""
         return self.data[self.top1]
+
+    @property
+    @lru_cache(maxsize=1)
+    def top5conf(self):
+        """Return the confidences of top 5."""
+        return self.data[self.top5]

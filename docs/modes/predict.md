@@ -379,7 +379,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 `Results` objects have the following attributes:
 
-| Name         | Type                  | Description                                                                              |
+| Attribute    | Type                  | Description                                                                              |
 |--------------|-----------------------|------------------------------------------------------------------------------------------|
 | `orig_img`   | `numpy.ndarray`       | The original image as a numpy array.                                                     |
 | `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
@@ -393,29 +393,27 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 `Results` objects have the following methods:
 
-| Name          | Return Type   | Description                                                                         |
-|---------------|---------------|-------------------------------------------------------------------------------------|
-| `__getitem__` | Results       | Return a Results object for the specified index.                                    |
-| `__len__`     | int           | Return the number of detections in the Results object.                              |
-| `update`      | None          | Update the boxes, masks, and probs attributes of the Results object.                |
-| `cpu`         | Results       | Return a copy of the Results object with all tensors on CPU memory.                 |
-| `numpy`       | Results       | Return a copy of the Results object with all tensors as numpy arrays.               |
-| `cuda`        | Results       | Return a copy of the Results object with all tensors on GPU memory.                 |
-| `to`          | Results       | Return a copy of the Results object with tensors on the specified device and dtype. |
-| `new`         | Results       | Return a new Results object with the same image, path, and names.                   |
-| `keys`        | List[str]     | Return a list of non-empty attribute names.                                         |
-| `plot`        | numpy.ndarray | Plots the detection results. Returns a numpy array of the annotated image.          |
-| `verbose`     | str           | Return log string for each task.                                                    |
-| `save_txt`    | None          | Save predictions into a txt file.                                                   |
-| `save_crop`   | None          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
-| `pandas`      | None          | Convert the object to a pandas DataFrame (not yet implemented).                     |
-| `tojson`      | None          | Convert the object to JSON format.                                                  |
+| Method          | Return Type     | Description                                                                         |
+|-----------------|-----------------|-------------------------------------------------------------------------------------|
+| `__getitem__()` | `Results`       | Return a Results object for the specified index.                                    |
+| `__len__()`     | `int`           | Return the number of detections in the Results object.                              |
+| `update()`      | `None`          | Update the boxes, masks, and probs attributes of the Results object.                |
+| `cpu()`         | `Results`       | Return a copy of the Results object with all tensors on CPU memory.                 |
+| `numpy()`       | `Results`       | Return a copy of the Results object with all tensors as numpy arrays.               |
+| `cuda()`        | `Results`       | Return a copy of the Results object with all tensors on GPU memory.                 |
+| `to()`          | `Results`       | Return a copy of the Results object with tensors on the specified device and dtype. |
+| `new()`         | `Results`       | Return a new Results object with the same image, path, and names.                   |
+| `keys()`        | `List[str]`     | Return a list of non-empty attribute names.                                         |
+| `plot()`        | `numpy.ndarray` | Plots the detection results. Returns a numpy array of the annotated image.          |
+| `verbose()`     | `str`           | Return log string for each task.                                                    |
+| `save_txt()`    | `None`          | Save predictions into a txt file.                                                   |
+| `save_crop()`   | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
+| `pandas()`      | `None`          | Convert the object to a pandas DataFrame (not yet implemented).                     |
+| `tojson()`      | `None`          | Convert the object to JSON format.                                                  |
 
 ### Boxes
 
-`Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats. Box format conversion operations are cached, meaning they're only calculated once per object, and those values are reused for future calls.
-
-- Indexing a `Boxes` object returns a `Boxes` object:
+`Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats.
 
 !!! example "Boxes"
 
@@ -433,9 +431,25 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
         print(r.boxes)  # print the Boxes object containing the detection bounding boxes
     ```
 
+Here is a table for the `Boxes` class methods and properties, including their name, type, and description:
+
+| Name      | Type                      | Description                                                        |
+|-----------|---------------------------|--------------------------------------------------------------------|
+| `cpu()`   | Method                    | Move the object to CPU memory.                                     |
+| `numpy()` | Method                    | Convert the object to a numpy array.                               |
+| `cuda()`  | Method                    | Move the object to CUDA memory.                                    |
+| `to()`    | Method                    | Move the object to the specified device.                           |
+| `xyxy`    | Property (`torch.Tensor`) | Return the boxes in xyxy format.                                   |
+| `conf`    | Property (`torch.Tensor`) | Return the confidence values of the boxes.                         |
+| `cls`     | Property (`torch.Tensor`) | Return the class values of the boxes.                              |
+| `id`      | Property (`torch.Tensor`) | Return the track IDs of the boxes (if available).                  |
+| `xywh`    | Property (`torch.Tensor`) | Return the boxes in xywh format.                                   |
+| `xyxyn`   | Property (`torch.Tensor`) | Return the boxes in xyxy format normalized by original image size. |
+| `xywhn`   | Property (`torch.Tensor`) | Return the boxes in xywh format normalized by original image size. |
+
 ### Masks
 
-`Masks` object can be used index, manipulate and convert masks to segments. The segment conversion operation is cached.
+`Masks` object can be used index, manipulate and convert masks to segments.
 
 !!! example "Masks"
 
@@ -453,9 +467,21 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
         print(r.masks)  # print the Masks object containing the detected instance masks
     ```
 
+Here is a table for the `Masks` class methods and properties, including their name, type, and description:
+
+| Name       | Type                      | Description                                                     |
+|------------|---------------------------|-----------------------------------------------------------------|
+| `cpu()`    | Method                    | Returns the masks tensor on CPU memory.                         |
+| `numpy()`  | Method                    | Returns the masks tensor as a numpy array.                      |
+| `cuda()`   | Method                    | Returns the masks tensor on GPU memory.                         |
+| `to()`     | Method                    | Returns the masks tensor with the specified device and dtype.   |
+| `pandas()` | Method                    | Returns the object as a pandas DataFrame (not yet implemented). |
+| `xyn`      | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
+| `xy`       | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
+
 ### Keypoints
 
-`Keypoints` object can be used index, manipulate and normalize coordinates. The keypoint conversion operation is cached.
+`Keypoints` object can be used index, manipulate and normalize coordinates.
 
 !!! example "Keypoints"
 
@@ -472,6 +498,18 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     for r in results:
         print(r.keypoints)  # print the Keypoints object containing the detected keypoints
     ```
+
+Here is a table for the `Keypoints` class methods and properties, including their name, type, and description:
+
+| Name      | Type                      | Description                                                       |
+|-----------|---------------------------|-------------------------------------------------------------------|
+| `cpu()`   | Method                    | Returns the keypoints tensor on CPU memory.                       |
+| `numpy()` | Method                    | Returns the keypoints tensor as a numpy array.                    |
+| `cuda()`  | Method                    | Returns the keypoints tensor on GPU memory.                       |
+| `to()`    | Method                    | Returns the keypoints tensor with the specified device and dtype. |
+| `xyn`     | Property (`torch.Tensor`) | A list of normalized keypoints represented as tensors.            |
+| `xy`      | Property (`torch.Tensor`) | A list of keypoints in pixel coordinates represented as tensors.  |
+| `conf`    | Property (`torch.Tensor`) | Returns confidence values of keypoints if available, else None.   |
 
 ### Probs
 
@@ -493,7 +531,20 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
         print(r.probs)  # print the Probs object containing the detected class probabilities
     ```
 
-Class reference documentation for `Results` module and its components can be found [here](../reference/engine/results.md)
+Here's a table summarizing the methods and properties for the `Probs` class:
+
+| Name       | Type                    | Description                                                             |
+|------------|-------------------------|-------------------------------------------------------------------------|
+| `cpu()`    | Method                  | Returns a copy of the probs tensor on CPU memory.                       |
+| `numpy()`  | Method                  | Returns a copy of the probs tensor as a numpy array.                    |
+| `cuda()`   | Method                  | Returns a copy of the probs tensor on GPU memory.                       |
+| `to()`     | Method                  | Returns a copy of the probs tensor with the specified device and dtype. |
+| `top1`     | Property `int`          | Index of the top 1 class.                                               |
+| `top5`     | Property `list[int]`    | Indices of the top 5 classes.                                           |
+| `top1conf` | Property `torch.Tensor` | Confidence of the top 1 class.                                          |
+| `top5conf` | Property `torch.Tensor` | Confidences of the top 5 classes.                                       |
+
+Full documentation for `Results` module and its components can be found [here](../reference/engine/results.md)
 
 ## Plotting results
 
@@ -519,7 +570,7 @@ You can the `plot()` method of a `Result` objects to plot predictions. It plots 
     
     The `plot()` method has the following arguments available:
     
-    | Name         | Type            | Description                                                                    | Default       |
+    | Argument     | Type            | Description                                                                    | Default       |
     |--------------|-----------------|--------------------------------------------------------------------------------|---------------|
     | `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |
     | `line_width` | `float`         | The line width of the bounding boxes. If None, it is scaled to the image size. | `None`        |

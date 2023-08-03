@@ -552,7 +552,7 @@ Here's a table summarizing the methods and properties for the `Probs` class:
 
 For more details see the `Probs` class [documentation](../reference/engine/results.md).
 
-## Plotting ResultsF
+## Plotting Results
 
 You can use the `plot()` method of a `Result` objects to visualize predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object onto a numpy array that can then be shown or saved.
 

@@ -201,13 +201,13 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
                 x, y, w, h = box
                 track = track_history[track_id]
                 track.append((x, y))  # x, y center point
-                if len(track) > 90:  # retain 90 tracks for 90 frames
+                if len(track) > 30:  # retain tracks for 30 frames
                     track.pop(0)
     
                 # Draw the tracking lines
                 if len(track) > 1:
                     points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-                    cv2.polylines(annotated_frame, [points], isClosed=False, color=(200, 200, 200), thickness=10)
+                    cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
     
             # Display the annotated frame
             cv2.imshow("YOLOv8 Tracking", annotated_frame)

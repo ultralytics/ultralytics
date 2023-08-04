@@ -510,8 +510,10 @@ def temporary_modules(modules=None):
         modules (dict, optional): A dictionary mapping old module paths to new module paths.
 
     Example:
+        ```python
         with temporary_modules({'old.module.path': 'new.module.path'}):
             import old.module.path  # this will now import new.module.path
+        ```
 
     Note:
         The changes are only in effect inside the context manager and are undone once the context manager exits.

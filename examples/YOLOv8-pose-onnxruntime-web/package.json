@@ -1,6 +1,6 @@
 {
   "name": "YOLOv8-pose-onnxruntime-web",
-  "homepage": "https://github.com/YOLOv8-pose-onnxruntime-web#readme",
+  "homepage": "https://github.com/FatemeZamanian/YOLOv8-pose-onnxruntime-web#readme",
   "version": "0.1.0",
   "dependencies": {
     "@techstark/opencv-js": "4.5.5-release.2",

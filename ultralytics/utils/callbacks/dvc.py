@@ -123,7 +123,7 @@ def on_train_end(trainer):
         _log_confusion_matrix(trainer.validator)
 
         if trainer.best.exists():
-            live.log_artifact(trainer.best, copy=True)
+            live.log_artifact(trainer.best, copy=True, type='model')
 
         live.end()
 

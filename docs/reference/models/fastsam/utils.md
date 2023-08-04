@@ -7,7 +7,7 @@ keywords: Ultralytics, bounding boxes, Bboxes, image borders, object detection, 
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/utils.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/utils.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.fastsam.utils.adjust_bboxes_to_image_border

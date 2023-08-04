@@ -7,7 +7,7 @@ keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, S
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.nn.modules.block.DFL

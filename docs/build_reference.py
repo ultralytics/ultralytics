@@ -44,12 +44,14 @@ def create_markdown(py_filepath, module_path, classes, functions):
                 if 'description:' in part or 'comments:' in part:
                     header_content += f'---{part}---\n\n'
 
-    module_path = module_path.replace('.__init__', '')
-    module_sep = module_path.replace(".", "/")
-    url = f'https://github.com/ultralytics/ultralytics/blob/main/{module_sep}.py'
-    title_content = f'# Reference for `{module_sep}.py`\n\n!!! note\n\n    Full source code for this file is available at [{url}]({url}).\n\n'
-    md_content = [f'---\n## ::: {module_path}.{class_name}\n<br><br>\n' for class_name in classes]
-    md_content.extend(f'---\n## ::: {module_path}.{func_name}\n<br><br>\n' for func_name in functions)
+    module_name = module_path.replace('.__init__', '')
+    module_path = module_path.replace(".", "/")
+    url = f'https://github.com/ultralytics/ultralytics/blob/main/{module_path}.py'
+    title_content = (f'# Reference for `{module_path}.py`\n\n'
+                     f'!!! note\n\n'
+                     f'    Full source code for this file is available at [{url}]({url}). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!\n\n')
+    md_content = [f'---\n## ::: {module_name}.{class_name}\n<br><br>\n' for class_name in classes]
+    md_content.extend(f'---\n## ::: {module_name}.{func_name}\n<br><br>\n' for func_name in functions)
     md_content = header_content + title_content + '\n'.join(md_content)
     if not md_content.endswith('\n'):
         md_content += '\n'

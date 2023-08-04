@@ -7,7 +7,7 @@ keywords: Ultralytics, check_train_batch_size, autobatch, utility, machine learn
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/autobatch.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/autobatch.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/autobatch.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/autobatch.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.autobatch.check_train_batch_size

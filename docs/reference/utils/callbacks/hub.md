@@ -7,7 +7,7 @@ keywords: Ultralytics, callbacks, on_pretrain_routine_end, on_model_save, on_tra
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.callbacks.hub.on_pretrain_routine_end

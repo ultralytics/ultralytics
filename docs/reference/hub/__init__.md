@@ -3,11 +3,11 @@ description: Explore Ultralytics hub functions for model resetting, checking dat
 keywords: Ultralytics, hub functions, model export, dataset check, reset model, YOLO Docs
 ---
 
-# Reference for `ultralytics/hub.py`
+# Reference for `ultralytics/hub/__init__.py`
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py).
 
 ---
 ## ::: ultralytics.hub.login

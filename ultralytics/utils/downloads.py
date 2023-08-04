@@ -202,12 +202,16 @@ def safe_download(url,
         return unzip_dir
 
 
-def get_github_assets(repo='ultralytics/assets', version='latest'):
+def get_github_assets(repo='ultralytics/assets', version='latest', retry=False):
     """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""
     if version != 'latest':
         version = f'tags/{version}'  # i.e. tags/v6.2
-    response = requests.get(f'https://api.github.com/repos/{repo}/releases/{version}').json()  # github api
-    return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
+    url = f'https://api.github.com/repos/{repo}/releases/{version}'
+    r = requests.get(url)  # github api
+    if r.status_code != 200 and retry:
+        r = requests.get(url)  # try again
+    data = r.json()
+    return data['tag_name'], [x['name'] for x in data['assets']]  # tag, assets
 
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):

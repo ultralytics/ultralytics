@@ -301,7 +301,7 @@ class Exporter:
         """YOLOv8 ONNX export."""
         requirements = ['onnx>=1.12.0']
         if self.args.simplify:
-            requirements += ['onnxsim>=0.4.17', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime']
+            requirements += ['onnxsim>=0.4.33', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime']
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -422,7 +422,7 @@ class Exporter:
                 f'{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from '
                 'https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory '
                 f'or in {ROOT}. See PNNX repo for full installation instructions.')
-            _, assets = get_github_assets(repo='pnnx/pnnx')
+            _, assets = get_github_assets(repo='pnnx/pnnx', retry=True)
             asset = [x for x in assets if ('macos' if MACOS else 'ubuntu' if LINUX else 'windows') in x][0]
             attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
             unzip_dir = Path(asset).with_suffix('')
@@ -572,15 +572,16 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr('TensorFlow SavedModel:')):
         """YOLOv8 TensorFlow SavedModel export."""
+        cuda = torch.cuda.is_available()
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            cuda = torch.cuda.is_available()
             check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(('onnx', 'onnx2tf>=1.9.1', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
-                            'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
-                           cmds='--extra-index-url https://pypi.ngc.nvidia.com')
+        check_requirements(
+            ('onnx', 'onnx2tf>=1.15.4', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.33', 'onnx_graphsurgeon>=0.3.26',
+             'tflite_support', 'onnxruntime-gpu' if cuda else 'onnxruntime'),
+            cmds='--extra-index-url https://pypi.ngc.nvidia.com')  # onnx_graphsurgeon only on NVIDIA
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
@@ -595,6 +596,7 @@ class Exporter:
         # Export to TF
         tmp_file = f / 'tmp_tflite_int8_calibration_images.npy'  # int8 calibration images file
         if self.args.int8:
+            verbosity = '--verbosity info'
             if self.args.data:
                 import numpy as np
 
@@ -620,9 +622,10 @@ class Exporter:
             else:
                 int8 = '-oiqt -qt per-tensor'
         else:
+            verbosity = '--non_verbose'
             int8 = ''
 
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo --non_verbose {int8}'.strip()
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8}'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

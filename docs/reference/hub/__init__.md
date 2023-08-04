@@ -7,7 +7,7 @@ keywords: Ultralytics, hub functions, model export, dataset check, reset model, 
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.hub.login

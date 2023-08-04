@@ -7,7 +7,7 @@ keywords: Ultralytics, SAM, build sam, vision transformer, vits, build_sam_vit_l
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/build.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/build.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/build.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/build.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.sam.build.build_sam_vit_h

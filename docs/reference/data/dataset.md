@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data m
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.data.dataset.YOLODataset

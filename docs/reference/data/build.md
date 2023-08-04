@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO v3, Data build, DataLoader, InfiniteDataLoader, seed
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/build.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/build.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/build.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/build.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.data.build.InfiniteDataLoader

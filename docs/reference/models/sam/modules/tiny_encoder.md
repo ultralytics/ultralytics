@@ -7,7 +7,7 @@ keywords: Ultralytics, Tiny Encoder, Conv2d_BN, MBConv, ConvLayer, Attention, Ba
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/tiny_encoder.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/tiny_encoder.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/tiny_encoder.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/tiny_encoder.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.sam.modules.tiny_encoder.Conv2d_BN

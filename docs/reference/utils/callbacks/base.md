@@ -7,7 +7,7 @@ keywords: Ultralytics, Callbacks, On-train, On-validation, On-pretrain, On-predi
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.callbacks.base.on_pretrain_routine_start

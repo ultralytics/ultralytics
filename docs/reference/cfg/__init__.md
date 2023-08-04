@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, Configuration, cfg2dict, handle_deprecation, merge_
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.cfg.cfg2dict

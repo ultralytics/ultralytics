@@ -7,7 +7,7 @@ keywords: Ultralytics, plotting, utils, color annotation, label plotting, image 
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/plotting.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/plotting.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/plotting.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/plotting.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.plotting.Colors

@@ -7,7 +7,7 @@ keywords: Ultralytics, Encoders, Modules, Documentation, ImageEncoderViT, Positi
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.sam.modules.encoders.ImageEncoderViT

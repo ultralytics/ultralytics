@@ -26,7 +26,7 @@ export const detectImage = async (
   const [modelWidth] = inputShape.slice(2);
   const [modelHeight] = inputShape.slice(3);
   const [input, xRatio, yRatio] = preprocessing(image, modelWidth, modelHeight, isVideo);
-  
+
   const tensor = new Tensor("float32", input.data32F, inputShape); // to ort.Tensor
   const config = new Tensor("float32",
     new Float32Array([
@@ -40,7 +40,7 @@ export const detectImage = async (
   const { output0 } = await session.net.run({ images: tensor }); // run session and get output layer
   // console.timeEnd("session")
   const { selected } = await session.nms.run({ detection: output0, config: config }); // perform nms and filter boxes
-  
+
   const boxes = [];
 
   // looping through output
@@ -66,7 +66,7 @@ export const detectImage = async (
     }); // update boxes to draw later
   }
   renderBoxes(canvas, boxes, xRatio, yRatio); // Draw boxes
-  
+
   callback();
   input.delete(); // delete unused Mat
 };
@@ -80,7 +80,7 @@ export const detectImage = async (
  */
 const preprocessing = (source, modelWidth, modelHeight, isVideo) => {
   const mat = isVideo ? source : cv.imread(source); // read from img tag
-  
+
   // padding image to [n x n] dim
   const maxSize = Math.max(mat.rows, mat.cols); // get max size from width and height
   const xPad = maxSize - mat.cols, // set xPadding
@@ -100,7 +100,7 @@ const preprocessing = (source, modelWidth, modelHeight, isVideo) => {
     true, // swapRB
     false // crop
   ); // preprocessing image matrix
-  
+
   // release mat opencv
   // mat.delete();
   matPad.delete();

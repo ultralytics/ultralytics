@@ -54,7 +54,7 @@ export const renderBoxes = (canvas, boxes,xi,yi) => {
     // draw landmarks
     let c = 0 ;
     for (let j = 0; j < keypoints.length; j+=3) {
-      
+
       const x = keypoints[j] * xi;
       const y = keypoints[j+1] * yi;
 
@@ -80,9 +80,8 @@ export const renderBoxes = (canvas, boxes,xi,yi) => {
         ctx.lineTo(keypoints[indexB * 3] * xi, keypoints[indexB * 3 + 1] * yi);
         ctx.stroke();
       }
-      
+
     }
 
   });
 };
-

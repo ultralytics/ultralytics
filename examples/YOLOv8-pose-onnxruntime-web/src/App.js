@@ -17,16 +17,16 @@ const App = () => {
   const videoRef = useRef(null);
   let streaming = null;
   let processVideoInterval;
-  
+
   const onClickVideoStream = () => {
     let video = document.getElementById("vid");
     let canvas = document.getElementById("canvas");
     let time_element = document.getElementById("time");
     let button_webcam_element = document.getElementById("btn-webcam");
-    
+
     if (streaming == null) {
       streaming = "camera";
-    
+
       video.style.display = "block";
       canvas.style.display = "block";
 

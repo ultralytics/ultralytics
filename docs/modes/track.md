@@ -190,8 +190,8 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
             results = model.track(frame, persist=True)
     
             # Get the boxes and track IDs
-            boxes = results[0].boxes.xywh
-            track_ids = results[0].boxes.id.int().tolist()
+            boxes = results[0].boxes.xywh.cpu()
+            track_ids = results[0].boxes.id.int().cpu().tolist()
     
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
@@ -200,8 +200,8 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
             for box, track_id in zip(boxes, track_ids):
                 x, y, w, h = box
                 track = track_history[track_id]
-                track.append((x, y))  # x, y center point
-                if len(track) > 30:  # retain tracks for 30 frames
+                track.append((float(x), float(y)))  # x, y center point
+                if len(track) > 30:  # retain 90 tracks for 90 frames
                     track.pop(0)
     
                 # Draw the tracking lines

@@ -3,11 +3,11 @@ description: Explore Ultralytics cfg functions like cfg2dict, handle_deprecation
 keywords: Ultralytics, YOLO, Configuration, cfg2dict, handle_deprecation, merge_equals_args, handle_yolo_settings, copy_default_cfg, Image Detection
 ---
 
-# Reference for `ultralytics/cfg.py`
+# Reference for `ultralytics/cfg/__init__.py`
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.cfg.cfg2dict

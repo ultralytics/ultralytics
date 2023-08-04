@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, PosePredictor, machine learning, AI, predictive mod
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/pose/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/pose/predict.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/pose/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/pose/predict.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.yolo.pose.predict.PosePredictor

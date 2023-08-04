@@ -18,6 +18,7 @@ def login(api_key=''):
     Example:
         ```python
         from ultralytics import hub
+
         hub.login('API_KEY')
         ```
     """
@@ -31,6 +32,7 @@ def logout():
     Example:
         ```python
         from ultralytics import hub
+
         hub.logout()
         ```
     """

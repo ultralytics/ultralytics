@@ -7,7 +7,7 @@ keywords: Ultralytics, FastSAMPredictor, predictive modeling, AI optimization, m
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/predict.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/predict.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.fastsam.predict.FastSAMPredictor

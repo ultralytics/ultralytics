@@ -1,6 +1,6 @@
 {
-  "name": "yolov8-onnxruntime-web",
-  "homepage": "https://hyuto.github.io/yolov8-onnxruntime-web/",
+  "name": "YOLOv8-pose-onnxruntime-web",
+  "homepage": "https://github.com/YOLOv8-pose-onnxruntime-web#readme",
   "version": "0.1.0",
   "dependencies": {
     "@techstark/opencv-js": "4.5.5-release.2",
@@ -34,15 +34,15 @@
   },
   "author": {
     "name": "Wahyu Setianto",
-    "url": "https://github.com/Hyuto"
+    "url": "https://github.com/FatemeZamanian"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Hyuto/yolov8-onnxruntime-web.git"
+    "url": "git+https://github.com/FatemeZamanian/YOLOv8-pose-onnxruntime-web.git"
   },
   "bugs": {
-    "url": "https://github.com/Hyuto/yolov8-onnxruntime-web/issues"
+    "url": "https://github.com/FatemeZamanian/YOLOv8-pose-onnxruntime-web/issues"
   },
   "devDependencies": {
     "@craco/craco": "^7.0.0",

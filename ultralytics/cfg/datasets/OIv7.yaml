@@ -622,13 +622,13 @@ download: |
   from ultralytics.utils.checks import check_requirements
   check_requirements('fiftyone')
   import fiftyone as fo
-  
+
   # Load Open Images dataset
   dataset = fo.zoo.load_zoo_dataset("open-images-v7",
                                     splits=["train", "validation"],
                                     label_types=["detections"],
                                     # classes=["Dog", "Cat"],
                                     max_samples=100)
-  
+
   # Export to YOLO format
   dataset.export(export_dir="../datasets/open-images-v7", dataset_type=fo.types.YOLOv5Dataset, overwrite=True)

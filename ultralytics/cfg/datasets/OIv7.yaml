@@ -621,18 +621,18 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   from ultralytics.utils import SETTINGS, Path, checks
-  
+
   checks.check_requirements('fiftyone')
-  
+
   import fiftyone as fo
   import fiftyone.zoo as foz
-  
+
   # Load Open Images dataset
   dataset = foz.load_zoo_dataset("open-images-v7",
                                  splits=["train", "validation"],
                                  label_types=["detections"],
                                  max_samples=100)
-  
+
   # Export to YOLO format
   # classes = dataset.default_classes  # all classes
   classes = dataset.distinct("ground_truth.detections.label")  # only observed classes

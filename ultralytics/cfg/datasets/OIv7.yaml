@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Open Images v7 dataset by Google
+# Open Images v7 dataset https://storage.googleapis.com/openimages/web/index.html by Google
 # Example usage: yolo train data=OIv7.yaml
 # parent
 # ├── ultralytics
@@ -620,10 +620,12 @@ names:
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
+  from ultralytics.utils import SETTINGS, Path, checks
+  
+  checks.check_requirements('fiftyone')
+  
   import fiftyone as fo
   import fiftyone.zoo as foz
-  
-  from ultralytics.utils import SETTINGS, Path
   
   # Load Open Images dataset
   dataset = foz.load_zoo_dataset("open-images-v7",

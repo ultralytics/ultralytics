@@ -262,6 +262,7 @@ def handle_yolo_settings(args: List[str]) -> None:
             check_dict_alignment(SETTINGS, new)
             SETTINGS.update(new)
 
+    LOGGER.info('💡 Learn about settings at https://docs.ultralytics.com/quickstart/#ultralytics-settings')
     yaml_print(SETTINGS_YAML)  # print the current settings
 
 

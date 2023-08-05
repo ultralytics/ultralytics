@@ -112,13 +112,13 @@ def check_version(current: str = '0.0.0',
         check_version(current='22.04', required='==22.04')
 
         # check if current version is greater than or equal to 22.04
-        check_version(current='22.10', required='>=22.04')
+        check_version(current='22.10', required='22.04')  # assumes '>=' inequality if none passed
 
         # check if current version is less than or equal to 22.04
         check_version(current='22.04', required='<=22.04')
 
         # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
-        check_version(current='21.10', required='>20.04, <22.04')
+        check_version(current='21.10', required='>20.04,<22.04')
     """
     current = pkg.parse_version(current)
     constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']

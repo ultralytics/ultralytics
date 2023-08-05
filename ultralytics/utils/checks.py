@@ -21,8 +21,8 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked, TryExcept,
-                               clean_url, colorstr, downloads, is_colab, is_docker, is_jupyter, is_kaggle, is_online,
-                               is_pip_package, url2file)
+                               clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle,
+                               is_online, is_pip_package, url2file)
 
 
 def is_ascii(s) -> bool:
@@ -136,7 +136,7 @@ def check_version(current: str = '0.0.0',
     version_message = f'a version between {minimum} and {maximum}' if maximum else f'a minimum version {minimum}'
     warning_message = f'WARNING ⚠️ {name} requires {version_message}, but {name}{current} is currently installed.'
     if hard:
-        assert result, warning_message  # assert version requirements met
+        assert result, emojis(warning_message)  # assert version requirements met
     if verbose and not result:
         LOGGER.warning(warning_message)
     return result

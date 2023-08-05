@@ -620,20 +620,20 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   from ultralytics.utils.checks import check_requirements
-  
+
   check_requirements('fiftyone')
-  
+
   import shutil
   from pathlib import Path
   import fiftyone as fo
-  
+
   # Load Open Images dataset
   dataset = fo.zoo.load_zoo_dataset("open-images-v7",
                                     splits=["train", "validation"],
                                     label_types=["detections"],
                                     # classes=["Dog", "Cat"],
                                     max_samples=1000)
-  
+
   # Export to YOLO format
   root = Path("../datasets/OIv7")
   if root.exists():

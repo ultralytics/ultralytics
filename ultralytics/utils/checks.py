@@ -112,7 +112,7 @@ def check_version(current: str = '0.0.0',
         (bool): True if minimum and maximum versions are met, False otherwise.
 
     Example:
-        ```
+        ```python
         # Check if current version is exactly 22.04
         check_version(current='22.04', minimum='22.04', pinned=True)
 

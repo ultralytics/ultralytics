@@ -4,7 +4,7 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── OIv7  ← downloads here (TODO MB)
+#     └── OIv7  ← downloads here (561 GB)
 
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
@@ -620,22 +620,15 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   from ultralytics.utils.checks import check_requirements
-
   check_requirements('fiftyone')
-
-  import shutil
-  from pathlib import Path
   import fiftyone as fo
-
+  
   # Load Open Images dataset
   dataset = fo.zoo.load_zoo_dataset("open-images-v7",
                                     splits=["train", "validation"],
                                     label_types=["detections"],
                                     # classes=["Dog", "Cat"],
-                                    max_samples=1000)
-
+                                    max_samples=100)
+  
   # Export to YOLO format
-  root = Path("../datasets/OIv7")
-  if root.exists():
-      shutil.rmtree(root)
-  dataset.export(export_dir=str(root), dataset_type=fo.types.YOLOv5Dataset)
+  dataset.export(export_dir="../datasets/open-images-v7", dataset_type=fo.types.YOLOv5Dataset, overwrite=True)

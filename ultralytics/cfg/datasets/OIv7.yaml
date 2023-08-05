@@ -638,7 +638,7 @@ download: |
   classes = dataset.distinct("ground_truth.detections.label")  # only observed classes
   for split in ("train", "validation"):
       view = dataset.match_tags(split)
-      view.export(export_dir=str(Path(SETTINGS['datasets_dir']) / "open-images-v7"),
+      view.export(export_dir=str(Path(SETTINGS['datasets_dir']) / "OIv7"),
                   dataset_type=fo.types.YOLOv5Dataset,
                   label_field="ground_truth",
                   split=split,

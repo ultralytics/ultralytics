@@ -114,8 +114,8 @@ markdown_extensions:
   - pymdownx.snippets:
       base_path: ./
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji  # noqa
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: '!!python/name:materialx.emoji.twemoji'  # quotes to avoid YAML parsing issues
+      emoji_generator: '!!python/name:materialx.emoji.to_svg'
   - pymdownx.tabbed:
       alternate_style: true
 

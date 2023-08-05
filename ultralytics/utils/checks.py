@@ -232,6 +232,20 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         exclude (Tuple[str]): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
+
+    Example:
+        ```python
+        from ultralytics.utils.checks import check_requirements
+
+        # Check a requirements.txt file
+        check_requirements('path/to/requirements.txt')
+
+        # Check a single package
+        check_requirements('ultralytics>=8.0.0')
+
+        # Check multiple packages
+        check_requirements(['numpy', 'ultralytics>8.0.0'])
+        ```
     """
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version

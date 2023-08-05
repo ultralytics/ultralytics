@@ -210,7 +210,7 @@ def check_det_dataset(dataset, autodownload=True):
     for k in 'train', 'val':
         if k not in data:
             if k == 'val' and 'validation' in data:
-                LOGGER.info(f"WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
+                LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
                 data['val'] = data.pop('validation')  # replace 'validation' key with 'val' key
             else:
                 raise SyntaxError(

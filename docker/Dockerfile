@@ -20,7 +20,6 @@ RUN apt update \
 RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
-RUN mkdir -p /usr/src/ultralytics
 WORKDIR /usr/src/ultralytics
 
 # Copy contents

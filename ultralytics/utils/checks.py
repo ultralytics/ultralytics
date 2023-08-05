@@ -91,29 +91,52 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 def check_version(current: str = '0.0.0',
                   minimum: str = '0.0.0',
+                  maximum: str = None,
                   name: str = 'version ',
                   pinned: bool = False,
                   hard: bool = False,
                   verbose: bool = False) -> bool:
     """
-    Check current version against the required minimum version.
+    Check current version against the required minimum and/or maximum version.
 
     Args:
         current (str): Current version.
         minimum (str): Required minimum version.
+        maximum (str, optional): Required maximum version.
         name (str): Name to be used in warning message.
         pinned (bool): If True, versions must match exactly. If False, minimum version must be satisfied.
-        hard (bool): If True, raise an AssertionError if the minimum version is not met.
-        verbose (bool): If True, print warning message if minimum version is not met.
+        hard (bool): If True, raise an AssertionError if the minimum or maximum version is not met.
+        verbose (bool): If True, print warning message if minimum or maximum version is not met.
 
     Returns:
-        (bool): True if minimum version is met, False otherwise.
+        (bool): True if minimum and maximum versions are met, False otherwise.
+
+    Example:
+        ```python
+        # Check if current version is exactly 22.04
+        check_version(current='22.04', minimum='22.04', pinned=True)
+
+        # Check if current version is greater than or equal to 22.04
+        check_version(current='22.10', minimum='22.04')
+
+        # Check if current version is less than or equal to 22.04
+        check_version(current='22.04', maximum='22.04')
+
+        # Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        check_version(current='21.10', minimum='20.04', maximum='22.04')
+        ```
     """
-    current, minimum = (pkg.parse_version(x) for x in (current, minimum))
-    result = (current == minimum) if pinned else (current >= minimum)  # bool
-    warning_message = f'WARNING ⚠️ {name}{minimum} is required by YOLOv8, but {name}{current} is currently installed'
+    current = pkg.parse_version(current)
+    minimum = pkg.parse_version(minimum)
+    maximum = pkg.parse_version(maximum) if maximum else None
+    if pinned:
+        result = (current == minimum)
+    else:
+        result = (current >= minimum) and (current <= maximum if maximum else True)
+    version_message = f'a version between {minimum} and {maximum}' if maximum else f'a minimum version {minimum}'
+    warning_message = f'WARNING ⚠️ {name} requires {version_message}, but {name}{current} is currently installed.'
     if hard:
-        assert result, emojis(warning_message)  # assert min requirements met
+        assert result, emojis(warning_message)  # assert version requirements met
     if verbose and not result:
         LOGGER.warning(warning_message)
     return result
@@ -209,6 +232,20 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         exclude (Tuple[str]): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
+
+    Example:
+        ```python
+        from ultralytics.utils.checks import check_requirements
+
+        # Check a requirements.txt file
+        check_requirements('path/to/requirements.txt')
+
+        # Check a single package
+        check_requirements('ultralytics>=8.0.0')
+
+        # Check multiple packages
+        check_requirements(['numpy', 'ultralytics>=8.0.0'])
+        ```
     """
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version

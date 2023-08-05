@@ -15,7 +15,6 @@ RUN apt update \
 # RUN alias python=python3
 
 # Create working directory
-RUN mkdir -p /usr/src/ultralytics
 WORKDIR /usr/src/ultralytics
 
 # Copy contents

@@ -329,7 +329,10 @@ def yaml_load(file='data.yaml', append_filename=False):
             s = re.sub(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+', '', s)
 
         # Add YAML filename to dict and return
-        return {**yaml.safe_load(s), 'yaml_file': str(file)} if append_filename else yaml.safe_load(s)
+        data = yaml.safe_load(s) or {}  # always return a dict (yaml.safe_load() may return None for empty files)
+        if append_filename:
+            data['yaml_file'] = str(file)
+        return data
 
 
 def yaml_print(yaml_file: Union[str, Path, dict]) -> None:

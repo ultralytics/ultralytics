@@ -244,7 +244,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         check_requirements('ultralytics>=8.0.0')
 
         # Check multiple packages
-        check_requirements(['numpy', 'ultralytics>8.0.0'])
+        check_requirements(['numpy', 'ultralytics>=8.0.0'])
         ```
     """
     prefix = colorstr('red', 'bold', 'requirements:')

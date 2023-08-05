@@ -252,17 +252,22 @@ def handle_yolo_settings(args: List[str]) -> None:
         python my_script.py yolo settings reset
         ```
     """
-    if any(args):
-        if args[0] == 'reset':
-            SETTINGS_YAML.unlink()  # delete the settings file
-            SETTINGS.reset()  # create new settings
-            LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
-        else:  # save a new setting
-            new = dict(parse_key_value_pair(a) for a in args)
-            check_dict_alignment(SETTINGS, new)
-            SETTINGS.update(new)
+    url = 'https://docs.ultralytics.com/quickstart/#ultralytics-settings'  # help URL
+    try:
+        if any(args):
+            if args[0] == 'reset':
+                SETTINGS_YAML.unlink()  # delete the settings file
+                SETTINGS.reset()  # create new settings
+                LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
+            else:  # save a new setting
+                new = dict(parse_key_value_pair(a) for a in args)
+                check_dict_alignment(SETTINGS, new)
+                SETTINGS.update(new)
 
-    yaml_print(SETTINGS_YAML)  # print the current settings
+        LOGGER.info(f'💡 Learn about settings at {url}')
+        yaml_print(SETTINGS_YAML)  # print the current settings
+    except Exception as e:
+        LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
 def parse_key_value_pair(pair):

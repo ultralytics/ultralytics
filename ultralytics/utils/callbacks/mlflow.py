@@ -18,7 +18,7 @@ except (ImportError, AssertionError):
 
 def on_pretrain_routine_end(trainer):
     """Logs training parameters to MLflow."""
-    global mlflow, run, run_id, experiment_name
+    global mlflow, run, experiment_name
 
     if os.environ.get('MLFLOW_TRACKING_URI') is None:
         mlflow = None
@@ -39,8 +39,7 @@ def on_pretrain_routine_end(trainer):
             run, active_run = mlflow, mlflow.active_run()
             if not active_run:
                 active_run = mlflow.start_run(experiment_id=experiment.experiment_id, run_name=run_name)
-            run_id = active_run.info.run_id
-            LOGGER.info(f'{prefix}Using run_id({run_id}) at {mlflow_location}')
+            LOGGER.info(f'{prefix}Using run_id({active_run.info.run_id}) at {mlflow_location}')
             run.log_params(vars(trainer.model.args))
         except Exception as err:
             LOGGER.error(f'{prefix}Failing init - {repr(err)}')

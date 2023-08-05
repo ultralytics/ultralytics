@@ -24,13 +24,13 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
     det_results = det_model(data, stream=True, device=device)
 
     for result in det_results:
-        boxes = result.boxes.xyxy  # Boxes object for bbox outputs
         class_ids = result.boxes.cls.int().tolist()  # noqa
         if len(class_ids):
+            boxes = result.boxes.xyxy  # Boxes object for bbox outputs
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
             segments = sam_results[0].masks.xyn  # noqa
 
-            with open(str(Path(output_dir) / Path(result.path).stem) + '.txt', 'w') as f:
+            with open(f'{str(Path(output_dir) / Path(result.path).stem)}.txt', 'w') as f:
                 for i in range(len(segments)):
                     s = segments[i]
                     if len(s) == 0:

@@ -605,7 +605,8 @@ class Exporter:
 
                 # Generate calibration data for integer quantization
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-                dataset = YOLODataset(check_det_dataset(self.args.data)['val'], imgsz=self.imgsz[0], augment=False)
+                data = check_det_dataset(self.args.data)
+                dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
                 images = []
                 n_images = 100  # maximum number of images
                 for n, batch in enumerate(dataset):

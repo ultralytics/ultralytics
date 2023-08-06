@@ -620,7 +620,7 @@ names:
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
-  from ultralytics.utils import SETTINGS, USER_CONFIG_DIR, Path, checks
+  from ultralytics.utils import SETTINGS, Path, checks
 
   checks.check_requirements('fiftyone')
 

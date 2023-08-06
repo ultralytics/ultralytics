@@ -234,7 +234,8 @@ def safe_download(url,
     """
 
     # Check if the URL is a Google Drive link
-    if 'drive.google.com' in url:
+    gdrive = 'drive.google.com' in url
+    if gdrive:
         url, file = get_google_drive_file_info(url)
 
     f = dir / url2file(url) if dir else Path(file)  # URL converted to filename
@@ -242,8 +243,14 @@ def safe_download(url,
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
         assert dir or file, 'dir or file required for download'
-        f = dir / url2file(url) if dir else Path(file)
-        desc = f"Downloading {clean_url(url)} to '{f}'"
+
+        if gdrive:
+            f = dir / file if dir else Path(file)
+            desc = f"Downloading {url} to '{f}'"
+        else:
+            f = dir / url2file(url) if dir else Path(file)
+            desc = f"Downloading {clean_url(url)} to '{f}'"
+
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url)

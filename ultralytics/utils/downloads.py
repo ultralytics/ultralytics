@@ -39,7 +39,7 @@ def is_url(url, check=True):
     return False
 
 
-def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX')):
+def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), progress=True):
     """
     Zips the contents of a directory, excluding files containing strings in the exclude list.
     The resulting zip file is named after the directory and placed alongside it.
@@ -48,6 +48,7 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX')):
         directory (str | Path): The path to the directory to be zipped.
         compress (bool): Whether to compress the files while zipping. Default is True.
         exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
+        progress (bool, optional): Whether to display a progress bar. Defaults to True.
 
     Returns:
         (Path): The path to the resulting zip file.
@@ -72,14 +73,14 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX')):
     zip_file = directory.with_suffix('.zip')
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, 'w', compression) as f:
-        for file_path in tqdm(files_to_zip, desc="Zipping files", unit="file"):
+        for file_path in tqdm(files_to_zip, desc=f'Zipping files to {zip_file}', unit='file', disable=not progress):
             rel_path = file_path.relative_to(directory)
             f.write(file_path, rel_path)
 
     return zip_file  # return path to zip file
 
 
-def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=False):
+def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=False, progress=True):
     """
     Unzips a *.zip file to the specified path, excluding files containing strings in the exclude list.
 
@@ -92,12 +93,20 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         path (str, optional): The path to extract the zipfile to. Defaults to None.
         exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
         exist_ok (bool, optional): Whether to overwrite existing contents if they exist. Defaults to False.
+        progress (bool, optional): Whether to display a progress bar. Defaults to True.
 
     Raises:
         BadZipFile: If the provided file does not exist or is not a valid zipfile.
 
     Returns:
         (Path): The path to the directory where the zipfile was extracted.
+
+    Example:
+        ```python
+        from ultralytics.utils.downloads import unzip_file
+
+        dir = unzip_file('path/to/file.zip')
+        ```
     """
     from zipfile import BadZipFile, ZipFile, is_zipfile
 
@@ -121,7 +130,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
             LOGGER.info(f'Skipping {file} unzip (already unzipped)')
             return path
 
-        for f in file_list:
+        for f in tqdm(file_list, desc=f'Unzipping files to {Path(path).absolute()}', unit='file', disable=not progress):
             zipObj.extract(f, path=path)
 
     return path  # return unzip dir
@@ -173,6 +182,7 @@ def get_google_drive_file_info(link):
     Example:
         ```python
         from ultralytics.utils.downloads import get_google_drive_file_info
+
         link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
         url, filename = get_google_drive_file_info(link)
         ```

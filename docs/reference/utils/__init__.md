@@ -58,6 +58,10 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 <br><br>
 
 ---
+## ::: ultralytics.utils.is_ubuntu
+<br><br>
+
+---
 ## ::: ultralytics.utils.is_colab
 <br><br>
 
@@ -111,6 +115,10 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 
 ---
 ## ::: ultralytics.utils.get_default_args
+<br><br>
+
+---
+## ::: ultralytics.utils.get_ubuntu_version
 <br><br>
 
 ---

@@ -192,9 +192,8 @@ def get_google_drive_file_info(link):
     with requests.Session() as session:
         response = session.get(drive_url, stream=True)
         if 'quota exceeded' in str(response.content.lower()):
-            raise ConnectionError(
-                emojis(f'❌  Google Drive file download quota exceeded. '
-                       f'Please try again later or download this file manually at {link}.'))
+            raise ConnectionError(emojis(f'❌  Google Drive file download quota exceeded. '
+                                         f'Please try again later or download this file manually at {link}.'))
         token = None
         for key, value in response.cookies.items():
             if key.startswith('download_warning'):
@@ -244,14 +243,8 @@ def safe_download(url,
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
         assert dir or file, 'dir or file required for download'
-
-        if gdrive:
-            f = dir / file if dir else Path(file)
-            desc = f"Downloading {url} to '{f}'"
-        else:
-            f = dir / url2file(url) if dir else Path(file)
-            desc = f"Downloading {clean_url(url)} to '{f}'"
-
+        f = dir / (file if gdrive else url2file(url)) if dir else Path(file)
+        desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url)

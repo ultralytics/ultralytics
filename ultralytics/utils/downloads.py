@@ -62,19 +62,16 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX')):
     from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
     directory = Path(directory)
-
     if not directory.is_dir():
         raise FileNotFoundError(f"Directory '{directory}' does not exist.")
 
-    # Get a list of all files to be zipped for progress estimation
+    # Unzip with progress bar
     files_to_zip = [f for f in directory.rglob('*') if f.is_file() and not any(x in f.name for x in exclude)]
-
     zip_file = directory.with_suffix('.zip')
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, 'w', compression) as f:
         for file_path in tqdm(files_to_zip, desc='Zipping files', unit='file'):
-            rel_path = file_path.relative_to(directory)
-            f.write(file_path, rel_path)
+            f.write(file_path, file_path.relative_to(directory))
 
     return zip_file  # return path to zip file
 

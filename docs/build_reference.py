@@ -49,7 +49,7 @@ def create_markdown(py_filepath, module_path, classes, functions):
     url = f'https://github.com/ultralytics/ultralytics/blob/main/{module_path}.py'
     title_content = (f'# Reference for `{module_path}.py`\n\n'
                      f'!!! note\n\n'
-                     f'    Full source code for this file is available at [{url}]({url}). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!\n\n')
+                     f'    Full source code for this file is available at [{url}]({url}). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!\n\n')
     md_content = [f'---\n## ::: {module_name}.{class_name}\n<br><br>\n' for class_name in classes]
     md_content.extend(f'---\n## ::: {module_name}.{func_name}\n<br><br>\n' for func_name in functions)
     md_content = header_content + title_content + '\n'.join(md_content)

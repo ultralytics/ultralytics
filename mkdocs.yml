@@ -182,6 +182,7 @@ nav:
           - COCO8: datasets/detect/coco8.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - Objects365: datasets/detect/objects365.md
+          - OpenImagesV7: datasets/detect/open-images-v7.md
           - SKU-110K: datasets/detect/sku-110k.md
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md

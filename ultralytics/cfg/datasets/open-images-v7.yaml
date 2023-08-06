@@ -637,8 +637,8 @@ download: |
       dataset = foz.load_zoo_dataset(name,
                                      split=split,
                                      label_types=['detections'],
-                                     # dataset_dir=USER_CONFIG_DIR / 'datasets' / name,
-                                     dataset_dir=Path('../datasets/fiftyone') / name,
+                                     # dataset_dir=Path(SETTINGS['datasets_dir']) / 'fiftyone' / name,
+                                     dataset_dir=Path(SETTINGS['datasets_dir']) / name,
                                      max_samples=round((1743042 if train else 41620) * fraction))
 
       # Define classes

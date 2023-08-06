@@ -34,6 +34,9 @@ def bbox_iou(box1, boxes, iou_thres=0.9, image_shape=(640, 640), raw_output=Fals
     Args:
         box1 (torch.Tensor): (4, )
         boxes (torch.Tensor): (n, 4)
+        iou_thres (float): IoU threshold
+        image_shape (tuple): (height, width)
+        raw_output (bool): If True, return the raw IoU values instead of the indices
 
     Returns:
         high_iou_indices (torch.Tensor): Indices of boxes with IoU > thres

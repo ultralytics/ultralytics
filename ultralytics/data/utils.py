@@ -209,8 +209,12 @@ def check_det_dataset(dataset, autodownload=True):
     # Checks
     for k in 'train', 'val':
         if k not in data:
-            raise SyntaxError(
-                emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs."))
+            if k == 'val' and 'validation' in data:
+                LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
+                data['val'] = data.pop('validation')  # replace 'validation' key with 'val' key
+            else:
+                raise SyntaxError(
+                    emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs."))
     if 'names' not in data and 'nc' not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if 'names' in data and 'nc' in data and len(data['names']) != data['nc']:
@@ -251,14 +255,14 @@ def check_det_dataset(dataset, autodownload=True):
                 m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_YAML}'"
                 raise FileNotFoundError(m)
             t = time.time()
+            r = None  # success
             if s.startswith('http') and s.endswith('.zip'):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
-                r = None  # success
             elif s.startswith('bash '):  # bash script
                 LOGGER.info(f'Running {s} ...')
                 r = os.system(s)
             else:  # python script
-                r = exec(s, {'yaml': data})  # return None
+                exec(s, {'yaml': data})
             dt = f'({round(time.time() - t, 1)}s)'
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in (0, None) else f'failure {dt} ❌'
             LOGGER.info(f'Dataset download {s}\n')

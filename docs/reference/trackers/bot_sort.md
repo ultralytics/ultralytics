@@ -7,7 +7,7 @@ keywords: Ultralytics, BOTSORT, BOTrack, tracking system, official documentation
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/bot_sort.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/bot_sort.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/bot_sort.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/bot_sort.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.trackers.bot_sort.BOTrack

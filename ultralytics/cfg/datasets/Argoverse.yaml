@@ -63,7 +63,7 @@ download: |
 
   # Download Argoverse-HD-Full.zip
   dir = Path(yaml['path'])  # dataset root dir
-  urls = ['https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link']
+  urls = ['https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link']
   download(urls, dir=dir)
 
   # Convert

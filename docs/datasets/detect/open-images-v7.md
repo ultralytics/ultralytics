@@ -92,11 +92,11 @@ Researchers can gain invaluable insights into the array of computer vision chall
 For those employing Open Images V7 in their work, it's prudent to cite the relevant papers and acknowledge the creators:
 
 ```bibtex
-@article{openimagesv7,
-  title={Open Images V7: A Unified Dataset for Computer Vision Challenges},
-  author={Google AI Team},
-  year={2022},
-  journal={Google AI Blog}
+@article{OpenImages,
+  author = {Alina Kuznetsova and Hassan Rom and Neil Alldrin and Jasper Uijlings and Ivan Krasin and Jordi Pont-Tuset and Shahab Kamali and Stefan Popov and Matteo Malloci and Alexander Kolesnikov and Tom Duerig and Vittorio Ferrari},
+  title = {The Open Images Dataset V4: Unified image classification, object detection, and visual relationship detection at scale},
+  year = {2020},
+  journal = {IJCV}
 }
 ```
 

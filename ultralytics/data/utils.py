@@ -191,7 +191,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     return masks, index
 
 
-def check_det_dataset(dataset, autodownload=True, args=None):
+def check_det_dataset(dataset, autodownload=True):
     """Download, check and/or unzip dataset if not found locally."""
     data = check_file(dataset)
 
@@ -262,7 +262,7 @@ def check_det_dataset(dataset, autodownload=True, args=None):
                 LOGGER.info(f'Running {s} ...')
                 r = os.system(s)
             else:  # python script
-                exec(s, {'yaml': data, 'args': args})
+                exec(s, {'yaml': data})
             dt = f'({round(time.time() - t, 1)}s)'
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in (0, None) else f'failure {dt} ❌'
             LOGGER.info(f'Dataset download {s}\n')

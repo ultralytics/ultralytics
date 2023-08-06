@@ -629,7 +629,7 @@ download: |
   import warnings
 
   name = 'open-images-v7'
-  fraction = args.fraction if args else 1.0  # fraction of full dataset to use
+  fraction = 1.0  # fraction of full dataset to use
   for split in 'train', 'validation':  # 1743042 train, 41620 val images
       train = split == 'train'
 

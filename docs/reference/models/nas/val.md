@@ -7,7 +7,7 @@ keywords: Ultralytics, NASValidator, models.nas.val.NASValidator, AI models, all
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/nas/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/nas/val.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/nas/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/nas/val.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.nas.val.NASValidator

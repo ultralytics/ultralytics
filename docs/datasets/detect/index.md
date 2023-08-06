@@ -32,7 +32,7 @@ names:
   79: toothbrush
 ```
 
-Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 - 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
+Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
 <p align="center"><img width="750" src="https://user-images.githubusercontent.com/26833433/91506361-c7965000-e886-11ea-8291-c72b98c25eec.jpg"></p>
 
@@ -59,13 +59,13 @@ Here's how you can use these formats to train your model:
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        model.train(data='coco8.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -77,6 +77,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [**COCO8**](./coco8.md): A smaller subset of the COCO dataset, COCO8 is more lightweight and faster to train.
 - [**GlobalWheat2020**](./globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [**Objects365**](./objects365.md): A large-scale object detection dataset with 365 object categories and 600k images, aimed at advancing object detection research.
+- [**OpenImagesV7**](./open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
 - [**SKU-110K**](./sku-110k.md): A dataset containing images of densely packed retail products, intended for retail environment object detection.
 - [**VisDrone**](./visdrone.md): A dataset focusing on drone-based images, containing various object categories like cars, pedestrians, and cyclists.
 - [**VOC**](./voc.md): PASCAL VOC is a popular object detection dataset with 20 object categories including vehicles, animals, and furniture.

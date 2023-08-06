@@ -359,6 +359,19 @@ DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
+def is_ubuntu() -> bool:
+    """
+    Check if the OS is Ubuntu.
+
+    Returns:
+        (bool): True if OS is Ubuntu, False otherwise.
+    """
+    with contextlib.suppress(FileNotFoundError):
+        with open('/etc/os-release') as f:
+            return 'ID=ubuntu' in f.read()
+    return False
+
+
 def is_colab():
     """
     Check if the current script is running inside a Google Colab notebook.
@@ -548,6 +561,19 @@ def get_default_args(func):
     """
     signature = inspect.signature(func)
     return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
+
+
+def get_ubuntu_version():
+    """
+    Retrieve the Ubuntu version if the OS is Ubuntu.
+
+    Returns:
+        (str): Ubuntu version or None if not an Ubuntu OS.
+    """
+    with contextlib.suppress(FileNotFoundError, AttributeError):
+        with open('/etc/os-release') as f:
+            return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
+    return None
 
 
 def get_user_config_dir(sub_dir='Ultralytics'):

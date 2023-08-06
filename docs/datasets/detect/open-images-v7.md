@@ -52,9 +52,12 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an im
 
 !!! warning
 
-    The full Open Images V7 dataset is composed of 1743042 train images and 41620 validation images, and will occupy about **561 GB of storage space** when downloaded. 
-
-    The below commands will automatically start downloading the full dataset when run if it is not found locally, therefore we recommend proceeding with caution and ensuring your device has sufficient storage space and a fast internet connection to download the dataset before running the below command.
+    The complete Open Images V7 dataset comprises 1,743,042 training images and 41,620 validation images, requiring approximately **561 GB of storage space** upon download.
+    
+    Executing the commands provided below will trigger an automatic download of the full dataset if it's not already present locally. Before running the below example it's crucial to:
+    
+    - Verify that your device has enough storage capacity.
+    - Ensure a robust and speedy internet connection.
 
 !!! example "Train Example"
 

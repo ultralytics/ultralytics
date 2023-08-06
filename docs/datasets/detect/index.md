@@ -32,7 +32,7 @@ names:
   79: toothbrush
 ```
 
-Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 - 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
+Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
 <p align="center"><img width="750" src="https://user-images.githubusercontent.com/26833433/91506361-c7965000-e886-11ea-8291-c72b98c25eec.jpg"></p>
 
@@ -59,13 +59,13 @@ Here's how you can use these formats to train your model:
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        model.train(data='coco8.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets

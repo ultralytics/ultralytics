@@ -214,8 +214,8 @@ class Exporter:
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else \
             tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
-        trained_on = f'trained on {Path(self.args.data).name}' if self.args.data else '(untrained)'
-        description = f'Ultralytics {self.pretty_name} model {trained_on}'
+        data = model.args['data'] if hasattr(model, 'args') and isinstance(model.args, dict) else ''
+        description = f'Ultralytics {self.pretty_name} model {f"trained on {data}" if data else ""}'
         self.metadata = {
             'description': description,
             'author': 'Ultralytics',
@@ -269,13 +269,12 @@ class Exporter:
             s = '' if square else f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not " \
                                   f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
-            data = f'data={self.args.data}' if model.task == 'segment' and format == 'pb' else ''
-            LOGGER.info(
-                f'\nExport complete ({time.time() - t:.1f}s)'
-                f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {data}'
-                f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={self.args.data} {s}'
-                f'\nVisualize:       https://netron.app')
+            predict_data = f'data={data}' if model.task == 'segment' and format == 'pb' else ''
+            LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
+                        f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                        f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {predict_data}'
+                        f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {s}'
+                        f'\nVisualize:       https://netron.app')
 
         self.run_callbacks('on_export_end')
         return f  # return list of exported files/dirs
@@ -612,7 +611,7 @@ class Exporter:
                 for n, batch in enumerate(dataset):
                     if n >= n_images:
                         break
-                    im = batch['img'].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC,
+                    im = batch['img'].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC
                     images.append(im)
                 f.mkdir()
                 images = torch.cat(images, 0).float()

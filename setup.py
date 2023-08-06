@@ -39,6 +39,7 @@ setup(
     install_requires=REQUIREMENTS,
     extras_require={
         'dev': [
+            'ipython',
             'check-manifest',
             'pytest',
             'pytest-cov',

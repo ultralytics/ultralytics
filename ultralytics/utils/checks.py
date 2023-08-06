@@ -90,55 +90,61 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 
 def check_version(current: str = '0.0.0',
-                  minimum: str = '0.0.0',
-                  maximum: str = None,
+                  required: str = '0.0.0',
                   name: str = 'version ',
-                  pinned: bool = False,
                   hard: bool = False,
                   verbose: bool = False) -> bool:
     """
-    Check current version against the required minimum and/or maximum version.
+    Check current version against the required version or range.
 
     Args:
         current (str): Current version.
-        minimum (str): Required minimum version.
-        maximum (str, optional): Required maximum version.
+        required (str): Required version or range (in pip-style format).
         name (str): Name to be used in warning message.
-        pinned (bool): If True, versions must match exactly. If False, minimum version must be satisfied.
-        hard (bool): If True, raise an AssertionError if the minimum or maximum version is not met.
-        verbose (bool): If True, print warning message if minimum or maximum version is not met.
+        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool): If True, print warning message if requirement is not met.
 
     Returns:
-        (bool): True if minimum and maximum versions are met, False otherwise.
+        (bool): True if requirement is met, False otherwise.
 
     Example:
-        ```python
-        # Check if current version is exactly 22.04
-        check_version(current='22.04', minimum='22.04', pinned=True)
+        # check if current version is exactly 22.04
+        check_version(current='22.04', required='==22.04')
 
-        # Check if current version is greater than or equal to 22.04
-        check_version(current='22.10', minimum='22.04')
+        # check if current version is greater than or equal to 22.04
+        check_version(current='22.10', required='22.04')  # assumes '>=' inequality if none passed
 
-        # Check if current version is less than or equal to 22.04
-        check_version(current='22.04', maximum='22.04')
+        # check if current version is less than or equal to 22.04
+        check_version(current='22.04', required='<=22.04')
 
-        # Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
-        check_version(current='21.10', minimum='20.04', maximum='22.04')
-        ```
+        # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        check_version(current='21.10', required='>20.04,<22.04')
     """
     current = pkg.parse_version(current)
-    minimum = pkg.parse_version(minimum)
-    maximum = pkg.parse_version(maximum) if maximum else None
-    if pinned:
-        result = (current == minimum)
-    else:
-        result = (current >= minimum) and (current <= maximum if maximum else True)
-    version_message = f'a version between {minimum} and {maximum}' if maximum else f'a minimum version {minimum}'
-    warning_message = f'WARNING ⚠️ {name} requires {version_message}, but {name}{current} is currently installed.'
-    if hard:
-        assert result, emojis(warning_message)  # assert version requirements met
-    if verbose and not result:
-        LOGGER.warning(warning_message)
+    constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
+
+    result = True
+    for constraint in constraints:
+        op, version = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
+        version = pkg.parse_version(version)
+        if op == '==' and current != version:
+            result = False
+        elif op == '!=' and current == version:
+            result = False
+        elif op == '>=' and not (current >= version):
+            result = False
+        elif op == '<=' and not (current <= version):
+            result = False
+        elif op == '>' and not (current > version):
+            result = False
+        elif op == '<' and not (current < version):
+            result = False
+    if not result:
+        warning_message = f'WARNING ⚠️ {name}{required} is required, but {name}{current} is currently installed'
+        if hard:
+            raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
+        if verbose:
+            LOGGER.warning(warning_message)
     return result
 
 

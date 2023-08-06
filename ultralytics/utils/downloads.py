@@ -283,13 +283,11 @@ def safe_download(url,
         from zipfile import is_zipfile
 
         unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
-        LOGGER.info(f'Unzipping {f} to {unzip_dir.absolute()}...')
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir)  # unzip
-        elif f.suffix == '.tar':
-            subprocess.run(['tar', 'xf', f, '--directory', unzip_dir], check=True)  # unzip
-        elif f.suffix == '.gz':
-            subprocess.run(['tar', 'xfz', f, '--directory', unzip_dir], check=True)  # unzip
+        elif f.suffix in ('.tar', '.gz'):
+            LOGGER.info(f'Unzipping {f} to {unzip_dir.resolve()}...')
+            subprocess.run(['tar', 'xf' if f.suffix == '.tar' else 'xfz', f, '--directory', unzip_dir], check=True)
         if delete:
             f.unlink()  # remove zip
         return unzip_dir

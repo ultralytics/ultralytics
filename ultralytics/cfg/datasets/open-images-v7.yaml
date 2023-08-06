@@ -620,7 +620,7 @@ names:
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
-  from ultralytics.utils import SETTINGS, Path, is_ubuntu, get_ubuntu_version
+  from ultralytics.utils import LOGGER, SETTINGS, Path, is_ubuntu, get_ubuntu_version
   from ultralytics.utils.checks import check_requirements, check_version
   
   check_requirements('fiftyone')
@@ -634,6 +634,7 @@ download: |
   
   name = 'open-images-v7'
   fraction = 1.0  # fraction of full dataset to use
+  LOGGER.warning('WARNING ⚠️ Open Images V7 dataset requires at least **561 GB of free space. Starting download...')
   for split in 'train', 'validation':  # 1743042 train, 41620 val images
       train = split == 'train'
   

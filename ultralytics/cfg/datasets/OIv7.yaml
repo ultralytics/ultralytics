@@ -1,16 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Open Images v7 dataset https://storage.googleapis.com/openimages/web/index.html by Google
-# Example usage: yolo train data=OIv7.yaml
+# Example usage: yolo train data=open-images-v7.yaml
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── OIv7  ← downloads here (561 GB)
+#     └── open-images-v7  ← downloads here (561 GB)
 
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/OIv7  # dataset root dir
+path: ../datasets/open-images-v7  # dataset root dir
 train: images/train  # train images (relative to 'path') 4 images
-val: images/val  # val images (relative to 'path') 4 images
+val: images/validation  # val images (relative to 'path') 4 images
 test:  # test images (optional)
 
 # Classes
@@ -620,27 +620,29 @@ names:
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
-  from ultralytics.utils import SETTINGS, Path, checks
-
+  from ultralytics.utils import SETTINGS, USER_CONFIG_DIR, Path, checks
+  
   checks.check_requirements('fiftyone')
-
+  
   import fiftyone as fo
   import fiftyone.zoo as foz
-
+  
   # Load Open Images dataset
-  dataset = foz.load_zoo_dataset("open-images-v7",
-                                 splits=["train", "validation"],
-                                 label_types=["detections"],
-                                 max_samples=1000)
-
+  name = 'open-images-v7'
+  dataset = foz.load_zoo_dataset(name,
+                                 splits=['train', 'validation'],
+                                 label_types=['detections'],
+                                 dataset_dir=USER_CONFIG_DIR / 'datasets' / name,
+                                 max_samples=100)
+  
   # Export to YOLO format
   # classes = dataset.default_classes  # all classes
-  classes = dataset.distinct("ground_truth.detections.label")  # only observed classes
-  for split in ("train", "validation"):
+  classes = dataset.distinct('ground_truth.detections.label')  # only observed classes
+  for split in 'train', 'validation':
       view = dataset.match_tags(split)
-      view.export(export_dir=str(Path(SETTINGS['datasets_dir']) / "OIv7"),
+      view.export(export_dir=str(Path(SETTINGS['datasets_dir']) / name),
                   dataset_type=fo.types.YOLOv5Dataset,
-                  label_field="ground_truth",
+                  label_field='ground_truth',
                   split=split,
                   classes=classes,
-                  overwrite=split == "train")
+                  overwrite=split == 'train')

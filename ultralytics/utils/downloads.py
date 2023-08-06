@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import re
 import shutil
 import subprocess
 from itertools import repeat
@@ -117,6 +118,43 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
     return True
 
 
+def get_google_drive_file_info(link):
+    """
+    Retrieves the direct download link and filename for a shareable Google Drive file link.
+
+    Args:
+        link (str): The shareable link of the Google Drive file.
+
+    Returns:
+        (str): Direct download URL for the Google Drive file.
+        (str): Original filename of the Google Drive file. If filename extraction fails, returns None.
+
+    Example:
+        ```python
+        from ultralytics.utils.downloads import get_google_drive_file_info
+        link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
+        url, filename = get_google_drive_file_info(link)
+        ```
+    """
+    file_id = link.split('/d/')[1].split('/view')[0]
+    drive_url = f'https://drive.google.com/uc?export=download&id={file_id}'
+
+    # Start session
+    filename = None
+    with requests.Session() as session:
+        response = session.get(drive_url, stream=True)
+        token = None
+        for key, value in response.cookies.items():
+            if key.startswith('download_warning'):
+                token = value
+        if token:
+            drive_url = f"https://drive.google.com/uc?export=download&confirm={token}&id={file_id}"
+        cd = response.headers.get('content-disposition')
+        if cd:
+            filename = re.findall('filename="(.+)"', cd)[0]
+    return drive_url, filename
+
+
 def safe_download(url,
                   file=None,
                   dir=None,
@@ -143,6 +181,11 @@ def safe_download(url,
             a successful download. Default: 1E0.
         progress (bool, optional): Whether to display a progress bar during the download. Default: True.
     """
+
+    # Check if the URL is a Google Drive link
+    if "drive.google.com" in url:
+        url, file = get_google_drive_file_info(url)
+
     f = dir / url2file(url) if dir else Path(file)  # URL converted to filename
     if '://' not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename

@@ -466,6 +466,7 @@ class Exporter:
         """YOLOv8 CoreML export."""
         check_requirements('coremltools>=7.0.b1')
         import coremltools as ct  # noqa
+        import coremltools.optimize.coreml as cto
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlpackage')
@@ -489,11 +490,13 @@ class Exporter:
                               inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
                               classifier_config=classifier_config,
                               convert_to='mlprogram')  # or convert_to='neuralnetwork' for *.mlmodel
-        bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
+        bits, mode = (8, 'kmeans') if self.args.int8 else (32, None)
         if bits < 32:
             if 'kmeans' in mode:
                 check_requirements('scikit-learn')  # scikit-learn package required for k-means quantization
-            ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
+            op_config = cto.OpPalettizerConfig(mode=mode, nbits=bits, weight_threshold=512)
+            config = cto.OptimizationConfig(global_config=op_config)
+            ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == 'detect':
             ct_model = self._pipeline_coreml(ct_model)
 

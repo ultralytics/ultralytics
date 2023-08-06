@@ -66,17 +66,17 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an im
         ```python
         from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        # Load a COCO-pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')
 
-        # Train the model
+        # Train the model on the Open Images V7 dataset
         model.train(data='open-images-v7.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Start training from a pretrained *.pt model
+        # Train a COCO-pretrained YOLOv8n model on the Open Images V7 dataset
         yolo detect train data=open-images-v7.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 

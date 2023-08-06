@@ -8,7 +8,6 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
-from zipfile import BadZipFile, ZipFile, is_zipfile
 
 import requests
 import torch
@@ -40,6 +39,46 @@ def is_url(url, check=True):
     return False
 
 
+def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX')):
+    """
+    Zips the contents of a directory, excluding files containing strings in the exclude list.
+    The resulting zip file is named after the directory and placed alongside it.
+
+    Args:
+        directory (str | Path): The path to the directory to be zipped.
+        compress (bool): Whether to compress the files while zipping. Default is True.
+        exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
+
+    Returns:
+        (Path): The path to the resulting zip file.
+
+    Example:
+        ```python
+        from ultralytics.utils.downloads import zip_directory
+
+        file = zip_directory('path/to/dir')
+        ```
+    """
+    from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
+
+    directory = Path(directory)
+
+    if not directory.is_dir():
+        raise FileNotFoundError(f"Directory '{directory}' does not exist.")
+
+    # Get a list of all files to be zipped for progress estimation
+    files_to_zip = [f for f in directory.rglob('*') if f.is_file() and not any(x in f.name for x in exclude)]
+
+    zip_file = directory.with_suffix('.zip')
+    compression = ZIP_DEFLATED if compress else ZIP_STORED
+    with ZipFile(zip_file, 'w', compression) as f:
+        for file_path in tqdm(files_to_zip, desc="Zipping files", unit="file"):
+            rel_path = file_path.relative_to(directory)
+            f.write(file_path, rel_path)
+
+    return zip_file  # return path to zip file
+
+
 def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=False):
     """
     Unzips a *.zip file to the specified path, excluding files containing strings in the exclude list.
@@ -60,6 +99,8 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
     Returns:
         (Path): The path to the directory where the zipfile was extracted.
     """
+    from zipfile import BadZipFile, ZipFile, is_zipfile
+
     if not (Path(file).exists() and is_zipfile(file)):
         raise BadZipFile(f"File '{file}' does not exist or is a bad zip file.")
     if path is None:
@@ -232,6 +273,8 @@ def safe_download(url,
                 LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
 
     if unzip and f.exists() and f.suffix in ('', '.zip', '.tar', '.gz'):
+        from zipfile import is_zipfile
+
         unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
         LOGGER.info(f'Unzipping {f} to {unzip_dir.absolute()}...')
         if is_zipfile(f):

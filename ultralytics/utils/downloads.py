@@ -148,7 +148,7 @@ def get_google_drive_file_info(link):
             if key.startswith('download_warning'):
                 token = value
         if token:
-            drive_url = f"https://drive.google.com/uc?export=download&confirm={token}&id={file_id}"
+            drive_url = f'https://drive.google.com/uc?export=download&confirm={token}&id={file_id}'
         cd = response.headers.get('content-disposition')
         if cd:
             filename = re.findall('filename="(.+)"', cd)[0]
@@ -183,7 +183,7 @@ def safe_download(url,
     """
 
     # Check if the URL is a Google Drive link
-    if "drive.google.com" in url:
+    if 'drive.google.com' in url:
         url, file = get_google_drive_file_info(url)
 
     f = dir / url2file(url) if dir else Path(file)  # URL converted to filename

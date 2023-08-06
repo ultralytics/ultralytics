@@ -214,7 +214,8 @@ class Exporter:
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else \
             tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
-        trained_on = f'trained on {Path(self.args.data).name}' if self.args.data else '(untrained)'
+        trained_on = f'trained on {Path(model.args["data"]).name}' if (hasattr(model, 'args')
+                                                                       and model.args['data']) else ''
         description = f'Ultralytics {self.pretty_name} model {trained_on}'
         self.metadata = {
             'description': description,

@@ -14,11 +14,19 @@ keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_g
 <br><br>
 
 ---
+## ::: ultralytics.utils.downloads.zip_directory
+<br><br>
+
+---
 ## ::: ultralytics.utils.downloads.unzip_file
 <br><br>
 
 ---
 ## ::: ultralytics.utils.downloads.check_disk_space
+<br><br>
+
+---
+## ::: ultralytics.utils.downloads.get_google_drive_file_info
 <br><br>
 
 ---

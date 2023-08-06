@@ -630,7 +630,7 @@ download: |
 
   name = 'open-images-v7'
   fraction = 0.10  # fraction of full dataset to use
-  for split in 'train', 'validation':  # 1743042 train images, 41620 val images
+  for split in 'train', 'validation':  # 1743042 train, 41620 val images
       train = split == 'train'
 
       # Load Open Images dataset

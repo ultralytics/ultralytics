@@ -72,7 +72,7 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX')):
     zip_file = directory.with_suffix('.zip')
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, 'w', compression) as f:
-        for file_path in tqdm(files_to_zip, desc="Zipping files", unit="file"):
+        for file_path in tqdm(files_to_zip, desc='Zipping files', unit='file'):
             rel_path = file_path.relative_to(directory)
             f.write(file_path, rel_path)
 

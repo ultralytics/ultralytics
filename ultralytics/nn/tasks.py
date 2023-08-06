@@ -169,11 +169,10 @@ class BaseModel(nn.Module):
 
     def _apply(self, fn):
         """
-        `_apply()` is a function that applies a function to all the tensors in the model that are not
-        parameters or registered buffers
+        Applies a function to all the tensors in the model that are not parameters or registered buffers.
 
         Args:
-            fn: the function to apply to the model
+            fn (function): the function to apply to the model
 
         Returns:
             A model that is a Detect() object.
@@ -187,7 +186,8 @@ class BaseModel(nn.Module):
         return self
 
     def load(self, weights, verbose=True):
-        """Load the weights into the model.
+        """
+        Load the weights into the model.
 
         Args:
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.

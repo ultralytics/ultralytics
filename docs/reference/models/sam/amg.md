@@ -7,7 +7,7 @@ keywords: Ultralytics, Mask Data, Transformation, Encoding, RLE encoding, Image 
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py). Help us fix any issues you see by submitting a [Pull Request](/help/contributing/) 🛠️. Thank you 🙏!
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.sam.amg.MaskData

@@ -621,30 +621,30 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   from ultralytics.utils import SETTINGS, USER_CONFIG_DIR, Path, checks
-  
+
   checks.check_requirements('fiftyone')
-  
+
   import fiftyone as fo
   import fiftyone.zoo as foz
   import warnings
-  
+
   name = 'open-images-v7'
   fraction = 0.10  # fraction of full dataset to use
   for split in 'train', 'validation':  # 1743042 train images, 41620 val images
       train = split == 'train'
-  
+
       # Load Open Images dataset
       dataset = foz.load_zoo_dataset(name,
                                      split=split,
                                      label_types=['detections'],
                                      dataset_dir=USER_CONFIG_DIR / 'datasets' / name,
                                      max_samples=round((1743042 if train else 41620) * fraction))
-  
+
       # Define classes
       if train:
           classes = dataset.default_classes  # all classes
           # classes = dataset.distinct('ground_truth.detections.label')  # only observed classes
-  
+
       # Export to YOLO format
       with warnings.catch_warnings():
           warnings.filterwarnings("ignore", category=UserWarning, module="fiftyone.utils.yolo")

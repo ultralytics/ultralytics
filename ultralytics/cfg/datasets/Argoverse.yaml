@@ -70,4 +70,4 @@ download: |
   annotations_dir = 'Argoverse-HD/annotations/'
   (dir / 'Argoverse-1.1' / 'tracking').rename(dir / 'Argoverse-1.1' / 'images')  # rename 'tracking' to 'images'
   for d in "train.json", "val.json":
-      argoverse2yolo(dir / annotations_dir / d)  # convert VisDrone annotations to YOLO labels
+      argoverse2yolo(dir / annotations_dir / d)  # convert Argoverse annotations to YOLO labels

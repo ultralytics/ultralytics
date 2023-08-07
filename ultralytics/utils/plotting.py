@@ -11,7 +11,6 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
-from scipy.ndimage import gaussian_filter1d
 
 from ultralytics.utils import LOGGER, TryExcept, plt_settings, threaded
 
@@ -21,7 +20,8 @@ from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 
 
 class Colors:
-    """Ultralytics default color palette https://ultralytics.com/.
+    """
+    Ultralytics default color palette https://ultralytics.com/.
 
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
     RGB values.
@@ -59,7 +59,8 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
+    """
+    Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Attributes:
         im (Image.Image or numpy array): The image to annotate.
@@ -132,13 +133,15 @@ class Annotator:
                             lineType=cv2.LINE_AA)
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
-        """Plot masks at once.
+        """
+        Plot masks on image.
 
         Args:
-            masks (tensor): predicted masks on cuda, shape: [n, h, w]
-            colors (List[List[Int]]): colors for predicted masks, [[r, g, b] * n]
-            im_gpu (tensor): img is in cuda, shape: [3, h, w], range: [0, 1]
-            alpha (float): mask transparency: 0.0 fully transparent, 1.0 opaque
+            masks (tensor): Predicted masks on cuda, shape: [n, h, w]
+            colors (List[List[Int]]): Colors for predicted masks, [[r, g, b] * n]
+            im_gpu (tensor): Image is in cuda, shape: [3, h, w], range: [0, 1]
+            alpha (float): Mask transparency: 0.0 fully transparent, 1.0 opaque
+            retina_masks (bool): Whether to use high resolution masks or not. Defaults to False.
         """
         if self.pil:
             # Convert to numpy first
@@ -166,7 +169,8 @@ class Annotator:
             self.fromarray(self.im)
 
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
-        """Plot keypoints on the image.
+        """
+        Plot keypoints on the image.
 
         Args:
             kpts (tensor): Predicted keypoints with shape [17, 3]. Each keypoint has (x, y, confidence).
@@ -260,7 +264,7 @@ class Annotator:
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
-    """Save and plot image with no axis or spines."""
+    """Plot training labels including class histograms and box statistics."""
     import pandas as pd
     import seaborn as sn
 
@@ -269,9 +273,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
     # Plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
-    b = boxes.transpose()  # classes, boxes
     nc = int(cls.max() + 1)  # number of classes
-    x = pd.DataFrame(b.transpose(), columns=['x', 'y', 'width', 'height'])
+    boxes = boxes[:1000000]  # limit to 1M boxes
+    x = pd.DataFrame(boxes, columns=['x', 'y', 'width', 'height'])
 
     # Seaborn correlogram
     sn.pairplot(x, corner=True, diag_kind='auto', kind='hist', diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
@@ -493,8 +497,18 @@ def plot_images(images,
 
 @plt_settings()
 def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, classify=False, on_plot=None):
-    """Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')."""
+    """
+    Plot training results from results CSV file.
+
+    Example:
+        ```python
+        from ultralytics.utils.plotting import plot_results
+
+        plot_results('path/to/results.csv')
+        ```
+    """
     import pandas as pd
+    from scipy.ndimage import gaussian_filter1d
     save_dir = Path(file).parent if file else Path(dir)
     if classify:
         fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)

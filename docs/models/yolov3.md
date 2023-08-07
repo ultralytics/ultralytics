@@ -49,20 +49,30 @@ TODO
 
 ## Usage
 
-You can use these models for object detection tasks using the Ultralytics YOLOv3 repository. The following is a sample code snippet showing how to use the YOLOv3u model for inference:
+You can use YOLOv3 for object detection tasks using the Ultralytics repository. The following is a sample code snippet showing how to use YOLOv3 model for inference:
 
-```python
-from ultralytics import YOLO
+!!! example ""
 
-# Load the model
-model = YOLO('yolov3.pt')  # load a pretrained model
+    This example provides simple inference code for YOLOv3. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv3 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
-# Perform inference
-results = model('image.jpg')
+    === "Python"
 
-# Print the results
-results.print()
-```
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv3 model
+        model = YOLO('yolov3.pt')
+
+        # Run inference on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained YOLOv3 model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov3.pt source=path/to/bus.jpg
+        ```
 
 ## Citations and Acknowledgments
 

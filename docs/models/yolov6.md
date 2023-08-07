@@ -36,15 +36,30 @@ YOLOv6 also provides quantized models for different precisions and models optimi
 
 ## Usage
 
-### Python API
+You can use YOLOv6 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv6 models for training:
 
-```python
-from ultralytics import YOLO
+!!! example ""
 
-model = YOLO("yolov6n.yaml")  # build new model from scratch
-model.info()  # display model information
-model.predict("path/to/image.jpg")  # predict
-```
+    This example provides simple training code for YOLOv6. For more options including training settings see [Train](../modes/train.md) mode. For using YOLOv6 with additional modes see [Predict](../modes/predict.md), [Val](../modes/val.md) and [Export](../modes/export.md).
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Build a YOLOv6n model from scratch
+        model = YOLO('yolov6n.yaml')
+
+        # Train the model on the COCO8 exampel dataset
+        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Build a YOLOv6n model from scratch and train it on the COCO8 dataset for 100 epochs
+        yolo predict model=yolov6n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
 
 ### Supported Tasks
 

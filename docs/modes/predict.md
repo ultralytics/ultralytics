@@ -576,7 +576,7 @@ You can use the `plot()` method of a `Result` objects to visualize predictions. 
         im.save('results.jpg')  # save image
     ```
     
-    The `plot()` method has the following arguments available:
+    The `plot()` method supports the following arguments:
     
     | Argument     | Type            | Description                                                                    | Default       |
     |--------------|-----------------|--------------------------------------------------------------------------------|---------------|

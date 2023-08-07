@@ -17,32 +17,51 @@ In this documentation, we provide information on four major models:
 5. [YOLOv7](./yolov7.md): Updated YOLO models released in 2022 by the authors of YOLOv4.
 6. [YOLOv8](./yolov8.md): The latest version of the YOLO family, featuring enhanced capabilities such as instance segmentation, pose/keypoints estimation, and classification.
 7. [Segment Anything Model (SAM)](./sam.md): Meta's Segment Anything Model (SAM).
-7. [Mobile Segment Anything Model (MobileSAM)](./mobile-sam.md): MobileSAM for mobile applications by Kyung Hee University.
-8. [Fast Segment Anything Model (FastSAM)](./fast-sam.md): FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
-9. [YOLO-NAS](./yolo-nas.md): YOLO Neural Architecture Search (NAS) Models.
-10. [Realtime Detection Transformers (RT-DETR)](./rtdetr.md): Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.
+8. [Mobile Segment Anything Model (MobileSAM)](./mobile-sam.md): MobileSAM for mobile applications by Kyung Hee University.
+9. [Fast Segment Anything Model (FastSAM)](./fast-sam.md): FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
+10. [YOLO-NAS](./yolo-nas.md): YOLO Neural Architecture Search (NAS) Models.
+11. [Realtime Detection Transformers (RT-DETR)](./rtdetr.md): Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.
 
 You can use many of these models directly in the Command Line Interface (CLI) or in a Python environment. Below are examples of how to use the models with CLI and Python:
 
-## CLI Example
+## Usage
 
-Use the `model` argument to pass a model YAML such as `model=yolov8n.yaml` or a pretrained *.pt file such as `model=yolov8n.pt`
+You can use RT-DETR for object detection tasks using the `ultralytics` pip package. The following is a sample code snippet showing how to use RT-DETR models for training and inference:
 
-```bash
-yolo task=detect mode=train model=yolov8n.pt data=coco128.yaml epochs=100
-```
+!!! example ""
 
-## Python Example
+    This example provides simple inference code for YOLO, SAM and RTDETR models. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using models with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
-PyTorch pretrained models as well as model YAML files can also be passed to the `YOLO()`, `SAM()`, `NAS()` and `RTDETR()` classes to create a model instance in python:
+    === "Python"
 
-```python
-from ultralytics import YOLO
+        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()`, `SAM()`, `NAS()` and `RTDETR()` classes to create a model instance in python:
 
-model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n model
+        ```python
+        from ultralytics import YOLO
 
-model.info()  # display model information
-model.train(data="coco128.yaml", epochs=100)  # train the model
-```
+        # Load a COCO-pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results model.train(data='coco8.yaml', epochs=100, imgsz=640)
+
+        # Run inference with the YOLOv8n model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Load a COCO-pretrained YOLOv8n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+
+        # Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        ```
 
 For more details on each model, their supported tasks, modes, and performance, please visit their respective documentation pages linked above.

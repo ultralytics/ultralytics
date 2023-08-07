@@ -209,7 +209,7 @@ class Results(SimpleClass):
             results = model('bus.jpg')  # results list
             for r in results:
                 im_array = r.plot()  # plot a BGR numpy array of predictions
-                im = Image.fromarray(im[..., ::-1])  # RGB PIL image
+                im = Image.fromarray(im_array[..., ::-1])  # RGB PIL image
                 im.show()  # show image
                 im.save('results.jpg')  # save image
             ```
@@ -221,12 +221,12 @@ class Results(SimpleClass):
         if 'show_conf' in kwargs:
             deprecation_warn('show_conf', 'conf')
             conf = kwargs['show_conf']
-            assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
+            assert isinstance(conf, bool), '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
         if 'line_thickness' in kwargs:
             deprecation_warn('line_thickness', 'line_width')
             line_width = kwargs['line_thickness']
-            assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'
+            assert isinstance(line_width, int), '`line_width` should be of int type, i.e, line_width=3'
 
         names = self.names
         pred_boxes, show_boxes = self.boxes, boxes

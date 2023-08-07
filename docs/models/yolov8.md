@@ -85,7 +85,7 @@ You can use YOLOv8 for object detection tasks using the Ultralytics pip package.
 
 !!! example ""
 
-    This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md). For using YOLOv8 with additional modes see [Train](../models/train.md), [Val](../models/val.md) and [Export](../models/export.md).
+    This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv8 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
     === "Python"
 

@@ -45,31 +45,22 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
         # Display model information (optional)
         model.info()
 
-        # Train the model on the COCO8 example dataset
-        results model.train(data='coco8.yaml')
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # Run inference with the RT-DETR-l model on the 'bus.jpg' image for 100 epochs
-        results = model('path/to/bus.jpg', epochs=100, imgsz=640)
+        # Run inference with the RT-DETR-l model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
         ```
 
     === "CLI"
 
-        ```bash
-        # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
-        yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
-
+        ```bash        
         # Load a COCO-pretrained RT-DETR-l model and train it on the COCO8 example dataset for 100 epochs
         yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
+
+        # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
+        yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
-
-```python
-from ultralytics import RTDETR
-
-model = RTDETR("rtdetr-l.pt")
-model.info()  # display model information
-model.train(data="coco8.yaml")  # train
-model.predict("path/to/image.jpg")  # predict
-```
 
 ### Supported Tasks
 
@@ -86,7 +77,7 @@ model.predict("path/to/image.jpg")  # predict
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
 
-# Citations and Acknowledgements
+## Citations and Acknowledgements
 
 If you use Baidu's RT-DETR in your research or development work, please cite the [original paper](https://arxiv.org/abs/2304.08069):
 

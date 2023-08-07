@@ -40,40 +40,17 @@ Ultralytics has made YOLO-NAS models easy to integrate into your Python applicat
 
 The following examples show how to use YOLO-NAS models with the `ultralytics` package for inference and validation:
 
-### Inference Example
-
-!!! example ""
-
-    This example provides simple inference code for YOLO-NAS. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS is not supported for training.
-
-    === "Python"
-
-        ```python
-        from ultralytics import NAS
-
-        # Load a COCO-pretrained YOLO-NAS-s model
-        model = NAS('yolo_nas_s.pt')
-
-        # Run inference on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image
-        yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
-        ```
-
-### Validation Example
+### Inference and Validation Examples
 
 In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
 !!! example ""
 
-    This example provides simple validation code for YOLO-NAS. For more options including handling inference results see [Val](../modes/val.md) mode.
+    This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
 
     === "Python"
+
+        PyTorch pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in python:
 
         ```python
         from ultralytics import NAS
@@ -81,15 +58,26 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         # Load a COCO-pretrained YOLO-NAS-s model
         model = NAS('yolo_nas_s.pt')
 
-        # Validate the model performance on the COCO8 validation split
-        results = model.val(data='coco8.yaml')
+        # Display model information (optional)
+        model.info()
+
+        # Validate the model on the COCO8 example dataset
+        results model.val(data='coco8.yaml')
+
+        # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
         ```
 
     === "CLI"
 
+        CLI commands are available to directly run the models:
+
         ```bash
-        # Load a COCO-pretrained YOLO-NAS-s model and validate it on the COCO8 validation split
+        # Load a COCO-pretrained YOLO-NAS-s model and validate it's performance on the COCO8 example dataset
         yolo val model=yolo_nas_s.pt data=coco8.yaml
+
+        # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image
+        yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
         ```
 
 ### Supported Tasks
@@ -114,7 +102,7 @@ The YOLO-NAS models support both inference and validation modes, allowing you to
 
 Harness the power of the YOLO-NAS models to drive your object detection tasks to new heights of performance and speed.
 
-## Acknowledgements and Citations
+## Citations and Acknowledgements
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 

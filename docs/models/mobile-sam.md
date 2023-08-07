@@ -85,7 +85,7 @@ model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
 
 We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](./sam.md).
 
-### Citing MobileSAM
+## Citations and Acknowledgements
 
 If you find MobileSAM useful in your research or development work, please consider citing our paper:
 

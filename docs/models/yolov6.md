@@ -44,21 +44,34 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
 
     === "Python"
 
+        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+
         ```python
         from ultralytics import YOLO
 
         # Build a YOLOv6n model from scratch
         model = YOLO('yolov6n.yaml')
 
+        # Display model information (optional)
+        model.info()
+
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results model.train(data='coco8.yaml', epochs=100, imgsz=640)
+
+        # Run inference with the YOLOv6n model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
         ```
 
     === "CLI"
 
+        CLI commands are available to directly run the models:
+
         ```bash
-        # Build a YOLOv6n model from scratch and train it on the COCO8 dataset for 100 epochs
-        yolo predict model=yolov6n.pt data=coco8.yaml epochs=100 imgsz=640
+        # Build a YOLOv6n model from scratch and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
+
+        # Build a YOLOv6n model from scratch and run inference on the 'bus.jpg' image
+        yolo predict model=yolov6n.yaml source=path/to/bus.jpg
         ```
 
 ### Supported Tasks

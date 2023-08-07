@@ -83,33 +83,60 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 You can use YOLOv8 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv8 models for inference:
 
-```python
-from ultralytics import YOLO
+!!! example ""
 
-# Load the model
-model = YOLO('yolov8n.pt')  # load a pretrained model
+    This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv8 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
-# Perform inference
-results = model('image.jpg')
+    === "Python"
 
-# Print the results
-results.print()
-```
+        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
-## Citation
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results model.train(data='coco8.yaml', epochs=100, imgsz=640)
+
+        # Run inference with the YOLOv8n model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Load a COCO-pretrained YOLOv8n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+
+        # Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        ```
+
+## Citations and Acknowledgements
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 
-```bibtex
-@software{yolov8_ultralytics,
-  author       = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
-  title        = {Ultralytics YOLOv8},
-  version      = {8.0.0},
-  year         = {2023},
-  url          = {https://github.com/ultralytics/ultralytics},
-  orcid        = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
-  license      = {AGPL-3.0}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @software{yolov8_ultralytics,
+          author = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
+          title = {Ultralytics YOLOv8},
+          version = {8.0.0},
+          year = {2023},
+          url = {https://github.com/ultralytics/ultralytics},
+          orcid = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
+          license = {AGPL-3.0}
+        }
+        ```
 
 Please note that the DOI is pending and will be added to the citation once it is available. The usage of the software is in accordance with the AGPL-3.0 license.

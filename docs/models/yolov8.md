@@ -83,18 +83,28 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 You can use YOLOv8 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv8 models for inference:
 
-```python
-from ultralytics import YOLO
+!!! example ""
 
-# Load the model
-model = YOLO('yolov8n.pt')  # load a pretrained model
+    This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md). For using YOLOv8 with additional modes see [Train](../models/train.md), [Val](../models/val.md) and [Export](../models/export.md).
 
-# Perform inference
-results = model('image.jpg')
+    === "Python"
 
-# Print the results
-results.print()
-```
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')
+
+        # Run inference on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        ```
 
 ## Citation
 

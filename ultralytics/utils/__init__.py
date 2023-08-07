@@ -791,7 +791,7 @@ class SettingsManager(dict):
 
             self.load()
             correct_keys = self.keys() == self.defaults.keys()
-            correct_types = all(type(a) == type(b) for a, b in zip(self.values(), self.defaults.values()))
+            correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
             correct_version = check_version(self['settings_version'], self.version)
             if not (correct_keys and correct_types and correct_version):
                 LOGGER.warning(

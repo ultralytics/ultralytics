@@ -72,6 +72,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         # Run inference
         model('path/to/image.jpg')
         ```
+
     === "CLI"
 
         ```bash
@@ -99,6 +100,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
         results = predictor(bboxes=[439, 437, 524, 709])
         results = predictor(points=[900, 370], labels=[1])
+
         # Reset image
         predictor.reset_image()
         ```
@@ -114,9 +116,8 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
-        # segment with additional args
+        # Segment with additional args
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
-
         ```
 
 - More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
@@ -140,11 +141,11 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
 
-| Model                                          | Size                       | Parameters             | Speed (CPU)             |
-|------------------------------------------------|----------------------------|------------------------|-------------------------|
-| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im             |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im             |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im               |
+| Model                                          | Size                       | Parameters             | Speed (CPU)                |
+|------------------------------------------------|----------------------------|------------------------|----------------------------|
+| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
+| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
 | Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms/im** (866x faster) |
 
 This comparison shows the order-of-magnitude differences in the model sizes and speeds between models. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient.
@@ -205,16 +206,20 @@ Auto-annotation with pre-trained models can dramatically cut down the time and e
 
 If you find SAM useful in your research or development work, please consider citing our paper:
 
-```bibtex
-@misc{kirillov2023segment,
-      title={Segment Anything},
-      author={Alexander Kirillov and Eric Mintun and Nikhila Ravi and Hanzi Mao and Chloe Rolland and Laura Gustafson and Tete Xiao and Spencer Whitehead and Alexander C. Berg and Wan-Yen Lo and Piotr Dollár and Ross Girshick},
-      year={2023},
-      eprint={2304.02643},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{kirillov2023segment,
+              title={Segment Anything},
+              author={Alexander Kirillov and Eric Mintun and Nikhila Ravi and Hanzi Mao and Chloe Rolland and Laura Gustafson and Tete Xiao and Spencer Whitehead and Alexander C. Berg and Wan-Yen Lo and Piotr Dollár and Ross Girshick},
+              year={2023},
+              eprint={2304.02643},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
 

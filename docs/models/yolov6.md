@@ -17,7 +17,7 @@ structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/p
 
 ### Key Features
 
-- **Bi-directional Concatenation (BiC) Module:** YOLOv6 introduces a BiC module in the neck of the detector, enhancing localization signals and delivering performance gains with negligible speed degradation.
+- **Bidirectional Concatenation (BiC) Module:** YOLOv6 introduces a BiC module in the neck of the detector, enhancing localization signals and delivering performance gains with negligible speed degradation.
 - **Anchor-Aided Training (AAT) Strategy:** This model proposes AAT to enjoy the benefits of both anchor-based and anchor-free paradigms without compromising inference efficiency.
 - **Enhanced Backbone and Neck Design:** By deepening YOLOv6 to include another stage in the backbone and neck, this model achieves state-of-the-art performance on the COCO dataset at high-resolution input.
 - **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
@@ -50,7 +50,7 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
         # Build a YOLOv6n model from scratch
         model = YOLO('yolov6n.yaml')
 
-        # Train the model on the COCO8 exampel dataset
+        # Train the model on the COCO8 example dataset for 100 epochs
         results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
         ```
 

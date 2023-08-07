@@ -72,6 +72,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         # Run inference
         model('path/to/image.jpg')
         ```
+
     === "CLI"
 
         ```bash
@@ -99,6 +100,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
         results = predictor(bboxes=[439, 437, 524, 709])
         results = predictor(points=[900, 370], labels=[1])
+
         # Reset image
         predictor.reset_image()
         ```
@@ -114,9 +116,8 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
-        # segment with additional args
+        # Segment with additional args
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
-
         ```
 
 - More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).

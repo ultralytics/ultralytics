@@ -15,7 +15,7 @@ Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge
 
 ### Key Features
 
-- **Efficient Hybrid Encoder:** Baidu's RT-DETR uses an efficient hybrid encoder that processes multi-scale features by decoupling intra-scale interaction and cross-scale fusion. This unique Vision Transformers-based design reduces computational costs and allows for real-time object detection.
+- **Efficient Hybrid Encoder:** Baidu's RT-DETR uses an efficient hybrid encoder that processes multiscale features by decoupling intra-scale interaction and cross-scale fusion. This unique Vision Transformers-based design reduces computational costs and allows for real-time object detection.
 - **IoU-aware Query Selection:** Baidu's RT-DETR improves object query initialization by utilizing IoU-aware query selection. This allows the model to focus on the most relevant objects in the scene, enhancing the detection accuracy.
 - **Adaptable Inference Speed:** Baidu's RT-DETR supports flexible adjustments of inference speed by using different decoder layers without the need for retraining. This adaptability facilitates practical application in various real-time object detection scenarios.
 
@@ -28,7 +28,39 @@ The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models with
 
 ## Usage
 
-### Python API
+You can use RT-DETR for object detection tasks using the `ultralytics` pip package. The following is a sample code snippet showing how to use RT-DETR models for training and inference:
+
+!!! example ""
+
+    This example provides simple inference code for RT-DETR. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using RT-DETR with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
+
+    === "Python"
+
+        ```python
+        from ultralytics import RTDETR
+
+        # Load a COCO-pretrained RT-DETR-l model
+        model = RTDETR('rtdetr-l.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Train the model on the COCO8 example dataset
+        results model.train(data='coco8.yaml')
+
+        # Run inference with the RT-DETR-l model on the 'bus.jpg' image for 100 epochs
+        results = model('path/to/bus.jpg', epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
+        yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
+
+        # Load a COCO-pretrained RT-DETR-l model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
 
 ```python
 from ultralytics import RTDETR

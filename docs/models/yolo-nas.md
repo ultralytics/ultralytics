@@ -36,35 +36,61 @@ Each model variant is designed to offer a balance between Mean Average Precision
 
 ## Usage
 
-### Python API
+Ultralytics has made YOLO-NAS models easy to integrate into your Python applications via our `ultralytics` python package. The package provides a user-friendly Python API to streamline the process.
 
-The YOLO-NAS models are easy to integrate into your Python applications. Ultralytics provides a user-friendly Python API to streamline the process.
+The following examples show how to use YOLO-NAS models with the `ultralytics` package for inference and validation:
 
-#### Predict Usage
+### Inference Example
 
-To perform object detection on an image, use the `predict` method as shown below:
+!!! example ""
 
-```python
-from ultralytics import NAS
+    This example provides simple inference code for YOLO-NAS. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS is not supported for training.
 
-model = NAS('yolo_nas_s')
-results = model.predict('ultralytics/assets/bus.jpg')
-```
+    === "Python"
 
-This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
+        ```python
+        from ultralytics import NAS
 
-#### Val Usage
+        # Load a COCO-pretrained YOLO-NAS-s model
+        model = NAS('yolo_nas_s.pt')
 
-Validation of the model on a dataset can be done as follows:
+        # Run inference on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
 
-```python
-from ultralytics import NAS
+    === "CLI"
 
-model = NAS('yolo_nas_s')
-results = model.val(data='coco8.yaml)
-```
+        ```bash
+        # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image
+        yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
+        ```
 
-In this example, the model is validated against the dataset specified in the 'coco8.yaml' file.
+### Validation Example
+
+In this example we validate YOLO-NAS-s on the COCO8 dataset.
+
+!!! example ""
+
+    This example provides simple validation code for YOLO-NAS. For more options including handling inference results see [Val](../modes/val.md) mode.
+
+    === "Python"
+
+        ```python
+        from ultralytics import NAS
+
+        # Load a COCO-pretrained YOLO-NAS-s model
+        model = NAS('yolo_nas_s.pt')
+
+        # Validate the model performance on the COCO8 validation split
+        results = model.val(data='coco8.yaml')
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained YOLO-NAS-s model and validate it on the COCO8 validation split
+        yolo val model=yolo_nas_s.pt data=coco8.yaml
+        ```
 
 ### Supported Tasks
 

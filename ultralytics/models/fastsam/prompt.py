@@ -158,7 +158,7 @@ class FastSAMPrompt:
             contour_all = []
             temp = np.zeros((original_h, original_w, 1))
             for i, mask in enumerate(annotations):
-                if type(mask) == dict:
+                if isinstance(mask, dict):
                     mask = mask['segmentation']
                 annotation = mask.astype(np.uint8)
                 if not retina:
@@ -383,7 +383,7 @@ class FastSAMPrompt:
             points = [[int(point[0] * w / target_width), int(point[1] * h / target_height)] for point in points]
         onemask = np.zeros((h, w))
         for i, annotation in enumerate(masks):
-            mask = annotation['segmentation'] if type(annotation) == dict else annotation
+            mask = annotation['segmentation'] if isinstance(annotation, dict) else annotation
             for i, point in enumerate(points):
                 if mask[point[1], point[0]] == 1 and pointlabel[i] == 1:
                     onemask += mask

@@ -83,17 +83,20 @@ You can use YOLOv5u for object detection tasks using the Ultralytics repository.
 
 If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv5 repository as follows:
 
-```bibtex
-@software{yolov5,
-  title = {Ultralytics YOLOv5},
-  author = {Glenn Jocher},
-  year = {2020},
-  version = {7.0},
-  license = {AGPL-3.0},
-  url = {https://github.com/ultralytics/yolov5},
-  doi = {10.5281/zenodo.3908559},
-  orcid = {0000-0001-5950-6979}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+        ```bibtex
+        @software{yolov5,
+          title = {Ultralytics YOLOv5},
+          author = {Glenn Jocher},
+          year = {2020},
+          version = {7.0},
+          license = {AGPL-3.0},
+          url = {https://github.com/ultralytics/yolov5},
+          doi = {10.5281/zenodo.3908559},
+          orcid = {0000-0001-5950-6979}
+        }
+        ```
 
 Special thanks to Glenn Jocher and the Ultralytics team for their work on developing and maintaining the YOLOv5 and YOLOv5u models.

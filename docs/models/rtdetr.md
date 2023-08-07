@@ -35,7 +35,7 @@ from ultralytics import RTDETR
 
 model = RTDETR("rtdetr-l.pt")
 model.info()  # display model information
-model.train(data="coco8.yaml")   # train
+model.train(data="coco8.yaml")  # train
 model.predict("path/to/image.jpg")  # predict
 ```
 
@@ -58,16 +58,20 @@ model.predict("path/to/image.jpg")  # predict
 
 If you use Baidu's RT-DETR in your research or development work, please cite the [original paper](https://arxiv.org/abs/2304.08069):
 
-```bibtex
-@misc{lv2023detrs,
-      title={DETRs Beat YOLOs on Real-time Object Detection},
-      author={Wenyu Lv and Shangliang Xu and Yian Zhao and Guanzhong Wang and Jinman Wei and Cheng Cui and Yuning Du and Qingqing Dang and Yi Liu},
-      year={2023},
-      eprint={2304.08069},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lv2023detrs,
+              title={DETRs Beat YOLOs on Real-time Object Detection},
+              author={Wenyu Lv and Shangliang Xu and Yian Zhao and Guanzhong Wang and Jinman Wei and Cheng Cui and Yuning Du and Qingqing Dang and Yi Liu},
+              year={2023},
+              eprint={2304.08069},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community. Their contribution to the field with the development of the Vision Transformers-based real-time object detector, RT-DETR, is greatly appreciated.
 

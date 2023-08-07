@@ -92,17 +92,21 @@ Harness the power of the YOLO-NAS models to drive your object detection tasks to
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 
-```bibtex
-@misc{supergradients,
-  doi = {10.5281/ZENODO.7789328},
-  url = {https://zenodo.org/record/7789328},
-  author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
-  title = {Super-Gradients},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  year = {2021},
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{supergradients,
+              doi = {10.5281/ZENODO.7789328},
+              url = {https://zenodo.org/record/7789328},
+              author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
+              title = {Super-Gradients},
+              publisher = {GitHub},
+              journal = {GitHub repository},
+              year = {2021},
+        }
+        ```
 
 We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-AI/super-gradients/) team for their efforts in creating and maintaining this valuable resource for the computer vision community. We believe YOLO-NAS, with its innovative architecture and superior object detection capabilities, will become a critical tool for developers and researchers alike.
 

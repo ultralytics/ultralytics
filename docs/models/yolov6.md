@@ -68,15 +68,19 @@ model.predict("path/to/image.jpg")  # predict
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:
 
-```bibtex
-@misc{li2023yolov6,
-      title={YOLOv6 v3.0: A Full-Scale Reloading},
-      author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
-      year={2023},
-      eprint={2301.05586},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{li2023yolov6,
+              title={YOLOv6 v3.0: A Full-Scale Reloading},
+              author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
+              year={2023},
+              eprint={2301.05586},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 The original YOLOv6 paper can be found on [arXiv](https://arxiv.org/abs/2301.05586). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/meituan/YOLOv6). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

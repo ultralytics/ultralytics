@@ -89,11 +89,15 @@ We have implemented `MobileSAM` and `SAM` using the same API. For more usage inf
 
 If you find MobileSAM useful in your research or development work, please consider citing our paper:
 
-```bibtex
-@article{mobile_sam,
-  title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
-  author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
-  journal={arXiv preprint arXiv:2306.14289},
-  year={2023}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{mobile_sam,
+          title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
+          author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
+          journal={arXiv preprint arXiv:2306.14289},
+          year={2023}
+        }
+        ```

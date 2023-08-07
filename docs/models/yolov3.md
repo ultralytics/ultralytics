@@ -68,13 +68,17 @@ results.print()
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository:
 
-```bibtex
-@article{redmon2018yolov3,
-  title={YOLOv3: An Incremental Improvement},
-  author={Redmon, Joseph and Farhadi, Ali},
-  journal={arXiv preprint arXiv:1804.02767},
-  year={2018}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{redmon2018yolov3,
+          title={YOLOv3: An Incremental Improvement},
+          author={Redmon, Joseph and Farhadi, Ali},
+          journal={arXiv preprint arXiv:1804.02767},
+          year={2018}
+        }
+        ```
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.

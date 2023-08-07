@@ -110,16 +110,20 @@ You can use YOLOv8 for object detection tasks using the Ultralytics pip package.
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 
-```bibtex
-@software{yolov8_ultralytics,
-  author       = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
-  title        = {Ultralytics YOLOv8},
-  version      = {8.0.0},
-  year         = {2023},
-  url          = {https://github.com/ultralytics/ultralytics},
-  orcid        = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
-  license      = {AGPL-3.0}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @software{yolov8_ultralytics,
+          author = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
+          title = {Ultralytics YOLOv8},
+          version = {8.0.0},
+          year = {2023},
+          url = {https://github.com/ultralytics/ultralytics},
+          orcid = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
+          license = {AGPL-3.0}
+        }
+        ```
 
 Please note that the DOI is pending and will be added to the citation once it is available. The usage of the software is in accordance with the AGPL-3.0 license.

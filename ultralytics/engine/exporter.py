@@ -471,6 +471,8 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel' if mlmodel else '.mlpackage')
+        if f.is_dir():
+            shutil.rmtree(f)
 
         bias = [0.0, 0.0, 0.0]
         scale = 1 / 255
@@ -503,7 +505,12 @@ class Exporter:
                 config = cto.OptimizationConfig(global_config=op_config)
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == 'detect':
-            ct_model = self._pipeline_coreml(ct_model)
+            if mlmodel:
+                weights_dir = None
+            else:
+                ct_model.save(str(f))  # save otherwise weights_dir does not exist
+                weights_dir = str(f / 'Data/com.apple.CoreML/weights')
+            ct_model = self._pipeline_coreml(ct_model, weights_dir=weights_dir)
 
         m = self.metadata  # metadata dict
         ct_model.short_description = m.pop('description')
@@ -823,7 +830,7 @@ class Exporter:
         populator.populate()
         tmp_file.unlink()
 
-    def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
+    def _pipeline_coreml(self, model, weights_dir=None, prefix=colorstr('CoreML Pipeline:')):
         """YOLOv8 CoreML pipeline."""
         import coremltools as ct  # noqa
 
@@ -871,7 +878,7 @@ class Exporter:
         # print(spec.description)
 
         # Model from spec
-        model = ct.models.MLModel(spec)
+        model = ct.models.MLModel(spec, weights_dir=weights_dir)
 
         # 3. Create NMS protobuf
         nms_spec = ct.proto.Model_pb2.Model()
@@ -930,7 +937,7 @@ class Exporter:
             'Confidence threshold': str(nms.confidenceThreshold)})
 
         # Save the model
-        model = ct.models.MLModel(pipeline.spec)
+        model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description['image'] = 'Input image'
         model.input_description['iouThreshold'] = f'(optional) IOU threshold override (default: {nms.iouThreshold})'
         model.input_description['confidenceThreshold'] = \

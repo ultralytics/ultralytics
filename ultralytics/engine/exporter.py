@@ -507,6 +507,7 @@ class Exporter:
         if self.args.nms and self.model.task == 'detect':
             if mlmodel:
                 import platform
+
                 # coremltools<=6.2 NMS export requires Python<3.11
                 check_version(platform.python_version(), '<3.11', name='Python ', hard=True)
                 weights_dir = None

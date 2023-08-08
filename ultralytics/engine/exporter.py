@@ -151,6 +151,8 @@ class Exporter:
         format = self.args.format.lower()  # to lowercase
         if format in ('tensorrt', 'trt'):  # engine aliases
             format = 'engine'
+        if format in ('mlmodel', 'mlpackage', 'mlprogram', 'apple', 'ios'):  # coreml aliases
+            format = 'coreml'
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
         flags = [x == format for x in fmts]
         if sum(flags) != 1:
@@ -463,12 +465,12 @@ class Exporter:
 
     def export_coreml(self, prefix=colorstr('CoreML:')):
         """YOLOv8 CoreML export."""
-        check_requirements('coremltools>=7.0.b1')
+        mlmodel = self.args.format.lower() == 'mlmodel'  # legacy *.mlmodel export format requested
+        check_requirements('coremltools>=6.0,<=6.2' if mlmodel else 'coremltools>=7.0.b1')
         import coremltools as ct  # noqa
-        import coremltools.optimize.coreml as cto
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
-        f = self.file.with_suffix('.mlpackage')
+        f = self.file.with_suffix('.mlmodel' if mlmodel else '.mlpackage')
 
         bias = [0.0, 0.0, 0.0]
         scale = 1 / 255
@@ -488,14 +490,18 @@ class Exporter:
         ct_model = ct.convert(ts,
                               inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
                               classifier_config=classifier_config,
-                              convert_to='mlprogram')  # or convert_to='neuralnetwork' for *.mlmodel
-        bits, mode = (8, 'kmeans') if self.args.int8 else (32, None)
+                              convert_to='neuralnetwork' if mlmodel else 'mlprogram')
+        bits, mode = (8, 'kmeans') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
             if 'kmeans' in mode:
                 check_requirements('scikit-learn')  # scikit-learn package required for k-means quantization
-            op_config = cto.OpPalettizerConfig(mode=mode, nbits=bits, weight_threshold=512)
-            config = cto.OptimizationConfig(global_config=op_config)
-            ct_model = cto.palettize_weights(ct_model, config=config)
+            if mlmodel:
+                ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
+            else:
+                import coremltools.optimize.coreml as cto
+                op_config = cto.OpPalettizerConfig(mode=mode, nbits=bits, weight_threshold=512)
+                config = cto.OptimizationConfig(global_config=op_config)
+                ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == 'detect':
             ct_model = self._pipeline_coreml(ct_model)
 
@@ -506,9 +512,6 @@ class Exporter:
         ct_model.version = m.pop('version')
         ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
         try:
-            if not check_version(ct.__version__, '7.0.0'):
-                # Missing metadata bug fix until coremltools==7.0.0 https://github.com/apple/coremltools/issues/1680
-                ct_model = ct.models.MLModel(ct_model._spec, weights_dir=ct_model._weights_dir, is_temp_package=True)
             ct_model.save(str(f))  # save *.mlpackage
         except Exception as e:
             LOGGER.warning(

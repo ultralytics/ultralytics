@@ -603,6 +603,18 @@ class Metric(SimpleClass):
         """
         return self.all_ap.mean() if len(self.all_ap) else 0.0
 
+    def set_map_small_area(self, map_small):
+        self.map_small_area = map_small
+
+    @property
+    def map_small(self):
+        """
+        Returns the mean Average Precision (mAP) over IoU thresholds of 0.5 - 0.75 in steps of 0.05 for the particular
+        case of small objects. The small objects are defined as objects with area less than 32^2 pixels. The AP is
+        computed by the pycocotools library and instantiated as an attribute of the Metric class in the eval_json() method.
+        """
+        return self.map_small_area
+
     def mean_results(self):
         """Mean of results, return mp, mr, map50, map."""
         return [self.mp, self.mr, self.map50, self.map]

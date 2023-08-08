@@ -253,6 +253,7 @@ class DetectionValidator(BaseValidator):
                 eval.accumulate()
                 eval.summarize()
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
+                self.metrics.box.set_map_small_area(eval.stats[3])  # update mAP50-90Small
             except Exception as e:
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats

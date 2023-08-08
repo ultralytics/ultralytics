@@ -26,11 +26,9 @@ You can use many of these models directly in the Command Line Interface (CLI) or
 
 ## Usage
 
-You can use RT-DETR for object detection tasks using the `ultralytics` pip package. The following is a sample code snippet showing how to use RT-DETR models for training and inference:
+    This example provides simple inference code for YOLO, SAM and RTDETR models. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using models with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
 !!! example ""
-
-    This example provides simple inference code for YOLO, SAM and RTDETR models. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using models with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
     === "Python"
 

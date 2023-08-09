@@ -523,15 +523,14 @@ def xyxyxyxy2xywhr(corners):
     x1, y1, x2, y2, x3, y3, x4, y4 = corners.T
     cx = (x1 + x3) / 2
     cy = (y1 + y3) / 2
+    dx21 = x2 - x1
+    dy21 = y2 - y1
 
-    w = sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    w = sqrt(dx21 ** 2 + dy21 ** 2)
     h = sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2)
 
-    delta_x = x2 - x1
-    delta_y = y2 - y1
-    rotation = atan2(delta_y, delta_x)
-    if backend == 'torch':
-        rotation *= 180.0 / math.pi  # radians to degrees
+    rotation = atan2(dy21, dx21)
+    rotation *= 180.0 / math.pi  # radians to degrees
 
     return np.vstack((cx, cy, w, h, rotation)).T if backend == 'numpy' else torch.stack((cx, cy, w, h, rotation), dim=1)
 

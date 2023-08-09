@@ -357,7 +357,7 @@ class Results(SimpleClass):
         for i, row in enumerate(data):
             box = {'x1': row[0] / w, 'y1': row[1] / h, 'x2': row[2] / w, 'y2': row[3] / h}
 
-            is_tracking = row[6] != None
+            is_tracking = len(row) > 6
 
             if is_tracking:
                 track_id = int(row[4])

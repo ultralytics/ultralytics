@@ -22,7 +22,7 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.2
+    rev: v3.10.1
     hooks:
       - id: pyupgrade
         name: Upgrade code
@@ -34,7 +34,7 @@ repos:
         name: Sort imports
 
   - repo: https://github.com/google/yapf
-    rev: v0.33.0
+    rev: v0.40.0
     hooks:
       - id: yapf
         name: YAPF formatting
@@ -50,17 +50,17 @@ repos:
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+    rev: 6.1.0
     hooks:
       - id: flake8
         name: PEP8
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.2.5
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=crate,nd,strack,dota
+          - --ignore-words-list=crate,nd,strack,dota,ane,segway,fo
 
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0

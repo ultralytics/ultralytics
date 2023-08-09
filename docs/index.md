@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Explore Ultralytics YOLOv8, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
+description: Explore a complete guide to Ultralytics YOLOv8, a high-speed, high-accuracy object detection & image segmentation model. Installation, prediction, training tutorials and more.
+keywords: Ultralytics, YOLOv8, object detection, image segmentation, machine learning, deep learning, computer vision, YOLOv8 installation, YOLOv8 prediction, YOLOv8 training, YOLO history, YOLO licenses
 ---
 
 <div align="center">
@@ -39,3 +40,12 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 - [YOLOv6](https://github.com/meituan/YOLOv6) was open-sourced by [Meituan](https://about.meituan.com/) in 2022 and is in use in many of the company's autonomous delivery robots.
 - [YOLOv7](https://github.com/WongKinYiu/yolov7) added additional tasks such as pose estimation on the COCO keypoints dataset.
 - [YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of YOLO by Ultralytics. As a cutting-edge, state-of-the-art (SOTA) model, YOLOv8 builds on the success of previous versions, introducing new features and improvements for enhanced performance, flexibility, and efficiency. YOLOv8 supports a full range of vision AI tasks, including [detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md). This versatility allows users to leverage YOLOv8's capabilities across diverse applications and domains.
+
+## YOLO Licenses: How is Ultralytics YOLO licensed?
+
+Ultralytics offers two licensing options to accommodate diverse use cases:
+
+- **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/licenses/) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
+- **Enterprise License**: Designed for commercial use, this license permits seamless integration of Ultralytics software and AI models into commercial goods and services, bypassing the open-source requirements of AGPL-3.0. If your scenario involves embedding our solutions into a commercial offering, reach out through [Ultralytics Licensing](https://ultralytics.com/license).
+
+Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We hold the principles of open source close to our hearts ❤️, and our mission is to guarantee that our contributions can be utilized and expanded upon in ways that are beneficial to all.

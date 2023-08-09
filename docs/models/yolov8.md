@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Learn about YOLOv8's pre-trained weights supporting detection, instance segmentation, pose, and classification tasks. Get performance details.
+description: Explore the thrilling features of YOLOv8, the latest version of our real-time object detector! Learn how advanced architectures, pre-trained models and optimal balance between accuracy & speed make YOLOv8 the perfect choice for your object detection tasks.
+keywords: YOLOv8, Ultralytics, real-time object detector, pre-trained models, documentation, object detection, YOLO series, advanced architectures, accuracy, speed
 ---
 
 # YOLOv8
@@ -8,6 +9,8 @@ description: Learn about YOLOv8's pre-trained weights supporting detection, inst
 ## Overview
 
 YOLOv8 is the latest iteration in the YOLO series of real-time object detectors, offering cutting-edge performance in terms of accuracy and speed. Building upon the advancements of previous YOLO versions, YOLOv8 introduces new features and optimizations that make it an ideal choice for various object detection tasks in a wide range of applications.
+
+![Ultralytics YOLOv8](https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png)
 
 ## Key Features
 
@@ -18,12 +21,12 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 ## Supported Tasks
 
-| Model Type  | Pre-trained Weights                                                                                              | Task                  |
-|-------------|------------------------------------------------------------------------------------------------------------------|-----------------------|
-| YOLOv8      | `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt`                                             | Detection             |
-| YOLOv8-seg  | `yolov8n-seg.pt`, `yolov8s-seg.pt`, `yolov8m-seg.pt`, `yolov8l-seg.pt`, `yolov8x-seg.pt`                         | Instance Segmentation |
-| YOLOv8-pose | `yolov8n-pose.pt`, `yolov8s-pose.pt`, `yolov8m-pose.pt`, `yolov8l-pose.pt`, `yolov8x-pose.pt` ,`yolov8x-pose-p6` | Pose/Keypoints        |
-| YOLOv8-cls  | `yolov8n-cls.pt`, `yolov8s-cls.pt`, `yolov8m-cls.pt`, `yolov8l-cls.pt`, `yolov8x-cls.pt`                         | Classification        |
+| Model Type  | Pre-trained Weights                                                                                                 | Task                  |
+|-------------|---------------------------------------------------------------------------------------------------------------------|-----------------------|
+| YOLOv8      | `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt`                                                | Detection             |
+| YOLOv8-seg  | `yolov8n-seg.pt`, `yolov8s-seg.pt`, `yolov8m-seg.pt`, `yolov8l-seg.pt`, `yolov8x-seg.pt`                            | Instance Segmentation |
+| YOLOv8-pose | `yolov8n-pose.pt`, `yolov8s-pose.pt`, `yolov8m-pose.pt`, `yolov8l-pose.pt`, `yolov8x-pose.pt`, `yolov8x-pose-p6.pt` | Pose/Keypoints        |
+| YOLOv8-cls  | `yolov8n-cls.pt`, `yolov8s-cls.pt`, `yolov8m-cls.pt`, `yolov8l-cls.pt`, `yolov8x-cls.pt`                            | Classification        |
 
 ## Supported Modes
 
@@ -33,7 +36,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
 
-??? Performance
+!!! Performance
 
     === "Detection"
 
@@ -75,3 +78,65 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
         | [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                   | 67.6                  | 90.0               | 784.5                          | 2.59                                | 44.4               | 168.6             |
         | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | 69.2                  | 90.2               | 1607.1                         | 3.73                                | 69.4               | 263.2             |
         | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | 71.6                  | 91.2               | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
+
+## Usage
+
+You can use YOLOv8 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv8 models for inference:
+
+!!! example ""
+
+    This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv8 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
+
+    === "Python"
+
+        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results model.train(data='coco8.yaml', epochs=100, imgsz=640)
+
+        # Run inference with the YOLOv8n model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Load a COCO-pretrained YOLOv8n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+
+        # Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        ```
+
+## Citations and Acknowledgements
+
+If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
+
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @software{yolov8_ultralytics,
+          author = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
+          title = {Ultralytics YOLOv8},
+          version = {8.0.0},
+          year = {2023},
+          url = {https://github.com/ultralytics/ultralytics},
+          orcid = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
+          license = {AGPL-3.0}
+        }
+        ```
+
+Please note that the DOI is pending and will be added to the citation once it is available. The usage of the software is in accordance with the AGPL-3.0 license.

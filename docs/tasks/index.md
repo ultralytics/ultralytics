@@ -1,6 +1,7 @@
 ---
 comments: true
-description: Learn how Ultralytics YOLOv8 AI framework supports detection, segmentation, classification, and pose/keypoint estimation tasks.
+description: Learn about the cornerstone computer vision tasks YOLOv8 can perform including detection, segmentation, classification, and pose estimation. Understand their uses in your AI projects.
+keywords: Ultralytics, YOLOv8, Detection, Segmentation, Classification, Pose Estimation, AI Framework, Computer Vision Tasks
 ---
 
 # Ultralytics YOLOv8 Tasks
@@ -9,7 +10,8 @@ YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The 
 perform [detection](detect.md), [segmentation](segment.md), [classification](classify.md),
 and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
+<br>
+<img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png">
 
 ## [Detection](detect.md)
 

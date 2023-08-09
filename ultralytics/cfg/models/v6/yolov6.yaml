@@ -1,0 +1,53 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# YOLOv6 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/models/yolov6
+
+# Parameters
+nc: 80  # number of classes
+activation: nn.ReLU()  # (optional) model default activation function
+scales: # model compound scaling constants, i.e. 'model=yolov6n.yaml' will call yolov8.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 768]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.25, 512]
+
+# YOLOv6-3.0s backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]  # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]  # 1-P2/4
+  - [-1, 6, Conv, [128, 3, 1]]
+  - [-1, 1, Conv, [256, 3, 2]]  # 3-P3/8
+  - [-1, 12, Conv, [256, 3, 1]]
+  - [-1, 1, Conv, [512, 3, 2]]  # 5-P4/16
+  - [-1, 18, Conv, [512, 3, 1]]
+  - [-1, 1, Conv, [1024, 3, 2]]  # 7-P5/32
+  - [-1, 6, Conv, [1024, 3, 1]]
+  - [-1, 1, SPPF, [1024, 5]]  # 9
+
+# YOLOv6-3.0s head
+head:
+  - [-1, 1, Conv, [256, 1, 1]]
+  - [-1, 1, nn.ConvTranspose2d, [256, 2, 2, 0]]
+  - [[-1, 6], 1, Concat, [1]]  # cat backbone P4
+  - [-1, 1, Conv, [256, 3, 1]]
+  - [-1, 9, Conv, [256, 3, 1]]  # 14
+
+  - [-1, 1, Conv, [128, 1, 1]]
+  - [-1, 1, nn.ConvTranspose2d, [128, 2, 2, 0]]
+  - [[-1, 4], 1, Concat, [1]]  # cat backbone P3
+  - [-1, 1, Conv, [128, 3, 1]]
+  - [-1, 9, Conv, [128, 3, 1]]  # 19
+
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [[-1, 15], 1, Concat, [1]]  # cat head P4
+  - [-1, 1, Conv, [256, 3, 1]]
+  - [-1, 9, Conv, [256, 3, 1]]  # 23
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]]  # cat head P5
+  - [-1, 1, Conv, [512, 3, 1]]
+  - [-1, 9, Conv, [512, 3, 1]]  # 27
+
+  - [[19, 23, 27], 1, Detect, [nc]]  # Detect(P3, P4, P5)

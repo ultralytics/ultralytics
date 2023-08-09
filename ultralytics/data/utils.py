@@ -24,7 +24,7 @@ from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes
 
-HELP_URL = 'See https://docs.ultralytics.com/datasets/detect for YOLO dataset format help.'
+HELP_URL = 'See https://docs.ultralytics.com/datasets/detect for dataset formatting guidance.'
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
 VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'  # video suffixes
 PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
@@ -289,9 +289,6 @@ def check_cls_dataset(dataset: str, split=''):
             - 'test' (Path): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict): A dictionary of class names in the dataset.
-
-    Raises:
-        FileNotFoundError: If the specified dataset is not found and cannot be downloaded.
     """
 
     dataset = Path(dataset)
@@ -329,13 +326,16 @@ class HUBDatasetStats():
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
-    Usage
+    Example:
+        ```python
         from ultralytics.data.utils import HUBDatasetStats
-        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8.zip', task='detect')  # detect dataset
-        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-seg.zip', task='segment')  # segment dataset
-        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-pose.zip', task='pose')  # pose dataset
+
+        stats = HUBDatasetStats('path/to/coco8.zip', task='detect')  # detect dataset
+        stats = HUBDatasetStats('path/to/coco8-seg.zip', task='segment')  # segment dataset
+        stats = HUBDatasetStats('path/to/coco8-pose.zip', task='pose')  # pose dataset
         stats.get_json(save=False)
         stats.process_images()
+        ```
     """
 
     def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
@@ -459,11 +459,14 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
         quality (int, optional): The image compression quality as a percentage. Default is 50%.
 
-    Usage:
+    Example:
+        ```python
         from pathlib import Path
         from ultralytics.data.utils import compress_one_image
-        for f in Path('/Users/glennjocher/Downloads/dataset').rglob('*.jpg'):
+
+        for f in Path('path/to/dataset').rglob('*.jpg'):
             compress_one_image(f)
+        ```
     """
     try:  # use PIL
         im = Image.open(f)
@@ -488,9 +491,12 @@ def delete_dsstore(path):
     Args:
         path (str, optional): The directory path where the ".DS_store" files should be deleted.
 
-    Usage:
+    Example:
+        ```python
         from ultralytics.data.utils import delete_dsstore
-        delete_dsstore('/Users/glennjocher/Downloads/dataset')
+
+        delete_dsstore('path/to/dir')
+        ```
 
     Note:
         ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
@@ -505,17 +511,18 @@ def delete_dsstore(path):
 
 def zip_directory(dir, use_zipfile_library=True):
     """
-    Zips a directory and saves the archive to the specified output path.
+    Zips a directory and saves the archive to the specified output path. Equivalent to 'zip -r coco8.zip coco8/'
 
     Args:
         dir (str): The path to the directory to be zipped.
         use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
 
-    Usage:
+    Example:
+        ```python
         from ultralytics.data.utils import zip_directory
-        zip_directory('/Users/glennjocher/Downloads/playground')
 
-        zip -r coco8-pose.zip coco8-pose
+        zip_directory('/path/to/dir')
+        ```
     """
     delete_dsstore(dir)
     if use_zipfile_library:
@@ -538,9 +545,12 @@ def autosplit(path=DATASETS_DIR / 'coco128/images', weights=(0.9, 0.1, 0.0), ann
         weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
         annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
 
-    Usage:
-        from utils.dataloaders import autosplit
+    Example:
+        ```python
+        from ultralytics.utils.dataloaders import autosplit
+
         autosplit()
+        ```
     """
 
     path = Path(path)  # images dir

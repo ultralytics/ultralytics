@@ -246,7 +246,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
     results = {}
     for k in range(ksplit):
         dataset_yaml = ds_yamls[k]
-        model.train(data=dataset_yaml, *args, **kwargs)  # Include any training arguments
+        results = model.train(data=dataset_yaml, *args, **kwargs)  # Include any training arguments
         results[k] = model.metrics  # save output metrics for further analysis
     ```
 

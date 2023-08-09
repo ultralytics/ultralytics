@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Set up YOLOv5 on a Google Cloud Platform (GCP) Deep Learning VM. Train, test, detect, and export YOLOv5 models. Tutorial updated April 2023.
-keywords: YOLOv5, GCP, deep learning, tutorial, Google Cloud Platform, virtual machine, VM, setup, free credit, Colab Notebook, AWS, Docker
+description: Step-by-step tutorial on how to set up and run YOLOv5 on Google Cloud Platform Deep Learning VM. Perfect guide for beginners and GCP new users!.
+keywords: YOLOv5, Google Cloud Platform, GCP, Deep Learning VM, Ultralytics
 ---
 
 # Run YOLOv5 🚀 on Google Cloud Platform (GCP) Deep Learning Virtual Machine (VM) ⭐

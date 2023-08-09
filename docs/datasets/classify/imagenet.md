@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the ImageNet dataset, a large-scale database of annotated images commonly used for training deep learning models in computer vision tasks.
-keywords: ImageNet, dataset, deep learning, computer vision, YOLO models, training, object recognition, image classification, object detection, WordNet, synsets, ILSVRC
+description: Understand how to use ImageNet, an extensive annotated image dataset for object recognition research, with Ultralytics YOLO models. Learn about its structure, usage, and significance in computer vision.
+keywords: Ultralytics, YOLO, ImageNet, dataset, object recognition, deep learning, computer vision, machine learning, dataset training, model training, image classification, object detection
 ---
 
 # ImageNet Dataset
@@ -37,10 +37,10 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='imagenet', epochs=100, imgsz=224)
         ```

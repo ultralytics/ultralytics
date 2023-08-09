@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore Ultralytics YOLOv8 Inference API for efficient object detection. Check out our Python and CLI examples to streamline your image analysis.
-keywords: YOLO, object detection, Ultralytics, inference API, RESTful API
+description: Access object detection capabilities of YOLOv8 via our RESTful API. Learn how to use the YOLO Inference API with Python or CLI for swift object detection.
+keywords: Ultralytics, YOLOv8, Inference API, object detection, RESTful API, Python, CLI, Quickstart
 ---
 
 # YOLO Inference API
@@ -111,7 +111,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
     === "Local"
         ```python
         from ultralytics import YOLO
-        
+
         # Load model
         model = YOLO('yolov8n.pt')
 
@@ -119,12 +119,12 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         results = model('image.jpg')
 
         # Print image.jpg results in JSON format
-        print(results[0].tojson())  
+        print(results[0].tojson())
         ```
 
     === "CLI API"
         ```bash
-        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \ 
+        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
             -F "image=@/path/to/image.jpg" \
             -F "size=640" \
@@ -135,21 +135,21 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
     === "Python API"
         ```python
         import requests
-        
+
         # API URL, use actual MODEL_ID
         url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
-        
+
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
-        
+
         # Inference arguments (optional)
         data = {"size": 640, "confidence": 0.25, "iou": 0.45}
-        
+
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
             files = {"image": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
-        
+
         print(response.json())
         ```
 
@@ -205,7 +205,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
     === "Local"
         ```python
         from ultralytics import YOLO
-        
+
         # Load model
         model = YOLO('yolov8n-seg.pt')
 
@@ -213,12 +213,12 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         results = model('image.jpg')
 
         # Print image.jpg results in JSON format
-        print(results[0].tojson())  
+        print(results[0].tojson())
         ```
 
     === "CLI API"
         ```bash
-        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \ 
+        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
             -F "image=@/path/to/image.jpg" \
             -F "size=640" \
@@ -229,21 +229,21 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
     === "Python API"
         ```python
         import requests
-        
+
         # API URL, use actual MODEL_ID
         url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
-        
+
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
-        
+
         # Inference arguments (optional)
         data = {"size": 640, "confidence": 0.25, "iou": 0.45}
-        
+
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
             files = {"image": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
-        
+
         print(response.json())
         ```
 
@@ -342,7 +342,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
     === "Local"
         ```python
         from ultralytics import YOLO
-        
+
         # Load model
         model = YOLO('yolov8n-seg.pt')
 
@@ -350,12 +350,12 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         results = model('image.jpg')
 
         # Print image.jpg results in JSON format
-        print(results[0].tojson())  
+        print(results[0].tojson())
         ```
 
     === "CLI API"
         ```bash
-        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \ 
+        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
             -F "image=@/path/to/image.jpg" \
             -F "size=640" \
@@ -366,21 +366,21 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
     === "Python API"
         ```python
         import requests
-        
+
         # API URL, use actual MODEL_ID
         url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
-        
+
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
-        
+
         # Inference arguments (optional)
         data = {"size": 640, "confidence": 0.25, "iou": 0.45}
-        
+
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
             files = {"image": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
-        
+
         print(response.json())
         ```
 

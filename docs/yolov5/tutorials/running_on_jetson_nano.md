@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Deploy YOLOv5 on NVIDIA Jetson using TensorRT and DeepStream SDK for high performance inference. Step-by-step guide with code snippets.
-keywords: YOLOv5, NVIDIA Jetson, TensorRT, DeepStream SDK, deployment, AI at edge, PyTorch, computer vision, object detection, CUDA
+description: Detailed guide on deploying trained models on NVIDIA Jetson using TensorRT and DeepStream SDK. Optimize the inference performance on Jetson with Ultralytics.
+keywords: TensorRT, NVIDIA Jetson, DeepStream SDK, deployment, Ultralytics, YOLO, Machine Learning, AI, Deep Learning, model optimization, inference performance
 ---
 
 # Deploy on NVIDIA Jetson using TensorRT and DeepStream SDK
 
-📚 This guide explains how to deploy a trained model into NVIDIA Jetson Platform and perform inference using TensorRT and DeepStream SDK. Here we use TensorRT to maximize the inference performance on the Jetson platform.  
+📚 This guide explains how to deploy a trained model into NVIDIA Jetson Platform and perform inference using TensorRT and DeepStream SDK. Here we use TensorRT to maximize the inference performance on the Jetson platform.
 UPDATED 18 November 2022.
 
 ## Hardware Verification
@@ -117,7 +117,7 @@ pip3 install torch-1.10.0-cp36-cp36m-linux_aarch64.whl
 sudo apt install -y libjpeg-dev zlib1g-dev
 git clone --branch v0.11.1 https://github.com/pytorch/vision torchvision
 cd torchvision
-sudo python3 setup.py install 
+sudo python3 setup.py install
 ```
 
 Here a list of the corresponding torchvision version that you need to install according to the PyTorch version:
@@ -310,10 +310,10 @@ The following table summarizes how different models perform on **Jetson Xavier N
 
 | Model Name | Precision | Inference Size | Inference Time (ms) | FPS |
 |------------|-----------|----------------|---------------------|-----|
-| YOLOv5s    | FP32      | 320x320        | 16.66               | 60  |                    
-|            | FP32      | 640x640        | 33.33               | 30  |                    
-|            | INT8      | 640x640        | 16.66               | 60  |                    
-| YOLOv5n    | FP32      | 640x640        | 16.66               | 60  |                    
+| YOLOv5s    | FP32      | 320x320        | 16.66               | 60  |
+|            | FP32      | 640x640        | 33.33               | 30  |
+|            | INT8      | 640x640        | 16.66               | 60  |
+| YOLOv5n    | FP32      | 640x640        | 16.66               | 60  |
 
 ### Additional
 

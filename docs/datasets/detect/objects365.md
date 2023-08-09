@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the Objects365 dataset, designed for object detection research with a focus on diverse objects, featuring 365 categories, 2 million images, and 30 million bounding boxes.
-keywords: Objects365 dataset, object detection, computer vision, deep learning, Ultralytics Docs
+description: Discover the Objects365 dataset, a wide-scale, high-quality resource for object detection research. Learn to use it with the Ultralytics YOLO model.
+keywords: Objects365, object detection, Ultralytics, dataset, YOLO, bounding boxes, annotations, computer vision, deep learning, training models
 ---
 
 # Objects365 Dataset
@@ -28,12 +28,12 @@ The Objects365 dataset is widely used for training and evaluating deep learning 
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Objects365 Dataset, the `Objects365.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/Objects365.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/Objects365.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Objects365 Dataset, the `Objects365.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml).
 
-!!! example "ultralytics/datasets/Objects365.yaml"
+!!! example "ultralytics/cfg/datasets/Objects365.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/Objects365.yaml"
+    --8<-- "ultralytics/cfg/datasets/Objects365.yaml"
     ```
 
 ## Usage
@@ -46,10 +46,10 @@ To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image 
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='Objects365.yaml', epochs=100, imgsz=640)
         ```

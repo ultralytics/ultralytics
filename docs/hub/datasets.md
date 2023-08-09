@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Efficiently manage and use custom datasets on Ultralytics HUB for streamlined training with YOLOv5 and YOLOv8 models.
-keywords: Ultralytics, HUB, Datasets, Upload, Visualize, Train, Custom Data, YAML, YOLOv5, YOLOv8
+description: Learn how Ultralytics HUB datasets streamline your ML workflow. Upload, format, validate, access, share, edit or delete datasets for Ultralytics YOLO model training.
+keywords: Ultralytics, HUB datasets, YOLO model training, upload datasets, dataset validation, ML workflow, share datasets
 ---
 
 # HUB Datasets
@@ -34,7 +34,7 @@ The dataset YAML is the same standard YOLOv5 and YOLOv8 YAML format.
 !!! example "coco8.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco8.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
 After zipping your dataset, you should validate it before uploading it to Ultralytics HUB. Ultralytics HUB conducts the dataset validation check post-upload, so by ensuring your dataset is correctly formatted and error-free ahead of time, you can forestall any setbacks due to dataset rejection.
@@ -86,7 +86,7 @@ Also, you can analyze your dataset by click on the **Overview** tab.
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Overview tab](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_10.jpg)
 
-Next, [train a model](./models.md) on your dataset.
+Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) on your dataset.
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_11.jpg)
 

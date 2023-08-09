@@ -77,7 +77,7 @@ class AIFI(TransformerEncoderLayer):
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
         # flatten [B, C, H, W] to [B, HxW, C]
         x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(device=x.device, dtype=x.dtype))
-        return x.permute((0, 2, 1)).view([-1, c, h, w])
+        return x.permute(0, 2, 1).view([-1, c, h, w]).contiguous()
 
     @staticmethod
     def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000.):

@@ -1,14 +1,12 @@
 ---
 comments: true
-description: Learn how to train custom YOLOv8 models on various datasets, configure hyperparameters, and use Ultralytics' YOLO for seamless training.
-keywords: YOLOv8, train mode, train a custom YOLOv8 model, hyperparameters, train a model, Comet, ClearML, TensorBoard, logging, loggers
+description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO with examples of single-GPU and multi-GPU training. Efficient way for object detection training.
+keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-**Train mode** is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the
-specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can
-accurately predict the classes and locations of objects in an image.
+**Train mode** is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image.
 
 !!! tip "Tip"
 
@@ -16,26 +14,27 @@ accurately predict the classes and locations of objects in an image.
 
 ## Usage Examples
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Arguments section below for a full list of
-training arguments.
+Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Arguments section below for a full list of training arguments.
 
-!!! example ""
+!!! example "Single-GPU and CPU Training Example"
+
+    Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.yaml')  # build a new model from YAML
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
         model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
-        
+
         # Train the model
         model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
-    
+
         ```bash
         # Build a new model from YAML and start training from scratch
         yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
@@ -47,14 +46,95 @@ training arguments.
         yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
         ```
 
+### Multi-GPU Training
+
+The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device=cpu` will be used.
+
+!!! example "Multi-GPU Training Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+
+        # Train the model with 2 GPUs
+        model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        ```
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model using GPUs 0 and 1
+        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+        ```
+
+### Apple M1 and M2 MPS Training
+
+With the support for Apple M1 and M2 chips integrated in the Ultralytics YOLO models, it's now possible to train your models on devices utilizing the powerful Metal Performance Shaders (MPS) framework. The MPS offers a high-performance way of executing computation and image processing tasks on Apple's custom silicon.
+
+To enable training on Apple M1 and M2 chips, you should specify 'mps' as your device when initiating the training process. Below is an example of how you could do this in Python and via the command line:
+
+!!! example "MPS Training Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+
+        # Train the model with 2 GPUs
+        model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+        ```
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model using GPUs 0 and 1
+        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+        ```
+
+While leveraging the computational power of the M1/M2 chips, this enables more efficient processing of the training tasks. For more detailed guidance and advanced configuration options, please refer to the [PyTorch MPS documentation](https://pytorch.org/docs/stable/notes/mps.html).
+
+### Resuming Interrupted Trainings
+
+Resuming training from a previously saved state is a crucial feature when working with deep learning models. This can come in handy in various scenarios, like when the training process has been unexpectedly interrupted, or when you wish to continue training a model with new data or for more epochs.
+
+When training is resumed, Ultralytics YOLO loads the weights from the last saved model and also restores the optimizer state, learning rate scheduler, and the epoch number. This allows you to continue the training process seamlessly from where it was left off.
+
+You can easily resume training in Ultralytics YOLO by setting the `resume` argument to `True` when calling the `train` method, and specifying the path to the `.pt` file containing the partially trained model weights.
+
+Below is an example of how to resume an interrupted training using Python and via the command line:
+
+!!! example "Resume Training Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO('path/to/last.pt')  # load a partially trained model
+
+        # Resume training
+        model.train(resume=True)
+        ```
+    === "CLI"
+
+        ```bash
+        # Resume an interrupted training
+        yolo train resume model=path/to/last.pt
+        ```
+
+By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session.
+
+Remember that checkpoints are saved at the end of every epoch by default, or at fixed interval using the `save_period` argument, so you must complete at least 1 epoch to resume a training run.
+
 ## Arguments
 
-Training settings for YOLO models refer to the various hyperparameters and configurations used to train the model on a
-dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO training settings
-include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the training process
-include the choice of optimizer, the choice of loss function, and the size and composition of the training dataset. It
-is important to carefully tune and experiment with these settings to achieve the best possible performance for a given
-task.
+Training settings for YOLO models refer to the various hyperparameters and configurations used to train the model on a dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO training settings include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the training process include the choice of optimizer, the choice of loss function, and the size and composition of the training dataset. It is important to carefully tune and experiment with these settings to achieve the best possible performance for a given task.
 
 | Key               | Value    | Description                                                                       |
 |-------------------|----------|-----------------------------------------------------------------------------------|
@@ -63,7 +143,7 @@ task.
 | `epochs`          | `100`    | number of epochs to train for                                                     |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training       |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                     |
-| `imgsz`           | `640`    | size of input images as integer or w,h                                            |
+| `imgsz`           | `640`    | size of input images as integer                                                   |
 | `save`            | `True`   | save train checkpoints and predict results                                        |
 | `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if < 1)                                  |
 | `cache`           | `False`  | True/ram, disk or False. Use cache for data loading                               |

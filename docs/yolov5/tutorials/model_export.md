@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Export YOLOv5 models to TFLite, ONNX, CoreML, and TensorRT formats. Achieve up to 5x GPU speedup using TensorRT. Benchmarks included.
-keywords: YOLOv5, object detection, export, ONNX, CoreML, TensorFlow, TensorRT, OpenVINO
+description: Learn how to export a trained YOLOv5 model from PyTorch to different formats including TorchScript, ONNX, OpenVINO, TensorRT, and CoreML, and how to use these models.
+keywords: Ultralytics, YOLOv5, model export, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TensorFlow
 ---
 
 # TFLite, ONNX, CoreML, TensorRT Export
 
-📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.  
+📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.
 UPDATED 8 December 2022.
 
 ## Before You Start
@@ -116,7 +116,7 @@ YOLOv5 🚀 v6.2-104-ge3e5122 Python-3.7.13 torch-1.12.1+cu113 CPU
 Downloading https://github.com/ultralytics/yolov5/releases/download/v6.2/yolov5s.pt to yolov5s.pt...
 100% 14.1M/14.1M [00:00<00:00, 274MB/s]
 
-Fusing layers... 
+Fusing layers...
 YOLOv5s summary: 213 layers, 7225885 parameters, 0 gradients
 
 PyTorch: starting from yolov5s.pt with output shape (1, 25200, 85) (14.1 MB)
@@ -129,8 +129,8 @@ ONNX: export success ✅ 2.3s, saved as yolov5s.onnx (28.0 MB)
 
 Export complete (5.5s)
 Results saved to /content/yolov5
-Detect:          python detect.py --weights yolov5s.onnx 
-Validate:        python val.py --weights yolov5s.onnx 
+Detect:          python detect.py --weights yolov5s.onnx
+Validate:        python val.py --weights yolov5s.onnx
 PyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.onnx')
 Visualize:       https://netron.app/
 ```
@@ -148,7 +148,7 @@ The 3 exported models will be saved alongside the original PyTorch model:
 ```bash
 python detect.py --weights yolov5s.pt                 # PyTorch
                            yolov5s.torchscript        # TorchScript
-                           yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+                           yolov5s.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
                            yolov5s_openvino_model     # OpenVINO
                            yolov5s.engine             # TensorRT
                            yolov5s.mlmodel            # CoreML (macOS only)
@@ -164,7 +164,7 @@ python detect.py --weights yolov5s.pt                 # PyTorch
 ```bash
 python val.py --weights yolov5s.pt                 # PyTorch
                         yolov5s.torchscript        # TorchScript
-                        yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+                        yolov5s.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
                         yolov5s_openvino_model     # OpenVINO
                         yolov5s.engine             # TensorRT
                         yolov5s.mlmodel            # CoreML (macOS Only)

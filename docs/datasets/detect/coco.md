@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the COCO dataset, designed to encourage research on object detection, segmentation, and captioning with standardized evaluation metrics.
-keywords: COCO dataset, object detection, segmentation, captioning, deep learning models, computer vision, benchmarking, data annotations, COCO Consortium
+description: Learn how COCO, a leading dataset for object detection and segmentation, integrates with Ultralytics. Discover ways to use it for training YOLO models.
+keywords: Ultralytics, COCO dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
 ---
 
 # COCO Dataset
@@ -21,7 +21,7 @@ The COCO dataset is split into three subsets:
 
 1. **Train2017**: This subset contains 118K images for training object detection, segmentation, and captioning models.
 2. **Val2017**: This subset has 5K images used for validation purposes during model training.
-3. **Test2017**: This subset consists of 20K images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://competitions.codalab.org/competitions/5181) for performance evaluation.
+3. **Test2017**: This subset consists of 20K images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
 
 ## Applications
 
@@ -29,12 +29,12 @@ The COCO dataset is widely used for training and evaluating deep learning models
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
-!!! example "ultralytics/datasets/coco.yaml"
+!!! example "ultralytics/cfg/datasets/coco.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco.yaml"
     ```
 
 ## Usage
@@ -47,10 +47,10 @@ To train a YOLOv8n model on the COCO dataset for 100 epochs with an image size o
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='coco.yaml', epochs=100, imgsz=640)
         ```
@@ -78,7 +78,7 @@ If you use the COCO dataset in your research or development work, please cite th
 
 ```bibtex
 @misc{lin2015microsoft,
-      title={Microsoft COCO: Common Objects in Context}, 
+      title={Microsoft COCO: Common Objects in Context},
       author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
       year={2015},
       eprint={1405.0312},

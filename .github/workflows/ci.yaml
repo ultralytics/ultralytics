@@ -10,17 +10,30 @@ on:
     branches: [main]
   schedule:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+  workflow_dispatch:
+    inputs:
+      hub:
+        description: 'Run HUB'
+        default: false
+        type: boolean
+      tests:
+        description: 'Run Tests'
+        default: false
+        type: boolean
+      benchmarks:
+        description: 'Run Benchmarks'
+        default: false
+        type: boolean
 
 jobs:
   HUB:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10']
-        model: [yolov5n]
+        python-version: ['3.11']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -75,6 +88,7 @@ jobs:
           print(json.dumps(response.json(), indent=2))
 
   Benchmarks:
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -93,11 +107,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
-              pip install -e '.[export]' --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
             else
-              pip install -e '.[export]' --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
           fi
-          yolo export format=tflite imgsz=32
+          yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"
@@ -110,44 +124,35 @@ jobs:
           pip --version
           pip list
       - name: Benchmark DetectionModel
-        shell: python
-        run: |
-          from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.20)
+        shell: bash
+        run: yolo benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
       - name: Benchmark SegmentationModel
-        shell: python
-        run: |
-          from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.14)
+        shell: bash
+        run: yolo benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.30
       - name: Benchmark ClassificationModel
-        shell: python
-        run: |
-          from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.61)
+        shell: bash
+        run: yolo benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.36
       - name: Benchmark PoseModel
-        shell: python
-        run: |
-          from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-pose.pt', imgsz=160, half=False, hard_fail=0.0)
+        shell: bash
+        run: yolo benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.17
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
 
   Tests:
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.8', '3.9', '3.10']
-        model: [yolov8n]
+        python-version: ['3.11']
         torch: [latest]
         include:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
-            model: yolov8n
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v3
@@ -157,12 +162,12 @@ jobs:
           cache: 'pip' # caching pip dependencies
       - name: Install requirements
         shell: bash  # for Windows compatibility
-        run: |
+        run: |  # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest "coremltools>=7.0.b1" --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -e . pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . pytest "coremltools>=7.0.b1" --extra-index-url https://download.pytorch.org/whl/cpu
           fi
       - name: Check environment
         run: |

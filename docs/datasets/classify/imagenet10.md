@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the ImageNet10 dataset, a compact subset of the original ImageNet dataset designed for quick testing, CI tests, and sanity checks.
-keywords: ImageNet10 dataset, ImageNet, small scale, subset, computer vision models, pipelines, testing, debugging, synsets, annotations, applications, structure, sample images, citations, acknowledgments, Ultralytics Docs
+description: Explore the compact ImageNet10 Dataset developed by Ultralytics. Ideal for fast testing of computer vision training pipelines and CV model sanity checks.
+keywords: Ultralytics, YOLO, ImageNet10 Dataset, Image detection, Deep Learning, ImageNet, AI model testing, Computer vision, Machine learning
 ---
 
 # ImageNet10 Dataset
@@ -33,10 +33,10 @@ To test a deep learning model on the ImageNet10 dataset with an image size of 22
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         model.train(data='imagenet10', epochs=5, imgsz=224)
         ```

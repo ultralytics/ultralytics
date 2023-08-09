@@ -1,15 +1,17 @@
 #pragma once
 
-#define _CRT_SECURE_NO_WARNINGS
 #define	RET_OK nullptr
+
+#ifdef _WIN32
+#include <Windows.h>
+#include <direct.h>
+#include <io.h>
+#endif
 
 #include <string>
 #include <vector>
-#include <stdio.h>
-#include "io.h"
-#include "direct.h"
-#include "opencv.hpp"
-#include <Windows.h>
+#include <cstdio>
+#include <opencv2/opencv.hpp>
 #include "onnxruntime_cxx_api.h"
 
 
@@ -23,13 +25,12 @@ enum MODEL_TYPE
 };
 
 
+
 typedef struct _DCSP_INIT_PARAM
 {
 	std::string								ModelPath;
 	MODEL_TYPE								ModelType = YOLO_ORIGIN_V8;
 	std::vector<int>						imgSize={640, 640};
-
-	int										classesNum=80;
 	float									RectConfidenceThreshold = 0.6;
 	float									iouThreshold = 0.5;
 	bool									CudaEnable = false;
@@ -55,15 +56,14 @@ public:
 public:
 	char* CreateSession(DCSP_INIT_PARAM &iParams);
 
-
 	char* RunSession(cv::Mat &iImg, std::vector<DCSP_RESULT>& oResult);
-
 
 	char* WarmUpSession();
 
-
 	template<typename N>
 	char* TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::vector<int64_t>& inputNodeDims, std::vector<DCSP_RESULT>& oResult);
+
+    std::vector<std::string> classes{"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush"};
 
 
 private:

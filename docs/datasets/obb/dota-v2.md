@@ -1,22 +1,49 @@
 ---
 comments: true
-description: Delve into DOTA v2, a distinct dataset focusing on object detection in aerial imagery. Understand its synergy with advanced machine learning models.
+description: Delve into DOTA v2, an Oriented Bounding Box (OBB) aerial imagery dataset with 1.7 million instances and 11,268 images.
 keywords: DOTA v2, object detection, aerial images, computer vision, deep learning, annotations, oriented bounding boxes, OBB
 ---
 
 # DOTA v2 Dataset with OBB
 
-[DOTA v2](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Pioneered by the collaborative efforts of academic researchers, it encapsulates a rich array of aerial scenes annotated meticulously with Oriented Bounding Boxes (OBB).
+[DOTA v2](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
 
-![DOTA v2 classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-266b-44a9-8199-199329bf5ca9.jpg)
+![DOTA v2 classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-366b-44a9-8199-199329bf5ca9.jpg)
 
 ## Key Features
 
-- Comprises a diverse set of aerial images, showcasing urban scenes, agricultural landscapes, and intricate infrastructural patterns.
-- Features more than 1M Oriented Bounding Boxes across 18 categories, hand-crafted with precision to capture objects of varying sizes and orientations.
-- The presence of OBB annotations provides a unique challenge, differentiating DOTA v2 from datasets with axis-aligned bounding boxes.
-- Encompasses multiscale object detection, recognizing objects that may appear minuscule or colossal based on their altitude.
-- Offers a balanced distribution across categories, ensuring robust model training without inherent biases.
+- Collection from various sensors and platforms, with image sizes ranging from 800 × 800 to 20,000 × 20,000 pixels.
+- Features more than 1.7M Oriented Bounding Boxes across 18 categories.
+- Encompasses multiscale object detection.
+- Instances are annotated by experts using arbitrary (8 d.o.f.) quadrilateral, capturing objects of different scales, orientations, and shapes.
+
+## Dataset Versions
+
+### DOTA-v1.0
+
+- Contains 15 common categories.
+- Comprises 2,806 images with 188,282 instances.
+- Split ratios: 1/2 for training, 1/6 for validation, and 1/3 for testing.
+
+### DOTA-v1.5
+
+- Incorporates the same images as DOTA-v1.0.
+- Very small instances (less than 10 pixels) are also annotated.
+- Addition of a new category: "container crane".
+- A total of 403,318 instances.
+- Released for the DOAI Challenge 2019 on Object Detection in Aerial Images.
+
+### DOTA-v2.0
+
+- Collections from Google Earth, GF-2 Satellite, and other aerial images.
+- Contains 18 common categories.
+- Comprises 11,268 images with a whopping 1,793,658 instances.
+- New categories introduced: "airport" and "helipad".
+- Image splits:
+    - Training: 1,830 images with 268,627 instances.
+    - Validation: 593 images with 81,048 instances.
+    - Test-dev: 2,792 images with 353,346 instances.
+    - Test-challenge: 6,053 images with 1,090,637 instances.
 
 ## Dataset Structure
 
@@ -46,7 +73,6 @@ To train a model on the DOTA v2 dataset, you can utilize the following code snip
 !!! warning
 
     Please be aware that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes only, but any commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
-
 
 !!! example "Train Example"
 

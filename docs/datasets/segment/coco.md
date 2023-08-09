@@ -52,7 +52,7 @@ To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 epochs with an imag
         model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='coco-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco-seg.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"

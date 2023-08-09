@@ -51,7 +51,7 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a ful
         model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
 
         # Train the model
-        model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 

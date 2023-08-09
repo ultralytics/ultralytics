@@ -55,7 +55,7 @@ To train a model on the xView dataset for 100 epochs with an image size of 640, 
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='xView.yaml', epochs=100, imgsz=640)
+        results = model.train(data='xView.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"

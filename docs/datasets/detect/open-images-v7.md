@@ -70,7 +70,7 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an im
         model = YOLO('yolov8n.pt')
 
         # Train the model on the Open Images V7 dataset
-        model.train(data='open-images-v7.yaml', epochs=100, imgsz=640)
+        results = model.train(data='open-images-v7.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"

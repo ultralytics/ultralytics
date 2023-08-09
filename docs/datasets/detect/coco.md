@@ -52,7 +52,7 @@ To train a YOLOv8n model on the COCO dataset for 100 epochs with an image size o
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='coco.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"

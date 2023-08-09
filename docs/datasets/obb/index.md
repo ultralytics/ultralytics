@@ -22,10 +22,10 @@ Internally, YOLO processes losses and outputs in the `xywhr` format, which repre
 
 <p align="center"><img width="800" src="https://user-images.githubusercontent.com/26833433/259471881-59020fe2-09a4-4dcc-acce-9b0f7cfa40ee.png"></p>
 
-An example of a `*.txt` label file for the above image, which contains an object of class `9` in OBB format, could look like:
+An example of a `*.txt` label file for the above image, which contains an object of class `0` in OBB format, could look like:
 
 ```bash
-9 0.5 0.3 0.7 0.4 0.6 0.6 0.4 0.5
+0 0.780811 0.743961 0.782371 0.74686 0.777691 0.752174 0.776131 0.749758
 ```
 
 ## Usage
@@ -43,7 +43,7 @@ To train a model using these OBB formats:
         model = YOLO('yolov8n-obb.yaml')
 
         # Train the model on the DOTAv2 dataset
-        model.train(data='DOTAv2.yaml', epochs=100, imgsz=640)
+        results = model.train(data='DOTAv2.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"

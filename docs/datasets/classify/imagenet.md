@@ -42,7 +42,7 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='imagenet', epochs=100, imgsz=224)
+        results = model.train(data='imagenet', epochs=100, imgsz=224)
         ```
 
     === "CLI"

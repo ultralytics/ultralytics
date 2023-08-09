@@ -79,7 +79,7 @@ The `train` and `val` fields specify the paths to the directories containing the
         model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 

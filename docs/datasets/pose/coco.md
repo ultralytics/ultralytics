@@ -53,7 +53,7 @@ To train a YOLOv8n-pose model on the COCO-Pose dataset for 100 epochs with an im
         model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='coco-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco-pose.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"

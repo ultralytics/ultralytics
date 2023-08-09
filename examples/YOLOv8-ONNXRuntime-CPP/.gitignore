@@ -1,0 +1,45 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# onnxruntime compiled files
+onnxruntime-*/
+
+# ignore yolov8 models
+yolov8*.onnx
+yolov8*.pt
+
+# ignore build folders
+build/
+cmake-build-debug/
+cmake-build-release/
+cmake-build-relwithdebinfo/

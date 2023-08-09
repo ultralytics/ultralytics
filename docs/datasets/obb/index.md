@@ -14,7 +14,7 @@ Training a precise object detection model with oriented bounding boxes (OBB) req
 
 The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1. It follows this format:
 
-```
+```bash
 class_index, x1, y1, x2, y2, x3, y3, x4, y4
 ```
 
@@ -24,7 +24,7 @@ Internally, YOLO processes losses and outputs in the `xywhr` format, which repre
 
 An example of a `*.txt` label file for the above image, which contains an object of class `9` in OBB format, could look like:
 
-```
+```bash
 9 0.5 0.3 0.7 0.4 0.6 0.6 0.4 0.5
 ```
 
@@ -39,18 +39,18 @@ To train a model using these OBB formats:
         ```python
         from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n_obb.pt')  # load a pretrained OBB model
+        # Create a new YOLOv8n-OBB model from scratch
+        model = YOLO('yolov8n-obb.yaml')
 
-        # Train the model
-        model.train(data='obb_dataset.yaml', epochs=100, imgsz=640)
+        # Train the model on the DOTAv2 dataset
+        model.train(data='DOTAv2.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Start training from a pretrained OBB *.pt model
-        yolo detect train data=obb_dataset.yaml model=yolov8n_obb.pt epochs=100 imgsz=640
+        # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
+        yolo detect train data=DOTAv2.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -72,7 +72,7 @@ Transitioning labels from the DOTA dataset format to the YOLO OBB format can be 
 ```python
 from ultralytics.data.converter import convert_dota_to_yolo_obb
 
-convert_dota(labels_dir='../dota/annotations/')
+convert_dota_to_yolo_obb('path/to/DOTA')
 ```
 
 This conversion mechanism is instrumental for datasets in the DOTA format, ensuring alignment with the Ultralytics YOLO OBB format.

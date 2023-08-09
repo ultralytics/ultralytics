@@ -289,9 +289,6 @@ def check_cls_dataset(dataset: str, split=''):
             - 'test' (Path): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict): A dictionary of class names in the dataset.
-
-    Raises:
-        FileNotFoundError: If the specified dataset is not found and cannot be downloaded.
     """
 
     dataset = Path(dataset)
@@ -333,9 +330,9 @@ class HUBDatasetStats():
         ```python
         from ultralytics.data.utils import HUBDatasetStats
 
-        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8.zip', task='detect')  # detect dataset
-        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-seg.zip', task='segment')  # segment dataset
-        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-pose.zip', task='pose')  # pose dataset
+        stats = HUBDatasetStats('path/to/coco8.zip', task='detect')  # detect dataset
+        stats = HUBDatasetStats('path/to/coco8-seg.zip', task='segment')  # segment dataset
+        stats = HUBDatasetStats('path/to/coco8-pose.zip', task='pose')  # pose dataset
         stats.get_json(save=False)
         stats.process_images()
         ```
@@ -467,7 +464,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         from pathlib import Path
         from ultralytics.data.utils import compress_one_image
 
-        for f in Path('/Users/glennjocher/Downloads/dataset').rglob('*.jpg'):
+        for f in Path('path/to/dataset').rglob('*.jpg'):
             compress_one_image(f)
         ```
     """
@@ -498,7 +495,7 @@ def delete_dsstore(path):
         ```python
         from ultralytics.data.utils import delete_dsstore
 
-        delete_dsstore('/Users/glennjocher/Downloads/dataset')
+        delete_dsstore('path/to/dir')
         ```
 
     Note:

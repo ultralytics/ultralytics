@@ -126,6 +126,7 @@ class YOLODataset(BaseDataset):
         # Read cache
         [cache.pop(k) for k in ('hash', 'version', 'msgs')]  # remove items
         labels = cache['labels']
+        assert len(labels), f'No valid labels found, please check your dataset. {HELP_URL}'
         self.im_files = [lb['im_file'] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments

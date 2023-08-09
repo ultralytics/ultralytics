@@ -78,6 +78,14 @@ keywords: Ultralytics YOLO, Utility Operations, segment2box, make_divisible, cli
 <br><br>
 
 ---
+## ::: ultralytics.utils.ops.xyxyxyxy2xywhr
+<br><br>
+
+---
+## ::: ultralytics.utils.ops.xywhr2xyxyxyxy
+<br><br>
+
+---
 ## ::: ultralytics.utils.ops.ltwh2xyxy
 <br><br>
 

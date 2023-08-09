@@ -13,7 +13,7 @@ from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, create_obb_boxes, dota2xywha, segment2box, split_obb_boxes, xywh2xyxy, xyxya2dota
+from ultralytics.utils.ops import create_obb_boxes, dota2xywha, segment2box, split_obb_boxes, xywh2xyxy, xyxya2dota
 
 from .utils import polygons2masks, polygons2masks_overlap
 

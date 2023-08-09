@@ -8,7 +8,7 @@ keywords: DOTA v2, object detection, aerial images, computer vision, deep learni
 
 [DOTA v2](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
 
-![DOTA v2 classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-366b-44a9-8199-199329bf5ca9.jpg)
+![DOTA v2 classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-266b-44a9-8199-199329bf5ca9.jpg)
 
 ## Key Features
 

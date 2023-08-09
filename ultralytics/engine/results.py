@@ -356,10 +356,19 @@ class Results(SimpleClass):
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):
             box = {'x1': row[0] / w, 'y1': row[1] / h, 'x2': row[2] / w, 'y2': row[3] / h}
-            conf = row[4]
-            id = int(row[5])
-            name = self.names[id]
-            result = {'name': name, 'class': id, 'confidence': conf, 'box': box}
+            
+            is_tracking=row[6] != None
+
+            if is_tracking:
+                track_id = int(row[4])
+                conf = row[5]
+                class_id = int(row[6])
+            else:
+                track_id = None
+                conf = row[4]
+                class_id = int(row[5])
+                
+            name = self.names[class_id]
             if self.masks:
                 x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}

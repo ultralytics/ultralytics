@@ -354,22 +354,14 @@ class Results(SimpleClass):
         results = []
         data = self.boxes.data.cpu().tolist()
         h, w = self.orig_shape if normalize else (1, 1)
-        for i, row in enumerate(data):
+        for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             box = {'x1': row[0] / w, 'y1': row[1] / h, 'x2': row[2] / w, 'y2': row[3] / h}
-
-            is_tracking = len(row) > 6
-
-            if is_tracking:
-                track_id = int(row[4])
-                conf = row[5]
-                class_id = int(row[6])
-            else:
-                track_id = None
-                conf = row[4]
-                class_id = int(row[5])
-
+            conf = row[-2]
+            class_id = int(row[-1])
             name = self.names[class_id]
-            result = {'name': name, 'class': class_id, 'id': track_id, 'confidence': conf, 'box': box}
+            result = {'name': name, 'class': class_id, 'confidence': conf, 'box': box}
+            if self.boxes.is_track:
+                result['track_id'] = int(row[-3])  # track ID
             if self.masks:
                 x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}
@@ -414,7 +406,7 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, (track_id), conf, cls
+        assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, track_id, conf, cls
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
         self.orig_shape = orig_shape

@@ -37,7 +37,7 @@ To train a CNN model on the ImageWoof dataset for 100 epochs with an image size 
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='imagewoof', epochs=100, imgsz=224)
+        results = model.train(data='imagewoof', epochs=100, imgsz=224)
         ```
 
     === "CLI"
@@ -79,6 +79,6 @@ The example showcases the subtle differences and similarities among the differen
 
 ## Citations and Acknowledgments
 
-If you use the ImageWoof dataset in your research or development work, please make sure to acknowledge the creators of the dataset by linking to the [official dataset repository](https://github.com/fastai/imagenette). As of my knowledge cutoff in September 2021, there is no official publication specifically about ImageWoof for citation.
+If you use the ImageWoof dataset in your research or development work, please make sure to acknowledge the creators of the dataset by linking to the [official dataset repository](https://github.com/fastai/imagenette).
 
 We would like to acknowledge the FastAI team for creating and maintaining the ImageWoof dataset as a valuable resource for the machine learning and computer vision research community. For more information about the ImageWoof dataset, visit the [ImageWoof dataset repository](https://github.com/fastai/imagenette).

@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 

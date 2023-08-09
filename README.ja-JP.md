@@ -18,11 +18,11 @@
   </div>
   <br>
 
-[Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility. YOLOv8 is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of object detection and tracking, instance segmentation, image classification and pose estimation tasks.
+[Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) は、これまでの YOLO バージョンの成功に加え、パフォーマンスと柔軟性をさらに高める新機能と改良を導入した、最先端の (SOTA) モデルです。YOLOv8 は、高速、高精度、使いやすいように設計されており、オブジェクトの検出と追跡、インスタンスのセグメンテーション、画像分類、姿勢推定の幅広いタスクに最適です。
 
-We hope that the resources here will help you get the most out of YOLOv8. Please browse the YOLOv8 <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
+YOLOv8 を最大限に活用するために、ここにあるリソースがお役に立てれば幸いです。詳細については YOLOv8 <a href="https://docs.ultralytics.com/">ドキュメント</a>をご覧ください。サポートについては <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> で issue を挙げてサポートを受けてください、<a href="https://ultralytics.com/discord">Discord</a> コミュニティで質問やディスカッションができます！
 
-To request an Enterprise License please complete the form at [Ultralytics Licensing](https://ultralytics.com/license).
+企業向けライセンスのお申し込みは、[Ultralytics Licensing](https://ultralytics.com/license) のフォームにご記入ください。
 
 <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png"></a>
 
@@ -50,14 +50,14 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 </div>
 </div>
 
-## <div align="center">Documentation</div>
+## <div align="center">ドキュメント</div>
 
-See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for full documentation on training, validation, prediction and deployment.
+また、トレーニング、検証、予測、デプロイメントに関する完全なドキュメントは [YOLOv8 ドキュメント](https://docs.ultralytics.com)を参照のこと。
 
 <details open>
-<summary>Install</summary>
+<summary>インストール</summary>
 
-Pip install the ultralytics package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
+Pip は、[**Python>=3.8**](https://www.python.org/) と [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/) の環境に、すべての[要件](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)を含む ultralytics パッケージをインストールします。
 
 [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
@@ -65,58 +65,58 @@ Pip install the ultralytics package including all [requirements](https://github.
 pip install ultralytics
 ```
 
-For alternative installation methods including [Conda](https://anaconda.org/conda-forge/ultralytics), [Docker](https://hub.docker.com/r/ultralytics/ultralytics), and Git, please refer to the [Quickstart Guide](https://docs.ultralytics.com/quickstart).
+[Conda](https://anaconda.org/conda-forge/ultralytics)、[Docker](https://hub.docker.com/r/ultralytics/ultralytics)、Git を含む別のインストール方法については、[クイックスタートガイド](https://docs.ultralytics.com/quickstart)を参照してください。
 
 </details>
 
 <details open>
-<summary>Usage</summary>
+<summary>使用方法</summary>
 
 #### CLI
 
-YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
+YOLOv8 は、コマンドラインインターフェース（CLI）で `yolo` コマンドを使って直接使うことができます:
 
 ```bash
 yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-`yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8 [CLI Docs](https://docs.ultralytics.com/usage/cli) for examples.
+`yolo` はさまざまなタスクやモードに使用でき、`imgsz=640` のような追加引数を受け付ける。例については、YOLOv8 [CLI ドキュメント](https://docs.ultralytics.com/usage/cli)を参照してください。
 
 #### Python
 
-YOLOv8 may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
+YOLOv8 は、Python 環境で直接使うこともでき、上記の CLI の例と同じ[引数](https://docs.ultralytics.com/usage/cfg/)を受け付けます:
 
 ```python
 from ultralytics import YOLO
 
-# Load a model
-model = YOLO("yolov8n.yaml")  # build a new model from scratch
-model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+# モデルのロード
+model = YOLO("yolov8n.yaml")  # ゼロから新しいモデルを作る
+model = YOLO("yolov8n.pt")  # 事前に学習させたモデルをロードする（トレーニングに推奨）
 
-# Use the model
-model.train(data="coco128.yaml", epochs=3)  # train the model
-metrics = model.val()  # evaluate model performance on the validation set
-results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-path = model.export(format="onnx")  # export the model to ONNX format
+# モデルを使用
+model.train(data="coco128.yaml", epochs=3)  # モデルをトレーニングする
+metrics = model.val()  # 検証セットでモデルのパフォーマンスを評価する
+results = model("https://ultralytics.com/images/bus.jpg")  # 画像を予測する
+path = model.export(format="onnx")  # モデルを ONNX 形式にエクスポートする
 ```
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases). See YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
+[モデル](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)は、最新の Ultralytics [リリース](https://github.com/ultralytics/assets/releases)から自動的にダウンロードされます。その他の例については、YOLOv8 [Python ドキュメント](https://docs.ultralytics.com/usage/python)を参照してください。
 
 </details>
 
-## <div align="center">Models</div>
+## <div align="center">モデル</div>
 
-YOLOv8 [Detect](https://docs.ultralytics.com/tasks/detect), [Segment](https://docs.ultralytics.com/tasks/segment) and [Pose](https://docs.ultralytics.com/tasks/pose) models pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco) dataset are available here, as well as YOLOv8 [Classify](https://docs.ultralytics.com/tasks/classify) models pretrained on the [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) dataset. [Track](https://docs.ultralytics.com/modes/track) mode is available for all Detect, Segment and Pose models.
+[COCO](https://docs.ultralytics.com/datasets/detect/coco) データセットで事前学習された YOLOv8 [検出](https://docs.ultralytics.com/tasks/detect)、[セグメンテーション](https://docs.ultralytics.com/tasks/segment)、[ポーズ](https://docs.ultralytics.com/tasks/pose)モデル、および [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) データセットで事前学習された YOLOv8 [分類](https://docs.ultralytics.com/tasks/classify)モデルをご利用いただけます。[Track](https://docs.ultralytics.com/modes/track) モードは、すべての検出、セグメンテーション、ポーズモデルで利用可能です。
 
 <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png">
 
-All [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+すべての[モデル](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)は、初回使用時に最新の Ultralytics [リリース](https://github.com/ultralytics/assets/releases)から自動的にダウンロードされます。
 
-<details open><summary>Detection</summary>
+<details open><summary>検出</summary>
 
-See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models.
+これらのモデルの使用例については[検出ドキュメント](https://docs.ultralytics.com/tasks/detect/)を参照のこと。
 
-| Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| モデル                                                                                | サイズ<br><sup>(ピクセル) | mAP<sup>val<br>50-95 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
@@ -124,18 +124,18 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examp
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640                   | 52.9                 | 375.2                          | 2.39                                | 43.7               | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                   | 53.9                 | 479.1                          | 3.53                                | 68.2               | 257.8             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
-  <br>Reproduce by `yolo val detect data=coco.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo val detect data=coco128.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** の値は、[COCO val2017](http://cocodataset.org) データセットのシングルモデルシングルスケールのものである。
+  <br>`yolo val detect data=coco.yaml device=0` で再現
+- [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) インスタンスを使用し、COCO バル画像を平均した**スピード**。
+  <br>`yolo val detect data=coco128.yaml batch=1 device=0|cpu` で再現
 
 </details>
 
-<details><summary>Segmentation</summary>
+<details><summary>セグメンテーション</summary>
 
-See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage examples with these models.
+これらのモデルの使用例については[セグメンテーションドキュメント](https://docs.ultralytics.com/tasks/segment/)を参照のこと。
 
-| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| モデル                                                                                        | サイズ<br><sup>(ピクセル) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | 96.1                           | 1.21                                | 3.4                | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | 155.7                          | 1.47                                | 11.8               | 42.6              |
@@ -143,18 +143,18 @@ See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage e
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640                   | 52.3                 | 42.6                  | 572.4                          | 2.79                                | 46.0               | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | 712.1                          | 4.02                                | 71.8               | 344.1             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
-  <br>Reproduce by `yolo val segment data=coco.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** の値は、[COCO val2017](http://cocodataset.org) データセットのシングルモデルシングルスケールのものである。
+  <br>`yolo val segment data=coco.yaml device=0` で再現
+- [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) インスタンスを使用し、COCO バル画像を平均した**スピード**。
+  <br>`yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu` で再現
 
 </details>
 
-<details><summary>Classification</summary>
+<details><summary>分類</summary>
 
-See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usage examples with these models.
+これらのモデルの使用例については[分類ドキュメント](https://docs.ultralytics.com/tasks/classify/)を参照のこと。
 
-| Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+| モデル                                                                                        | サイズ<br><sup>(ピクセル) | acc<br><sup>top1 | acc<br><sup>top5 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 | -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
 | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                   | 66.6             | 87.0             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
 | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                   | 72.3             | 91.1             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
@@ -162,18 +162,18 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usag
 | [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                   | 78.0             | 94.1             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
 | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
 
-- **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set.
-  <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
-- **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
+- **acc** 値は、[ImageNet](https://www.image-net.org/) データセットの検証セットにおけるモデル精度である。
+  <br>`yolo val classify data=path/to/ImageNet device=0` で再現
+- [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) インスタンスを使用し、ImageNet の val 画像を平均した**スピード**。
+  <br>`yolo val classify data=path/to/ImageNet batch=1 device=0|cpu` で再現
 
 </details>
 
-<details><summary>Pose</summary>
+<details><summary>ポーズ</summary>
 
-See [Pose Docs](https://docs.ultralytics.com/tasks/pose) for usage examples with these models.
+これらのモデルの使用例については、[ポーズドキュメント](https://docs.ultralytics.com/tasks/pose)を参照してください。
 
-| Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| モデル                                                                                                | サイズ<br><sup>(ピクセル) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | 50.4                  | 80.1               | 131.8                          | 1.18                                | 3.3                | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | 60.0                  | 86.2               | 233.2                          | 1.42                                | 11.6               | 30.2              |
@@ -182,17 +182,16 @@ See [Pose Docs](https://docs.ultralytics.com/tasks/pose) for usage examples with
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | 69.2                  | 90.2               | 1607.1                         | 3.73                                | 69.4               | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | 71.6                  | 91.2               | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](http://cocodataset.org)
-  dataset.
-  <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** の値は、[COCO Keypoints val2017](http://cocodataset.org) データセット上のシングルモデルシングルスケールのものである。
+  <br>`yolo val pose data=coco-pose.yaml device=0` で再現
+- [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) インスタンスを使用し、COCO バル画像を平均した**スピード**。
+  <br>`yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu` で再現
 
 </details>
 
-## <div align="center">Integrations</div>
+## <div align="center">統合</div>
 
-Our key integrations with leading AI platforms extend the functionality of Ultralytics' offerings, enhancing tasks like dataset labeling, training, visualization, and model management. Discover how Ultralytics, in collaboration with [Roboflow](https://roboflow.com/?ref=ultralytics), ClearML, [Comet](https://bit.ly/yolov8-readme-comet), Neural Magic and [OpenVINO](https://docs.ultralytics.com/integrations/openvino), can optimize your AI workflow.
+主要な AI プラットフォームとの統合により、Ultralytics の機能を拡張し、データセットのラベリング、トレーニング、可視化、モデル管理などのタスクを強化します。[Roboflow](https://roboflow.com/?ref=ultralytics)、ClearML、[Comet](https://bit.ly/yolov8-readme-comet)、Neural Magic、[OpenVINO](https://docs.ultralytics.com/integrations/openvino) との連携により、Ultralytics がお客様の AI ワークフローをどのように最適化できるかをご覧ください。
 
 <br>
 <a href="https://bit.ly/ultralytics_hub" target="_blank">
@@ -216,34 +215,34 @@ Our key integrations with leading AI platforms extend the functionality of Ultra
 
 |                                                           Roboflow                                                           |                                                            ClearML ⭐ NEW                                                            |                                                                        Comet ⭐ NEW                                                                        |                                           Neural Magic ⭐ NEW                                           |
 | :--------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
-| Label and export your custom datasets directly to YOLOv8 for training with [Roboflow](https://roboflow.com/?ref=ultralytics) | Automatically track, visualize and even remotely train YOLOv8 using [ClearML](https://cutt.ly/yolov5-readme-clearml) (open-source!) | Free forever, [Comet](https://bit.ly/yolov8-readme-comet) lets you save YOLOv8 models, resume training, and interactively visualize and debug predictions | Run YOLOv8 inference up to 6x faster with [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) |
+| [Roboflow](https://roboflow.com/?ref=ultralytics) でのトレーニングのために、カスタムデータセットにラベルを付け、YOLOv8 に直接エクスポートします | [ClearML](https://cutt.ly/yolov5-readme-clearml) (オープンソース!)を使って、YOLOv8 を自動的に追跡、視覚化し、遠隔トレーニングまで行う | 永久無料の [Comet](https://bit.ly/yolov8-readme-comet) は、YOLOv8 モデルの保存、トレーニングの再開、予測値のインタラクティブな可視化とデバッグを可能にします | [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) で YOLOv8 の推論を最大 6 倍高速に実行する |
 
 ## <div align="center">Ultralytics HUB</div>
 
-Experience seamless AI with [Ultralytics HUB](https://bit.ly/ultralytics_hub) ⭐, the all-in-one solution for data visualization, YOLOv5 and YOLOv8 🚀 model training and deployment, without any coding. Transform images into actionable insights and bring your AI visions to life with ease using our cutting-edge platform and user-friendly [Ultralytics App](https://ultralytics.com/app_install). Start your journey for **Free** now!
+[Ultralytics HUB](https://bit.ly/ultralytics_hub) ⭐は、データ可視化、YOLOv5 および YOLOv8 🚀モデルのトレーニング、デプロイメントをオールインワンで提供するソリューションで、コーディングなしでシームレスな AI を体験できます。最先端のプラットフォームと使いやすい [Ultralytics App](https://ultralytics.com/app_install) を使って、画像を実用的な洞察に変換し、AI のビジョンを簡単に実現できます。今すぐ**無料**の旅を始めましょう！
 
 <a href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
 
-## <div align="center">Contribute</div>
+## <div align="center">コントリビュート</div>
 
-We love your input! YOLOv5 and YOLOv8 would not be possible without help from our community. Please see our [Contributing Guide](https://docs.ultralytics.com/help/contributing) to get started, and fill out our [Survey](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey) to send us feedback on your experience. Thank you 🙏 to all our contributors!
+皆様のご意見をお待ちしております！YOLOv5 と YOLOv8 は、私たちのコミュニティからの助けなしには成り立ちません。[コントリビューティングガイド](https://docs.ultralytics.com/help/contributing)をご覧いただき、[アンケート](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey)にご記入の上、ご意見をお寄せください。ご協力いただいた皆様、ありがとうございました！
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
 <a href="https://github.com/ultralytics/yolov5/graphs/contributors">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png"></a>
 
-## <div align="center">License</div>
+## <div align="center">ライセンス</div>
 
-Ultralytics offers two licensing options to accommodate diverse use cases:
+Ultralytics は、多様なユースケースに対応するため、2つのライセンスオプションを提供しています:
 
-- **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/licenses/) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-- **Enterprise License**: Designed for commercial use, this license permits seamless integration of Ultralytics software and AI models into commercial goods and services, bypassing the open-source requirements of AGPL-3.0. If your scenario involves embedding our solutions into a commercial offering, reach out through [Ultralytics Licensing](https://ultralytics.com/license).
+- **AGPL-3.0 License**: この [OSI 承認](https://opensource.org/licenses/)オープンソースライセンスは、学生や愛好家に理想的で、オープンなコラボレーションと知識の共有を促進します。詳細は [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) ファイルをご覧ください。
+- **Enterprise License**: 商用利用のために設計されたこのライセンスは、AGPL-3.0 のオープンソース要件をバイパスして、Ultralytics ソフトウェアと AI モデルを商用商品やサービスにシームレスに統合することを許可します。当社のソリューションを商業的な製品に組み込む場合は、[Ultralytics Licensing](https://ultralytics.com/license) までご連絡ください。
 
-## <div align="center">Contact</div>
+## <div align="center">連絡先</div>
 
-For Ultralytics bug reports and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues), and join our [Discord](https://ultralytics.com/discord) community for questions and discussions!
+Ultralytics のバグレポートや機能リクエストは [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) を、質問やディスカッションは [Discord](https://ultralytics.com/discord) のコミュニティにご参加ください！
 
 <br>
 <div align="center">

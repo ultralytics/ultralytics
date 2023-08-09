@@ -369,6 +369,7 @@ class Results(SimpleClass):
                 class_id = int(row[5])
 
             name = self.names[class_id]
+            result = {'name': name, 'class': class_id, 'id': track_id, 'confidence': conf, 'box': box}
             if self.masks:
                 x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}

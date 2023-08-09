@@ -265,20 +265,21 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     elif isinstance(requirements, str):
         requirements = [requirements]
 
-    s = ''  # console string
     pkgs = []
     for r in requirements:
         r_stripped = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
         try:
-            pkg.require(r_stripped)
-        except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
+            pkg.require(r_stripped)  # exception if requirements not met
+        except pkg.DistributionNotFound:
             try:  # attempt to import (slower but more accurate)
                 import importlib
                 importlib.import_module(next(pkg.parse_requirements(r_stripped)).name)
             except ImportError:
-                s += f'"{r}" '
                 pkgs.append(r)
+        except pkg.VersionConflict:
+            pkgs.append(r)
 
+    s = ' '.join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
             n = len(pkgs)  # number of packages updates

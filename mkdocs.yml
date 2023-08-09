@@ -207,6 +207,9 @@ nav:
           - Imagenette: datasets/classify/imagenette.md
           - Imagewoof: datasets/classify/imagewoof.md
           - MNIST: datasets/classify/mnist.md
+      - Oriented Bounding Boxes (OBB):
+          - datasets/obb/index.md
+          - DOTAv2: datasets/obb/dota-v2.md
       - Multi-Object Tracking:
           - datasets/track/index.md
   - Guides:

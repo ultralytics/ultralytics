@@ -12,7 +12,6 @@ import torch.nn.functional as F
 import torchvision
 
 from ultralytics.utils import LOGGER
-
 from .metrics import box_iou
 
 
@@ -512,11 +511,11 @@ def xyxyxyxy2xywhr(corners):
         (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format of shape (n, 5).
     """
     if isinstance(corners, torch.Tensor):
-        backend = 'torch'
+        is_numpy = False
         atan2 = torch.atan2
         sqrt = torch.sqrt
     else:
-        backend = 'numpy'
+        is_numpy = True
         atan2 = np.arctan2
         sqrt = np.sqrt
 
@@ -529,10 +528,10 @@ def xyxyxyxy2xywhr(corners):
     w = sqrt(dx21 ** 2 + dy21 ** 2)
     h = sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2)
 
-    rotation = atan2(dy21, dx21)
+    rotation = atan2(-dy21, dx21)
     rotation *= 180.0 / math.pi  # radians to degrees
 
-    return np.vstack((cx, cy, w, h, rotation)).T if backend == 'numpy' else torch.stack((cx, cy, w, h, rotation), dim=1)
+    return np.vstack((cx, cy, w, h, rotation)).T if is_numpy else torch.stack((cx, cy, w, h, rotation), dim=1)
 
 
 def xywhr2xyxyxyxy(center):
@@ -546,11 +545,11 @@ def xywhr2xyxyxyxy(center):
         (numpy.ndarray | torch.Tensor): Converted corner points of shape (n, 8).
     """
     if isinstance(center, torch.Tensor):
-        backend = 'torch'
+        is_numpy = False
         cos = torch.cos
         sin = torch.sin
     else:
-        backend = 'numpy'
+        is_numpy = True
         cos = np.cos
         sin = np.sin
 
@@ -572,7 +571,7 @@ def xywhr2xyxyxyxy(center):
     x4 = cx - dx * cos_rot + dy * sin_rot
     y4 = cy + dx * sin_rot + dy * cos_rot
 
-    return np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T if backend == 'numpy' else torch.stack(
+    return np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T if is_numpy else torch.stack(
         (x1, y1, x2, y2, x3, y3, x4, y4), dim=1)
 
 

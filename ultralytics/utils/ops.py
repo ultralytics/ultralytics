@@ -512,11 +512,11 @@ def xyxyxyxy2xywhr(corners):
         (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format of shape (n, 5).
     """
     if isinstance(corners, torch.Tensor):
-        backend = "torch"
+        backend = 'torch'
         atan2 = torch.atan2
         sqrt = torch.sqrt
     else:
-        backend = "numpy"
+        backend = 'numpy'
         atan2 = np.arctan2
         sqrt = np.sqrt
 
@@ -530,10 +530,10 @@ def xyxyxyxy2xywhr(corners):
     delta_x = x2 - x1
     delta_y = y2 - y1
     rotation = atan2(delta_y, delta_x)
-    if backend == "torch":
+    if backend == 'torch':
         rotation *= 180.0 / math.pi  # radians to degrees
 
-    return np.vstack((cx, cy, w, h, rotation)).T if backend == "numpy" else torch.stack((cx, cy, w, h, rotation), dim=1)
+    return np.vstack((cx, cy, w, h, rotation)).T if backend == 'numpy' else torch.stack((cx, cy, w, h, rotation), dim=1)
 
 
 def xywhr2xyxyxyxy(center):
@@ -547,11 +547,11 @@ def xywhr2xyxyxyxy(center):
         (numpy.ndarray | torch.Tensor): Converted corner points of shape (n, 8).
     """
     if isinstance(center, torch.Tensor):
-        backend = "torch"
+        backend = 'torch'
         cos = torch.cos
         sin = torch.sin
     else:
-        backend = "numpy"
+        backend = 'numpy'
         cos = np.cos
         sin = np.sin
 
@@ -573,7 +573,7 @@ def xywhr2xyxyxyxy(center):
     x4 = cx - dx * cos_rot + dy * sin_rot
     y4 = cy + dx * sin_rot + dy * cos_rot
 
-    return np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T if backend == "numpy" else torch.stack(
+    return np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T if backend == 'numpy' else torch.stack(
         (x1, y1, x2, y2, x3, y3, x4, y4), dim=1)
 
 

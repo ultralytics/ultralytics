@@ -200,15 +200,16 @@ class BaseValidator:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             return stats
 
-    def match_predictions(self, pred_classes: torch.Tensor, true_classes: torch.Tensor,
-                          iou: torch.Tensor) -> torch.Tensor:
+    def match_predictions(self, pred_classes: torch.Tensor, true_classes: torch.Tensor, iou: torch.Tensor) -> torch.Tensor:
         """
         Matches detections to ground truth objects (pred_classes, true_classes) using IoU.
-        Arguments:
-            pred_classes: Tensor[N] of predicted class indices
-            true_classes: Tensor[M] of target class indices
+        
+        Args:
+            pred_classes (torch.Tensor): Predicted class indices of shape(N,)
+            true_classes (torch.Tensor): Target class indices of shape(M,)
+            
         Returns:
-            correct: Tensor[N, 10] for 10 IoU levels
+            (torch.Tensor): Correct tensor of shape(N,10) for 10 IoU thresholds
         """
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
         correct_class = true_classes[:, None] == pred_classes

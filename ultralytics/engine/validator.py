@@ -208,11 +208,11 @@ class BaseValidator:
         Matches detections to ground truth objects (pred_classes, true_classes) using IoU.
 
         Args:
-            pred_classes (torch.Tensor): Predicted class indices of shape(N,)
-            true_classes (torch.Tensor): Target class indices of shape(M,)
+            pred_classes (torch.Tensor): Predicted class indices of shape(N,).
+            true_classes (torch.Tensor): Target class indices of shape(M,).
 
         Returns:
-            (torch.Tensor): Correct tensor of shape(N,10) for 10 IoU thresholds
+            (torch.Tensor): Correct tensor of shape(N,10) for 10 IoU thresholds.
         """
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
         correct_class = true_classes[:, None] == pred_classes

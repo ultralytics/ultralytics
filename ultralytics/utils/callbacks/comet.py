@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from datetime import datetime
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
 from ultralytics.utils.torch_utils import model_info_for_loggers
@@ -70,6 +71,7 @@ def _create_experiment(args):
         comet_mode = _get_comet_mode()
         _project_name = os.getenv('COMET_PROJECT_NAME', args.project)
         experiment = _get_experiment_type(comet_mode, _project_name)
+        experiment.set_name(args.name + '/' + datetime.now().strftime('%y-%m-%d_%H-%M-%S'))
         experiment.log_parameters(vars(args))
         experiment.log_others({
             'eval_batch_logging_interval': _get_eval_batch_logging_interval(),

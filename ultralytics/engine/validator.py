@@ -203,7 +203,7 @@ class BaseValidator:
     def match_predictions(self, pred_classes: torch.Tensor, true_classes: torch.Tensor,
                           iou: torch.Tensor) -> torch.Tensor:
         """
-        Matches detections to ground truth objects (pred_classes, true_classes) using IoU.
+        Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
 
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape(N,).

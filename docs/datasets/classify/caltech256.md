@@ -61,13 +61,17 @@ The example showcases the diversity and complexity of the objects in the Caltech
 
 If you use the Caltech-256 dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@article{griffin2007caltech,
-         title={Caltech-256 object category dataset},
-         author={Griffin, Gregory and Holub, Alex and Perona, Pietro},
-         year={2007}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{griffin2007caltech,
+                 title={Caltech-256 object category dataset},
+                 author={Griffin, Gregory and Holub, Alex and Perona, Pietro},
+                 year={2007}
+        }
+        ```
 
 We would like to acknowledge Gregory Griffin, Alex Holub, and Pietro Perona for creating and maintaining the Caltech-256 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the
 

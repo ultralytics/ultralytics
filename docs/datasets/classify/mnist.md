@@ -69,14 +69,18 @@ If you use the MNIST dataset in your
 
 research or development work, please cite the following paper:
 
-```bibtex
-@article{lecun2010mnist,
-         title={MNIST handwritten digit database},
-         author={LeCun, Yann and Cortes, Corinna and Burges, CJ},
-         journal={ATT Labs [Online]. Available: http://yann.lecun.com/exdb/mnist},
-         volume={2},
-         year={2010}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{lecun2010mnist,
+                 title={MNIST handwritten digit database},
+                 author={LeCun, Yann and Cortes, Corinna and Burges, CJ},
+                 journal={ATT Labs [Online]. Available: http://yann.lecun.com/exdb/mnist},
+                 volume={2},
+                 year={2010}
+        }
+        ```
 
 We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Burges for creating and maintaining the MNIST dataset as a valuable resource for the machine learning and computer vision research community. For more information about the MNIST dataset and its creators, visit the [MNIST dataset website](http://yann.lecun.com/exdb/mnist/).

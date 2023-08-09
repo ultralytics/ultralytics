@@ -72,7 +72,7 @@ To train a model on the DOTA v2 dataset, you can utilize the following code snip
 
 !!! warning
 
-    Please be aware that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes only, but any commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
+    Please note that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
 
 !!! example "Train Example"
 
@@ -109,17 +109,21 @@ The dataset's richness offers invaluable insights into object detection challeng
 
 For those leveraging DOTA v2 in their endeavors, it's pertinent to cite the relevant research papers:
 
-```bibtex
-@article{9560031,
-  author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
-  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
-  title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
-  year={2021},
-  volume={},
-  number={},
-  pages={1-1},
-  doi={10.1109/TPAMI.2021.3117983}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{9560031,
+          author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
+          journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+          title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
+          year={2021},
+          volume={},
+          number={},
+          pages={1-1},
+          doi={10.1109/TPAMI.2021.3117983}
+        }
+        ```
 
 A special note of gratitude to the team behind DOTA v2 for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DOTA v2 website](https://captain-whu.github.io/DOTA/index.html).

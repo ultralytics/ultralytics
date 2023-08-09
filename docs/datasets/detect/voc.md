@@ -77,15 +77,19 @@ The example showcases the variety and complexity of the images in the VOC datase
 
 If you use the VOC dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@misc{everingham2010pascal,
-      title={The PASCAL Visual Object Classes (VOC) Challenge},
-      author={Mark Everingham and Luc Van Gool and Christopher K. I. Williams and John Winn and Andrew Zisserman},
-      year={2010},
-      eprint={0909.5206},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{everingham2010pascal,
+              title={The PASCAL Visual Object Classes (VOC) Challenge},
+              author={Mark Everingham and Luc Van Gool and Christopher K. I. Williams and John Winn and Andrew Zisserman},
+              year={2010},
+              eprint={0909.5206},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We would like to acknowledge the PASCAL VOC Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the VOC dataset and its creators, visit the [PASCAL VOC dataset website](http://host.robots.ox.ac.uk/pascal/VOC/).

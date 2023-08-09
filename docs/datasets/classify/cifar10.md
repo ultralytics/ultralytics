@@ -64,13 +64,17 @@ The example showcases the variety and complexity of the objects in the CIFAR-10 
 
 If you use the CIFAR-10 dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@TECHREPORT{Krizhevsky09learningmultiple,
-            author={Alex Krizhevsky},
-            title={Learning multiple layers of features from tiny images},
-            institution={},
-            year={2009}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @TECHREPORT{Krizhevsky09learningmultiple,
+                    author={Alex Krizhevsky},
+                    title={Learning multiple layers of features from tiny images},
+                    institution={},
+                    year={2009}
+        }
+        ```
 
 We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-10 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the CIFAR-10 dataset and its creator, visit the [CIFAR-10 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).

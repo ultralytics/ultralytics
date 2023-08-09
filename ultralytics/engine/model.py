@@ -320,7 +320,7 @@ class Model:
             half=overrides['half'],
             int8=overrides['int8'],
             device=overrides['device'],
-            verbose=overrides['verbose'])
+            verbose=kwargs.get('verbose'))
 
     def export(self, **kwargs):
         """

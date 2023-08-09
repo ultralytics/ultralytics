@@ -2,8 +2,6 @@
 
 This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX Runtime and OpenCV's API.
 
-We recommend using Visual Studio to build the project.
-
 ## Benefits
 
 - Friendly for deployment in the industrial sector.
@@ -27,11 +25,11 @@ model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
 
 ## Dependencies
 
-| Dependency              | Version  |
-| ----------------------- | -------- |
-| Onnxruntime-win-x64-gpu | >=1.14.1 |
-| OpenCV                  | >=4.0.0  |
-| C++                     | >=17     |
+| Dependency                       | Version  |
+|----------------------------------| -------- |
+| Onnxruntime(linux,windows,macos) | >=1.14.1 |
+| OpenCV                           | >=4.0.0  |
+| C++                              | >=17     |
 
 Note: The dependency on C++17 is due to the usage of the C++17 filesystem feature.
 

@@ -36,9 +36,7 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = use_keypoints
         self.use_obb = use_obb
         self.data = data
-        assert not ((self.use_segments and self.use_keypoints and self.use_obb) or
-                    (self.use_segments and self.use_keypoints) or (self.use_keypoints and self.use_obb) or
-                    (self.use_segments and self.use_obb)), 'Can not use segments, keypoints and obb together.'
+        assert sum((self.use_segments, self.use_keypoints, self.use_obb)) < 2, 'Can not use Segments, Keypoints and OBB together.'
         super().__init__(*args, **kwargs)
 
     def cache_labels(self, path=Path('./labels.cache')):

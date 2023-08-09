@@ -211,7 +211,7 @@ class BaseValidator:
             correct: Tensor[N, 10] for 10 IoU levels
         """
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
-        correct_class = true_classes[None] == pred_classes
+        correct_class = true_classes[:, None] == pred_classes
         for i in range(len(self.iouv)):
             x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
             if x[0].shape[0]:

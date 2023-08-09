@@ -68,7 +68,7 @@ class AutoBackend(nn.Module):
             | ONNX Runtime          | *.onnx           |
             | ONNX OpenCV DNN       | *.onnx dnn=True  |
             | OpenVINO              | *.xml            |
-            | CoreML                | *.mlmodel        |
+            | CoreML                | *.mlpackage      |
             | TensorRT              | *.engine         |
             | TensorFlow SavedModel | *_saved_model    |
             | TensorFlow GraphDef   | *.pb             |
@@ -485,8 +485,13 @@ class AutoBackend(nn.Module):
         sf = list(export_formats().Suffix)  # export suffixes
         if not is_url(p, check=False) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
-        url = urlparse(p)  # if url may be Triton inference server
-        types = [s in Path(p).name for s in sf]
+        name = Path(p).name
+        types = [s in name for s in sf]
+        types[5] |= name.endswith('.mlmodel')  # retain support for older Apple CoreML *.mlmodel formats
         types[8] &= not types[9]  # tflite &= not edgetpu
-        triton = not any(types) and all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
+        if any(types):
+            triton = False
+        else:
+            url = urlparse(p)  # if url may be Triton inference server
+            triton = all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
         return types + [triton]

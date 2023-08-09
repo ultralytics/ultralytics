@@ -24,7 +24,7 @@ pandas>=1.1.4
 seaborn>=0.11.0
 
 # Export --------------------------------------
-# coremltools>=6.0,<=6.2  # CoreML export
+# coremltools>=7.0.b1  # CoreML export
 # onnx>=1.12.0  # ONNX export
 # onnxsim>=0.4.1  # ONNX simplifier
 # nvidia-pyindex  # TensorRT export

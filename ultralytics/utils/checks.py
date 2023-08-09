@@ -265,20 +265,21 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     elif isinstance(requirements, str):
         requirements = [requirements]
 
-    s = ''  # console string
     pkgs = []
     for r in requirements:
         r_stripped = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
         try:
-            pkg.require(r_stripped)
-        except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
+            pkg.require(r_stripped)  # exception if requirements not met
+        except pkg.DistributionNotFound:
             try:  # attempt to import (slower but more accurate)
                 import importlib
                 importlib.import_module(next(pkg.parse_requirements(r_stripped)).name)
             except ImportError:
-                s += f'"{r}" '
                 pkgs.append(r)
+        except pkg.VersionConflict:
+            pkgs.append(r)
 
+    s = ' '.join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
             n = len(pkgs)  # number of packages updates
@@ -341,15 +342,19 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
     """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames."""
-    if ('yolov3' in file or 'yolov5' in file) and 'u' not in file:
-        original_file = file
-        file = re.sub(r'(.*yolov5([nsmlx]))\.pt', '\\1u.pt', file)  # i.e. yolov5n.pt -> yolov5nu.pt
-        file = re.sub(r'(.*yolov5([nsmlx])6)\.pt', '\\1u.pt', file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
-        file = re.sub(r'(.*yolov3(|-tiny|-spp))\.pt', '\\1u.pt', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
-        if file != original_file and verbose:
-            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
-                        f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
-                        f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n')
+    if 'yolov3' in file or 'yolov5' in file:
+        if 'u.yaml' in file:
+            file = file.replace('u.yaml', '.yaml')  # i.e. yolov5nu.yaml -> yolov5n.yaml
+        elif '.pt' in file and 'u' not in file:
+            original_file = file
+            file = re.sub(r'(.*yolov5([nsmlx]))\.pt', '\\1u.pt', file)  # i.e. yolov5n.pt -> yolov5nu.pt
+            file = re.sub(r'(.*yolov5([nsmlx])6)\.pt', '\\1u.pt', file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
+            file = re.sub(r'(.*yolov3(|-tiny|-spp))\.pt', '\\1u.pt', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+            if file != original_file and verbose:
+                LOGGER.info(
+                    f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
+                    f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
+                    f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n')
     return file
 
 

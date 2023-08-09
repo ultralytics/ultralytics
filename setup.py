@@ -50,7 +50,7 @@ setup(
             'mkdocs-ultralytics-plugin>=0.0.25',  # for meta descriptions and images, dates and authors
         ],
         'export': [
-            'coremltools>=6.0,<=6.2',
+            'coremltools>=7.0.b1',
             'openvino-dev>=2023.0',
             'tensorflowjs',  # automatically installs tensorflow
         ], },

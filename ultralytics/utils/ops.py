@@ -562,15 +562,19 @@ def xywhr2xyxyxyxy(center):
 
     cos_rot = cos(rotation)
     sin_rot = sin(rotation)
+    dx_cos_rot = dx * cos_rot
+    dx_sin_rot = dx * sin_rot
+    dy_cos_rot = dy * cos_rot
+    dy_sin_rot = dy * sin_rot
 
-    x1 = cx - dx * cos_rot - dy * sin_rot
-    y1 = cy + dx * sin_rot - dy * cos_rot
-    x2 = cx + dx * cos_rot - dy * sin_rot
-    y2 = cy - dx * sin_rot - dy * cos_rot
-    x3 = cx + dx * cos_rot + dy * sin_rot
-    y3 = cy - dx * sin_rot + dy * cos_rot
-    x4 = cx - dx * cos_rot + dy * sin_rot
-    y4 = cy + dx * sin_rot + dy * cos_rot
+    x1 = cx - dx_cos_rot - dy_sin_rot
+    y1 = cy + dx_sin_rot - dy_cos_rot
+    x2 = cx + dx_cos_rot - dy_sin_rot
+    y2 = cy - dx_sin_rot - dy_cos_rot
+    x3 = cx + dx_cos_rot + dy_sin_rot
+    y3 = cy - dx_sin_rot + dy_cos_rot
+    x4 = cx - dx_cos_rot + dy_sin_rot
+    y4 = cy + dx_sin_rot + dy_cos_rot
 
     return np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T if is_numpy else torch.stack(
         (x1, y1, x2, y2, x3, y3, x4, y4), dim=1)

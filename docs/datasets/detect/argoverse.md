@@ -12,7 +12,6 @@ The [Argoverse](https://www.argoverse.org/) dataset is a collection of data desi
 
     The Argoverse dataset *.zip file required for training was removed from Amazon S3 after the shutdown of Argo AI by Ford, but we have made it available for manual download on [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link).
 
-
 ## Key Features
 
 - Argoverse contains over 290K labeled 3D object tracks and 5 million object instances across 1,263 distinct scenes.
@@ -57,7 +56,7 @@ To train a YOLOv8n model on the Argoverse dataset for 100 epochs with an image s
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='Argoverse.yaml', epochs=100, imgsz=640)
+        results = model.train(data='Argoverse.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -81,14 +80,18 @@ The example showcases the variety and complexity of the data in the Argoverse da
 
 If you use the Argoverse dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@inproceedings{chang2019argoverse,
-  title={Argoverse: 3D Tracking and Forecasting with Rich Maps},
-  author={Chang, Ming-Fang and Lambert, John and Sangkloy, Patsorn and Singh, Jagjeet and Bak, Slawomir and Hartnett, Andrew and Wang, Dequan and Carr, Peter and Lucey, Simon and Ramanan, Deva and others},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  pages={8748--8757},
-  year={2019}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @inproceedings{chang2019argoverse,
+          title={Argoverse: 3D Tracking and Forecasting with Rich Maps},
+          author={Chang, Ming-Fang and Lambert, John and Sangkloy, Patsorn and Singh, Jagjeet and Bak, Slawomir and Hartnett, Andrew and Wang, Dequan and Carr, Peter and Lucey, Simon and Ramanan, Deva and others},
+          booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+          pages={8748--8757},
+          year={2019}
+        }
+        ```
 
 We would like to acknowledge Argo AI for creating and maintaining the Argoverse dataset as a valuable resource for the autonomous driving research community. For more information about the Argoverse dataset and its creators, visit the [Argoverse dataset website](https://www.argoverse.org/).

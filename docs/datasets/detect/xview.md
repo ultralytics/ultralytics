@@ -55,7 +55,7 @@ To train a model on the xView dataset for 100 epochs with an image size of 640, 
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='xView.yaml', epochs=100, imgsz=640)
+        results = model.train(data='xView.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -79,15 +79,19 @@ The example showcases the variety and complexity of the data in the xView datase
 
 If you use the xView dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@misc{lam2018xview,
-      title={xView: Objects in Context in Overhead Imagery},
-      author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
-      year={2018},
-      eprint={1802.07856},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lam2018xview,
+              title={xView: Objects in Context in Overhead Imagery},
+              author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
+              year={2018},
+              eprint={1802.07856},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We would like to acknowledge the [Defense Innovation Unit](https://www.diu.mil/) (DIU) and the creators of the xView dataset for their valuable contribution to the computer vision research community. For more information about the xView dataset and its creators, visit the [xView dataset website](http://xviewdataset.org/).

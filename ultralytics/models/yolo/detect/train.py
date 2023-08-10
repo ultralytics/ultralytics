@@ -1,8 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from copy import copy
-
 import numpy as np
+import sys
+import os
+from copy import copy
+from pathlib import Path
+
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[4]  # Root Directory
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))  # Add ROOT to PATH
+ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # Relative Path
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer

@@ -2,6 +2,15 @@
 
 import torch
 import torchvision
+import sys
+import os
+from pathlib import Path
+
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[4]  # Root Directory
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))  # Add ROOT to PATH
+ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # Relative Path
 
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer

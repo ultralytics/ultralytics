@@ -1,5 +1,15 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import sys
+import os
+from pathlib import Path
+
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[4]  # Root Directory
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))  # Add ROOT to PATH
+ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # Relative Path
+
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ROOT, ops

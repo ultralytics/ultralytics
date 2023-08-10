@@ -1,9 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import sys
+import os
+import torch
+import numpy as np
 from pathlib import Path
 
-import numpy as np
-import torch
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[4]  # Root Directory
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))  # Add ROOT to PATH
+ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # Relative Path
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops

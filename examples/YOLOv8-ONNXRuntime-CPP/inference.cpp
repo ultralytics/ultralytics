@@ -90,7 +90,6 @@ char* DCSP_CORE::CreateSession(DCSP_INIT_PARAM &iParams)
 #endif // _WIN32
 
 		session = new Ort::Session(env, modelPath, sessionOption);
-        this->classesNum = this->classes.size();
 		Ort::AllocatorWithDefaultOptions allocator;
 		size_t inputNodesNum = session->GetInputCount();
 		for (size_t i = 0; i < inputNodesNum; i++)
@@ -187,7 +186,7 @@ char* DCSP_CORE::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std
 		for (int i = 0; i < strideNum; ++i)
 		{
 			float* classesScores = data + 4;
-			cv::Mat scores(1, classesNum, CV_32FC1, classesScores);
+			cv::Mat scores(1, this->classes.size(), CV_32FC1, classesScores);
 			cv::Point class_id;
 			double maxClassScore;
 			cv::minMaxLoc(scores, 0, &maxClassScore, 0, &class_id);

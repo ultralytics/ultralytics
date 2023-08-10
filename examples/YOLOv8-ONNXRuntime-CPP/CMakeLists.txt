@@ -65,3 +65,7 @@ if(WIN32)
         "${ONNXRUNTIME_ROOT}/lib/onnxruntime.dll"
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 endif()
+
+# Download https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml
+# and put it in the same folder of the executable file
+configure_file(coco.yaml ${CMAKE_CURRENT_BINARY_DIR}/coco.yaml COPYONLY)

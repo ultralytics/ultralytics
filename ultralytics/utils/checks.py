@@ -215,7 +215,7 @@ def check_font(font='Arial.ttf'):
         return file
 
 
-def check_python(minimum: str = '3.7.0') -> bool:
+def check_python(minimum: str = '3.8.0') -> bool:
     """
     Check current python version against the required minimum version.
 

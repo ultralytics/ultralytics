@@ -156,7 +156,6 @@ class Mosaic(BaseMixTransform):
         """Create a 1x3 image mosaic."""
         mosaic_labels = []
         s = self.imgsz
-        hp, wp = -1, -1  # height, width previous
         for i in range(3):
             labels_patch = labels if i == 0 else labels['mix_labels'][i - 1]
             # Load image

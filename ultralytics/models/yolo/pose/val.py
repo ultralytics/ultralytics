@@ -1,10 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import sys
 import os
-import torch
-import numpy as np
+import sys
 from pathlib import Path
+
+import numpy as np
+import torch
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[4]  # Root Directory

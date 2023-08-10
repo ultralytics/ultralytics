@@ -1,10 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import os
+import sys
+from pathlib import Path
+
 import torch
 import torchvision
-import sys
-import os
-from pathlib import Path
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[4]  # Root Directory

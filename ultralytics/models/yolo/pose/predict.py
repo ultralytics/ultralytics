@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 FILE = Path(__file__).resolve()

@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import sys
 import os
+import sys
 from copy import copy
 from pathlib import Path
 

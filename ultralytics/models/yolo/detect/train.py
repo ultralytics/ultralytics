@@ -1,10 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import numpy as np
-import sys
 import os
+import sys
 from copy import copy
 from pathlib import Path
+
+import numpy as np
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[4]  # Root Directory

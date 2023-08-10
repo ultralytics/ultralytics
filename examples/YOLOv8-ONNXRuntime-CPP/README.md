@@ -36,6 +36,7 @@ yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx im
 | Onnxruntime(linux,windows,macos) | >=1.14.1 |
 | OpenCV                           | >=4.0.0  |
 | C++                              | >=17     |
+| Cmake                            | >=3.5    |
 
 Note: The dependency on C++17 is due to the usage of the C++17 filesystem feature.
 

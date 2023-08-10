@@ -273,5 +273,3 @@ char* DCSP_CORE::WarmUpSession()
 	}
 	return Ret;
 }
-
-

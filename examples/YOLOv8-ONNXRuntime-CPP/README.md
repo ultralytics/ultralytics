@@ -25,15 +25,14 @@ model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
 
 Alternatively, you can use the following command for exporting the model in the terminal
 
-``` bash
+```bash
 yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx imgsz=640,640
 ```
-
 
 ## Dependencies
 
 | Dependency                       | Version  |
-|----------------------------------| -------- |
+| -------------------------------- | -------- |
 | Onnxruntime(linux,windows,macos) | >=1.14.1 |
 | OpenCV                           | >=4.0.0  |
 | C++                              | >=17     |

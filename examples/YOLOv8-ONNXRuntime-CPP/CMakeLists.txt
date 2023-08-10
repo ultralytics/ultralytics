@@ -19,15 +19,14 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 # ONNXRUNTIME
 
-
 # Set ONNXRUNTIME_VERSION
 set(ONNXRUNTIME_VERSION 1.15.1)
 
 if(WIN32)
     # CPU
-    set(ONNXRUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/onnxruntime-win-x64-${ONNXRUNTIME_VERSION}")
+    # set(ONNXRUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/onnxruntime-win-x64-${ONNXRUNTIME_VERSION}")
     # GPU
-    # set(ONNXRUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/onnxruntime-win-x64-gpu-${ONNXRUNTIME_VERSION}")
+    set(ONNXRUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/onnxruntime-win-x64-gpu-${ONNXRUNTIME_VERSION}")
 elseif(LINUX)
     # CPU
     # set(ONNXRUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/onnxruntime-linux-x64-${ONNXRUNTIME_VERSION}")
@@ -59,3 +58,10 @@ elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${ONNXRUNTIME_ROOT}/lib/libonnxruntime.dylib)
 endif()
 
+# For windows system, copy onnxruntime.dll to the same folder of the executable file
+if(WIN32)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${ONNXRUNTIME_ROOT}/lib/onnxruntime.dll"
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+endif()

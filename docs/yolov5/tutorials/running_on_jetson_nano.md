@@ -55,8 +55,8 @@ vi requirements.txt
 - **Step 5.** Edit the following lines. Here you need to press **i** first to enter editing mode. Press **ESC**, then type **:wq** to save and quit
 
 ```sh
-# torch>=1.7.0
-# torchvision>=0.8.1
+# torch>=1.8.0
+# torchvision>=0.9.0
 ```
 
 **Note:** torch and torchvision are excluded for now because they will be installed later.

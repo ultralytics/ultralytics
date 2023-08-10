@@ -34,7 +34,7 @@ class LoadStreams:
     def __init__(self, sources='file.streams', imgsz=640, vid_stride=1):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
-        self.running = True # running flag for Thread
+        self.running = True  # running flag for Thread
         self.mode = 'stream'
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
@@ -42,7 +42,7 @@ class LoadStreams:
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         self.imgs, self.fps, self.frames, self.threads, self.shape = [[]] * n, [0] * n, [0] * n, [None] * n, [None] * n
-        self.caps = [None] * n # video capture objects
+        self.caps = [None] * n  # video capture objects
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
@@ -53,13 +53,14 @@ class LoadStreams:
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
                                           "Try running 'source=0' in a local environment.")
-            self.caps[i] = cv2.VideoCapture(s) # store video capture object
+            self.caps[i] = cv2.VideoCapture(s)  # store video capture object
             if not self.caps[i].isOpened():
                 raise ConnectionError(f'{st}Failed to open {s}')
             w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
             h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
             fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
-            self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
+            self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
+                'inf')  # infinite stream fallback
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
             success, im = self.caps[i].read()  # guarantee first frame
@@ -93,16 +94,16 @@ class LoadStreams:
                         cap.open(stream)  # re-open stream if signal was lost
             else:
                 time.sleep(0.01)  # wait until the buffer is empty
-                
+
     def close(self):
         """Close stream loader and release resources."""
-        self.running = False # stop flag for Thread
+        self.running = False  # stop flag for Thread
         for i, thread in enumerate(self.threads):
             if thread.is_alive():
-                thread.join(timeout=5) # Add timeout
-        for cap in self.caps: # Iterate through the stored VideoCapture objects
+                thread.join(timeout=5)  # Add timeout
+        for cap in self.caps:  # Iterate through the stored VideoCapture objects
             try:
-                cap.release() # release video capture
+                cap.release()  # release video capture
             except Exception as e:
                 LOGGER.warning(f'WARNING ⚠️ Could not release VideoCapture object: {e}')
         cv2.destroyAllWindows()

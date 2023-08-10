@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, open-source, contribute, pull request, bug report, 
 
 # Contributing to Ultralytics Open-Source YOLO Repositories
 
-First of all, thank you for your interest in contributing to Ultralytics open-source YOLO repositories! Your contributions will help improve the project and benefit the community. This document provides guidelines and best practices for contributing to Ultralytics YOLO repositories.
+First of all, thank you for your interest in contributing to Ultralytics open-source YOLO repositories! Your contributions will help improve the project and benefit the community. This document provides guidelines and best practices to get you started.
 
 ## Table of Contents
 

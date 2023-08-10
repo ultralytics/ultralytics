@@ -70,7 +70,7 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an im
         model = YOLO('yolov8n.pt')
 
         # Train the model on the Open Images V7 dataset
-        model.train(data='open-images-v7.yaml', epochs=100, imgsz=640)
+        results = model.train(data='open-images-v7.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -94,13 +94,17 @@ Researchers can gain invaluable insights into the array of computer vision chall
 
 For those employing Open Images V7 in their work, it's prudent to cite the relevant papers and acknowledge the creators:
 
-```bibtex
-@article{OpenImages,
-  author = {Alina Kuznetsova and Hassan Rom and Neil Alldrin and Jasper Uijlings and Ivan Krasin and Jordi Pont-Tuset and Shahab Kamali and Stefan Popov and Matteo Malloci and Alexander Kolesnikov and Tom Duerig and Vittorio Ferrari},
-  title = {The Open Images Dataset V4: Unified image classification, object detection, and visual relationship detection at scale},
-  year = {2020},
-  journal = {IJCV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{OpenImages,
+          author = {Alina Kuznetsova and Hassan Rom and Neil Alldrin and Jasper Uijlings and Ivan Krasin and Jordi Pont-Tuset and Shahab Kamali and Stefan Popov and Matteo Malloci and Alexander Kolesnikov and Tom Duerig and Vittorio Ferrari},
+          title = {The Open Images Dataset V4: Unified image classification, object detection, and visual relationship detection at scale},
+          year = {2020},
+          journal = {IJCV}
+        }
+        ```
 
 A heartfelt acknowledgment goes out to the Google AI team for creating and maintaining the Open Images V7 dataset. For a deep dive into the dataset and its offerings, navigate to the [official Open Images V7 website](https://storage.googleapis.com/openimages/web/index.html).

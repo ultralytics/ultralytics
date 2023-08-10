@@ -52,7 +52,7 @@ accurately predict the classes and locations of objects in an image.
         from ultralytics import YOLO
 
         model = YOLO('yolov8n.pt') # pass any model type
-        model.train(epochs=5)
+        results = model.train(epochs=5)
         ```
 
     === "From scratch"
@@ -60,13 +60,13 @@ accurately predict the classes and locations of objects in an image.
         from ultralytics import YOLO
 
         model = YOLO('yolov8n.yaml')
-        model.train(data='coco128.yaml', epochs=5)
+        results = model.train(data='coco128.yaml', epochs=5)
         ```
 
     === "Resume"
         ```python
         model = YOLO("last.pt")
-        model.train(resume=True)
+        results = model.train(resume=True)
         ```
 
 [Train Examples](../modes/train.md){ .md-button .md-button--primary}

@@ -59,7 +59,7 @@ see the [Configuration](../usage/cfg.md) page.
         model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # build from YAML and transfer weights
 
         # Train the model
-        model.train(data='mnist160', epochs=100, imgsz=64)
+        results = model.train(data='mnist160', epochs=100, imgsz=64)
         ```
 
     === "CLI"

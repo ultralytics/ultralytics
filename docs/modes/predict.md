@@ -54,21 +54,22 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 
     Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
-| Source      | Argument                                   | Type                                  | Notes                                                                      |
-|-------------|--------------------------------------------|---------------------------------------|----------------------------------------------------------------------------|
-| image       | `'image.jpg'`                              | `str` or `Path`                       | Single image file.                                                         |
-| URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`                                 | URL to an image.                                                           |
-| screenshot  | `'screen'`                                 | `str`                                 | Capture a screenshot.                                                      |
-| PIL         | `Image.open('im.jpg')`                     | `PIL.Image`                           | HWC format with RGB channels.                                              |
-| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray` of `uint8 (0-255)`       | HWC format with BGR channels.                                              |
-| numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray` of `uint8 (0-255)`       | HWC format with BGR channels.                                              |
-| torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor` of `float32 (0.0-1.0)` | BCHW format with RGB channels.                                             |
-| CSV         | `'sources.csv'`                            | `str` or `Path`                       | CSV file containing paths to images, videos, or directories.               |
-| video ✅     | `'video.mp4'`                              | `str` or `Path`                       | Video file in formats like MP4, AVI, etc.                                  |
-| directory ✅ | `'path/'`                                  | `str` or `Path`                       | Path to a directory containing images or videos.                           |
-| glob ✅      | `'path/*.jpg'`                             | `str`                                 | Glob pattern to match multiple files. Use the `*` character as a wildcard. |
-| YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`                                 | URL to a YouTube video.                                                    |
-| stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`                                 | URL for streaming protocols such as RTSP, RTMP, or an IP address.          |
+| Source        | Argument                                   | Type            | Notes                                                                                       |
+|---------------|--------------------------------------------|-----------------|---------------------------------------------------------------------------------------------|
+| image         | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
+| URL           | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |
+| screenshot    | `'screen'`                                 | `str`           | Capture a screenshot.                                                                       |
+| PIL           | `Image.open('im.jpg')`                     | `PIL.Image`     | HWC format with RGB channels.                                                               |
+| OpenCV        | `cv2.imread('im.jpg')`                     | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
+| numpy         | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
+| torch         | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                          |
+| CSV           | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                |
+| video ✅       | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                   |
+| directory ✅   | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
+| glob ✅        | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
+| YouTube ✅     | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`           | URL to a YouTube video.                                                                     |
+| stream ✅      | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, or an IP address.                           |
+| multi-stream ✅ | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
 
 Below are code examples for using each source type:
 
@@ -262,16 +263,19 @@ Below are code examples for using each source type:
         results = model(source, stream=True)  # generator of Results objects
         ```
 
-    === "Stream"
-        Run inference on remote streaming sources using RTSP, RTMP, and IP address protocols.
+    === "Streams"
+        Run inference on remote streaming sources using RTSP, RTMP, and IP address protocols. If mutliple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
         ```python
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model
         model = YOLO('yolov8n.pt')
 
-        # Define source as RTSP, RTMP or IP streaming address
-        source = 'rtsp://example.com/media.mp4'
+        # Single stream with batch-size 1 inference
+        source = 'rtsp://example.com/media.mp4'  # RTSP, RTMP or IP streaming address
+
+        # Multiple streams with batched inference (i.e. batch-size 8 for 8 streams)
+        source = 'path/to/list.streams'  # *.streams text file with one streaming address per row
 
         # Run inference on the source
         results = model(source, stream=True)  # generator of Results objects

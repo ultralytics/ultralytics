@@ -28,7 +28,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
         ```bash
         # Install the ultralytics package using conda
-        conda install ultralytics
+        conda install -c conda-forge ultralytics
         ```
 
     === "Git clone"

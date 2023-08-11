@@ -80,8 +80,8 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.device = select_device(self.args.device, self.args.batch)
         self.check_resume()
+        self.device = select_device(self.args.device, self.args.batch)
         self.validator = None
         self.model = None
         self.metrics = None

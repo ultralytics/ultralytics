@@ -124,15 +124,8 @@ class LoadStreams:
                 raise StopIteration
             time.sleep(1 / min(self.fps))
 
-        # Get and remove the next frame from imgs buffer, replacing None with dummy image
-        images = []
-        for x, shp in zip(self.imgs, self.shape):
-            if x:
-                # Use the actual image if available, otherwise use a dummy image
-                img = x.pop(0) if x else np.zeros(shp, dtype=np.uint8)
-                images.append(img)
-
-        return self.sources, images, None, ''
+        # Get and remove the next frame from imgs buffer
+        return self.sources, [x.pop(0) for x in self.imgs], None, ''
 
     def __len__(self):
         """Return the length of the sources object."""

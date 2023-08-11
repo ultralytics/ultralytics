@@ -13,7 +13,6 @@ from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
 
 
-# BaseTrainer python usage
 class DetectionTrainer(BaseTrainer):
 
     def build_dataset(self, img_path, mode='train', batch=None):
@@ -69,9 +68,9 @@ class DetectionTrainer(BaseTrainer):
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
-        Returns a loss dict with labelled training loss items tensor
+        Returns a loss dict with labelled training loss items tensor. Not needed for classification but necessary for
+        segmentation & detection
         """
-        # Not needed for classification but necessary for segmentation & detection
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is not None:
             loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats

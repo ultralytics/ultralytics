@@ -19,6 +19,8 @@ class SegmentationValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        self.plot_masks = None
+        self.process = None
         self.args.task = 'segment'
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
@@ -44,7 +46,7 @@ class SegmentationValidator(DetectionValidator):
                                          'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
-        """Postprocesses YOLO predictions and returns output detections with proto."""
+        """Post-processes YOLO predictions and returns output detections with proto."""
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,

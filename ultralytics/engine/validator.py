@@ -51,6 +51,7 @@ class BaseValidator:
         device (torch.device): Device to use for validation.
         batch_i (int): Current batch index.
         training (bool): Whether the model is in training mode.
+        names (dict): Class names.
         speed (float): Batch processing speed in seconds.
         jdict (dict): Dictionary to store validation results.
         save_dir (Path): Directory to save results.
@@ -74,6 +75,11 @@ class BaseValidator:
         self.device = None
         self.batch_i = None
         self.training = True
+        self.names = None
+        self.seen = None
+        self.stats = None
+        self.confusion_matrix = None
+        self.nc = None
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.jdict = None
 

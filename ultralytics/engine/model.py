@@ -9,8 +9,8 @@ from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
-                               is_git_dir, yaml_load, emojis)
+from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks, emojis,
+                               is_git_dir, yaml_load)
 from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode

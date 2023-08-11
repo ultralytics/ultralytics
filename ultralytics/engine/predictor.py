@@ -185,7 +185,7 @@ class BasePredictor:
         return log_string
 
     def postprocess(self, preds, img, orig_imgs):
-        """Postprocess predictions for an image and returns them."""
+        """Post-processes predictions for an image and returns them."""
         return preds
 
     def __call__(self, source=None, model=None, stream=False, *args, **kwargs):

@@ -230,8 +230,8 @@ class BaseValidator:
         """
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
         correct_class = true_classes[:, None] == pred_classes
-        for i in range(len(self.iouv)):
-            x = torch.nonzero(iou.ge(self.iouv[i]) & correct_class)  # IoU > threshold and classes match
+        for i, iouv in enumerate(self.iouv):
+            x = torch.nonzero(iou.ge(iouv) & correct_class)  # IoU > threshold and classes match
             if x.shape[0]:
                 # Concatenate [label, detect, iou]
                 matches = torch.cat((x, iou[*x.T].unsqueeze(1)), 1).cpu().numpy()

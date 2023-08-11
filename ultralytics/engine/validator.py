@@ -52,9 +52,17 @@ class BaseValidator:
         batch_i (int): Current batch index.
         training (bool): Whether the model is in training mode.
         names (dict): Class names.
-        speed (float): Batch processing speed in seconds.
-        jdict (dict): Dictionary to store validation results.
+        seen: Records the number of images seen so far during validation.
+        stats: Placeholder for statistics during validation.
+        confusion_matrix: Placeholder for a confusion matrix.
+        nc: Number of classes.
+        iouv: (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
+        jdict (dict): Dictionary to store JSON validation results.
+        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
+                      batch processing times in milliseconds.
         save_dir (Path): Directory to save results.
+        plots (dict): Dictionary to store plots for visualization.
+        callbacks (dict): Dictionary to store various callback functions.
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -66,6 +74,7 @@ class BaseValidator:
             save_dir (Path): Directory to save results.
             pbar (tqdm.tqdm): Progress bar for displaying progress.
             args (SimpleNamespace): Configuration for the validator.
+            _callbacks (dict): Dictionary to store various callback functions.
         """
         self.dataloader = dataloader
         self.pbar = pbar
@@ -80,8 +89,9 @@ class BaseValidator:
         self.stats = None
         self.confusion_matrix = None
         self.nc = None
-        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.iouv = None
         self.jdict = None
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f'{self.args.mode}'
@@ -214,6 +224,7 @@ class BaseValidator:
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape(N,).
             true_classes (torch.Tensor): Target class indices of shape(M,).
+            iou (torch.Tensor): IoU thresholds from 0.50 to 0.95 in space of 0.05.
 
         Returns:
             (torch.Tensor): Correct tensor of shape(N,10) for 10 IoU thresholds.

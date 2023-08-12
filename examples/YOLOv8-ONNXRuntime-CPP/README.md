@@ -32,8 +32,6 @@ yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx im
 
 In order to run example, you also need to download coco.yaml. You can download the file manually from [here](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml)
 
-
-
 ## Dependencies
 
 | Dependency                       | Version  |
@@ -43,7 +41,6 @@ In order to run example, you also need to download coco.yaml. You can download t
 | C++                              | >=17     |
 | Cmake                            | >=3.5    |
 | Cuda (Optional)                  | >=11.4   |
-
 
 Note: The dependency on C++17 is due to the usage of the C++17 filesystem feature.
 

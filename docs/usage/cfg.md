@@ -102,7 +102,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `single_cls`      | `False`  | train multi-class data as single-class                                            |
 | `rect`            | `False`  | rectangular training with each batch collated for minimum padding                 |
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                                |
-| `close_mosaic`    | `0`      | (int) disable mosaic augmentation for final epochs                                |
+| `close_mosaic`    | `10`     | (int) disable mosaic augmentation for final epochs (0 to disable)                 |
 | `resume`          | `False`  | resume training from last checkpoint                                              |
 | `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]                   |
 | `fraction`        | `1.0`    | dataset fraction to train on (default is 1.0, all images in train set)            |

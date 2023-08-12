@@ -207,11 +207,28 @@ class BaseTrainer:
         """
         Builds dataloaders and optimizer on correct rank process.
         """
+
         # Model
         self.run_callbacks('on_pretrain_routine_start')
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+
+        # Freeze layers
+        freeze_list = self.args.freeze if isinstance(
+            self.args.freeze, list) else range(self.args.freeze) if isinstance(self.args.freeze, int) else []
+        always_freeze_names = ['.dfl']  # always freeze these layers
+        freeze_layer_names = [f'model.{x}.' for x in freeze_list] + always_freeze_names
+        for k, v in self.model.named_parameters():
+            # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
+            if any(x in k for x in freeze_layer_names):
+                LOGGER.info(f"Freezing layer '{k}'")
+                v.requires_grad = False
+            elif not v.requires_grad:
+                LOGGER.info(f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
+                            'See ultralytics.engine.trainer for customization of frozen layers.')
+                v.requires_grad = True
+
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
         if self.amp and RANK in (-1, 0):  # Single-GPU and DDP
@@ -224,9 +241,11 @@ class BaseTrainer:
         self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[RANK])
+
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+
         # Batch size
         if self.batch_size == -1:
             if RANK == -1:  # single-GPU only, estimate best batch size
@@ -272,7 +291,6 @@ class BaseTrainer:
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
             self._setup_ddp(world_size)
-
         self._setup_train(world_size)
 
         self.epoch_time = None

@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <opencv2/opencv.hpp>
 #include "onnxruntime_cxx_api.h"
+#include <cuda_fp16.h>
 
 
 enum MODEL_TYPE
@@ -21,7 +22,10 @@ enum MODEL_TYPE
 	YOLO_ORIGIN_V5 = 0,
 	YOLO_ORIGIN_V8 = 1,//only support v8 detector currently
 	YOLO_POSE_V8 = 2,
-	YOLO_CLS_V8 = 3
+	YOLO_CLS_V8 = 3,
+	YOLO_ORIGIN_V8_HALF = 4,
+	YOLO_POSE_V8_HALF = 5,
+	YOLO_CLS_V8_HALF = 6
 };
 
 

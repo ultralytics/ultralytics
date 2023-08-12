@@ -28,6 +28,12 @@ Alternatively, you can use the following command for exporting the model in the 
 yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx imgsz=640,640
 ```
 
+## Download COCO.yaml file
+
+In order to run example, you also need to download coco.yaml. You can download the file manually from [here](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml)
+
+
+
 ## Dependencies
 
 | Dependency                       | Version  |
@@ -36,6 +42,8 @@ yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx im
 | OpenCV                           | >=4.0.0  |
 | C++                              | >=17     |
 | Cmake                            | >=3.5    |
+| Cuda (Optional)                  | >=11.4   |
+
 
 Note: The dependency on C++17 is due to the usage of the C++17 filesystem feature.
 

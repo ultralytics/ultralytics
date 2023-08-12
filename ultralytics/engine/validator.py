@@ -234,7 +234,7 @@ class BaseValidator:
             x = torch.nonzero(iou.ge(iouv) & correct_class)  # IoU > threshold and classes match
             if x.shape[0]:
                 # Concatenate [label, detect, iou]
-                matches = torch.cat((x, iou[*x.T].unsqueeze(1)), 1).cpu().numpy()
+                matches = torch.cat((x, iou[x[:, 0], x[:, 1]].unsqueeze(1)), 1).cpu().numpy()
                 if x.shape[0] > 1:
                     matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 1], return_index=True)[1]]

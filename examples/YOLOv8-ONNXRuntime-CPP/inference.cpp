@@ -287,7 +287,7 @@ char* DCSP_CORE::WarmUpSession()
 		std::vector<int64_t> YOLO_input_node_dims = { 1,3,imgSize.at(0),imgSize.at(1) };
 		Ort::Value input_tensor = Ort::Value::CreateTensor<half>(Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU), blob, 3 * imgSize.at(0) * imgSize.at(1), YOLO_input_node_dims.data(), YOLO_input_node_dims.size());
 		auto output_tensors = session->Run(options, inputNodeNames.data(), &input_tensor, 1, outputNodeNames.data(), outputNodeNames.size());
-		delete blob;
+		delete[] blob;
 		clock_t starttime_4 = clock();
 		double post_process_time = (double)(starttime_4 - starttime_1) / CLOCKS_PER_SEC * 1000;
 		if (cudaEnable)

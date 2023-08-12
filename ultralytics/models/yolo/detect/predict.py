@@ -10,7 +10,7 @@ from ultralytics.utils import DEFAULT_CFG, ROOT, ops
 class DetectionPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
-        """Postprocesses predictions and returns a list of Results objects."""
+        """Post-processes predictions and returns a list of Results objects."""
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,

@@ -11,7 +11,7 @@ from ultralytics.utils.ops import xyxy2xywh
 class NASPredictor(BasePredictor):
 
     def postprocess(self, preds_in, img, orig_imgs):
-        """Postprocesses predictions and returns a list of Results objects."""
+        """Postprocess predictions and returns a list of Results objects."""
 
         # Cat boxes and class scores
         boxes = xyxy2xywh(preds_in[0][0])

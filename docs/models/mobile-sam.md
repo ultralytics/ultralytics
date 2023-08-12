@@ -61,27 +61,33 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
 ### Point Prompt
 
-```python
-from ultralytics import SAM
+!!! example ""
 
-# Load the model
-model = SAM('mobile_sam.pt')
-
-# Predict a segment based on a point prompt
-model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
-```
+    === "Python"
+        ```python
+        from ultralytics import SAM
+        
+        # Load the model
+        model = SAM('mobile_sam.pt')
+        
+        # Predict a segment based on a point prompt
+        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        ```
 
 ### Box Prompt
 
-```python
-from ultralytics import SAM
+!!! example ""
 
-# Load the model
-model = SAM('mobile_sam.pt')
-
-# Predict a segment based on a box prompt
-model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
-```
+    === "Python"
+        ```python
+        from ultralytics import SAM
+        
+        # Load the model
+        model = SAM('mobile_sam.pt')
+        
+        # Predict a segment based on a box prompt
+        model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+        ```
 
 We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](./sam.md).
 

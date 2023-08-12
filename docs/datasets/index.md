@@ -52,6 +52,12 @@ Image classification is a computer vision task that involves categorizing an ima
 - [Imagewoof](classify/imagewoof.md): A more challenging subset of ImageNet containing 10 dog breed categories for image classification tasks.
 - [MNIST](classify/mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
 
+## [Oriented Bounding Boxes (OBB)](obb/index.md)
+
+Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angled objects in images using rotated bounding boxes, often applied to aerial and satellite imagery.
+
+- [DOTAv2](obb/dota-v2.md): A popular OBB aerial imagery dataset with 1.7 million instances and 11,268 images.
+
 ## [Multi-Object Tracking](track/index.md)
 
 Multi-object tracking is a computer vision technique that involves detecting and tracking multiple objects over time in a video sequence.

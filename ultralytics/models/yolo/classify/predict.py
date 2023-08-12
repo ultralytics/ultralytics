@@ -21,7 +21,7 @@ class ClassificationPredictor(BasePredictor):
         return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
 
     def postprocess(self, preds, img, orig_imgs):
-        """Postprocesses predictions to return Results objects."""
+        """Post-processes predictions to return Results objects."""
         results = []
         for i, pred in enumerate(preds):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs

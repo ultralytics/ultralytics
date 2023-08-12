@@ -82,13 +82,15 @@ int read_coco_yaml(DCSP_CORE*& p)
 
 int main()
 {
-	DCSP_CORE* p1 = new DCSP_CORE;
+	DCSP_CORE* yoloDetector = new DCSP_CORE;
 	std::string model_path = "yolov8n.onnx";
-    read_coco_yaml(p1);
-	// GPU inference
+    read_coco_yaml(yoloDetector);
+	// GPU FP32 inference
 	DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {640, 640},  0.1, 0.5, true };
+    // GPU FP16 inference
+	// DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8_HALF, {640, 640},  0.1, 0.5, true };
 	// CPU inference
     // DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {640, 640},  0.1, 0.5, false };
-    p1->CreateSession(params);
-	file_iterator(p1);
+    yoloDetector->CreateSession(params);
+	file_iterator(yoloDetector);
 }

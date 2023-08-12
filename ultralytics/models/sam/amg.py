@@ -2,7 +2,7 @@
 
 import math
 from itertools import product
-from typing import Any, Dict, Generator, List, Tuple
+from typing import Any, Generator, List, Tuple
 
 import numpy as np
 import torch
@@ -141,16 +141,6 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
         fill_labels = [i for i in range(n_labels) if i not in fill_labels] or [int(np.argmax(sizes)) + 1]
     mask = np.isin(regions, fill_labels)
     return mask, True
-
-
-def coco_encode_rle(uncompressed_rle: Dict[str, Any]) -> Dict[str, Any]:
-    """Encode uncompressed RLE (run-length encoding) to COCO RLE format."""
-    from pycocotools import mask as mask_utils  # type: ignore
-
-    h, w = uncompressed_rle['size']
-    rle = mask_utils.frPyObjects(uncompressed_rle, h, w)
-    rle['counts'] = rle['counts'].decode('utf-8')  # Necessary to serialize with json
-    return rle
 
 
 def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:

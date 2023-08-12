@@ -453,7 +453,7 @@ def profile(input, ops, n=10, device=None):
                     y = m(x)
                     t[1] = time_sync()
                     try:
-                        _ = (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
+                        (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
                         t[2] = time_sync()
                     except Exception:  # no backward method
                         # print(e)  # for debug

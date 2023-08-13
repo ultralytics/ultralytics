@@ -14,7 +14,10 @@ void file_iterator(DCSP_CORE *&p) {
             p->RunSession(img, res);
 
             for (auto &re: res) {
-                cv::rectangle(img, re.box, cv::Scalar(0, 0, 255), 3);
+                cv::RNG rng(cv::getTickCount());
+                cv::Scalar color(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
+
+                cv::rectangle(img, re.box, color, 3);
                 std::string label = p->classes[re.classId] + " " + std::to_string(re.confidence);
                 cv::putText(
                         img,
@@ -22,7 +25,7 @@ void file_iterator(DCSP_CORE *&p) {
                         cv::Point(re.box.x, re.box.y - 5),
                         cv::FONT_HERSHEY_SIMPLEX,
                         0.75,
-                        cv::Scalar(255, 255, 0),
+                        color,
                         2
                 );
             }

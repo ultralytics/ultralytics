@@ -182,11 +182,7 @@ jobs:
           pip list
       - name: Pytest tests
         shell: bash  # for Windows compatibility
-        run: |
-          # pytest tests
-          # coverage run -m pytest tests 
-          # coverage xml
-          pytest --cov=ultralytics/ --cov-report xml tests/
+        run: pytest --cov=ultralytics/ --cov-report xml tests/
       - name: Upload coverage reports to Codecov
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'}}
         uses: codecov/codecov-action@v3

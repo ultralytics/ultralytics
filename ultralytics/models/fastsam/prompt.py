@@ -18,8 +18,8 @@ class FastSAMPrompt:
         # self.img_path = img_path
         self.device = device
         self.results = results
-        self.img_path = img_path
-        self.ori_img = cv2.imread(img_path)
+        self.img_path = str(img_path)
+        self.ori_img = cv2.imread(self.img_path)
 
         # Import and assign clip
         try:

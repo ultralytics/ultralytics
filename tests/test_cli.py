@@ -9,7 +9,6 @@ from ultralytics.utils import ONLINE, ROOT, SETTINGS
 
 WEIGHT_DIR = Path(SETTINGS['weights_dir'])
 TASK_ARGS = [
-    ('detect', 'yolov8n-rtdetr', 'coco8.yaml'),
     ('detect', 'yolov8n', 'coco8.yaml'),
     ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
     ('classify', 'yolov8n-cls', 'imagenet10'),
@@ -59,6 +58,17 @@ def test_predict_online(task, model, data):
 def test_export(model, format):
     run(f'yolo export model={model}.pt format={format} imgsz=32')
 
+
+def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
+    # Warning: MUST use imgsz=640
+    run(f'yolo detect train {task} model={model} data={data} imgsz=640 epochs=1 cache=disk')
+    run(f'yolo detect val {task} model={model} data={data} imgsz=640')
+    run(f"yolo detect predict model={model} source={ROOT / 'assets/bus.jpg'} imgsz=640 save save_crop save_txt")
+
+
+def test_fastsam(task='segment', model='FastSAM-s.pt', data='coco8-seg.yaml'):
+    # run(f'yolo segment val {task} model={model} data={data} imgsz=640')  # TODO: FIX ERROR HERE
+    run(f"yolo segment predict model={model} source={ROOT / 'assets/bus.jpg'} imgsz=32 save save_crop save_txt")
 
 # Slow Tests
 @pytest.mark.slow

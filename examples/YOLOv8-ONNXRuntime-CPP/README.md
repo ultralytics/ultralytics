@@ -40,9 +40,11 @@ In order to run example, you also need to download coco.yaml. You can download t
 | OpenCV                           | >=4.0.0  |
 | C++                              | >=17     |
 | Cmake                            | >=3.5    |
-| Cuda (Optional)                  | >=11.4   |
+| Cuda (Optional)                  | >=11.4,<12.0|
+| cuDNN (Cuda required)            | =8 |
 
 Note: The dependency on C++17 is due to the usage of the C++17 filesystem feature.
+Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind that this requirement might change in the future.
 
 ## Usage
 

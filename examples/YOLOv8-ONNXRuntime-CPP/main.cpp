@@ -7,7 +7,7 @@ void file_iterator(DCSP_CORE *&p) {
     std::filesystem::path current_path = std::filesystem::current_path();
     std::filesystem::path imgs_path = current_path / "images";
     for (auto &i: std::filesystem::directory_iterator(imgs_path)) {
-        if (i.path().extension() == ".jpg" || i.path().extension() == ".png") {
+        if (i.path().extension() == ".jpg" || i.path().extension() == ".png" || i.path().extension() == ".jpeg") {
             std::string img_path = i.path().string();
             cv::Mat img = cv::imread(img_path);
             std::vector<DCSP_RESULT> res;

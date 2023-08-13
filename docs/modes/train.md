@@ -33,6 +33,7 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Argum
         # Train the model
         results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -63,6 +64,7 @@ The training device can be specified using the `device` argument. If no argument
         # Train the model with 2 GPUs
         results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
         ```
+
     === "CLI"
 
         ```bash
@@ -89,6 +91,7 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         # Train the model with 2 GPUs
         results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
         ```
+
     === "CLI"
 
         ```bash
@@ -121,6 +124,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         # Resume training
         results = model.train(resume=True)
         ```
+
     === "CLI"
 
         ```bash
@@ -196,12 +200,15 @@ To use a logger, select it from the dropdown menu in the code snippet above and 
 
 To use Comet:
 
-```python
-# pip install comet_ml
-import comet_ml
+!!! example ""
 
-comet_ml.init()
-```
+    === "Python"
+        ```python
+        # pip install comet_ml
+        import comet_ml
+        
+        comet_ml.init()
+        ```
 
 Remember to sign in to your Comet account on their website and get your API key. You will need to add this to your environment variables or your script to log your experiments.
 
@@ -211,12 +218,15 @@ Remember to sign in to your Comet account on their website and get your API key.
 
 To use ClearML:
 
-```python
-# pip install clearml
-import clearml
+!!! example ""
 
-clearml.browser_login()
-```
+    === "Python"
+        ```python
+        # pip install clearml
+        import clearml
+        
+        clearml.browser_login()
+        ```
 
 After running this script, you will need to sign in to your ClearML account on the browser and authenticate your session.
 
@@ -226,16 +236,22 @@ After running this script, you will need to sign in to your ClearML account on t
 
 To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb):
 
-```bash
-load_ext tensorboard
-tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
-```
+!!! example ""
+
+    === "CLI"
+        ```bash
+        load_ext tensorboard
+        tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+        ```
 
 To use TensorBoard locally run the below command and view results at http://localhost:6006/.
 
-```bash
-tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
-```
+!!! example ""
+
+    === "CLI"
+        ```bash
+        tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+        ```
 
 This will load TensorBoard and direct it to the directory where your training logs are saved.
 

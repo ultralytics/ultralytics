@@ -70,6 +70,7 @@ def test_fastsam(task='segment', model='FastSAM-s.pt', data='coco8-seg.yaml'):
     # run(f'yolo segment val {task} model={model} data={data} imgsz=640')  # TODO: FIX ERROR HERE
     run(f"yolo segment predict model={model} source={ROOT / 'assets/bus.jpg'} imgsz=32 save save_crop save_txt")
 
+
 # Slow Tests
 @pytest.mark.slow
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)

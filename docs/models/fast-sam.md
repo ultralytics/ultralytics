@@ -40,42 +40,45 @@ The FastSAM models are easy to integrate into your Python applications. Ultralyt
 
 To perform object detection on an image, use the `predict` method as shown below:
 
-```python
-from ultralytics import FastSAM
-from ultralytics.models.fastsam import FastSAMPrompt
+!!! example ""
 
-# Define image path and inference device
-IMAGE_PATH = 'ultralytics/assets/bus.jpg'
-DEVICE = 'cpu'
+    === "Python"
+        ```python
+        from ultralytics import FastSAM
+        from ultralytics.models.fastsam import FastSAMPrompt
 
-# Create a FastSAM model
-model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        # Define image path and inference device
+        IMAGE_PATH = 'ultralytics/assets/bus.jpg'
+        DEVICE = 'cpu'
 
-# Run inference on an image
-everything_results = model(IMAGE_PATH,
-                           device=DEVICE,
-                           retina_masks=True,
-                           imgsz=1024,
-                           conf=0.4,
-                           iou=0.9)
+        # Create a FastSAM model
+        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
 
-prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)
+        # Run inference on an image
+        everything_results = model(IMAGE_PATH,
+                                 device=DEVICE,
+                                 retina_masks=True,
+                                 imgsz=1024,
+                                 conf=0.4,
+                                 iou=0.9)
+      
+        prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)
 
-# Everything prompt
-ann = prompt_process.everything_prompt()
+        # Everything prompt
+        ann = prompt_process.everything_prompt()
 
-# Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
-ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+        # Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
+        ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
-# Text prompt
-ann = prompt_process.text_prompt(text='a photo of a dog')
+        # Text prompt
+        ann = prompt_process.text_prompt(text='a photo of a dog')
 
-# Point prompt
-# points default [[0,0]] [[x1,y1],[x2,y2]]
-# point_label default [0] [1,0] 0:background, 1:foreground
-ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-prompt_process.plot(annotations=ann, output='./')
-```
+        # Point prompt
+        # points default [[0,0]] [[x1,y1],[x2,y2]]
+        # point_label default [0] [1,0] 0:background, 1:foreground
+        ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
+        prompt_process.plot(annotations=ann, output='./')
+        ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
 
@@ -83,15 +86,19 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
 
 Validation of the model on a dataset can be done as follows:
 
-```python
-from ultralytics import FastSAM
+!!! example ""
 
-# Create a FastSAM model
-model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+    === "Python"
 
-# Validate the model
-results = model.val(data='coco8-seg.yaml')
-```
+        ```python
+        from ultralytics import FastSAM
+
+        # Create a FastSAM model
+        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+
+        # Validate the model
+        results = model.val(data='coco8-seg.yaml')
+        ```
 
 Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
 

@@ -17,8 +17,6 @@ from ultralytics.utils.ops import segment2box
 
 from .utils import polygons2masks, polygons2masks_overlap
 
-POSE_FLIPLR_INDEX = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
-
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:

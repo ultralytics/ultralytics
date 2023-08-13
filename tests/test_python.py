@@ -115,6 +115,7 @@ def test_export_torchscript():
     f = model.export(format='torchscript')
     YOLO(f)(SOURCE)  # exported model inference
 
+
 def test_export_onnx():
     model = YOLO(MODEL)
     f = model.export(format='onnx')

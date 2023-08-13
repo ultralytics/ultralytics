@@ -108,7 +108,7 @@ def test_amp():
 
 def test_train_scratch():
     model = YOLO(CFG)
-    model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='disk')  # test disk caching
+    model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='disk', batch=-1)  # test disk caching with AutoBatch
     model(SOURCE)
 
 
@@ -139,7 +139,7 @@ def test_export_openvino():
 
 def test_export_coreml():  # sourcery skip: move-assign
     model = YOLO(MODEL)
-    model.export(format='coreml')
+    model.export(format='coreml', nms=True)
     # if MACOS:
     #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
 

@@ -69,7 +69,7 @@ You can use YOLOv3 for object detection tasks using the Ultralytics repository. 
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
         # Run inference with the YOLOv3n model on the 'bus.jpg' image
         results = model('path/to/bus.jpg')

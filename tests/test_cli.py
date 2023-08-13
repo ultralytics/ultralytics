@@ -40,9 +40,14 @@ def test_val(task, model, data):
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict(task, model, data):
     run(f"yolo predict model={model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
-    if ONLINE:
-        run(f'yolo predict model={model}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
-        run(f'yolo track model={model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32')
+
+
+@pytest.mark.skipif(not ONLINE)
+@pytest.mark.parametrize('task,model,data', TASK_ARGS)
+def test_predict_online(task, model, data):
+    mode = 'track' if task in ('detect', 'segment', 'pose') else 'predict'  # video mode
+    run(f'yolo predict model={model}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
+    run(f'yolo {mode} model={model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32')
 
 
 @pytest.mark.parametrize('model,format', EXPORT_ARGS)

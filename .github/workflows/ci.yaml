@@ -183,6 +183,10 @@ jobs:
       - name: Pytest tests
         shell: bash  # for Windows compatibility
         run: pytest tests
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Summary:
     runs-on: ubuntu-latest

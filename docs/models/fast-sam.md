@@ -47,22 +47,17 @@ To perform object detection on an image, use the `predict` method as shown below
         from ultralytics import FastSAM
         from ultralytics.models.fastsam import FastSAMPrompt
 
-        # Define image path and inference device
-        IMAGE_PATH = 'ultralytics/assets/bus.jpg'
-        DEVICE = 'cpu'
+        # Define an inference source
+        source = 'path/to/bus.jpg'
 
         # Create a FastSAM model
         model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
 
         # Run inference on an image
-        everything_results = model(IMAGE_PATH,
-                                 device=DEVICE,
-                                 retina_masks=True,
-                                 imgsz=1024,
-                                 conf=0.4,
-                                 iou=0.9)
+        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
       
-        prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)
+        # Prepare a Prompt Process object
+        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
 
         # Everything prompt
         ann = prompt_process.everything_prompt()
@@ -79,6 +74,12 @@ To perform object detection on an image, use the `predict` method as shown below
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
         prompt_process.plot(annotations=ann, output='./')
         ```
+      
+    === "CLI"
+        ```bash
+        # Load a FastSAM model and segment everything with it
+        yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
+        ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
 
@@ -89,7 +90,6 @@ Validation of the model on a dataset can be done as follows:
 !!! example ""
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM
 
@@ -98,6 +98,12 @@ Validation of the model on a dataset can be done as follows:
 
         # Validate the model
         results = model.val(data='coco8-seg.yaml')
+        ```
+
+    === "CLI"
+        ```bash
+        # Load a FastSAM model and validate it on the COCO8 example dataset at image size 640
+        yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
         ```
 
 Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.

@@ -38,20 +38,20 @@ def test_train(task, model, data):
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_val(task, model, data):
-    run(f'yolo val {task} model={model}.pt data={data} imgsz=32')
+    run(f'yolo val {task} model={WEIGHT_DIR / model}.pt data={data} imgsz=32')
 
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict(task, model, data):
-    run(f"yolo predict model={model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
+    run(f"yolo predict model={WEIGHT_DIR / model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
 
 
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict_online(task, model, data):
     mode = 'track' if task in ('detect', 'segment', 'pose') else 'predict'  # mode for video inference
-    run(f'yolo predict model={model}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
-    run(f'yolo {mode} model={model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32')
+    run(f'yolo predict model={WEIGHT_DIR / model}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
+    run(f'yolo {mode} model={WEIGHT_DIR / model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32')
 
     # Run Python YouTube tracking because CLI is broken. TODO: fix CLI YouTube
     # run(f'yolo {mode} model={model}.pt source=https://youtu.be/G17sBkb38XQ imgsz=32 tracker=bytetrack.yaml')
@@ -59,7 +59,7 @@ def test_predict_online(task, model, data):
 
 @pytest.mark.parametrize('model,format', EXPORT_ARGS)
 def test_export(model, format):
-    run(f'yolo export model={model}.pt format={format} imgsz=32')
+    run(f'yolo export model={WEIGHT_DIR / model}.pt format={format} imgsz=32')
 
 
 # Test SAM, RTDETR Models

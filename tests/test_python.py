@@ -8,11 +8,12 @@ import torch
 from PIL import Image
 from torchvision.transforms import ToTensor
 
-from ultralytics import YOLO
+from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import LINUX, MACOS, ONLINE, ROOT, SETTINGS
 
-MODEL = Path(SETTINGS['weights_dir']) / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
+WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
+MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
 SOURCE_GREYSCALE = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
@@ -46,9 +47,9 @@ def test_predict_dir():
 
 def test_predict_img():
     model = YOLO(MODEL)
-    seg_model = YOLO('yolov8n-seg.pt')
-    cls_model = YOLO('yolov8n-cls.pt')
-    pose_model = YOLO('yolov8n-pose.pt')
+    seg_model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
+    cls_model = YOLO(WEIGHTS_DIR / 'yolov8n-cls.pt')
+    pose_model = YOLO(WEIGHTS_DIR / 'yolov8n-pose.pt')
     im = cv2.imread(str(SOURCE))
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
@@ -167,10 +168,10 @@ def test_export_paddle(enabled=False):
 
 def test_all_model_yamls():
     for m in (ROOT / 'cfg' / 'models').rglob('yolo*.yaml'):
-        # if 'rtdetr' in m.name:
-        # fix Python 3.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
-        # RTDETR(m.name)
-        if 'rtdetr' not in m.name:
+        if 'rtdetr' in m.name:
+            # fix Python 3.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
+            RTDETR(m.name)
+        else:
             YOLO(m.name)
 
 

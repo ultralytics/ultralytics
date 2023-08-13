@@ -20,6 +20,7 @@ class FastSAMValidator(DetectionValidator):
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'segment'
+        self.args.plots = False  # disable ConfusionMatrix and other plots to avoid errors
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
     def preprocess(self, batch):

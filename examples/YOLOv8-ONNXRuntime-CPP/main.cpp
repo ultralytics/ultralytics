@@ -15,7 +15,7 @@ void file_iterator(DCSP_CORE *&p) {
 
             for (auto &re: res) {
                 cv::rectangle(img, re.box, cv::Scalar(0, 0, 255), 3);
-                std::string label = p->classes[re.classId];
+                std::string label = p->classes[re.classId] + " " + std::to_string(re.confidence);
                 cv::putText(
                         img,
                         label,

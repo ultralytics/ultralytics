@@ -66,9 +66,9 @@ def test_export(model, format):
 # Test SAM, RTDETR Models
 def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
     # Warning: MUST use imgsz=640
-    run(f'yolo detect train {task} model={model} data={data} imgsz=640 epochs=1 cache=disk')
-    run(f'yolo detect val {task} model={model} data={data} imgsz=640')
-    run(f"yolo detect predict model={model} source={ROOT / 'assets/bus.jpg'} imgsz=640 save save_crop save_txt")
+    run(f'yolo train {task} model={model} data={data} imgsz=640 epochs=1 cache=disk')
+    run(f'yolo val {task} model={model} data={data} imgsz=640')
+    run(f"yolo predict {task} model={model} source={ROOT / 'assets/bus.jpg'} imgsz=640 save save_crop save_txt")
 
 
 def test_fastsam(task='segment', model='FastSAM-s.pt', data='coco8-seg.yaml'):

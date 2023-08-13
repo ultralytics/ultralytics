@@ -16,7 +16,7 @@ MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / 'assets'
 
 
-def test_func():
+def test_func(*args):  # noqa
     print('callback test passed')
 
 

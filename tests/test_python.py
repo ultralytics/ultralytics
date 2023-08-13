@@ -194,15 +194,16 @@ def test_predict_callback_and_setup():
         boxes = r.boxes  # Boxes object for bbox outputs
         print(boxes)
 
+
 def test_results():
     for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
         model = YOLO(m)
         results = model([SOURCE, SOURCE])
         for r in results:
             r = r.cpu().numpy()
-            r = r.to(device="cpu", dtype=torch.float32)
-            r.save_txt(txt_file="label.txt", save_conf=True)
-            r.save_crop(save_dir="crops/")
+            r = r.to(device='cpu', dtype=torch.float32)
+            r.save_txt(txt_file='label.txt', save_conf=True)
+            r.save_crop(save_dir='crops/')
             r.tojson(normalize=True)
             r.plot(pil=True)
             r.plot(conf=True, boxes=True)

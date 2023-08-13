@@ -22,6 +22,10 @@ class TransformerEncoderLayer(nn.Module):
 
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0.0, act=nn.GELU(), normalize_before=False):
         super().__init__()
+        from ...utils.torch_utils import TORCH_1_9
+        if not TORCH_1_9:
+            raise ModuleNotFoundError(
+                'TransformerEncoderLayer() requires torch>=1.9 to use nn.MultiheadAttention(batch_first=True).')
         self.ma = nn.MultiheadAttention(c1, num_heads, dropout=dropout, batch_first=True)
         # Implementation of Feedforward model
         self.fc1 = nn.Linear(c1, cm)

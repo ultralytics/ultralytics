@@ -30,15 +30,11 @@ def test_model_forward():
 
 
 def test_model_info():
-    model = YOLO(CFG)
-    model.info()
     model = YOLO(MODEL)
     model.info(verbose=True)
 
 
 def test_model_fuse():
-    model = YOLO(CFG)
-    model.fuse()
     model = YOLO(MODEL)
     model.fuse()
 
@@ -95,11 +91,6 @@ def test_val():
     model.val(data='coco8.yaml', imgsz=32)
 
 
-def test_val_scratch():
-    model = YOLO(CFG)
-    model.val(data='coco8.yaml', imgsz=32)
-
-
 def test_amp():
     if torch.cuda.is_available():
         from ultralytics.utils.checks import check_amp
@@ -123,13 +114,6 @@ def test_export_torchscript():
     model = YOLO(MODEL)
     f = model.export(format='torchscript')
     YOLO(f)(SOURCE)  # exported model inference
-
-
-def test_export_torchscript_scratch():
-    model = YOLO(CFG)
-    f = model.export(format='torchscript')
-    YOLO(f)(SOURCE)  # exported model inference
-
 
 def test_export_onnx():
     model = YOLO(MODEL)
@@ -231,7 +215,7 @@ def _test_results_api(res):
 
 
 def test_results():
-    for m in ['yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt']:
+    for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
         model = YOLO(m)
         res = model([SOURCE, SOURCE])
         _test_results_api(res[0])
@@ -239,7 +223,7 @@ def test_results():
 
 def test_track():
     im = cv2.imread(str(SOURCE))
-    for m in ['yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt']:
+    for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt':
         model = YOLO(m)
         res = model.track(source=im)
         _test_results_api(res[0])

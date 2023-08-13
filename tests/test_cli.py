@@ -26,9 +26,12 @@ def run(cmd):
 
 
 def test_special_modes():
-    run('yolo checks')
-    run('yolo settings')
     run('yolo help')
+    run('yolo checks')
+    run('yolo version')
+    run('yolo settings reset')
+    run('yolo copy-cfg')
+    run('yolo cfg')
 
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)

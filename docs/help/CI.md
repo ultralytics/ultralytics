@@ -18,7 +18,7 @@ Here's a brief description of our CI actions:
 - **CodeQL:** CodeQL is a tool from GitHub that performs semantic analysis on our code, helping to find potential security vulnerabilities and maintain high-quality code.
 - **PyPi Publishing:** This test checks if the project can be packaged and published to PyPi without any errors.
 
-## CI Results
+### CI Results
 
 Below is the table showing the status of these CI tests for our main repositories:
 
@@ -44,7 +44,7 @@ Code coverage is a metric that represents the percentage of your codebase that i
 
 At Ultralytics, we have integrated our repositories with [codecov.io](https://codecov.io/), a popular online platform for measuring and visualizing code coverage. Codecov provides detailed insights, coverage comparisons between commits, and visual overlays directly on your code, indicating which lines were covered.
 
-By integrating with [codecov.io](https://codecov.io/), we aim to maintain and improve the quality of our code by focusing on areas that might be prone to errors or need further testing.
+By integrating with Codecov, we aim to maintain and improve the quality of our code by focusing on areas that might be prone to errors or need further testing.
 
 ### Coverage Results
 

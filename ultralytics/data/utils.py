@@ -28,8 +28,6 @@ HELP_URL = 'See https://docs.ultralytics.com/datasets/detect for dataset formatt
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
 VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'  # video suffixes
 PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
-IMAGENET_MEAN = 0.485, 0.456, 0.406  # RGB mean
-IMAGENET_STD = 0.229, 0.224, 0.225  # RGB standard deviation
 
 # Get orientation exif tag
 for orientation in ExifTags.TAGS.keys():
@@ -304,7 +302,8 @@ def check_cls_dataset(dataset: str, split=''):
         s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
         LOGGER.info(s)
     train_set = data_dir / 'train'
-    val_set = data_dir / 'val' if (data_dir / 'val').exists() else None  # data/test or data/val
+    val_set = data_dir / 'val' if (data_dir / 'val').exists() else data_dir / 'validation' if (
+        data_dir / 'validation').exists() else None  # data/test or data/val
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
     if split == 'val' and not val_set:
         LOGGER.info("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
@@ -314,6 +313,17 @@ def check_cls_dataset(dataset: str, split=''):
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))
+
+    # Print to console
+    for k, v in {'train': train_set, 'val': val_set, 'test': test_set}.items():
+        if v is None:
+            LOGGER.info(colorstr(k) + f': {v}')
+        else:
+            files = [path for path in v.rglob('*.*') if path.suffix[1:].lower() in IMG_FORMATS]
+            nf = len(files)  # number of files
+            nd = len({file.parent for file in files})  # number of directories
+            LOGGER.info(colorstr(k) + f': {v}... found {nf} images in {nd} classes ✅ ')  # keep trailing space
+
     return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
 
 

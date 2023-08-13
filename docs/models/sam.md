@@ -152,29 +152,33 @@ This comparison shows the order-of-magnitude differences in the model sizes and 
 
 Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
-```python
-from ultralytics import FastSAM, SAM, YOLO
 
-# Profile SAM-b
-model = SAM('sam_b.pt')
-model.info()
-model('ultralytics/assets')
+!!! example ""
 
-# Profile MobileSAM
-model = SAM('mobile_sam.pt')
-model.info()
-model('ultralytics/assets')
-
-# Profile FastSAM-s
-model = FastSAM('FastSAM-s.pt')
-model.info()
-model('ultralytics/assets')
-
-# Profile YOLOv8n-seg
-model = YOLO('yolov8n-seg.pt')
-model.info()
-model('ultralytics/assets')
-```
+    === "Python"
+        ```python
+        from ultralytics import FastSAM, SAM, YOLO
+        
+        # Profile SAM-b
+        model = SAM('sam_b.pt')
+        model.info()
+        model('ultralytics/assets')
+        
+        # Profile MobileSAM
+        model = SAM('mobile_sam.pt')
+        model.info()
+        model('ultralytics/assets')
+        
+        # Profile FastSAM-s
+        model = FastSAM('FastSAM-s.pt')
+        model.info()
+        model('ultralytics/assets')
+        
+        # Profile YOLOv8n-seg
+        model = YOLO('yolov8n-seg.pt')
+        model.info()
+        model('ultralytics/assets')
+        ```
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
 
@@ -184,11 +188,14 @@ Auto-annotation is a key feature of SAM, allowing users to generate a [segmentat
 
 To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
-```python
-from ultralytics.data.annotator import auto_annotate
+!!! example ""
 
-auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
-```
+    === "Python"
+        ```python
+        from ultralytics.data.annotator import auto_annotate
+        
+        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+        ```
 
 | Argument   | Type                | Description                                                                                             | Default      |
 |------------|---------------------|---------------------------------------------------------------------------------------------------------|--------------|

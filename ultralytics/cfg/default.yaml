@@ -27,11 +27,12 @@ deterministic: True  # (bool) whether to enable deterministic mode
 single_cls: False  # (bool) train multi-class data as single-class
 rect: False  # (bool) rectangular training if mode='train' or rectangular validation if mode='val'
 cos_lr: False  # (bool) use cosine learning rate scheduler
-close_mosaic: 10  # (int) disable mosaic augmentation for final epochs
+close_mosaic: 10  # (int) disable mosaic augmentation for final epochs (0 to disable)
 resume: False  # (bool) resume training from last checkpoint
 amp: True  # (bool) Automatic Mixed Precision (AMP) training, choices=[True, False], True runs AMP check
 fraction: 1.0  # (float) dataset fraction to train on (default is 1.0, all images in train set)
 profile: False  # (bool) profile ONNX and TensorRT speeds during training for loggers
+freeze: None  # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 # Segmentation
 overlap_mask: True  # (bool) masks should overlap during training (segment train only)
 mask_ratio: 4  # (int) mask downsample ratio (segment train only)

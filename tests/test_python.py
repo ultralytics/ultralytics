@@ -167,7 +167,7 @@ def test_export_paddle(enabled=False):
 
 
 def test_all_model_yamls():
-    for m in (ROOT / 'cfg' / 'models').rglob('yolo*.yaml'):
+    for m in (ROOT / 'cfg' / 'models').rglob('*.yaml'):
         if 'rtdetr' in m.name:
             # fix Python 3.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
             RTDETR(m.name)

@@ -47,7 +47,7 @@ def test_predict(task, model, data):
 
 @pytest.mark.parametrize('model,format', EXPORT_ARGS)
 def test_export(model, format):
-    run(f'yolo export model={model}.pt format={format}')
+    run(f'yolo export model={model}.pt format={format} imgsz=32')
 
 
 # Slow Tests

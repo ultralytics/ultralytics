@@ -184,7 +184,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: pytest --cov=ultralytics/ --cov-report xml tests/
       - name: Upload coverage reports to Codecov
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'}}
+        if: github.repository == 'glenn-jocher/ultralytics' && github.event_name == 'push' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

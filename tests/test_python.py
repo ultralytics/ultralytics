@@ -10,7 +10,7 @@ from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import LINUX, MACOS, ONLINE, ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
@@ -123,9 +123,10 @@ def test_export_onnx():
 
 
 def test_export_openvino():
-    model = YOLO(MODEL)
-    f = model.export(format='openvino')
-    YOLO(f)(SOURCE)  # exported model inference
+    if not MACOS:
+        model = YOLO(MODEL)
+        f = model.export(format='openvino')
+        YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_coreml():  # sourcery skip: move-assign

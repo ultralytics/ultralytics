@@ -1,6 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import os
+import re
+from pathlib import Path
 
 import pkg_resources as pkg
 
@@ -32,13 +34,17 @@ _processed_plots = {}
 _training_epoch = False
 
 
-def _logger_disabled():
-    return os.getenv('ULTRALYTICS_DVC_DISABLED', 'false').lower() == 'true'
-
-
-def _log_images(image_path, prefix=''):
+def _log_images(path, prefix=''):
     if live:
-        live.log_image(os.path.join(prefix, image_path.name), image_path)
+        name = path.name
+
+        # Group images by batch to enable sliders in UI
+        if m := re.search(r'_batch(\d+)', name):
+            ni = m.group(1)
+            new_stem = re.sub(r'_batch(\d+)', '_batch', path.stem)
+            name = (Path(new_stem) / ni).with_suffix(path.suffix)
+
+        live.log_image(os.path.join(prefix, name), path)
 
 
 def _log_plots(plots, prefix=''):
@@ -68,14 +74,10 @@ def _log_confusion_matrix(validator):
 def on_pretrain_routine_start(trainer):
     try:
         global live
-        if not _logger_disabled():
-            live = dvclive.Live(save_dvc_exp=True, cache_images=True)
-            LOGGER.info(
-                'DVCLive is detected and auto logging is enabled (can be disabled with `ULTRALYTICS_DVC_DISABLED=true`).'
-            )
-        else:
-            LOGGER.debug('DVCLive is detected and auto logging is disabled via `ULTRALYTICS_DVC_DISABLED`.')
-            live = None
+        live = dvclive.Live(save_dvc_exp=True, cache_images=True)
+        LOGGER.info(
+            f'DVCLive is detected and auto logging is enabled (can be disabled in the {SETTINGS.file} with `dvc: false`).'
+        )
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ DVCLive installed but not initialized correctly, not logging this run. {e}')
 

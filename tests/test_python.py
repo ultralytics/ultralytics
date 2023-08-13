@@ -159,8 +159,8 @@ def test_export_paddle(enabled=False):
 
 
 def test_all_model_yamls():
-    for m in list((ROOT / 'models').rglob('yolo*.yaml')):
-        if m.name == 'yolov8-rtdetr.yaml':  # except the rtdetr model
+    for m in (ROOT / 'cfg' / 'models').rglob('*.yaml'):
+        if 'rtdetr' in m.name:
             RTDETR(m.name)
         else:
             YOLO(m.name)
@@ -175,10 +175,9 @@ def test_workflow():
 
 
 def test_predict_callback_and_setup():
-    # test callback addition for prediction
+    # Test callback addition for prediction
     def on_predict_batch_end(predictor):  # results -> List[batch_size]
         path, im0s, _, _ = predictor.batch
-        # print('on_predict_batch_end', im0s[0].shape)
         im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)
@@ -189,42 +188,25 @@ def test_predict_callback_and_setup():
     dataset = load_inference_source(source=SOURCE)
     bs = dataset.bs  # noqa access predictor properties
     results = model.predict(dataset, stream=True)  # source already setup
-    for _, (result, im0, bs) in enumerate(results):
+    for r, im0, bs in results:
         print('test_callback', im0.shape)
         print('test_callback', bs)
-        boxes = result.boxes  # Boxes object for bbox outputs
+        boxes = r.boxes  # Boxes object for bbox outputs
         print(boxes)
-
-
-def _test_results_api(res):
-    # General apis except plot
-    res = res.cpu().numpy()
-    # res = res.cuda()
-    res = res.to(device='cpu', dtype=torch.float32)
-    res.save_txt('label.txt', save_conf=False)
-    res.save_txt('label.txt', save_conf=True)
-    res.save_crop('crops/')
-    res.tojson(normalize=False)
-    res.tojson(normalize=True)
-    res.plot(pil=True)
-    res.plot(conf=True, boxes=False)
-    res.plot()
-    print(res)
-    print(res.path)
-    for k in res.keys:
-        print(getattr(res, k))
-
 
 def test_results():
     for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
         model = YOLO(m)
-        res = model([SOURCE, SOURCE])
-        _test_results_api(res[0])
-
-
-def test_track():
-    im = cv2.imread(str(SOURCE))
-    for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt':
-        model = YOLO(m)
-        res = model.track(source=im)
-        _test_results_api(res[0])
+        results = model([SOURCE, SOURCE])
+        for r in results:
+            r = r.cpu().numpy()
+            r = r.to(device="cpu", dtype=torch.float32)
+            r.save_txt(txt_file="label.txt", save_conf=True)
+            r.save_crop(save_dir="crops/")
+            r.tojson(normalize=True)
+            r.plot(pil=True)
+            r.plot(conf=True, boxes=True)
+            print(r)
+            print(r.path)
+            for k in r.keys:
+                print(getattr(r, k))

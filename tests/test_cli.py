@@ -42,7 +42,7 @@ def test_predict(task, model, data):
     run(f"yolo predict model={model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
 
 
-@pytest.mark.skipif(not ONLINE)
+@pytest.mark.skipif(not ONLINE, reason='not online')
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict_online(task, model, data):
     mode = 'track' if task in ('detect', 'segment', 'pose') else 'predict'  # video mode

@@ -11,6 +11,7 @@ from torchvision.transforms import ToTensor
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import LINUX, MACOS, ONLINE, ROOT, SETTINGS
+from ultralytics.utils.torch_utils import TORCH_1_9
 
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
@@ -169,8 +170,8 @@ def test_export_paddle(enabled=False):
 def test_all_model_yamls():
     for m in (ROOT / 'cfg' / 'models').rglob('*.yaml'):
         if 'rtdetr' in m.name:
-            # fix Python 3.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
-            RTDETR(m.name)
+            if TORCH_1_9:  # torch<=1.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
+                RTDETR(m.name)
         else:
             YOLO(m.name)
 

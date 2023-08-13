@@ -543,7 +543,8 @@ class BaseTrainer:
 
     def on_plot(self, name, data=None):
         """Registers plots (e.g. to be consumed in callbacks)"""
-        self.plots[name] = {'data': data, 'timestamp': time.time()}
+        path = Path(name)
+        self.plots[path] = {'data': data, 'timestamp': time.time()}
 
     def final_eval(self):
         """Performs final evaluation and validation for object detection YOLO model."""

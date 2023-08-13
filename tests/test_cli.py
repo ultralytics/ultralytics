@@ -59,6 +59,7 @@ def test_export(model, format):
     run(f'yolo export model={model}.pt format={format} imgsz=32')
 
 
+# Test SAM, RTDETR Models
 def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
     # Warning: MUST use imgsz=640
     run(f'yolo detect train {task} model={model} data={data} imgsz=640 epochs=1 cache=disk')
@@ -69,6 +70,19 @@ def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
 def test_fastsam(task='segment', model='FastSAM-s.pt', data='coco8-seg.yaml'):
     # run(f'yolo segment val {task} model={model} data={data} imgsz=640')  # TODO: FIX ERROR HERE
     run(f"yolo segment predict model={model} source={ROOT / 'assets/bus.jpg'} imgsz=32 save save_crop save_txt")
+
+
+def test_mobilesam():
+    from ultralytics import SAM
+
+    # Load the model
+    model = SAM('mobile_sam.pt')
+
+    # Predict a segment based on a point prompt
+    model.predict(ROOT / 'assets/zidane.jpg', points=[900, 370], labels=[1])
+
+    # Predict a segment based on a box prompt
+    model.predict(ROOT / 'assets/zidane.jpg', bboxes=[439, 437, 524, 709])
 
 
 # Slow Tests

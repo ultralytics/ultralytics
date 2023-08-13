@@ -85,6 +85,11 @@ def test_predict_grey_and_4ch():
         for source in Image.open(f), cv2.imread(str(f)), f:
             model(source, save=True, verbose=True, imgsz=32)
 
+def test_track_stream():
+    # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
+    model = YOLO(MODEL)
+    model.track('https://youtu.be/G17sBkb38XQ', imgsz=32, tracker='bytetrack.yaml')
+
 
 def test_val():
     model = YOLO(MODEL)

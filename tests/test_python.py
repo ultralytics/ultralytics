@@ -26,7 +26,7 @@ im.convert('RGBA').save(SOURCE_RGBA)  # 4-ch PNG with alpha
 
 def test_model_forward():
     model = YOLO(CFG)
-    model(SOURCE)
+    model(SOURCE, imgsz=32)
 
 
 def test_model_info():
@@ -41,7 +41,7 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model(source=ROOT / 'assets')
+    model(source=ROOT / 'assets', imgsz=32)
 
 
 def test_predict_img():
@@ -83,7 +83,7 @@ def test_predict_grey_and_4ch():
     model = YOLO(MODEL)
     for f in SOURCE_RGBA, SOURCE_GREYSCALE:
         for source in Image.open(f), cv2.imread(str(f)), f:
-            model(source, save=True, verbose=True)
+            model(source, save=True, verbose=True, imgsz=32)
 
 
 def test_val():

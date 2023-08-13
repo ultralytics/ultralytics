@@ -303,7 +303,8 @@ class BaseValidator:
 
     def on_plot(self, name, data=None):
         """Registers plots (e.g. to be consumed in callbacks)"""
-        self.plots[name] = {'data': data, 'timestamp': time.time()}
+        path = Path(name)
+        self.plots[path] = {'data': data, 'timestamp': time.time()}
 
     # TODO: may need to put these following functions into callback
     def plot_val_samples(self, batch, ni):

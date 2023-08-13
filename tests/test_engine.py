@@ -10,13 +10,13 @@ from ultralytics.utils import DEFAULT_CFG, ROOT, SETTINGS
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
-CFG_CLS = 'squeezenet1_0'
+CFG_CLS = 'yolov8n-cls.yaml'  # or 'squeezenet1_0'
 CFG = get_cfg(DEFAULT_CFG)
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / 'assets'
 
 
-def test_func(model=None):
+def test_func(*args):  # noqa
     print('callback test passed')
 
 
@@ -31,6 +31,7 @@ def test_export():
 def test_detect():
     overrides = {'data': 'coco8.yaml', 'model': CFG_DET, 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'coco8.yaml'
+    CFG.imgsz = 32
 
     # Trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -65,6 +66,7 @@ def test_detect():
 def test_segment():
     overrides = {'data': 'coco8-seg.yaml', 'model': CFG_SEG, 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'coco8-seg.yaml'
+    CFG.imgsz = 32
     # YOLO(CFG_SEG).train(**overrides)  # works
 
     # trainer
@@ -99,7 +101,7 @@ def test_segment():
 
 
 def test_classify():
-    overrides = {'data': 'imagenet10', 'model': 'yolov8n-cls.yaml', 'imgsz': 32, 'epochs': 1, 'save': False}
+    overrides = {'data': 'imagenet10', 'model': CFG_CLS, 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'imagenet10'
     CFG.imgsz = 32
     # YOLO(CFG_SEG).train(**overrides)  # works

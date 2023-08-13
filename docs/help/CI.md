@@ -46,7 +46,7 @@ At Ultralytics, we have integrated our repositories with [codecov.io](https://co
 
 By integrating with [codecov.io](https://codecov.io/), we aim to maintain and improve the quality of our code by focusing on areas that might be prone to errors or need further testing.
 
-### Code Coverage Badges
+### Coverage Results
 
 To quickly get a glimpse of the code coverage status of our projects, we have included badges from [codecov.io](https://codecov.io/) for our main repositories. These badges show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts.
 

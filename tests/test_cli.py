@@ -9,6 +9,7 @@ from ultralytics.utils import ONLINE, ROOT, SETTINGS
 
 WEIGHT_DIR = Path(SETTINGS['weights_dir'])
 TASK_ARGS = [
+    ('detect', 'yolov8n-rtdetr', 'coco8.yaml'),
     ('detect', 'yolov8n', 'coco8.yaml'),
     ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
     ('classify', 'yolov8n-cls', 'imagenet10'),

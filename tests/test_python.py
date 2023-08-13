@@ -50,11 +50,11 @@ def test_predict_img():
     cls_model = YOLO('yolov8n-cls.pt')
     pose_model = YOLO('yolov8n-pose.pt')
     im = cv2.imread(str(SOURCE))
-    assert len(model(source=Image.open(SOURCE), save=True, verbose=True)) == 1  # PIL
-    assert len(model(source=im, save=True, save_txt=True)) == 1  # ndarray
-    assert len(model(source=[im, im], save=True, save_txt=True)) == 2  # batch
-    assert len(list(model(source=[im, im], save=True, stream=True))) == 2  # stream
-    assert len(model(torch.zeros(320, 640, 3).numpy())) == 1  # tensor to numpy
+    assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
+    assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
+    assert len(model(source=[im, im], save=True, save_txt=True, imgsz=32)) == 2  # batch
+    assert len(list(model(source=[im, im], save=True, stream=True, imgsz=32))) == 2  # stream
+    assert len(model(torch.zeros(320, 640, 3).numpy(), imgsz=32)) == 1  # tensor to numpy
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
@@ -62,20 +62,20 @@ def test_predict_img():
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3))]  # numpy
-    assert len(model(batch, visualize=True)) == len(batch)  # multiple sources in a batch
+    assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
 
     # Test tensor inference
     im = cv2.imread(str(SOURCE))  # OpenCV
     t = cv2.resize(im, (32, 32))
     t = ToTensor()(t)
     t = torch.stack([t, t, t, t])
-    results = model(t, visualize=True)
+    results = model(t, imgsz=32)
     assert len(results) == t.shape[0]
-    results = seg_model(t, visualize=True)
+    results = seg_model(t, imgsz=32)
     assert len(results) == t.shape[0]
-    results = cls_model(t, visualize=True)
+    results = cls_model(t, imgsz=32)
     assert len(results) == t.shape[0]
-    results = pose_model(t, visualize=True)
+    results = pose_model(t, imgsz=32)
     assert len(results) == t.shape[0]
 
 

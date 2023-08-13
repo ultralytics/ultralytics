@@ -8,12 +8,16 @@ import pytest
 from ultralytics.utils import ONLINE, ROOT, SETTINGS
 
 WEIGHT_DIR = Path(SETTINGS['weights_dir'])
-TASK_ARGS = [  # (task, model, data)
-    ('detect', 'yolov8n', 'coco8.yaml'), ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
-    ('classify', 'yolov8n-cls', 'imagenet10'), ('pose', 'yolov8n-pose', 'coco8-pose.yaml')]
-EXPORT_ARGS = [  # (model, format)
-    ('yolov8n', 'torchscript'), ('yolov8n-seg', 'torchscript'), ('yolov8n-cls', 'torchscript'),
-    ('yolov8n-pose', 'torchscript')]
+TASK_ARGS = [
+    ('detect', 'yolov8n', 'coco8.yaml'),
+    ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
+    ('classify', 'yolov8n-cls', 'imagenet10'),
+    ('pose', 'yolov8n-pose', 'coco8-pose.yaml'), ]  # (task, model, data)
+EXPORT_ARGS = [
+    ('yolov8n', 'torchscript'),
+    ('yolov8n-seg', 'torchscript'),
+    ('yolov8n-cls', 'torchscript'),
+    ('yolov8n-pose', 'torchscript'), ]  # (model, format)
 
 
 def run(cmd):
@@ -42,10 +46,10 @@ def test_predict(task, model, data):
     run(f"yolo predict model={model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
 
 
-@pytest.mark.skipif(not ONLINE, reason='not online')
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict_online(task, model, data):
-    mode = 'track' if task in ('detect', 'segment', 'pose') else 'predict'  # video mode
+    mode = 'track' if task in ('detect', 'segment', 'pose') else 'predict'  # mode for video inference
     run(f'yolo predict model={model}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
     run(f'yolo {mode} model={model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32')
 

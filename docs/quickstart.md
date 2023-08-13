@@ -259,7 +259,7 @@ The table below provides an overview of the settings available for adjustment wi
 | `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys)                                     |
 | `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                                                                   |
 | `comet`            | `True`                | `bool`    | Whether to use [Comet ML](https://bit.ly/yolov8-readme-comet) for experiment tracking and visualization          |
-| `dvc`              | `True`                | `bool`    | Whether to use DVC for version control                                                                           |
+| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking](https://dvc.org/doc/dvclive/ml-frameworks/yolo) and version control                                                                           |
 | `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB](https://hub.ultralytics.com) integration                                        |
 | `mlflow`           | `True`                | `bool`    | Whether to use MLFlow for experiment tracking                                                                    |
 | `neptune`          | `True`                | `bool`    | Whether to use Neptune for experiment tracking                                                                   |

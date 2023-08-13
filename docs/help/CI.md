@@ -48,11 +48,15 @@ By integrating with Codecov, we aim to maintain and improve the quality of our c
 
 ### Coverage Results
 
-To quickly get a glimpse of the code coverage status of our projects, we have included badges from [codecov.io](https://codecov.io/) for our main repositories. These badges show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts.
+To quickly get a glimpse of the code coverage status of the `ultralytics` python package, we have included a badge and and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details please see https://codecov.io/github/glenn-jocher/ultralytics.
 
 | Repository                                                | Code Coverage                                                        |
 |-----------------------------------------------------------|----------------------------------------------------------------------|
-| [yolov3](https://github.com/ultralytics/yolov3)           | ![yolov3 codecov badge](#PLACEHOLDER_URL_FOR_YOLOv3_BADGE)           |
-| [yolov5](https://github.com/ultralytics/yolov5)           | ![yolov5 codecov badge](#PLACEHOLDER_URL_FOR_YOLOv5_BADGE)           |
-| [ultralytics](https://github.com/ultralytics/ultralytics) | ![ultralytics codecov badge](#PLACEHOLDER_URL_FOR_ULTRALYTICS_BADGE) |
-| [hub](https://github.com/ultralytics/hub)                 | ![hub codecov badge](#PLACEHOLDER_URL_FOR_HUB_BADGE)                 |
+| [ultralytics](https://github.com/ultralytics/ultralytics) | [![codecov](https://codecov.io/gh/glenn-jocher/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY)](https://codecov.io/gh/glenn-jocher/ultralytics) |
+
+In the sunburst graphic below, the inner-most circle is the entire project, moving away from the center are folders then, finally, a single file. The size and color of each slice is representing the number of statements and the coverage, respectively.
+
+<a href="https://codecov.io/github/glenn-jocher/ultralytics">
+    <img src="https://codecov.io/gh/glenn-jocher/ultralytics/branch/main/graphs/sunburst.svg?token=HHW7IIVFVY" alt="Ultralytics Codecov Badge">
+</a>
+

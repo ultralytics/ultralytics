@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
 from pathlib import Path
 
 import cv2
@@ -221,3 +220,24 @@ def test_results():
             print(r.path)
             for k in r.keys:
                 print(getattr(r, k))
+
+
+def test_data_utils():
+    # Test functions in ultralytics/data/utils.py
+    from ultralytics.data.utils import autosplit, zip_directory
+
+    # from ultralytics.utils.files import WorkingDirectory
+    # with WorkingDirectory(ROOT.parent / 'tests'):
+
+    autosplit()
+    zip_directory(ROOT / 'assets')  # zip
+    Path(ROOT / 'assets.zip').unlink()  # delete zip
+
+    # from ultralytics.data.utils import HUBDatasetStats
+    # from ultralytics.utils.downloads import download
+    # Path('coco8.zip').unlink(missing_ok=True)
+    # download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
+    # shutil.move('coco8.zip', 'tests')
+    # stats = HUBDatasetStats('tests/coco8.zip', task='detect')
+    # stats.get_json(save=False)
+    # stats.process_images()

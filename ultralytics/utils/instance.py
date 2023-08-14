@@ -242,12 +242,14 @@ class Instances:
         """Normalize bounding boxes, segments, and keypoints to image dimensions."""
         if self.normalized:
             return
-        self._bboxes.mul(scale=(1 / w, 1 / h, 1 / w, 1 / h))
-        self.segments[..., 0] /= w
-        self.segments[..., 1] /= h
+        width_inv = 1 / w
+        height_inv = 1 / h
+        self._bboxes.mul(scale=(width_inv, height_inv, width_inv, height_inv))
+        self.segments[..., 0] *= width_inv
+        self.segments[..., 1] *= height_inv
         if self.keypoints is not None:
-            self.keypoints[..., 0] /= w
-            self.keypoints[..., 1] /= h
+            self.keypoints[..., 0] *= width_inv
+            self.keypoints[..., 1] *= height_inv
         self.normalized = True
 
     def add_padding(self, padw, padh):

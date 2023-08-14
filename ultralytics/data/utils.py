@@ -364,8 +364,9 @@ class HUBDatasetStats:
 
     def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
         """Initialize class."""
+        path = Path(path).resolve()
         LOGGER.info(f'Starting HUB dataset checks for {path}....')
-        zipped, data_dir, yaml_path = self._unzip(Path(path))
+        zipped, data_dir, yaml_path = self._unzip(path)
         try:
             # data = yaml_load(check_yaml(yaml_path))  # data dict
             data = check_det_dataset(yaml_path, autodownload)  # data dict

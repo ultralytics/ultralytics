@@ -405,14 +405,14 @@ def get_best_youtube_url(url, use_pafy=True):
     if use_pafy:
         check_requirements(('pafy', 'youtube_dl==2020.12.2'))
         import pafy  # noqa
-        return pafy.new(url).getbest(preftype='mp4').url
+        return pafy.new(url).getbestvideo(preftype='mp4').url
     else:
         check_requirements('yt-dlp')
         import yt_dlp
         with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
             info_dict = ydl.extract_info(url, download=False)  # extract info
         for f in info_dict.get('formats', None):
-            if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
+            if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4' and f.get('width') > 1280:
                 return f.get('url', None)
 
 

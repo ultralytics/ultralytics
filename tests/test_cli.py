@@ -122,7 +122,7 @@ def test_mobilesam():
     model.predict(source, bboxes=[439, 437, 524, 709])
 
     # Predict all
-    #model(source)
+    # model(source)
 
 
 # Slow Tests

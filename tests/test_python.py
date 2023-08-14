@@ -1,4 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
+import shutil
 from pathlib import Path
 
 import cv2
@@ -224,20 +226,22 @@ def test_results():
 
 def test_data_utils():
     # Test functions in ultralytics/data/utils.py
-    from ultralytics.data.utils import autosplit, zip_directory
+    from ultralytics.data.utils import HUBDatasetStats, autosplit, zip_directory
+    from ultralytics.utils.downloads import download
 
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    autosplit()
-    zip_directory(ROOT / 'assets')  # zip
-    Path(ROOT / 'assets.zip').unlink()  # delete zip
+    Path('tests/coco8.zip').unlink(missing_ok=True)
+    Path('coco8.zip').unlink(missing_ok=True)
+    download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
+    shutil.move('coco8.zip', 'tests')
+    shutil.rmtree('tests/coco8', ignore_errors=True)
+    stats = HUBDatasetStats('tests/coco8.zip', task='detect')
+    stats.get_json(save=False)
+    stats.process_images()
 
-    # from ultralytics.data.utils import HUBDatasetStats
-    # from ultralytics.utils.downloads import download
-    # Path('coco8.zip').unlink(missing_ok=True)
-    # download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
-    # shutil.move('coco8.zip', 'tests')
-    # stats = HUBDatasetStats('tests/coco8.zip', task='detect')
-    # stats.get_json(save=False)
-    # stats.process_images()
+    autosplit('tests/coco8')
+    zip_directory('tests/coco8/images/val')  # zip
+    shutil.rmtree('tests/coco8', ignore_errors=True)
+    shutil.rmtree('tests/coco8-hub', ignore_errors=True)

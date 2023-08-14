@@ -364,8 +364,9 @@ class HUBDatasetStats:
 
     def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
         """Initialize class."""
+        path = Path(path).resolve()
         LOGGER.info(f'Starting HUB dataset checks for {path}....')
-        zipped, data_dir, yaml_path = self._unzip(Path(path))
+        zipped, data_dir, yaml_path = self._unzip(path)
         try:
             # data = yaml_load(check_yaml(yaml_path))  # data dict
             data = check_det_dataset(yaml_path, autodownload)  # data dict
@@ -385,7 +386,7 @@ class HUBDatasetStats:
     def _find_yaml(dir):
         """Return data.yaml file."""
         files = list(dir.glob('*.yaml')) or list(dir.rglob('*.yaml'))  # try root level first and then recursive
-        assert files, f'No *.yaml file found in {dir.resolve()}'
+        assert files, f"No *.yaml file found in '{dir.resolve()}'"
         if len(files) > 1:
             files = [f for f in files if f.stem == dir.stem]  # prefer *.yaml files that match dir name
         assert len(files) == 1, f"Expected 1 *.yaml file in '{dir.resolve()}', but found {len(files)}.\n{files}"

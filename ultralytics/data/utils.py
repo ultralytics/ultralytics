@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import hashlib
 import json
 import os
@@ -49,13 +48,14 @@ def get_hash(paths):
     return h.hexdigest()  # return hash
 
 
-def exif_size(img):
+def exif_size(img: Image.Image):
     """Returns exif-corrected PIL size."""
     s = img.size  # (width, height)
-    with contextlib.suppress(Exception):
-        rotation = dict(img._getexif().items())[orientation]
+    exif = img.getexif()
+    if exif:
+        rotation = exif.get(274, None)  # the key for the orientation tag in the EXIF data is 274 (in decimal)
         if rotation in [6, 8]:  # rotation 270 or 90
-            s = (s[1], s[0])
+            s = s[1], s[0]
     return s
 
 
@@ -190,7 +190,21 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 
 
 def check_det_dataset(dataset, autodownload=True):
-    """Download, check and/or unzip dataset if not found locally."""
+    """
+    Download, verify, and/or unzip a dataset if not found locally.
+
+    This function checks the availability of a specified dataset, and if not found, it has the option to download and
+    unzip the dataset. It then reads and parses the accompanying YAML data, ensuring key requirements are met and also
+    resolves paths related to the dataset.
+
+    Args:
+        dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
+        autodownload (bool, optional): Whether to automatically download the dataset if not found. Defaults to True.
+
+    Returns:
+        (dict): Parsed dataset information and paths.
+    """
+
     data = check_file(dataset)
 
     # Download (optional)
@@ -327,7 +341,7 @@ def check_cls_dataset(dataset: str, split=''):
     return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
 
 
-class HUBDatasetStats():
+class HUBDatasetStats:
     """
     A class for generating HUB dataset JSON and `-hub` dataset directory.
 
@@ -478,6 +492,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
             compress_one_image(f)
         ```
     """
+
     try:  # use PIL
         im = Image.open(f)
         r = max_dim / max(im.height, im.width)  # ratio

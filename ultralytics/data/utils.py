@@ -386,7 +386,7 @@ class HUBDatasetStats:
     def _find_yaml(dir):
         """Return data.yaml file."""
         files = list(dir.glob('*.yaml')) or list(dir.rglob('*.yaml'))  # try root level first and then recursive
-        assert files, f"No *.yaml file found in {dir.resolve()}"
+        assert files, f"No *.yaml file found in '{dir.resolve()'}"
         if len(files) > 1:
             files = [f for f in files if f.stem == dir.stem]  # prefer *.yaml files that match dir name
         assert len(files) == 1, f"Expected 1 *.yaml file in '{dir.resolve()}', but found {len(files)}.\n{files}"

@@ -221,3 +221,11 @@ def test_results():
             print(r.path)
             for k in r.keys:
                 print(getattr(r, k))
+
+
+def test_data_utils():
+    # Test functions in ultralytics/data/utils.py
+    from ultralytics.data.utils import autosplit, zip_directory
+
+    autosplit()
+    zip_directory(ROOT / 'assets')

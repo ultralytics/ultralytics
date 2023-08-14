@@ -561,18 +561,18 @@ def zip_directory(dir, use_zipfile_library=True):
         shutil.make_archive(dir, 'zip', dir)
 
 
-def autosplit(path=DATASETS_DIR / 'coco128/images', weights=(0.9, 0.1, 0.0), annotated_only=False):
+def autosplit(path=DATASETS_DIR / 'coco8/images', weights=(0.9, 0.1, 0.0), annotated_only=False):
     """
     Autosplit a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
 
     Args:
-        path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco128/images'.
+        path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.
         weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
         annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
 
     Example:
         ```python
-        from ultralytics.utils.dataloaders import autosplit
+        from ultralytics.data.utils import autosplit
 
         autosplit()
         ```

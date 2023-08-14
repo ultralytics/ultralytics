@@ -225,7 +225,15 @@ def test_results():
 
 def test_data_utils():
     # Test functions in ultralytics/data/utils.py
-    from ultralytics.data.utils import autosplit, zip_directory
+    from ultralytics.data.utils import HUBDatasetStats, autosplit, zip_directory
+    from ultralytics.utils.downloads import download
+
+    # from ultralytics.utils.files import WorkingDirectory
+    # with WorkingDirectory(ROOT.parent / 'tests'):
 
     autosplit()
     zip_directory(ROOT / 'assets')
+    download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip')  # for use with HUBDatasetStats
+    stats = HUBDatasetStats('coco8.zip', task='detect')
+    stats.get_json(save=False)
+    stats.process_images()

@@ -31,6 +31,14 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         conda install -c conda-forge ultralytics
         ```
 
+        !!! note
+        
+            If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necesary.
+            ```bash
+            # Install all packages together using conda
+            conda install -c conda-forge -c pytorch -c nvidia ultralytics pytorch torchvision pytorch-cuda=11.8 
+            ```
+
     === "Git clone"
         Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
         ```bash
@@ -259,7 +267,7 @@ The table below provides an overview of the settings available for adjustment wi
 | `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys)                                     |
 | `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                                                                   |
 | `comet`            | `True`                | `bool`    | Whether to use [Comet ML](https://bit.ly/yolov8-readme-comet) for experiment tracking and visualization          |
-| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking](https://dvc.org/doc/dvclive/ml-frameworks/yolo) and version control                                                                           |
+| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking](https://dvc.org/doc/dvclive/ml-frameworks/yolo) and version control |
 | `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB](https://hub.ultralytics.com) integration                                        |
 | `mlflow`           | `True`                | `bool`    | Whether to use MLFlow for experiment tracking                                                                    |
 | `neptune`          | `True`                | `bool`    | Whether to use Neptune for experiment tracking                                                                   |

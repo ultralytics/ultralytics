@@ -232,7 +232,8 @@ def test_data_utils():
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
     autosplit()
-    zip_directory(ROOT / 'assets')
+    zip_directory(ROOT / 'assets')  # zip
+    Path(ROOT / 'assets.zip').unlink()  # delete zip
     download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip')  # for use with HUBDatasetStats
     stats = HUBDatasetStats('coco8.zip', task='detect')
     stats.get_json(save=False)

@@ -388,8 +388,7 @@ class HUBDatasetStats:
         assert files, f'No *.yaml file found in {dir}'
         if len(files) > 1:
             files = [f for f in files if f.stem == dir.stem]  # prefer *.yaml files that match dir name
-            assert files, f'Multiple *.yaml files found in {dir}, only 1 *.yaml file allowed'
-        assert len(files) == 1, f'Multiple *.yaml files found: {files}, only 1 *.yaml file allowed in {dir}'
+        assert len(files) == 1, f'Expected 1 *.yaml file in {dir}, but found {len(files)}:\n{files}'
         return files[0]
 
     def _unzip(self, path):

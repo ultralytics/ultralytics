@@ -318,6 +318,7 @@ class Results(SimpleClass):
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:
+            Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
             with open(txt_file, 'a') as f:
                 f.writelines(text + '\n' for text in texts)
 

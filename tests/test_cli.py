@@ -74,7 +74,7 @@ def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
     run(f"yolo predict {task} model={model} source={ROOT / 'assets/bus.jpg'} imgsz=640 save save_crop save_txt")
 
 
-def test_fastsam(task='segment', model='FastSAM-s.pt', data='coco8-seg.yaml'):
+def test_fastsam(task='segment', model=WEIGHT_DIR / 'FastSAM-s.pt', data='coco8-seg.yaml'):
     source = ROOT / 'assets/bus.jpg'
 
     run(f'yolo segment val {task} model={model} data={data} imgsz=32')
@@ -84,10 +84,10 @@ def test_fastsam(task='segment', model='FastSAM-s.pt', data='coco8-seg.yaml'):
     from ultralytics.models.fastsam import FastSAMPrompt
 
     # Create a FastSAM model
-    model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+    sam_model = FastSAM(model)  # or FastSAM-x.pt
 
     # Run inference on an image
-    everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+    everything_results = sam_model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
     # Everything prompt
     prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
@@ -110,13 +110,19 @@ def test_mobilesam():
     from ultralytics import SAM
 
     # Load the model
-    model = SAM('mobile_sam.pt')
+    model = SAM(WEIGHT_DIR / 'mobile_sam.pt')
+
+    # Source
+    source = ROOT / 'assets/zidane.jpg'
 
     # Predict a segment based on a point prompt
-    model.predict(ROOT / 'assets/zidane.jpg', points=[900, 370], labels=[1])
+    model.predict(source, points=[900, 370], labels=[1])
 
     # Predict a segment based on a box prompt
-    model.predict(ROOT / 'assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+    model.predict(source, bboxes=[439, 437, 524, 709])
+
+    # Predict all
+    #model(source)
 
 
 # Slow Tests

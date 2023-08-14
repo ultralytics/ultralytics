@@ -3,6 +3,8 @@
 SAM model interface
 """
 
+from pathlib import Path
+
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
 
@@ -16,9 +18,8 @@ class SAM(Model):
     """
 
     def __init__(self, model='sam_b.pt') -> None:
-        if model and not model.endswith('.pt') and not model.endswith('.pth'):
-            # Should raise AssertionError instead?
-            raise NotImplementedError('Segment anything prediction requires pre-trained checkpoint')
+        if model and Path(model).suffix not in ('.pt', '.pth'):
+            raise NotImplementedError('SAM prediction requires pre-trained *.pt or *.pth model.')
         super().__init__(model=model, task='segment')
 
     def _load(self, weights: str, task=None):

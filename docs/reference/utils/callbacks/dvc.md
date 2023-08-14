@@ -10,10 +10,6 @@ keywords: Ultralytics, YOLO, callbacks, logger, training, pretraining, machine l
     Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
-## ::: ultralytics.utils.callbacks.dvc._logger_disabled
-<br><br>
-
----
 ## ::: ultralytics.utils.callbacks.dvc._log_images
 <br><br>
 

@@ -212,8 +212,8 @@ def test_results():
         for r in results:
             r = r.cpu().numpy()
             r = r.to(device='cpu', dtype=torch.float32)
-            r.save_txt(txt_file='label.txt', save_conf=True)
-            r.save_crop(save_dir='crops/')
+            r.save_txt(txt_file='runs/tests/label.txt', save_conf=True)
+            r.save_crop(save_dir='runs/tests/crops/')
             r.tojson(normalize=True)
             r.plot(pil=True)
             r.plot(conf=True, boxes=True)

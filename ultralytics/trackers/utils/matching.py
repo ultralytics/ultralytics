@@ -36,7 +36,7 @@ def merge_matches(m1, m2, shape):
 
 
 def _indices_to_matches(cost_matrix, indices, thresh):
-    """_indices_to_matches: Return matched and unmatched indices given a cost matrix, indices, and a threshold."""
+    """Return matched and unmatched indices given a cost matrix, indices, and a threshold."""
     matched_cost = cost_matrix[tuple(zip(*indices))]
     matched_mask = (matched_cost <= thresh)
 
@@ -81,8 +81,12 @@ def ious(atlbrs, btlbrs):
     ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if ious.size == 0:
         return ious
-
     ious = bbox_ious(np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32))
+
+    # TODO: replace bbox_ious() with numpy-capable update of utils.metrics.box_iou
+    # from ...utils.metrics import box_iou
+    # ious = box_iou()
+
     return ious
 
 
@@ -102,8 +106,7 @@ def iou_distance(atracks, btracks):
     else:
         atlbrs = [track.tlbr for track in atracks]
         btlbrs = [track.tlbr for track in btracks]
-    _ious = ious(atlbrs, btlbrs)
-    return 1 - _ious  # cost matrix
+    return 1 - ious(atlbrs, btlbrs)  # cost matrix
 
 
 def v_iou_distance(atracks, btracks):
@@ -122,8 +125,7 @@ def v_iou_distance(atracks, btracks):
     else:
         atlbrs = [track.tlwh_to_tlbr(track.pred_bbox) for track in atracks]
         btlbrs = [track.tlwh_to_tlbr(track.pred_bbox) for track in btracks]
-    _ious = ious(atlbrs, btlbrs)
-    return 1 - _ious  # cost matrix
+    return 1 - ious(atlbrs, btlbrs)  # cost matrix
 
 
 def embedding_distance(tracks, detections, metric='cosine'):

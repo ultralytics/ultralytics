@@ -282,6 +282,8 @@ class Model:
         overrides['rect'] = True  # rect batches as default
         overrides.update(kwargs)
         overrides['mode'] = 'val'
+        if overrides.get('imgsz') is None:
+            overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
         if 'task' in overrides:
@@ -289,8 +291,6 @@ class Model:
         else:
             args.task = self.task
         validator = validator or self.smart_load('validator')
-        if args.imgsz == DEFAULT_CFG.imgsz and not isinstance(self.model, (str, Path)):
-            args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
         validator = validator(args=args, _callbacks=self.callbacks)

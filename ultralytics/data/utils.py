@@ -142,16 +142,12 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
         downsample_ratio (int): downsample ratio
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
-    polygons = np.asarray(polygons)
-    polygons = polygons.astype(np.int32)
-    shape = polygons.shape
-    polygons = polygons.reshape(shape[0], -1, 2)
+    polygons = np.asarray(polygons, dtype=np.int32)
+    polygons = polygons.reshape((polygons.shape[0], -1, 2))
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
-    # NOTE: fillPoly firstly then resize is trying the keep the same way
-    # of loss calculation when mask-ratio=1.
-    mask = cv2.resize(mask, (nw, nh))
-    return mask
+    # NOTE: fillPoly first then resize is trying to keep the same way of loss calculation when mask-ratio=1.
+    return cv2.resize(mask, (nw, nh))
 
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
@@ -162,11 +158,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
         color (int): color
         downsample_ratio (int): downsample ratio
     """
-    masks = []
-    for si in range(len(polygons)):
-        mask = polygon2mask(imgsz, [polygons[si].reshape(-1)], color, downsample_ratio)
-        masks.append(mask)
-    return np.array(masks)
+    return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 
 
 def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
@@ -421,7 +413,7 @@ class HUBDatasetStats:
             else:
                 raise ValueError('Undefined dataset task.')
             zipped = zip(labels['cls'], coordinates)
-            return [[int(c), *(round(float(x), 4) for x in points)] for c, points in zipped]
+            return [[int(c[0]), *(round(float(x), 4) for x in points)] for c, points in zipped]
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:
@@ -563,7 +555,7 @@ def zip_directory(dir, use_zipfile_library=True):
 
 def autosplit(path=DATASETS_DIR / 'coco8/images', weights=(0.9, 0.1, 0.0), annotated_only=False):
     """
-    Autosplit a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
+    Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
 
     Args:
         path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.

@@ -249,11 +249,11 @@ class Exporter:
             f[4], _ = self.export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
             self.args.int8 |= edgetpu
-            f[5], s_model = self.export_saved_model()
+            f[5], keras_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self.export_pb(s_model)
+                f[6], _ = self.export_pb(keras_model=keras_model)
             if tflite:
-                f[7], _ = self.export_tflite(s_model, nms=False, agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self.export_tflite(keras_model=keras_model, nms=False, agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
                 f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f'{self.file.stem}_full_integer_quant.tflite')
             if tfjs:
@@ -671,10 +671,7 @@ class Exporter:
         for file in f.rglob('*.tflite'):
             f.unlink() if 'quant_with_int16_act.tflite' in str(f) else self._add_tflite_metadata(file)
 
-        # Load saved_model
-        keras_model = tf.saved_model.load(f, tags=None, options=None)
-
-        return str(f), keras_model
+        return str(f), tf.saved_model.load(f, tags=None, options=None)  # load saved_model as Keras model
 
     @try_export
     def export_pb(self, keras_model, prefix=colorstr('TensorFlow GraphDef:')):

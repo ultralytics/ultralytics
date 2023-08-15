@@ -20,13 +20,6 @@ MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
 TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
-SOURCE_GREYSCALE = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
-SOURCE_RGBA = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
-
-# Convert SOURCE to greyscale and 4-ch
-im = Image.open(SOURCE)
-im.convert('L').save(SOURCE_GREYSCALE)  # greyscale
-im.convert('RGBA').save(SOURCE_RGBA)  # 4-ch PNG with alpha
 
 
 def test_model_forward():
@@ -85,10 +78,22 @@ def test_predict_img():
 
 
 def test_predict_grey_and_4ch():
+    # Convert SOURCE to greyscale and 4-ch
+    im = Image.open(SOURCE)
+    source_greyscale = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
+    source_rgba = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
+    im.convert('L').save(source_greyscale)  # greyscale
+    im.convert('RGBA').save(source_rgba)  # 4-ch PNG with alpha
+
+    # Inference
     model = YOLO(MODEL)
-    for f in SOURCE_RGBA, SOURCE_GREYSCALE:
+    for f in source_rgba, source_greyscale:
         for source in Image.open(f), cv2.imread(str(f)), f:
             model(source, save=True, verbose=True, imgsz=32)
+
+    # Cleanup
+    source_greyscale.unlink()
+    source_rgba.unlink()
 
 
 def test_track_stream():

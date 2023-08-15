@@ -2,8 +2,9 @@
 
 import numpy as np
 import scipy
-from ultralytics.utils.metrics import bbox_ioa
 from scipy.spatial.distance import cdist
+
+from ultralytics.utils.metrics import bbox_ioa
 
 try:
     import lap  # for linear_assignment
@@ -58,8 +59,9 @@ def iou_distance(atracks, btracks):
 
     ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if len(atlbrs) and len(btlbrs):
-        ious = bbox_ioa(np.ascontiguousarray(atlbrs, dtype=np.float32), 
-                        np.ascontiguousarray(btlbrs, dtype=np.float32), iou=True)
+        ious = bbox_ioa(np.ascontiguousarray(atlbrs, dtype=np.float32),
+                        np.ascontiguousarray(btlbrs, dtype=np.float32),
+                        iou=True)
     return 1 - ious  # cost matrix
 
 

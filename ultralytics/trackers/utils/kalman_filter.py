@@ -248,6 +248,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
     observation model).
 
     """
+
     def initiate(self, measurement):
         """Create track from unassociated measurement.
 

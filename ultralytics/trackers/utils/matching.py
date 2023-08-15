@@ -39,26 +39,6 @@ def linear_assignment(cost_matrix, thresh, use_lap=True):
     return matches, unmatched_a, unmatched_b
 
 
-def ious(atlbrs, btlbrs):
-    """
-    Compute cost based on IoU
-    :type atlbrs: list[tlbr] | np.ndarray
-    :type atlbrs: list[tlbr] | np.ndarray
-
-    :rtype ious np.ndarray
-    """
-    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
-    if ious.size == 0:
-        return ious
-    ious = bbox_ious(np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32))
-
-    # TODO: replace bbox_ious() with numpy-capable update of utils.metrics.box_iou
-    # from ...utils.metrics import box_iou
-    # ious = box_iou()
-
-    return ious
-
-
 def iou_distance(atracks, btracks):
     """
     Compute cost based on IoU

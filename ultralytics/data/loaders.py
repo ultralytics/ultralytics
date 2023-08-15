@@ -398,7 +398,7 @@ def get_best_youtube_url(url, use_pafy=False):
             info_dict = ydl.extract_info(url, download=False)  # extract info
         for f in info_dict.get('formats', None):
             # Find a format with video codec, no audio, *.mp4 extension at least 1920x1080 size
-            good_size = f.get('width') >= 1920 or f.get('height') >= 1080
+            good_size = f.get('width', 0) >= 1920 or f.get('height', 0) >= 1080
             if good_size and f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
                 return f.get('url')
 

@@ -154,7 +154,7 @@ The prediction settings for YOLO models encompass a range of hyperparameters and
 | `augment`      | `False`                | apply image augmentation to prediction sources                                 |
 | `agnostic_nms` | `False`                | class-agnostic NMS                                                             |
 | `retina_masks` | `False`                | use high-resolution segmentation masks                                         |
-| `classes`      | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]                        |
+| `classes`      | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                    |
 | `boxes`        | `True`                 | Show boxes in segmentation predictions                                         |
 
 [Predict Guide](../modes/predict.md){ .md-button .md-button--primary}

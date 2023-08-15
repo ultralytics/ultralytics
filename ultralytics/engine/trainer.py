@@ -5,6 +5,7 @@ Train a model on a dataset
 Usage:
     $ yolo mode=train model=yolov8n.pt data=coco128.yaml imgsz=640 epochs=100 batch=16
 """
+
 import math
 import os
 import subprocess
@@ -48,8 +49,8 @@ class BaseTrainer:
         callbacks (defaultdict): Dictionary of callbacks.
         save_dir (Path): Directory to save results.
         wdir (Path): Directory to save weights.
-        last (Path): Path to last checkpoint.
-        best (Path): Path to best checkpoint.
+        last (Path): Path to the last checkpoint.
+        best (Path): Path to the best checkpoint.
         save_period (int): Save checkpoint every x epochs (disabled if < 1).
         batch_size (int): Batch size for training.
         epochs (int): Number of epochs to train for.
@@ -80,7 +81,7 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.check_resume()
+        self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
         self.validator = None
         self.model = None
@@ -575,7 +576,7 @@ class BaseTrainer:
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')
 
-    def check_resume(self):
+    def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""
         resume = self.args.resume
         if resume:
@@ -588,8 +589,13 @@ class BaseTrainer:
                 if not Path(ckpt_args['data']).exists():
                     ckpt_args['data'] = self.args.data
 
+                resume = True
                 self.args = get_cfg(ckpt_args)
-                self.args.model, resume = str(last), True  # reinstate
+                self.args.model = str(last)  # reinstate model
+                for k in 'imgsz', 'batch':  # allow arg updates to reduce memory on resume if crashed due to CUDA OOM
+                    if k in overrides:
+                        setattr(self.args, k, overrides[k])
+
             except Exception as e:
                 raise FileNotFoundError('Resume checkpoint not found. Please pass a valid checkpoint to resume from, '
                                         "i.e. 'yolo train resume model=path/to/last.pt'") from e

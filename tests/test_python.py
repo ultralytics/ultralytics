@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import shutil
 from pathlib import Path
 
 import cv2
@@ -17,6 +18,7 @@ WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
+TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 SOURCE_GREYSCALE = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
 SOURCE_RGBA = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
 
@@ -91,7 +93,7 @@ def test_predict_grey_and_4ch():
 def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
     model = YOLO(MODEL)
-    model.track('https://youtu.be/G17sBkb38XQ', imgsz=32, tracker='bytetrack.yaml')
+    model.track('https://youtu.be/G17sBkb38XQ', imgsz=96, tracker='bytetrack.yaml')
 
 
 def test_val():
@@ -221,3 +223,25 @@ def test_results():
             print(r.path)
             for k in r.keys:
                 print(getattr(r, k))
+
+
+def test_data_utils():
+    # Test functions in ultralytics/data/utils.py
+    from ultralytics.data.utils import HUBDatasetStats, autosplit, zip_directory
+    from ultralytics.utils.downloads import download
+
+    # from ultralytics.utils.files import WorkingDirectory
+    # with WorkingDirectory(ROOT.parent / 'tests'):
+
+    shutil.rmtree(TMP, ignore_errors=True)
+    TMP.mkdir(parents=True)
+
+    download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
+    shutil.move('coco8.zip', TMP)
+    stats = HUBDatasetStats(TMP / 'coco8.zip', task='detect')
+    stats.get_json(save=False)
+    stats.process_images()
+
+    autosplit(TMP / 'coco8')
+    zip_directory(TMP / 'coco8/images/val')  # zip
+    shutil.rmtree(TMP)

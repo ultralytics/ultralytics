@@ -57,7 +57,7 @@ def iou_distance(atracks, btracks):
         btlbrs = [track.tlbr for track in btracks]
 
     ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
-    if len(atlbrs) or len(btlbrs):
+    if len(atlbrs) and len(btlbrs):
         ious = bbox_ioa(np.ascontiguousarray(atlbrs, dtype=np.float32), 
                         np.ascontiguousarray(btlbrs, dtype=np.float32), iou=True)
     return 1 - ious  # cost matrix

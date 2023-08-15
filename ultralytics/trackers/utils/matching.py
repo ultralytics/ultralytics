@@ -91,36 +91,3 @@ def fuse_score(cost_matrix, detections):
     det_scores = np.expand_dims(det_scores, axis=0).repeat(cost_matrix.shape[0], axis=0)
     fuse_sim = iou_sim * det_scores
     return 1 - fuse_sim  # fuse_cost
-
-
-def bbox_ious(box1, box2, eps=1e-7):
-    """
-    Calculate the Intersection over Union (IoU) between pairs of bounding boxes.
-
-    Args:
-        box1 (np.array): A numpy array of shape (n, 4) representing 'n' bounding boxes.
-                         Each row is in the format (x1, y1, x2, y2).
-        box2 (np.array): A numpy array of shape (m, 4) representing 'm' bounding boxes.
-                         Each row is in the format (x1, y1, x2, y2).
-        eps (float, optional): A small constant to prevent division by zero. Defaults to 1e-7.
-
-    Returns:
-        (np.array): A numpy array of shape (n, m) representing the IoU scores for each pair
-                    of bounding boxes from box1 and box2.
-
-    Note:
-        The bounding box coordinates are expected to be in the format (x1, y1, x2, y2).
-    """
-
-    # Get the coordinates of bounding boxes
-    b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
-    b2_x1, b2_y1, b2_x2, b2_y2 = box2.T
-
-    # Intersection area
-    inter_area = (np.minimum(b1_x2[:, None], b2_x2) - np.maximum(b1_x1[:, None], b2_x1)).clip(0) * \
-                 (np.minimum(b1_y2[:, None], b2_y2) - np.maximum(b1_y1[:, None], b2_y1)).clip(0)
-
-    # box2 area
-    box1_area = (b1_x2 - b1_x1) * (b1_y2 - b1_y1)
-    box2_area = (b2_x2 - b2_x1) * (b2_y2 - b2_y1)
-    return inter_area / (box2_area + box1_area[:, None] - inter_area + eps)

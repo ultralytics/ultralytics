@@ -2,9 +2,8 @@
 
 import numpy as np
 import scipy
+from ultralytics.utils.metrics import bbox_ioa
 from scipy.spatial.distance import cdist
-
-from .kalman_filter import chi2inv95
 
 try:
     import lap  # for linear_assignment
@@ -76,7 +75,12 @@ def iou_distance(atracks, btracks):
     else:
         atlbrs = [track.tlbr for track in atracks]
         btlbrs = [track.tlbr for track in btracks]
-    return 1 - ious(atlbrs, btlbrs)  # cost matrix
+
+    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
+    if len(atlbrs) or len(btlbrs):
+        ious = bbox_ioa(np.ascontiguousarray(atlbrs, dtype=np.float32), 
+                        np.ascontiguousarray(btlbrs, dtype=np.float32), iou=True)
+    return 1 - ious  # cost matrix
 
 
 def embedding_distance(tracks, detections, metric='cosine'):

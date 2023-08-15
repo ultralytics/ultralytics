@@ -17,36 +17,6 @@ except (ImportError, AssertionError, AttributeError):
     import lap
 
 
-def merge_matches(m1, m2, shape):
-    """Merge two sets of matches and return matched and unmatched indices."""
-    O, P, Q = shape
-    m1 = np.asarray(m1)
-    m2 = np.asarray(m2)
-
-    M1 = scipy.sparse.coo_matrix((np.ones(len(m1)), (m1[:, 0], m1[:, 1])), shape=(O, P))
-    M2 = scipy.sparse.coo_matrix((np.ones(len(m2)), (m2[:, 0], m2[:, 1])), shape=(P, Q))
-
-    mask = M1 * M2
-    match = mask.nonzero()
-    match = list(zip(match[0], match[1]))
-    unmatched_O = tuple(set(range(O)) - {i for i, j in match})
-    unmatched_Q = tuple(set(range(Q)) - {j for i, j in match})
-
-    return match, unmatched_O, unmatched_Q
-
-
-def _indices_to_matches(cost_matrix, indices, thresh):
-    """Return matched and unmatched indices given a cost matrix, indices, and a threshold."""
-    matched_cost = cost_matrix[tuple(zip(*indices))]
-    matched_mask = (matched_cost <= thresh)
-
-    matches = indices[matched_mask]
-    unmatched_a = tuple(set(range(cost_matrix.shape[0])) - set(matches[:, 0]))
-    unmatched_b = tuple(set(range(cost_matrix.shape[1])) - set(matches[:, 1]))
-
-    return matches, unmatched_a, unmatched_b
-
-
 def linear_assignment(cost_matrix, thresh, use_lap=True):
     """Linear assignment implementations with scipy and lap.lapjv."""
     if cost_matrix.size == 0:
@@ -109,25 +79,6 @@ def iou_distance(atracks, btracks):
     return 1 - ious(atlbrs, btlbrs)  # cost matrix
 
 
-def v_iou_distance(atracks, btracks):
-    """
-    Compute cost based on IoU
-    :type atracks: list[STrack]
-    :type btracks: list[STrack]
-
-    :rtype cost_matrix np.ndarray
-    """
-
-    if (len(atracks) > 0 and isinstance(atracks[0], np.ndarray)) \
-            or (len(btracks) > 0 and isinstance(btracks[0], np.ndarray)):
-        atlbrs = atracks
-        btlbrs = btracks
-    else:
-        atlbrs = [track.tlwh_to_tlbr(track.pred_bbox) for track in atracks]
-        btlbrs = [track.tlwh_to_tlbr(track.pred_bbox) for track in btracks]
-    return 1 - ious(atlbrs, btlbrs)  # cost matrix
-
-
 def embedding_distance(tracks, detections, metric='cosine'):
     """
     :param tracks: list[STrack]
@@ -145,46 +96,6 @@ def embedding_distance(tracks, detections, metric='cosine'):
     track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float32)
     cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # Normalized features
     return cost_matrix
-
-
-def gate_cost_matrix(kf, cost_matrix, tracks, detections, only_position=False):
-    """Apply gating to the cost matrix based on predicted tracks and detected objects."""
-    if cost_matrix.size == 0:
-        return cost_matrix
-    gating_dim = 2 if only_position else 4
-    gating_threshold = chi2inv95[gating_dim]
-    measurements = np.asarray([det.to_xyah() for det in detections])
-    for row, track in enumerate(tracks):
-        gating_distance = kf.gating_distance(track.mean, track.covariance, measurements, only_position)
-        cost_matrix[row, gating_distance > gating_threshold] = np.inf
-    return cost_matrix
-
-
-def fuse_motion(kf, cost_matrix, tracks, detections, only_position=False, lambda_=0.98):
-    """Fuse motion between tracks and detections with gating and Kalman filtering."""
-    if cost_matrix.size == 0:
-        return cost_matrix
-    gating_dim = 2 if only_position else 4
-    gating_threshold = chi2inv95[gating_dim]
-    measurements = np.asarray([det.to_xyah() for det in detections])
-    for row, track in enumerate(tracks):
-        gating_distance = kf.gating_distance(track.mean, track.covariance, measurements, only_position, metric='maha')
-        cost_matrix[row, gating_distance > gating_threshold] = np.inf
-        cost_matrix[row] = lambda_ * cost_matrix[row] + (1 - lambda_) * gating_distance
-    return cost_matrix
-
-
-def fuse_iou(cost_matrix, tracks, detections):
-    """Fuses ReID and IoU similarity matrices to yield a cost matrix for object tracking."""
-    if cost_matrix.size == 0:
-        return cost_matrix
-    reid_sim = 1 - cost_matrix
-    iou_dist = iou_distance(tracks, detections)
-    iou_sim = 1 - iou_dist
-    fuse_sim = reid_sim * (1 + iou_sim) / 2
-    # det_scores = np.array([det.score for det in detections])
-    # det_scores = np.expand_dims(det_scores, axis=0).repeat(cost_matrix.shape[0], axis=0)
-    return 1 - fuse_sim  # fuse cost
 
 
 def fuse_score(cost_matrix, detections):

@@ -18,7 +18,18 @@ except (ImportError, AssertionError, AttributeError):
 
 
 def linear_assignment(cost_matrix, thresh, use_lap=True):
-    """Linear assignment implementations with scipy and lap.lapjv."""
+    """
+    Perform linear assignment using scipy or lap.lapjv.
+
+    Args:
+        cost_matrix (np.ndarray): The matrix containing cost values for assignments.
+        thresh (float): Threshold for considering an assignment valid.
+        use_lap (bool, optional): Whether to use lap.lapjv. Defaults to True.
+
+    Returns:
+        (tuple): Tuple containing matched indices, unmatched indices from 'a', and unmatched indices from 'b'.
+    """
+
     if cost_matrix.size == 0:
         return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
 
@@ -42,11 +53,14 @@ def linear_assignment(cost_matrix, thresh, use_lap=True):
 
 def iou_distance(atracks, btracks):
     """
-    Compute cost based on IoU
-    :type atracks: list[STrack]
-    :type btracks: list[STrack]
+    Compute cost based on Intersection over Union (IoU) between tracks.
 
-    :rtype cost_matrix np.ndarray
+    Args:
+        atracks (list[STrack] | list[np.ndarray]): List of tracks 'a' or bounding boxes.
+        btracks (list[STrack] | list[np.ndarray]): List of tracks 'b' or bounding boxes.
+
+    Returns:
+        (np.ndarray): Cost matrix computed based on IoU.
     """
 
     if (len(atracks) > 0 and isinstance(atracks[0], np.ndarray)) \
@@ -67,10 +81,15 @@ def iou_distance(atracks, btracks):
 
 def embedding_distance(tracks, detections, metric='cosine'):
     """
-    :param tracks: list[STrack]
-    :param detections: list[BaseTrack]
-    :param metric:
-    :return: cost_matrix np.ndarray
+    Compute distance between tracks and detections based on embeddings.
+
+    Args:
+        tracks (list[STrack]): List of tracks.
+        detections (list[BaseTrack]): List of detections.
+        metric (str, optional): Metric for distance computation. Defaults to 'cosine'.
+
+    Returns:
+        (np.ndarray): Cost matrix computed based on embeddings.
     """
 
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
@@ -85,7 +104,17 @@ def embedding_distance(tracks, detections, metric='cosine'):
 
 
 def fuse_score(cost_matrix, detections):
-    """Fuses cost matrix with detection scores to produce a single similarity matrix."""
+    """
+    Fuses cost matrix with detection scores to produce a single similarity matrix.
+
+    Args:
+        cost_matrix (np.ndarray): The matrix containing cost values for assignments.
+        detections (list[BaseTrack]): List of detections with scores.
+
+    Returns:
+        (np.ndarray): Fused similarity matrix.
+    """
+
     if cost_matrix.size == 0:
         return cost_matrix
     iou_sim = 1 - cost_matrix

@@ -93,7 +93,7 @@ def test_predict_grey_and_4ch():
 def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
     model = YOLO(MODEL)
-    model.track('https://youtu.be/G17sBkb38XQ', imgsz=32, tracker='bytetrack.yaml')
+    model.track('https://youtu.be/G17sBkb38XQ', imgsz=96, tracker='bytetrack.yaml')
 
 
 def test_val():

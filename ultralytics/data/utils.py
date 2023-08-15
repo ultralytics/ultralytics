@@ -413,7 +413,7 @@ class HUBDatasetStats:
             else:
                 raise ValueError('Undefined dataset task.')
             zipped = zip(labels['cls'], coordinates)
-            return [[int(c), *(round(float(x), 4) for x in points)] for c, points in zipped]
+            return [[int(c[0]), *(round(float(x), 4) for x in points)] for c, points in zipped]
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:

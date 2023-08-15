@@ -388,4 +388,4 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             Returns the measurement-corrected state distribution.
 
         """
-        super().update(mean, covariance, measurement)
+        return super().update(mean, covariance, measurement)

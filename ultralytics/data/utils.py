@@ -555,7 +555,7 @@ def zip_directory(dir, use_zipfile_library=True):
 
 def autosplit(path=DATASETS_DIR / 'coco8/images', weights=(0.9, 0.1, 0.0), annotated_only=False):
     """
-    Autosplit a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
+    Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
 
     Args:
         path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.

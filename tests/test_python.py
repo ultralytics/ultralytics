@@ -12,6 +12,7 @@ from torchvision.transforms import ToTensor
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import LINUX, MACOS, ONLINE, ROOT, SETTINGS
+from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
@@ -94,6 +95,9 @@ def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
     model = YOLO(MODEL)
     model.track('https://youtu.be/G17sBkb38XQ', imgsz=96, tracker='bytetrack.yaml')
+
+    model = YOLO(MODEL)
+    model.track('https://youtu.be/G17sBkb38XQ', imgsz=96, tracker='botsort.yaml')
 
 
 def test_val():
@@ -228,13 +232,9 @@ def test_results():
 def test_data_utils():
     # Test functions in ultralytics/data/utils.py
     from ultralytics.data.utils import HUBDatasetStats, autosplit, zip_directory
-    from ultralytics.utils.downloads import download
 
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
-
-    shutil.rmtree(TMP, ignore_errors=True)
-    TMP.mkdir(parents=True)
 
     download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
     shutil.move('coco8.zip', TMP)
@@ -244,4 +244,17 @@ def test_data_utils():
 
     autosplit(TMP / 'coco8')
     zip_directory(TMP / 'coco8/images/val')  # zip
-    shutil.rmtree(TMP)
+
+
+def test_data_converter():
+    # Test dataset converters
+
+    from ultralytics.data.converter import convert_coco
+
+    file = 'instances_val2017.json'
+    download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}')
+    directory = (TMP / 'coco' / 'annotations')
+    directory.mkdir(parents=True, exist_ok=True)
+    if not (directory / file).exists():
+        Path(file).rename(directory / file)
+    convert_coco(labels_dir=directory, use_segments=True, use_keypoints=False, cls91to80=True)

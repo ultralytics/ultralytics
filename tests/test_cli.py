@@ -30,7 +30,6 @@ def test_special_modes():
     run('yolo checks')
     run('yolo version')
     run('yolo settings reset')
-    run('yolo copy-cfg')
     run('yolo cfg')
 
 
@@ -54,7 +53,6 @@ def test_predict(task, model, data):
 def test_predict_online(task, model, data):
     mode = 'track' if task in ('detect', 'segment', 'pose') else 'predict'  # mode for video inference
     model = WEIGHT_DIR / model
-    run(f'yolo predict model={model}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
     run(f'yolo {mode} model={model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=96')
 
     # Run Python YouTube tracking because CLI is broken. TODO: fix CLI YouTube

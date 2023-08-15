@@ -321,7 +321,7 @@ All supported arguments:
 | `augment`      | `bool`         | `False`                | apply image augmentation to prediction sources                                 |
 | `agnostic_nms` | `bool`         | `False`                | class-agnostic NMS                                                             |
 | `retina_masks` | `bool`         | `False`                | use high-resolution segmentation masks                                         |
-| `classes`      | `None or list` | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]                        |
+| `classes`      | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                    |
 | `boxes`        | `bool`         | `True`                 | Show boxes in segmentation predictions                                         |
 
 ## Image and Video Formats

@@ -44,17 +44,6 @@ class RTDETRTrainer(DetectionTrainer):
         self.loss_names = 'giou_loss', 'cls_loss', 'l1_loss'
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
-    def preprocess_batch(self, batch):
-        """Preprocesses a batch of images by scaling and converting to float."""
-        batch = super().preprocess_batch(batch)
-        bs = len(batch['img'])
-        batch_idx = batch['batch_idx']
-        gt_bbox, gt_class = [], []
-        for i in range(bs):
-            gt_bbox.append(batch['bboxes'][batch_idx == i].to(batch_idx.device))
-            gt_class.append(batch['cls'][batch_idx == i].to(device=batch_idx.device, dtype=torch.long))
-        return batch
-
 
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize RTDETR model given training data and device."""

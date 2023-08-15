@@ -142,16 +142,12 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
         downsample_ratio (int): downsample ratio
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
-    polygons = np.asarray(polygons)
-    polygons = polygons.astype(np.int32)
-    shape = polygons.shape
-    polygons = polygons.reshape(shape[0], -1, 2)
+    polygons = np.asarray(polygons, dtype=np.int32)
+    polygons = polygons.reshape((polygons.shape[0], -1, 2))
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
-    # NOTE: fillPoly firstly then resize is trying the keep the same way
-    # of loss calculation when mask-ratio=1.
-    mask = cv2.resize(mask, (nw, nh))
-    return mask
+    # NOTE: fillPoly first then resize is trying to keep the same way of loss calculation when mask-ratio=1.
+    return cv2.resize(mask, (nw, nh))
 
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
@@ -162,11 +158,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
         color (int): color
         downsample_ratio (int): downsample ratio
     """
-    masks = []
-    for si in range(len(polygons)):
-        mask = polygon2mask(imgsz, [polygons[si].reshape(-1)], color, downsample_ratio)
-        masks.append(mask)
-    return np.array(masks)
+    return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 
 
 def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):

@@ -1,7 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from pathlib import Path
-from ultralytics.models import YOLO, SAM
+
+from ultralytics.models import SAM, YOLO
 
 
 def auto_annotate_segment(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='', output_dir=None):

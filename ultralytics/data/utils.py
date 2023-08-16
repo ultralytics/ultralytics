@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import contextlib
 import hashlib
 import json
 import os
@@ -13,7 +14,7 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
-from PIL import ExifTags, Image, ImageOps
+from PIL import Image, ImageOps
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
@@ -27,11 +28,6 @@ HELP_URL = 'See https://docs.ultralytics.com/datasets/detect for dataset formatt
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
 VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'  # video suffixes
 PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
-
-# Get orientation exif tag
-for orientation in ExifTags.TAGS.keys():
-    if ExifTags.TAGS[orientation] == 'Orientation':
-        break
 
 
 def img2label_paths(img_paths):
@@ -51,11 +47,13 @@ def get_hash(paths):
 def exif_size(img: Image.Image):
     """Returns exif-corrected PIL size."""
     s = img.size  # (width, height)
-    exif = img.getexif()
-    if exif:
-        rotation = exif.get(274, None)  # the key for the orientation tag in the EXIF data is 274 (in decimal)
-        if rotation in [6, 8]:  # rotation 270 or 90
-            s = s[1], s[0]
+    if img.format == 'JPEG':  # only support JPEG images
+        with contextlib.suppress(Exception):
+            exif = img.getexif()
+            if exif:
+                rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
+                if rotation in [6, 8]:  # rotation 270 or 90
+                    s = s[1], s[0]
     return s
 
 

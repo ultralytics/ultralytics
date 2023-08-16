@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "inference.h"
 #include <filesystem>
 #include <fstream>
@@ -18,16 +19,31 @@ void file_iterator(DCSP_CORE *&p) {
                 cv::Scalar color(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
 
                 cv::rectangle(img, re.box, color, 3);
-                std::string label = p->classes[re.classId] + " " + std::to_string(re.confidence);
+
+                float confidence = floor(100 * re.confidence) / 100;
+                std::cout << std::fixed << std::setprecision(2);
+                std::string label = p->classes[re.classId] + " " +
+                                    std::to_string(confidence).substr(0, std::to_string(confidence).size() - 4);
+
+                cv::rectangle(
+                        img,
+                        cv::Point(re.box.x, re.box.y - 25),
+                        cv::Point(re.box.x + label.length() * 15, re.box.y),
+                        color,
+                        cv::FILLED
+                );
+
                 cv::putText(
                         img,
                         label,
                         cv::Point(re.box.x, re.box.y - 5),
                         cv::FONT_HERSHEY_SIMPLEX,
                         0.75,
-                        color,
+                        cv::Scalar(0, 0, 0),
                         2
                 );
+
+
             }
             std::cout << "Press any key to exit" << std::endl;
             cv::imshow("Result of Detection", img);

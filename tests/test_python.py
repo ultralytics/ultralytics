@@ -26,7 +26,7 @@ TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
 def test_model_forward():
     model = YOLO(CFG)
-    model(SOURCE, imgsz=32)
+    model(SOURCE, imgsz=32, augment=True)
 
 
 def test_model_info():

@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import shutil
+from copy import copy
 from pathlib import Path
 
 import cv2
@@ -11,7 +12,7 @@ from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
@@ -245,7 +246,6 @@ def test_data_utils():
 
 def test_data_converter():
     # Test dataset converters
-
     from ultralytics.data.converter import convert_coco
 
     file = 'instances_val2017.json'
@@ -255,3 +255,14 @@ def test_data_converter():
     if not (directory / file).exists():
         Path(file).rename(directory / file)
     convert_coco(labels_dir=directory, use_segments=True, use_keypoints=False, cls91to80=True)
+
+
+def test_events():
+    # Test event sending
+    from ultralytics.hub.utils import Events
+
+    events = Events()
+    events.enabled = True
+    cfg = copy(DEFAULT_CFG)  # does not require deepcopy
+    cfg.mode = 'test'
+    events(cfg)

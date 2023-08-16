@@ -198,7 +198,7 @@ The ideal scenario is for all class ratios to be reasonably similar for each spl
     
         with open(dataset_yaml, 'w') as ds_y:
             yaml.safe_dump({
-                'path': save_path.as_posix(),
+                'path': split_dir.as_posix(),
                 'train': 'train',
                 'val': 'val',
                 'names': classes

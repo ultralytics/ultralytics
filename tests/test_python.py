@@ -228,6 +228,7 @@ def test_results():
                 print(getattr(r, k))
 
 
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_data_utils():
     # Test functions in ultralytics/data/utils.py
     from ultralytics.data.utils import HUBDatasetStats, autosplit, zip_directory
@@ -245,17 +246,15 @@ def test_data_utils():
     zip_directory(TMP / 'coco8/images/val')  # zip
 
 
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_data_converter():
     # Test dataset converters
     from ultralytics.data.converter import convert_coco
 
     file = 'instances_val2017.json'
     download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}')
-    directory = (TMP / 'coco' / 'annotations')
-    directory.mkdir(parents=True, exist_ok=True)
-    if not (directory / file).exists():
-        Path(file).rename(directory / file)
-    convert_coco(labels_dir=directory, use_segments=True, use_keypoints=False, cls91to80=True)
+    shutil.move(file, TMP)
+    convert_coco(labels_dir=TMP, use_segments=True, use_keypoints=False, cls91to80=True)
 
 
 def test_events():

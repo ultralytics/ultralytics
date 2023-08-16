@@ -437,11 +437,17 @@ def check_amp(model):
     Args:
         model (nn.Module): A YOLOv8 model instance.
 
+    Example:
+        ```python
+        from ultralytics import YOLO
+        from ultralytics.utils.checks import check_amp
+
+        model = YOLO('yolov8n.pt').model.cuda()
+        check_amp(model)
+        ```
+
     Returns:
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
-
-    Raises:
-        AssertionError: If the AMP checks fail, indicating anomalies with the AMP functionality on the system.
     """
     device = next(model.parameters()).device  # get model device
     if device.type in ('cpu', 'mps'):

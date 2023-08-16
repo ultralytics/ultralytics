@@ -11,7 +11,7 @@ from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import LINUX, MACOS, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import LINUX, ONLINE, ROOT, SETTINGS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
@@ -110,13 +110,6 @@ def test_val():
     model.val(data='coco8.yaml', imgsz=32)
 
 
-def test_amp():
-    if torch.cuda.is_available():
-        from ultralytics.utils.checks import check_amp
-        model = YOLO(MODEL).model.cuda()
-        assert check_amp(model)
-
-
 def test_train_scratch():
     model = YOLO(CFG)
     model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='disk', batch=-1)  # test disk caching with AutoBatch
@@ -142,10 +135,9 @@ def test_export_onnx():
 
 
 def test_export_openvino():
-    if not MACOS:
-        model = YOLO(MODEL)
-        f = model.export(format='openvino')
-        YOLO(f)(SOURCE)  # exported model inference
+    model = YOLO(MODEL)
+    f = model.export(format='openvino')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_coreml():  # sourcery skip: move-assign

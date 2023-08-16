@@ -101,10 +101,11 @@ def test_predict_grey_and_4ch():
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
+    # imgsz=160 required for tracking for higher confidence and better matches
     model = YOLO(MODEL)
     model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96)
-    model.track('https://ultralytics.com/assets/decelera_landscape_min.mov', imgsz=96, tracker='bytetrack.yaml')
-    model.track('https://ultralytics.com/assets/decelera_landscape_min.mov', imgsz=96, tracker='botsort.yaml')
+    model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='bytetrack.yaml')
+    model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='botsort.yaml')
 
 
 def test_val():

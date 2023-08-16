@@ -79,7 +79,7 @@ class LoadStreams:
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
-        while self.running and cap.isOpened() and n < f:
+        while self.running and cap.isOpened() and n < (f - 1):
             # Only read a new frame if the buffer is empty
             if not self.imgs[i]:
                 n += 1

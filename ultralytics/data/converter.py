@@ -36,11 +36,12 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
 
-    Raises:
-        FileNotFoundError: If the labels_dir path does not exist.
+    Example:
+        ```python
+        from ultralytics.data.converter import convert_coco
 
-    Example Usage:
-        convert_coco(labels_dir='../coco/annotations/', use_segments=True, use_keypoints=True, cls91to80=True)
+        convert_coco('../datasets/coco/annotations/', use_segments=True, use_keypoints=False, cls91to80=True)
+        ```
 
     Output:
         Generates output files in the specified output directory.

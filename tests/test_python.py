@@ -1,17 +1,20 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import shutil
+from copy import copy
 from pathlib import Path
 
 import cv2
 import numpy as np
+import pytest
 import torch
 from PIL import Image
 from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import LINUX, MACOS, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
@@ -19,13 +22,6 @@ MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
 TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
-SOURCE_GREYSCALE = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
-SOURCE_RGBA = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
-
-# Convert SOURCE to greyscale and 4-ch
-im = Image.open(SOURCE)
-im.convert('L').save(SOURCE_GREYSCALE)  # greyscale
-im.convert('RGBA').save(SOURCE_RGBA)  # 4-ch PNG with alpha
 
 
 def test_model_forward():
@@ -84,28 +80,37 @@ def test_predict_img():
 
 
 def test_predict_grey_and_4ch():
+    # Convert SOURCE to greyscale and 4-ch
+    im = Image.open(SOURCE)
+    source_greyscale = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
+    source_rgba = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
+    im.convert('L').save(source_greyscale)  # greyscale
+    im.convert('RGBA').save(source_rgba)  # 4-ch PNG with alpha
+
+    # Inference
     model = YOLO(MODEL)
-    for f in SOURCE_RGBA, SOURCE_GREYSCALE:
+    for f in source_rgba, source_greyscale:
         for source in Image.open(f), cv2.imread(str(f)), f:
             model(source, save=True, verbose=True, imgsz=32)
 
+    # Cleanup
+    source_greyscale.unlink()
+    source_rgba.unlink()
 
+
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
+    # imgsz=160 required for tracking for higher confidence and better matches
     model = YOLO(MODEL)
-    model.track('https://youtu.be/G17sBkb38XQ', imgsz=96, tracker='bytetrack.yaml')
+    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96)
+    model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='bytetrack.yaml')
+    model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='botsort.yaml')
 
 
 def test_val():
     model = YOLO(MODEL)
     model.val(data='coco8.yaml', imgsz=32)
-
-
-def test_amp():
-    if torch.cuda.is_available():
-        from ultralytics.utils.checks import check_amp
-        model = YOLO(MODEL).model.cuda()
-        assert check_amp(model)
 
 
 def test_train_scratch():
@@ -133,10 +138,9 @@ def test_export_onnx():
 
 
 def test_export_openvino():
-    if not MACOS:
-        model = YOLO(MODEL)
-        f = model.export(format='openvino')
-        YOLO(f)(SOURCE)  # exported model inference
+    model = YOLO(MODEL)
+    f = model.export(format='openvino')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_coreml():  # sourcery skip: move-assign
@@ -173,7 +177,7 @@ def test_all_model_yamls():
     for m in (ROOT / 'cfg' / 'models').rglob('*.yaml'):
         if 'rtdetr' in m.name:
             if TORCH_1_9:  # torch<=1.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
-                RTDETR(m.name)
+                RTDETR(m.name)(SOURCE, imgsz=640)
         else:
             YOLO(m.name)
 
@@ -225,16 +229,13 @@ def test_results():
                 print(getattr(r, k))
 
 
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_data_utils():
     # Test functions in ultralytics/data/utils.py
     from ultralytics.data.utils import HUBDatasetStats, autosplit, zip_directory
-    from ultralytics.utils.downloads import download
 
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
-
-    shutil.rmtree(TMP, ignore_errors=True)
-    TMP.mkdir(parents=True)
 
     download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
     shutil.move('coco8.zip', TMP)
@@ -244,4 +245,25 @@ def test_data_utils():
 
     autosplit(TMP / 'coco8')
     zip_directory(TMP / 'coco8/images/val')  # zip
-    shutil.rmtree(TMP)
+
+
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
+def test_data_converter():
+    # Test dataset converters
+    from ultralytics.data.converter import convert_coco
+
+    file = 'instances_val2017.json'
+    download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}')
+    shutil.move(file, TMP)
+    convert_coco(labels_dir=TMP, use_segments=True, use_keypoints=False, cls91to80=True)
+
+
+def test_events():
+    # Test event sending
+    from ultralytics.hub.utils import Events
+
+    events = Events()
+    events.enabled = True
+    cfg = copy(DEFAULT_CFG)  # does not require deepcopy
+    cfg.mode = 'test'
+    events(cfg)

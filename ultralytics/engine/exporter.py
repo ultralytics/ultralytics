@@ -463,6 +463,7 @@ class Exporter:
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return str(f), None
 
+    @try_export
     def export_coreml(self, prefix=colorstr('CoreML:')):
         """YOLOv8 CoreML export."""
         mlmodel = self.args.format.lower() == 'mlmodel'  # legacy *.mlmodel export format requested

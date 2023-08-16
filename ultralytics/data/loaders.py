@@ -79,19 +79,18 @@ class LoadStreams:
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
-        while self.running and cap.isOpened() and n < f:
+        while self.running and cap.isOpened() and n < (f - 1):
             # Only read a new frame if the buffer is empty
             if not self.imgs[i]:
                 n += 1
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
                     success, im = cap.retrieve()
-                    if success:
-                        self.imgs[i].append(im)  # add image to buffer
-                    else:
+                    if not success:
+                        im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-                        self.imgs[i].append(np.zeros(self.shape[i]))
                         cap.open(stream)  # re-open stream if signal was lost
+                    self.imgs[i].append(im)  # add image to buffer
             else:
                 time.sleep(0.01)  # wait until the buffer is empty
 

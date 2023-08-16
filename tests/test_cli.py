@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from ultralytics.utils import ONLINE, ROOT, SETTINGS
+from ultralytics.utils import ROOT, SETTINGS
 
 WEIGHT_DIR = Path(SETTINGS['weights_dir'])
 TASK_ARGS = [
@@ -46,17 +46,6 @@ def test_val(task, model, data):
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict(task, model, data):
     run(f"yolo predict model={WEIGHT_DIR / model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
-
-
-@pytest.mark.skipif(not ONLINE, reason='environment is offline')
-@pytest.mark.parametrize('task,model,data', TASK_ARGS)
-def test_predict_online(task, model, data):
-    mode = 'track' if task in ('detect', 'segment', 'pose') else 'predict'  # mode for video inference
-    model = WEIGHT_DIR / model
-    run(f'yolo {mode} model={model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=96')
-
-    # Run Python YouTube tracking because CLI is broken. TODO: fix CLI YouTube
-    # run(f'yolo {mode} model={model}.pt source=https://youtu.be/G17sBkb38XQ imgsz=32 tracker=bytetrack.yaml')
 
 
 @pytest.mark.parametrize('model,format', EXPORT_ARGS)

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import pytest
 import torch
 from PIL import Image
 from torchvision.transforms import ToTensor
@@ -97,13 +98,13 @@ def test_predict_grey_and_4ch():
     source_rgba.unlink()
 
 
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
     model = YOLO(MODEL)
-    model.track('https://youtu.be/G17sBkb38XQ', imgsz=96, tracker='bytetrack.yaml')
-
-    model = YOLO(MODEL)
-    model.track('https://youtu.be/G17sBkb38XQ', imgsz=96, tracker='botsort.yaml')
+    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96)
+    model.track('https://ultralytics.com/assets/decelera_landscape_min.mov', imgsz=96, tracker='bytetrack.yaml')
+    model.track('https://ultralytics.com/assets/decelera_landscape_min.mov', imgsz=96, tracker='botsort.yaml')
 
 
 def test_val():

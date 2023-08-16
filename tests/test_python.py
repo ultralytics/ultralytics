@@ -240,7 +240,7 @@ def test_data_utils():
     download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
     shutil.move('coco8.zip', TMP)
     stats = HUBDatasetStats(TMP / 'coco8.zip', task='detect')
-    stats.get_json(save=False)
+    stats.get_json(save=True)
     stats.process_images()
 
     autosplit(TMP / 'coco8')

@@ -271,7 +271,7 @@ def test_events():
 
 
 def test_utils_checks():
-    from ultralytics.utils.checks import check_imshow, check_yolov5u_filename, git_describe
+    from ultralytics.utils.checks import check_yolov5u_filename, git_describe
 
     check_yolov5u_filename('yolov5.pt')
     # check_imshow(warn=True)

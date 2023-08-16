@@ -121,7 +121,7 @@ def test_train_scratch():
 
 def test_train_pretrained():
     model = YOLO(MODEL)
-    model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='ram')  # test RAM caching
+    model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='ram', copy_paste=1.0, mixup=1.0)  # test RAM caching
     model(SOURCE)
 
 

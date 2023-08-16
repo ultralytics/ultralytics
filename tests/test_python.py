@@ -174,9 +174,9 @@ def test_all_model_yamls():
     for m in (ROOT / 'cfg' / 'models').rglob('*.yaml'):
         if 'rtdetr' in m.name:
             if TORCH_1_9:  # torch<=1.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
-                RTDETR(m.name)
+                RTDETR(m.name)(SOURCE, imgsz=640)
         else:
-            YOLO(m.name)(SOURCE, imgsz=64)
+            YOLO(m.name)
 
 
 def test_workflow():

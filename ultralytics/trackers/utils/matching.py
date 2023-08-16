@@ -36,7 +36,7 @@ def linear_assignment(cost_matrix, thresh, use_lap=True):
     if use_lap:
         # https://github.com/gatagat/lap
         _, x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh)
-        matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0 and cost_matrix[ix, mx] <= thresh]
+        matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0]
         unmatched_a = np.where(x < 0)[0]
         unmatched_b = np.where(y < 0)[0]
     else:

@@ -148,7 +148,7 @@ class BaseDataset(Dataset):
             if fn.exists():  # load npy
                 im = np.load(fn)
             else:  # read image
-                im = cv2.imread(f)  # BGR
+                im = cv2.imdecode(np.fromfile((u'%s' % f), np.uint8), cv2.IMREAD_UNCHANGED) # BGR
                 if im is None:
                     raise FileNotFoundError(f'Image Not Found {f}')
             h0, w0 = im.shape[:2]  # orig hw

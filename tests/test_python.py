@@ -232,7 +232,8 @@ def test_results():
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_data_utils():
     # Test functions in ultralytics/data/utils.py
-    from ultralytics.data.utils import HUBDatasetStats, autosplit, zip_directory
+    from ultralytics.data.utils import HUBDatasetStats, autosplit
+    from ultralytics.utils.downloads import zip_directory
 
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):

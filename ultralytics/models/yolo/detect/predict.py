@@ -32,7 +32,7 @@ class DetectionPredictor(BasePredictor):
 def predict(cfg=DEFAULT_CFG, use_python=False):
     """Runs YOLO model inference on input image(s)."""
     model = cfg.model or 'yolov8n.pt'
-    source = cfg.source if cfg.source is not None else ASSETS
+    source = cfg.source or ASSETS
 
     args = dict(model=model, source=source)
     if use_python:

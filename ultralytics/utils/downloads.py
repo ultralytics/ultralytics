@@ -145,18 +145,19 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
 
         if len(top_level_dirs) > 1 or not files[0].endswith('/'):
             path = Path(path) / Path(file).stem  # define new unzip directory
+        else:
+            path = Path(path) / list(top_level_dirs)[0]
 
         # Check if destination directory already exists and contains files
-        extract_path = Path(path) / list(top_level_dirs)[0]
-        if extract_path.exists() and any(extract_path.iterdir()) and not exist_ok:
+        if path.exists() and any(path.iterdir()) and not exist_ok:
             # If it exists and is not empty, return the path without unzipping
             LOGGER.info(f'Skipping {file} unzip (already unzipped)')
-            return extract_path
+            return path
 
         for f in tqdm(files, desc=f'Unzipping {file} to {Path(path).resolve()}...', unit='file', disable=not progress):
             zipObj.extract(f, path=path)
 
-    return extract_path  # return unzip dir
+    return path  # return unzip dir
 
 
 def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, hard=True):

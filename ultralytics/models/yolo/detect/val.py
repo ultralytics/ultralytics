@@ -259,7 +259,7 @@ class DetectionValidator(BaseValidator):
 def val(cfg=DEFAULT_CFG, use_python=False):
     """Validate trained YOLO model on validation dataset."""
     model = cfg.model or 'yolov8n.pt'
-    data = cfg.data or 'coco128.yaml'
+    data = cfg.data or 'coco8.yaml'
 
     args = dict(model=model, data=data)
     if use_python:

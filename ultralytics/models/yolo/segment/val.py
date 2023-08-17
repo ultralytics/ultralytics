@@ -236,7 +236,7 @@ class SegmentationValidator(DetectionValidator):
 def val(cfg=DEFAULT_CFG, use_python=False):
     """Validate trained YOLO model on validation data."""
     model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'
+    data = cfg.data or 'coco8-seg.yaml'
 
     args = dict(model=model, data=data)
     if use_python:

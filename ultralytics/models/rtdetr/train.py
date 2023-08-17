@@ -59,7 +59,7 @@ class RTDETRTrainer(DetectionTrainer):
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize RTDETR model given training data and device."""
     model = 'rtdetr-l.yaml'
-    data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
+    data = cfg.data or 'coco8.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
     # NOTE: F.grid_sample which is in rt-detr does not support deterministic=True

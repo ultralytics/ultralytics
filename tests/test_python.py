@@ -295,10 +295,8 @@ def test_events():
 
 
 def test_utils_init():
-    from ultralytics.utils import (get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_actions_ci,
-                                   is_ubuntu)
+    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_actions_ci
 
-    is_ubuntu()
     get_ubuntu_version()
     is_github_actions_ci()
     get_git_origin_url()

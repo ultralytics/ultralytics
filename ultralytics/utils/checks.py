@@ -460,8 +460,7 @@ def check_amp(model):
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 
-    f = ASSETS / 'bus.jpg'  # image to check
-    im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
+    im = ASSETS / 'bus.jpg'  # image to check
     prefix = colorstr('AMP: ')
     LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."

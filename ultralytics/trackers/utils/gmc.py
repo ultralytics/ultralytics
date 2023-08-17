@@ -10,7 +10,7 @@ from ultralytics.utils import LOGGER
 
 class GMC:
 
-    def __init__(self, method='sparseOptFlow', downscale=2, verbose=None):
+    def __init__(self, method='sparseOptFlow', downscale=2):
         """Initialize a video tracker with specified parameters."""
         super().__init__()
 
@@ -223,7 +223,6 @@ class GMC:
 
     def applySparseOptFlow(self, raw_frame, detections=None):
         """Initialize."""
-        # t0 = time.time()
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3)
@@ -276,9 +275,5 @@ class GMC:
         # Store to next iteration
         self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)
-
-        # gmc_line = str(1000 * (time.time() - t0)) + "\t" + str(H[0, 0]) + "\t" + str(H[0, 1]) + "\t" + str(
-        #     H[0, 2]) + "\t" + str(H[1, 0]) + "\t" + str(H[1, 1]) + "\t" + str(H[1, 2]) + "\n"
-        # self.gmc_file.write(gmc_line)
 
         return H

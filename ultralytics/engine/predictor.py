@@ -47,7 +47,7 @@ STREAM_WARNING = """
     WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless `stream=True` is passed,
     causing potential out-of-memory errors for large sources or long-running streams/videos.
 
-    Usage:
+    Example:
         results = model(source=..., stream=True)  # generator of Results objects
         for r in results:
             boxes = r.boxes  # Boxes object for bbox outputs

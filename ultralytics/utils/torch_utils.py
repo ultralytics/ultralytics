@@ -386,11 +386,14 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
     Returns:
         None
 
-    Usage:
+    Example:
+        ```python
         from pathlib import Path
         from ultralytics.utils.torch_utils import strip_optimizer
-        for f in Path('/Users/glennjocher/Downloads/weights').rglob('*.pt'):
+
+        for f in Path('path/to/weights').rglob('*.pt'):
             strip_optimizer(f)
+        ```
     """
     # Use dill (if exists) to serialize the lambda functions where pickle does not do this
     try:
@@ -423,13 +426,17 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
 
 def profile(input, ops, n=10, device=None):
     """
-    YOLOv8 speed/memory/FLOPs profiler
+    Ultralytics speed, memory and FLOPs profiler.
 
-    Usage:
+    Example:
+        ```python
+        from ultralytics.utils.torch_utils import profile
+
         input = torch.randn(16, 3, 640, 640)
         m1 = lambda x: x * torch.sigmoid(x)
         m2 = nn.SiLU()
         profile(input, [m1, m2], n=100)  # profile over 100 iterations
+        ```
     """
     results = []
     if not isinstance(device, torch.device):

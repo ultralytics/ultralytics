@@ -13,14 +13,14 @@ from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
-SOURCE = ROOT / 'assets/bus.jpg'
+SOURCE = ASSETS / 'bus.jpg'
 TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
 
@@ -46,7 +46,7 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model(source=ROOT / 'assets', imgsz=32)
+    model(source=ASSETS, imgsz=32)
 
 
 def test_predict_img():

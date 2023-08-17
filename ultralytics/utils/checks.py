@@ -20,7 +20,7 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked, TryExcept,
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked, TryExcept,
                                clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle,
                                is_online, is_pip_package, url2file)
 
@@ -460,7 +460,7 @@ def check_amp(model):
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 
-    f = ROOT / 'assets/bus.jpg'  # image to check
+    f = ASSETS / 'bus.jpg'  # image to check
     im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
     prefix = colorstr('AMP: ')
     LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')

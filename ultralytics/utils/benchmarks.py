@@ -37,9 +37,8 @@ from tqdm import tqdm
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import LINUX, LOGGER, MACOS, ROOT, SETTINGS
+from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS
 from ultralytics.utils.checks import check_requirements, check_yolo
-from ultralytics.utils.downloads import download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
 
@@ -113,9 +112,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             assert model.task != 'pose' or i != 7, 'GraphDef Pose inference is not supported'
             assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
-            if not (ROOT / 'assets/bus.jpg').exists():
-                download(url='https://ultralytics.com/images/bus.jpg', dir=ROOT / 'assets')
-            export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)
+            export.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half)
 
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect

@@ -345,7 +345,7 @@ def test_utils_ops():
 
 
 def test_utils_files():
-    from ultralytics.utils.files import spaces_in_path, file_age, file_date, get_latest_run
+    from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
 
     file_age(SOURCE)
     file_date(SOURCE)

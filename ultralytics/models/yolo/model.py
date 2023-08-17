@@ -2,7 +2,7 @@
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo  # noqa
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, PoseModel, SegmentationModel, OBBModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel
 
 
 class YOLO(Model):
@@ -38,5 +38,4 @@ class YOLO(Model):
                 'model': OBBModel,
                 'trainer': None,
                 'validator': None,
-                'predictor': None, },
-        }
+                'predictor': None, }, }

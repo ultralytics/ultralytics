@@ -29,9 +29,14 @@ def test_model_forward():
     model(SOURCE, imgsz=32, augment=True)
 
 
-def test_model_info():
+def test_model_methods():
     model = YOLO(MODEL)
     model.info(verbose=True, detailed=True)
+    model = model.reset_weights()
+    model = model.load(MODEL)
+    model.to('cpu')
+    _ = model.names
+    _ = model.device
 
 
 def test_model_fuse():

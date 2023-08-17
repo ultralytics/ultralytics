@@ -390,6 +390,7 @@ class Model:
         """
         self._check_is_pytorch_model()
         self.model.to(device)
+        return self
 
     def tune(self, *args, **kwargs):
         """

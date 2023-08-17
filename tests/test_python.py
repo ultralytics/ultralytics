@@ -263,12 +263,13 @@ def test_data_utils():
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_data_converter():
     # Test dataset converters
-    from ultralytics.data.converter import convert_coco
+    from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
     file = 'instances_val2017.json'
     download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}')
     shutil.move(file, TMP)
     convert_coco(labels_dir=TMP, use_segments=True, use_keypoints=False, cls91to80=True)
+    coco80_to_coco91_class()
 
 
 def test_events():
@@ -318,3 +319,9 @@ def test_utils_torchutils():
     profile(x, [m], n=3)
     get_flops_with_torch_profiler(m)
     time_sync()
+
+
+def test_utils_ops():
+    from ultralytics.utils.ops import make_divisible
+
+    make_divisible(17, 8)

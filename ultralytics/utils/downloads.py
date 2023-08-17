@@ -144,10 +144,10 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         top_level_dirs = {Path(f).parts[0] for f in files}
 
         if len(top_level_dirs) > 1 or not files[0].endswith('/'):  # zip has multiple files at top level
-            path = extract_path = Path(path) / Path(file).stem  # define new unzip directory
+            path = extract_path = Path(path) / Path(file).stem  # i.e. ../datasets/coco8
         else:  # zip has 1 top-level directory
-            extract_path = path
-            path = Path(path) / list(top_level_dirs)[0]
+            extract_path = path  # i.e. ../datasets
+            path = Path(path) / list(top_level_dirs)[0]  # i.e. ../datasets/coco8
 
         # Check if destination directory already exists and contains files
         if path.exists() and any(path.iterdir()) and not exist_ok:

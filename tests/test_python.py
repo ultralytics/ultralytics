@@ -102,10 +102,22 @@ def test_predict_grey_and_4ch():
 def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
     # imgsz=160 required for tracking for higher confidence and better matches
+    import yaml
+
     model = YOLO(MODEL)
     model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96)
     model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='bytetrack.yaml')
     model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='botsort.yaml')
+
+    # Test Global Motion Compensation (GMC) methods
+    for gmc in 'orb', 'sift', 'ecc':
+        with open(ROOT / 'cfg/trackers/botsort.yaml', 'r') as f:
+            data = yaml.safe_load(f)
+        tracker = TMP / f'botsort-{gmc}.yaml'
+        data['gmc_method'] = gmc
+        with open(tracker, 'w') as f:
+            yaml.safe_dump(data, f)
+        model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker=tracker)
 
 
 def test_val():

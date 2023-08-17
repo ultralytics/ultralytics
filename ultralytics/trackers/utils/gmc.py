@@ -44,7 +44,7 @@ class GMC:
         elif self.method in ['none', 'None', None]:
             self.method = None
         else:
-            raise ValueError(f'Error: Unknown CMC method:{method}')
+            raise ValueError(f'Error: Unknown GMC method:{method}')
 
         self.prevFrame = None
         self.prevKeyPoints = None

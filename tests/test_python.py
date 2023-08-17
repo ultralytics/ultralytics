@@ -26,7 +26,7 @@ TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
 def test_model_forward():
     model = YOLO(CFG)
-    model(SOURCE, imgsz=32)
+    model(SOURCE, imgsz=32, augment=True)
 
 
 def test_model_info():
@@ -120,8 +120,8 @@ def test_train_scratch():
 
 
 def test_train_pretrained():
-    model = YOLO(MODEL)
-    model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='ram')  # test RAM caching
+    model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
+    model.train(data='coco8-seg.yaml', epochs=1, imgsz=32, cache='ram', copy_paste=0.5, mixup=0.5)  # test RAM caching
     model(SOURCE)
 
 
@@ -232,7 +232,8 @@ def test_results():
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_data_utils():
     # Test functions in ultralytics/data/utils.py
-    from ultralytics.data.utils import HUBDatasetStats, autosplit, zip_directory
+    from ultralytics.data.utils import HUBDatasetStats, autosplit
+    from ultralytics.utils.downloads import zip_directory
 
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
@@ -240,7 +241,7 @@ def test_data_utils():
     download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
     shutil.move('coco8.zip', TMP)
     stats = HUBDatasetStats(TMP / 'coco8.zip', task='detect')
-    stats.get_json(save=False)
+    stats.get_json(save=True)
     stats.process_images()
 
     autosplit(TMP / 'coco8')
@@ -267,3 +268,11 @@ def test_events():
     cfg = copy(DEFAULT_CFG)  # does not require deepcopy
     cfg.mode = 'test'
     events(cfg)
+
+
+def test_utils_checks():
+    from ultralytics.utils.checks import check_yolov5u_filename, git_describe
+
+    check_yolov5u_filename('yolov5.pt')
+    # check_imshow(warn=True)
+    git_describe(ROOT)

@@ -40,7 +40,7 @@ def test_train(task, model, data):
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_val(task, model, data):
-    run(f'yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32')
+    run(f'yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32, save_json=True')
 
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)

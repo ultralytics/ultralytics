@@ -85,7 +85,7 @@ jobs:
           docker push ultralytics/ultralytics:${{ matrix.tags }}
 
       - name: Notify on failure
-        if: github.event_name == 'push' && (cancelled() || failure())
+        if: github.event_name == 'push' && failure()  # do not notify on cancelled() as cancelling is performed by hand
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |

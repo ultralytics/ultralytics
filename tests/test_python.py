@@ -282,6 +282,17 @@ def test_events():
     events(cfg)
 
 
+def test_utils_init():
+    from ultralytics.utils import (get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_actions_ci,
+                                   is_ubuntu)
+
+    is_ubuntu()
+    get_ubuntu_version()
+    is_github_actions_ci()
+    get_git_origin_url()
+    get_git_branch()
+
+
 def test_utils_checks():
     from ultralytics.utils.checks import check_requirements, check_yolov5u_filename, git_describe
 

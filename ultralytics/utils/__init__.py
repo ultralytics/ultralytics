@@ -518,7 +518,6 @@ def get_git_dir():
     for d in Path(__file__).parents:
         if (d / '.git').is_dir():
             return d
-    return None  # no .git dir found
 
 
 def get_git_origin_url():
@@ -526,13 +525,12 @@ def get_git_origin_url():
     Retrieves the origin URL of a git repository.
 
     Returns:
-        (str | None): The origin URL of the git repository.
+        (str | None): The origin URL of the git repository or None if not git directory.
     """
     if is_git_dir():
         with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'])
             return origin.decode().strip()
-    return None  # if not git dir or on error
 
 
 def get_git_branch():
@@ -540,13 +538,12 @@ def get_git_branch():
     Returns the current git branch name. If not in a git repository, returns None.
 
     Returns:
-        (str | None): The current git branch name.
+        (str | None): The current git branch name or None if not a git directory.
     """
     if is_git_dir():
         with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
             return origin.decode().strip()
-    return None  # if not git dir or on error
 
 
 def get_default_args(func):
@@ -572,7 +569,6 @@ def get_ubuntu_version():
     with contextlib.suppress(FileNotFoundError, AttributeError):
         with open('/etc/os-release') as f:
             return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
-    return None
 
 
 def get_user_config_dir(sub_dir='Ultralytics'):

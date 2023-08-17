@@ -111,7 +111,7 @@ def test_track_stream():
 
     # Test Global Motion Compensation (GMC) methods
     for gmc in 'orb', 'sift', 'ecc':
-        with open(ROOT / 'cfg/trackers/botsort.yaml', 'r') as f:
+        with open(ROOT / 'cfg/trackers/botsort.yaml') as f:
             data = yaml.safe_load(f)
         tracker = TMP / f'botsort-{gmc}.yaml'
         data['gmc_method'] = gmc

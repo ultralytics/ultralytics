@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import contextlib
 import hashlib
 import json
 import os
@@ -13,7 +14,7 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
-from PIL import ExifTags, Image, ImageOps
+from PIL import Image, ImageOps
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
@@ -27,11 +28,6 @@ HELP_URL = 'See https://docs.ultralytics.com/datasets/detect for dataset formatt
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
 VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'  # video suffixes
 PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
-
-# Get orientation exif tag
-for orientation in ExifTags.TAGS.keys():
-    if ExifTags.TAGS[orientation] == 'Orientation':
-        break
 
 
 def img2label_paths(img_paths, use_obb):
@@ -52,11 +48,13 @@ def get_hash(paths):
 def exif_size(img: Image.Image):
     """Returns exif-corrected PIL size."""
     s = img.size  # (width, height)
-    exif = img.getexif()
-    if exif:
-        rotation = exif.get(274, None)  # the key for the orientation tag in the EXIF data is 274 (in decimal)
-        if rotation in [6, 8]:  # rotation 270 or 90
-            s = s[1], s[0]
+    if img.format == 'JPEG':  # only support JPEG images
+        with contextlib.suppress(Exception):
+            exif = img.getexif()
+            if exif:
+                rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
+                if rotation in [6, 8]:  # rotation 270 or 90
+                    s = s[1], s[0]
     return s
 
 
@@ -515,58 +513,6 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         if r < 1.0:  # image too large
             im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
         cv2.imwrite(str(f_new or f), im)
-
-
-def delete_dsstore(path):
-    """
-    Deletes all ".DS_store" files under a specified directory.
-
-    Args:
-        path (str, optional): The directory path where the ".DS_store" files should be deleted.
-
-    Example:
-        ```python
-        from ultralytics.data.utils import delete_dsstore
-
-        delete_dsstore('path/to/dir')
-        ```
-
-    Note:
-        ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
-        are hidden system files and can cause issues when transferring files between different operating systems.
-    """
-    # Delete Apple .DS_store files
-    files = list(Path(path).rglob('.DS_store'))
-    LOGGER.info(f'Deleting *.DS_store files: {files}')
-    for f in files:
-        f.unlink()
-
-
-def zip_directory(dir, use_zipfile_library=True):
-    """
-    Zips a directory and saves the archive to the specified output path. Equivalent to 'zip -r coco8.zip coco8/'
-
-    Args:
-        dir (str): The path to the directory to be zipped.
-        use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
-
-    Example:
-        ```python
-        from ultralytics.data.utils import zip_directory
-
-        zip_directory('/path/to/dir')
-        ```
-    """
-    delete_dsstore(dir)
-    if use_zipfile_library:
-        dir = Path(dir)
-        with zipfile.ZipFile(dir.with_suffix('.zip'), 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            for file_path in dir.glob('**/*'):
-                if file_path.is_file():
-                    zip_file.write(file_path, file_path.relative_to(dir))
-    else:
-        import shutil
-        shutil.make_archive(dir, 'zip', dir)
 
 
 def autosplit(path=DATASETS_DIR / 'coco8/images', weights=(0.9, 0.1, 0.0), annotated_only=False):

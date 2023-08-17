@@ -11,20 +11,22 @@ set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
-# OpenCV
+# -------------- OpenCV  ------------------#
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 
 # -------------- Compile CUDA for FP16 inference if needed  ------------------#
 option(USE_CUDA "Enable CUDA support" ON)
-if (USE_CUDA)
+if (NOT APPLE AND USE_CUDA)
     find_package(CUDA REQUIRED)
     include_directories(${CUDA_INCLUDE_DIRS})
     add_definitions(-DUSE_CUDA)
+else ()
+    set(USE_CUDA OFF)
 endif ()
 
-# ONNXRUNTIME
+# -------------- ONNXRUNTIME  ------------------#
 
 # Set ONNXRUNTIME_VERSION
 set(ONNXRUNTIME_VERSION 1.15.1)
@@ -84,3 +86,11 @@ endif ()
 # Download https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml
 # and put it in the same folder of the executable file
 configure_file(coco.yaml ${CMAKE_CURRENT_BINARY_DIR}/coco.yaml COPYONLY)
+
+# Copy yolov8n.onnx file to the same folder of the executable file
+configure_file(yolov8n.onnx ${CMAKE_CURRENT_BINARY_DIR}/yolov8n.onnx COPYONLY)
+
+# Create folder name images in the same folder of the executable file
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/images
+)

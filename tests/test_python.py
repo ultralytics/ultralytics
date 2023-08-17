@@ -150,7 +150,7 @@ def test_export_torchscript():
 
 def test_export_onnx():
     model = YOLO(MODEL)
-    f = model.export(format='onnx')
+    f = model.export(format='onnx', dynamic=True)
     YOLO(f)(SOURCE)  # exported model inference
 
 
@@ -188,6 +188,12 @@ def test_export_paddle(enabled=False):
     if enabled:
         model = YOLO(MODEL)
         model.export(format='paddle')
+
+
+def test_export_ncnn(enabled=False):
+    model = YOLO(MODEL)
+    f = model.export(format='ncnn')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_all_model_yamls():

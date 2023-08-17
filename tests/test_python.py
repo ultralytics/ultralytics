@@ -31,7 +31,7 @@ def test_model_forward():
 
 def test_model_info():
     model = YOLO(MODEL)
-    model.info(verbose=True)
+    model.info(verbose=True, detailed=True)
 
 
 def test_model_fuse():
@@ -306,3 +306,15 @@ def test_utils_benchmarks():
     from ultralytics.utils.benchmarks import ProfileModels
 
     ProfileModels(['yolov8n.yaml'], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
+
+
+def test_utils_torchutils():
+    from ultralytics.nn.modules.conv import Conv
+    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile, time_sync
+
+    x = torch.randn(1, 64, 20, 20)
+    m = Conv(64, 64, k=1, s=2)
+
+    profile(x, [m], n=3)
+    get_flops_with_torch_profiler(m)
+    time_sync()

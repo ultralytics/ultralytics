@@ -13,14 +13,14 @@ from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
-SOURCE = ROOT / 'assets/bus.jpg'
+SOURCE = ASSETS / 'bus.jpg'
 TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
 
@@ -29,9 +29,14 @@ def test_model_forward():
     model(SOURCE, imgsz=32, augment=True)
 
 
-def test_model_info():
+def test_model_methods():
     model = YOLO(MODEL)
-    model.info(verbose=True)
+    model.info(verbose=True, detailed=True)
+    model = model.reset_weights()
+    model = model.load(MODEL)
+    model.to('cpu')
+    _ = model.names
+    _ = model.device
 
 
 def test_model_fuse():
@@ -41,7 +46,7 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model(source=ROOT / 'assets', imgsz=32)
+    model(source=ASSETS, imgsz=32)
 
 
 def test_predict_img():
@@ -102,10 +107,22 @@ def test_predict_grey_and_4ch():
 def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
     # imgsz=160 required for tracking for higher confidence and better matches
+    import yaml
+
     model = YOLO(MODEL)
     model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96)
     model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='bytetrack.yaml')
     model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='botsort.yaml')
+
+    # Test Global Motion Compensation (GMC) methods
+    for gmc in 'orb', 'sift', 'ecc':
+        with open(ROOT / 'cfg/trackers/botsort.yaml') as f:
+            data = yaml.safe_load(f)
+        tracker = TMP / f'botsort-{gmc}.yaml'
+        data['gmc_method'] = gmc
+        with open(tracker, 'w') as f:
+            yaml.safe_dump(data, f)
+        model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker=tracker)
 
 
 def test_val():
@@ -133,7 +150,7 @@ def test_export_torchscript():
 
 def test_export_onnx():
     model = YOLO(MODEL)
-    f = model.export(format='onnx')
+    f = model.export(format='onnx', dynamic=True)
     YOLO(f)(SOURCE)  # exported model inference
 
 
@@ -171,6 +188,12 @@ def test_export_paddle(enabled=False):
     if enabled:
         model = YOLO(MODEL)
         model.export(format='paddle')
+
+
+def test_export_ncnn(enabled=False):
+    model = YOLO(MODEL)
+    f = model.export(format='ncnn')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_all_model_yamls():
@@ -251,12 +274,13 @@ def test_data_utils():
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_data_converter():
     # Test dataset converters
-    from ultralytics.data.converter import convert_coco
+    from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
     file = 'instances_val2017.json'
     download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}')
     shutil.move(file, TMP)
     convert_coco(labels_dir=TMP, use_segments=True, use_keypoints=False, cls91to80=True)
+    coco80_to_coco91_class()
 
 
 def test_events():
@@ -270,9 +294,64 @@ def test_events():
     events(cfg)
 
 
-def test_utils_checks():
-    from ultralytics.utils.checks import check_yolov5u_filename, git_describe
+def test_utils_init():
+    from ultralytics.utils import (get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_actions_ci,
+                                   is_ubuntu)
 
-    check_yolov5u_filename('yolov5.pt')
+    is_ubuntu()
+    get_ubuntu_version()
+    is_github_actions_ci()
+    get_git_origin_url()
+    get_git_branch()
+
+
+def test_utils_checks():
+    from ultralytics.utils.checks import check_requirements, check_yolov5u_filename, git_describe
+
+    check_yolov5u_filename('yolov5n.pt')
     # check_imshow(warn=True)
     git_describe(ROOT)
+    check_requirements()  # check requirements.txt
+
+
+def test_utils_benchmarks():
+    from ultralytics.utils.benchmarks import ProfileModels
+
+    ProfileModels(['yolov8n.yaml'], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
+
+
+def test_utils_torchutils():
+    from ultralytics.nn.modules.conv import Conv
+    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile, time_sync
+
+    x = torch.randn(1, 64, 20, 20)
+    m = Conv(64, 64, k=1, s=2)
+
+    profile(x, [m], n=3)
+    get_flops_with_torch_profiler(m)
+    time_sync()
+
+
+def test_utils_downloads():
+    from ultralytics.utils.downloads import get_google_drive_file_info
+
+    get_google_drive_file_info('https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link')
+
+
+def test_utils_ops():
+    from ultralytics.utils.ops import make_divisible
+
+    make_divisible(17, 8)
+
+
+def test_utils_files():
+    from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
+
+    file_age(SOURCE)
+    file_date(SOURCE)
+    get_latest_run(ROOT / 'runs')
+
+    path = TMP / 'path/with spaces'
+    path.mkdir(parents=True, exist_ok=True)
+    with spaces_in_path(path) as new_path:
+        print(new_path)

@@ -143,9 +143,10 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         files = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
         top_level_dirs = {Path(f).parts[0] for f in files}
 
-        if len(top_level_dirs) > 1 or not files[0].endswith('/'):
-            path = Path(path) / Path(file).stem  # define new unzip directory
-        else:
+        if len(top_level_dirs) > 1 or not files[0].endswith('/'):  # zip has multiple files at top level
+            path = extract_path = Path(path) / Path(file).stem  # define new unzip directory
+        else:  # zip has 1 top-level directory
+            extract_path = path
             path = Path(path) / list(top_level_dirs)[0]
 
         # Check if destination directory already exists and contains files
@@ -155,7 +156,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
             return path
 
         for f in tqdm(files, desc=f'Unzipping {file} to {Path(path).resolve()}...', unit='file', disable=not progress):
-            zipObj.extract(f, path=path)
+            zipObj.extract(f, path=extract_path)
 
     return path  # return unzip dir
 

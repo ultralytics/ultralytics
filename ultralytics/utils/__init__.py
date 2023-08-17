@@ -571,9 +571,10 @@ def get_ubuntu_version():
     Returns:
         (str): Ubuntu version or None if not an Ubuntu OS.
     """
-    with contextlib.suppress(FileNotFoundError, AttributeError):
-        with open('/etc/os-release') as f:
-            return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
+    if is_ubuntu():
+        with contextlib.suppress(FileNotFoundError, AttributeError):
+            with open('/etc/os-release') as f:
+                return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
 
 
 def get_user_config_dir(sub_dir='Ultralytics'):

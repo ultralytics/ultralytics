@@ -277,3 +277,9 @@ def test_utils_checks():
     # check_imshow(warn=True)
     git_describe(ROOT)
     check_requirements()  # check requirements.txt
+
+
+def test_utils_benchmarks():
+    from ultralytics.utils.benchmarks import ProfileModels
+
+    ProfileModels(['yolov8n.yaml'], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()

@@ -68,6 +68,13 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     Returns:
         df (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size,
             metric, and inference time.
+
+    Example:
+        ```python
+        from ultralytics.utils.benchmarks import benchmark
+
+        benchmark(model='yolov8n.pt', imgsz=640)
+        ```
     """
 
     import pandas as pd
@@ -163,6 +170,13 @@ class ProfileModels:
 
     Methods:
         profile(): Profiles the models and prints the result.
+
+    Example:
+        ```python
+        from ultralytics.utils.benchmarks import ProfileModels
+
+        ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'], imgsz=640).profile()
+        ```
     """
 
     def __init__(self,

@@ -7,7 +7,7 @@ import pytest
 
 from ultralytics.utils import ROOT, SETTINGS
 
-WEIGHT_DIR = Path(SETTINGS['weights_dir'])
+WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 TASK_ARGS = [
     ('detect', 'yolov8n', 'coco8.yaml'),
     ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
@@ -40,17 +40,17 @@ def test_train(task, model, data):
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_val(task, model, data):
-    run(f'yolo val {task} model={WEIGHT_DIR / model}.pt data={data} imgsz=32')
+    run(f'yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32')
 
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict(task, model, data):
-    run(f"yolo predict model={WEIGHT_DIR / model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
+    run(f"yolo predict model={WEIGHTS_DIR / model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
 
 
 @pytest.mark.parametrize('model,format', EXPORT_ARGS)
 def test_export(model, format):
-    run(f'yolo export model={WEIGHT_DIR / model}.pt format={format} imgsz=32')
+    run(f'yolo export model={WEIGHTS_DIR / model}.pt format={format} imgsz=32')
 
 
 def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
@@ -59,7 +59,7 @@ def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
     run(f"yolo predict {task} model={model} source={ROOT / 'assets/bus.jpg'} imgsz=640 save save_crop save_txt")
 
 
-def test_fastsam(task='segment', model=WEIGHT_DIR / 'FastSAM-s.pt', data='coco8-seg.yaml'):
+def test_fastsam(task='segment', model=WEIGHTS_DIR / 'FastSAM-s.pt', data='coco8-seg.yaml'):
     source = ROOT / 'assets/bus.jpg'
 
     run(f'yolo segment val {task} model={model} data={data} imgsz=32')
@@ -95,7 +95,7 @@ def test_mobilesam():
     from ultralytics import SAM
 
     # Load the model
-    model = SAM(WEIGHT_DIR / 'mobile_sam.pt')
+    model = SAM(WEIGHTS_DIR / 'mobile_sam.pt')
 
     # Source
     source = ROOT / 'assets/zidane.jpg'

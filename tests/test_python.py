@@ -332,7 +332,26 @@ def test_utils_torchutils():
     time_sync()
 
 
+def test_utils_downloads():
+    from ultralytics.utils.downloads import get_google_drive_file_info
+
+    get_google_drive_file_info('https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link')
+
+
 def test_utils_ops():
     from ultralytics.utils.ops import make_divisible
 
     make_divisible(17, 8)
+
+
+def test_utils_files():
+    from ultralytics.utils.files import spaces_in_path, file_age, file_date, get_latest_run
+
+    file_age(SOURCE)
+    file_date(SOURCE)
+    get_latest_run(ROOT / 'runs')
+
+    path = TMP / 'path/with spaces'
+    path.mkdir(parents=True, exist_ok=True)
+    with spaces_in_path(path) as new_path:
+        print(new_path)

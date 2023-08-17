@@ -42,6 +42,8 @@ def spaces_in_path(path):
 
     Example:
         ```python
+        with ultralytics.utils.files import spaces_in_path
+
         with spaces_in_path('/path/with spaces') as new_path:
             # your code here
         ```

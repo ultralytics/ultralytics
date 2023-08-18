@@ -98,7 +98,7 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
-    return InfiniteDataLoader(dataset=dataset,
+    return torch.utils.data.DataLoader(dataset=dataset,
                               batch_size=batch,
                               shuffle=shuffle and sampler is None,
                               num_workers=nw,
@@ -106,7 +106,8 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
                               pin_memory=PIN_MEMORY,
                               collate_fn=getattr(dataset, 'collate_fn', None),
                               worker_init_fn=seed_worker,
-                              generator=generator)
+                              generator=generator,
+                              persistent_workers=True)
 
 
 def check_source(source):

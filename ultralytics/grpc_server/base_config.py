@@ -3,8 +3,8 @@
 @Author: captainfffsama
 @Date: 2023-08-18 16:34:04
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-08-18 16:34:05
-@FilePath: /ultralytics/ultralytics/grpc/base_config.py
+@LastEditTime: 2023-08-18 21:53:52
+@FilePath: /ultralytics/ultralytics/grpc_server/base_config.py
 @Description:
 '''
 import json
@@ -17,6 +17,7 @@ detector_params = dict(
     thr={'default':0.3},
     change_label=dict(wcgz_dxdk="wcgz"),
     device="cuda:0",
+    nms=0.5,
 ),
 
 grpc_args = dict(

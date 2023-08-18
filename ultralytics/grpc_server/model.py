@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-08-18 16:35:03
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-08-18 19:39:00
+@LastEditTime: 2023-08-18 21:53:32
 @FilePath: /ultralytics/ultralytics/grpc_server/model.py
 @Description:
 '''
@@ -25,7 +25,7 @@ from .utils import restore_bbox_after_letterbox
 
 class Detector(dld_pb2_grpc.AiServiceServicer):
 
-    def __init__(self, ckpt_path, thr: Union[float, dict], change_label: dict = {}, device: str = 'cuda:0'):
+    def __init__(self, ckpt_path, thr: Union[float, dict], change_label: dict = {}, device: str = 'cuda:0',nms:float=0.5):
         self.model = YOLO(ckpt_path)
         self.label_dict:dict = self.model.model.names
         for k, v in self.label_dict.items():
@@ -33,6 +33,7 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
             if new_label_name:
                 self.label_dict[k] = new_label_name
         self.device = device
+        self.nms=nms
         if isinstance(thr, float):
             self.thr = defaultdict(lambda: thr)
         else:
@@ -70,7 +71,7 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
         return final_result
 
     def infer(self, img):
-        result: Results = self.model.predict(img, conf=0.05, device=self.device)[0]
+        result: Results = self.model.predict(img, conf=0.05, device=self.device,iou=self.nms)[0]
         new_result = self._standardized_result(result)
         return new_result
 

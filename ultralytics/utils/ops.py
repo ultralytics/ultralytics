@@ -431,7 +431,7 @@ def xyn2xy(x, w=640, h=640, padw=0, padh=0):
     Returns:
         y (np.ndarray | torch.Tensor): The x and y coordinates of the top left corner of the bounding box
     """
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)
+    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[..., 0] = w * x[..., 0] + padw  # top left x
     y[..., 1] = h * x[..., 1] + padh  # top left y
     return y

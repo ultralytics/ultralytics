@@ -446,7 +446,7 @@ def xywh2ltwh(x):
     Returns:
         y (np.ndarray | torch.Tensor): The bounding box coordinates in the xyltwh format
     """
-    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x) 
+    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 0] = x[:, 0] - x[:, 2] / 2  # top left x
     y[:, 1] = x[:, 1] - x[:, 3] / 2  # top left y
     return y

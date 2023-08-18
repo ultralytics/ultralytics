@@ -2,11 +2,13 @@
 """
 YOLO-NAS model interface.
 
-Usage - Predict:
+Example:
+    ```python
     from ultralytics import NAS
 
     model = NAS('yolo_nas_s')
     results = model.predict('ultralytics/assets/bus.jpg')
+    ```
 """
 
 from pathlib import Path

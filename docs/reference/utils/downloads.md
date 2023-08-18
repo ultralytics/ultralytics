@@ -3,37 +3,48 @@ description: Learn about the download utilities in Ultralytics YOLO, featuring f
 keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_github_assets, download, documentation
 ---
 
-## is_url
+# Reference for `ultralytics/utils/downloads.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
+
 ---
-### ::: ultralytics.utils.downloads.is_url
+## ::: ultralytics.utils.downloads.is_url
 <br><br>
 
-## unzip_file
 ---
-### ::: ultralytics.utils.downloads.unzip_file
+## ::: ultralytics.utils.downloads.delete_dsstore
 <br><br>
 
-## check_disk_space
 ---
-### ::: ultralytics.utils.downloads.check_disk_space
+## ::: ultralytics.utils.downloads.zip_directory
 <br><br>
 
-## safe_download
 ---
-### ::: ultralytics.utils.downloads.safe_download
+## ::: ultralytics.utils.downloads.unzip_file
 <br><br>
 
-## get_github_assets
 ---
-### ::: ultralytics.utils.downloads.get_github_assets
+## ::: ultralytics.utils.downloads.check_disk_space
 <br><br>
 
-## attempt_download_asset
 ---
-### ::: ultralytics.utils.downloads.attempt_download_asset
+## ::: ultralytics.utils.downloads.get_google_drive_file_info
 <br><br>
 
-## download
 ---
-### ::: ultralytics.utils.downloads.download
+## ::: ultralytics.utils.downloads.safe_download
+<br><br>
+
+---
+## ::: ultralytics.utils.downloads.get_github_assets
+<br><br>
+
+---
+## ::: ultralytics.utils.downloads.attempt_download_asset
+<br><br>
+
+---
+## ::: ultralytics.utils.downloads.download
 <br><br>

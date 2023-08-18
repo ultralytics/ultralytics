@@ -26,11 +26,11 @@ from ultralytics import __version__
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv('RANK', -1))
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
-WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 
 # Other Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
+ASSETS = ROOT / 'assets'  # default images
 DEFAULT_CFG_PATH = ROOT / 'cfg/default.yaml'
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
@@ -261,11 +261,15 @@ class ThreadingLocked:
     Attributes:
         lock (threading.Lock): A lock object used to manage access to the decorated function.
 
-    Usage:
+    Example:
+        ```python
+        from ultralytics.utils import ThreadingLocked
+
         @ThreadingLocked()
         def my_function():
             # Your code here
             pass
+        ```
     """
 
     def __init__(self):
@@ -329,7 +333,10 @@ def yaml_load(file='data.yaml', append_filename=False):
             s = re.sub(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+', '', s)
 
         # Add YAML filename to dict and return
-        return {**yaml.safe_load(s), 'yaml_file': str(file)} if append_filename else yaml.safe_load(s)
+        data = yaml.safe_load(s) or {}  # always return a dict (yaml.safe_load() may return None for empty files)
+        if append_filename:
+            data['yaml_file'] = str(file)
+        return data
 
 
 def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
@@ -354,6 +361,19 @@ for k, v in DEFAULT_CFG_DICT.items():
         DEFAULT_CFG_DICT[k] = None
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
+
+
+def is_ubuntu() -> bool:
+    """
+    Check if the OS is Ubuntu.
+
+    Returns:
+        (bool): True if OS is Ubuntu, False otherwise.
+    """
+    with contextlib.suppress(FileNotFoundError):
+        with open('/etc/os-release') as f:
+            return 'ID=ubuntu' in f.read()
+    return False
 
 
 def is_colab():
@@ -503,7 +523,6 @@ def get_git_dir():
     for d in Path(__file__).parents:
         if (d / '.git').is_dir():
             return d
-    return None  # no .git dir found
 
 
 def get_git_origin_url():
@@ -511,13 +530,12 @@ def get_git_origin_url():
     Retrieves the origin URL of a git repository.
 
     Returns:
-        (str | None): The origin URL of the git repository.
+        (str | None): The origin URL of the git repository or None if not git directory.
     """
     if is_git_dir():
         with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'])
             return origin.decode().strip()
-    return None  # if not git dir or on error
 
 
 def get_git_branch():
@@ -525,13 +543,12 @@ def get_git_branch():
     Returns the current git branch name. If not in a git repository, returns None.
 
     Returns:
-        (str | None): The current git branch name.
+        (str | None): The current git branch name or None if not a git directory.
     """
     if is_git_dir():
         with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
             return origin.decode().strip()
-    return None  # if not git dir or on error
 
 
 def get_default_args(func):
@@ -545,6 +562,19 @@ def get_default_args(func):
     """
     signature = inspect.signature(func)
     return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
+
+
+def get_ubuntu_version():
+    """
+    Retrieve the Ubuntu version if the OS is Ubuntu.
+
+    Returns:
+        (str): Ubuntu version or None if not an Ubuntu OS.
+    """
+    if is_ubuntu():
+        with contextlib.suppress(FileNotFoundError, AttributeError):
+            with open('/etc/os-release') as f:
+                return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
 
 
 def get_user_config_dir(sub_dir='Ultralytics'):
@@ -762,7 +792,7 @@ class SettingsManager(dict):
 
             self.load()
             correct_keys = self.keys() == self.defaults.keys()
-            correct_types = all(type(a) == type(b) for a, b in zip(self.values(), self.defaults.values()))
+            correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
             correct_version = check_version(self['settings_version'], self.version)
             if not (correct_keys and correct_types and correct_version):
                 LOGGER.warning(

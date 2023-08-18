@@ -19,6 +19,8 @@ class SegmentationValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        self.plot_masks = None
+        self.process = None
         self.args.task = 'segment'
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
@@ -44,7 +46,7 @@ class SegmentationValidator(DetectionValidator):
                                          'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
-        """Postprocesses YOLO predictions and returns output detections with proto."""
+        """Post-processes YOLO predictions and returns output detections with proto."""
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,
@@ -150,20 +152,7 @@ class SegmentationValidator(DetectionValidator):
         else:  # boxes
             iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        correct = np.zeros((detections.shape[0], self.iouv.shape[0])).astype(bool)
-        correct_class = labels[:, 0:1] == detections[:, 5]
-        for i in range(len(self.iouv)):
-            x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
-            if x[0].shape[0]:
-                matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
-                                    1).cpu().numpy()  # [label, detect, iou]
-                if x[0].shape[0] > 1:
-                    matches = matches[matches[:, 2].argsort()[::-1]]
-                    matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                    # matches = matches[matches[:, 2].argsort()[::-1]]
-                    matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-                correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=detections.device)
+        return self.match_predictions(detections[:, 5], labels[:, 0], iou)
 
     def plot_val_samples(self, batch, ni):
         """Plots validation samples with bounding box labels."""
@@ -247,7 +236,7 @@ class SegmentationValidator(DetectionValidator):
 def val(cfg=DEFAULT_CFG, use_python=False):
     """Validate trained YOLO model on validation data."""
     model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'
+    data = cfg.data or 'coco8-seg.yaml'
 
     args = dict(model=model, data=data)
     if use_python:

@@ -5,6 +5,7 @@ Train a model on a dataset
 Usage:
     $ yolo mode=train model=yolov8n.pt data=coco128.yaml imgsz=640 epochs=100 batch=16
 """
+
 import math
 import os
 import subprocess
@@ -48,8 +49,8 @@ class BaseTrainer:
         callbacks (defaultdict): Dictionary of callbacks.
         save_dir (Path): Directory to save results.
         wdir (Path): Directory to save weights.
-        last (Path): Path to last checkpoint.
-        best (Path): Path to best checkpoint.
+        last (Path): Path to the last checkpoint.
+        best (Path): Path to the best checkpoint.
         save_period (int): Save checkpoint every x epochs (disabled if < 1).
         batch_size (int): Batch size for training.
         epochs (int): Number of epochs to train for.
@@ -80,8 +81,8 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
+        self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
-        self.check_resume()
         self.validator = None
         self.model = None
         self.metrics = None
@@ -207,11 +208,28 @@ class BaseTrainer:
         """
         Builds dataloaders and optimizer on correct rank process.
         """
+
         # Model
         self.run_callbacks('on_pretrain_routine_start')
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+
+        # Freeze layers
+        freeze_list = self.args.freeze if isinstance(
+            self.args.freeze, list) else range(self.args.freeze) if isinstance(self.args.freeze, int) else []
+        always_freeze_names = ['.dfl']  # always freeze these layers
+        freeze_layer_names = [f'model.{x}.' for x in freeze_list] + always_freeze_names
+        for k, v in self.model.named_parameters():
+            # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
+            if any(x in k for x in freeze_layer_names):
+                LOGGER.info(f"Freezing layer '{k}'")
+                v.requires_grad = False
+            elif not v.requires_grad:
+                LOGGER.info(f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
+                            'See ultralytics.engine.trainer for customization of frozen layers.')
+                v.requires_grad = True
+
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
         if self.amp and RANK in (-1, 0):  # Single-GPU and DDP
@@ -224,9 +242,11 @@ class BaseTrainer:
         self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[RANK])
+
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+
         # Batch size
         if self.batch_size == -1:
             if RANK == -1:  # single-GPU only, estimate best batch size
@@ -272,7 +292,6 @@ class BaseTrainer:
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
             self._setup_ddp(world_size)
-
         self._setup_train(world_size)
 
         self.epoch_time = None
@@ -543,7 +562,8 @@ class BaseTrainer:
 
     def on_plot(self, name, data=None):
         """Registers plots (e.g. to be consumed in callbacks)"""
-        self.plots[name] = {'data': data, 'timestamp': time.time()}
+        path = Path(name)
+        self.plots[path] = {'data': data, 'timestamp': time.time()}
 
     def final_eval(self):
         """Performs final evaluation and validation for object detection YOLO model."""
@@ -556,7 +576,7 @@ class BaseTrainer:
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')
 
-    def check_resume(self):
+    def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""
         resume = self.args.resume
         if resume:
@@ -569,8 +589,13 @@ class BaseTrainer:
                 if not Path(ckpt_args['data']).exists():
                     ckpt_args['data'] = self.args.data
 
+                resume = True
                 self.args = get_cfg(ckpt_args)
-                self.args.model, resume = str(last), True  # reinstate
+                self.args.model = str(last)  # reinstate model
+                for k in 'imgsz', 'batch':  # allow arg updates to reduce memory on resume if crashed due to CUDA OOM
+                    if k in overrides:
+                        setattr(self.args, k, overrides[k])
+
             except Exception as e:
                 raise FileNotFoundError('Resume checkpoint not found. Please pass a valid checkpoint to resume from, '
                                         "i.e. 'yolo train resume model=path/to/last.pt'") from e

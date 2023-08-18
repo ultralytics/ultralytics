@@ -20,7 +20,7 @@ Usage - formats:
                               yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
                               yolov8n_openvino_model     # OpenVINO
                               yolov8n.engine             # TensorRT
-                              yolov8n.mlmodel            # CoreML (macOS-only)
+                              yolov8n.mlpackage          # CoreML (macOS-only)
                               yolov8n_saved_model        # TensorFlow SavedModel
                               yolov8n.pb                 # TensorFlow GraphDef
                               yolov8n.tflite             # TensorFlow Lite
@@ -47,7 +47,7 @@ STREAM_WARNING = """
     WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless `stream=True` is passed,
     causing potential out-of-memory errors for large sources or long-running streams/videos.
 
-    Usage:
+    Example:
         results = model(source=..., stream=True)  # generator of Results objects
         for r in results:
             boxes = r.boxes  # Boxes object for bbox outputs

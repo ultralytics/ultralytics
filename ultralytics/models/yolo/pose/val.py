@@ -17,6 +17,8 @@ class PoseValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize a 'PoseValidator' object with custom parameters and assigned attributes."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        self.sigma = None
+        self.kpt_shape = None
         self.args.task = 'pose'
         self.metrics = PoseMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
         if isinstance(self.args.device, str) and self.args.device.lower() == 'mps':
@@ -112,14 +114,19 @@ class PoseValidator(DetectionValidator):
 
     def _process_batch(self, detections, labels, pred_kpts=None, gt_kpts=None):
         """
-        Return correct prediction matrix
-        Arguments:
-            detections (array[N, 6]), x1, y1, x2, y2, conf, class
-            labels (array[M, 5]), class, x1, y1, x2, y2
-            pred_kpts (array[N, 51]), 51 = 17 * 3
-            gt_kpts (array[N, 51])
+        Return correct prediction matrix.
+
+        Args:
+            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
+                Each detection is of the format: x1, y1, x2, y2, conf, class.
+            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
+                Each label is of the format: class, x1, y1, x2, y2.
+            pred_kpts (torch.Tensor, optional): Tensor of shape [N, 51] representing predicted keypoints.
+                51 corresponds to 17 keypoints each with 3 values.
+            gt_kpts (torch.Tensor, optional): Tensor of shape [N, 51] representing ground truth keypoints.
+
         Returns:
-            correct (array[N, 10]), for 10 IoU levels
+            torch.Tensor: Correct prediction matrix of shape [N, 10] for 10 IoU levels.
         """
         if pred_kpts is not None and gt_kpts is not None:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
@@ -128,20 +135,7 @@ class PoseValidator(DetectionValidator):
         else:  # boxes
             iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        correct = np.zeros((detections.shape[0], self.iouv.shape[0])).astype(bool)
-        correct_class = labels[:, 0:1] == detections[:, 5]
-        for i in range(len(self.iouv)):
-            x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
-            if x[0].shape[0]:
-                matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
-                                    1).cpu().numpy()  # [label, detect, iou]
-                if x[0].shape[0] > 1:
-                    matches = matches[matches[:, 2].argsort()[::-1]]
-                    matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                    # matches = matches[matches[:, 2].argsort()[::-1]]
-                    matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-                correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=detections.device)
+        return self.match_predictions(detections[:, 5], labels[:, 0], iou)
 
     def plot_val_samples(self, batch, ni):
         """Plots and saves validation set samples with predicted bounding boxes and keypoints."""

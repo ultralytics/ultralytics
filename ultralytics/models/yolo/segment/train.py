@@ -8,7 +8,6 @@ from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images, plot_results
 
 
-# BaseTrainer python usage
 class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -50,7 +49,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train a YOLO segmentation model based on passed arguments."""
     model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'  # or yolo.ClassificationDataset("mnist")
+    data = cfg.data or 'coco8-seg.yaml'
     device = cfg.device if cfg.device is not None else ''
 
     args = dict(model=model, data=data, device=device)

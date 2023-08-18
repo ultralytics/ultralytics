@@ -4,13 +4,13 @@ import torch
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import DEFAULT_CFG, ROOT, ops
+from ultralytics.utils import ASSETS, DEFAULT_CFG, ops
 
 
 class DetectionPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
-        """Postprocesses predictions and returns a list of Results objects."""
+        """Post-processes predictions and returns a list of Results objects."""
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,
@@ -32,8 +32,7 @@ class DetectionPredictor(BasePredictor):
 def predict(cfg=DEFAULT_CFG, use_python=False):
     """Runs YOLO model inference on input image(s)."""
     model = cfg.model or 'yolov8n.pt'
-    source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
-        else 'https://ultralytics.com/images/bus.jpg'
+    source = cfg.source or ASSETS
 
     args = dict(model=model, source=source)
     if use_python:

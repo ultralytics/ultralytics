@@ -20,7 +20,7 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked, TryExcept,
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked, TryExcept,
                                clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle,
                                is_online, is_pip_package, url2file)
 
@@ -51,6 +51,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         imgsz (int | cList[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
+        max_dim (int): Maximum number of dimensions.
         floor (int): Minimum allowed value for image size.
 
     Returns:
@@ -90,32 +91,61 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 
 def check_version(current: str = '0.0.0',
-                  minimum: str = '0.0.0',
+                  required: str = '0.0.0',
                   name: str = 'version ',
-                  pinned: bool = False,
                   hard: bool = False,
                   verbose: bool = False) -> bool:
     """
-    Check current version against the required minimum version.
+    Check current version against the required version or range.
 
     Args:
         current (str): Current version.
-        minimum (str): Required minimum version.
+        required (str): Required version or range (in pip-style format).
         name (str): Name to be used in warning message.
-        pinned (bool): If True, versions must match exactly. If False, minimum version must be satisfied.
-        hard (bool): If True, raise an AssertionError if the minimum version is not met.
-        verbose (bool): If True, print warning message if minimum version is not met.
+        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool): If True, print warning message if requirement is not met.
 
     Returns:
-        (bool): True if minimum version is met, False otherwise.
+        (bool): True if requirement is met, False otherwise.
+
+    Example:
+        # check if current version is exactly 22.04
+        check_version(current='22.04', required='==22.04')
+
+        # check if current version is greater than or equal to 22.04
+        check_version(current='22.10', required='22.04')  # assumes '>=' inequality if none passed
+
+        # check if current version is less than or equal to 22.04
+        check_version(current='22.04', required='<=22.04')
+
+        # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        check_version(current='21.10', required='>20.04,<22.04')
     """
-    current, minimum = (pkg.parse_version(x) for x in (current, minimum))
-    result = (current == minimum) if pinned else (current >= minimum)  # bool
-    warning_message = f'WARNING ⚠️ {name}{minimum} is required by YOLOv8, but {name}{current} is currently installed'
-    if hard:
-        assert result, emojis(warning_message)  # assert min requirements met
-    if verbose and not result:
-        LOGGER.warning(warning_message)
+    current = pkg.parse_version(current)
+    constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
+
+    result = True
+    for constraint in constraints:
+        op, version = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
+        version = pkg.parse_version(version)
+        if op == '==' and current != version:
+            result = False
+        elif op == '!=' and current == version:
+            result = False
+        elif op == '>=' and not (current >= version):
+            result = False
+        elif op == '<=' and not (current <= version):
+            result = False
+        elif op == '>' and not (current > version):
+            result = False
+        elif op == '<' and not (current < version):
+            result = False
+    if not result:
+        warning_message = f'WARNING ⚠️ {name}{required} is required, but {name}{current} is currently installed'
+        if hard:
+            raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
+        if verbose:
+            LOGGER.warning(warning_message)
     return result
 
 
@@ -134,7 +164,6 @@ def check_latest_pypi_version(package_name='ultralytics'):
         response = requests.get(f'https://pypi.org/pypi/{package_name}/json', timeout=3)
         if response.status_code == 200:
             return response.json()['info']['version']
-    return None
 
 
 def check_pip_update_available():
@@ -185,7 +214,7 @@ def check_font(font='Arial.ttf'):
         return file
 
 
-def check_python(minimum: str = '3.7.0') -> bool:
+def check_python(minimum: str = '3.8.0') -> bool:
     """
     Check current python version against the required minimum version.
 
@@ -209,6 +238,20 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         exclude (Tuple[str]): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
+
+    Example:
+        ```python
+        from ultralytics.utils.checks import check_requirements
+
+        # Check a requirements.txt file
+        check_requirements('path/to/requirements.txt')
+
+        # Check a single package
+        check_requirements('ultralytics>=8.0.0')
+
+        # Check multiple packages
+        check_requirements(['numpy', 'ultralytics>=8.0.0'])
+        ```
     """
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version
@@ -221,20 +264,21 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     elif isinstance(requirements, str):
         requirements = [requirements]
 
-    s = ''  # console string
     pkgs = []
     for r in requirements:
         r_stripped = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
         try:
-            pkg.require(r_stripped)
-        except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
+            pkg.require(r_stripped)  # exception if requirements not met
+        except pkg.DistributionNotFound:
             try:  # attempt to import (slower but more accurate)
                 import importlib
                 importlib.import_module(next(pkg.parse_requirements(r_stripped)).name)
             except ImportError:
-                s += f'"{r}" '
                 pkgs.append(r)
+        except pkg.VersionConflict:
+            pkgs.append(r)
 
+    s = ' '.join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
             n = len(pkgs)  # number of packages updates
@@ -297,15 +341,19 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
     """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames."""
-    if ('yolov3' in file or 'yolov5' in file) and 'u' not in file:
-        original_file = file
-        file = re.sub(r'(.*yolov5([nsmlx]))\.pt', '\\1u.pt', file)  # i.e. yolov5n.pt -> yolov5nu.pt
-        file = re.sub(r'(.*yolov5([nsmlx])6)\.pt', '\\1u.pt', file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
-        file = re.sub(r'(.*yolov3(|-tiny|-spp))\.pt', '\\1u.pt', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
-        if file != original_file and verbose:
-            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
-                        f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
-                        f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n')
+    if 'yolov3' in file or 'yolov5' in file:
+        if 'u.yaml' in file:
+            file = file.replace('u.yaml', '.yaml')  # i.e. yolov5nu.yaml -> yolov5n.yaml
+        elif '.pt' in file and 'u' not in file:
+            original_file = file
+            file = re.sub(r'(.*yolov5([nsmlx]))\.pt', '\\1u.pt', file)  # i.e. yolov5n.pt -> yolov5nu.pt
+            file = re.sub(r'(.*yolov5([nsmlx])6)\.pt', '\\1u.pt', file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
+            file = re.sub(r'(.*yolov3(|-tiny|-spp))\.pt', '\\1u.pt', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+            if file != original_file and verbose:
+                LOGGER.info(
+                    f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
+                    f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
+                    f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n')
     return file
 
 
@@ -388,11 +436,17 @@ def check_amp(model):
     Args:
         model (nn.Module): A YOLOv8 model instance.
 
+    Example:
+        ```python
+        from ultralytics import YOLO
+        from ultralytics.utils.checks import check_amp
+
+        model = YOLO('yolov8n.pt').model.cuda()
+        check_amp(model)
+        ```
+
     Returns:
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
-
-    Raises:
-        AssertionError: If the AMP checks fail, indicating anomalies with the AMP functionality on the system.
     """
     device = next(model.parameters()).device  # get model device
     if device.type in ('cpu', 'mps'):
@@ -406,8 +460,7 @@ def check_amp(model):
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 
-    f = ROOT / 'assets/bus.jpg'  # image to check
-    im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
+    im = ASSETS / 'bus.jpg'  # image to check
     prefix = colorstr('AMP: ')
     LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
@@ -430,11 +483,9 @@ def check_amp(model):
 
 def git_describe(path=ROOT):  # path must be a directory
     """Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe."""
-    try:
-        assert (Path(path) / '.git').is_dir()
+    with contextlib.suppress(Exception):
         return subprocess.check_output(f'git -C {path} describe --tags --long --always', shell=True).decode()[:-1]
-    except AssertionError:
-        return ''
+    return ''
 
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):

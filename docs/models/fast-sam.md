@@ -40,42 +40,46 @@ The FastSAM models are easy to integrate into your Python applications. Ultralyt
 
 To perform object detection on an image, use the `predict` method as shown below:
 
-```python
-from ultralytics import FastSAM
-from ultralytics.models.fastsam import FastSAMPrompt
+!!! example ""
 
-# Define image path and inference device
-IMAGE_PATH = 'ultralytics/assets/bus.jpg'
-DEVICE = 'cpu'
+    === "Python"
+        ```python
+        from ultralytics import FastSAM
+        from ultralytics.models.fastsam import FastSAMPrompt
 
-# Create a FastSAM model
-model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        # Define an inference source
+        source = 'path/to/bus.jpg'
 
-# Run inference on an image
-everything_results = model(IMAGE_PATH,
-                           device=DEVICE,
-                           retina_masks=True,
-                           imgsz=1024,
-                           conf=0.4,
-                           iou=0.9)
+        # Create a FastSAM model
+        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
 
-prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)
+        # Run inference on an image
+        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+      
+        # Prepare a Prompt Process object
+        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
 
-# Everything prompt
-ann = prompt_process.everything_prompt()
+        # Everything prompt
+        ann = prompt_process.everything_prompt()
 
-# Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
-ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+        # Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
+        ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
-# Text prompt
-ann = prompt_process.text_prompt(text='a photo of a dog')
+        # Text prompt
+        ann = prompt_process.text_prompt(text='a photo of a dog')
 
-# Point prompt
-# points default [[0,0]] [[x1,y1],[x2,y2]]
-# point_label default [0] [1,0] 0:background, 1:foreground
-ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-prompt_process.plot(annotations=ann, output='./')
-```
+        # Point prompt
+        # points default [[0,0]] [[x1,y1],[x2,y2]]
+        # point_label default [0] [1,0] 0:background, 1:foreground
+        ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
+        prompt_process.plot(annotations=ann, output='./')
+        ```
+      
+    === "CLI"
+        ```bash
+        # Load a FastSAM model and segment everything with it
+        yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
+        ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
 
@@ -83,15 +87,24 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
 
 Validation of the model on a dataset can be done as follows:
 
-```python
-from ultralytics import FastSAM
+!!! example ""
 
-# Create a FastSAM model
-model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+    === "Python"
+        ```python
+        from ultralytics import FastSAM
 
-# Validate the model
-results = model.val(data='coco8-seg.yaml')
-```
+        # Create a FastSAM model
+        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+
+        # Validate the model
+        results = model.val(data='coco8-seg.yaml')
+        ```
+
+    === "CLI"
+        ```bash
+        # Load a FastSAM model and validate it on the COCO8 example dataset at image size 640
+        yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
+        ```
 
 Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
 
@@ -155,15 +168,19 @@ Additionally, you can try FastSAM through a [Colab demo](https://colab.research.
 
 We would like to acknowledge the FastSAM authors for their significant contributions in the field of real-time instance segmentation:
 
-```bibtex
-@misc{zhao2023fast,
-      title={Fast Segment Anything},
-      author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
-      year={2023},
-      eprint={2306.12156},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+      ```bibtex
+      @misc{zhao2023fast,
+            title={Fast Segment Anything},
+            author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
+            year={2023},
+            eprint={2306.12156},
+            archivePrefix={arXiv},
+            primaryClass={cs.CV}
+      }
+      ```
 
 The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

@@ -120,7 +120,7 @@ def check_source(source):
         screenshot = source.lower() == 'screen'
         if is_url and is_file:
             source = check_file(source)  # download
-    elif isinstance(source, tuple(LOADERS)):
+    elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):
         source = autocast_list(source)  # convert all list elements to PIL or np arrays

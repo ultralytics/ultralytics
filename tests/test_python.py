@@ -305,7 +305,7 @@ def test_utils_init():
 
 def test_utils_checks():
     from ultralytics.utils.checks import (check_imgsz, check_requirements, check_yolov5u_filename, git_describe,
-                                          print_args)
+                                          print_args, check_imshow)
 
     check_yolov5u_filename('yolov5n.pt')
     # check_imshow(warn=True)
@@ -313,6 +313,7 @@ def test_utils_checks():
     check_requirements()  # check requirements.txt
     check_imgsz([600, 600], max_dim=1)
     print_args()
+    check_imshow()
 
 
 def test_utils_benchmarks():

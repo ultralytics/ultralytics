@@ -9,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, SETTINGS, SETTINGS_YAML,
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, SETTINGS, SETTINGS_YAML,
                                IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
                                yaml_print)
 
@@ -222,7 +222,7 @@ def handle_yolo_hub(args: List[str]) -> None:
         args (List[str]): A list of command line arguments
 
     Example:
-        ```python
+        ```bash
         python my_script.py hub login your_api_key
         ```
     """
@@ -248,21 +248,26 @@ def handle_yolo_settings(args: List[str]) -> None:
         args (List[str]): A list of command line arguments for YOLO settings management.
 
     Example:
-        ```python
+        ```bash
         python my_script.py yolo settings reset
         ```
     """
-    if any(args):
-        if args[0] == 'reset':
-            SETTINGS_YAML.unlink()  # delete the settings file
-            SETTINGS.reset()  # create new settings
-            LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
-        else:  # save a new setting
-            new = dict(parse_key_value_pair(a) for a in args)
-            check_dict_alignment(SETTINGS, new)
-            SETTINGS.update(new)
+    url = 'https://docs.ultralytics.com/quickstart/#ultralytics-settings'  # help URL
+    try:
+        if any(args):
+            if args[0] == 'reset':
+                SETTINGS_YAML.unlink()  # delete the settings file
+                SETTINGS.reset()  # create new settings
+                LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
+            else:  # save a new setting
+                new = dict(parse_key_value_pair(a) for a in args)
+                check_dict_alignment(SETTINGS, new)
+                SETTINGS.update(new)
 
-    yaml_print(SETTINGS_YAML)  # print the current settings
+        LOGGER.info(f'💡 Learn about settings at {url}')
+        yaml_print(SETTINGS_YAML)  # print the current settings
+    except Exception as e:
+        LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
 def parse_key_value_pair(pair):
@@ -410,8 +415,7 @@ def entrypoint(debug=''):
 
     # Mode
     if mode in ('predict', 'track') and 'source' not in overrides:
-        overrides['source'] = DEFAULT_CFG.source or ROOT / 'assets' if (ROOT / 'assets').exists() \
-            else 'https://ultralytics.com/images/bus.jpg'
+        overrides['source'] = DEFAULT_CFG.source or ASSETS
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
@@ -437,5 +441,5 @@ def copy_default_cfg():
 
 
 if __name__ == '__main__':
-    # Example Usage: entrypoint(debug='yolo predict model=yolov8n.pt')
+    # Example: entrypoint(debug='yolo predict model=yolov8n.pt')
     entrypoint(debug='')

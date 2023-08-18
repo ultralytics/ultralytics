@@ -2,7 +2,7 @@
 
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-from ultralytics.utils import DEFAULT_CFG, LOGGER, ROOT, ops
+from ultralytics.utils import ASSETS, DEFAULT_CFG, LOGGER, ops
 
 
 class PosePredictor(DetectionPredictor):
@@ -45,8 +45,7 @@ class PosePredictor(DetectionPredictor):
 def predict(cfg=DEFAULT_CFG, use_python=False):
     """Runs YOLO to predict objects in an image or video."""
     model = cfg.model or 'yolov8n-pose.pt'
-    source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
-        else 'https://ultralytics.com/images/bus.jpg'
+    source = cfg.source or ASSETS
 
     args = dict(model=model, source=source)
     if use_python:

@@ -4,7 +4,7 @@ import torch
 
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-from ultralytics.utils import DEFAULT_CFG, ROOT, ops
+from ultralytics.utils import ASSETS, DEFAULT_CFG, ops
 
 
 class SegmentationPredictor(DetectionPredictor):
@@ -47,8 +47,7 @@ class SegmentationPredictor(DetectionPredictor):
 def predict(cfg=DEFAULT_CFG, use_python=False):
     """Runs YOLO object detection on an image or video source."""
     model = cfg.model or 'yolov8n-seg.pt'
-    source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
-        else 'https://ultralytics.com/images/bus.jpg'
+    source = cfg.source or ASSETS
 
     args = dict(model=model, source=source)
     if use_python:

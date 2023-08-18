@@ -13,7 +13,6 @@ from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
 
 
-# BaseTrainer python usage
 class DetectionTrainer(BaseTrainer):
 
     def build_dataset(self, img_path, mode='train', batch=None):
@@ -69,9 +68,9 @@ class DetectionTrainer(BaseTrainer):
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
-        Returns a loss dict with labelled training loss items tensor
+        Returns a loss dict with labelled training loss items tensor. Not needed for classification but necessary for
+        segmentation & detection
         """
-        # Not needed for classification but necessary for segmentation & detection
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is not None:
             loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
@@ -108,7 +107,7 @@ class DetectionTrainer(BaseTrainer):
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize YOLO model given training data and device."""
     model = cfg.model or 'yolov8n.pt'
-    data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
+    data = cfg.data or 'coco8.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
     args = dict(model=model, data=data, device=device)

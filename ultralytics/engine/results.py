@@ -209,24 +209,24 @@ class Results(SimpleClass):
             results = model('bus.jpg')  # results list
             for r in results:
                 im_array = r.plot()  # plot a BGR numpy array of predictions
-                im = Image.fromarray(im[..., ::-1])  # RGB PIL image
+                im = Image.fromarray(im_array[..., ::-1])  # RGB PIL image
                 im.show()  # show image
                 im.save('results.jpg')  # save image
             ```
         """
         if img is None and isinstance(self.orig_img, torch.Tensor):
-            img = np.ascontiguousarray(self.orig_img[0].permute(1, 2, 0).cpu().detach().numpy()) * 255
+            img = (self.orig_img[0].detach().permute(1, 2, 0).cpu().contiguous() * 255).to(torch.uint8).numpy()
 
         # Deprecation warn TODO: remove in 8.2
         if 'show_conf' in kwargs:
             deprecation_warn('show_conf', 'conf')
             conf = kwargs['show_conf']
-            assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
+            assert isinstance(conf, bool), '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
         if 'line_thickness' in kwargs:
             deprecation_warn('line_thickness', 'line_width')
             line_width = kwargs['line_thickness']
-            assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'
+            assert isinstance(line_width, int), '`line_width` should be of int type, i.e, line_width=3'
 
         names = self.names
         pred_boxes, show_boxes = self.boxes, boxes
@@ -318,6 +318,7 @@ class Results(SimpleClass):
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:
+            Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
             with open(txt_file, 'a') as f:
                 f.writelines(text + '\n' for text in texts)
 
@@ -354,12 +355,14 @@ class Results(SimpleClass):
         results = []
         data = self.boxes.data.cpu().tolist()
         h, w = self.orig_shape if normalize else (1, 1)
-        for i, row in enumerate(data):
+        for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             box = {'x1': row[0] / w, 'y1': row[1] / h, 'x2': row[2] / w, 'y2': row[3] / h}
-            conf = row[4]
-            id = int(row[5])
-            name = self.names[id]
-            result = {'name': name, 'class': id, 'confidence': conf, 'box': box}
+            conf = row[-2]
+            class_id = int(row[-1])
+            name = self.names[class_id]
+            result = {'name': name, 'class': class_id, 'confidence': conf, 'box': box}
+            if self.boxes.is_track:
+                result['track_id'] = int(row[-3])  # track ID
             if self.masks:
                 x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}
@@ -404,7 +407,7 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, (track_id), conf, cls
+        assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, track_id, conf, cls
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
         self.orig_shape = orig_shape

@@ -7,10 +7,18 @@ keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_g
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.downloads.is_url
+<br><br>
+
+---
+## ::: ultralytics.utils.downloads.delete_dsstore
+<br><br>
+
+---
+## ::: ultralytics.utils.downloads.zip_directory
 <br><br>
 
 ---
@@ -19,6 +27,10 @@ keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_g
 
 ---
 ## ::: ultralytics.utils.downloads.check_disk_space
+<br><br>
+
+---
+## ::: ultralytics.utils.downloads.get_google_drive_file_info
 <br><br>
 
 ---

@@ -7,7 +7,7 @@ keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mas
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.data.utils.HUBDatasetStats
@@ -51,14 +51,6 @@ keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mas
 
 ---
 ## ::: ultralytics.data.utils.compress_one_image
-<br><br>
-
----
-## ::: ultralytics.data.utils.delete_dsstore
-<br><br>
-
----
-## ::: ultralytics.data.utils.zip_directory
 <br><br>
 
 ---

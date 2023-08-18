@@ -7,14 +7,10 @@ keywords: Ultralytics YOLO, Utility Operations, segment2box, make_divisible, cli
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py).
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.ops.Profile
-<br><br>
-
----
-## ::: ultralytics.utils.ops.coco80_to_coco91_class
 <br><br>
 
 ---
@@ -75,6 +71,14 @@ keywords: Ultralytics YOLO, Utility Operations, segment2box, make_divisible, cli
 
 ---
 ## ::: ultralytics.utils.ops.ltwh2xywh
+<br><br>
+
+---
+## ::: ultralytics.utils.ops.xyxyxyxy2xywhr
+<br><br>
+
+---
+## ::: ultralytics.utils.ops.xywhr2xyxyxyxy
 <br><br>
 
 ---

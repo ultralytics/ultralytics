@@ -161,6 +161,7 @@ class BaseModel(nn.Module):
         Prints model information
 
         Args:
+            detailed (bool): if True, prints out detailed information about the model. Defaults to False
             verbose (bool): if True, prints out the model information. Defaults to False
             imgsz (int): the size of the image that the model will be trained on. Defaults to 640
         """
@@ -168,11 +169,10 @@ class BaseModel(nn.Module):
 
     def _apply(self, fn):
         """
-        `_apply()` is a function that applies a function to all the tensors in the model that are not
-        parameters or registered buffers
+        Applies a function to all the tensors in the model that are not parameters or registered buffers.
 
         Args:
-            fn: the function to apply to the model
+            fn (function): the function to apply to the model
 
         Returns:
             A model that is a Detect() object.
@@ -186,7 +186,8 @@ class BaseModel(nn.Module):
         return self
 
     def load(self, weights, verbose=True):
-        """Load the weights into the model.
+        """
+        Load the weights into the model.
 
         Args:
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
@@ -302,13 +303,6 @@ class SegmentationModel(DetectionModel):
     def init_criterion(self):
         return v8SegmentationLoss(self)
 
-    def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
-        return self._predict_once(x)
-
 
 class PoseModel(DetectionModel):
     """YOLOv8 pose model."""
@@ -324,13 +318,6 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         return v8PoseLoss(self)
-
-    def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
-        return self._predict_once(x)
 
 
 class ClassificationModel(BaseModel):
@@ -597,11 +584,11 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         # Append
         ensemble.append(model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval())  # model in eval mode
 
-    # Module compatibility updates
+    # Module updates
     for m in ensemble.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
-            m.inplace = inplace  # torch 1.7.0 compatibility
+            m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
@@ -633,11 +620,11 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
 
     model = model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval()  # model in eval mode
 
-    # Module compatibility updates
+    # Module updates
     for m in model.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
-            m.inplace = inplace  # torch 1.7.0 compatibility
+            m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 

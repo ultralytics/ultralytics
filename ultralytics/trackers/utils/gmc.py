@@ -10,7 +10,7 @@ from ultralytics.utils import LOGGER
 
 class GMC:
 
-    def __init__(self, method='sparseOptFlow', downscale=2, verbose=None):
+    def __init__(self, method='sparseOptFlow', downscale=2):
         """Initialize a video tracker with specified parameters."""
         super().__init__()
 
@@ -40,28 +40,11 @@ class GMC:
                                        blockSize=3,
                                        useHarrisDetector=False,
                                        k=0.04)
-            # self.gmc_file = open('GMC_results.txt', 'w')
 
-        elif self.method in ['file', 'files']:
-            seqName = verbose[0]
-            ablation = verbose[1]
-            if ablation:
-                filePath = r'tracker/GMC_files/MOT17_ablation'
-            else:
-                filePath = r'tracker/GMC_files/MOTChallenge'
-
-            if '-FRCNN' in seqName:
-                seqName = seqName[:-6]
-            elif '-DPM' in seqName or '-SDP' in seqName:
-                seqName = seqName[:-4]
-            self.gmcFile = open(f'{filePath}/GMC-{seqName}.txt')
-
-            if self.gmcFile is None:
-                raise ValueError(f'Error: Unable to open GMC file in directory:{filePath}')
-        elif self.method in ['none', 'None']:
-            self.method = 'none'
+        elif self.method in ['none', 'None', None]:
+            self.method = None
         else:
-            raise ValueError(f'Error: Unknown CMC method:{method}')
+            raise ValueError(f'Error: Unknown GMC method:{method}')
 
         self.prevFrame = None
         self.prevKeyPoints = None
@@ -77,10 +60,6 @@ class GMC:
             return self.applyEcc(raw_frame, detections)
         elif self.method == 'sparseOptFlow':
             return self.applySparseOptFlow(raw_frame, detections)
-        elif self.method == 'file':
-            return self.applyFile(raw_frame, detections)
-        elif self.method == 'none':
-            return np.eye(2, 3)
         else:
             return np.eye(2, 3)
 
@@ -244,7 +223,6 @@ class GMC:
 
     def applySparseOptFlow(self, raw_frame, detections=None):
         """Initialize."""
-        # t0 = time.time()
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3)
@@ -297,23 +275,5 @@ class GMC:
         # Store to next iteration
         self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)
-
-        # gmc_line = str(1000 * (time.time() - t0)) + "\t" + str(H[0, 0]) + "\t" + str(H[0, 1]) + "\t" + str(
-        #     H[0, 2]) + "\t" + str(H[1, 0]) + "\t" + str(H[1, 1]) + "\t" + str(H[1, 2]) + "\n"
-        # self.gmc_file.write(gmc_line)
-
-        return H
-
-    def applyFile(self, raw_frame, detections=None):
-        """Return the homography matrix based on the GCPs in the next line of the input GMC file."""
-        line = self.gmcFile.readline()
-        tokens = line.split('\t')
-        H = np.eye(2, 3, dtype=np.float_)
-        H[0, 0] = float(tokens[1])
-        H[0, 1] = float(tokens[2])
-        H[0, 2] = float(tokens[3])
-        H[1, 0] = float(tokens[4])
-        H[1, 1] = float(tokens[5])
-        H[1, 2] = float(tokens[6])
 
         return H

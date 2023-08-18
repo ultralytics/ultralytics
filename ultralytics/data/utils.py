@@ -499,58 +499,6 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         cv2.imwrite(str(f_new or f), im)
 
 
-def delete_dsstore(path):
-    """
-    Deletes all ".DS_store" files under a specified directory.
-
-    Args:
-        path (str, optional): The directory path where the ".DS_store" files should be deleted.
-
-    Example:
-        ```python
-        from ultralytics.data.utils import delete_dsstore
-
-        delete_dsstore('path/to/dir')
-        ```
-
-    Note:
-        ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
-        are hidden system files and can cause issues when transferring files between different operating systems.
-    """
-    # Delete Apple .DS_store files
-    files = list(Path(path).rglob('.DS_store'))
-    LOGGER.info(f'Deleting *.DS_store files: {files}')
-    for f in files:
-        f.unlink()
-
-
-def zip_directory(dir, use_zipfile_library=True):
-    """
-    Zips a directory and saves the archive to the specified output path. Equivalent to 'zip -r coco8.zip coco8/'
-
-    Args:
-        dir (str): The path to the directory to be zipped.
-        use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
-
-    Example:
-        ```python
-        from ultralytics.data.utils import zip_directory
-
-        zip_directory('/path/to/dir')
-        ```
-    """
-    delete_dsstore(dir)
-    if use_zipfile_library:
-        dir = Path(dir)
-        with zipfile.ZipFile(dir.with_suffix('.zip'), 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            for file_path in dir.glob('**/*'):
-                if file_path.is_file():
-                    zip_file.write(file_path, file_path.relative_to(dir))
-    else:
-        import shutil
-        shutil.make_archive(dir, 'zip', dir)
-
-
 def autosplit(path=DATASETS_DIR / 'coco8/images', weights=(0.9, 0.1, 0.0), annotated_only=False):
     """
     Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.

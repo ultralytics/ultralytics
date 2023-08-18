@@ -39,6 +39,31 @@ def is_url(url, check=True):
     return False
 
 
+def delete_dsstore(path):
+    """
+    Deletes all ".DS_store" files under a specified directory.
+
+    Args:
+        path (str, optional): The directory path where the ".DS_store" files should be deleted.
+
+    Example:
+        ```python
+        from ultralytics.data.utils import delete_dsstore
+
+        delete_dsstore('path/to/dir')
+        ```
+
+    Note:
+        ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
+        are hidden system files and can cause issues when transferring files between different operating systems.
+    """
+    # Delete Apple .DS_store files
+    files = list(Path(path).rglob('.DS_store'))
+    LOGGER.info(f'Deleting *.DS_store files: {files}')
+    for f in files:
+        f.unlink()
+
+
 def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), progress=True):
     """
     Zips the contents of a directory, excluding files containing strings in the exclude list.
@@ -62,6 +87,7 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), p
     """
     from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
+    delete_dsstore(directory)
     directory = Path(directory)
     if not directory.is_dir():
         raise FileNotFoundError(f"Directory '{directory}' does not exist.")
@@ -117,20 +143,22 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         files = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
         top_level_dirs = {Path(f).parts[0] for f in files}
 
-        if len(top_level_dirs) > 1 or not files[0].endswith('/'):
-            path = Path(path) / Path(file).stem  # define new unzip directory
+        if len(top_level_dirs) > 1 or not files[0].endswith('/'):  # zip has multiple files at top level
+            path = extract_path = Path(path) / Path(file).stem  # i.e. ../datasets/coco8
+        else:  # zip has 1 top-level directory
+            extract_path = path  # i.e. ../datasets
+            path = Path(path) / list(top_level_dirs)[0]  # i.e. ../datasets/coco8
 
         # Check if destination directory already exists and contains files
-        extract_path = Path(path) / list(top_level_dirs)[0]
-        if extract_path.exists() and any(extract_path.iterdir()) and not exist_ok:
+        if path.exists() and any(path.iterdir()) and not exist_ok:
             # If it exists and is not empty, return the path without unzipping
             LOGGER.info(f'Skipping {file} unzip (already unzipped)')
-            return extract_path
+            return path
 
         for f in tqdm(files, desc=f'Unzipping {file} to {Path(path).resolve()}...', unit='file', disable=not progress):
-            zipObj.extract(f, path=path)
+            zipObj.extract(f, path=extract_path)
 
-    return extract_path  # return unzip dir
+    return path  # return unzip dir
 
 
 def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, hard=True):

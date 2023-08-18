@@ -49,7 +49,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train a YOLO segmentation model based on passed arguments."""
     model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'  # or yolo.ClassificationDataset("mnist")
+    data = cfg.data or 'coco8-seg.yaml'
     device = cfg.device if cfg.device is not None else ''
 
     args = dict(model=model, data=data, device=device)

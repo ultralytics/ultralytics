@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the MNIST dataset, a large database of handwritten digits commonly used for training various image processing systems and machine learning models.
-keywords: MNIST, EMNIST, dataset, handwritten digits, convolutional neural networks, support vector machines, machine learning, computer vision, image processing, benchmark data, Ultralytics
+description: Detailed guide on the MNIST Dataset, a benchmark in the machine learning community for image classification tasks. Learn about its structure, usage and application.
+keywords: MNIST dataset, Ultralytics, image classification, machine learning, computer vision, deep learning, AI, dataset guide
 ---
 
 # MNIST Dataset
@@ -40,12 +40,12 @@ To train a CNN model on the MNIST dataset for 100 epochs with an image size of 3
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='mnist', epochs=100, imgsz=32)
+        results = model.train(data='mnist', epochs=100, imgsz=32)
         ```
 
     === "CLI"
@@ -69,14 +69,18 @@ If you use the MNIST dataset in your
 
 research or development work, please cite the following paper:
 
-```bibtex
-@article{lecun2010mnist,
-         title={MNIST handwritten digit database},
-         author={LeCun, Yann and Cortes, Corinna and Burges, CJ},
-         journal={ATT Labs [Online]. Available: http://yann.lecun.com/exdb/mnist},
-         volume={2},
-         year={2010}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{lecun2010mnist,
+                 title={MNIST handwritten digit database},
+                 author={LeCun, Yann and Cortes, Corinna and Burges, CJ},
+                 journal={ATT Labs [Online]. Available: http://yann.lecun.com/exdb/mnist},
+                 volume={2},
+                 year={2010}
+        }
+        ```
 
 We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Burges for creating and maintaining the MNIST dataset as a valuable resource for the machine learning and computer vision research community. For more information about the MNIST dataset and its creators, visit the [MNIST dataset website](http://yann.lecun.com/exdb/mnist/).

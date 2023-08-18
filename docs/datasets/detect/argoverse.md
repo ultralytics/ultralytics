@@ -1,12 +1,16 @@
 ---
 comments: true
-description: Learn about the Argoverse dataset, a rich dataset designed to support research in autonomous driving tasks such as 3D tracking, motion forecasting, and stereo depth estimation.
-keywords: Argoverse Dataset, Sensor Dataset, Autonomous Driving Research, Deep Learning Models, YOLOv8n Model, 3D Tracking, Motion Forecasting, Stereo Depth Estimation, Labeled 3D Object Tracks, High-Quality Sensor Data, Richly Annotated HD Maps
+description: Explore Argoverse, a comprehensive dataset for autonomous driving tasks including 3D tracking, motion forecasting and depth estimation used in YOLO.
+keywords: Argoverse dataset, autonomous driving, YOLO, 3D tracking, motion forecasting, LiDAR data, HD maps, ultralytics documentation
 ---
 
 # Argoverse Dataset
 
 The [Argoverse](https://www.argoverse.org/) dataset is a collection of data designed to support research in autonomous driving tasks, such as 3D tracking, motion forecasting, and stereo depth estimation. Developed by Argo AI, the dataset provides a wide range of high-quality sensor data, including high-resolution images, LiDAR point clouds, and map data.
+
+!!! note
+
+    The Argoverse dataset *.zip file required for training was removed from Amazon S3 after the shutdown of Argo AI by Ford, but we have made it available for manual download on [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link).
 
 ## Key Features
 
@@ -29,12 +33,12 @@ The Argoverse dataset is widely used for training and evaluating deep learning m
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Argoverse dataset, the `Argoverse.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/Argoverse.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/Argoverse.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Argoverse dataset, the `Argoverse.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml).
 
-!!! example "ultralytics/datasets/Argoverse.yaml"
+!!! example "ultralytics/cfg/datasets/Argoverse.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/Argoverse.yaml"
+    --8<-- "ultralytics/cfg/datasets/Argoverse.yaml"
     ```
 
 ## Usage
@@ -47,12 +51,12 @@ To train a YOLOv8n model on the Argoverse dataset for 100 epochs with an image s
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='Argoverse.yaml', epochs=100, imgsz=640)
+        results = model.train(data='Argoverse.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -76,14 +80,18 @@ The example showcases the variety and complexity of the data in the Argoverse da
 
 If you use the Argoverse dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@inproceedings{chang2019argoverse,
-  title={Argoverse: 3D Tracking and Forecasting with Rich Maps},
-  author={Chang, Ming-Fang and Lambert, John and Sangkloy, Patsorn and Singh, Jagjeet and Bak, Slawomir and Hartnett, Andrew and Wang, Dequan and Carr, Peter and Lucey, Simon and Ramanan, Deva and others},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  pages={8748--8757},
-  year={2019}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @inproceedings{chang2019argoverse,
+          title={Argoverse: 3D Tracking and Forecasting with Rich Maps},
+          author={Chang, Ming-Fang and Lambert, John and Sangkloy, Patsorn and Singh, Jagjeet and Bak, Slawomir and Hartnett, Andrew and Wang, Dequan and Carr, Peter and Lucey, Simon and Ramanan, Deva and others},
+          booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+          pages={8748--8757},
+          year={2019}
+        }
+        ```
 
 We would like to acknowledge Argo AI for creating and maintaining the Argoverse dataset as a valuable resource for the autonomous driving research community. For more information about the Argoverse dataset and its creators, visit the [Argoverse dataset website](https://www.argoverse.org/).

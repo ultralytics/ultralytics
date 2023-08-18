@@ -166,7 +166,7 @@ class C2(nn.Module):
 
 
 class C2f(nn.Module):
-    """CSP Bottleneck with 2 convolutions."""
+    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()

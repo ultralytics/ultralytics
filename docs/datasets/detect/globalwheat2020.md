@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the Global Wheat Head Dataset, aimed at supporting the development of accurate wheat head models for applications in wheat phenotyping and crop management.
-keywords: Global Wheat Head Dataset, wheat head detection, wheat phenotyping, crop management, object detection, deep learning models, dataset structure, annotations, sample data, citations and acknowledgments
+description: Understand how to utilize the vast Global Wheat Head Dataset for building wheat head detection models. Features, structure, applications, usage, sample data, and citation.
+keywords: Ultralytics, YOLO, Global Wheat Head Dataset, wheat head detection, plant phenotyping, crop management, deep learning, outdoor images, annotations, YAML configuration
 ---
 
 # Global Wheat Head Dataset
@@ -28,12 +28,12 @@ The Global Wheat Head Dataset is widely used for training and evaluating deep le
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Global Wheat Head Dataset, the `GlobalWheat2020.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/GlobalWheat2020.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/GlobalWheat2020.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Global Wheat Head Dataset, the `GlobalWheat2020.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml).
 
-!!! example "ultralytics/datasets/GlobalWheat2020.yaml"
+!!! example "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/GlobalWheat2020.yaml"
+    --8<-- "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
     ```
 
 ## Usage
@@ -46,12 +46,12 @@ To train a YOLOv8n model on the Global Wheat Head Dataset for 100 epochs with an
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='GlobalWheat2020.yaml', epochs=100, imgsz=640)
+        results = model.train(data='GlobalWheat2020.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -75,13 +75,17 @@ The example showcases the variety and complexity of the data in the Global Wheat
 
 If you use the Global Wheat Head Dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@article{david2020global,
-         title={Global Wheat Head Detection (GWHD) Dataset: A Large and Diverse Dataset of High-Resolution RGB-Labelled Images to Develop and Benchmark Wheat Head Detection Methods},
-         author={David, Etienne and Madec, Simon and Sadeghi-Tehran, Pouria and Aasen, Helge and Zheng, Bangyou and Liu, Shouyang and Kirchgessner, Norbert and Ishikawa, Goro and Nagasawa, Koichi and Badhon, Minhajul and others},
-         journal={arXiv preprint arXiv:2005.02162},
-         year={2020}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{david2020global,
+                 title={Global Wheat Head Detection (GWHD) Dataset: A Large and Diverse Dataset of High-Resolution RGB-Labelled Images to Develop and Benchmark Wheat Head Detection Methods},
+                 author={David, Etienne and Madec, Simon and Sadeghi-Tehran, Pouria and Aasen, Helge and Zheng, Bangyou and Liu, Shouyang and Kirchgessner, Norbert and Ishikawa, Goro and Nagasawa, Koichi and Badhon, Minhajul and others},
+                 journal={arXiv preprint arXiv:2005.02162},
+                 year={2020}
+        }
+        ```
 
 We would like to acknowledge the researchers and institutions that contributed to the creation and maintenance of the Global Wheat Head Dataset as a valuable resource for the plant phenotyping and crop management research community. For more information about the dataset and its creators, visit the [Global Wheat Head Dataset website](http://www.global-wheat.com/).

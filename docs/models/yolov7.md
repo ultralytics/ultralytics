@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover YOLOv7, a cutting-edge real-time object detector that surpasses competitors in speed and accuracy. Explore its unique trainable bag-of-freebies.
-keywords: object detection, real-time object detector, YOLOv7, MS COCO, computer vision, neural networks, AI, deep learning, deep neural networks, real-time, GPU, GitHub, arXiv
+description: Explore the YOLOv7, a real-time object detector. Understand its superior speed, impressive accuracy, and unique trainable bag-of-freebies optimization focus.
+keywords: YOLOv7, real-time object detector, state-of-the-art, Ultralytics, MS COCO dataset, model re-parameterization, dynamic label assignment, extended scaling, compound scaling
 ---
 
 # YOLOv7: Trainable Bag-of-Freebies
@@ -49,13 +49,17 @@ We regret any inconvenience this may cause and will strive to update this docume
 
 We would like to acknowledge the YOLOv7 authors for their significant contributions in the field of real-time object detection:
 
-```bibtex
-@article{wang2022yolov7,
-  title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
-  author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
-  journal={arXiv preprint arXiv:2207.02696},
-  year={2022}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{wang2022yolov7,
+          title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
+          author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
+          journal={arXiv preprint arXiv:2207.02696},
+          year={2022}
+        }
+        ```
 
 The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

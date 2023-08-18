@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Test and debug segmentation models on small, versatile COCO8-Seg instance segmentation dataset, now available for use with YOLOv8 and Ultralytics HUB.
-keywords: Ultralytics, COCO8-Seg, instance segmentation dataset, segmentation models, new detection approaches, COCO train 2017 set
+description: 'Discover the COCO8-Seg: a compact but versatile instance segmentation dataset ideal for testing Ultralytics YOLOv8 detection approaches. Complete usage guide included.'
+keywords: COCO8-Seg dataset, Ultralytics, YOLOv8, instance segmentation, dataset configuration, YAML, YOLOv8n-seg model, mosaiced dataset images
 ---
 
 # COCO8-Seg Dataset
@@ -19,12 +19,12 @@ and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Seg dataset, the `coco8-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8-seg.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Seg dataset, the `coco8-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-seg.yaml).
 
-!!! example "ultralytics/datasets/coco8-seg.yaml"
+!!! example "ultralytics/cfg/datasets/coco8-seg.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco8-seg.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco8-seg.yaml"
     ```
 
 ## Usage
@@ -37,12 +37,12 @@ To train a YOLOv8n-seg model on the COCO8-Seg dataset for 100 epochs with an ima
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='coco8-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco8-seg.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -66,15 +66,19 @@ The example showcases the variety and complexity of the images in the COCO8-Seg 
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@misc{lin2015microsoft,
-      title={Microsoft COCO: Common Objects in Context}, 
-      author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
-      year={2015},
-      eprint={1405.0312},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lin2015microsoft,
+              title={Microsoft COCO: Common Objects in Context},
+              author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
+              year={2015},
+              eprint={1405.0312},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).

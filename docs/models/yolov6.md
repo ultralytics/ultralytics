@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover Meituan YOLOv6, a robust real-time object detector. Learn how to utilize pre-trained models with Ultralytics Python API for a variety of tasks.
-keywords: Meituan, YOLOv6, object detection, Bi-directional Concatenation (BiC), anchor-aided training (AAT), pre-trained models, high-resolution input, real-time, ultra-fast computations
+description: Explore Meituan YOLOv6, a state-of-the-art object detection model striking a balance between speed and accuracy. Dive into features, pre-trained models, and Python usage.
+keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directional Concatenation, Anchor-Aided Training, pretrained models, real-time applications
 ---
 
 # Meituan YOLOv6
@@ -17,7 +17,7 @@ structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/p
 
 ### Key Features
 
-- **Bi-directional Concatenation (BiC) Module:** YOLOv6 introduces a BiC module in the neck of the detector, enhancing localization signals and delivering performance gains with negligible speed degradation.
+- **Bidirectional Concatenation (BiC) Module:** YOLOv6 introduces a BiC module in the neck of the detector, enhancing localization signals and delivering performance gains with negligible speed degradation.
 - **Anchor-Aided Training (AAT) Strategy:** This model proposes AAT to enjoy the benefits of both anchor-based and anchor-free paradigms without compromising inference efficiency.
 - **Enhanced Backbone and Neck Design:** By deepening YOLOv6 to include another stage in the backbone and neck, this model achieves state-of-the-art performance on the COCO dataset at high-resolution input.
 - **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
@@ -36,15 +36,43 @@ YOLOv6 also provides quantized models for different precisions and models optimi
 
 ## Usage
 
-### Python API
+You can use YOLOv6 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv6 models for training:
 
-```python
-from ultralytics import YOLO
+!!! example ""
 
-model = YOLO("yolov6n.yaml")  # build new model from scratch
-model.info()  # display model information
-model.predict("path/to/image.jpg")  # predict
-```
+    This example provides simple training code for YOLOv6. For more options including training settings see [Train](../modes/train.md) mode. For using YOLOv6 with additional modes see [Predict](../modes/predict.md), [Val](../modes/val.md) and [Export](../modes/export.md).
+
+    === "Python"
+
+        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+
+        ```python
+        from ultralytics import YOLO
+
+        # Build a YOLOv6n model from scratch
+        model = YOLO('yolov6n.yaml')
+
+        # Display model information (optional)
+        model.info()
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+
+        # Run inference with the YOLOv6n model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Build a YOLOv6n model from scratch and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
+
+        # Build a YOLOv6n model from scratch and run inference on the 'bus.jpg' image
+        yolo predict model=yolov6n.yaml source=path/to/bus.jpg
+        ```
 
 ### Supported Tasks
 
@@ -68,15 +96,19 @@ model.predict("path/to/image.jpg")  # predict
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:
 
-```bibtex
-@misc{li2023yolov6,
-      title={YOLOv6 v3.0: A Full-Scale Reloading}, 
-      author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
-      year={2023},
-      eprint={2301.05586},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{li2023yolov6,
+              title={YOLOv6 v3.0: A Full-Scale Reloading},
+              author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
+              year={2023},
+              eprint={2301.05586},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 The original YOLOv6 paper can be found on [arXiv](https://arxiv.org/abs/2301.05586). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/meituan/YOLOv6). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

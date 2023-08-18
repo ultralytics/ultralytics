@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the ImageNet dataset, a large-scale database of annotated images commonly used for training deep learning models in computer vision tasks.
-keywords: ImageNet, dataset, deep learning, computer vision, YOLO models, training, object recognition, image classification, object detection, WordNet, synsets, ILSVRC
+description: Understand how to use ImageNet, an extensive annotated image dataset for object recognition research, with Ultralytics YOLO models. Learn about its structure, usage, and significance in computer vision.
+keywords: Ultralytics, YOLO, ImageNet, dataset, object recognition, deep learning, computer vision, machine learning, dataset training, model training, image classification, object detection
 ---
 
 # ImageNet Dataset
@@ -37,12 +37,12 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='imagenet', epochs=100, imgsz=224)
+        results = model.train(data='imagenet', epochs=100, imgsz=224)
         ```
 
     === "CLI"
@@ -64,16 +64,20 @@ The example showcases the variety and complexity of the images in the ImageNet d
 
 If you use the ImageNet dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@article{ILSVRC15,
-         author = {Olga Russakovsky and Jia Deng and Hao Su and Jonathan Krause and Sanjeev Satheesh and Sean Ma and Zhiheng Huang and Andrej Karpathy and Aditya Khosla and Michael Bernstein and Alexander C. Berg and Li Fei-Fei},
-         title={ImageNet Large Scale Visual Recognition Challenge},
-         year={2015},
-         journal={International Journal of Computer Vision (IJCV)},
-         volume={115},
-         number={3},
-         pages={211-252}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{ILSVRC15,
+                 author = {Olga Russakovsky and Jia Deng and Hao Su and Jonathan Krause and Sanjeev Satheesh and Sean Ma and Zhiheng Huang and Andrej Karpathy and Aditya Khosla and Michael Bernstein and Alexander C. Berg and Li Fei-Fei},
+                 title={ImageNet Large Scale Visual Recognition Challenge},
+                 year={2015},
+                 journal={International Journal of Computer Vision (IJCV)},
+                 volume={115},
+                 number={3},
+                 pages={211-252}
+        }
+        ```
 
 We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset as a valuable resource for the machine learning and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).

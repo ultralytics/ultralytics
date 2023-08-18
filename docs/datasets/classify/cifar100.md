@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the CIFAR-100 dataset, a collection of images that are commonly used to train machine learning and computer vision algorithms.
-keywords: CIFAR-100 dataset, CIFAR-100 classes, CIFAR-100 structure, CIFAR-100 applications, CIFAR-100 usage, YOLO model training, machine learning, computer vision
+description: Discover how to leverage the CIFAR-100 dataset for machine learning and computer vision tasks with YOLO. Gain insights on its structure, use, and utilization for model training.
+keywords: Ultralytics, YOLO, CIFAR-100 dataset, image classification, machine learning, computer vision, YOLO model training
 ---
 
 # CIFAR-100 Dataset
@@ -37,12 +37,12 @@ To train a YOLO model on the CIFAR-100 dataset for 100 epochs with an image size
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='cifar100', epochs=100, imgsz=32)
+        results = model.train(data='cifar100', epochs=100, imgsz=32)
         ```
 
     === "CLI"
@@ -64,13 +64,17 @@ The example showcases the variety and complexity of the objects in the CIFAR-100
 
 If you use the CIFAR-100 dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@TECHREPORT{Krizhevsky09learningmultiple,
-            author={Alex Krizhevsky},
-            title={Learning multiple layers of features from tiny images},
-            institution={},
-            year={2009}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @TECHREPORT{Krizhevsky09learningmultiple,
+                    author={Alex Krizhevsky},
+                    title={Learning multiple layers of features from tiny images},
+                    institution={},
+                    year={2009}
+        }
+        ```
 
 We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-100 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the CIFAR-100 dataset and its creator, visit the [CIFAR-100 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).

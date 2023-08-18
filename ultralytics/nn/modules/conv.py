@@ -142,8 +142,9 @@ class GhostConv(nn.Module):
 
 
 class RepConv(nn.Module):
-    """RepConv is a basic rep-style block, including training and deploy status
-    This code is based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
+    """
+    RepConv is a basic rep-style block, including training and deploy status. This module is used in RT-DETR.
+    Based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
     """
     default_act = nn.SiLU()  # default activation
 
@@ -173,15 +174,6 @@ class RepConv(nn.Module):
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.conv2)
         kernelid, biasid = self._fuse_bn_tensor(self.bn)
         return kernel3x3 + self._pad_1x1_to_3x3_tensor(kernel1x1) + kernelid, bias3x3 + bias1x1 + biasid
-
-    def _avg_to_3x3_tensor(self, avgp):
-        channels = self.c1
-        groups = self.g
-        kernel_size = avgp.kernel_size
-        input_dim = channels // groups
-        k = torch.zeros((channels, input_dim, kernel_size, kernel_size))
-        k[np.arange(channels), np.tile(np.arange(input_dim), groups), :, :] = 1.0 / kernel_size ** 2
-        return k
 
     def _pad_1x1_to_3x3_tensor(self, kernel1x1):
         if kernel1x1 is None:

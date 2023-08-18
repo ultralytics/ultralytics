@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Test and debug object detection models with Ultralytics COCO8-Pose Dataset - a small, versatile pose detection dataset with 8 images.
-keywords: coco8-pose dataset, ultralytics, object detection, pose detection, yolo, hub
+description: Discover the versatile COCO8-Pose dataset, perfect for testing and debugging pose detection models. Learn how to get started with YOLOv8-pose model training.
+keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, model training, YAML
 ---
 
 # COCO8-Pose Dataset
@@ -19,12 +19,12 @@ and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Pose dataset, the `coco8-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8-pose.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Pose dataset, the `coco8-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
 
-!!! example "ultralytics/datasets/coco8-pose.yaml"
+!!! example "ultralytics/cfg/datasets/coco8-pose.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco8-pose.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
     ```
 
 ## Usage
@@ -37,12 +37,12 @@ To train a YOLOv8n-pose model on the COCO8-Pose dataset for 100 epochs with an i
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -66,15 +66,19 @@ The example showcases the variety and complexity of the images in the COCO8-Pose
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@misc{lin2015microsoft,
-      title={Microsoft COCO: Common Objects in Context}, 
-      author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
-      year={2015},
-      eprint={1405.0312},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lin2015microsoft,
+              title={Microsoft COCO: Common Objects in Context},
+              author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
+              year={2015},
+              eprint={1405.0312},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).

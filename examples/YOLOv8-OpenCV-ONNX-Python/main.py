@@ -3,8 +3,8 @@ import argparse
 import cv2.dnn
 import numpy as np
 
-from ultralytics.yolo.utils import ROOT, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.utils import ASSETS, yaml_load
+from ultralytics.utils.checks import check_yaml
 
 CLASSES = yaml_load(check_yaml('coco128.yaml'))['names']
 
@@ -75,6 +75,6 @@ def main(onnx_model, input_image):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='yolov8n.onnx', help='Input your onnx model.')
-    parser.add_argument('--img', default=str(ROOT / 'assets/bus.jpg'), help='Path to input image.')
+    parser.add_argument('--img', default=str(ASSETS / 'bus.jpg'), help='Path to input image.')
     args = parser.parse_args()
     main(args.model, args.img)

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the ImageNet10 dataset, a compact subset of the original ImageNet dataset designed for quick testing, CI tests, and sanity checks.
-keywords: ImageNet10 dataset, ImageNet, small scale, subset, computer vision models, pipelines, testing, debugging, synsets, annotations, applications, structure, sample images, citations, acknowledgments, Ultralytics Docs
+description: Explore the compact ImageNet10 Dataset developed by Ultralytics. Ideal for fast testing of computer vision training pipelines and CV model sanity checks.
+keywords: Ultralytics, YOLO, ImageNet10 Dataset, Image detection, Deep Learning, ImageNet, AI model testing, Computer vision, Machine learning
 ---
 
 # ImageNet10 Dataset
@@ -33,12 +33,12 @@ To test a deep learning model on the ImageNet10 dataset with an image size of 22
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='imagenet10', epochs=5, imgsz=224)
+        results = model.train(data='imagenet10', epochs=5, imgsz=224)
         ```
 
     === "CLI"
@@ -59,16 +59,20 @@ The example showcases the variety and complexity of the images in the ImageNet10
 
 If you use the ImageNet10 dataset in your research or development work, please cite the original ImageNet paper:
 
-```bibtex
-@article{ILSVRC15,
-         author = {Olga Russakovsky and Jia Deng and Hao Su and Jonathan Krause and Sanjeev Satheesh and Sean Ma and Zhiheng Huang and Andrej Karpathy and Aditya Khosla and Michael Bernstein and Alexander C. Berg and Li Fei-Fei},
-         title={ImageNet Large Scale Visual Recognition Challenge},
-         year={2015},
-         journal={International Journal of Computer Vision (IJCV)},
-         volume={115},
-         number={3},
-         pages={211-252}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{ILSVRC15,
+                 author = {Olga Russakovsky and Jia Deng and Hao Su and Jonathan Krause and Sanjeev Satheesh and Sean Ma and Zhiheng Huang and Andrej Karpathy and Aditya Khosla and Michael Bernstein and Alexander C. Berg and Li Fei-Fei},
+                 title={ImageNet Large Scale Visual Recognition Challenge},
+                 year={2015},
+                 journal={International Journal of Computer Vision (IJCV)},
+                 volume={115},
+                 number={3},
+                 pages={211-252}
+        }
+        ```
 
 We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset. The ImageNet10 dataset, while a compact subset, is a valuable resource for quick testing and debugging in the machine learning and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: YOLOv3, YOLOv3-Ultralytics and YOLOv3u by Ultralytics explained. Learn the evolution of these models and their specifications.
-keywords: YOLOv3, Ultralytics YOLOv3, YOLO v3, YOLOv3 models, object detection, models, machine learning, AI, image recognition, object recognition
+description: Get an overview of YOLOv3, YOLOv3-Ultralytics and YOLOv3u. Learn about their key features, usage, and supported tasks for object detection.
+keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Object Detection, Inference, Training, Ultralytics
 ---
 
 # YOLOv3, YOLOv3-Ultralytics, and YOLOv3u
@@ -49,32 +49,59 @@ TODO
 
 ## Usage
 
-You can use these models for object detection tasks using the Ultralytics YOLOv3 repository. The following is a sample code snippet showing how to use the YOLOv3u model for inference:
+You can use YOLOv3 for object detection tasks using the Ultralytics repository. The following is a sample code snippet showing how to use YOLOv3 model for inference:
 
-```python
-from ultralytics import YOLO
+!!! example ""
 
-# Load the model
-model = YOLO('yolov3.pt')  # load a pretrained model
+    This example provides simple inference code for YOLOv3. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv3 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
-# Perform inference
-results = model('image.jpg')
+    === "Python"
 
-# Print the results
-results.print()
-```
+        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
-## Citations and Acknowledgments
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv3n model
+        model = YOLO('yolov3n.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+
+        # Run inference with the YOLOv3n model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Load a COCO-pretrained YOLOv3n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+
+        # Load a COCO-pretrained YOLOv3n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov3n.pt source=path/to/bus.jpg
+        ```
+
+## Citations and Acknowledgements
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository:
 
-```bibtex
-@article{redmon2018yolov3,
-  title={YOLOv3: An Incremental Improvement},
-  author={Redmon, Joseph and Farhadi, Ali},
-  journal={arXiv preprint arXiv:1804.02767},
-  year={2018}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{redmon2018yolov3,
+          title={YOLOv3: An Incremental Improvement},
+          author={Redmon, Joseph and Farhadi, Ali},
+          journal={arXiv preprint arXiv:1804.02767},
+          year={2018}
+        }
+        ```
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.

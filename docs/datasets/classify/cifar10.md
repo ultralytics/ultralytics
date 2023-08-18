@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the CIFAR-10 dataset, a collection of images that are commonly used to train machine learning and computer vision algorithms.
-keywords: CIFAR-10 dataset, YOLO model training, image classification, deep learning, computer vision, object detection, machine learning, convolutional neural networks, Alex Krizhevsky
+description: Explore the CIFAR-10 dataset, widely used for training in machine learning and computer vision, and learn how to use it with Ultralytics YOLO.
+keywords: CIFAR-10, dataset, machine learning, image classification, computer vision, YOLO, Ultralytics, training, testing, deep learning, Convolutional Neural Networks, Support Vector Machines
 ---
 
 # CIFAR-10 Dataset
@@ -37,12 +37,12 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='cifar10', epochs=100, imgsz=32)
+        results = model.train(data='cifar10', epochs=100, imgsz=32)
         ```
 
     === "CLI"
@@ -64,13 +64,17 @@ The example showcases the variety and complexity of the objects in the CIFAR-10 
 
 If you use the CIFAR-10 dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@TECHREPORT{Krizhevsky09learningmultiple,
-            author={Alex Krizhevsky},
-            title={Learning multiple layers of features from tiny images},
-            institution={},
-            year={2009}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @TECHREPORT{Krizhevsky09learningmultiple,
+                    author={Alex Krizhevsky},
+                    title={Learning multiple layers of features from tiny images},
+                    institution={},
+                    year={2009}
+        }
+        ```
 
 We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-10 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the CIFAR-10 dataset and its creator, visit the [CIFAR-10 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).

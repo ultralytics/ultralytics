@@ -1,44 +1,42 @@
 ---
-description: Access Ultralytics HUB, manage API keys, train models, and export in various formats with ease using the HUB API.
-keywords: Ultralytics, YOLO, Docs HUB, API, login, logout, reset model, export model, check dataset, HUBDatasetStats, YOLO training, YOLO model
+description: Explore Ultralytics hub functions for model resetting, checking datasets, model exporting and more. Easy-to-follow instructions provided.
+keywords: Ultralytics, hub functions, model export, dataset check, reset model, YOLO Docs
 ---
 
-## login
+# Reference for `ultralytics/hub/__init__.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
+
 ---
-### ::: ultralytics.hub.login
+## ::: ultralytics.hub.login
 <br><br>
 
-## logout
 ---
-### ::: ultralytics.hub.logout
+## ::: ultralytics.hub.logout
 <br><br>
 
-## start
 ---
-### ::: ultralytics.hub.start
+## ::: ultralytics.hub.start
 <br><br>
 
-## reset_model
 ---
-### ::: ultralytics.hub.reset_model
+## ::: ultralytics.hub.reset_model
 <br><br>
 
-## export_fmts_hub
 ---
-### ::: ultralytics.hub.export_fmts_hub
+## ::: ultralytics.hub.export_fmts_hub
 <br><br>
 
-## export_model
 ---
-### ::: ultralytics.hub.export_model
+## ::: ultralytics.hub.export_model
 <br><br>
 
-## get_export
 ---
-### ::: ultralytics.hub.get_export
+## ::: ultralytics.hub.get_export
 <br><br>
 
-## check_dataset
 ---
-### ::: ultralytics.hub.check_dataset
+## ::: ultralytics.hub.check_dataset
 <br><br>

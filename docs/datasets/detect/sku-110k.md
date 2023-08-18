@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the SKU-110k dataset, designed for object detection in densely packed retail shelf images, featuring over 110k unique SKU categories and annotations.
-keywords: SKU-110k, object detection, retail shelves, dataset, computer vision
+description: 'Explore the SKU-110k dataset: densely packed retail shelf images for object detection research. Learn how to use it with Ultralytics.'
+keywords: SKU-110k dataset, object detection, retail shelf images, Ultralytics, YOLO, computer vision, deep learning models
 ---
 
 # SKU-110k Dataset
@@ -30,12 +30,12 @@ The SKU-110k dataset is widely used for training and evaluating deep learning mo
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the SKU-110K dataset, the `SKU-110K.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/SKU-110K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/SKU-110K.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the SKU-110K dataset, the `SKU-110K.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml).
 
-!!! example "ultralytics/datasets/SKU-110K.yaml"
+!!! example "ultralytics/cfg/datasets/SKU-110K.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/SKU-110K.yaml"
+    --8<-- "ultralytics/cfg/datasets/SKU-110K.yaml"
     ```
 
 ## Usage
@@ -48,12 +48,12 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='SKU-110K.yaml', epochs=100, imgsz=640)
+        results = model.train(data='SKU-110K.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -61,6 +61,7 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=SKU-110K.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
 
 ## Sample Data and Annotations
 
@@ -76,13 +77,17 @@ The example showcases the variety and complexity of the data in the SKU-110k dat
 
 If you use the SKU-110k dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@inproceedings{goldman2019dense,
- author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
- title     = {Precise Detection in Densely Packed Scenes},
- booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
- year      = {2019}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @inproceedings{goldman2019dense,
+         author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
+         title     = {Precise Detection in Densely Packed Scenes},
+         booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
+         year      = {2019}
+        }
+        ```
 
 We would like to acknowledge Eran Goldman et al. for creating and maintaining the SKU-110k dataset as a valuable resource for the computer vision research community. For more information about the SKU-110k dataset and its creators, visit the [SKU-110k dataset GitHub repository](https://github.com/eg4000/SKU110K_CVPR19).

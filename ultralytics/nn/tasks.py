@@ -11,12 +11,12 @@ from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottlenec
                                     Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d,
                                     Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, RepC3, RepConv,
                                     RTDETRDecoder, Segment)
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
-from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.yolo.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
-from ultralytics.yolo.utils.plotting import feature_visualization
-from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
-                                                intersect_dicts, make_divisible, model_info, scale_img, time_sync)
+from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
+from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
+from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
+from ultralytics.utils.plotting import feature_visualization
+from ultralytics.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights, intersect_dicts,
+                                           make_divisible, model_info, scale_img, time_sync)
 
 try:
     import thop
@@ -87,9 +87,8 @@ class BaseModel(nn.Module):
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
+        LOGGER.warning(f'WARNING ⚠️ {self.__class__.__name__} does not support augmented inference yet. '
+                       f'Reverting to single-scale inference instead.')
         return self._predict_once(x)
 
     def _profile_one_layer(self, m, x, dt):
@@ -105,15 +104,15 @@ class BaseModel(nn.Module):
         Returns:
             None
         """
-        c = m == self.model[-1]  # is final layer, copy input as inplace fix
-        o = thop.profile(m, inputs=[x.clone() if c else x], verbose=False)[0] / 1E9 * 2 if thop else 0  # FLOPs
+        c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
+        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1E9 * 2 if thop else 0  # FLOPs
         t = time_sync()
         for _ in range(10):
-            m(x.clone() if c else x)
+            m(x.copy() if c else x)
         dt.append((time_sync() - t) * 100)
         if m == self.model[0]:
             LOGGER.info(f"{'time (ms)':>10s} {'GFLOPs':>10s} {'params':>10s}  module")
-        LOGGER.info(f'{dt[-1]:10.2f} {o:10.2f} {m.np:10.0f}  {m.type}')
+        LOGGER.info(f'{dt[-1]:10.2f} {flops:10.2f} {m.np:10.0f}  {m.type}')
         if c:
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
@@ -162,6 +161,7 @@ class BaseModel(nn.Module):
         Prints model information
 
         Args:
+            detailed (bool): if True, prints out detailed information about the model. Defaults to False
             verbose (bool): if True, prints out the model information. Defaults to False
             imgsz (int): the size of the image that the model will be trained on. Defaults to 640
         """
@@ -169,11 +169,10 @@ class BaseModel(nn.Module):
 
     def _apply(self, fn):
         """
-        `_apply()` is a function that applies a function to all the tensors in the model that are not
-        parameters or registered buffers
+        Applies a function to all the tensors in the model that are not parameters or registered buffers.
 
         Args:
-            fn: the function to apply to the model
+            fn (function): the function to apply to the model
 
         Returns:
             A model that is a Detect() object.
@@ -187,7 +186,8 @@ class BaseModel(nn.Module):
         return self
 
     def load(self, weights, verbose=True):
-        """Load the weights into the model.
+        """
+        Load the weights into the model.
 
         Args:
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
@@ -243,6 +243,8 @@ class DetectionModel(BaseModel):
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
+        else:
+            self.stride = torch.Tensor([32])  # default stride for i.e. RTDETR
 
         # Init weights, biases
         initialize_weights(self)
@@ -301,13 +303,6 @@ class SegmentationModel(DetectionModel):
     def init_criterion(self):
         return v8SegmentationLoss(self)
 
-    def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
-        return self._predict_once(x)
-
 
 class PoseModel(DetectionModel):
     """YOLOv8 pose model."""
@@ -324,19 +319,12 @@ class PoseModel(DetectionModel):
     def init_criterion(self):
         return v8PoseLoss(self)
 
-    def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
-        return self._predict_once(x)
-
 
 class ClassificationModel(BaseModel):
     """YOLOv8 classification model."""
 
     def __init__(self,
-                 cfg=None,
+                 cfg='yolov8n-cls.yaml',
                  model=None,
                  ch=3,
                  nc=None,
@@ -410,7 +398,7 @@ class RTDETRDetectionModel(DetectionModel):
 
     def init_criterion(self):
         """Compute the classification loss between predictions and true labels."""
-        from ultralytics.vit.utils.loss import RTDETRDetectionLoss
+        from ultralytics.models.utils.loss import RTDETRDetectionLoss
 
         return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 
@@ -430,7 +418,7 @@ class RTDETRDetectionModel(DetectionModel):
             'gt_groups': gt_groups}
 
         preds = self.predict(img, batch=targets) if preds is None else preds
-        dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds
+        dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
         if dn_meta is None:
             dn_bboxes, dn_scores = None, None
         else:
@@ -496,6 +484,47 @@ class Ensemble(nn.ModuleList):
 # Functions ------------------------------------------------------------------------------------------------------------
 
 
+@contextlib.contextmanager
+def temporary_modules(modules=None):
+    """
+    Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
+
+    This function can be used to change the module paths during runtime. It's useful when refactoring code,
+    where you've moved a module from one location to another, but you still want to support the old import
+    paths for backwards compatibility.
+
+    Args:
+        modules (dict, optional): A dictionary mapping old module paths to new module paths.
+
+    Example:
+        ```python
+        with temporary_modules({'old.module.path': 'new.module.path'}):
+            import old.module.path  # this will now import new.module.path
+        ```
+
+    Note:
+        The changes are only in effect inside the context manager and are undone once the context manager exits.
+        Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
+        applications or libraries. Use this function with caution.
+    """
+    if not modules:
+        modules = {}
+
+    import importlib
+    import sys
+    try:
+        # Set modules in sys.modules under their old name
+        for old, new in modules.items():
+            sys.modules[old] = importlib.import_module(new)
+
+        yield
+    finally:
+        # Remove the temporary module paths
+        for old in modules:
+            if old in sys.modules:
+                del sys.modules[old]
+
+
 def torch_safe_load(weight):
     """
     This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
@@ -508,12 +537,17 @@ def torch_safe_load(weight):
     Returns:
         (dict): The loaded PyTorch model.
     """
-    from ultralytics.yolo.utils.downloads import attempt_download_asset
+    from ultralytics.utils.downloads import attempt_download_asset
 
     check_suffix(file=weight, suffix='.pt')
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
-        return torch.load(file, map_location='cpu'), file  # load
+        with temporary_modules({
+                'ultralytics.yolo.utils': 'ultralytics.utils',
+                'ultralytics.yolo.v8': 'ultralytics.models.yolo',
+                'ultralytics.yolo.data': 'ultralytics.data'}):  # for legacy 8.0 Classify and Pose models
+            return torch.load(file, map_location='cpu'), file  # load
+
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == 'models':
             raise TypeError(
@@ -550,11 +584,11 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         # Append
         ensemble.append(model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval())  # model in eval mode
 
-    # Module compatibility updates
+    # Module updates
     for m in ensemble.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
-            m.inplace = inplace  # torch 1.7.0 compatibility
+            m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
@@ -586,11 +620,11 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
 
     model = model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval()  # model in eval mode
 
-    # Module compatibility updates
+    # Module updates
     for m in model.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
-            m.inplace = inplace  # torch 1.7.0 compatibility
+            m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
@@ -599,7 +633,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
 
 
 def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
-    # Parse a YOLO model.yaml dictionary into a PyTorch model
+    """Parse a YOLO model.yaml dictionary into a PyTorch model."""
     import ast
 
     # Args
@@ -653,10 +687,12 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in (Detect, Segment, Pose, RTDETRDecoder):
+        elif m in (Detect, Segment, Pose):
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
+        elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
+            args.insert(1, [ch[x] for x in f])
         else:
             c2 = ch[f]
 
@@ -682,7 +718,7 @@ def yaml_model_load(path):
     if path.stem in (f'yolov{d}{x}6' for x in 'nsmlx' for d in (5, 8)):
         new_stem = re.sub(r'(\d+)([nslmx])6(.+)?$', r'\1\2-p6\3', path.stem)
         LOGGER.warning(f'WARNING ⚠️ Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.')
-        path = path.with_stem(new_stem)
+        path = path.with_name(new_stem + path.suffix)
 
     unified_path = re.sub(r'(\d+)([nslmx])(.+)?$', r'\1\3', str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)

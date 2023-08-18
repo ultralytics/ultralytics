@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
+from ultralytics.utils.tal import TORCH_1_10, dist2bbox, make_anchors
 
 from .block import DFL, Proto
 from .conv import Conv
@@ -34,7 +34,7 @@ class Detect(nn.Module):
         self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
-        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], self.nc)  # channels
+        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
@@ -58,6 +58,16 @@ class Detect(nn.Module):
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+
+        if self.export and self.format in ('tflite', 'edgetpu'):
+            # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
+            # https://github.com/ultralytics/yolov5/blob/0c8de3fca4a702f8ff5c435e67f378d1fce70243/models/tf.py#L307-L309
+            # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
+            img_h = shape[2] * self.stride[0]
+            img_w = shape[3] * self.stride[0]
+            img_size = torch.tensor([img_w, img_h, img_w, img_h], device=dbox.device).reshape(1, 4, 1)
+            dbox /= img_size
+
         y = torch.cat((dbox, cls.sigmoid()), 1)
         return y if self.export else (y, x)
 
@@ -158,6 +168,7 @@ class Classify(nn.Module):
 
 
 class RTDETRDecoder(nn.Module):
+    export = False  # export mode
 
     def __init__(
             self,
@@ -218,7 +229,7 @@ class RTDETRDecoder(nn.Module):
         self._reset_parameters()
 
     def forward(self, x, batch=None):
-        from ultralytics.vit.utils.ops import get_cdn_group
+        from ultralytics.models.utils.ops import get_cdn_group
 
         # input projection and embedding
         feats, shapes = self._get_encoder_input(x)
@@ -246,16 +257,19 @@ class RTDETRDecoder(nn.Module):
                                               self.dec_score_head,
                                               self.query_pos_head,
                                               attn_mask=attn_mask)
-        if not self.training:
-            dec_scores = dec_scores.sigmoid_()
-        return dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
+        x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
+        if self.training:
+            return x
+        # (bs, 300, 4+nc)
+        y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
+        return y if self.export else (y, x)
 
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
         for i, (h, w) in enumerate(shapes):
-            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype, device=device),
-                                            torch.arange(end=w, dtype=dtype, device=device),
-                                            indexing='ij')
+            sy = torch.arange(end=h, dtype=dtype, device=device)
+            sx = torch.arange(end=w, dtype=dtype, device=device)
+            grid_y, grid_x = torch.meshgrid(sy, sx, indexing='ij') if TORCH_1_10 else torch.meshgrid(sy, sx)
             grid_xy = torch.stack([grid_x, grid_y], -1)  # (h, w, 2)
 
             valid_WH = torch.tensor([h, w], dtype=dtype, device=device)
@@ -266,7 +280,7 @@ class RTDETRDecoder(nn.Module):
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
         valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)  # 1, h*w*nl, 1
         anchors = torch.log(anchors / (1 - anchors))
-        anchors = torch.where(valid_mask, anchors, torch.inf)
+        anchors = anchors.masked_fill(~valid_mask, float('inf'))
         return anchors, valid_mask
 
     def _get_encoder_input(self, x):
@@ -290,11 +304,9 @@ class RTDETRDecoder(nn.Module):
         bs = len(feats)
         # prepare input for decoder
         anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
-        features = self.enc_output(torch.where(valid_mask, feats, 0))  # bs, h*w, 256
+        features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
 
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
-        # dynamic anchors + static content
-        enc_outputs_bboxes = self.enc_bbox_head(features) + anchors  # (bs, h*w, 4)
 
         # query selection
         # (bs, num_queries)
@@ -302,22 +314,23 @@ class RTDETRDecoder(nn.Module):
         # (bs, num_queries)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
-        # Unsigmoided
-        refer_bbox = enc_outputs_bboxes[batch_ind, topk_ind].view(bs, self.num_queries, -1)
-        # refer_bbox = torch.gather(enc_outputs_bboxes, 1, topk_ind.reshape(bs, self.num_queries).unsqueeze(-1).repeat(1, 1, 4))
+        # (bs, num_queries, 256)
+        top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        # (bs, num_queries, 4)
+        top_k_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
+
+        # dynamic anchors + static content
+        refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
 
         enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
-        if self.training:
-            refer_bbox = refer_bbox.detach()
         enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
-        if self.learnt_init_query:
-            embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)
-        else:
-            embeddings = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
-            if self.training:
+        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        if self.training:
+            refer_bbox = refer_bbox.detach()
+            if not self.learnt_init_query:
                 embeddings = embeddings.detach()
         if dn_embed is not None:
             embeddings = torch.cat([dn_embed, embeddings], 1)

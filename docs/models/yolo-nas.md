@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Dive into YOLO-NAS, Deci's next-generation object detection model, offering breakthroughs in speed and accuracy. Learn how to utilize pre-trained models using the Ultralytics Python API for various tasks.
-keywords: YOLO-NAS, Deci AI, Ultralytics, object detection, deep learning, neural architecture search, Python API, pre-trained models, quantization
+description: Explore detailed documentation of YOLO-NAS, a superior object detection model. Learn about its features, pre-trained models, usage with Ultralytics Python API, and more.
+keywords: YOLO-NAS, Deci AI, object detection, deep learning, neural architecture search, Ultralytics Python API, YOLO model, pre-trained models, quantization, optimization, COCO, Objects365, Roboflow 100
 ---
 
 # YOLO-NAS
@@ -36,35 +36,49 @@ Each model variant is designed to offer a balance between Mean Average Precision
 
 ## Usage
 
-### Python API
+Ultralytics has made YOLO-NAS models easy to integrate into your Python applications via our `ultralytics` python package. The package provides a user-friendly Python API to streamline the process.
 
-The YOLO-NAS models are easy to integrate into your Python applications. Ultralytics provides a user-friendly Python API to streamline the process.
+The following examples show how to use YOLO-NAS models with the `ultralytics` package for inference and validation:
 
-#### Predict Usage
+### Inference and Validation Examples
 
-To perform object detection on an image, use the `predict` method as shown below:
+In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
-```python
-from ultralytics import NAS
+!!! example ""
 
-model = NAS('yolo_nas_s')
-results = model.predict('ultralytics/assets/bus.jpg')
-```
+    This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
 
-This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
+    === "Python"
 
-#### Val Usage
+        PyTorch pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in python:
 
-Validation of the model on a dataset can be done as follows:
+        ```python
+        from ultralytics import NAS
 
-```python
-from ultralytics import NAS
+        # Load a COCO-pretrained YOLO-NAS-s model
+        model = NAS('yolo_nas_s.pt')
 
-model = NAS('yolo_nas_s')
-results = model.val(data='coco8.yaml)
-```
+        # Display model information (optional)
+        model.info()
 
-In this example, the model is validated against the dataset specified in the 'coco8.yaml' file.
+        # Validate the model on the COCO8 example dataset
+        results = model.val(data='coco8.yaml')
+
+        # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Load a COCO-pretrained YOLO-NAS-s model and validate it's performance on the COCO8 example dataset
+        yolo val model=yolo_nas_s.pt data=coco8.yaml
+
+        # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image
+        yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
+        ```
 
 ### Supported Tasks
 
@@ -88,21 +102,25 @@ The YOLO-NAS models support both inference and validation modes, allowing you to
 
 Harness the power of the YOLO-NAS models to drive your object detection tasks to new heights of performance and speed.
 
-## Acknowledgements and Citations
+## Citations and Acknowledgements
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 
-```bibtex
-@misc{supergradients,
-  doi = {10.5281/ZENODO.7789328},
-  url = {https://zenodo.org/record/7789328},
-  author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
-  title = {Super-Gradients},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  year = {2021},
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{supergradients,
+              doi = {10.5281/ZENODO.7789328},
+              url = {https://zenodo.org/record/7789328},
+              author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
+              title = {Super-Gradients},
+              publisher = {GitHub},
+              journal = {GitHub repository},
+              year = {2021},
+        }
+        ```
 
 We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-AI/super-gradients/) team for their efforts in creating and maintaining this valuable resource for the computer vision community. We believe YOLO-NAS, with its innovative architecture and superior object detection capabilities, will become a critical tool for developers and researchers alike.
 

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the VOC dataset, designed to encourage research on object detection, segmentation, and classification with standardized evaluation metrics.
-keywords: PASCAL VOC dataset, object detection, segmentation, classification, computer vision, deep learning, benchmarking, VOC2007, VOC2012, mean Average Precision, mAP, PASCAL VOC evaluation server, trained models, YAML, YAML file, VOC.yaml, training, YOLOv8n model, model training, image size, annotations, object bounding boxes, segmentation masks, instance segmentation, SSD, Mask R-CNN, yolov8n.pt, mosaicing, PASCAL VOC Consortium
+description: A complete guide to the PASCAL VOC dataset used for object detection, segmentation and classification tasks with relevance to YOLO model training.
+keywords: Ultralytics, PASCAL VOC dataset, object detection, segmentation, image classification, YOLO, model training, VOC.yaml, deep learning
 ---
 
 # VOC Dataset
@@ -29,12 +29,12 @@ The VOC dataset is widely used for training and evaluating deep learning models 
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the VOC dataset, the `VOC.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/VOC.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/VOC.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the VOC dataset, the `VOC.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VOC.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VOC.yaml).
 
-!!! example "ultralytics/datasets/VOC.yaml"
+!!! example "ultralytics/cfg/datasets/VOC.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/VOC.yaml"
+    --8<-- "ultralytics/cfg/datasets/VOC.yaml"
     ```
 
 ## Usage
@@ -47,12 +47,12 @@ To train a YOLOv8n model on the VOC dataset for 100 epochs with an image size of
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='VOC.yaml', epochs=100, imgsz=640)
+        results = model.train(data='VOC.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -77,15 +77,19 @@ The example showcases the variety and complexity of the images in the VOC datase
 
 If you use the VOC dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@misc{everingham2010pascal,
-      title={The PASCAL Visual Object Classes (VOC) Challenge}, 
-      author={Mark Everingham and Luc Van Gool and Christopher K. I. Williams and John Winn and Andrew Zisserman},
-      year={2010},
-      eprint={0909.5206},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{everingham2010pascal,
+              title={The PASCAL Visual Object Classes (VOC) Challenge},
+              author={Mark Everingham and Luc Van Gool and Christopher K. I. Williams and John Winn and Andrew Zisserman},
+              year={2010},
+              eprint={0909.5206},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We would like to acknowledge the PASCAL VOC Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the VOC dataset and its creators, visit the [PASCAL VOC dataset website](http://host.robots.ox.ac.uk/pascal/VOC/).

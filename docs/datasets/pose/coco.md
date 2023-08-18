@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the COCO-Pose dataset, designed to encourage research on pose estimation tasks with standardized evaluation metrics.
-keywords: COCO-Pose, COCO dataset, pose estimation, keypoints detection, computer vision, deep learning, YOLOv8n-pose, dataset configuration
+description: Detailed guide on the special COCO-Pose Dataset in Ultralytics. Learn about its key features, structure, and usage in pose estimation tasks with YOLO.
+keywords: Ultralytics YOLO, COCO-Pose Dataset, Deep Learning, Pose Estimation, Training Models, Dataset YAML, openpose, YOLO
 ---
 
 # COCO-Pose Dataset
@@ -22,7 +22,7 @@ The COCO-Pose dataset is split into three subsets:
 
 1. **Train2017**: This subset contains a portion of the 118K images from the COCO dataset, annotated for training pose estimation models.
 2. **Val2017**: This subset has a selection of images used for validation purposes during model training.
-3. **Test2017**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://competitions.codalab.org/competitions/5181) for performance evaluation.
+3. **Test2017**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
 
 ## Applications
 
@@ -30,12 +30,12 @@ The COCO-Pose dataset is specifically used for training and evaluating deep lear
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Pose dataset, the `coco-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-pose.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Pose dataset, the `coco-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
 
-!!! example "ultralytics/datasets/coco-pose.yaml"
+!!! example "ultralytics/cfg/datasets/coco-pose.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco-pose.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco-pose.yaml"
     ```
 
 ## Usage
@@ -48,12 +48,12 @@ To train a YOLOv8n-pose model on the COCO-Pose dataset for 100 epochs with an im
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='coco-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco-pose.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -77,15 +77,19 @@ The example showcases the variety and complexity of the images in the COCO-Pose 
 
 If you use the COCO-Pose dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@misc{lin2015microsoft,
-      title={Microsoft COCO: Common Objects in Context}, 
-      author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
-      year={2015},
-      eprint={1405.0312},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lin2015microsoft,
+              title={Microsoft COCO: Common Objects in Context},
+              author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
+              year={2015},
+              eprint={1405.0312},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO-Pose dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).

@@ -5,8 +5,8 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-from ultralytics.yolo.utils import ROOT, yaml_load
-from ultralytics.yolo.utils.checks import check_requirements, check_yaml
+from ultralytics.utils import ASSETS, yaml_load
+from ultralytics.utils.checks import check_requirements, check_yaml
 
 
 class Yolov8:
@@ -198,17 +198,14 @@ class Yolov8:
         outputs = session.run(None, {model_inputs[0].name: img_data})
 
         # Perform post-processing on the outputs to obtain output image.
-        output_img = self.postprocess(self.img, outputs)
-
-        # Return the resulting output image
-        return output_img
+        return self.postprocess(self.img, outputs)  # output image
 
 
 if __name__ == '__main__':
     # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='yolov8n.onnx', help='Input your ONNX model.')
-    parser.add_argument('--img', type=str, default=str(ROOT / 'assets/bus.jpg'), help='Path to input image.')
+    parser.add_argument('--img', type=str, default=str(ASSETS / 'bus.jpg'), help='Path to input image.')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='Confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
     args = parser.parse_args()

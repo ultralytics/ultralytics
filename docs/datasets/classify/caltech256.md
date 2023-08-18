@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the Caltech-256 dataset, a broad collection of images used for object classification tasks in machine learning and computer vision algorithms.
-keywords: Caltech-256, Dataset, Object Recognition, Image Classification, Convolutional Neural Networks, SVMs, YOLO, Deep Learning Models
+description: Explore the Caltech-256 dataset, a diverse collection of images used for object recognition tasks in machine learning. Learn to train a YOLO model on the dataset.
+keywords: Ultralytics, YOLO, Caltech-256, dataset, object recognition, machine learning, computer vision, deep learning
 ---
 
 # Caltech-256 Dataset
@@ -34,12 +34,12 @@ To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='caltech256', epochs=100, imgsz=416)
+        results = model.train(data='caltech256', epochs=100, imgsz=416)
         ```
 
     === "CLI"
@@ -61,13 +61,17 @@ The example showcases the diversity and complexity of the objects in the Caltech
 
 If you use the Caltech-256 dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@article{griffin2007caltech,
-         title={Caltech-256 object category dataset},
-         author={Griffin, Gregory and Holub, Alex and Perona, Pietro},
-         year={2007}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{griffin2007caltech,
+                 title={Caltech-256 object category dataset},
+                 author={Griffin, Gregory and Holub, Alex and Perona, Pietro},
+                 year={2007}
+        }
+        ```
 
 We would like to acknowledge Gregory Griffin, Alex Holub, and Pietro Perona for creating and maintaining the Caltech-256 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the
 

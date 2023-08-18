@@ -1,74 +1,66 @@
 ---
-description: Explore convolutional neural network modules & techniques such as LightConv, DWConv, ConvTranspose, GhostConv, CBAM & autopad with Ultralytics Docs.
-keywords: Ultralytics, Convolutional Neural Network, Conv2, DWConv, ConvTranspose, GhostConv, ChannelAttention, CBAM, autopad
+description: Explore various Ultralytics convolution modules including Conv2, DWConv, ConvTranspose, GhostConv, Channel Attention and more.
+keywords: Ultralytics, Convolution Modules, Conv2, DWConv, ConvTranspose, GhostConv, ChannelAttention, CBAM, autopad
 ---
 
-## Conv
+# Reference for `ultralytics/nn/modules/conv.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
+
 ---
-### ::: ultralytics.nn.modules.conv.Conv
+## ::: ultralytics.nn.modules.conv.Conv
 <br><br>
 
-## Conv2
 ---
-### ::: ultralytics.nn.modules.conv.Conv2
+## ::: ultralytics.nn.modules.conv.Conv2
 <br><br>
 
-## LightConv
 ---
-### ::: ultralytics.nn.modules.conv.LightConv
+## ::: ultralytics.nn.modules.conv.LightConv
 <br><br>
 
-## DWConv
 ---
-### ::: ultralytics.nn.modules.conv.DWConv
+## ::: ultralytics.nn.modules.conv.DWConv
 <br><br>
 
-## DWConvTranspose2d
 ---
-### ::: ultralytics.nn.modules.conv.DWConvTranspose2d
+## ::: ultralytics.nn.modules.conv.DWConvTranspose2d
 <br><br>
 
-## ConvTranspose
 ---
-### ::: ultralytics.nn.modules.conv.ConvTranspose
+## ::: ultralytics.nn.modules.conv.ConvTranspose
 <br><br>
 
-## Focus
 ---
-### ::: ultralytics.nn.modules.conv.Focus
+## ::: ultralytics.nn.modules.conv.Focus
 <br><br>
 
-## GhostConv
 ---
-### ::: ultralytics.nn.modules.conv.GhostConv
+## ::: ultralytics.nn.modules.conv.GhostConv
 <br><br>
 
-## RepConv
 ---
-### ::: ultralytics.nn.modules.conv.RepConv
+## ::: ultralytics.nn.modules.conv.RepConv
 <br><br>
 
-## ChannelAttention
 ---
-### ::: ultralytics.nn.modules.conv.ChannelAttention
+## ::: ultralytics.nn.modules.conv.ChannelAttention
 <br><br>
 
-## SpatialAttention
 ---
-### ::: ultralytics.nn.modules.conv.SpatialAttention
+## ::: ultralytics.nn.modules.conv.SpatialAttention
 <br><br>
 
-## CBAM
 ---
-### ::: ultralytics.nn.modules.conv.CBAM
+## ::: ultralytics.nn.modules.conv.CBAM
 <br><br>
 
-## Concat
 ---
-### ::: ultralytics.nn.modules.conv.Concat
+## ::: ultralytics.nn.modules.conv.Concat
 <br><br>
 
-## autopad
 ---
-### ::: ultralytics.nn.modules.conv.autopad
+## ::: ultralytics.nn.modules.conv.autopad
 <br><br>

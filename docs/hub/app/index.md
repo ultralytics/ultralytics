@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Experience the power of YOLOv5 and YOLOv8 models with Ultralytics HUB app. Download from Google Play and App Store now.
-keywords: Ultralytics, HUB, App, Mobile, Object Detection, Image Recognition, YOLOv5, YOLOv8, Hardware Acceleration, Custom Model Training, iOS, Android
+description: Explore the Ultralytics HUB App, offering the ability to run YOLOv5 and YOLOv8 models on your iOS and Android devices with optimized performance.
+keywords: Ultralytics, HUB App, YOLOv5, YOLOv8, mobile AI, real-time object detection, image recognition, mobile device, hardware acceleration, Apple Neural Engine, Android GPU, NNAPI, custom model training
 ---
 
 # Ultralytics HUB App
@@ -49,4 +49,4 @@ Welcome to the Ultralytics HUB App! We are excited to introduce this powerful mo
 - [**iOS**](./ios.md): Learn about YOLO CoreML models accelerated on Apple's Neural Engine for iPhones and iPads.
 - [**Android**](./android.md): Explore TFLite acceleration on Android mobile devices.
 
-Get started today by downloading the Ultralytics HUB App on your mobile device and unlock the potential of YOLOv5 and YOLOv8 models on-the-go. Don't forget to check out our comprehensive [HUB Docs](../) for more information on training, deploying, and using your custom models with the Ultralytics HUB platform.
+Get started today by downloading the Ultralytics HUB App on your mobile device and unlock the potential of YOLOv5 and YOLOv8 models on-the-go. Don't forget to check out our comprehensive [HUB Docs](../index.md) for more information on training, deploying, and using your custom models with the Ultralytics HUB platform.

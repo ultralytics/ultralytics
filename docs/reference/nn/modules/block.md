@@ -1,89 +1,78 @@
 ---
-description: Explore ultralytics.nn.modules.block to build powerful YOLO object detection models. Master DFL, HGStem, SPP, CSP components and more.
-keywords: Ultralytics, NN Modules, Blocks, DFL, HGStem, SPP, C1, C2f, C3x, C3TR, GhostBottleneck, BottleneckCSP, Computer Vision
+description: Explore Ultralytics YOLO neural network modules, Proto to BottleneckCSP. Detailed explanation of each module with easy-to-follow code examples.
+keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, SPPF, C2, C3, RepC3, C3Ghost, Bottleneck, BottleneckCSP
 ---
 
-## DFL
+# Reference for `ultralytics/nn/modules/block.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
+
 ---
-### ::: ultralytics.nn.modules.block.DFL
+## ::: ultralytics.nn.modules.block.DFL
 <br><br>
 
-## Proto
 ---
-### ::: ultralytics.nn.modules.block.Proto
+## ::: ultralytics.nn.modules.block.Proto
 <br><br>
 
-## HGStem
 ---
-### ::: ultralytics.nn.modules.block.HGStem
+## ::: ultralytics.nn.modules.block.HGStem
 <br><br>
 
-## HGBlock
 ---
-### ::: ultralytics.nn.modules.block.HGBlock
+## ::: ultralytics.nn.modules.block.HGBlock
 <br><br>
 
-## SPP
 ---
-### ::: ultralytics.nn.modules.block.SPP
+## ::: ultralytics.nn.modules.block.SPP
 <br><br>
 
-## SPPF
 ---
-### ::: ultralytics.nn.modules.block.SPPF
+## ::: ultralytics.nn.modules.block.SPPF
 <br><br>
 
-## C1
 ---
-### ::: ultralytics.nn.modules.block.C1
+## ::: ultralytics.nn.modules.block.C1
 <br><br>
 
-## C2
 ---
-### ::: ultralytics.nn.modules.block.C2
+## ::: ultralytics.nn.modules.block.C2
 <br><br>
 
-## C2f
 ---
-### ::: ultralytics.nn.modules.block.C2f
+## ::: ultralytics.nn.modules.block.C2f
 <br><br>
 
-## C3
 ---
-### ::: ultralytics.nn.modules.block.C3
+## ::: ultralytics.nn.modules.block.C3
 <br><br>
 
-## C3x
 ---
-### ::: ultralytics.nn.modules.block.C3x
+## ::: ultralytics.nn.modules.block.C3x
 <br><br>
 
-## RepC3
 ---
-### ::: ultralytics.nn.modules.block.RepC3
+## ::: ultralytics.nn.modules.block.RepC3
 <br><br>
 
-## C3TR
 ---
-### ::: ultralytics.nn.modules.block.C3TR
+## ::: ultralytics.nn.modules.block.C3TR
 <br><br>
 
-## C3Ghost
 ---
-### ::: ultralytics.nn.modules.block.C3Ghost
+## ::: ultralytics.nn.modules.block.C3Ghost
 <br><br>
 
-## GhostBottleneck
 ---
-### ::: ultralytics.nn.modules.block.GhostBottleneck
+## ::: ultralytics.nn.modules.block.GhostBottleneck
 <br><br>
 
-## Bottleneck
 ---
-### ::: ultralytics.nn.modules.block.Bottleneck
+## ::: ultralytics.nn.modules.block.Bottleneck
 <br><br>
 
-## BottleneckCSP
 ---
-### ::: ultralytics.nn.modules.block.BottleneckCSP
+## ::: ultralytics.nn.modules.block.BottleneckCSP
 <br><br>

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Set up YOLOv5 on a Google Cloud Platform (GCP) Deep Learning VM. Train, test, detect, and export YOLOv5 models. Tutorial updated April 2023.
-keywords: YOLOv5, GCP, deep learning, tutorial, Google Cloud Platform, virtual machine, VM, setup, free credit, Colab Notebook, AWS, Docker
+description: Step-by-step tutorial on how to set up and run YOLOv5 on Google Cloud Platform Deep Learning VM. Perfect guide for beginners and GCP new users!.
+keywords: YOLOv5, Google Cloud Platform, GCP, Deep Learning VM, Ultralytics
 ---
 
 # Run YOLOv5 🚀 on Google Cloud Platform (GCP) Deep Learning Virtual Machine (VM) ⭐
@@ -27,7 +27,7 @@ The preinstalled [Anaconda](https://docs.anaconda.com/anaconda/packages/pkg-docs
 
 ## Step 2: Set Up the VM
 
-Clone the YOLOv5 repository and install the [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.7.0**](https://www.python.org/) environment, including [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Clone the YOLOv5 repository and install the [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5  # clone

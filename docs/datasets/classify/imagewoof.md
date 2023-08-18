@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the ImageWoof dataset, a subset of the ImageNet consisting of 10 challenging-to-classify dog breed classes.
-keywords: ImageWoof dataset, dog breed images, image classification, noisy labels, deep learning models, CNN training, fastai
+description: Explore the ImageWoof dataset, designed for challenging dog breed classification. Train AI models with Ultralytics YOLO using this dataset.
+keywords: ImageWoof, image classification, dog breeds, machine learning, deep learning, Ultralytics, YOLO, dataset
 ---
 
 # ImageWoof Dataset
@@ -32,12 +32,12 @@ To train a CNN model on the ImageWoof dataset for 100 epochs with an image size 
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        
+
         # Train the model
-        model.train(data='imagewoof', epochs=100, imgsz=224)
+        results = model.train(data='imagewoof', epochs=100, imgsz=224)
         ```
 
     === "CLI"
@@ -79,6 +79,6 @@ The example showcases the subtle differences and similarities among the differen
 
 ## Citations and Acknowledgments
 
-If you use the ImageWoof dataset in your research or development work, please make sure to acknowledge the creators of the dataset by linking to the [official dataset repository](https://github.com/fastai/imagenette). As of my knowledge cutoff in September 2021, there is no official publication specifically about ImageWoof for citation.
+If you use the ImageWoof dataset in your research or development work, please make sure to acknowledge the creators of the dataset by linking to the [official dataset repository](https://github.com/fastai/imagenette).
 
 We would like to acknowledge the FastAI team for creating and maintaining the ImageWoof dataset as a valuable resource for the machine learning and computer vision research community. For more information about the ImageWoof dataset, visit the [ImageWoof dataset repository](https://github.com/fastai/imagenette).

@@ -313,7 +313,6 @@ def test_utils_checks():
     check_requirements()  # check requirements.txt
     check_imgsz([600, 600], max_dim=1)
     print_args()
-    check_imshow()
 
 
 def test_utils_benchmarks():

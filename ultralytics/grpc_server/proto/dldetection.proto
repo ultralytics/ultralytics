@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package aiservice;
+
+service AiService {
+  rpc DlDetection (DlRequest) returns (DlResponse) {} // 深度学习检测服务
+//   rpc DlEmbeddingGet (DlEmbeddingRequest) returns (Tensor) {} // 深度学习检测服务
+}
+
+message DlRequest {
+  int32 type = 1; // 模型类型
+  bytes imdata = 2; // 图像二进制数据-base64编码
+}
+
+message DlBoundingRect{
+  int32 x = 1; // 左上角横坐标
+  int32 y = 2; // 左上角纵坐标
+  int32 w = 3; // 矩形宽度
+  int32 h = 4; // 矩形高度
+}
+
+message DlPoint{
+  int32 x = 1; // 横坐标
+  int32 y = 2; // 纵坐标
+}
+
+message DlMask{
+  repeated DlPoint points = 1; // 点组成的掩膜
+}
+
+message DlResult{
+  string classid = 1; // 类别名称
+  float score = 2; // 目标得分
+  DlBoundingRect rect = 3; // 外接矩形
+  DlMask mask = 4; // 掩膜区域
+}
+
+message DlResponse{
+  repeated DlResult results = 1; // 检测结果
+}
+
+message DlEmbeddingRequest {
+  bytes imdata = 1; // 图像二进制数据-base64编码
+  repeated int32 imsize=2;
+}
+message Tensor {
+  repeated float data =1;
+  repeated int32 shape =2;
+}

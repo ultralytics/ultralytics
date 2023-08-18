@@ -11,7 +11,6 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
-from scipy.ndimage import gaussian_filter1d
 
 from ultralytics.utils import LOGGER, TryExcept, plt_settings, threaded
 
@@ -21,7 +20,17 @@ from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 
 
 class Colors:
-    """Ultralytics color palette https://ultralytics.com/."""
+    """
+    Ultralytics default color palette https://ultralytics.com/.
+
+    This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
+    RGB values.
+
+    Attributes:
+        palette (list of tuple): List of RGB color values.
+        n (int): The number of colors in the palette.
+        pose_palette (np.array): A specific color palette array with dtype np.uint8.
+    """
 
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
@@ -36,12 +45,13 @@ class Colors:
                                      dtype=np.uint8)
 
     def __call__(self, i, bgr=False):
-        """Converts hex color codes to rgb values."""
+        """Converts hex color codes to RGB values."""
         c = self.palette[int(i) % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
-    def hex2rgb(h):  # rgb order (PIL)
+    def hex2rgb(h):
+        """Converts hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4))
 
 
@@ -49,7 +59,18 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    """YOLOv8 Annotator for train/val mosaics and jpgs and detect/hub inference annotations."""
+    """
+    Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
+
+    Attributes:
+        im (Image.Image or numpy array): The image to annotate.
+        pil (bool): Whether to use PIL or cv2 for drawing annotations.
+        font (ImageFont.truetype or ImageFont.load_default): Font used for text annotations.
+        lw (float): Line width for drawing.
+        skeleton (List[List[int]]): Skeleton structure for keypoints.
+        limb_color (List[int]): Color palette for limbs.
+        kpt_color (List[int]): Color palette for keypoints.
+    """
 
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
@@ -112,12 +133,15 @@ class Annotator:
                             lineType=cv2.LINE_AA)
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
-        """Plot masks at once.
+        """
+        Plot masks on image.
+
         Args:
-            masks (tensor): predicted masks on cuda, shape: [n, h, w]
-            colors (List[List[Int]]): colors for predicted masks, [[r, g, b] * n]
-            im_gpu (tensor): img is in cuda, shape: [3, h, w], range: [0, 1]
-            alpha (float): mask transparency: 0.0 fully transparent, 1.0 opaque
+            masks (tensor): Predicted masks on cuda, shape: [n, h, w]
+            colors (List[List[Int]]): Colors for predicted masks, [[r, g, b] * n]
+            im_gpu (tensor): Image is in cuda, shape: [3, h, w], range: [0, 1]
+            alpha (float): Mask transparency: 0.0 fully transparent, 1.0 opaque
+            retina_masks (bool): Whether to use high resolution masks or not. Defaults to False.
         """
         if self.pil:
             # Convert to numpy first
@@ -145,7 +169,8 @@ class Annotator:
             self.fromarray(self.im)
 
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
-        """Plot keypoints on the image.
+        """
+        Plot keypoints on the image.
 
         Args:
             kpts (tensor): Predicted keypoints with shape [17, 3]. Each keypoint has (x, y, confidence).
@@ -239,7 +264,7 @@ class Annotator:
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
-    """Save and plot image with no axis or spines."""
+    """Plot training labels including class histograms and box statistics."""
     import pandas as pd
     import seaborn as sn
 
@@ -248,9 +273,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
     # Plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
-    b = boxes.transpose()  # classes, boxes
     nc = int(cls.max() + 1)  # number of classes
-    x = pd.DataFrame(b.transpose(), columns=['x', 'y', 'width', 'height'])
+    boxes = boxes[:1000000]  # limit to 1M boxes
+    x = pd.DataFrame(boxes, columns=['x', 'y', 'width', 'height'])
 
     # Seaborn correlogram
     sn.pairplot(x, corner=True, diag_kind='auto', kind='hist', diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
@@ -292,7 +317,37 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
 
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):
-    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop."""
+    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
+
+    This function takes a bounding box and an image, and then saves a cropped portion of the image according
+    to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
+    adjustments to the bounding box.
+
+    Args:
+        xyxy (torch.Tensor or list): A tensor or list representing the bounding box in xyxy format.
+        im (numpy.ndarray): The input image.
+        file (Path, optional): The path where the cropped image will be saved. Defaults to 'im.jpg'.
+        gain (float, optional): A multiplicative factor to increase the size of the bounding box. Defaults to 1.02.
+        pad (int, optional): The number of pixels to add to the width and height of the bounding box. Defaults to 10.
+        square (bool, optional): If True, the bounding box will be transformed into a square. Defaults to False.
+        BGR (bool, optional): If True, the image will be saved in BGR format, otherwise in RGB. Defaults to False.
+        save (bool, optional): If True, the cropped image will be saved to disk. Defaults to True.
+
+    Returns:
+        (numpy.ndarray): The cropped image.
+
+    Example:
+        ```python
+        from ultralytics.utils.plotting import save_one_box
+
+        xyxy = [50, 50, 150, 150]
+        im = cv2.imread('image.jpg')
+        cropped_im = save_one_box(xyxy, im, file='cropped.jpg', square=True)
+        ```
+    """
+
+    if not isinstance(xyxy, torch.Tensor):  # may be list
+        xyxy = torch.stack(xyxy)
     b = xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
@@ -442,8 +497,18 @@ def plot_images(images,
 
 @plt_settings()
 def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, classify=False, on_plot=None):
-    """Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')."""
+    """
+    Plot training results from results CSV file.
+
+    Example:
+        ```python
+        from ultralytics.utils.plotting import plot_results
+
+        plot_results('path/to/results.csv')
+        ```
+    """
     import pandas as pd
+    from scipy.ndimage import gaussian_filter1d
     save_dir = Path(file).parent if file else Path(dir)
     if classify:
         fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)

@@ -53,15 +53,19 @@ YOLOv4 is a powerful and efficient object detection model that strikes a balance
 
 We would like to acknowledge the YOLOv4 authors for their significant contributions in the field of real-time object detection:
 
-```bibtex
-@misc{bochkovskiy2020yolov4,
-      title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
-      author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
-      year={2020},
-      eprint={2004.10934},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{bochkovskiy2020yolov4,
+              title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
+              author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
+              year={2020},
+              eprint={2004.10934},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 The original YOLOv4 paper can be found on [arXiv](https://arxiv.org/pdf/2004.10934.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/AlexeyAB/darknet). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

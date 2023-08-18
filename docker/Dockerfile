@@ -20,7 +20,6 @@ RUN apt update \
 RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
-RUN mkdir -p /usr/src/ultralytics
 WORKDIR /usr/src/ultralytics
 
 # Copy contents
@@ -30,7 +29,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e '.[export]' thop albumentations comet pycocotools
+RUN pip install --no-cache -e ".[export]" thop albumentations comet pycocotools
 
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32

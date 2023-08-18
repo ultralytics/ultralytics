@@ -14,6 +14,10 @@ keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_g
 <br><br>
 
 ---
+## ::: ultralytics.utils.downloads.delete_dsstore
+<br><br>
+
+---
 ## ::: ultralytics.utils.downloads.zip_directory
 <br><br>
 

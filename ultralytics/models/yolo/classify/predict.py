@@ -4,7 +4,7 @@ import torch
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import DEFAULT_CFG, ROOT
+from ultralytics.utils import ASSETS, DEFAULT_CFG
 
 
 class ClassificationPredictor(BasePredictor):
@@ -35,8 +35,7 @@ class ClassificationPredictor(BasePredictor):
 def predict(cfg=DEFAULT_CFG, use_python=False):
     """Run YOLO model predictions on input images/videos."""
     model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
-        else 'https://ultralytics.com/images/bus.jpg'
+    source = cfg.source or ASSETS
 
     args = dict(model=model, source=source)
     if use_python:

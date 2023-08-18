@@ -283,6 +283,12 @@ def test_data_converter():
     coco80_to_coco91_class()
 
 
+def test_data_annotator():
+    from ultralytics.data.annotator import auto_annotate
+
+    auto_annotate(ASSETS, det_model='yolov8n.pt', sam_model='mobile_sam.pt', output_dir=TMP / 'auto_annotate_labels')
+
+
 def test_events():
     # Test event sending
     from ultralytics.hub.utils import Events

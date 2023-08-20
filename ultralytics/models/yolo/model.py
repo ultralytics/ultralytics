@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.engine.model import Model
-from ultralytics.models import yolo  # noqa
+from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel
 
 
@@ -36,6 +36,7 @@ class YOLO(Model):
                 'predictor': yolo.pose.PosePredictor, },
             'obb': {
                 'model': OBBModel,
-                'trainer': None,
-                'validator': None,
-                'predictor': None, }, }
+                'trainer': yolo.obb.OBBTrainer,
+                'validator': yolo.obb.OBBValidator,
+                'predictor': yolo.obb.OBBPredictor, },
+        }

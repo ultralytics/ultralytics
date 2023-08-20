@@ -12,7 +12,3 @@ keywords: Ultralytics, YOLO, PosePredictor, machine learning, AI, predictive mod
 ---
 ## ::: ultralytics.models.yolo.pose.predict.PosePredictor
 <br><br>
-
----
-## ::: ultralytics.models.yolo.pose.predict.predict
-<br><br>

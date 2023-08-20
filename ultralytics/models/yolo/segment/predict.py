@@ -4,10 +4,23 @@ import torch
 
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-from ultralytics.utils import ASSETS, DEFAULT_CFG, ops
+from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class SegmentationPredictor(DetectionPredictor):
+    """
+    A class extending the DetectionPredictor class for prediction based on a segmentation model.
+
+    Example:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.segment import SegmentationPredictor
+
+        args = dict(model='yolov8n-seg.pt', source=ASSETS)
+        predictor = SegmentationPredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
@@ -42,21 +55,3 @@ class SegmentationPredictor(DetectionPredictor):
             results.append(
                 Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results
-
-
-def predict(cfg=DEFAULT_CFG, use_python=False):
-    """Runs YOLO object detection on an image or video source."""
-    model = cfg.model or 'yolov8n-seg.pt'
-    source = cfg.source or ASSETS
-
-    args = dict(model=model, source=source)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model)(**args)
-    else:
-        predictor = SegmentationPredictor(overrides=args)
-        predictor.predict_cli()
-
-
-if __name__ == '__main__':
-    predict()

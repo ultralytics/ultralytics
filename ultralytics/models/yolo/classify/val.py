@@ -4,12 +4,27 @@ import torch
 
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import DEFAULT_CFG, LOGGER
+from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
 from ultralytics.utils.plotting import plot_images
 
 
 class ClassificationValidator(BaseValidator):
+    """
+    A class extending the BaseValidator class for validation based on a classification model.
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.classify import ClassificationValidator
+
+        args = dict(model='yolov8n-cls.pt', data='imagenet10')
+        validator = ClassificationValidator(args=args)
+        validator(model=args['model'])
+        ```
+    """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initializes ClassificationValidator instance with args, dataloader, save_dir, and progress bar."""
@@ -92,21 +107,3 @@ class ClassificationValidator(BaseValidator):
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names,
                     on_plot=self.on_plot)  # pred
-
-
-def val(cfg=DEFAULT_CFG, use_python=False):
-    """Validate YOLO model using custom data."""
-    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    data = cfg.data or 'mnist160'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).val(**args)
-    else:
-        validator = ClassificationValidator(args=args)
-        validator(model=args['model'])
-
-
-if __name__ == '__main__':
-    val()

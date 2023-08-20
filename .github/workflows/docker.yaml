@@ -66,13 +66,15 @@ jobs:
       - name: Retrieve Ultralytics version
         id: get_version
         run: |
-          VERSION=$(yolo version)
+          VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F"'" '{print $2}')
           echo "Retrieved Ultralytics version: $VERSION"
+          echo "::set-output name=version::$VERSION"
+          
           # Replace 'latest' in matrix.tags with the version string
           VERSION_TAG=${{ matrix.tags }}-${VERSION}
           VERSION_TAG=${VERSION_TAG/latest-/}
+          
           echo "Intended version tag: $VERSION_TAG"
-          echo "::set-output name=version::$VERSION"
           echo "::set-output name=version_tag::$VERSION_TAG"
 
       - name: Check if tag exists on DockerHub

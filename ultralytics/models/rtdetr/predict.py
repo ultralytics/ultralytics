@@ -12,7 +12,7 @@ class RTDETRPredictor(BasePredictor):
     """
     A class extending the BasePredictor class for prediction based on an RT-DETR detection model.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.utils import ASSETS
         from ultralytics.models.rtdetr import RTDETRPredictor
@@ -53,6 +53,7 @@ class RTDETRPredictor(BasePredictor):
 
         Notes: The size must be square(640) and scaleFilled.
 
-        Returns: A list of transformed imgs.
+        Returns:
+            (list): A list of transformed imgs.
         """
         return [LetterBox(self.imgsz, auto=False, scaleFill=True)(image=x) for x in im]

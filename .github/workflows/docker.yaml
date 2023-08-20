@@ -68,27 +68,26 @@ jobs:
         run: |
           VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F"'" '{print $2}')
           echo "Retrieved Ultralytics version: $VERSION"
-          echo "::set-output name=version::$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           
-          # Replace 'latest' in matrix.tags with the version string
-          VERSION_TAG=${{ matrix.tags }}-${VERSION}
-          VERSION_TAG=${VERSION_TAG/latest-/}
-          
+          # Replace 'latest' in matrix.tags with the version string and save
+          VERSION_TAG=${{ matrix.tags/latest-/-${VERSION} }}
           echo "Intended version tag: $VERSION_TAG"
-          echo "::set-output name=version_tag::$VERSION_TAG"
+          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists on DockerHub
         id: check_tag
+        env:
+          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
         run: |
-          TAG_TO_CHECK=${{ matrix.tags }}
-          EXISTS=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/${{ matrix.tags }} | jq '.name' | grep ${{ matrix.tags }})
+          EXISTS=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG | jq '.name' | grep $VERSION_TAG)
 
           if [[ -z "$EXISTS" ]]; then
-            echo "Tag $TAG_TO_CHECK does not exist on DockerHub."
-            echo "::set-output name=exists::false"
+            echo "Tag $VERSION_TAG does not exist on DockerHub."
+            echo "exists=false" >> $GITHUB_OUTPUT
           else
-            echo "Tag $TAG_TO_CHECK already exists on DockerHub."
-            echo "::set-output name=exists::true"
+            echo "Tag $VERSION_TAG already exists on DockerHub."
+            echo "exists=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Build Image

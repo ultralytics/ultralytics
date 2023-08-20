@@ -38,5 +38,4 @@ class YOLO(Model):
                 'model': OBBModel,
                 'trainer': yolo.obb.OBBTrainer,
                 'validator': yolo.obb.OBBValidator,
-                'predictor': yolo.obb.OBBPredictor, },
-        }
+                'predictor': yolo.obb.OBBPredictor, }, }

@@ -12,7 +12,3 @@ keywords: Ultralytics, RTDETRTrainer, model training, Ultralytics models, PyTorc
 ---
 ## ::: ultralytics.models.rtdetr.train.RTDETRTrainer
 <br><br>
-
----
-## ::: ultralytics.models.rtdetr.train.train
-<br><br>

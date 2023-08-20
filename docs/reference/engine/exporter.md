@@ -28,7 +28,3 @@ keywords: Ultralytics, Exporter, IOSDetectModel, Export Formats, Try export
 ---
 ## ::: ultralytics.engine.exporter.try_export
 <br><br>
-
----
-## ::: ultralytics.engine.exporter.export
-<br><br>

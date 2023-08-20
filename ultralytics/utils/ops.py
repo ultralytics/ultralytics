@@ -18,8 +18,7 @@ from .metrics import box_iou
 
 class Profile(contextlib.ContextDecorator):
     """
-    YOLOv8 Profile class.
-    Usage: as a decorator with @Profile() or as a context manager with 'with Profile():'
+    YOLOv8 Profile class. Use as a decorator with @Profile() or as a context manager with 'with Profile():'.
     """
 
     def __init__(self, t=0.0):

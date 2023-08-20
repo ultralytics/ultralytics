@@ -6,12 +6,27 @@ import torch
 
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
-from ultralytics.utils import DEFAULT_CFG, RANK, colorstr
+from ultralytics.utils import RANK, colorstr
 
 from .val import RTDETRDataset, RTDETRValidator
 
 
 class RTDETRTrainer(DetectionTrainer):
+    """
+    A class extending the DetectionTrainer class for training based on an RT-DETR detection model.
+
+    Notes:
+        - F.grid_sample used in rt-detr does not support the `deterministic=True` argument.
+        - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
+
+    Example:
+        ```python
+        from ultralytics.models.rtdetr.train import RTDETRTrainer
+
+        args = dict(model='rtdetr-l.yaml', data='coco8.yaml', imgsz=640, epochs=3)
+        trainer = RTDETRTrainer(overrides=args)
+        trainer.train()
+    """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""
@@ -54,16 +69,3 @@ class RTDETRTrainer(DetectionTrainer):
             gt_bbox.append(batch['bboxes'][batch_idx == i].to(batch_idx.device))
             gt_class.append(batch['cls'][batch_idx == i].to(device=batch_idx.device, dtype=torch.long))
         return batch
-
-
-def train(cfg=DEFAULT_CFG):
-    """Train and optimize RTDETR model given training data and device."""
-    # NOTE: F.grid_sample which is in rt-detr does not support deterministic=True
-    # NOTE: AMP training causes nan outputs and end with error while doing bipartite graph matching
-    args = dict(model='rtdetr-l.yaml', data=cfg.data or 'coco8.yaml', imgsz=640, amp=False)
-    trainer = RTDETRTrainer(overrides=args)
-    trainer.train()
-
-
-if __name__ == '__main__':
-    train()

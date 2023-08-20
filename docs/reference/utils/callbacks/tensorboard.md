@@ -22,10 +22,6 @@ keywords: Ultralytics, YOLO, documentation, callback utilities, log_scalars, on_
 <br><br>
 
 ---
-## ::: ultralytics.utils.callbacks.tensorboard.on_train_start
-<br><br>
-
----
 ## ::: ultralytics.utils.callbacks.tensorboard.on_batch_end
 <br><br>
 

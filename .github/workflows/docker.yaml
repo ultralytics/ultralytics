@@ -71,7 +71,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # Replace 'latest' in matrix.tags with the version string and save
-          VERSION_TAG=${{ matrix.tags/latest-/-$VERSION }}
+          VERSION_TAG=$(echo "${{ matrix.tags }}" | sed "s/latest-/-${VERSION}-/")
           echo "Intended version tag: $VERSION_TAG"
           echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
 

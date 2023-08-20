@@ -9,6 +9,19 @@ from ultralytics.utils import ops
 
 
 class RTDETRPredictor(BasePredictor):
+    """
+    A class extending the BasePredictor class for prediction based on an RT-DETR detection model.
+
+    Example:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.rtdetr import RTDETRPredictor
+
+        args = dict(model='rtdetr-l.pt', source=ASSETS)
+        predictor = RTDETRPredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+    """
 
     def postprocess(self, preds, img, orig_imgs):
         """Postprocess predictions and returns a list of Results objects."""
@@ -38,7 +51,9 @@ class RTDETRPredictor(BasePredictor):
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
 
-        Return: A list of transformed imgs.
+        Notes: The size must be square(640) and scaleFilled.
+
+        Returns:
+            (list): A list of transformed imgs.
         """
-        # The size must be square(640) and scaleFilled.
         return [LetterBox(self.imgsz, auto=False, scaleFill=True)(image=x) for x in im]

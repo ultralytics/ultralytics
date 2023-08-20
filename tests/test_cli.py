@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from ultralytics.utils import ONLINE, ROOT, SETTINGS
+from ultralytics.utils import ASSETS, SETTINGS
 
-WEIGHT_DIR = Path(SETTINGS['weights_dir'])
+WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 TASK_ARGS = [
     ('detect', 'yolov8n', 'coco8.yaml'),
     ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
@@ -30,7 +30,6 @@ def test_special_modes():
     run('yolo checks')
     run('yolo version')
     run('yolo settings reset')
-    run('yolo copy-cfg')
     run('yolo cfg')
 
 
@@ -41,41 +40,35 @@ def test_train(task, model, data):
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_val(task, model, data):
-    run(f'yolo val {task} model={WEIGHT_DIR / model}.pt data={data} imgsz=32')
+    # Download annotations to run pycocotools eval
+    # from ultralytics.utils import SETTINGS, Path
+    # from ultralytics.utils.downloads import download
+    # url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
+    # download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8/annotations')
+    # download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
+
+    # Validate
+    run(f'yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32 save_txt save_json')
 
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict(task, model, data):
-    run(f"yolo predict model={WEIGHT_DIR / model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
-
-
-@pytest.mark.skipif(not ONLINE, reason='environment is offline')
-@pytest.mark.parametrize('task,model,data', TASK_ARGS)
-def test_predict_online(task, model, data):
-    mode = 'track' if task in ('detect', 'segment', 'pose') else 'predict'  # mode for video inference
-    run(f'yolo predict model={WEIGHT_DIR / model}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
-    run(f'yolo {mode} model={WEIGHT_DIR / model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32'
-        )
-
-    # Run Python YouTube tracking because CLI is broken. TODO: fix CLI YouTube
-    # run(f'yolo {mode} model={model}.pt source=https://youtu.be/G17sBkb38XQ imgsz=32 tracker=bytetrack.yaml')
+    run(f'yolo predict model={WEIGHTS_DIR / model}.pt source={ASSETS} imgsz=32 save save_crop save_txt')
 
 
 @pytest.mark.parametrize('model,format', EXPORT_ARGS)
 def test_export(model, format):
-    run(f'yolo export model={WEIGHT_DIR / model}.pt format={format} imgsz=32')
+    run(f'yolo export model={WEIGHTS_DIR / model}.pt format={format} imgsz=32')
 
 
-# Test SAM, RTDETR Models
 def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
     # Warning: MUST use imgsz=640
     run(f'yolo train {task} model={model} data={data} imgsz=640 epochs=1 cache=disk')
-    run(f'yolo val {task} model={model} data={data} imgsz=640')
-    run(f"yolo predict {task} model={model} source={ROOT / 'assets/bus.jpg'} imgsz=640 save save_crop save_txt")
+    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=640 save save_crop save_txt")
 
 
-def test_fastsam(task='segment', model='FastSAM-s.pt', data='coco8-seg.yaml'):
-    source = ROOT / 'assets/bus.jpg'
+def test_fastsam(task='segment', model=WEIGHTS_DIR / 'FastSAM-s.pt', data='coco8-seg.yaml'):
+    source = ASSETS / 'bus.jpg'
 
     run(f'yolo segment val {task} model={model} data={data} imgsz=32')
     run(f'yolo segment predict model={model} source={source} imgsz=32 save save_crop save_txt')
@@ -84,10 +77,10 @@ def test_fastsam(task='segment', model='FastSAM-s.pt', data='coco8-seg.yaml'):
     from ultralytics.models.fastsam import FastSAMPrompt
 
     # Create a FastSAM model
-    model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+    sam_model = FastSAM(model)  # or FastSAM-x.pt
 
     # Run inference on an image
-    everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+    everything_results = sam_model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
     # Everything prompt
     prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
@@ -110,13 +103,19 @@ def test_mobilesam():
     from ultralytics import SAM
 
     # Load the model
-    model = SAM('mobile_sam.pt')
+    model = SAM(WEIGHTS_DIR / 'mobile_sam.pt')
+
+    # Source
+    source = ASSETS / 'zidane.jpg'
 
     # Predict a segment based on a point prompt
-    model.predict(ROOT / 'assets/zidane.jpg', points=[900, 370], labels=[1])
+    model.predict(source, points=[900, 370], labels=[1])
 
     # Predict a segment based on a box prompt
-    model.predict(ROOT / 'assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+    model.predict(source, bboxes=[439, 437, 524, 709])
+
+    # Predict all
+    # model(source)
 
 
 # Slow Tests
@@ -124,4 +123,4 @@ def test_mobilesam():
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_train_gpu(task, model, data):
     run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 device="0"')  # single GPU
-    run(f'yolo train {task} model={model}.pt data={data} imgsz=32 epochs=1 device="0,1"')  # Multi GPU
+    run(f'yolo train {task} model={model}.pt data={data} imgsz=32 epochs=1 device="0,1"')  # multi GPU

@@ -13,6 +13,21 @@ from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_di
 
 
 class ClassificationTrainer(BaseTrainer):
+    """
+    A class extending the BaseTrainer class for training based on a classification model.
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.classify import ClassificationTrainer
+
+        args = dict(model='yolov8n-cls.pt', data='imagenet10', epochs=3)
+        trainer = ClassificationTrainer(overrides=args)
+        trainer.train()
+        ```
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
@@ -137,22 +152,3 @@ class ClassificationTrainer(BaseTrainer):
             cls=batch['cls'].view(-1),  # warning: use .view(), not .squeeze() for Classify models
             fname=self.save_dir / f'train_batch{ni}.jpg',
             on_plot=self.on_plot)
-
-
-def train(cfg=DEFAULT_CFG, use_python=False):
-    """Train a YOLO classification model."""
-    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    data = cfg.data or 'mnist160'  # or yolo.ClassificationDataset("mnist")
-    device = cfg.device if cfg.device is not None else ''
-
-    args = dict(model=model, data=data, device=device)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).train(**args)
-    else:
-        trainer = ClassificationTrainer(overrides=args)
-        trainer.train()
-
-
-if __name__ == '__main__':
-    train()

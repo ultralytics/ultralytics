@@ -249,11 +249,11 @@ class Exporter:
             f[4], _ = self.export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
             self.args.int8 |= edgetpu
-            f[5], s_model = self.export_saved_model()
+            f[5], keras_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self.export_pb(s_model)
+                f[6], _ = self.export_pb(keras_model=keras_model)
             if tflite:
-                f[7], _ = self.export_tflite(s_model, nms=False, agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self.export_tflite(keras_model=keras_model, nms=False, agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
                 f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f'{self.file.stem}_full_integer_quant.tflite')
             if tfjs:
@@ -424,7 +424,9 @@ class Exporter:
                 'https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory '
                 f'or in {ROOT}. See PNNX repo for full installation instructions.')
             _, assets = get_github_assets(repo='pnnx/pnnx', retry=True)
-            asset = [x for x in assets if ('macos' if MACOS else 'ubuntu' if LINUX else 'windows') in x][0]
+            system = 'macos' if MACOS else 'ubuntu' if LINUX else 'windows'  # operating system
+            asset = [x for x in assets if system in x][0] if assets else \
+                f'https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20230816-{system}.zip'  # fallback
             attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
             unzip_dir = Path(asset).with_suffix('')
             pnnx = ROOT / pnnx_filename  # new location
@@ -463,6 +465,7 @@ class Exporter:
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return str(f), None
 
+    @try_export
     def export_coreml(self, prefix=colorstr('CoreML:')):
         """YOLOv8 CoreML export."""
         mlmodel = self.args.format.lower() == 'mlmodel'  # legacy *.mlmodel export format requested
@@ -481,7 +484,7 @@ class Exporter:
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
             model = self.model
         elif self.model.task == 'detect':
-            model = iOSDetectModel(self.model, self.im) if self.args.nms else self.model
+            model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolov8n.pt'.")
@@ -671,10 +674,7 @@ class Exporter:
         for file in f.rglob('*.tflite'):
             f.unlink() if 'quant_with_int16_act.tflite' in str(f) else self._add_tflite_metadata(file)
 
-        # Load saved_model
-        keras_model = tf.saved_model.load(f, tags=None, options=None)
-
-        return str(f), keras_model
+        return str(f), tf.saved_model.load(f, tags=None, options=None)  # load saved_model as Keras model
 
     @try_export
     def export_pb(self, keras_model, prefix=colorstr('TensorFlow GraphDef:')):
@@ -846,12 +846,11 @@ class Exporter:
         out0, out1 = iter(spec.description.output)
         if MACOS:
             from PIL import Image
-            img = Image.new('RGB', (w, h))  # img(192 width, 320 height)
-            # img = torch.zeros((*opt.img_size, 3)).numpy()  # img size(320,192,3) iDetection
+            img = Image.new('RGB', (w, h))  # w=192, h=320
             out = model.predict({'image': img})
-            out0_shape = out[out0.name].shape
-            out1_shape = out[out1.name].shape
-        else:  # linux and windows can not run model.predict(), get sizes from pytorch output y
+            out0_shape = out[out0.name].shape  # (3780, 80)
+            out1_shape = out[out1.name].shape  # (3780, 4)
+        else:  # linux and windows can not run model.predict(), get sizes from PyTorch model output y
             out0_shape = self.output_shape[2], self.output_shape[1] - 4  # (3780, 80)
             out1_shape = self.output_shape[2], 4  # (3780, 4)
 
@@ -963,11 +962,11 @@ class Exporter:
             callback(self)
 
 
-class iOSDetectModel(torch.nn.Module):
-    """Wrap an Ultralytics YOLO model for iOS export."""
+class IOSDetectModel(torch.nn.Module):
+    """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
     def __init__(self, model, im):
-        """Initialize the iOSDetectModel class with a YOLO model and example image."""
+        """Initialize the IOSDetectModel class with a YOLO model and example image."""
         super().__init__()
         b, c, h, w = im.shape  # batch, channel, height, width
         self.model = model
@@ -981,21 +980,3 @@ class iOSDetectModel(torch.nn.Module):
         """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
-
-
-def export(cfg=DEFAULT_CFG):
-    """Export a YOLOv model to a specific format."""
-    cfg.model = cfg.model or 'yolov8n.yaml'
-    cfg.format = cfg.format or 'torchscript'
-
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.export(**vars(cfg))
-
-
-if __name__ == '__main__':
-    """
-    CLI:
-    yolo mode=export model=yolov8n.yaml format=onnx
-    """
-    export()

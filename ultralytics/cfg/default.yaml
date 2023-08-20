@@ -64,7 +64,7 @@ line_width:   # (int, optional) line width of the bounding boxes, auto if missin
 visualize: False  # (bool) visualize model features
 augment: False  # (bool) apply image augmentation to prediction sources
 agnostic_nms: False  # (bool) class-agnostic NMS
-classes:  # (int | list[int], optional) filter results by class, i.e. class=0, or class=[0,2,3]
+classes:  # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
 retina_masks: False  # (bool) use high-resolution segmentation masks
 boxes: True  # (bool) Show boxes in segmentation predictions
 

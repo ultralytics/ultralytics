@@ -54,13 +54,5 @@ keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mas
 <br><br>
 
 ---
-## ::: ultralytics.data.utils.delete_dsstore
-<br><br>
-
----
-## ::: ultralytics.data.utils.zip_directory
-<br><br>
-
----
 ## ::: ultralytics.data.utils.autosplit
 <br><br>

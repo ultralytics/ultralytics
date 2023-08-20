@@ -16,7 +16,7 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import LOGGER, ROOT, is_colab, is_kaggle, ops
+from ultralytics.utils import ASSETS, LOGGER, is_colab, is_kaggle, ops
 from ultralytics.utils.checks import check_requirements
 
 
@@ -79,26 +79,25 @@ class LoadStreams:
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
-        while self.running and cap.isOpened() and n < f:
+        while self.running and cap.isOpened() and n < (f - 1):
             # Only read a new frame if the buffer is empty
             if not self.imgs[i]:
                 n += 1
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
                     success, im = cap.retrieve()
-                    if success:
-                        self.imgs[i].append(im)  # add image to buffer
-                    else:
+                    if not success:
+                        im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-                        self.imgs[i].append(np.zeros(self.shape[i]))
                         cap.open(stream)  # re-open stream if signal was lost
+                    self.imgs[i].append(im)  # add image to buffer
             else:
                 time.sleep(0.01)  # wait until the buffer is empty
 
     def close(self):
         """Close stream loader and release resources."""
         self.running = False  # stop flag for Thread
-        for i, thread in enumerate(self.threads):
+        for thread in self.threads:
             if thread.is_alive():
                 thread.join(timeout=5)  # Add timeout
         for cap in self.caps:  # Iterate through the stored VideoCapture objects
@@ -210,7 +209,6 @@ class LoadImages:
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = 1
         if any(videos):
-            self.orientation = None  # rotation degrees
             self._new_video(videos[0])  # new video
         else:
             self.cap = None
@@ -263,20 +261,6 @@ class LoadImages:
         self.frame = 0
         self.cap = cv2.VideoCapture(path)
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
-        if hasattr(cv2, 'CAP_PROP_ORIENTATION_META'):  # cv2<4.6.0 compatibility
-            self.orientation = int(self.cap.get(cv2.CAP_PROP_ORIENTATION_META))  # rotation degrees
-            # Disable auto-orientation due to known issues in https://github.com/ultralytics/yolov5/issues/8493
-            # self.cap.set(cv2.CAP_PROP_ORIENTATION_AUTO, 0)
-
-    def _cv2_rotate(self, im):
-        """Rotate a cv2 video manually."""
-        if self.orientation == 0:
-            return cv2.rotate(im, cv2.ROTATE_90_CLOCKWISE)
-        elif self.orientation == 180:
-            return cv2.rotate(im, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        elif self.orientation == 90:
-            return cv2.rotate(im, cv2.ROTATE_180)
-        return im
 
     def __len__(self):
         """Returns the number of files in the object."""
@@ -385,10 +369,10 @@ def autocast_list(source):
     return files
 
 
-LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
+LOADERS = LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots  # tuple
 
 
-def get_best_youtube_url(url, use_pafy=True):
+def get_best_youtube_url(url, use_pafy=False):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
@@ -405,19 +389,21 @@ def get_best_youtube_url(url, use_pafy=True):
     if use_pafy:
         check_requirements(('pafy', 'youtube_dl==2020.12.2'))
         import pafy  # noqa
-        return pafy.new(url).getbest(preftype='mp4').url
+        return pafy.new(url).getbestvideo(preftype='mp4').url
     else:
         check_requirements('yt-dlp')
         import yt_dlp
         with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
             info_dict = ydl.extract_info(url, download=False)  # extract info
-        for f in info_dict.get('formats', None):
-            if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
-                return f.get('url', None)
+        for f in reversed(info_dict.get('formats', [])):  # reversed because best is usually last
+            # Find a format with video codec, no audio, *.mp4 extension at least 1920x1080 size
+            good_size = (f.get('width') or 0) >= 1920 or (f.get('height') or 0) >= 1080
+            if good_size and f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
+                return f.get('url')
 
 
 if __name__ == '__main__':
-    img = cv2.imread(str(ROOT / 'assets/bus.jpg'))
+    img = cv2.imread(str(ASSETS / 'bus.jpg'))
     dataset = LoadPilAndNumpy(im0=img)
     for d in dataset:
         print(d[0])

@@ -46,7 +46,7 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
         # Run inference with the RT-DETR-l model on the 'bus.jpg' image
         results = model('path/to/bus.jpg')

@@ -14,7 +14,7 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
-from PIL import ExifTags, Image, ImageOps
+from PIL import Image, ImageOps
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
@@ -28,11 +28,6 @@ HELP_URL = 'See https://docs.ultralytics.com/datasets/detect for dataset formatt
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
 VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'  # video suffixes
 PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
-
-# Get orientation exif tag
-for orientation in ExifTags.TAGS.keys():
-    if ExifTags.TAGS[orientation] == 'Orientation':
-        break
 
 
 def img2label_paths(img_paths):
@@ -49,13 +44,16 @@ def get_hash(paths):
     return h.hexdigest()  # return hash
 
 
-def exif_size(img):
+def exif_size(img: Image.Image):
     """Returns exif-corrected PIL size."""
     s = img.size  # (width, height)
-    with contextlib.suppress(Exception):
-        rotation = dict(img._getexif().items())[orientation]
-        if rotation in [6, 8]:  # rotation 270 or 90
-            s = (s[1], s[0])
+    if img.format == 'JPEG':  # only support JPEG images
+        with contextlib.suppress(Exception):
+            exif = img.getexif()
+            if exif:
+                rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
+                if rotation in [6, 8]:  # rotation 270 or 90
+                    s = s[1], s[0]
     return s
 
 
@@ -142,16 +140,12 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
         downsample_ratio (int): downsample ratio
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
-    polygons = np.asarray(polygons)
-    polygons = polygons.astype(np.int32)
-    shape = polygons.shape
-    polygons = polygons.reshape(shape[0], -1, 2)
+    polygons = np.asarray(polygons, dtype=np.int32)
+    polygons = polygons.reshape((polygons.shape[0], -1, 2))
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
-    # NOTE: fillPoly firstly then resize is trying the keep the same way
-    # of loss calculation when mask-ratio=1.
-    mask = cv2.resize(mask, (nw, nh))
-    return mask
+    # NOTE: fillPoly first then resize is trying to keep the same way of loss calculation when mask-ratio=1.
+    return cv2.resize(mask, (nw, nh))
 
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
@@ -162,11 +156,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
         color (int): color
         downsample_ratio (int): downsample ratio
     """
-    masks = []
-    for si in range(len(polygons)):
-        mask = polygon2mask(imgsz, [polygons[si].reshape(-1)], color, downsample_ratio)
-        masks.append(mask)
-    return np.array(masks)
+    return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 
 
 def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
@@ -190,7 +180,21 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 
 
 def check_det_dataset(dataset, autodownload=True):
-    """Download, check and/or unzip dataset if not found locally."""
+    """
+    Download, verify, and/or unzip a dataset if not found locally.
+
+    This function checks the availability of a specified dataset, and if not found, it has the option to download and
+    unzip the dataset. It then reads and parses the accompanying YAML data, ensuring key requirements are met and also
+    resolves paths related to the dataset.
+
+    Args:
+        dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
+        autodownload (bool, optional): Whether to automatically download the dataset if not found. Defaults to True.
+
+    Returns:
+        (dict): Parsed dataset information and paths.
+    """
+
     data = check_file(dataset)
 
     # Download (optional)
@@ -327,7 +331,7 @@ def check_cls_dataset(dataset: str, split=''):
     return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
 
 
-class HUBDatasetStats():
+class HUBDatasetStats:
     """
     A class for generating HUB dataset JSON and `-hub` dataset directory.
 
@@ -350,8 +354,9 @@ class HUBDatasetStats():
 
     def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
         """Initialize class."""
+        path = Path(path).resolve()
         LOGGER.info(f'Starting HUB dataset checks for {path}....')
-        zipped, data_dir, yaml_path = self._unzip(Path(path))
+        zipped, data_dir, yaml_path = self._unzip(path)
         try:
             # data = yaml_load(check_yaml(yaml_path))  # data dict
             data = check_det_dataset(yaml_path, autodownload)  # data dict
@@ -371,11 +376,10 @@ class HUBDatasetStats():
     def _find_yaml(dir):
         """Return data.yaml file."""
         files = list(dir.glob('*.yaml')) or list(dir.rglob('*.yaml'))  # try root level first and then recursive
-        assert files, f'No *.yaml file found in {dir}'
+        assert files, f"No *.yaml file found in '{dir.resolve()}'"
         if len(files) > 1:
             files = [f for f in files if f.stem == dir.stem]  # prefer *.yaml files that match dir name
-            assert files, f'Multiple *.yaml files found in {dir}, only 1 *.yaml file allowed'
-        assert len(files) == 1, f'Multiple *.yaml files found: {files}, only 1 *.yaml file allowed in {dir}'
+        assert len(files) == 1, f"Expected 1 *.yaml file in '{dir.resolve()}', but found {len(files)}.\n{files}"
         return files[0]
 
     def _unzip(self, path):
@@ -407,7 +411,7 @@ class HUBDatasetStats():
             else:
                 raise ValueError('Undefined dataset task.')
             zipped = zip(labels['cls'], coordinates)
-            return [[int(c), *(round(float(x), 4) for x in points)] for c, points in zipped]
+            return [[int(c[0]), *(round(float(x), 4) for x in points)] for c, points in zipped]
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:
@@ -478,6 +482,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
             compress_one_image(f)
         ```
     """
+
     try:  # use PIL
         im = Image.open(f)
         r = max_dim / max(im.height, im.width)  # ratio
@@ -494,70 +499,18 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         cv2.imwrite(str(f_new or f), im)
 
 
-def delete_dsstore(path):
+def autosplit(path=DATASETS_DIR / 'coco8/images', weights=(0.9, 0.1, 0.0), annotated_only=False):
     """
-    Deletes all ".DS_store" files under a specified directory.
+    Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
 
     Args:
-        path (str, optional): The directory path where the ".DS_store" files should be deleted.
-
-    Example:
-        ```python
-        from ultralytics.data.utils import delete_dsstore
-
-        delete_dsstore('path/to/dir')
-        ```
-
-    Note:
-        ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
-        are hidden system files and can cause issues when transferring files between different operating systems.
-    """
-    # Delete Apple .DS_store files
-    files = list(Path(path).rglob('.DS_store'))
-    LOGGER.info(f'Deleting *.DS_store files: {files}')
-    for f in files:
-        f.unlink()
-
-
-def zip_directory(dir, use_zipfile_library=True):
-    """
-    Zips a directory and saves the archive to the specified output path. Equivalent to 'zip -r coco8.zip coco8/'
-
-    Args:
-        dir (str): The path to the directory to be zipped.
-        use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
-
-    Example:
-        ```python
-        from ultralytics.data.utils import zip_directory
-
-        zip_directory('/path/to/dir')
-        ```
-    """
-    delete_dsstore(dir)
-    if use_zipfile_library:
-        dir = Path(dir)
-        with zipfile.ZipFile(dir.with_suffix('.zip'), 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            for file_path in dir.glob('**/*'):
-                if file_path.is_file():
-                    zip_file.write(file_path, file_path.relative_to(dir))
-    else:
-        import shutil
-        shutil.make_archive(dir, 'zip', dir)
-
-
-def autosplit(path=DATASETS_DIR / 'coco128/images', weights=(0.9, 0.1, 0.0), annotated_only=False):
-    """
-    Autosplit a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
-
-    Args:
-        path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco128/images'.
+        path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.
         weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
         annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
 
     Example:
         ```python
-        from ultralytics.utils.dataloaders import autosplit
+        from ultralytics.data.utils import autosplit
 
         autosplit()
         ```

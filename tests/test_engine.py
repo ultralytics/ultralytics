@@ -6,14 +6,13 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
-from ultralytics.utils import DEFAULT_CFG, ROOT, SETTINGS
+from ultralytics.utils import ASSETS, DEFAULT_CFG, SETTINGS
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'yolov8n-cls.yaml'  # or 'squeezenet1_0'
 CFG = get_cfg(DEFAULT_CFG)
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
-SOURCE = ROOT / 'assets'
 
 
 def test_func(*args):  # noqa
@@ -25,7 +24,7 @@ def test_export():
     exporter.add_callback('on_export_start', test_func)
     assert test_func in exporter.callbacks['on_export_start'], 'callback test failed'
     f = exporter(model=YOLO(CFG_DET).model)
-    YOLO(f)(SOURCE)  # exported model inference
+    YOLO(f)(ASSETS)  # exported model inference
 
 
 def test_detect():
@@ -49,7 +48,7 @@ def test_detect():
     pred = detect.DetectionPredictor(overrides={'imgsz': [64, 64]})
     pred.add_callback('on_predict_start', test_func)
     assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
-    result = pred(source=SOURCE, model=f'{MODEL}.pt')
+    result = pred(source=ASSETS, model=f'{MODEL}.pt')
     assert len(result), 'predictor test failed'
 
     overrides['resume'] = trainer.last
@@ -85,7 +84,7 @@ def test_segment():
     pred = segment.SegmentationPredictor(overrides={'imgsz': [64, 64]})
     pred.add_callback('on_predict_start', test_func)
     assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
-    result = pred(source=SOURCE, model=f'{MODEL}-seg.pt')
+    result = pred(source=ASSETS, model=f'{MODEL}-seg.pt')
     assert len(result), 'predictor test failed'
 
     # Test resume
@@ -122,5 +121,5 @@ def test_classify():
     pred = classify.ClassificationPredictor(overrides={'imgsz': [64, 64]})
     pred.add_callback('on_predict_start', test_func)
     assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
-    result = pred(source=SOURCE, model=trainer.best)
+    result = pred(source=ASSETS, model=trainer.best)
     assert len(result), 'predictor test failed'

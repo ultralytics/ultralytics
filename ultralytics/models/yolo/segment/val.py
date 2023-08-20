@@ -243,14 +243,3 @@ class SegmentationValidator(DetectionValidator):
             except Exception as e:
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats
-
-
-def val(cfg=DEFAULT_CFG):
-    """Validate trained YOLO model on validation data."""
-    args = dict(model=cfg.model or 'yolov8n-seg.pt', data=cfg.data or 'coco8-seg.yaml')
-    validator = SegmentationValidator(args=args)
-    validator(model=args['model'])
-
-
-if __name__ == '__main__':
-    val()

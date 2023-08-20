@@ -9,6 +9,18 @@ from ultralytics.utils.plotting import plot_images, plot_results
 
 
 class SegmentationTrainer(yolo.detect.DetectionTrainer):
+    """
+    A class extending the DetectionTrainer class for training based on a segmentation model.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.segment import SegmentationTrainer
+
+        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml', epochs=3)
+        trainer = SegmentationTrainer(overrides=args)
+        trainer.train()
+        ```
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize a SegmentationTrainer object with given arguments."""
@@ -46,19 +58,11 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png
 
 
-def train(cfg=DEFAULT_CFG, use_python=False):
+def train(cfg=DEFAULT_CFG):
     """Train a YOLO segmentation model based on passed arguments."""
-    model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco8-seg.yaml'
-    device = cfg.device if cfg.device is not None else ''
-
-    args = dict(model=model, data=data, device=device)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).train(**args)
-    else:
-        trainer = SegmentationTrainer(overrides=args)
-        trainer.train()
+    args = dict(model=cfg.model or 'yolov8n-seg.pt', data=cfg.data or 'coco8-seg.yaml')
+    trainer = SegmentationTrainer(overrides=args)
+    trainer.train()
 
 
 if __name__ == '__main__':

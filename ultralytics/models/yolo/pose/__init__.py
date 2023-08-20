@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from .predict import PosePredictor, predict
-from .train import PoseTrainer, train
-from .val import PoseValidator, val
+from .predict import PosePredictor
+from .train import PoseTrainer
+from .val import PoseValidator
 
-__all__ = 'PoseTrainer', 'train', 'PoseValidator', 'val', 'PosePredictor', 'predict'
+__all__ = 'PoseTrainer', 'PoseValidator', 'PosePredictor'

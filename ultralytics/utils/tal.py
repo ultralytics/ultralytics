@@ -10,12 +10,14 @@ TORCH_1_10 = check_version(torch.__version__, '1.10.0')
 
 
 def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
-    """select the positive anchor center in gt
+    """
+    Select the positive anchor center in gt.
 
     Args:
         xy_centers (Tensor): shape(h*w, 4)
         gt_bboxes (Tensor): shape(b, n_boxes, 4)
-    Return:
+
+    Returns:
         (Tensor): shape(b, n_boxes, h*w)
     """
     n_anchors = xy_centers.shape[0]
@@ -27,13 +29,14 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
 
 
 def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
-    """if an anchor box is assigned to multiple gts,
-        the one with the highest iou will be selected.
+    """
+    If an anchor box is assigned to multiple gts, the one with the highest IoI will be selected.
 
     Args:
         mask_pos (Tensor): shape(b, n_max_boxes, h*w)
         overlaps (Tensor): shape(b, n_max_boxes, h*w)
-    Return:
+
+    Returns:
         target_gt_idx (Tensor): shape(b, h*w)
         fg_mask (Tensor): shape(b, h*w)
         mask_pos (Tensor): shape(b, n_max_boxes, h*w)

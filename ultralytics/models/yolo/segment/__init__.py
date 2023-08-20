@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from .predict import SegmentationPredictor, predict
-from .train import SegmentationTrainer, train
-from .val import SegmentationValidator, val
+from .predict import SegmentationPredictor
+from .train import SegmentationTrainer
+from .val import SegmentationValidator
 
-__all__ = 'SegmentationPredictor', 'predict', 'SegmentationTrainer', 'train', 'SegmentationValidator', 'val'
+__all__ = 'SegmentationPredictor', 'SegmentationTrainer', 'SegmentationValidator'

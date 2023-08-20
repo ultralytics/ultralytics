@@ -138,12 +138,14 @@ class BasePredictor:
         return self.model(im, augment=self.args.augment, visualize=visualize)
 
     def pre_transform(self, im):
-        """Pre-transform input image before inference.
+        """
+        Pre-transform input image before inference.
 
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
 
-        Return: A list of transformed imgs.
+        Returns:
+            (list): A list of transformed images.
         """
         same_shapes = all(x.shape == im[0].shape for x in im)
         auto = same_shapes and self.model.pt

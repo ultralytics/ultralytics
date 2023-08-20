@@ -132,13 +132,13 @@ def test_val():
 
 def test_train_scratch():
     model = YOLO(CFG)
-    model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='disk', batch=-1)  # test disk caching with AutoBatch
+    model.train(data='coco8.yaml', epochs=2, imgsz=32, cache='disk', batch=-1, close_mosaic=1)
     model(SOURCE)
 
 
 def test_train_pretrained():
     model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
-    model.train(data='coco8-seg.yaml', epochs=1, imgsz=32, cache='ram', copy_paste=0.5, mixup=0.5)  # test RAM caching
+    model.train(data='coco8-seg.yaml', epochs=1, imgsz=32, cache='ram', copy_paste=0.5, mixup=0.5)
     model(SOURCE)
 
 

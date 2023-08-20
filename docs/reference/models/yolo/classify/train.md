@@ -12,7 +12,3 @@ keywords: Ultralytics, YOLO, Classification Trainer, deep learning, training pro
 ---
 ## ::: ultralytics.models.yolo.classify.train.ClassificationTrainer
 <br><br>
-
----
-## ::: ultralytics.models.yolo.classify.train.train
-<br><br>

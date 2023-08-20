@@ -484,7 +484,7 @@ class Exporter:
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
             model = self.model
         elif self.model.task == 'detect':
-            model = iOSDetectModel(self.model, self.im) if self.args.nms else self.model
+            model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolov8n.pt'.")
@@ -846,12 +846,11 @@ class Exporter:
         out0, out1 = iter(spec.description.output)
         if MACOS:
             from PIL import Image
-            img = Image.new('RGB', (w, h))  # img(192 width, 320 height)
-            # img = torch.zeros((*opt.img_size, 3)).numpy()  # img size(320,192,3) iDetection
+            img = Image.new('RGB', (w, h))  # w=192, h=320
             out = model.predict({'image': img})
-            out0_shape = out[out0.name].shape
-            out1_shape = out[out1.name].shape
-        else:  # linux and windows can not run model.predict(), get sizes from pytorch output y
+            out0_shape = out[out0.name].shape  # (3780, 80)
+            out1_shape = out[out1.name].shape  # (3780, 4)
+        else:  # linux and windows can not run model.predict(), get sizes from PyTorch model output y
             out0_shape = self.output_shape[2], self.output_shape[1] - 4  # (3780, 80)
             out1_shape = self.output_shape[2], 4  # (3780, 4)
 
@@ -963,11 +962,11 @@ class Exporter:
             callback(self)
 
 
-class iOSDetectModel(torch.nn.Module):
-    """Wrap an Ultralytics YOLO model for iOS export."""
+class IOSDetectModel(torch.nn.Module):
+    """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
     def __init__(self, model, im):
-        """Initialize the iOSDetectModel class with a YOLO model and example image."""
+        """Initialize the IOSDetectModel class with a YOLO model and example image."""
         super().__init__()
         b, c, h, w = im.shape  # batch, channel, height, width
         self.model = model
@@ -981,21 +980,3 @@ class iOSDetectModel(torch.nn.Module):
         """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
-
-
-def export(cfg=DEFAULT_CFG):
-    """Export a YOLOv model to a specific format."""
-    cfg.model = cfg.model or 'yolov8n.yaml'
-    cfg.format = cfg.format or 'torchscript'
-
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.export(**vars(cfg))
-
-
-if __name__ == '__main__':
-    """
-    CLI:
-    yolo mode=export model=yolov8n.yaml format=onnx
-    """
-    export()

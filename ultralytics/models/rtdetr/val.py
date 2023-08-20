@@ -67,6 +67,18 @@ class RTDETRDataset(YOLODataset):
 
 
 class RTDETRValidator(DetectionValidator):
+    """
+    A class extending the DetectionValidator class for validation based on an RT-DETR detection model.
+
+    Example:
+        ```python
+        from ultralytics.models.rtdetr import RTDETRValidator
+
+        args = dict(model='rtdetr-l.pt', data='coco8.yaml')
+        validator = RTDETRValidator(args=args)
+        validator(model=args['model'])
+        ```
+    """
 
     def build_dataset(self, img_path, mode='val', batch=None):
         """Build YOLO Dataset

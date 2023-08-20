@@ -8,6 +8,7 @@ from ultralytics import SAM, YOLO
 def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='', output_dir=None):
     """
     Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
+
     Args:
         data (str): Path to a folder containing images to be annotated.
         det_model (str, optional): Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.
@@ -15,12 +16,20 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
         device (str, optional): Device to run the models on. Defaults to an empty string (CPU or GPU, if available).
         output_dir (str | None | optional): Directory to save the annotated results.
             Defaults to a 'labels' folder in the same directory as 'data'.
+
+    Example:
+        ```python
+        from ultralytics.data.annotator import auto_annotate
+
+        auto_annotate(data='ultralytics/assets', det_model='yolov8n.pt', sam_model='mobile_sam.pt')
+        ```
     """
     det_model = YOLO(det_model)
     sam_model = SAM(sam_model)
 
+    data = Path(data)
     if not output_dir:
-        output_dir = Path(str(data)).parent / 'labels'
+        output_dir = data.parent / f'{data.stem}_auto_annotate_labels'
     Path(output_dir).mkdir(exist_ok=True, parents=True)
 
     det_results = det_model(data, stream=True, device=device)

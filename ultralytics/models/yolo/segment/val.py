@@ -15,6 +15,18 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class SegmentationValidator(DetectionValidator):
+    """
+    A class extending the DetectionValidator class for validation based on a segmentation model.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.segment import SegmentationValidator
+
+        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml')
+        validator = SegmentationValidator(args=args)
+        validator(model=args['model'])
+        ```
+    """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
@@ -233,18 +245,11 @@ class SegmentationValidator(DetectionValidator):
         return stats
 
 
-def val(cfg=DEFAULT_CFG, use_python=False):
+def val(cfg=DEFAULT_CFG):
     """Validate trained YOLO model on validation data."""
-    model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco8-seg.yaml'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).val(**args)
-    else:
-        validator = SegmentationValidator(args=args)
-        validator(model=args['model'])
+    args = dict(model=cfg.model or 'yolov8n-seg.pt', data=cfg.data or 'coco8-seg.yaml')
+    validator = SegmentationValidator(args=args)
+    validator(model=args['model'])
 
 
 if __name__ == '__main__':

@@ -12,7 +12,3 @@ keywords: Ultralytics, YOLO, Detection Validator, model valuation, precision, re
 ---
 ## ::: ultralytics.models.yolo.detect.val.DetectionValidator
 <br><br>
-
----
-## ::: ultralytics.models.yolo.detect.val.val
-<br><br>

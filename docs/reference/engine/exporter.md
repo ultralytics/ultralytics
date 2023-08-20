@@ -1,6 +1,6 @@
 ---
-description: Explore the exporter functionality of Ultralytics. Learn about exporting formats, iOSDetectModel, and try exporting with examples.
-keywords: Ultralytics, Exporter, iOSDetectModel, Export Formats, Try export
+description: Explore the exporter functionality of Ultralytics. Learn about exporting formats, IOSDetectModel, and try exporting with examples.
+keywords: Ultralytics, Exporter, IOSDetectModel, Export Formats, Try export
 ---
 
 # Reference for `ultralytics/engine/exporter.py`
@@ -14,7 +14,7 @@ keywords: Ultralytics, Exporter, iOSDetectModel, Export Formats, Try export
 <br><br>
 
 ---
-## ::: ultralytics.engine.exporter.iOSDetectModel
+## ::: ultralytics.engine.exporter.IOSDetectModel
 <br><br>
 
 ---
@@ -27,8 +27,4 @@ keywords: Ultralytics, Exporter, iOSDetectModel, Export Formats, Try export
 
 ---
 ## ::: ultralytics.engine.exporter.try_export
-<br><br>
-
----
-## ::: ultralytics.engine.exporter.export
 <br><br>

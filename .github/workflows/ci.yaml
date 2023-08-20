@@ -134,7 +134,7 @@ jobs:
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
-      - name: Upload coverage report to Codecov
+      - name: Upload Coverage Reports to CodeCov
         uses: codecov/codecov-action@v3
         with:
           flags: Benchmarks
@@ -188,7 +188,7 @@ jobs:
       - name: Pytest tests
         shell: bash  # for Windows compatibility
         run: pytest --cov=ultralytics/ --cov-report xml tests/
-      - name: Upload coverage report to Codecov
+      - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
         with:

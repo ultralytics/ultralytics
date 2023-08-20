@@ -74,7 +74,7 @@ jobs:
           echo "Intended version tag: $VERSION_TAG"
           echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
 
-      - name: Check if tag exists on DockerHub
+      - name: Check if version tag exists on DockerHub
         id: check_tag
         run: |
           RESPONSE=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG)

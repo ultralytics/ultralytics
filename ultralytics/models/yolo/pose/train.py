@@ -65,9 +65,8 @@ def train(cfg=DEFAULT_CFG, use_python=False):
     """Train the YOLO model on the given data and device."""
     model = cfg.model or 'yolov8n-pose.yaml'
     data = cfg.data or 'coco8-pose.yaml'
-    device = cfg.device if cfg.device is not None else ''
 
-    args = dict(model=model, data=data, device=device)
+    args = dict(model=model, data=data)
     if use_python:
         from ultralytics import YOLO
         YOLO(model).train(**args)

@@ -143,9 +143,8 @@ def train(cfg=DEFAULT_CFG, use_python=False):
     """Train a YOLO classification model."""
     model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
     data = cfg.data or 'mnist160'  # or yolo.ClassificationDataset("mnist")
-    device = cfg.device if cfg.device is not None else ''
 
-    args = dict(model=model, data=data, device=device)
+    args = dict(model=model, data=data)
     if use_python:
         from ultralytics import YOLO
         YOLO(model).train(**args)

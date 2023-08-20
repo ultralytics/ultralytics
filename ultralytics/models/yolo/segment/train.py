@@ -50,9 +50,8 @@ def train(cfg=DEFAULT_CFG, use_python=False):
     """Train a YOLO segmentation model based on passed arguments."""
     model = cfg.model or 'yolov8n-seg.pt'
     data = cfg.data or 'coco8-seg.yaml'
-    device = cfg.device if cfg.device is not None else ''
 
-    args = dict(model=model, data=data, device=device)
+    args = dict(model=model, data=data)
     if use_python:
         from ultralytics import YOLO
         YOLO(model).train(**args)

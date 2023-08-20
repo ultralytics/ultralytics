@@ -59,14 +59,12 @@ class RTDETRTrainer(DetectionTrainer):
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize RTDETR model given training data and device."""
     model = 'rtdetr-l.yaml'
-    data = cfg.data or 'coco8.yaml'  # or yolo.ClassificationDataset("mnist")
-    device = cfg.device if cfg.device is not None else ''
+    data = cfg.data or 'coco8.yaml'
 
     # NOTE: F.grid_sample which is in rt-detr does not support deterministic=True
-    # NOTE: amp training causes nan outputs and end with error while doing bipartite graph matching
+    # NOTE: AMP training causes nan outputs and end with error while doing bipartite graph matching
     args = dict(model=model,
                 data=data,
-                device=device,
                 imgsz=640,
                 exist_ok=True,
                 batch=4,

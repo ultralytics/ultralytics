@@ -63,6 +63,32 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Retrieve Ultralytics version
+        id: get_version
+        run: |
+          VERSION=$(yolo version)
+          echo "Retrieved Ultralytics version: $VERSION"
+          # Replace 'latest' in matrix.tags with the version string
+          VERSION_TAG=${{ matrix.tags }}-${VERSION}
+          VERSION_TAG=${VERSION_TAG/latest-/}
+          echo "Intended version tag: $VERSION_TAG"
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=version_tag::$VERSION_TAG"
+
+      - name: Check if tag exists on DockerHub
+        id: check_tag
+        run: |
+          TAG_TO_CHECK=${{ matrix.tags }}
+          EXISTS=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/${{ matrix.tags }} | jq '.name' | grep ${{ matrix.tags }})
+
+          if [[ -z "$EXISTS" ]]; then
+            echo "Tag $TAG_TO_CHECK does not exist on DockerHub."
+            echo "::set-output name=exists::false"
+          else
+            echo "Tag $TAG_TO_CHECK already exists on DockerHub."
+            echo "::set-output name=exists::true"
+          fi
+
       - name: Build Image
         if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         run: |
@@ -79,10 +105,14 @@ jobs:
         run: |
           docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
-      - name: Push Image
+      - name: Push Docker Image with latest tag
         if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == true)
         run: |
           docker push ultralytics/ultralytics:${{ matrix.tags }}
+
+      - name: Push Docker image with Ultralytics version tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: docker push ultralytics/ultralytics:${{ matrix.tags }}${{ steps.get_version.outputs.version }}
 
       - name: Notify on failure
         if: github.event_name == 'push' && failure()  # do not notify on cancelled() as cancelling is performed by hand

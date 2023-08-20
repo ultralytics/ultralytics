@@ -134,7 +134,6 @@ jobs:
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage-benchmarks.xml
           flags: Benchmarks
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -185,12 +184,11 @@ jobs:
           pip list
       - name: Pytest tests
         shell: bash  # for Windows compatibility
-        run: pytest --cov=ultralytics/ --cov-report=xml:coverage-tests.xml tests/
+        run: pytest --cov=ultralytics/ --cov-report xml tests/
       - name: Upload coverage report to Codecov
         if: github.repository == 'ultralytics/ultralytics' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage-tests.xml
           flags: Tests
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -24,15 +24,15 @@ to_2tuple = _ntuple(2)
 to_4tuple = _ntuple(4)
 
 # `xyxy` means left top and right bottom
-# `xywh` means center x, center y and width, height(yolo format)
-# `ltwh` means left top and width, height(coco format)
+# `xywh` means center x, center y and width, height(YOLO format)
+# `ltwh` means left top and width, height(COCO format)
 _formats = ['xyxy', 'xywh', 'ltwh']
 
 __all__ = 'Bboxes',  # tuple or list
 
 
 class Bboxes:
-    """Now only numpy is supported."""
+    """Bounding Boxes class. Only numpy variables are supported."""
 
     def __init__(self, bboxes, format='xyxy') -> None:
         assert format in _formats, f'Invalid bounding box format: {format}, format must be one of {_formats}'
@@ -43,40 +43,18 @@ class Bboxes:
         self.format = format
         # self.normalized = normalized
 
-    # def convert(self, format):
-    #     assert format in _formats
-    #     if self.format == format:
-    #         bboxes = self.bboxes
-    #     elif self.format == "xyxy":
-    #         if format == "xywh":
-    #             bboxes = xyxy2xywh(self.bboxes)
-    #         else:
-    #             bboxes = xyxy2ltwh(self.bboxes)
-    #     elif self.format == "xywh":
-    #         if format == "xyxy":
-    #             bboxes = xywh2xyxy(self.bboxes)
-    #         else:
-    #             bboxes = xywh2ltwh(self.bboxes)
-    #     else:
-    #         if format == "xyxy":
-    #             bboxes = ltwh2xyxy(self.bboxes)
-    #         else:
-    #             bboxes = ltwh2xywh(self.bboxes)
-    #
-    #     return Bboxes(bboxes, format)
-
     def convert(self, format):
         """Converts bounding box format from one type to another."""
         assert format in _formats, f'Invalid bounding box format: {format}, format must be one of {_formats}'
         if self.format == format:
             return
         elif self.format == 'xyxy':
-            bboxes = xyxy2xywh(self.bboxes) if format == 'xywh' else xyxy2ltwh(self.bboxes)
+            func = xyxy2xywh if format == 'xywh' else xyxy2ltwh
         elif self.format == 'xywh':
-            bboxes = xywh2xyxy(self.bboxes) if format == 'xyxy' else xywh2ltwh(self.bboxes)
+            func = xywh2xyxy if format == 'xyxy' else xywh2ltwh
         else:
-            bboxes = ltwh2xyxy(self.bboxes) if format == 'xyxy' else ltwh2xywh(self.bboxes)
-        self.bboxes = bboxes
+            func = ltwh2xyxy if format == 'xyxy' else ltwh2xywh
+        self.bboxes = func(self.bboxes)
         self.format = format
 
     def areas(self):

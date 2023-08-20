@@ -14,6 +14,10 @@ keywords: Ultralytics, Data Converter, coco91_to_coco80_class, merge_multi_segme
 <br><br>
 
 ---
+## ::: ultralytics.data.converter.coco80_to_coco91_class
+<br><br>
+
+---
 ## ::: ultralytics.data.converter.convert_coco
 <br><br>
 

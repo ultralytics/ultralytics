@@ -104,18 +104,11 @@ class DetectionTrainer(BaseTrainer):
         plot_labels(boxes, cls.squeeze(), names=self.data['names'], save_dir=self.save_dir, on_plot=self.on_plot)
 
 
-def train(cfg=DEFAULT_CFG, use_python=False):
+def train(cfg=DEFAULT_CFG):
     """Train and optimize YOLO model given training data and device."""
-    model = cfg.model or 'yolov8n.pt'
-    data = cfg.data or 'coco8.yaml'  # or yolo.ClassificationDataset("mnist")
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).train(**args)
-    else:
-        trainer = DetectionTrainer(overrides=args)
-        trainer.train()
+    args = dict(model=cfg.model or 'yolov8n.pt', data=cfg.data or 'coco8.yaml')
+    trainer = DetectionTrainer(overrides=args)
+    trainer.train()
 
 
 if __name__ == '__main__':

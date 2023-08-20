@@ -42,18 +42,11 @@ class PosePredictor(DetectionPredictor):
         return results
 
 
-def predict(cfg=DEFAULT_CFG, use_python=False):
+def predict(cfg=DEFAULT_CFG):
     """Runs YOLO to predict objects in an image or video."""
-    model = cfg.model or 'yolov8n-pose.pt'
-    source = cfg.source or ASSETS
-
-    args = dict(model=model, source=source)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model)(**args)
-    else:
-        predictor = PosePredictor(overrides=args)
-        predictor.predict_cli()
+    args = dict(model=cfg.model or 'yolov8n-pose.pt', source=cfg.source or ASSETS)
+    predictor = PosePredictor(overrides=args)
+    predictor.predict_cli()
 
 
 if __name__ == '__main__':

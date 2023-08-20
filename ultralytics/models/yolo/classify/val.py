@@ -94,18 +94,11 @@ class ClassificationValidator(BaseValidator):
                     on_plot=self.on_plot)  # pred
 
 
-def val(cfg=DEFAULT_CFG, use_python=False):
+def val(cfg=DEFAULT_CFG):
     """Validate YOLO model using custom data."""
-    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    data = cfg.data or 'mnist160'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).val(**args)
-    else:
-        validator = ClassificationValidator(args=args)
-        validator(model=args['model'])
+    args = dict(model=cfg.model or 'yolov8n-cls.pt', data=cfg.data or 'imagenet10')  # or torchvision, i.e. 'resnet18'
+    validator = ClassificationValidator(args=args)
+    validator(model=args['model'])
 
 
 if __name__ == '__main__':

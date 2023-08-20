@@ -139,18 +139,11 @@ class ClassificationTrainer(BaseTrainer):
             on_plot=self.on_plot)
 
 
-def train(cfg=DEFAULT_CFG, use_python=False):
+def train(cfg=DEFAULT_CFG):
     """Train a YOLO classification model."""
-    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    data = cfg.data or 'mnist160'  # or yolo.ClassificationDataset("mnist")
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).train(**args)
-    else:
-        trainer = ClassificationTrainer(overrides=args)
-        trainer.train()
+    args = dict(model=cfg.model or 'yolov8n-cls.pt', data=cfg.data or 'imagenet10')  # or torchvision, i.e. 'resnet18'
+    trainer = ClassificationTrainer(overrides=args)
+    trainer.train()
 
 
 if __name__ == '__main__':

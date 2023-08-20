@@ -32,18 +32,11 @@ class ClassificationPredictor(BasePredictor):
         return results
 
 
-def predict(cfg=DEFAULT_CFG, use_python=False):
+def predict(cfg=DEFAULT_CFG):
     """Run YOLO model predictions on input images/videos."""
-    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    source = cfg.source or ASSETS
-
-    args = dict(model=model, source=source)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model)(**args)
-    else:
-        predictor = ClassificationPredictor(overrides=args)
-        predictor.predict_cli()
+    args = dict(model=cfg.model or 'yolov8n-cls.pt', source=cfg.source or ASSETS)  # or torchvision, i.e. 'resnet18'
+    predictor = ClassificationPredictor(overrides=args)
+    predictor.predict_cli()
 
 
 if __name__ == '__main__':

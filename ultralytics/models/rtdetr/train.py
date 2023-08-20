@@ -56,14 +56,11 @@ class RTDETRTrainer(DetectionTrainer):
         return batch
 
 
-def train(cfg=DEFAULT_CFG, use_python=False):
+def train(cfg=DEFAULT_CFG):
     """Train and optimize RTDETR model given training data and device."""
-    model = 'rtdetr-l.yaml'
-    data = cfg.data or 'coco8.yaml'
-
     # NOTE: F.grid_sample which is in rt-detr does not support deterministic=True
     # NOTE: AMP training causes nan outputs and end with error while doing bipartite graph matching
-    args = dict(model=model, data=data, imgsz=640, exist_ok=True, batch=4, deterministic=False, amp=False)
+    args = dict(model='rtdetr-l.yaml', data=cfg.data or 'coco8.yaml', imgsz=640, amp=False)
     trainer = RTDETRTrainer(overrides=args)
     trainer.train()
 

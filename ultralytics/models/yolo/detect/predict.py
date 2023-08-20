@@ -29,18 +29,11 @@ class DetectionPredictor(BasePredictor):
         return results
 
 
-def predict(cfg=DEFAULT_CFG, use_python=False):
+def predict(cfg=DEFAULT_CFG):
     """Runs YOLO model inference on input image(s)."""
-    model = cfg.model or 'yolov8n.pt'
-    source = cfg.source or ASSETS
-
-    args = dict(model=model, source=source)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model)(**args)
-    else:
-        predictor = DetectionPredictor(overrides=args)
-        predictor.predict_cli()
+    args = dict(model=cfg.model or 'yolov8n.pt', source=cfg.source or ASSETS)
+    predictor = DetectionPredictor(overrides=args)
+    predictor.predict_cli()
 
 
 if __name__ == '__main__':

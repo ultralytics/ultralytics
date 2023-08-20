@@ -203,18 +203,11 @@ class PoseValidator(DetectionValidator):
         return stats
 
 
-def val(cfg=DEFAULT_CFG, use_python=False):
+def val(cfg=DEFAULT_CFG):
     """Performs validation on YOLO model using given data."""
-    model = cfg.model or 'yolov8n-pose.pt'
-    data = cfg.data or 'coco8-pose.yaml'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).val(**args)
-    else:
-        validator = PoseValidator(args=args)
-        validator(model=args['model'])
+    args = dict(model=cfg.model or 'yolov8n-pose.pt', data='coco8-pose.yaml')
+    validator = PoseValidator(args=args)
+    validator(model=args['model'])
 
 
 if __name__ == '__main__':

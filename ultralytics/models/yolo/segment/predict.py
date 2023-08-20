@@ -44,18 +44,11 @@ class SegmentationPredictor(DetectionPredictor):
         return results
 
 
-def predict(cfg=DEFAULT_CFG, use_python=False):
+def predict(cfg=DEFAULT_CFG):
     """Runs YOLO object detection on an image or video source."""
-    model = cfg.model or 'yolov8n-seg.pt'
-    source = cfg.source or ASSETS
-
-    args = dict(model=model, source=source)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model)(**args)
-    else:
-        predictor = SegmentationPredictor(overrides=args)
-        predictor.predict_cli()
+    args = dict(model=cfg.model or 'yolov8n-seg.pt', source=cfg.source or ASSETS)
+    predictor = SegmentationPredictor(overrides=args)
+    predictor.predict_cli()
 
 
 if __name__ == '__main__':

@@ -46,18 +46,11 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png
 
 
-def train(cfg=DEFAULT_CFG, use_python=False):
+def train(cfg=DEFAULT_CFG):
     """Train a YOLO segmentation model based on passed arguments."""
-    model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco8-seg.yaml'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).train(**args)
-    else:
-        trainer = SegmentationTrainer(overrides=args)
-        trainer.train()
+    args = dict(model=cfg.model or 'yolov8n-seg.pt', data=cfg.data or 'coco8-seg.yaml')
+    trainer = SegmentationTrainer(overrides=args)
+    trainer.train()
 
 
 if __name__ == '__main__':

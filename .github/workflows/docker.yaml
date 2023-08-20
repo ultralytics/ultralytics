@@ -109,12 +109,12 @@ jobs:
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
       - name: Push Docker Image with latest tag
-        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == true)
+        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')
         run: |
           docker push ultralytics/ultralytics:${{ matrix.tags }}
 
       - name: Push Docker Image with Ultralytics version tag
-        if: (github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == true)) && steps.check_tag.outputs.exists == 'false'
+        if: (github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')) && steps.check_tag.outputs.exists == 'false'
         run: |
           docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
 

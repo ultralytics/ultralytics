@@ -27,7 +27,7 @@ def _log_tensorboard_graph(trainer):
     try:
         import warnings
 
-        from ultralytics.utils.torch_utils import torch, de_parallel
+        from ultralytics.utils.torch_utils import de_parallel, torch
 
         imgsz = trainer.args.imgsz
         imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz

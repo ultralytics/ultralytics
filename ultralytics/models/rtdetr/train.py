@@ -26,6 +26,7 @@ class RTDETRTrainer(DetectionTrainer):
         args = dict(model='rtdetr-l.yaml', data='coco8.yaml', imgsz=640, epochs=3)
         trainer = RTDETRTrainer(overrides=args)
         trainer.train()
+        ```
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):

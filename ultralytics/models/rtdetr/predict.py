@@ -12,12 +12,12 @@ class RTDETRPredictor(BasePredictor):
     """
     A class extending the BasePredictor class for prediction based on an RT-DETR detection model.
 
-    Examples:
+    Example:
         ```python
         from ultralytics.utils import ASSETS
         from ultralytics.models.rtdetr import RTDETRPredictor
 
-        args = dict(model='rtdetr-l.yaml', source=ASSETS)
+        args = dict(model='rtdetr-l.pt', source=ASSETS)
         predictor = RTDETRPredictor(overrides=args)
         predictor.predict_cli()
         ```

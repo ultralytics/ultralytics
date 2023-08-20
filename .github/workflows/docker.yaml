@@ -71,14 +71,12 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
           # Replace 'latest' in matrix.tags with the version string and save
-          VERSION_TAG=${{ matrix.tags/latest-/-${VERSION} }}
+          VERSION_TAG=${{ matrix.tags/latest-/-$VERSION }}
           echo "Intended version tag: $VERSION_TAG"
           echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists on DockerHub
         id: check_tag
-        env:
-          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
         run: |
           EXISTS=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG | jq '.name' | grep $VERSION_TAG)
 
@@ -89,31 +87,31 @@ jobs:
             echo "Tag $VERSION_TAG already exists on DockerHub."
             echo "exists=true" >> $GITHUB_OUTPUT
           fi
+        env:
+          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
 
       - name: Build Image
         if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
-        run: |
-          docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} -t ultralytics/ultralytics:${{ matrix.tags }} .
+        run: docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} -t ultralytics/ultralytics:${{ matrix.tags }} .
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
-        run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
+        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
         # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
         if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile'  # arm64 images not supported on GitHub CI runners
-        run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
+        run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
       - name: Push Docker Image with latest tag
         if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == true)
-        run: |
-          docker push ultralytics/ultralytics:${{ matrix.tags }}
+        run: docker push ultralytics/ultralytics:${{ matrix.tags }}
 
       - name: Push Docker image with Ultralytics version tag
-        if: steps.check_tag.outputs.exists == 'false'
-        run: docker push ultralytics/ultralytics:${{ matrix.tags }}${{ steps.get_version.outputs.version }}
+        if: (github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == true)) && steps.check_tag.outputs.exists == 'false'
+        run: docker push ultralytics/ultralytics:${VERSION_TAG}
+        env:
+          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
 
       - name: Notify on failure
         if: github.event_name == 'push' && failure()  # do not notify on cancelled() as cancelling is performed by hand

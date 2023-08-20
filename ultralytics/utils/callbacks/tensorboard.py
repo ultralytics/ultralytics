@@ -27,15 +27,13 @@ def _log_tensorboard_graph(trainer):
     try:
         import warnings
 
-        import torch
-
-        from ultralytics.utils.torch_utils import de_parallel
+        from ultralytics.utils.torch_utils import torch, de_parallel
 
         imgsz = trainer.args.imgsz
+        imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
         p = next(trainer.model.parameters())  # for device, type
-        imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz  # expand
-        im = torch.zeros((1, 3, *imgsz)).to(p.device).type_as(p)  # input image (WARNING: must be zeros, not empty)
-        with warnings.catch_warnings():
+        im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input (WARNING: must be zeros, not empty)
+        with warnings.catch_warnings(category=UserWarning):
             warnings.simplefilter('ignore')  # suppress jit trace warning
             WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
     except Exception as e:
@@ -70,5 +68,6 @@ def on_fit_epoch_end(trainer):
 
 callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_train_start': on_train_start,
     'on_fit_epoch_end': on_fit_epoch_end,
     'on_batch_end': on_batch_end}

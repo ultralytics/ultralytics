@@ -12,26 +12,50 @@ try:
 except (ImportError, AssertionError, TypeError):
     SummaryWriter = None
 
-writer = None  # TensorBoard SummaryWriter instance
+WRITER = None  # TensorBoard SummaryWriter instance
 
 
 def _log_scalars(scalars, step=0):
     """Logs scalar values to TensorBoard."""
-    if writer:
+    if WRITER:
         for k, v in scalars.items():
-            writer.add_scalar(k, v, step)
+            WRITER.add_scalar(k, v, step)
+
+
+def _log_tensorboard_graph(trainer):
+    # Log model graph to TensorBoard
+    try:
+        import warnings
+
+        import torch
+
+        from ultralytics.utils.torch_utils import de_parallel
+
+        imgsz = trainer.args.imgsz
+        p = next(trainer.model.parameters())  # for device, type
+        imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz  # expand
+        im = torch.zeros((1, 3, *imgsz)).to(p.device).type_as(p)  # input image (WARNING: must be zeros, not empty)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # suppress jit trace warning
+            WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
+    except Exception as e:
+        LOGGER.warning(f'WARNING ⚠️ TensorBoard graph visualization failure {e}')
 
 
 def on_pretrain_routine_start(trainer):
     """Initialize TensorBoard logging with SummaryWriter."""
     if SummaryWriter:
         try:
-            global writer
-            writer = SummaryWriter(str(trainer.save_dir))
+            global WRITER
+            WRITER = SummaryWriter(str(trainer.save_dir))
             prefix = colorstr('TensorBoard: ')
             LOGGER.info(f"{prefix}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
         except Exception as e:
             LOGGER.warning(f'WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}')
+
+
+def on_train_start(trainer):
+    _log_tensorboard_graph(trainer)
 
 
 def on_batch_end(trainer):

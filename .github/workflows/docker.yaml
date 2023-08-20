@@ -68,9 +68,11 @@ jobs:
         run: |
           VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F"'" '{print $2}')
           echo "Retrieved Ultralytics version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          VERSION_TAG=$(echo "latest" | sed "s/latest/${VERSION}/")
+          VERSION_TAG=$(echo "${{ matrix.tags }}" | sed "s/latest/${VERSION}/")
           echo "Intended version tag: $VERSION_TAG"
+          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists on DockerHub
         id: check_tag

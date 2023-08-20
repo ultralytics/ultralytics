@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.data import build_dataloader, build_yolo_dataset
+from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.utils.checks import check_requirements
@@ -20,9 +20,10 @@ class DetectionValidator(BaseValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize detection model with necessary variables and settings."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
-        self.args.task = 'detect'
+        self.nt_per_class = None
         self.is_coco = False
         self.class_map = None
+        self.args.task = 'detect'
         self.metrics = DetMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
@@ -49,7 +50,7 @@ class DetectionValidator(BaseValidator):
         """Initialize evaluation metrics for YOLO."""
         val = self.data.get(self.args.split, '')  # validation path
         self.is_coco = isinstance(val, str) and 'coco' in val and val.endswith(f'{os.sep}val2017.txt')  # is COCO
-        self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
+        self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1000))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.names = model.names
         self.nc = len(model.names)
@@ -155,18 +156,23 @@ class DetectionValidator(BaseValidator):
 
     def _process_batch(self, detections, labels):
         """
-        Return correct prediction matrix
-        Arguments:
-            detections (array[N, 6]), x1, y1, x2, y2, conf, class
-            labels (array[M, 5]), class, x1, y1, x2, y2
+        Return correct prediction matrix.
+
+        Args:
+            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
+                Each detection is of the format: x1, y1, x2, y2, conf, class.
+            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
+                Each label is of the format: class, x1, y1, x2, y2.
+
         Returns:
-            correct (array[N, 10]), for 10 IoU levels
+            (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
         """
         iou = box_iou(labels[:, 1:], detections[:, :4])
         return self.match_predictions(detections[:, 5], labels[:, 0], iou)
 
     def build_dataset(self, img_path, mode='val', batch=None):
-        """Build YOLO Dataset
+        """
+        Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -253,7 +259,7 @@ class DetectionValidator(BaseValidator):
 def val(cfg=DEFAULT_CFG, use_python=False):
     """Validate trained YOLO model on validation dataset."""
     model = cfg.model or 'yolov8n.pt'
-    data = cfg.data or 'coco128.yaml'
+    data = cfg.data or 'coco8.yaml'
 
     args = dict(model=model, data=data)
     if use_python:

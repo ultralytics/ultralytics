@@ -9,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, SETTINGS, SETTINGS_YAML,
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, SETTINGS, SETTINGS_YAML,
                                IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
                                yaml_print)
 
@@ -415,8 +415,7 @@ def entrypoint(debug=''):
 
     # Mode
     if mode in ('predict', 'track') and 'source' not in overrides:
-        overrides['source'] = DEFAULT_CFG.source or ROOT / 'assets' if (ROOT / 'assets').exists() \
-            else 'https://ultralytics.com/images/bus.jpg'
+        overrides['source'] = DEFAULT_CFG.source or ASSETS
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
@@ -442,5 +441,5 @@ def copy_default_cfg():
 
 
 if __name__ == '__main__':
-    # Example Usage: entrypoint(debug='yolo predict model=yolov8n.pt')
+    # Example: entrypoint(debug='yolo predict model=yolov8n.pt')
     entrypoint(debug='')

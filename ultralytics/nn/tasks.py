@@ -303,13 +303,6 @@ class SegmentationModel(DetectionModel):
     def init_criterion(self):
         return v8SegmentationLoss(self)
 
-    def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
-        return self._predict_once(x)
-
 
 class PoseModel(DetectionModel):
     """YOLOv8 pose model."""
@@ -325,13 +318,6 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         return v8PoseLoss(self)
-
-    def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
-        return self._predict_once(x)
 
 
 class ClassificationModel(BaseModel):
@@ -598,11 +584,11 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         # Append
         ensemble.append(model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval())  # model in eval mode
 
-    # Module compatibility updates
+    # Module updates
     for m in ensemble.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
-            m.inplace = inplace  # torch 1.7.0 compatibility
+            m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
@@ -634,11 +620,11 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
 
     model = model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval()  # model in eval mode
 
-    # Module compatibility updates
+    # Module updates
     for m in model.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
-            m.inplace = inplace  # torch 1.7.0 compatibility
+            m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 

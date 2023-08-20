@@ -22,7 +22,7 @@ class WorkingDirectory(contextlib.ContextDecorator):
         """Changes the current directory to the specified directory."""
         os.chdir(self.dir)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb):  # noqa
         """Restore the current working directory on context exit."""
         os.chdir(self.cwd)
 
@@ -42,6 +42,8 @@ def spaces_in_path(path):
 
     Example:
         ```python
+        with ultralytics.utils.files import spaces_in_path
+
         with spaces_in_path('/path/with spaces') as new_path:
             # your code here
         ```
@@ -143,13 +145,3 @@ def get_latest_run(search_dir='.'):
     """Return path to most recent 'last.pt' in /runs (i.e. to --resume from)."""
     last_list = glob.glob(f'{search_dir}/**/last*.pt', recursive=True)
     return max(last_list, key=os.path.getctime) if last_list else ''
-
-
-def make_dirs(dir='new_dir/'):
-    """Create directories."""
-    dir = Path(dir)
-    if dir.exists():
-        shutil.rmtree(dir)  # delete dir
-    for p in dir, dir / 'labels', dir / 'images':
-        p.mkdir(parents=True, exist_ok=True)  # make dir
-    return dir

@@ -310,7 +310,7 @@ class Predictor(BasePredictor):
         self.done_warmup = True
 
     def postprocess(self, preds, img, orig_imgs):
-        """Postprocesses inference output predictions to create detection masks for objects."""
+        """Post-processes inference output predictions to create detection masks for objects."""
         # (N, 1, H, W), (N, 1)
         pred_masks, pred_scores = preds[:2]
         pred_bboxes = preds[2] if self.segment_all else None

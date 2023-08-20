@@ -283,6 +283,12 @@ def test_data_converter():
     coco80_to_coco91_class()
 
 
+def test_data_annotator():
+    from ultralytics.data.annotator import auto_annotate
+
+    auto_annotate(ASSETS, det_model='yolov8n.pt', sam_model='mobile_sam.pt', output_dir=TMP / 'auto_annotate_labels')
+
+
 def test_events():
     # Test event sending
     from ultralytics.hub.utils import Events
@@ -304,12 +310,15 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    from ultralytics.utils.checks import check_requirements, check_yolov5u_filename, git_describe
+    from ultralytics.utils.checks import (check_imgsz, check_requirements, check_yolov5u_filename, git_describe,
+                                          print_args)
 
     check_yolov5u_filename('yolov5n.pt')
     # check_imshow(warn=True)
     git_describe(ROOT)
     check_requirements()  # check requirements.txt
+    check_imgsz([600, 600], max_dim=1)
+    print_args()
 
 
 def test_utils_benchmarks():

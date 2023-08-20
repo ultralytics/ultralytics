@@ -12,7 +12,3 @@ keywords: Ultralytics, YOLO, SegmentationTrainer, image segmentation, object det
 ---
 ## ::: ultralytics.models.yolo.segment.train.SegmentationTrainer
 <br><br>
-
----
-## ::: ultralytics.models.yolo.segment.train.train
-<br><br>

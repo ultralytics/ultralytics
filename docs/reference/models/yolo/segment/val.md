@@ -12,7 +12,3 @@ keywords: Ultralytics, YOLO, SegmentationValidator, model segmentation, image cl
 ---
 ## ::: ultralytics.models.yolo.segment.val.SegmentationValidator
 <br><br>
-
----
-## ::: ultralytics.models.yolo.segment.val.val
-<br><br>

@@ -108,15 +108,15 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile'  # arm64 images not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
-      - name: Push Docker Image with latest tag
-        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')
-        run: |
-          docker push ultralytics/ultralytics:${{ matrix.tags }}
-
       - name: Push Docker Image with Ultralytics version tag
         if: (github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')) && steps.check_tag.outputs.exists == 'false'
         run: |
           docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
+
+      - name: Push Docker Image with latest tag
+        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')
+        run: |
+          docker push ultralytics/ultralytics:${{ matrix.tags }}
 
       - name: Notify on failure
         if: github.event_name == 'push' && failure()  # do not notify on cancelled() as cancelling is performed by hand

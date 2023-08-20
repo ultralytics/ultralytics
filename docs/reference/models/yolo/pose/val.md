@@ -12,7 +12,3 @@ keywords: PoseValidator, Ultralytics, YOLO, Object detection, Pose validation
 ---
 ## ::: ultralytics.models.yolo.pose.val.PoseValidator
 <br><br>
-
----
-## ::: ultralytics.models.yolo.pose.val.val
-<br><br>

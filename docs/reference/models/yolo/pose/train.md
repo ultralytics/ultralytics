@@ -12,7 +12,3 @@ keywords: Ultralytics, YOLO, PoseTrainer, pose training, AI modeling, custom dat
 ---
 ## ::: ultralytics.models.yolo.pose.train.PoseTrainer
 <br><br>
-
----
-## ::: ultralytics.models.yolo.pose.train.train
-<br><br>

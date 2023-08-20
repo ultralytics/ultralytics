@@ -12,7 +12,3 @@ keywords: Ultralytics, classification predictor, predict, YOLO, AI models, model
 ---
 ## ::: ultralytics.models.yolo.classify.predict.ClassificationPredictor
 <br><br>
-
----
-## ::: ultralytics.models.yolo.classify.predict.predict
-<br><br>

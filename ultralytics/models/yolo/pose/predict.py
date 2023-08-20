@@ -2,10 +2,23 @@
 
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-from ultralytics.utils import ASSETS, DEFAULT_CFG, LOGGER, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 
 
 class PosePredictor(DetectionPredictor):
+    """
+    A class extending the DetectionPredictor class for prediction based on a pose model.
+
+    Example:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.pose import PosePredictor
+
+        args = dict(model='yolov8n-pose.pt', source=ASSETS)
+        predictor = PosePredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
@@ -40,14 +53,3 @@ class PosePredictor(DetectionPredictor):
                         boxes=pred[:, :6],
                         keypoints=pred_kpts))
         return results
-
-
-def predict(cfg=DEFAULT_CFG):
-    """Runs YOLO to predict objects in an image or video."""
-    args = dict(model=cfg.model or 'yolov8n-pose.pt', source=cfg.source or ASSETS)
-    predictor = PosePredictor(overrides=args)
-    predictor.predict_cli()
-
-
-if __name__ == '__main__':
-    predict()

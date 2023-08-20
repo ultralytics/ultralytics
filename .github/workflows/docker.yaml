@@ -69,7 +69,7 @@ jobs:
           VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F"'" '{print $2}')
           echo "Retrieved Ultralytics version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
+
           # Replace 'latest' in matrix.tags with the version string and save
           VERSION_TAG=${{ matrix.tags/latest-/-$VERSION }}
           echo "Intended version tag: $VERSION_TAG"

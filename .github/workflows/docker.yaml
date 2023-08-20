@@ -77,14 +77,17 @@ jobs:
       - name: Check if tag exists on DockerHub
         id: check_tag
         run: |
-          EXISTS=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG | jq '.name' | grep -- $VERSION_TAG)
-
-          if [[ -z "$EXISTS" ]]; then
-            echo "Tag $VERSION_TAG does not exist on DockerHub."
-            echo "exists=false" >> $GITHUB_OUTPUT
+          RESPONSE=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG)
+          MESSAGE=$(echo $RESPONSE | jq -r '.message')
+          if [[ "$MESSAGE" == "null" ]]; then
+              echo "Tag $VERSION_TAG already exists on DockerHub."
+              echo "exists=true" >> $GITHUB_OUTPUT
+          elif [[ "$MESSAGE" == *"404"* ]]; then
+              echo "Tag $VERSION_TAG does not exist on DockerHub."
+              echo "exists=false" >> $GITHUB_OUTPUT
           else
-            echo "Tag $VERSION_TAG already exists on DockerHub."
-            echo "exists=true" >> $GITHUB_OUTPUT
+              echo "Unexpected response from DockerHub. Please check manually."
+              echo "exists=false" >> $GITHUB_OUTPUT
           fi
         env:
           VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}

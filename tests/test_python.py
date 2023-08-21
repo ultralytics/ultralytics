@@ -348,9 +348,19 @@ def test_utils_downloads():
 
 
 def test_utils_ops():
-    from ultralytics.utils.ops import make_divisible
+    from ultralytics.utils.ops import (ltwh2xywh, make_divisible, xywh2ltwh, xywh2xyxy, xywhn2xyxy, xywhr2xyxyxyxy,
+                                       xyxy2ltwh, xyxy2xywhn, xyxyxyxy2xywhr)
 
-    make_divisible(17, 8)
+    make_divisible(17, torch.tensor([8]))
+
+    boxes = torch.rand(10, 4)  # xywhn
+    torch.allclose(boxes, xyxy2xywhn(xywhn2xyxy(boxes)))
+    torch.allclose(boxes, ltwh2xywh(xywh2ltwh(boxes)))
+    torch.allclose(boxes, ltwh2xywh(xyxy2ltwh(xywh2xyxy(boxes))))
+
+    boxes = torch.rand(10, 5)  # xywhr for OBB
+    boxes[:, 4] = torch.randn(10) * 30
+    torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3)
 
 
 def test_utils_files():

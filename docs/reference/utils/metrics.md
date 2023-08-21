@@ -34,10 +34,6 @@ keywords: Ultralytics, YOLO, YOLOv3, YOLOv4, metrics, confusion matrix, detectio
 <br><br>
 
 ---
-## ::: ultralytics.utils.metrics.box_area
-<br><br>
-
----
 ## ::: ultralytics.utils.metrics.bbox_ioa
 <br><br>
 

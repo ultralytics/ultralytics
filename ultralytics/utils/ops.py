@@ -414,26 +414,6 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     return y
 
 
-def xyn2xy(x, w=640, h=640, padw=0, padh=0):
-    """
-    Convert normalized coordinates to pixel coordinates of shape (n,2)
-
-    Args:
-        x (np.ndarray | torch.Tensor): The input tensor of normalized bounding box coordinates
-        w (int): The width of the image. Defaults to 640
-        h (int): The height of the image. Defaults to 640
-        padw (int): The width of the padding. Defaults to 0
-        padh (int): The height of the padding. Defaults to 0
-
-    Returns:
-        y (np.ndarray | torch.Tensor): The x and y coordinates of the top left corner of the bounding box
-    """
-    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
-    y[..., 0] = w * x[..., 0] + padw  # top left x
-    y[..., 1] = h * x[..., 1] + padh  # top left y
-    return y
-
-
 def xywh2ltwh(x):
     """
     Convert the bounding box format from [x, y, w, h] to [x1, y1, w, h], where x1, y1 are the top-left coordinates.
@@ -732,19 +712,19 @@ def scale_masks(masks, shape, padding=True):
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False, padding=True):
     """
-    Rescale segment coordinates (xyxy) from img1_shape to img0_shape
+    Rescale segment coordinates (xy) from img1_shape to img0_shape
 
     Args:
         img1_shape (tuple): The shape of the image that the coords are from.
-        coords (torch.Tensor): the coords to be scaled
-        img0_shape (tuple): the shape of the image that the segmentation is being applied to
+        coords (torch.Tensor): the coords to be scaled of shape n,2.
+        img0_shape (tuple): the shape of the image that the segmentation is being applied to.
         ratio_pad (tuple): the ratio of the image size to the padded image size.
-        normalize (bool): If True, the coordinates will be normalized to the range [0, 1]. Defaults to False
+        normalize (bool): If True, the coordinates will be normalized to the range [0, 1]. Defaults to False.
         padding (bool): If True, assuming the boxes is based on image augmented by yolo style. If False then do regular
             rescaling.
 
     Returns:
-        coords (torch.Tensor): the segmented image.
+        coords (torch.Tensor): The scaled coordinates.
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new

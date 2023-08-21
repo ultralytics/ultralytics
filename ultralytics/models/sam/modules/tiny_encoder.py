@@ -162,7 +162,6 @@ class ConvLayer(nn.Module):
         out_dim=None,
         conv_expand_ratio=4.,
     ):
-
         super().__init__()
         self.dim = dim
         self.input_resolution = input_resolution
@@ -180,16 +179,13 @@ class ConvLayer(nn.Module):
             ) for i in range(depth)])
 
         # patch merging layer
-        if downsample is not None:
-            self.downsample = downsample(input_resolution, dim=dim, out_dim=out_dim, activation=activation)
-        else:
-            self.downsample = None
+        self.downsample = None if downsample is None else downsample(
+            input_resolution, dim=dim, out_dim=out_dim, activation=activation)
 
     def forward(self, x):
         for blk in self.blocks:
-            return checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)
-        if self.downsample is not None:
-            return self.downsample(x)
+            x = checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)
+        return x if self.downsample is None else self.downsample(x)
 
 
 class Mlp(nn.Module):
@@ -415,7 +411,6 @@ class BasicLayer(nn.Module):
         activation=nn.GELU,
         out_dim=None,
     ):
-
         super().__init__()
         self.dim = dim
         self.input_resolution = input_resolution
@@ -437,16 +432,13 @@ class BasicLayer(nn.Module):
             ) for i in range(depth)])
 
         # patch merging layer
-        if downsample is not None:
-            self.downsample = downsample(input_resolution, dim=dim, out_dim=out_dim, activation=activation)
-        else:
-            self.downsample = None
+        self.downsample = None if downsample is None else downsample(
+            input_resolution, dim=dim, out_dim=out_dim, activation=activation)
 
     def forward(self, x):
         for blk in self.blocks:
-            return checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)
-        if self.downsample is not None:
-            return self.downsample(x)
+            x = checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)
+        return x if self.downsample is None else self.downsample(x)
 
     def extra_repr(self) -> str:
         return f'dim={self.dim}, input_resolution={self.input_resolution}, depth={self.depth}'

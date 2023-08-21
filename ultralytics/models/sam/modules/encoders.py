@@ -121,7 +121,7 @@ class PromptEncoder(nn.Module):
         """
         Encodes prompts for input to SAM's mask decoder.
 
-        Arguments:
+        Args:
           embed_dim (int): The prompts' embedding dimension
           image_embedding_size (tuple(int, int)): The spatial size of the
             image embedding, as (H, W).
@@ -228,7 +228,7 @@ class PromptEncoder(nn.Module):
         """
         Embeds different types of prompts, returning both sparse and dense embeddings.
 
-        Arguments:
+        Args:
           points (tuple(torch.Tensor, torch.Tensor), None): point coordinates and labels to embed.
           boxes (torch.Tensor, None): boxes to embed
           masks (torch.Tensor, None): masks to embed

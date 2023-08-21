@@ -24,7 +24,7 @@ class MaskDecoder(nn.Module):
         """
         Predicts masks given an image and prompt embeddings, using a transformer architecture.
 
-        Arguments:
+        Args:
             transformer_dim (int): the channel dimension of the transformer module
             transformer (nn.Module): the transformer used to predict masks
             num_multimask_outputs (int): the number of masks to predict when disambiguating masks

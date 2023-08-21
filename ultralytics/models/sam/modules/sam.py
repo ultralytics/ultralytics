@@ -29,7 +29,7 @@ class Sam(nn.Module):
         """
         SAM predicts object masks from an image and input prompts.
 
-        Arguments:
+        Args:
           image_encoder (ImageEncoderViT): The backbone used to encode the
             image into image embeddings that allow for efficient mask prediction.
           prompt_encoder (PromptEncoder): Encodes various types of input prompts.
@@ -63,7 +63,7 @@ class Sam(nn.Module):
         Predicts masks end-to-end from provided images and prompts. If prompts are not known in advance, using
         SamPredictor is recommended over calling the model directly.
 
-        Arguments:
+        Args:
           batched_input (list(dict)): A list over input images, each a dictionary with the following keys. A prompt
           key can be excluded if it is not present.
               'image': The image as a torch tensor in 3xHxW format,
@@ -136,7 +136,7 @@ class Sam(nn.Module):
         """
         Remove padding and upscale masks to the original image size.
 
-        Arguments:
+        Args:
           masks (torch.Tensor): Batched masks from the mask_decoder,
             in BxCxHxW format.
           input_size (tuple(int, int)): The size of the image input to the

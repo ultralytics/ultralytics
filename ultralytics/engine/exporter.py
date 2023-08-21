@@ -660,7 +660,7 @@ class Exporter:
             verbosity = '--non_verbose'
             int8 = ''
 
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8}'.strip()
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf replace.json'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

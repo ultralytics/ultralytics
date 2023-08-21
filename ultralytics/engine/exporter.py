@@ -59,11 +59,10 @@ from datetime import datetime
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 
 from ultralytics.cfg import get_cfg
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder, Conv
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
                                colorstr, get_default_args, yaml_save)
@@ -161,7 +160,6 @@ class Exporter:
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
 
         # Load PyTorch model
-        Conv.default_act = eval(self.args.act) if hasattr(self.args, 'act') else nn.SiLU()
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
 
         # Checks
@@ -184,7 +182,6 @@ class Exporter:
             file = Path(file.name)
 
         # Update model
-        print(f'{colorstr("act:")} nn.{Conv.default_act}')
         model = deepcopy(model).to(self.device)
         for p in model.parameters():
             p.requires_grad = False

@@ -204,7 +204,7 @@ def check_det_dataset(dataset, autodownload=True):
         data = next((DATASETS_DIR / new_dir).rglob('*.yaml'))
         extract_dir, autodownload = data.parent, False
 
-    # Read yaml (optional)
+    # Read YAML (optional)
     if isinstance(data, (str, Path)):
         data = yaml_load(data, append_filename=True)  # dictionary
 
@@ -244,7 +244,7 @@ def check_det_dataset(dataset, autodownload=True):
             else:
                 data[k] = [str((path / x).resolve()) for x in data[k]]
 
-    # Parse yaml
+    # Parse YAML
     train, val, test, s = (data.get(x) for x in ('train', 'val', 'test', 'download'))
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path

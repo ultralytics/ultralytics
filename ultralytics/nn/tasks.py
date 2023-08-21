@@ -229,7 +229,7 @@ class DetectionModel(BaseModel):
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
-            self.yaml['nc'] = nc  # override yaml value
+            self.yaml['nc'] = nc  # override YAML value
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.inplace = self.yaml.get('inplace', True)
@@ -329,7 +329,7 @@ class ClassificationModel(BaseModel):
                  ch=3,
                  nc=None,
                  cutoff=10,
-                 verbose=True):  # yaml, model, channels, number of classes, cutoff index, verbose flag
+                 verbose=True):  # YAML, model, channels, number of classes, cutoff index, verbose flag
         super().__init__()
         self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg, ch, nc, verbose)
 
@@ -357,7 +357,7 @@ class ClassificationModel(BaseModel):
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
-            self.yaml['nc'] = nc  # override yaml value
+            self.yaml['nc'] = nc  # override YAML value
         elif not nc and not self.yaml.get('nc', None):
             raise ValueError('nc not specified. Must specify nc in model.yaml or function arguments.')
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist

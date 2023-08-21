@@ -46,7 +46,7 @@ the benchmarks to their specific needs and compare the performance of different 
 | Key       | Value   | Description                                                           |
 |-----------|---------|-----------------------------------------------------------------------|
 | `model`   | `None`  | path to model file, i.e. yolov8n.pt, yolov8n.yaml                     |
-| `data`    | `None`  | path to yaml referencing the benchmarking dataset (under `val` label) |
+| `data`    | `None`  | path to YAML referencing the benchmarking dataset (under `val` label) |
 | `imgsz`   | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                  |
 | `half`    | `False` | FP16 quantization                                                     |
 | `int8`    | `False` | INT8 quantization                                                     |

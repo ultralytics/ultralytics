@@ -43,9 +43,9 @@ class BaseValidator:
     A base class for creating validators.
 
     Attributes:
+        args (SimpleNamespace): Configuration for the validator.
         dataloader (DataLoader): Dataloader to use for validation.
         pbar (tqdm): Progress bar to update during validation.
-        args (SimpleNamespace): Configuration for the validator.
         model (nn.Module): Model to validate.
         data (dict): Data dictionary.
         device (torch.device): Device to use for validation.
@@ -76,9 +76,9 @@ class BaseValidator:
             args (SimpleNamespace): Configuration for the validator.
             _callbacks (dict): Dictionary to store various callback functions.
         """
+        self.args = get_cfg(overrides=args)
         self.dataloader = dataloader
         self.pbar = pbar
-        self.args = get_cfg(overrides=args)
         self.model = None
         self.data = None
         self.device = None

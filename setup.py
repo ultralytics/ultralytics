@@ -74,6 +74,4 @@ setup(
         'Operating System :: Microsoft :: Windows', ],
     keywords='machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics',
     entry_points={'console_scripts': ['yolo = ultralytics.cfg:entrypoint', 'ultralytics = ultralytics.cfg:entrypoint']},
-    dependency_links=[
-        'http://download.pytorch.org/whl/cpu/torch/'
-    ])
+    dependency_links=['http://download.pytorch.org/whl/cpu/torch/'])

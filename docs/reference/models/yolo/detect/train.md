@@ -12,7 +12,3 @@ keywords: Ultralytics YOLO, YOLO, Detection Trainer, Model Training, Machine Lea
 ---
 ## ::: ultralytics.models.yolo.detect.train.DetectionTrainer
 <br><br>
-
----
-## ::: ultralytics.models.yolo.detect.train.train
-<br><br>

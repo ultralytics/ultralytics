@@ -169,7 +169,7 @@ def plt_settings(rcparams=None, backend='Agg'):
     """
     Decorator to temporarily set rc parameters and the backend for a plotting function.
 
-    Usage:
+    Example:
         decorator: @plt_settings({"font.size": 12})
         context manager: with plt_settings({"font.size": 12}):
 

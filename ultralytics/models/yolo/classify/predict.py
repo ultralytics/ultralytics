@@ -4,10 +4,26 @@ import torch
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import ASSETS, DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG
 
 
 class ClassificationPredictor(BasePredictor):
+    """
+    A class extending the BasePredictor class for prediction based on a classification model.
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+
+    Example:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.classify import ClassificationPredictor
+
+        args = dict(model='yolov8n-cls.pt', source=ASSETS)
+        predictor = ClassificationPredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
@@ -30,21 +46,3 @@ class ClassificationPredictor(BasePredictor):
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred))
 
         return results
-
-
-def predict(cfg=DEFAULT_CFG, use_python=False):
-    """Run YOLO model predictions on input images/videos."""
-    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    source = cfg.source or ASSETS
-
-    args = dict(model=model, source=source)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model)(**args)
-    else:
-        predictor = ClassificationPredictor(overrides=args)
-        predictor.predict_cli()
-
-
-if __name__ == '__main__':
-    predict()

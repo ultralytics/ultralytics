@@ -106,11 +106,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
-          if [ "${{ matrix.os }}" == "macos-latest" ]; then
-              pip install -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
-            else
-              pip install -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
-          fi
+          pip install -e ".[export]" coverage --extra-index-url https://download.pytorch.org/whl/cpu
           yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
@@ -125,16 +121,25 @@ jobs:
           pip list
       - name: Benchmark DetectionModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
       - name: Benchmark SegmentationModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.30
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.30
       - name: Benchmark ClassificationModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.36
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.36
       - name: Benchmark PoseModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.17
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.17
+      - name: Merge Coverage Reports
+        run: |
+          coverage xml -o coverage-benchmarks.xml
+      - name: Upload Coverage Reports to CodeCov
+        uses: codecov/codecov-action@v3
+        with:
+          flags: Benchmarks
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -183,9 +188,11 @@ jobs:
       - name: Pytest tests
         shell: bash  # for Windows compatibility
         run: pytest --cov=ultralytics/ --cov-report xml tests/
-      - name: Upload coverage reports to Codecov
+      - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
+        with:
+          flags: Tests
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 

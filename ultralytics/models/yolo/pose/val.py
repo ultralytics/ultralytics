@@ -6,13 +6,25 @@ import numpy as np
 import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
+from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class PoseValidator(DetectionValidator):
+    """
+    A class extending the DetectionValidator class for validation based on a pose model.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.pose import PoseValidator
+
+        args = dict(model='yolov8n-pose.pt', data='coco8-pose.yaml')
+        validator = PoseValidator(args=args)
+        validator(model=args['model'])
+        ```
+    """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize a 'PoseValidator' object with custom parameters and assigned attributes."""
@@ -201,21 +213,3 @@ class PoseValidator(DetectionValidator):
             except Exception as e:
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats
-
-
-def val(cfg=DEFAULT_CFG, use_python=False):
-    """Performs validation on YOLO model using given data."""
-    model = cfg.model or 'yolov8n-pose.pt'
-    data = cfg.data or 'coco8-pose.yaml'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).val(**args)
-    else:
-        validator = PoseValidator(args=args)
-        validator(model=args['model'])
-
-
-if __name__ == '__main__':
-    val()

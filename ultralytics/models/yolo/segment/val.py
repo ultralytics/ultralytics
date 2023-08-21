@@ -145,9 +145,11 @@ class SegmentationValidator(DetectionValidator):
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
         Return correct prediction matrix
-        Arguments:
+
+        Args:
             detections (array[N, 6]), x1, y1, x2, y2, conf, class
             labels (array[M, 5]), class, x1, y1, x2, y2
+
         Returns:
             correct (array[N, 10]), for 10 IoU levels
         """

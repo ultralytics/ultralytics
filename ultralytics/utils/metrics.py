@@ -382,7 +382,7 @@ def compute_ap(recall, precision):
     """
     Compute the average precision (AP) given the recall and precision curves.
 
-    Arguments:
+    Args:
         recall (list): The recall curve.
         precision (list): The precision curve.
 

@@ -9,8 +9,8 @@ pillow>=7.1.2
 pyyaml>=5.3.1
 requests>=2.23.0
 scipy>=1.4.1
-torch --index-url https://download.pytorch.org/whl/cpu
-torchvision --index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
 tqdm>=4.64.0
 
 # Logging -------------------------------------

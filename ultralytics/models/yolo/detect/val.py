@@ -25,7 +25,7 @@ class DetectionValidator(BaseValidator):
 
         args = dict(model='yolov8n.pt', data='coco8.yaml')
         validator = DetectionValidator(args=args)
-        validator(model=args['model'])
+        validator()
         ```
     """
 

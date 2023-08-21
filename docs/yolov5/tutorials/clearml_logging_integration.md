@@ -107,7 +107,7 @@ Versioning your data separately from your code is generally a good idea and make
 
 ### Prepare Your Dataset
 
-The YOLOv5 repository supports a number of different datasets by using yaml files containing their information. By default datasets are downloaded to the `../datasets` folder in relation to the repository root folder. So if you downloaded the `coco128` dataset using the link in the yaml or with the scripts provided by yolov5, you get this folder structure:
+The YOLOv5 repository supports a number of different datasets by using YAML files containing their information. By default datasets are downloaded to the `../datasets` folder in relation to the repository root folder. So if you downloaded the `coco128` dataset using the link in the YAML or with the scripts provided by yolov5, you get this folder structure:
 
 ```
 ..
@@ -122,7 +122,7 @@ The YOLOv5 repository supports a number of different datasets by using yaml file
 
 But this can be any dataset you wish. Feel free to use your own, as long as you keep to this folder structure.
 
-Next, ⚠️**copy the corresponding yaml file to the root of the dataset folder**⚠️. This yaml files contains the information ClearML will need to properly use the dataset. You can make this yourself too, of course, just follow the structure of the example yamls.
+Next, ⚠️**copy the corresponding YAML file to the root of the dataset folder**⚠️. This YAML files contains the information ClearML will need to properly use the dataset. You can make this yourself too, of course, just follow the structure of the example YAMLs.
 
 Basically we need the following keys: `path`, `train`, `test`, `val`, `nc`, `names`.
 

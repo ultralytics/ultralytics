@@ -321,12 +321,12 @@ def check_cls_dataset(dataset: str, split=''):
     # Print to console
     for k, v in {'train': train_set, 'val': val_set, 'test': test_set}.items():
         if v is None:
-            LOGGER.info(colorstr(k) + f': {v}')
+            LOGGER.info(f'{colorstr(k)}: {v}')
         else:
             files = [path for path in v.rglob('*.*') if path.suffix[1:].lower() in IMG_FORMATS]
             nf = len(files)  # number of files
             nd = len({file.parent for file in files})  # number of directories
-            LOGGER.info(colorstr(k) + f': {v}... found {nf} images in {nd} classes ✅ ')  # keep trailing space
+            LOGGER.info(f'{colorstr(k)}: {v}... found {nf} images in {nd} classes ✅ ')  # keep trailing space
 
     return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
 

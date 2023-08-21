@@ -59,10 +59,11 @@ from datetime import datetime
 from pathlib import Path
 
 import torch
+import torch.nn as nn
 
 from ultralytics.cfg import get_cfg
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder, Conv
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
                                colorstr, get_default_args, yaml_save)
@@ -160,6 +161,7 @@ class Exporter:
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
 
         # Load PyTorch model
+        Conv.default_act = eval(self.args.act) if hasattr(self.args, 'act') else nn.SiLU()
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
 
         # Checks
@@ -177,12 +179,12 @@ class Exporter:
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
-        file = Path(
-            getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml.get('yaml_file', ''))
+        file = Path(getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml['yaml_file'])
         if file.suffix in ('.yaml', '.yml'):
             file = Path(file.name)
 
         # Update model
+        print(f'{colorstr("act:")} nn.{Conv.default_act}')
         model = deepcopy(model).to(self.device)
         for p in model.parameters():
             p.requires_grad = False
@@ -194,9 +196,11 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-            elif isinstance(m, C2f) and not any((saved_model, pb, tflite, edgetpu, tfjs)):
+                m.exclude_postprocess_detect = self.args.exclude_postprocess_detect
+                m.separate_6_outputs = self.args.separate_6_outputs
+            elif self.args.export_hw_optimized and isinstance(m, C2f) and not any((saved_model, pb, edgetpu, tfjs)):
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
-                m.forward = m.forward_split
+                m.forward = m.forward_hw_optimized  # m.forward_split
 
         y = None
         for _ in range(2):
@@ -213,8 +217,7 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
-        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else \
-            tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
         data = model.args['data'] if hasattr(model, 'args') and isinstance(model.args, dict) else ''
         description = f'Ultralytics {self.pretty_name} model {f"trained on {data}" if data else ""}'

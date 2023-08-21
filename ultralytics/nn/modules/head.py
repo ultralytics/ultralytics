@@ -26,6 +26,8 @@ class Detect(nn.Module):
     shape = None
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
+    exclude_postprocess_detect = False
+    separate_6_outputs = True
 
     def __init__(self, nc=80, ch=()):  # detection layer
         super().__init__()
@@ -43,8 +45,20 @@ class Detect(nn.Module):
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         shape = x[0].shape  # BCHW
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if self.separate_6_outputs:
+            boxes = []
+            probs = []
+
+            for i in range(self.nl):
+                a = self.cv2[i](x[i])
+                b = self.cv3[i](x[i])
+                x[i] = torch.cat((a, b), 1) # save concatenated results
+
+                boxes.append(a) 
+                probs.append(b)
+        else:
+            for i in range(self.nl):
+                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:
             return x
         elif self.dynamic or self.shape != shape:
@@ -52,9 +66,14 @@ class Detect(nn.Module):
             self.shape = shape
 
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
-        if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
-            box = x_cat[:, :self.reg_max * 4]
-            cls = x_cat[:, self.reg_max * 4:]
+        if self.export: # avoid TF FlexSplitV ops
+            if self.format in ('onnx', 'saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs') and not self.separate_6_outputs:
+                box = x_cat[:, :self.reg_max * 4]
+                cls = x_cat[:, self.reg_max * 4:]
+            if self.separate_6_outputs:
+                return [torch.permute(x, (0, 2, 3, 1)).reshape(x.shape[0], -1, x.shape[1]) for x in boxes + probs]
+            if self.exclude_postprocess_detect:    
+                return (box, cls)
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides

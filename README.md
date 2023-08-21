@@ -1,3 +1,57 @@
+# ultralytics_degirum
+
+Our ultralytics_degirum fork contains implementations for exporting a YOLO model with 6 separate outputs, for improved performance in quantized models.
+
+## Export to ONNX
+Generates a [model_name].onnx file
+```python
+from ultralytics import YOLO
+model = YOLO('path/to/model.pt')
+model.export(format='onnx', 
+             act='nn.ReLU6()',  # act='nn.SiLU()' by default
+             simplify=True, 
+             export_hw_optimized=True, 
+             separate_6_outputs=True
+             )
+```
+
+## Export to TFLite / TensorFlow SavedModel
+Generates a [model_name]_saved_model folder, containing a [model_name]_float32.tflite
+```python
+from ultralytics import YOLO
+model = YOLO('path/to/model.pt')
+model.export(format='tflite', 
+             act='nn.ReLU6()',  # act='nn.SiLU()' by default
+             simplify=True, 
+             export_hw_optimized=True, 
+             separate_6_outputs=True
+             )
+```
+
+Note: the **act** parameter must match the activation function that the model was trained on, otherwise it may not propagate through the network properly.
+
+## Quantize TFLite 
+Follow the steps outlined above to export your model as a TensorFlow SavedModel, then run [dg_quantize.py](dg_quantize.py) with the following arguments:
+```bash
+$ python dg_quantize.py path/to/saved_model path/to/calib_dataset
+```
+## Compile for EdgeTPU
+1. Follow the instructions above to get a quantized TFLite model
+2. Follow the instructions at https://coral.ai/docs/edgetpu/compiler/ to install the Edge TPU compiler
+3. Run the Edge TPU compiler:
+```bash
+$ edgetpu_compiler path/to/quantized_model.tflite
+```
+
+## Validating DG-Exported Models
+Float models exported in the above formats can be validated by running:
+```python
+from ultralytics import YOLO
+model = YOLO('path/to/onnx/or/tflite/model', task='detect')
+model.val(data='path/to/data.yaml')
+```
+
+
 <div align="center">
   <p>
     <a href="https://ultralytics.com/yolov8" target="_blank">

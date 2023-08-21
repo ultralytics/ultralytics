@@ -5,6 +5,9 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import math
+from ultralytics.nn.modules.block import DFL
+from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
@@ -40,6 +43,7 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
+        self.imgsz = args.imgsz
 
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
@@ -76,9 +80,27 @@ class DetectionValidator(BaseValidator):
     def get_desc(self):
         """Return a formatted string summarizing class metrics of YOLO model."""
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)')
+    
+    def decode_bbox(self, preds):
+        details = self.input_details[0]
+        integer = details['dtype'] in (np.int8, np.uint8)
+        if integer:
+            x = torch.permute(torch.cat((torch.cat([preds[0], preds[1], preds[4]], 1) , torch.cat([preds[3], preds[2], preds[5]], 1)), 2), (0, 2, 1))
+        else:
+            x = torch.permute(torch.cat((torch.cat(preds[:3], 1), torch.cat(preds[3:], 1)), 2), (0, 2, 1))  # concat 6 output tensors
+        reg_max = (x.shape[1] - self.nc) // 4
+        dfl = DFL(reg_max) if reg_max > 1 else torch.nn.Identity()
+        img_h, img_w = self.imgsz, self.imgsz  # TODO: make work for rectangular imgsz
+        dims = [(img_h // 8, img_w // 8), (img_h // 16, img_w // 16), (img_h // 32, img_w // 32)]  # TODO: don't have hardcoded 8, 16, 32
+        fake_feats = [torch.zeros((1, 1, h, w), device=self.device) for h, w in dims]
+        anchors, strides = (x.transpose(0, 1) for x in make_anchors(fake_feats, [8, 16, 32], 0.5))  # generate anchors and strides
+        dbox = dist2bbox(dfl(x[:,:-self.nc,:].cpu()).to(self.device), anchors.unsqueeze(0), xywh=True, dim=1) * strides
+        return torch.cat((dbox, x[:,-self.nc:, :].sigmoid()), 1)
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
+        if len(preds) == 6:  # DeGirum export
+            preds = self.decode_bbox(preds)
         return ops.non_max_suppression(preds,
                                        self.args.conf,
                                        self.args.iou,

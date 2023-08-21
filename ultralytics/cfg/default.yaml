@@ -78,7 +78,10 @@ simplify: False  # (bool) ONNX: simplify model
 opset:  # (int, optional) ONNX: opset version
 workspace: 4  # (int) TensorRT: workspace size (GB)
 nms: False  # (bool) CoreML: add NMS
-
+exclude_postprocess_detect: False #
+separate_6_outputs: False # export model with 6 outputs - no concatenation
+export_hw_optimized: False
+act: nn.SiLU()
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01  # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
 lrf: 0.01  # (float) final learning rate (lr0 * lrf)

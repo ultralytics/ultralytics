@@ -49,6 +49,16 @@ def test_predict_dir():
     model(source=ASSETS, imgsz=32)
 
 
+def test_predict_txt():
+    # Write a list of sources to a txt file
+    txt_file = TMP / 'sources.txt'
+    with open(txt_file, 'w') as f:
+        for x in [ASSETS / 'bus.jpg', ASSETS / 'zidane.jpg']:
+            f.write(f'{x}\n')
+    model = YOLO(MODEL)
+    model(source=txt_file, imgsz=640)
+
+
 def test_predict_img():
     model = YOLO(MODEL)
     seg_model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')

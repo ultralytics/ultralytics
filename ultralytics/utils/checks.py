@@ -390,8 +390,7 @@ def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
-            assert 'DISPLAY' in os.environ
-            assert not any((is_colab(), is_kaggle(), is_docker()))
+            assert 'DISPLAY' in os.environ and not is_docker() and not is_colab() and not is_kaggle()
         cv2.imshow('test', np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()

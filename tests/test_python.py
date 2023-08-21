@@ -35,18 +35,19 @@ def test_model_methods():
     model = model.reset_weights()
     model = model.load(MODEL)
     model.to('cpu')
+    model.fuse()
     _ = model.names
     _ = model.device
 
 
-def test_model_fuse():
+def test_predict_txt():
+    # Write a list of sources (file, dir, glob, recursive glob) to a txt file
+    txt_file = TMP / 'sources.txt'
+    with open(txt_file, 'w') as f:
+        for x in [ASSETS / 'bus.jpg', ASSETS, ASSETS / '*', ASSETS / '**/*.jpg']:
+            f.write(f'{x}\n')
     model = YOLO(MODEL)
-    model.fuse()
-
-
-def test_predict_dir():
-    model = YOLO(MODEL)
-    model(source=ASSETS, imgsz=32)
+    model(source=txt_file, imgsz=32)
 
 
 def test_predict_img():
@@ -310,14 +311,15 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    from ultralytics.utils.checks import (check_imgsz, check_requirements, check_yolov5u_filename, git_describe,
-                                          print_args)
+    from ultralytics.utils.checks import (check_imgsz, check_imshow, check_requirements, check_yolov5u_filename,
+                                          git_describe, print_args)
 
     check_yolov5u_filename('yolov5n.pt')
     # check_imshow(warn=True)
     git_describe(ROOT)
     check_requirements()  # check requirements.txt
     check_imgsz([600, 600], max_dim=1)
+    check_imshow()
     print_args()
 
 

@@ -82,7 +82,7 @@ def cfg2dict(cfg):
     Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
 
     Args:
-        cfg (str | Path | SimpleNamespace): Configuration object to be converted to a dictionary.
+        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted to a dictionary.
 
     Returns:
         cfg (dict): Configuration object in dictionary format.
@@ -110,6 +110,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     # Merge overrides
     if overrides:
         overrides = cfg2dict(overrides)
+        overrides.pop('save_dir', None)  # special override keys to ignore
         check_dict_alignment(cfg, overrides)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
@@ -418,7 +419,7 @@ def entrypoint(debug=''):
         overrides['source'] = DEFAULT_CFG.source or ASSETS
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
-        if 'data' not in overrides:
+        if 'data' not in overrides and 'resume' not in overrides:
             overrides['data'] = TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':

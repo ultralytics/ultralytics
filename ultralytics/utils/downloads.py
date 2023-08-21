@@ -93,7 +93,7 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), p
         raise FileNotFoundError(f"Directory '{directory}' does not exist.")
 
     # Unzip with progress bar
-    files_to_zip = [f for f in directory.rglob('*') if f.is_file() and not any(x in f.name for x in exclude)]
+    files_to_zip = [f for f in directory.rglob('*') if f.is_file() and all(x not in f.name for x in exclude)]
     zip_file = directory.with_suffix('.zip')
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, 'w', compression) as f:
@@ -185,11 +185,9 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
                 f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
         if hard:
             raise MemoryError(text)
-        else:
-            LOGGER.warning(text)
-            return False
+        LOGGER.warning(text)
+        return False
 
-            # Pass if error
     return True
 
 

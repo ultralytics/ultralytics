@@ -20,9 +20,9 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (ASSETS, AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked, TryExcept,
-                               clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle,
-                               is_online, is_pip_package, url2file)
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked,
+                               TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter,
+                               is_kaggle, is_online, is_pip_package, url2file)
 
 
 def is_ascii(s) -> bool:
@@ -389,8 +389,9 @@ def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
-        assert not any((is_colab(), is_kaggle(), is_docker()))
-        cv2.imshow('test', np.zeros((1, 1, 3)))
+        if LINUX:
+            assert 'DISPLAY' in os.environ and not is_docker() and not is_colab() and not is_kaggle()
+        cv2.imshow('test', np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
         cv2.waitKey(1)

@@ -332,6 +332,9 @@ def get_github_assets(repo='ultralytics/assets', version='latest', retry=False):
     r = requests.get(url)  # github api
     if r.status_code != 200 and retry:
         r = requests.get(url)  # try again
+    if r.status_code != 200:
+        LOGGER.warning(f'⚠️ GitHub assets check failure for {url}: {r.status_code} {r.reason}')
+        return '', []
     data = r.json()
     return data['tag_name'], [x['name'] for x in data['assets']]  # tag, assets
 

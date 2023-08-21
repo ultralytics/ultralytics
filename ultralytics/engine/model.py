@@ -122,7 +122,7 @@ class Model:
         self.model = model(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
 
-        # Below added to allow export from yamls
+        # Below added to allow export from YAMLs
         args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine model and default args, preferring model args
         self.model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
         self.model.task = self.task

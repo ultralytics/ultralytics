@@ -16,7 +16,7 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import ASSETS, LOGGER, is_colab, is_kaggle, ops
+from ultralytics.utils import LOGGER, is_colab, is_kaggle, ops
 from ultralytics.utils.checks import check_requirements
 
 
@@ -167,7 +167,7 @@ class LoadScreenshots:
 
     def __next__(self):
         """mss screen capture: get raw pixels from the screen as np array."""
-        im0 = np.array(self.sct.grab(self.monitor))[:, :, :3]  # [:, :, :3] BGRA to BGR
+        im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
         s = f'screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: '
 
         self.frame += 1
@@ -400,10 +400,3 @@ def get_best_youtube_url(url, use_pafy=False):
             good_size = (f.get('width') or 0) >= 1920 or (f.get('height') or 0) >= 1080
             if good_size and f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
                 return f.get('url')
-
-
-if __name__ == '__main__':
-    img = cv2.imread(str(ASSETS / 'bus.jpg'))
-    dataset = LoadPilAndNumpy(im0=img)
-    for d in dataset:
-        print(d[0])

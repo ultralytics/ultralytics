@@ -35,28 +35,19 @@ def test_model_methods():
     model = model.reset_weights()
     model = model.load(MODEL)
     model.to('cpu')
+    model.fuse()
     _ = model.names
     _ = model.device
 
 
-def test_model_fuse():
-    model = YOLO(MODEL)
-    model.fuse()
-
-
-def test_predict_dir():
-    model = YOLO(MODEL)
-    model(source=ASSETS, imgsz=32)
-
-
 def test_predict_txt():
-    # Write a list of sources to a txt file
+    # Write a list of sources (file, dir, glob, recursive glob) to a txt file
     txt_file = TMP / 'sources.txt'
     with open(txt_file, 'w') as f:
-        for x in [ASSETS / 'bus.jpg', ASSETS / 'zidane.jpg']:
+        for x in [ASSETS / 'bus.jpg', ASSETS, ASSETS / '*', ASSETS / '**/*.jpg']:
             f.write(f'{x}\n')
     model = YOLO(MODEL)
-    model(source=txt_file, imgsz=640)
+    model(source=txt_file, imgsz=32)
 
 
 def test_predict_img():

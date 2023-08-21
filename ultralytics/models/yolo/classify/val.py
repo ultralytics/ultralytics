@@ -22,7 +22,7 @@ class ClassificationValidator(BaseValidator):
 
         args = dict(model='yolov8n-cls.pt', data='imagenet10')
         validator = ClassificationValidator(args=args)
-        validator(model=args['model'])
+        validator()
         ```
     """
 

@@ -29,7 +29,7 @@ from tqdm import tqdm
 from ultralytics.cfg import get_cfg
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr, emojis
+from ultralytics.utils import LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.ops import Profile
@@ -78,7 +78,7 @@ class BaseValidator:
         """
         self.dataloader = dataloader
         self.pbar = pbar
-        self.args = args or get_cfg(DEFAULT_CFG)
+        self.args = get_cfg(overrides=args)
         self.model = None
         self.data = None
         self.device = None
@@ -126,8 +126,7 @@ class BaseValidator:
         else:
             callbacks.add_integration_callbacks(self)
             self.run_callbacks('on_val_start')
-            assert model is not None, 'Either trainer or model is needed for validation'
-            model = AutoBackend(model,
+            model = AutoBackend(model or self.args.model,
                                 device=select_device(self.args.device, self.args.batch),
                                 dnn=self.args.dnn,
                                 data=self.args.data,

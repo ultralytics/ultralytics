@@ -24,7 +24,7 @@ class SegmentationValidator(DetectionValidator):
 
         args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml')
         validator = SegmentationValidator(args=args)
-        validator(model=args['model'])
+        validator()
         ```
     """
 

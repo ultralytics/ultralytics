@@ -22,7 +22,7 @@ class PoseValidator(DetectionValidator):
 
         args = dict(model='yolov8n-pose.pt', data='coco8-pose.yaml')
         validator = PoseValidator(args=args)
-        validator(model=args['model'])
+        validator()
         ```
     """
 

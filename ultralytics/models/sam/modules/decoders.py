@@ -65,7 +65,7 @@ class MaskDecoder(nn.Module):
         """
         Predict masks given image and prompt embeddings.
 
-        Arguments:
+        Args:
             image_embeddings (torch.Tensor): the embeddings from the image encoder
             image_pe (torch.Tensor): positional encoding with the shape of image_embeddings
             sparse_prompt_embeddings (torch.Tensor): the embeddings of the points and boxes

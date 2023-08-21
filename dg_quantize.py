@@ -8,13 +8,12 @@ import sys
 python3 quantize.py <path/to/saved_model> <path/to/dataset>
 '''
 
-image_shape = tflite.Interpreter(self.model_path).get_input_details()[0]['shape']
 def representative_dataset_gen():
     folder_path = sys.argv[-1]
     image_files = os.listdir(folder_path)
     for image_file in image_files:
         image = cv2.imread(folder_path +"/"+image_file)
-        resized_image = cv2.resize(image, image_shape[:-1])
+        resized_image = cv2.resize(image, (image.shape[0], image.shape[1]))
         resized_image = resized_image.astype(np.float32) / 255.0
         resized_image = np.expand_dims(resized_image, axis=0)
         image_tensor = tf.convert_to_tensor(resized_image)

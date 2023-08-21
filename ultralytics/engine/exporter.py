@@ -196,11 +196,14 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                m.exclude_postprocess_detect = self.args.exclude_postprocess_detect
                 m.separate_6_outputs = self.args.separate_6_outputs
-            elif self.args.export_hw_optimized and isinstance(m, C2f) and not any((saved_model, pb, edgetpu, tfjs)):
-                # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
-                m.forward = m.forward_hw_optimized  # m.forward_split
+            elif isinstance(m, C2f):
+                if self.args.export_hw_optimized:
+                    # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
+                    m.forward = m.forward_hw_optimized  
+                elif not any((saved_model, pb, tflite, edgetpu, tfjs)):
+                    # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
+                    m.forward = m.forward_split
 
         y = None
         for _ in range(2):

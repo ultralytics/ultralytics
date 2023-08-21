@@ -400,10 +400,3 @@ def get_best_youtube_url(url, use_pafy=False):
             good_size = (f.get('width') or 0) >= 1920 or (f.get('height') or 0) >= 1080
             if good_size and f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
                 return f.get('url')
-
-
-if __name__ == '__main__':
-    img = cv2.imread(str(ASSETS / 'bus.jpg'))
-    dataset = LoadPilAndNumpy(im0=img)
-    for d in dataset:
-        print(d[0])

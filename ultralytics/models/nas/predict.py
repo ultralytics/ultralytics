@@ -25,8 +25,9 @@ class NASPredictor(BasePredictor):
 
         results = []
         for i, pred in enumerate(preds):
-            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            if not isinstance(orig_imgs, torch.Tensor):
+            is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
+            orig_img = orig_imgs[i] if is_list else orig_imgs
+            if is_list:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             img_path = self.batch[0][i]
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))

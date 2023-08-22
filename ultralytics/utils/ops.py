@@ -464,7 +464,8 @@ def ltwh2xywh(x):
 
 def xyxyxyxy2xywhr(corners):
     """
-    Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation].
+    Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation]. Rotation values are
+    expected in degrees from -180 to +180.
 
     Args:
         corners (numpy.ndarray | torch.Tensor): Input corners of shape (n, 8).
@@ -492,7 +493,8 @@ def xyxyxyxy2xywhr(corners):
 
 def xywhr2xyxyxyxy(center):
     """
-    Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4].
+    Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4]. Rotation values should
+    be in degrees from -180 to +180.
 
     Args:
         center (numpy.ndarray | torch.Tensor): Input data in [cx, cy, w, h, rotation] format of shape (n, 5).

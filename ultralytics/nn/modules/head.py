@@ -120,11 +120,17 @@ class OBB(Detect):
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
-        theta = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta
+        theta = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
         x = self.detect(self, x)
         if self.training:
             return x, theta
-        return torch.cat([x, theta], 1) if self.export else (torch.cat([x[0], theta], 1), (x[1], theta))
+        degrees = self.logits2degrees(theta)  # 0-1 theta to -180 to 180 degrees
+        return torch.cat([x, degrees], 1) if self.export else (torch.cat([x[0], degrees], 1), (x[1], theta))
+
+    @staticmethod
+    def logits2degrees(x):
+        """Convert 0-1 theta to -180 to +180 degrees. Overlap from -216 to +216 degrees to avoid edge effects."""
+        return (x.sigmoid() * 1.2 - 0.6) * 360
 
 
 class Pose(Detect):

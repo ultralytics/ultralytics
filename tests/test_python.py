@@ -375,3 +375,17 @@ def test_utils_files():
     path.mkdir(parents=True, exist_ok=True)
     with spaces_in_path(path) as new_path:
         print(new_path)
+
+
+def test_nn_modules_block():
+    from ultralytics.nn.modules.block import C1, C3TR, BottleneckCSP, C3Ghost, C3x
+
+    c1, c2 = 8, 16  # input and output channels
+    x = torch.zeros(4, c1, 10, 10)  # BCHW
+
+    # Run all modules not otherwise covered in tests
+    C1(c1, c2)(x)
+    C3x(c1, c2)(x)
+    C3TR(c1, c2)(x)
+    C3Ghost(c1, c2)(x)
+    BottleneckCSP(c1, c2)(x)

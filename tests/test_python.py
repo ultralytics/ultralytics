@@ -407,3 +407,10 @@ def test_nn_modules_block():
     C3TR(c1, c2)(x)
     C3Ghost(c1, c2)(x)
     BottleneckCSP(c1, c2)(x)
+
+
+def test_hub():
+    from ultralytics.hub import export_fmts_hub, logout
+
+    export_fmts_hub()
+    logout()

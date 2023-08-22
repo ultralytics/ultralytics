@@ -5,7 +5,7 @@ import requests
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX
-from ultralytics.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
+from ultralytics.utils import LOGGER, SETTINGS
 
 
 def login(api_key=''):
@@ -37,7 +37,7 @@ def logout():
         ```
     """
     SETTINGS['api_key'] = ''
-    yaml_save(USER_CONFIG_DIR / 'settings.yaml', SETTINGS)
+    SETTINGS.save()
     LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo hub login'.")
 
 

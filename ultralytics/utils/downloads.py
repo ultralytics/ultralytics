@@ -212,21 +212,18 @@ def get_google_drive_file_info(link):
     """
     file_id = link.split('/d/')[1].split('/view')[0]
     drive_url = f'https://drive.google.com/uc?export=download&id={file_id}'
+    filename = None
 
     # Start session
-    filename = None
     with requests.Session() as session:
         response = session.get(drive_url, stream=True)
         if 'quota exceeded' in str(response.content.lower()):
             raise ConnectionError(
                 emojis(f'❌  Google Drive file download quota exceeded. '
                        f'Please try again later or download this file manually at {link}.'))
-        token = None
-        for key, value in response.cookies.items():
-            if key.startswith('download_warning'):
-                token = value
-        if token:
-            drive_url = f'https://drive.google.com/uc?export=download&confirm={token}&id={file_id}'
+        for k, v in response.cookies.items():
+            if k.startswith('download_warning'):
+                drive_url += f'&confirm={v}'  # v is token
         cd = response.headers.get('content-disposition')
         if cd:
             filename = re.findall('filename="(.+)"', cd)[0]

@@ -17,6 +17,9 @@ from ultralytics.utils.ops import segment2box
 
 from .utils import polygons2masks, polygons2masks_overlap
 
+IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
+
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
@@ -793,7 +796,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
+def classify_transforms(size=224, mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD):  # IMAGENET_MEAN, IMAGENET_STD
     # Transforms to apply if albumentations not installed
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
@@ -803,23 +806,116 @@ def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  #
         return T.Compose([CenterCrop(size), ToTensor()])
 
 
+# Classification augmentations v2 ---------------------------------------------------------------------------------------
+def classify_transforms_v2(
+    size=224,
+    mean=IMAGENET_DEFAULT_MEAN,
+    std=IMAGENET_DEFAULT_STD,
+    scale=None,
+    ratio=None,
+    hflip=0.5,
+    vflip=0.0,
+    auto_augment=None,
+    color_jitter=0.4,
+    force_color_jitter=False,
+    re_prob=0.,
+    interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
+):
+    """
+    Classification augmentation with torchvision.
+    Inspired by timm/data/transforms_factory.py
+
+    Args:
+        size (int): image size
+        scale (tuple): scale range of the image. default is (0.08, 1.0)
+        ratio (tuple): aspect ratio range of the image. default is (3./4., 4./3.)
+        mean (tuple): mean values of RGB channels
+        std (tuple): std values of RGB channels
+        hflip (float): probability of horizontal flip
+        vflip (float): probability of vertical flip
+        auto_augment (str): auto augmentation policy. can be 'randaugment', 'augmix', 'autoaugment' or None.
+        color_jitter (float or tuple): color jitter factor or tuple of 3 values for brightness, contrast, saturation
+        force_color_jitter (bool): force to apply color jitter even if auto augment is enabled
+        re_prob (float): probability of random erasing
+        interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
+
+    Returns:
+        T.Compose: torchvision transforms
+    """
+    # Transforms to apply if albumentations not installed
+    if not isinstance(size, int):
+        raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
+    scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
+    ratio = tuple(ratio or (3. / 4., 4. / 3.))  # default imagenet ratio range
+    primary_tfl = [T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)]
+    if hflip > 0.:
+        primary_tfl += [T.RandomHorizontalFlip(p=hflip)]
+    if vflip > 0.:
+        primary_tfl += [T.RandomVerticalFlip(p=vflip)]
+
+    secondary_tfl = []
+    disable_color_jitter = False
+    if auto_augment:
+        assert isinstance(auto_augment, str)
+        # color jitter is typically disabled if AA/RA on,
+        # this allows override without breaking old hparm cfgs
+        disable_color_jitter = not force_color_jitter
+        if isinstance(size, (tuple, list)):
+            img_size_min = min(size)
+        else:
+            img_size_min = size
+        aa_params = dict(
+            translate_const=int(img_size_min * 0.45),
+            img_mean=tuple([min(255, round(255 * x)) for x in mean]),
+        )
+
+        if auto_augment == 'randaugment':
+            secondary_tfl += [T.RandAugment(auto_augment, aa_params)]
+        elif auto_augment == 'augmix':
+            aa_params['translate_pct'] = 0.3
+            secondary_tfl += [T.AugMix(auto_augment, aa_params)]
+        elif auto_augment == 'autoaugment':
+            secondary_tfl += [T.AutoAugment(auto_augment, aa_params)]
+        else:
+            raise ValueError(f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '
+                             f'"augmix", "autoaugment" or None')
+
+    if color_jitter is not None and not disable_color_jitter:
+        # color jitter is enabled when not using AA or when forced
+        if isinstance(color_jitter, (list, tuple)):
+            # color jitter should be a 3-tuple/list if spec brightness/contrast/saturation
+            # or 4 if also augmenting hue
+            assert len(color_jitter) in (3, 4)
+        else:
+            # if it's a scalar, duplicate for brightness, contrast, and saturation, no hue
+            color_jitter = (float(color_jitter), ) * 3
+        secondary_tfl += [T.ColorJitter(*color_jitter)]
+
+    final_tfl = []
+    final_tfl += [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
+    if re_prob > 0.:
+        final_tfl.append(T.RandomErasing(p=re_prob, inplace=True))
+
+    return T.Compose(primary_tfl + secondary_tfl + final_tfl)
+
+
 def hsv2colorjitter(h, s, v):
     """Map HSV (hue, saturation, value) jitter into ColorJitter values (brightness, contrast, saturation, hue)"""
     return v, v, s, h
 
 
 def classify_albumentations(
-        augment=True,
-        size=224,
-        scale=(0.08, 1.0),
-        hflip=0.5,
-        vflip=0.0,
-        hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
-        hsv_s=0.7,  # image HSV-Saturation augmentation (fraction)
-        hsv_v=0.4,  # image HSV-Value augmentation (fraction)
-        mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-        std=(1.0, 1.0, 1.0),  # IMAGENET_STD
-        auto_aug=False,
+    augment=True,
+    size=224,
+    scale=(0.08, 1.0),
+    hflip=0.5,
+    vflip=0.0,
+    hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
+    hsv_s=0.7,  # image HSV-Saturation augmentation (fraction)
+    hsv_v=0.4,  # image HSV-Value augmentation (fraction)
+    mean=IMAGENET_DEFAULT_MEAN,  # IMAGENET_MEAN
+    std=IMAGENET_DEFAULT_STD,  # IMAGENET_STD
+    auto_aug=False,
 ):
     """YOLOv8 classification Albumentations (optional, only used if package is installed)."""
     prefix = colorstr('albumentations: ')

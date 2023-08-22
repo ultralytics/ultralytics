@@ -12,7 +12,8 @@ from tqdm import tqdm
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
 
-from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
+from .augment import (IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD, Compose, Format, Instances, LetterBox,
+                      classify_albumentations, classify_transforms, classify_transforms_v2, v8_transforms)
 from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image_label
 
@@ -232,7 +233,15 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_ram = cache is True or cache == 'ram'
         self.cache_disk = cache == 'disk'
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        self.torch_transforms = classify_transforms(args.imgsz)
+        self.torch_transforms = classify_transforms_v2(
+            size=args.imgsz,
+            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
+            mean=IMAGENET_DEFAULT_MEAN,  # IMAGENET_MEAN
+            std=IMAGENET_DEFAULT_STD,  # IMAGENET_STD
+            hflip=args.fliplr,
+            vflip=args.flipud,
+            auto_augment=None) if augment else classify_transforms(size=args.imgsz)  # default torchvision transforms
+
         self.album_transforms = classify_albumentations(
             augment=augment,
             size=args.imgsz,
@@ -242,8 +251,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
             hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
             hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
+            mean=IMAGENET_DEFAULT_MEAN,  # IMAGENET_MEAN
+            std=IMAGENET_DEFAULT_STD,  # IMAGENET_STD
             auto_aug=False) if augment else None
 
     def __getitem__(self, i):

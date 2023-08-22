@@ -128,7 +128,7 @@ def test_track_stream():
 
 def test_val():
     model = YOLO(MODEL)
-    model.val(data='coco8.yaml', imgsz=32)
+    model.val(data='coco8.yaml', imgsz=32, save_hybrid=True)
 
 
 def test_train_scratch():
@@ -348,9 +348,20 @@ def test_utils_downloads():
 
 
 def test_utils_ops():
-    from ultralytics.utils.ops import make_divisible
+    from ultralytics.utils.ops import (ltwh2xywh, ltwh2xyxy, make_divisible, xywh2ltwh, xywh2xyxy, xywhn2xyxy,
+                                       xywhr2xyxyxyxy, xyxy2ltwh, xyxy2xywh, xyxy2xywhn, xyxyxyxy2xywhr)
 
-    make_divisible(17, 8)
+    make_divisible(17, torch.tensor([8]))
+
+    boxes = torch.rand(10, 4)  # xywh
+    torch.allclose(boxes, xyxy2xywh(xywh2xyxy(boxes)))
+    torch.allclose(boxes, xyxy2xywhn(xywhn2xyxy(boxes)))
+    torch.allclose(boxes, ltwh2xywh(xywh2ltwh(boxes)))
+    torch.allclose(boxes, xyxy2ltwh(ltwh2xyxy(boxes)))
+
+    boxes = torch.rand(10, 5)  # xywhr for OBB
+    boxes[:, 4] = torch.randn(10) * 30
+    torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3)
 
 
 def test_utils_files():
@@ -364,3 +375,42 @@ def test_utils_files():
     path.mkdir(parents=True, exist_ok=True)
     with spaces_in_path(path) as new_path:
         print(new_path)
+
+
+def test_nn_modules_conv():
+    from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus
+
+    c1, c2 = 8, 16  # input and output channels
+    x = torch.zeros(4, c1, 10, 10)  # BCHW
+
+    # Run all modules not otherwise covered in tests
+    DWConvTranspose2d(c1, c2)(x)
+    ConvTranspose(c1, c2)(x)
+    Focus(c1, c2)(x)
+    CBAM(c1)(x)
+
+    # Fuse ops
+    m = Conv2(c1, c2)
+    m.fuse_convs()
+    m(x)
+
+
+def test_nn_modules_block():
+    from ultralytics.nn.modules.block import C1, C3TR, BottleneckCSP, C3Ghost, C3x
+
+    c1, c2 = 8, 16  # input and output channels
+    x = torch.zeros(4, c1, 10, 10)  # BCHW
+
+    # Run all modules not otherwise covered in tests
+    C1(c1, c2)(x)
+    C3x(c1, c2)(x)
+    C3TR(c1, c2)(x)
+    C3Ghost(c1, c2)(x)
+    BottleneckCSP(c1, c2)(x)
+
+
+def test_hub():
+    from ultralytics.hub import export_fmts_hub, logout
+
+    export_fmts_hub()
+    logout()

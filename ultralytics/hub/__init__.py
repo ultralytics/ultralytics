@@ -5,7 +5,7 @@ import requests
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX
-from ultralytics.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
+from ultralytics.utils import LOGGER, SETTINGS
 
 
 def login(api_key=''):
@@ -37,27 +37,8 @@ def logout():
         ```
     """
     SETTINGS['api_key'] = ''
-    yaml_save(USER_CONFIG_DIR / 'settings.yaml', SETTINGS)
+    SETTINGS.save()
     LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo hub login'.")
-
-
-def start(key=''):
-    """
-    Start training models with Ultralytics HUB (DEPRECATED).
-
-    Args:
-        key (str, optional): A string containing either the API key and model ID combination (apikey_modelid),
-                               or the full model URL (https://hub.ultralytics.com/models/apikey_modelid).
-    """
-    api_key, model_id = key.split('_')
-    LOGGER.warning(f"""
-WARNING ⚠️ ultralytics.start() is deprecated after 8.0.60. Updated usage to train Ultralytics HUB models is:
-
-from ultralytics import YOLO, hub
-
-hub.login('{api_key}')
-model = YOLO('{HUB_WEB_ROOT}/models/{model_id}')
-model.train()""")
 
 
 def reset_model(model_id=''):
@@ -117,7 +98,3 @@ def check_dataset(path='', task='detect'):
     """
     HUBDatasetStats(path=path, task=task).get_json()
     LOGGER.info(f'Checks completed correctly ✅. Upload this dataset to {HUB_WEB_ROOT}/datasets/.')
-
-
-if __name__ == '__main__':
-    start()

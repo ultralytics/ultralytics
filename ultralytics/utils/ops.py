@@ -472,14 +472,8 @@ def xyxyxyxy2xywhr(corners):
     Returns:
         (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format of shape (n, 5).
     """
-    if isinstance(corners, torch.Tensor):
-        is_numpy = False
-        atan2 = torch.atan2
-        sqrt = torch.sqrt
-    else:
-        is_numpy = True
-        atan2 = np.arctan2
-        sqrt = np.sqrt
+    is_numpy = isinstance(corners, np.ndarray)
+    atan2, sqrt = (torch.atan2, torch.sqrt) if is_numpy else (np.arctan2, np.sqrt)
 
     x1, y1, x2, y2, x3, y3, x4, y4 = corners.T
     cx = (x1 + x3) / 2
@@ -506,14 +500,8 @@ def xywhr2xyxyxyxy(center):
     Returns:
         (numpy.ndarray | torch.Tensor): Converted corner points of shape (n, 8).
     """
-    if isinstance(center, torch.Tensor):
-        is_numpy = False
-        cos = torch.cos
-        sin = torch.sin
-    else:
-        is_numpy = True
-        cos = np.cos
-        sin = np.sin
+    is_numpy = isinstance(center, np.ndarray)
+    cos, sin = (torch.cos, torch.sin) if is_numpy else (np.cos, np.sin)
 
     cx, cy, w, h, rotation = center.T
     rotation *= math.pi / 180.0  # degrees to radians

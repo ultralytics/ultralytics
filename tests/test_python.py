@@ -128,7 +128,7 @@ def test_track_stream():
 
 def test_val():
     model = YOLO(MODEL)
-    model.val(data='coco8.yaml', imgsz=32)
+    model.val(data='coco8.yaml', imgsz=32, save_hybrid=True)
 
 
 def test_train_scratch():
@@ -348,15 +348,16 @@ def test_utils_downloads():
 
 
 def test_utils_ops():
-    from ultralytics.utils.ops import (ltwh2xywh, make_divisible, xywh2ltwh, xywh2xyxy, xywhn2xyxy, xywhr2xyxyxyxy,
-                                       xyxy2ltwh, xyxy2xywhn, xyxyxyxy2xywhr)
+    from ultralytics.utils.ops import (ltwh2xywh, ltwh2xyxy, make_divisible, xywh2ltwh, xywh2xyxy, xywhn2xyxy,
+                                       xywhr2xyxyxyxy, xyxy2ltwh, xyxy2xywh, xyxy2xywhn, xyxyxyxy2xywhr)
 
     make_divisible(17, torch.tensor([8]))
 
     boxes = torch.rand(10, 4)  # xywhn
+    torch.allclose(boxes, xyxy2xywh(xywh2xyxy(boxes)))
     torch.allclose(boxes, xyxy2xywhn(xywhn2xyxy(boxes)))
     torch.allclose(boxes, ltwh2xywh(xywh2ltwh(boxes)))
-    torch.allclose(boxes, ltwh2xywh(xyxy2ltwh(xywh2xyxy(boxes))))
+    torch.allclose(boxes, xyxy2ltwh(ltwh2xyxy(boxes)))
 
     boxes = torch.rand(10, 5)  # xywhr for OBB
     boxes[:, 4] = torch.randn(10) * 30

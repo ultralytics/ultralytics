@@ -353,7 +353,7 @@ def test_utils_ops():
 
     make_divisible(17, torch.tensor([8]))
 
-    boxes = torch.rand(10, 4)  # xywhn
+    boxes = torch.rand(10, 4)  # xywh
     torch.allclose(boxes, xyxy2xywh(xywh2xyxy(boxes)))
     torch.allclose(boxes, xyxy2xywhn(xywhn2xyxy(boxes)))
     torch.allclose(boxes, ltwh2xywh(xywh2ltwh(boxes)))

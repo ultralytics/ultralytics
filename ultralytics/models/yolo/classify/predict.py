@@ -41,8 +41,7 @@ class ClassificationPredictor(BasePredictor):
         results = []
         for i, pred in enumerate(preds):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
+            img_path = self.batch[0][i]
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred))
 
         return results

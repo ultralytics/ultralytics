@@ -35,8 +35,7 @@ class FastSAMPredictor(DetectionPredictor):
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         for i, pred in enumerate(p):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
+            img_path = self.batch[0][i]
             if not len(pred):  # save empty boxes
                 results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6]))
                 continue

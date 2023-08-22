@@ -327,8 +327,7 @@ class Predictor(BasePredictor):
 
             masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
             masks = masks > self.model.mask_threshold  # to bool
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
+            img_path = self.batch[0][i]
             results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False

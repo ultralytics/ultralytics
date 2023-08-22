@@ -40,8 +40,7 @@ class RTDETRPredictor(BasePredictor):
             if not isinstance(orig_imgs, torch.Tensor):
                 pred[..., [0, 2]] *= ow
                 pred[..., [1, 3]] *= oh
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
+            img_path = self.batch[0][i]
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results
 

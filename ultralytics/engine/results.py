@@ -89,7 +89,7 @@ class Results(SimpleClass):
         _keys (tuple): A tuple of attribute names for non-empty attributes.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None) -> None:
+    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None) -> None:
         """Initialize the Results class."""
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
@@ -97,6 +97,7 @@ class Results(SimpleClass):
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
+        self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.speed = {'preprocess': None, 'inference': None, 'postprocess': None}  # milliseconds per image
         self.names = names
         self.path = path
@@ -313,8 +314,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
-                    line += (*kpt.reshape(-1).tolist(), )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                    line += (*kpt.reshape(-1).tolist(),)
+                line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:
@@ -407,7 +408,7 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, track_id, conf, cls
+        assert n in (6, 7), f'expected 6 or 7 values but got {n}'  # xyxy, track_id, conf, cls
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
         self.orig_shape = orig_shape
@@ -490,8 +491,7 @@ class Masks(BaseTensor):
     def segments(self):
         """Return segments (normalized). Deprecated; use xyn property instead."""
         LOGGER.warning(
-            "WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and 'Masks.xy' for segments (pixels) instead."
-        )
+            "WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' (normalized) or 'Masks.xy' (pixels) instead.")
         return self.xyn
 
     @property
@@ -605,3 +605,65 @@ class Probs(BaseTensor):
     def top5conf(self):
         """Return the confidences of top 5."""
         return self.data[self.top5]
+
+
+class OBB(BaseTensor):
+    """
+    A class for storing and manipulating Oriented Bounding Boxes (OBB).
+
+    Args:
+        boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes,
+            with shape (num_boxes, 7) or (num_boxes, 8). The last two columns contain confidence and class values.
+            If present, the third last column contains track IDs, and the fifth column from the left contains rotation.
+        orig_shape (tuple): Original image size, in the format (height, width).
+
+    Attributes:
+        xywhr (torch.Tensor | numpy.ndarray): The boxes in [x_center, y_center, width, height, rotation] format.
+        conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
+        cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
+        id (torch.Tensor | numpy.ndarray): The track IDs of the boxes (if available).
+        xyxyxyxy (torch.Tensor | numpy.ndarray): The boxes in xyxyxyxy format normalized by original image size.
+        data (torch.Tensor): The raw OBB tensor (alias for `boxes`).
+
+    Methods:
+        cpu(): Move the object to CPU memory.
+        numpy(): Convert the object to a numpy array.
+        cuda(): Move the object to CUDA memory.
+        to(*args, **kwargs): Move the object to the specified device.
+    """
+
+    def __init__(self, boxes, orig_shape) -> None:
+        """Initialize the Boxes class."""
+        if boxes.ndim == 1:
+            boxes = boxes[None, :]
+        n = boxes.shape[-1]
+        assert n in (7, 8), f'expected 7 or 8 values but got {n}'  # xywh, rotation, track_id, conf, cls
+        super().__init__(boxes, orig_shape)
+        self.is_track = n == 8
+        self.orig_shape = orig_shape
+
+    @property
+    def xywhr(self):
+        """Return the boxes in xywhr format."""
+        return self.data[:, :5]
+
+    @property
+    def conf(self):
+        """Return the confidence values of the boxes."""
+        return self.data[:, -2]
+
+    @property
+    def cls(self):
+        """Return the class values of the boxes."""
+        return self.data[:, -1]
+
+    @property
+    def id(self):
+        """Return the track IDs of the boxes (if available)."""
+        return self.data[:, -3] if self.is_track else None
+
+    @property
+    @lru_cache(maxsize=2)
+    def xyxyxyxy(self):
+        """Return the boxes in xyxyxyxy format normalized by original image size."""
+        return ops.xywhr2xyxyxyxy(self.xywhr)

@@ -278,7 +278,7 @@ def clip_coords(coords, shape):
         shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
 
     Returns:
-        (None): The function modifies the input `coordinates` in place, by clipping each coordinate to the image boundaries.
+        (None): The input 'coords' are modified inplace, by clipping each coordinate to the image boundaries.
     """
     if isinstance(coords, torch.Tensor):  # faster individually
         coords[..., 0].clamp_(0, shape[1])  # x
@@ -308,7 +308,7 @@ def scale_image(masks, im0_shape, ratio_pad=None):
         gain = min(im1_shape[0] / im0_shape[0], im1_shape[1] / im0_shape[1])  # gain  = old / new
         pad = (im1_shape[1] - im0_shape[1] * gain) / 2, (im1_shape[0] - im0_shape[0] * gain) / 2  # wh padding
     else:
-        gain = ratio_pad[0][0]
+        # gain = ratio_pad[0][0]
         pad = ratio_pad[1]
     top, left = int(pad[1]), int(pad[0])  # y, x
     bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
@@ -545,187 +545,6 @@ def ltwh2xyxy(x):
     y[..., 2] = x[..., 2] + x[..., 0]  # width
     y[..., 3] = x[..., 3] + x[..., 1]  # height
     return y
-
-
-def dota2yolo(obb_list, img_width, img_height):
-    """
-    Converts a list of bounding boxes from DOTA format to YOLO format.
-
-    Args:
-        obb_list (np.ndarray): eight points representing the bounding box in the DOTA format.
-        img_width (int): The width of the image that the bounding boxes are relative to.
-        img_height (int): The height of the image that the bounding boxes are relative to.
-
-    Returns:
-        np.ndarray: An array of bounding boxes in the YOLO format, where each bounding box is a list of x_center, y_center, width, height and angle.
-    """
-    return np.array([dota2xywha(obb, img_width, img_height) for obb in obb_list])
-
-
-def dota2xywha(bbox, img_width=640, img_height=640, normalised=True):
-    """
-    Converts a bounding box from DOTA format (a list of eight points) to the xywha format (a list of five values).
-
-    Args:
-        bbox (np.ndarray): eight points representing the bounding box in the DOTA format, ordered as follows: x1, y1, x2, y2, x3, y3, x4, y4.
-        img_width (int): The width of the image that the bounding box is relative to.
-        img_height (int): The height of the image that the bounding box is relative to.
-        normalised (bool): Boolean flag on whether the output format is normalised or not
-
-    Returns:
-        list: A list of five values representing the bounding box in the xywha format. The values are ordered as follows: x_center, y_center, width, height, angle.
-
-        - x_center (float): The x-coordinate of the center of the bounding box.
-        - y_center (float): The y-coordinate of the center of the bounding box.
-        - width (float): The width of the bounding box.
-        - height (float): The height of the bounding box.
-        - angle (float): The angle of rotation of the bounding box in degrees.
-    """
-    x1, y1, x2, y2, x3, y3, x4, y4 = map(float, bbox[:8])
-    x, y = (x1 + x2 + x3 + x4) / 4, (y1 + y2 + y3 + y4) / 4,
-    points = np.array([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
-
-    # Calculate the width and height
-    width = np.linalg.norm(points[0] - points[1])
-    height = np.linalg.norm(points[1] - points[2])
-
-    # Calculate the angle of rotation (theta)
-    delta_x, delta_y = points[0] - points[1]
-    theta = np.arctan2(delta_y, delta_x)
-    theta = np.degrees(theta)
-
-    # Keep the angle between -180 and 180 degrees [-180, 180)
-    while theta > 180:
-        theta -= 360
-    while theta < -180:
-        theta += 360
-
-    if normalised:
-        # Normalizes an angle in the range [-180, 180) to the range [0, 1)
-        theta_norm = normalize_angle(theta)
-
-        # Normalize coordinates to YOLO format
-        x_norm = x / img_width
-        y_norm = y / img_height
-        width_norm = width / img_width
-        height_norm = height / img_height
-
-        return [x_norm, y_norm, width_norm, height_norm, theta_norm]
-
-    return [x, y, width, height, theta]
-
-
-def xyxya2dota(xyxya_bbox):
-    """
-    Converts a bounding box from (x1, y1, x2, y2, theta) format to DOTA format
-
-    Args:
-        xyxya_bbox (tuple): A tuple of five values representing the bounding box in the format of
-        `(x1, y1, x2, y2, theta)`.
-
-    Returns:
-        list: A list of eight coordinates `[x1, y1, x2, y2, x3, y3, x4, y4]` representing the
-        four corner points of the bounding box in DOTA format.
-    """
-    x1, y1, x2, y2, theta = xyxya_bbox
-
-    # Calculate the center coordinates, width, and height
-    x = (x1 + x2) / 2
-    y = (y1 + y2) / 2
-    width = x2 - x1
-    height = y2 - y1
-
-    # Convert rotation angle to radians
-    theta_rad = np.radians(theta)
-
-    # Calculate the four corner points of the quadrilateral
-    half_width = width / 2
-    half_height = height / 2
-    cos_theta = np.cos(theta_rad)
-    sin_theta = np.sin(theta_rad)
-    x1 = x - half_width * cos_theta + half_height * sin_theta
-    y1 = y - half_width * sin_theta - half_height * cos_theta
-    x2 = x + half_width * cos_theta + half_height * sin_theta
-    y2 = y + half_width * sin_theta - half_height * cos_theta
-    x3 = x + half_width * cos_theta - half_height * sin_theta
-    y3 = y + half_width * sin_theta + half_height * cos_theta
-    x4 = x - half_width * cos_theta - half_height * sin_theta
-    y4 = y - half_width * sin_theta + half_height * cos_theta
-
-    # Convert the coordinates to DOTA format
-    bbox = [x1, y1, x2, y2, x3, y3, x4, y4]
-
-    return bbox
-
-
-def create_obb_boxes(bboxes, obb_theta):
-    """
-    Converts bounding boxes from (x1, y1, x2, y2) format to oriented bounding boxes (x1, y1, x2, y2, theta) format using numpy arrays
-
-    Args:
-        bboxes (numpy array): An array of shape (N, 4) representing the bounding boxes in the format of `(x1, y1, x2, y2)`.
-        obb_theta (numpy array): An array of shape (N,) representing the orientation angles in radians for the oriented bounding boxes.
-
-    Returns:
-        numpy array: An array of shape (N, 5) representing the oriented bounding boxes in the format of `(x1, y1, x2, y2, theta)`.
-    """
-    # Get the number of bounding boxes
-    num_bboxes = bboxes.shape[0]
-
-    # Initialize the obb_boxes array with zeros
-    obb_boxes = np.zeros((num_bboxes, 5))
-
-    # Copy the xyxy coordinates from bboxes to obb_boxes
-    obb_boxes[:, :4] = bboxes
-
-    # Copy the obb_theta values to obb_boxes
-    obb_boxes[:, 4] = obb_theta.flatten()
-
-    return obb_boxes
-
-
-def split_obb_boxes(obb_boxes):
-    """
-    Split oriented bounding boxes (OBBs) into separate arrays for xyxy coordinates and obb_theta values.
-
-    Args:
-        obb_boxes (ndarray): Array of OBBs with shape (num_bboxes, 5) where each row represents [x1, y1, x2, y2, theta].
-
-    Returns:
-        bboxes (ndarray): Array of xyxy bounding boxes with shape (num_bboxes, 4).
-        obb_theta (ndarray): Array of obb_theta values with shape (num_bboxes, 1).
-    """
-    # Extract xyxy coordinates and obb_theta values from obb_boxes
-    bboxes = obb_boxes[:, :4]
-    obb_theta = obb_boxes[:, 4].reshape(-1, 1)
-
-    return bboxes, obb_theta
-
-
-def normalize_angle(theta):
-    """
-    Normalizes an angle in the range [-180, 180) to the range [0, 1).
-
-    Args:
-        theta (float): An angle in degrees, in the range [-180, 180).
-
-    Returns:
-        float: The normalized angle in the range [0, 1).
-    """
-    return (theta + 180) / 360
-
-
-def denormalize_angle(theta_norm):
-    """
-    Denormalizes an angle in the range [0, 1) to the range [-180, 180).
-
-    Args:
-        theta_norm (float): A normalized angle in the range [0, 1).
-
-    Returns:
-        float: The denormalized angle in degrees, in the range [-180, 180).
-    """
-    return theta_norm * 360 - 180
 
 
 def segments2boxes(segments):

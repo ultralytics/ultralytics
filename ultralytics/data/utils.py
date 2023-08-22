@@ -22,7 +22,7 @@ from ultralytics.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS
                                yaml_load)
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
-from ultralytics.utils.ops import dota2yolo, segments2boxes
+from ultralytics.utils.ops import segments2boxes
 
 HELP_URL = 'See https://docs.ultralytics.com/datasets/detect for dataset formatting guidance.'
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
@@ -59,11 +59,9 @@ def exif_size(img: Image.Image):
 
 def verify_image_label(args):
     """Verify one image-label pair."""
-    im_file, lb_file, prefix, keypoint, obb, cls, nkpt, ndim = args
-    # number (missing, found, empty, corrupt), message, segments, keypoints, theta
-    nm, nf, ne, nc, msg, segments, keypoints, obb_theta = 0, 0, 0, 0, '', [], None, None
-    num_cls = len(cls)
-
+    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+    # Number (missing, found, empty, corrupt), message, segments, keypoints
+    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, '', [], None
     try:
         # Verify images
         im = Image.open(im_file)
@@ -84,16 +82,10 @@ def verify_image_label(args):
             nf = 1  # label found
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                if any(len(x) > 6 for x in lb) and (not keypoint) and (not obb):  # is segment
+                if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
-                elif any(len(x) > 9 for x in lb) and obb:
-                    classes = np.array([next(k for k, v in cls.items() if v == x[8]) for x in lb], dtype=np.float32)
-                    obbox = np.array([x[0:8] for x in lb], dtype=np.float32)
-                    img_width, img_height = im.size
-                    lb = np.concatenate((classes.reshape(-1, 1), dota2yolo(obbox, img_width, img_height)), 1)
-
                 lb = np.array(lb, dtype=np.float32)
             nl = len(lb)
             if nl:
@@ -101,11 +93,6 @@ def verify_image_label(args):
                     assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
                     assert (lb[:, 5::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
                     assert (lb[:, 6::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
-                elif obb:
-                    assert lb.shape[1] == 6, f'labels require 10 columns, {lb.shape[1]} columns detected'
-                    assert (lb[:, 1:] <= 1).all(), \
-                        f'non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}'
-                    assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
                     assert (lb[:, 1:] <= 1).all(), \
@@ -136,14 +123,12 @@ def verify_image_label(args):
                 kpt_mask = np.where(keypoints[..., 0] < 0, 0.0, kpt_mask)
                 kpt_mask = np.where(keypoints[..., 1] < 0, 0.0, kpt_mask)
                 keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
-        if obb:
-            obb_theta = lb[:, 5:6]
         lb = lb[:, :5]
-        return im_file, lb, shape, segments, keypoints, obb_theta, nm, nf, ne, nc, msg
+        return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1
         msg = f'{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}'
-        return [None, None, None, None, None, None, nm, nf, ne, nc, msg]
+        return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):

@@ -10,11 +10,11 @@ import torch
 import torchvision
 from tqdm import tqdm
 
-from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
+from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, colorstr, is_dir_writeable
 
 from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
 from .base import BaseDataset
-from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image_label
+from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
 
 class YOLODataset(BaseDataset):
@@ -216,7 +216,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
     """
 
-    def __init__(self, root, args, augment=False, cache=False):
+    def __init__(self, root, args, augment=False, cache=False, prefix=''):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -229,8 +229,10 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         super().__init__(root=root)
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[:round(len(self.samples) * args.fraction)]
+        self.prefix = colorstr(f'{prefix}: ') if prefix else ''
         self.cache_ram = cache is True or cache == 'ram'
         self.cache_disk = cache == 'disk'
+        self.verify_images()
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
         self.torch_transforms = classify_transforms(args.imgsz)
         self.album_transforms = classify_albumentations(
@@ -265,6 +267,28 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
 
     def __len__(self) -> int:
         return len(self.samples)
+
+    def verify_images(self):
+        desc = f'{self.prefix}Scanning {self.root}...'
+        total = len(self.samples)
+        nf, nc, msgs, samples = 0, 0, [], []
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(func=verify_image, iterable=zip([x[0] for x in self.samples], repeat(self.prefix)))
+            pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
+            for im_file, nf_f, nc_f, msg in pbar:
+                if nf_f:
+                    samples.append((im_file, nf))
+                if msg:
+                    msgs.append(msg)
+                nf += nf_f
+                nc += nc_f
+                pbar.desc = f'{desc} {nf} images, {nc} corrupt'
+            pbar.close()
+
+        if msgs:
+            LOGGER.info('\n'.join(msgs))
+
+        self.samples = samples
 
 
 # TODO: support semantic segmentation

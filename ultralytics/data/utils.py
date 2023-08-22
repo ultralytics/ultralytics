@@ -30,10 +30,9 @@ VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 't
 PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
 
 
-def img2label_paths(img_paths, use_obb):
+def img2label_paths(img_paths):
     """Define label paths as a function of image paths."""
-    # /images/, /labels/ substrings
-    sa, sb = f'{os.sep}images{os.sep}', f'{os.sep}labels{os.sep}' if not use_obb else f'{os.sep}labelTxt{os.sep}'
+    sa, sb = f'{os.sep}images{os.sep}', f'{os.sep}labels{os.sep}'  # /images/, /labels/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit('.', 1)[0] + '.txt' for x in img_paths]
 
 

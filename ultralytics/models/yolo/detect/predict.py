@@ -30,8 +30,8 @@ class DetectionPredictor(BasePredictor):
                                         classes=self.args.classes)
 
         results = []
+        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, pred in enumerate(preds):
-            is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
             orig_img = orig_imgs[i] if is_list else orig_imgs
             if is_list:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)

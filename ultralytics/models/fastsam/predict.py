@@ -31,9 +31,9 @@ class FastSAMPredictor(DetectionPredictor):
             full_box[0][6:] = p[0][critical_iou_index][:, 6:]
             p[0][critical_iou_index] = full_box
         results = []
+        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         for i, pred in enumerate(p):
-            is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
             orig_img = orig_imgs[i] if is_list else orig_imgs
             img_path = self.batch[0][i]
             if not len(pred):  # save empty boxes

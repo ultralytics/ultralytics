@@ -38,8 +38,8 @@ class PosePredictor(DetectionPredictor):
                                         nc=len(self.model.names))
 
         results = []
+        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, pred in enumerate(preds):
-            is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
             orig_img = orig_imgs[i] if is_list else orig_imgs
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
             pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]

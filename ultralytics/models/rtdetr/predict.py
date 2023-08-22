@@ -28,6 +28,7 @@ class RTDETRPredictor(BasePredictor):
         nd = preds[0].shape[-1]
         bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
         results = []
+        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1, keepdim=True)  # (300, 1)
@@ -35,7 +36,6 @@ class RTDETRPredictor(BasePredictor):
             if self.args.classes is not None:
                 idx = (cls == torch.tensor(self.args.classes, device=cls.device)).any(1) & idx
             pred = torch.cat([bbox, score, cls], dim=-1)[idx]  # filter
-            is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
             orig_img = orig_imgs[i] if is_list else orig_imgs
             oh, ow = orig_img.shape[:2]
             if is_list:

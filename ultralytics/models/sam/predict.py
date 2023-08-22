@@ -318,8 +318,8 @@ class Predictor(BasePredictor):
         pred_bboxes = preds[2] if self.segment_all else None
         names = dict(enumerate(str(i) for i in range(len(pred_masks))))
         results = []
+        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, masks in enumerate([pred_masks]):
-            is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
             orig_img = orig_imgs[i] if is_list else orig_imgs
             if pred_bboxes is not None:
                 pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)

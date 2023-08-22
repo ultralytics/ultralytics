@@ -24,4 +24,4 @@ class OBBValidator(DetectionValidator):
         self.plot_masks = None
         self.process = None
         self.args.task = 'obb'
-        self.metrics = OBBMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.metrics = OBBMetrics(save_dir=self.save_dir, plot=True, on_plot=self.on_plot)

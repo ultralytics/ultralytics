@@ -973,4 +973,55 @@ class ClassifyMetrics(SimpleClass):
 class OBBMetrics(SimpleClass):
 
     def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
-        super().__init__(save_dir, plot, names)
+        self.save_dir = save_dir
+        self.plot = plot
+        self.on_plot = on_plot
+        self.names = names
+        self.box = Metric()
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+
+    def process(self, tp, conf, pred_cls, target_cls):
+        """Process predicted results for object detection and update metrics."""
+        results = ap_per_class(tp,
+                               conf,
+                               pred_cls,
+                               target_cls,
+                               plot=self.plot,
+                               save_dir=self.save_dir,
+                               names=self.names,
+                               on_plot=self.on_plot)[2:]
+        self.box.nc = len(self.names)
+        self.box.update(results)
+
+    @property
+    def keys(self):
+        """Returns a list of keys for accessing specific metrics."""
+        return ['metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)']
+
+    def mean_results(self):
+        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
+        return self.box.mean_results()
+
+    def class_result(self, i):
+        """Return the result of evaluating the performance of an object detection model on a specific class."""
+        return self.box.class_result(i)
+
+    @property
+    def maps(self):
+        """Returns mean Average Precision (mAP) scores per class."""
+        return self.box.maps
+
+    @property
+    def fitness(self):
+        """Returns the fitness of box object."""
+        return self.box.fitness()
+
+    @property
+    def ap_class_index(self):
+        """Returns the average precision index per class."""
+        return self.box.ap_class_index
+
+    @property
+    def results_dict(self):
+        """Returns dictionary of computed performance metrics and statistics."""
+        return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))

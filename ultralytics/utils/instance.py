@@ -175,13 +175,14 @@ class Instances:
         self.keypoints = keypoints
         self.normalized = normalized
 
+        segment_resamples = 1000
         if len(segments) > 0:
             # list[np.array(1000, 2)] * num_samples
-            segments = resample_segments(segments)
+            segments = resample_segments(segments, n=segment_resamples)
             # (N, 1000, 2)
             segments = np.stack(segments, axis=0)
         else:
-            segments = np.zeros((0, 1000, 2), dtype=np.float32)
+            segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
         self.segments = segments
 
     def convert_bbox(self, format):

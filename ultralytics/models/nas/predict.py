@@ -29,5 +29,5 @@ class NASPredictor(BasePredictor):
             if not isinstance(orig_imgs, torch.Tensor):
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             img_path = self.batch[0][i]
-            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred))
+            results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results

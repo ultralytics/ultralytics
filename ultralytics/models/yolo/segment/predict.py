@@ -41,9 +41,8 @@ class SegmentationPredictor(DetectionPredictor):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
             img_path = self.batch[0][i]
             if not len(pred):  # save empty boxes
-                results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6]))
-                continue
-            if self.args.retina_masks:
+                masks = None
+            elif self.args.retina_masks:
                 if not isinstance(orig_imgs, torch.Tensor):
                     pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
                 masks = ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], orig_img.shape[:2])  # HWC
@@ -51,6 +50,5 @@ class SegmentationPredictor(DetectionPredictor):
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 if not isinstance(orig_imgs, torch.Tensor):
                     pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-            results.append(
-                Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
+            results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results

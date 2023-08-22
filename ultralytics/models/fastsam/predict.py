@@ -37,7 +37,7 @@ class FastSAMPredictor(DetectionPredictor):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
             img_path = self.batch[0][i]
             if not len(pred):  # save empty boxes
-                results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6]))
+                results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6]))
                 continue
             if self.args.retina_masks:
                 if not isinstance(orig_imgs, torch.Tensor):
@@ -48,5 +48,5 @@ class FastSAMPredictor(DetectionPredictor):
                 if not isinstance(orig_imgs, torch.Tensor):
                     pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             results.append(
-                Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
+                Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results

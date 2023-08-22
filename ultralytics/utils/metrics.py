@@ -968,3 +968,9 @@ class ClassifyMetrics(SimpleClass):
     def keys(self):
         """Returns a list of keys for the results_dict property."""
         return ['metrics/accuracy_top1', 'metrics/accuracy_top5']
+
+
+class OBBMetrics(SimpleClass):
+
+    def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+        super().__init__(save_dir, plot, names)

@@ -39,10 +39,9 @@ class ClassificationPredictor(BasePredictor):
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions to return Results objects."""
         results = []
+        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, pred in enumerate(preds):
-            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred))
-
+            orig_img = orig_imgs[i] if is_list else orig_imgs
+            img_path = self.batch[0][i]
+            results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
         return results

@@ -13,7 +13,7 @@ from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, OBB, SPP, SPPF, Bott
                                     RepConv, RTDETRDecoder, Segment)
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
+from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss, v8OBBLoss
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights, intersect_dicts,
                                            make_divisible, model_info, scale_img, time_sync)
@@ -239,7 +239,7 @@ class DetectionModel(BaseModel):
         if isinstance(m, (Detect, Segment, Pose, OBB)):
             s = 256  # 2x min stride
             m.inplace = self.inplace
-            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose)) else self.forward(x)
+            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
@@ -294,13 +294,14 @@ class DetectionModel(BaseModel):
 
 
 class OBBModel(DetectionModel):
-    # YOLOv8 obb model
+    """"YOLOv8 Oriented Bounding Box (OBB) model."""
+
     def __init__(self, cfg='yolov8n-obb.yaml', ch=3, nc=None, verbose=True):
+        """Initialize YOLOv8 OBB model with given config and parameters."""
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def _forward_augment(self, x):
-        raise NotImplementedError(
-            emojis('WARNING ⚠️ DetectionWithOrientationModel has not supported augment inference yet!'))
+    def init_criterion(self):
+        return v8OBBLoss(self)
 
 
 class SegmentationModel(DetectionModel):
@@ -553,9 +554,9 @@ def torch_safe_load(weight):
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
         with temporary_modules({
-                'ultralytics.yolo.utils': 'ultralytics.utils',
-                'ultralytics.yolo.v8': 'ultralytics.models.yolo',
-                'ultralytics.yolo.data': 'ultralytics.data'}):  # for legacy 8.0 Classify and Pose models
+            'ultralytics.yolo.utils': 'ultralytics.utils',
+            'ultralytics.yolo.v8': 'ultralytics.models.yolo',
+            'ultralytics.yolo.data': 'ultralytics.data'}):  # for legacy 8.0 Classify and Pose models
             return torch.load(file, map_location='cpu'), file  # load
 
     except ModuleNotFoundError as e:  # e.name is missing module name

@@ -390,3 +390,14 @@ class v8ClassificationLoss:
         loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='sum') / 64
         loss_items = loss.detach()
         return loss, loss_items
+
+
+class v8OBBLoss(v8DetectionLoss):
+
+    def __init__(self, model):  # model must be de-paralleled
+        super().__init__(model)
+        # TODO
+
+    def __call__(self, preds, batch):
+        # TODO
+        return None

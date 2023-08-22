@@ -1,0 +1,69 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
+
+try:
+    from torch.utils.tensorboard import SummaryWriter
+
+    assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['tensorboard'] is True  # verify integration is enabled
+
+# TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
+except (ImportError, AssertionError, TypeError):
+    SummaryWriter = None
+
+WRITER = None  # TensorBoard SummaryWriter instance
+
+
+def _log_scalars(scalars, step=0):
+    """Logs scalar values to TensorBoard."""
+    if WRITER:
+        for k, v in scalars.items():
+            WRITER.add_scalar(k, v, step)
+
+
+def _log_tensorboard_graph(trainer):
+    # Log model graph to TensorBoard
+    try:
+        import warnings
+
+        from ultralytics.utils.torch_utils import de_parallel, torch
+
+        imgsz = trainer.args.imgsz
+        imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
+        p = next(trainer.model.parameters())  # for device, type
+        im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input (WARNING: must be zeros, not empty)
+        with warnings.catch_warnings(category=UserWarning):
+            warnings.simplefilter('ignore')  # suppress jit trace warning
+            WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
+    except Exception as e:
+        LOGGER.warning(f'WARNING ⚠️ TensorBoard graph visualization failure {e}')
+
+
+def on_pretrain_routine_start(trainer):
+    """Initialize TensorBoard logging with SummaryWriter."""
+    if SummaryWriter:
+        try:
+            global WRITER
+            WRITER = SummaryWriter(str(trainer.save_dir))
+            prefix = colorstr('TensorBoard: ')
+            LOGGER.info(f"{prefix}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
+            _log_tensorboard_graph(trainer)
+        except Exception as e:
+            LOGGER.warning(f'WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}')
+
+
+def on_batch_end(trainer):
+    """Logs scalar statistics at the end of a training batch."""
+    _log_scalars(trainer.label_loss_items(trainer.tloss, prefix='train'), trainer.epoch + 1)
+
+
+def on_fit_epoch_end(trainer):
+    """Logs epoch metrics at end of training epoch."""
+    _log_scalars(trainer.metrics, trainer.epoch + 1)
+
+
+callbacks = {
+    'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_fit_epoch_end': on_fit_epoch_end,
+    'on_batch_end': on_batch_end}

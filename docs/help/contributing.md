@@ -1,20 +1,22 @@
 ---
 comments: true
+description: Learn how to contribute to Ultralytics YOLO projects – guidelines for pull requests, reporting bugs, code conduct and CLA signing.
+keywords: Ultralytics, YOLO, open-source, contribute, pull request, bug report, coding guidelines, CLA, code of conduct, GitHub
 ---
 
 # Contributing to Ultralytics Open-Source YOLO Repositories
 
-First of all, thank you for your interest in contributing to Ultralytics open-source YOLO repositories! Your contributions will help improve the project and benefit the community. This document provides guidelines and best practices for contributing to Ultralytics YOLO repositories.
+First of all, thank you for your interest in contributing to Ultralytics open-source YOLO repositories! Your contributions will help improve the project and benefit the community. This document provides guidelines and best practices to get you started.
 
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
 - [Pull Requests](#pull-requests)
-  - [CLA Signing](#cla-signing)
-  - [Google-Style Docstrings](#google-style-docstrings)
-  - [GitHub Actions CI Tests](#github-actions-ci-tests)
+    - [CLA Signing](#cla-signing)
+    - [Google-Style Docstrings](#google-style-docstrings)
+    - [GitHub Actions CI Tests](#github-actions-ci-tests)
 - [Bug Reports](#bug-reports)
-  - [Minimum Reproducible Example](#minimum-reproducible-example)
+    - [Minimum Reproducible Example](#minimum-reproducible-example)
 - [License and Copyright](#license-and-copyright)
 
 ## Code of Conduct

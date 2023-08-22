@@ -1,5 +1,7 @@
 ---
 comments: true
+description: Explore Ultralytics community’s Code of Conduct, ensuring a supportive, inclusive environment for contributors & members at all levels. Find our guidelines on acceptable behavior & enforcement.
+keywords: Ultralytics, code of conduct, community, contribution, behavior guidelines, enforcement, open source contributions
 ---
 
 # Ultralytics Contributor Covenant Code of Conduct
@@ -110,7 +112,7 @@ Violating these terms may lead to a permanent ban.
 ### 4. Permanent Ban
 
 **Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior,  harassment of an
+standards, including sustained inappropriate behavior, harassment of an
 individual, or aggression toward or disparagement of classes of individuals.
 
 **Consequence**: A permanent ban from any sort of public interaction within

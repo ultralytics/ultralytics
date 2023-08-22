@@ -269,6 +269,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         return len(self.samples)
 
     def verify_images(self):
+        """Verify all images in dataset."""
         desc = f'{self.prefix}Scanning {self.root}...'
         total = len(self.samples)
         nf, nc, msgs, samples = 0, 0, [], []

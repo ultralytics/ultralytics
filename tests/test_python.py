@@ -377,6 +377,24 @@ def test_utils_files():
         print(new_path)
 
 
+def test_nn_modules_conv():
+    from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus
+
+    c1, c2 = 8, 16  # input and output channels
+    x = torch.zeros(4, c1, 10, 10)  # BCHW
+
+    # Run all modules not otherwise covered in tests
+    DWConvTranspose2d(c1, c2)(x)
+    ConvTranspose(c1, c2)(x)
+    Focus(c1, c2)(x)
+    CBAM(c1, c2)(x)
+
+    # Fuse ops
+    m = Conv2(c1, c2)
+    m.fuse_convs()
+    m(x)
+
+
 def test_nn_modules_block():
     from ultralytics.nn.modules.block import C1, C3TR, BottleneckCSP, C3Ghost, C3x
 

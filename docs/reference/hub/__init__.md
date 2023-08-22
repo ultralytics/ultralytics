@@ -18,10 +18,6 @@ keywords: Ultralytics, hub functions, model export, dataset check, reset model, 
 <br><br>
 
 ---
-## ::: ultralytics.hub.start
-<br><br>
-
----
 ## ::: ultralytics.hub.reset_model
 <br><br>
 

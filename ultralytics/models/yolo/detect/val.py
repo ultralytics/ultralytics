@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import math
 from ultralytics.nn.modules.block import DFL
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
@@ -82,12 +81,9 @@ class DetectionValidator(BaseValidator):
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)')
     
     def decode_bbox(self, preds):
-        details = self.input_details[0]
-        integer = details['dtype'] in (np.int8, np.uint8)
-        if integer:
-            x = torch.permute(torch.cat((torch.cat([preds[0], preds[1], preds[4]], 1) , torch.cat([preds[3], preds[2], preds[5]], 1)), 2), (0, 2, 1))
-        else:
-            x = torch.permute(torch.cat((torch.cat(preds[:3], 1), torch.cat(preds[3:], 1)), 2), (0, 2, 1))  # concat 6 output tensors
+        assert self.nc != 64, 'cannot infer postprocessor inputs via output shape if there are 64 classes'
+        pos =  [i for i,_ in sorted(enumerate(preds), key = lambda x: (x[1].shape[2] if self.nc > 64 else -x[1].shape[2], -x[1].shape[1]))]
+        x = torch.permute(torch.cat([torch.cat([preds[i] for i in pos[:len(pos)//2]], 1), torch.cat([preds[i] for i in pos[len(pos)//2:]], 1)], 2), (0, 2, 1))
         reg_max = (x.shape[1] - self.nc) // 4
         dfl = DFL(reg_max) if reg_max > 1 else torch.nn.Identity()
         img_h, img_w = self.imgsz, self.imgsz  # TODO: make work for rectangular imgsz

@@ -661,8 +661,8 @@ class Exporter:
         else:
             verbosity = '--non_verbose'
             int8 = ''
-        replace_json = ROOT / "utils/replace.json"
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf {replace_json}'.strip()
+        # replace_json = ROOT / "utils/replace.json"
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf replace.json'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

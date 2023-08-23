@@ -6,6 +6,8 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
+from ultralytics.nn.modules.block import DFL
+from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, NUM_THREADS, ops
@@ -57,17 +59,50 @@ class SegmentationValidator(DetectionValidator):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Mask(P',
                                          'R', 'mAP50', 'mAP50-95)')
 
+    def decode_bbox(self, preds):
+        assert self.nc != 64, 'cannot infer postprocessor inputs via output shape if there are 64 classes'
+        pos =  [i for i,_ in sorted(enumerate(preds), key = lambda x: (x[1].shape[2] if self.nc > 64 else -x[1].shape[2], -x[1].shape[1]))]
+        x = torch.permute(torch.cat([torch.cat([preds[i] for i in pos[:len(pos)//2]], 1), torch.cat([preds[i] for i in pos[len(pos)//2:]], 1)], 2), (0, 2, 1))
+        reg_max = (x.shape[1] - self.nc) // 4
+        dfl = DFL(reg_max) if reg_max > 1 else torch.nn.Identity()
+        img_h, img_w = self.imgsz, self.imgsz  # TODO: make work for rectangular imgsz
+        dims = [(img_h // 8, img_w // 8), (img_h // 16, img_w // 16), (img_h // 32, img_w // 32)]  # TODO: don't have hardcoded 8, 16, 32
+        fake_feats = [torch.zeros((1, 1, h, w), device=self.device) for h, w in dims]
+        anchors, strides = (x.transpose(0, 1) for x in make_anchors(fake_feats, [8, 16, 32], 0.5))  # generate anchors and strides
+        dbox = dist2bbox(dfl(x[:,:-self.nc,:].cpu()).to(self.device), anchors.unsqueeze(0), xywh=True, dim=1) * strides
+        return torch.cat((dbox, x[:,-self.nc:, :].sigmoid()), 1)
+
     def postprocess(self, preds):
-        """Post-processes YOLO predictions and returns output detections with proto."""
-        p = ops.non_max_suppression(preds[0],
-                                    self.args.conf,
-                                    self.args.iou,
-                                    labels=self.lb,
-                                    multi_label=True,
-                                    agnostic=self.args.single_cls,
-                                    max_det=self.args.max_det,
-                                    nc=self.nc)
+
+        if len(preds) == 8:  # DeGirum export
+            preds_decoded = self.decode_bbox(preds[:6])
+            preds_decoded = torch.cat([preds_decoded, preds[6].permute(0, 2, 1)], 1)
+            """Post-processes YOLO predictions and returns output detections with proto."""
+            p = ops.non_max_suppression(preds_decoded, #preds[0],
+                                        self.args.conf,
+                                        self.args.iou,
+                                        labels=self.lb,
+                                        multi_label=True,
+                                        agnostic=self.args.single_cls,
+                                        max_det=self.args.max_det,
+                                        nc=self.nc)
+            
+        
+
+        else:
+            p = ops.non_max_suppression(preds[0],
+                                        self.args.conf,
+                                        self.args.iou,
+                                        labels=self.lb,
+                                        multi_label=True,
+                                        agnostic=self.args.single_cls,
+                                        max_det=self.args.max_det,
+                                        nc=self.nc)
+
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+        if len(preds) == 8:
+            # print("t", preds[7].shape)
+            proto = preds[7].permute(0,3,1,2)  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
     def update_metrics(self, preds, batch):

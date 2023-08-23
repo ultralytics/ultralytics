@@ -88,12 +88,13 @@ def test_predict_img():
 def test_predict_grey_and_4ch():
     # Convert SOURCE to greyscale and 4-ch
     im = Image.open(SOURCE)
-    stem = SOURCE.parent / SOURCE.stem
+    directory = TMP / 'im4'
+    directory.mkdir(parents=True, exist_ok=True)
 
-    source_greyscale = Path(f'{stem}_greyscale.jpg')
-    source_rgba = Path(f'{stem}_4ch.png')
-    source_non_utf = Path(f'{stem}_veículo.jpg')
-    source_spaces = Path(f'{stem} with spaces.jpg')
+    source_greyscale = directory / 'greyscale.jpg'
+    source_rgba = directory / '4ch.png'
+    source_non_utf = directory / 'non_UTF_veículo.jpg'
+    source_spaces = directory / 'image with spaces.jpg'
 
     im.convert('L').save(source_greyscale)  # greyscale
     im.convert('RGBA').save(source_rgba)  # 4-ch PNG with alpha

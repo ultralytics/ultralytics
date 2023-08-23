@@ -93,7 +93,7 @@ def test_predict_grey_and_4ch():
 
     source_greyscale = directory / 'greyscale.jpg'
     source_rgba = directory / '4ch.png'
-    source_non_utf = directory / 'non_UTF_veículo.jpg'
+    source_non_utf = directory / 'non_UTF_测试文件_tést_image.jpg'
     source_spaces = directory / 'image with spaces.jpg'
 
     im.convert('L').save(source_greyscale)  # greyscale

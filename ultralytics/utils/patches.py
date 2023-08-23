@@ -21,7 +21,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
         flags (int, optional): Flag that can take values of cv2.IMREAD_*. Defaults to cv2.IMREAD_COLOR.
 
     Returns:
-        np.ndarray: The read image.
+        (np.ndarray): The read image.
     """
     return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
 
@@ -35,7 +35,7 @@ def imwrite(filename: str, img: np.ndarray, params=None):
         params (list of ints, optional): Additional parameters. See OpenCV documentation.
 
     Returns:
-        bool: True if the file was written, False otherwise.
+        (bool): True if the file was written, False otherwise.
     """
     try:
         cv2.imencode(Path(filename).suffix, img, params)[1].tofile(filename)
@@ -62,14 +62,14 @@ def torch_save(*args, **kwargs):
     """Use dill (if exists) to serialize the lambda functions where pickle does not do this.
 
     Args:
-        *args: Positional arguments to pass to torch.save.
-        **kwargs: Keyword arguments to pass to torch.save.
+        *args (tuple): Positional arguments to pass to torch.save.
+        **kwargs (dict): Keyword arguments to pass to torch.save.
     """
     try:
-        import dill as pickle
+        import dill as pickle  # noqa
     except ImportError:
         import pickle
 
     if 'pickle_module' not in kwargs:
-        kwargs['pickle_module'] = pickle
+        kwargs['pickle_module'] = pickle  # noqa
     return _torch_save(*args, **kwargs)

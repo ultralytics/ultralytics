@@ -26,18 +26,24 @@ TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
 def test_model_forward():
     model = YOLO(CFG)
-    model(SOURCE, imgsz=32, augment=True)
+    model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
 def test_model_methods():
     model = YOLO(MODEL)
+
+    # Model methods
     model.info(verbose=True, detailed=True)
     model = model.reset_weights()
     model = model.load(MODEL)
     model.to('cpu')
     model.fuse()
+
+    # Model properties
     _ = model.names
     _ = model.device
+    _ = model.transforms
+    _ = model.task_map
 
 
 def test_predict_txt():

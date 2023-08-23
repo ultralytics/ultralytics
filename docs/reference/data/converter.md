@@ -26,10 +26,6 @@ keywords: Ultralytics, Data Converter, coco91_to_coco80_class, merge_multi_segme
 <br><br>
 
 ---
-## ::: ultralytics.data.converter.rle2polygon
-<br><br>
-
----
 ## ::: ultralytics.data.converter.min_index
 <br><br>
 

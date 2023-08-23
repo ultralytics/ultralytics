@@ -59,7 +59,7 @@ def exif_size(img: Image.Image):
 
 def verify_image(args):
     """Verify one image."""
-    im_file, prefix = args
+    (im_file, cls), prefix = args
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ''
     try:
@@ -79,7 +79,7 @@ def verify_image(args):
     except Exception as e:
         nc = 1
         msg = f'{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}'
-    return im_file, nf, nc, msg
+    return (im_file, cls), nf, nc, msg
 
 
 def verify_image_label(args):

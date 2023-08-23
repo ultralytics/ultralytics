@@ -104,7 +104,8 @@ def test_predict_grey_and_4ch():
     model = YOLO(MODEL)
     for f in source_rgba, source_greyscale, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
-            model(source, save=True, verbose=True, imgsz=32)
+            results = model(source, save=True, verbose=True, imgsz=32)
+            assert len(results) == 1  # verify that an image was run
         f.unlink()  # cleanup
 
 

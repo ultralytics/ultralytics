@@ -260,6 +260,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         return len(self.samples)
 
     def verify_images(self):
+        """Verify all images in dataset."""
         desc = f'{self.prefix}Scanning {self.root}...'
         path = Path(self.root).with_suffix('.cache')  # *.cache file path
 

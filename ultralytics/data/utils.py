@@ -57,6 +57,31 @@ def exif_size(img: Image.Image):
     return s
 
 
+def verify_image(args):
+    """Verify one image."""
+    (im_file, cls), prefix = args
+    # Number (found, corrupt), message
+    nf, nc, msg = 0, 0, ''
+    try:
+        im = Image.open(im_file)
+        im.verify()  # PIL verify
+        shape = exif_size(im)  # image size
+        shape = (shape[1], shape[0])  # hw
+        assert (shape[0] > 9) & (shape[1] > 9), f'image size {shape} <10 pixels'
+        assert im.format.lower() in IMG_FORMATS, f'invalid image format {im.format}'
+        if im.format.lower() in ('jpg', 'jpeg'):
+            with open(im_file, 'rb') as f:
+                f.seek(-2, 2)
+                if f.read() != b'\xff\xd9':  # corrupt JPEG
+                    ImageOps.exif_transpose(Image.open(im_file)).save(im_file, 'JPEG', subsampling=0, quality=100)
+                    msg = f'{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved'
+        nf = 1
+    except Exception as e:
+        nc = 1
+        msg = f'{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}'
+    return (im_file, cls), nf, nc, msg
+
+
 def verify_image_label(args):
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
@@ -296,7 +321,7 @@ def check_cls_dataset(dataset: str, split=''):
     dataset = Path(dataset)
     data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
     if not data_dir.is_dir():
-        LOGGER.info(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
+        LOGGER.warning(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
         t = time.time()
         if str(dataset) == 'imagenet':
             subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
@@ -310,9 +335,9 @@ def check_cls_dataset(dataset: str, split=''):
         data_dir / 'validation').exists() else None  # data/test or data/val
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
     if split == 'val' and not val_set:
-        LOGGER.info("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
+        LOGGER.warning("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
     elif split == 'test' and not test_set:
-        LOGGER.info("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
+        LOGGER.warning("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
 
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
@@ -320,13 +345,22 @@ def check_cls_dataset(dataset: str, split=''):
 
     # Print to console
     for k, v in {'train': train_set, 'val': val_set, 'test': test_set}.items():
+        prefix = f'{colorstr(k)} {v}...'
         if v is None:
-            LOGGER.info(f'{colorstr(k)}: {v}')
+            LOGGER.info(prefix)
         else:
             files = [path for path in v.rglob('*.*') if path.suffix[1:].lower() in IMG_FORMATS]
             nf = len(files)  # number of files
             nd = len({file.parent for file in files})  # number of directories
-            LOGGER.info(f'{colorstr(k)}: {v}... found {nf} images in {nd} classes ✅ ')  # keep trailing space
+            if nf == 0:
+                if k == 'train':
+                    raise FileNotFoundError(emojis(f"{dataset} '{k}:' no training images found ❌ "))
+                else:
+                    LOGGER.warning(f'{prefix} found {nf} images in {nd} classes: WARNING ⚠️ no images found')
+            elif nd != nc:
+                LOGGER.warning(f'{prefix} found {nf} images in {nd} classes: ERROR ❌️ requires {nc} classes, not {nd}')
+            else:
+                LOGGER.info(f'{prefix} found {nf} images in {nd} classes ✅ ')
 
     return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
 

@@ -15,15 +15,17 @@ from tqdm import tqdm
 
 from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, checks, clean_url, emojis, is_online, url2file
 
-GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
-                     [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
-                     [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] + \
-                     [f'yolo_nas_{k}.pt' for k in 'sml'] + \
-                     [f'sam_{k}.pt' for k in 'bl'] + \
-                     [f'FastSAM-{k}.pt' for k in 'sx'] + \
-                     [f'rtdetr-{k}.pt' for k in 'lx'] + \
-                     ['mobile_sam.pt']
-GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
+# Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
+GITHUB_ASSETS_REPO = 'ultralytics/assets'
+GITHUB_ASSETS_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
+                      [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
+                      [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] + \
+                      [f'yolo_nas_{k}.pt' for k in 'sml'] + \
+                      [f'sam_{k}.pt' for k in 'bl'] + \
+                      [f'FastSAM-{k}.pt' for k in 'sx'] + \
+                      [f'rtdetr-{k}.pt' for k in 'lx'] + \
+                      ['mobile_sam.pt']
+GITHUB_ASSETS_STEMS = [Path(k).stem for k in GITHUB_ASSETS_NAMES]
 
 
 def is_url(url, check=True):
@@ -327,7 +329,7 @@ def get_github_assets(repo='ultralytics/assets', version='latest', retry=False):
         version = f'tags/{version}'  # i.e. tags/v6.2
     url = f'https://api.github.com/repos/{repo}/releases/{version}'
     r = requests.get(url)  # github api
-    if r.status_code != 200 and retry:
+    if r.status_code != 200 and r.reason != 'rate limit exceeded' and retry:  # failed and not 403 rate limit exceeded
         r = requests.get(url)  # try again
     if r.status_code != 200:
         LOGGER.warning(f'⚠️ GitHub assets check failure for {url}: {r.status_code} {r.reason}')
@@ -358,24 +360,16 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
                 LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
             else:
                 safe_download(url=url, file=file, min_bytes=1E5)
-            return file
 
-        # GitHub assets
-        assets = GITHUB_ASSET_NAMES
-        try:
+        elif repo == GITHUB_ASSETS_REPO and name in GITHUB_ASSETS_NAMES:
+            safe_download(url=f'https://github.com/{repo}/releases/download/{release}/{name}', file=file, min_bytes=1E5)
+
+        else:
             tag, assets = get_github_assets(repo, release)
-        except Exception:
-            try:
+            if not assets:
                 tag, assets = get_github_assets(repo)  # latest release
-            except Exception:
-                try:
-                    tag = subprocess.check_output(['git', 'tag']).decode().split()[-1]
-                except Exception:
-                    tag = release
-
-        file.parent.mkdir(parents=True, exist_ok=True)  # make parent dir (if required)
-        if name in assets:
-            safe_download(url=f'https://github.com/{repo}/releases/download/{tag}/{name}', file=file, min_bytes=1E5)
+            if name in assets:
+                safe_download(url=f'https://github.com/{repo}/releases/download/{tag}/{name}', file=file, min_bytes=1E5)
 
         return str(file)
 

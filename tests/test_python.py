@@ -13,7 +13,7 @@ from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS, WINDOWS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
@@ -168,10 +168,11 @@ def test_export_openvino():
 
 
 def test_export_coreml():  # sourcery skip: move-assign
-    model = YOLO(MODEL)
-    model.export(format='coreml', nms=True)
-    # if MACOS:
-    #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
+    if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
+        model = YOLO(MODEL)
+        model.export(format='coreml', nms=True)
+        # if MACOS:
+        #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
 def test_export_tflite(enabled=False):

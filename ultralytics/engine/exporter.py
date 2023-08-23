@@ -189,7 +189,7 @@ class Exporter:
         model.eval()
         model.float()
         model = model.fuse()
-        for _, m in model.named_modules():
+        for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
                 m.dynamic = self.args.dynamic
                 m.export = True

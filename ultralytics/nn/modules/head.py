@@ -120,7 +120,7 @@ class Segment(Detect):
         if self.training:
             return x, mc, p
         if self.separate_6_outputs and self.export:
-            return x, mc, p
+            return x, mc, p.permute(0,2,3,1)
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
 

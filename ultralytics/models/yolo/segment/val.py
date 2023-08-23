@@ -73,10 +73,19 @@ class SegmentationValidator(DetectionValidator):
         return torch.cat((dbox, x[:,-self.nc:, :].sigmoid()), 1)
 
     def postprocess(self, preds):
-
+        pred_order = []
+        mask = None
+        proto = None
+        for p in preds:
+            if p.shape[-1] != 32:
+                pred_order.append(p)
+            elif p.shape[-1] == 32 and len(p.shape) == 3:
+                mask = p
+            else:
+                proto = p
         if len(preds) == 8:  # DeGirum export
-            preds_decoded = self.decode_bbox(preds[:6])
-            preds_decoded = torch.cat([preds_decoded, preds[6].permute(0, 2, 1)], 1)
+            preds_decoded = self.decode_bbox(pred_order)
+            preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)
             """Post-processes YOLO predictions and returns output detections with proto."""
             p = ops.non_max_suppression(preds_decoded, #preds[0],
                                         self.args.conf,
@@ -86,9 +95,6 @@ class SegmentationValidator(DetectionValidator):
                                         agnostic=self.args.single_cls,
                                         max_det=self.args.max_det,
                                         nc=self.nc)
-            
-        
-
         else:
             p = ops.non_max_suppression(preds[0],
                                         self.args.conf,
@@ -98,11 +104,10 @@ class SegmentationValidator(DetectionValidator):
                                         agnostic=self.args.single_cls,
                                         max_det=self.args.max_det,
                                         nc=self.nc)
-
-        proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         if len(preds) == 8:
-            # print("t", preds[7].shape)
-            proto = preds[7].permute(0,3,1,2)  # second output is len 3 if pt, but only 1 if exported
+            proto = proto.permute(0,3,1,2)  # second output is len 3 if pt, but only 1 if exported
+        else:
+            proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
     def update_metrics(self, preds, batch):

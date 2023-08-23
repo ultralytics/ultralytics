@@ -24,6 +24,12 @@
       "param_target": "attributes",
       "param_name": "perm",
       "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.22/Transpose_6",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
     }
   ]
 }

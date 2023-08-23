@@ -1,7 +1,7 @@
 description: 'Ultralytics YOLOv8-seg model '
 author: Ultralytics
 license: AGPL-3.0 https://ultralytics.com/license
-date: '2023-08-22T21:37:46.246939'
+date: '2023-08-22T21:34:57.952888'
 version: 8.0.159
 stride: 32
 task: segment

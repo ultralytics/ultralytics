@@ -427,7 +427,7 @@ class Exporter:
             system = 'macos' if MACOS else 'ubuntu' if LINUX else 'windows'  # operating system
             asset = [x for x in assets if system in x][0] if assets else \
                 f'https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20230816-{system}.zip'  # fallback
-            attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
+            asset = attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
             unzip_dir = Path(asset).with_suffix('')
             pnnx = ROOT / pnnx_filename  # new location
             (unzip_dir / pnnx_filename).rename(pnnx)  # move binary to ROOT

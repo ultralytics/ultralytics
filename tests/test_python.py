@@ -88,20 +88,25 @@ def test_predict_img():
 def test_predict_grey_and_4ch():
     # Convert SOURCE to greyscale and 4-ch
     im = Image.open(SOURCE)
-    source_greyscale = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
-    source_rgba = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
+    stem = SOURCE.parent / SOURCE.stem
+
+    source_greyscale = Path(f'{stem}_greyscale.jpg')
+    source_rgba = Path(f'{stem}_4ch.png')
+    source_non_utf = Path(f'{stem}_veículo.jpg')
+    source_spaces = Path(f'{stem} with spaces.jpg')
+
     im.convert('L').save(source_greyscale)  # greyscale
     im.convert('RGBA').save(source_rgba)  # 4-ch PNG with alpha
+    im.save(source_non_utf)  # non-UTF characters in filename
+    im.save(source_spaces)  # spaces in filename
 
     # Inference
     model = YOLO(MODEL)
-    for f in source_rgba, source_greyscale:
+    for f in source_rgba, source_greyscale, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
-            model(source, save=True, verbose=True, imgsz=32)
-
-    # Cleanup
-    source_greyscale.unlink()
-    source_rgba.unlink()
+            results = model(source, save=True, verbose=True, imgsz=32)
+            assert len(results) == 1  # verify that an image was run
+        f.unlink()  # cleanup
 
 
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')

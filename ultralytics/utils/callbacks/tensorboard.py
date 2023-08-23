@@ -32,9 +32,9 @@ def _log_tensorboard_graph(trainer):
         imgsz = trainer.args.imgsz
         imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
         p = next(trainer.model.parameters())  # for device, type
-        im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input (WARNING: must be zeros, not empty)
-        with warnings.catch_warnings(category=UserWarning):
-            warnings.simplefilter('ignore')  # suppress jit trace warning
+        im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=UserWarning)  # suppress jit trace warning
             WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ TensorBoard graph visualization failure {e}')

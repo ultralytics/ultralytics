@@ -17,7 +17,7 @@ from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
-DATASET_CACHE_VERSION = '1.0.2'
+DATASET_CACHE_VERSION = '1.0.3'
 
 
 class YOLODataset(BaseDataset):
@@ -279,11 +279,11 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         # Run scan if *.cache retrieval failed
         nf, nc, msgs, samples, x = 0, 0, [], [], {}
         with ThreadPool(NUM_THREADS) as pool:
-            results = pool.imap(func=verify_image, iterable=zip([x[0] for x in self.samples], repeat(self.prefix)))
+            results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
             pbar = tqdm(results, desc=desc, total=len(self.samples), bar_format=TQDM_BAR_FORMAT)
-            for im_file, nf_f, nc_f, msg in pbar:
+            for sample, nf_f, nc_f, msg in pbar:
                 if nf_f:
-                    samples.append((im_file, nf))
+                    samples.append(sample)
                 if msg:
                     msgs.append(msg)
                 nf += nf_f

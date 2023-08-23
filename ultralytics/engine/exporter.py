@@ -857,8 +857,8 @@ class Exporter:
         # Checks
         names = self.metadata['names']
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
-        _, nc = out0_shape
-        # na, nc = out0.type.multiArrayType.shape  # number anchors, classes
+        _, nc = out0_shape  # number of anchors, number of classes
+        # _, nc = out0.type.multiArrayType.shape
         assert len(names) == nc, f'{len(names)} names found for nc={nc}'  # check
 
         # Define output shapes (missing)

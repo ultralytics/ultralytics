@@ -167,7 +167,7 @@ def test_export_openvino():
     YOLO(f)(SOURCE)  # exported model inference
 
 
-def test_export_coreml():  # sourcery skip: move-assign
+def test_export_coreml():
     if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
         model = YOLO(MODEL)
         model.export(format='coreml', nms=True)
@@ -198,7 +198,7 @@ def test_export_paddle(enabled=False):
         model.export(format='paddle')
 
 
-def test_export_ncnn(enabled=False):
+def test_export_ncnn():
     model = YOLO(MODEL)
     f = model.export(format='ncnn')
     YOLO(f)(SOURCE)  # exported model inference

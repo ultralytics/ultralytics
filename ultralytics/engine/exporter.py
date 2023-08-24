@@ -502,9 +502,9 @@ class Exporter:
                 check_requirements('scikit-learn')  # scikit-learn package required for k-means quantization
             if mlmodel:
                 ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
-            else:
+            elif bits == 8:  # mlprogram already quantized to FP16
                 import coremltools.optimize.coreml as cto
-                op_config = cto.OpPalettizerConfig(mode=mode, nbits=bits, weight_threshold=512)
+                op_config = cto.OpPalettizerConfig(mode='kmeans', nbits=bits, weight_threshold=512)
                 config = cto.OptimizationConfig(global_config=op_config)
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == 'detect':

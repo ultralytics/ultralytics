@@ -157,7 +157,7 @@ def test_train_pretrained():
 
 def test_export_torchscript():
     model = YOLO(MODEL)
-    f = model.export(format='torchscript')
+    f = model.export(format='torchscript', optimize=True)
     YOLO(f)(SOURCE)  # exported model inference
 
 

@@ -397,6 +397,7 @@ class v8OBBLoss(v8DetectionLoss):
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
         self.nm = model.model[-1].ne  # number of extra outputs
+        self.overlap = model.args.overlap_mask
 
     def __call__(self, preds, batch):
         """Calculate and return the loss for the YOLO model."""
@@ -413,6 +414,7 @@ class v8OBBLoss(v8DetectionLoss):
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
+        mask_h, mask_w = (imgsz[0] // 4).item(), (imgsz[1] // 4).item()
         anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
 
         # targets

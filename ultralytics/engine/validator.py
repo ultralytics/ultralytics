@@ -222,7 +222,7 @@ class BaseValidator:
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape(N,).
             true_classes (torch.Tensor): Target class indices of shape(M,).
-            iou (torch.Tensor): IoU thresholds from 0.50 to 0.95 in space of 0.05.
+            iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground of truth
 
         Returns:
             (torch.Tensor): Correct tensor of shape(N,10) for 10 IoU thresholds.

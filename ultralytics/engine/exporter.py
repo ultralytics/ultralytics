@@ -127,7 +127,7 @@ class Exporter:
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
-        save_dir (Path): Directory to save results.
+        callbacks (list, optional): List of callback functions. Defaults to None.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -189,7 +189,7 @@ class Exporter:
         model.eval()
         model.float()
         model = model.fuse()
-        for k, m in model.named_modules():
+        for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
                 m.dynamic = self.args.dynamic
                 m.export = True
@@ -427,7 +427,7 @@ class Exporter:
             system = 'macos' if MACOS else 'ubuntu' if LINUX else 'windows'  # operating system
             asset = [x for x in assets if system in x][0] if assets else \
                 f'https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20230816-{system}.zip'  # fallback
-            attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
+            asset = attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
             unzip_dir = Path(asset).with_suffix('')
             pnnx = ROOT / pnnx_filename  # new location
             (unzip_dir / pnnx_filename).rename(pnnx)  # move binary to ROOT
@@ -502,9 +502,9 @@ class Exporter:
                 check_requirements('scikit-learn')  # scikit-learn package required for k-means quantization
             if mlmodel:
                 ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
-            else:
+            elif bits == 8:  # mlprogram already quantized to FP16
                 import coremltools.optimize.coreml as cto
-                op_config = cto.OpPalettizerConfig(mode=mode, nbits=bits, weight_threshold=512)
+                op_config = cto.OpPalettizerConfig(mode='kmeans', nbits=bits, weight_threshold=512)
                 config = cto.OptimizationConfig(global_config=op_config)
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == 'detect':
@@ -839,7 +839,7 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')
-        batch_size, ch, h, w = list(self.im.shape)  # BCHW
+        _, _, h, w = list(self.im.shape)  # BCHW
 
         # Output shapes
         spec = model.get_spec()
@@ -857,8 +857,8 @@ class Exporter:
         # Checks
         names = self.metadata['names']
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
-        na, nc = out0_shape
-        # na, nc = out0.type.multiArrayType.shape  # number anchors, classes
+        _, nc = out0_shape  # number of anchors, number of classes
+        # _, nc = out0.type.multiArrayType.shape
         assert len(names) == nc, f'{len(names)} names found for nc={nc}'  # check
 
         # Define output shapes (missing)
@@ -968,7 +968,7 @@ class IOSDetectModel(torch.nn.Module):
     def __init__(self, model, im):
         """Initialize the IOSDetectModel class with a YOLO model and example image."""
         super().__init__()
-        b, c, h, w = im.shape  # batch, channel, height, width
+        _, _, h, w = im.shape  # batch, channel, height, width
         self.model = model
         self.nc = len(model.names)  # number of classes
         if w == h:

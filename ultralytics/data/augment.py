@@ -860,22 +860,13 @@ def classify_transforms_v2(
         # color jitter is typically disabled if AA/RA on,
         # this allows override without breaking old hparm cfgs
         disable_color_jitter = not force_color_jitter
-        if isinstance(size, (tuple, list)):
-            img_size_min = min(size)
-        else:
-            img_size_min = size
-        aa_params = dict(
-            translate_const=int(img_size_min * 0.45),
-            img_mean=tuple([min(255, round(255 * x)) for x in mean]),
-        )
 
         if auto_augment == 'randaugment':
-            secondary_tfl += [T.RandAugment(auto_augment, aa_params)]
+            secondary_tfl += [T.RandAugment(ainterpolation=interpolation)]
         elif auto_augment == 'augmix':
-            aa_params['translate_pct'] = 0.3
-            secondary_tfl += [T.AugMix(auto_augment, aa_params)]
+            secondary_tfl += [T.AugMix(interpolation=interpolation)]
         elif auto_augment == 'autoaugment':
-            secondary_tfl += [T.AutoAugment(auto_augment, aa_params)]
+            secondary_tfl += [T.AutoAugment(interpolation=interpolation)]
         else:
             raise ValueError(f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '
                              f'"augmix", "autoaugment" or None')

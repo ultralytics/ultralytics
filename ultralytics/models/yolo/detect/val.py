@@ -80,23 +80,27 @@ class DetectionValidator(BaseValidator):
         """Return a formatted string summarizing class metrics of YOLO model."""
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)')
     
-    def decode_bbox(self, preds):
-        assert self.nc != 64, 'cannot infer postprocessor inputs via output shape if there are 64 classes'
-        pos =  [i for i,_ in sorted(enumerate(preds), key = lambda x: (x[1].shape[2] if self.nc > 64 else -x[1].shape[2], -x[1].shape[1]))]
+    def decode_bbox(self, preds, img_shape):
+        import math
+        num_classes = next((o.shape[2] for o in preds if o.shape[2] != 64), -1)
+        strides = [int(math.sqrt(img_shape[1] * img_shape[2] / o.shape[1])) for o in preds if o.shape[2] != 64]
+        assert num_classes != -1, 'cannot infer postprocessor inputs via output shape if there are 64 classes'
+        pos =  [i for i,_ in sorted(enumerate(preds), key = lambda x: (x[1].shape[2] if num_classes > 64 else -x[1].shape[2], -x[1].shape[1]))]
         x = torch.permute(torch.cat([torch.cat([preds[i] for i in pos[:len(pos)//2]], 1), torch.cat([preds[i] for i in pos[len(pos)//2:]], 1)], 2), (0, 2, 1))
-        reg_max = (x.shape[1] - self.nc) // 4
+        reg_max = (x.shape[1] - num_classes) // 4
         dfl = DFL(reg_max) if reg_max > 1 else torch.nn.Identity()
-        img_h, img_w = self.imgsz, self.imgsz  # TODO: make work for rectangular imgsz
-        dims = [(img_h // 8, img_w // 8), (img_h // 16, img_w // 16), (img_h // 32, img_w // 32)]  # TODO: don't have hardcoded 8, 16, 32
-        fake_feats = [torch.zeros((1, 1, h, w), device=self.device) for h, w in dims]
-        anchors, strides = (x.transpose(0, 1) for x in make_anchors(fake_feats, [8, 16, 32], 0.5))  # generate anchors and strides
-        dbox = dist2bbox(dfl(x[:,:-self.nc,:].cpu()).to(self.device), anchors.unsqueeze(0), xywh=True, dim=1) * strides
-        return torch.cat((dbox, x[:,-self.nc:, :].sigmoid()), 1)
+        img_h, img_w = img_shape[1], img_shape[2]
+        dims = [(img_h // s, img_w // s) for s in strides]
+        fake_feats = [torch.zeros((1, 1, h, w), device=self.device) for h, w in dims] 
+        anchors, strides = (x.transpose(0, 1) for x in make_anchors(fake_feats, strides, 0.5))  # generate anchors and strides
+        dbox = dist2bbox(dfl(x[:,:-num_classes,:].cpu()).to(self.device), anchors.unsqueeze(0), xywh=True, dim=1) * strides
+        return torch.cat((dbox, x[:,-num_classes:, :].sigmoid()), 1)
 
-    def postprocess(self, preds):
+
+    def postprocess(self, preds, img_shape):
         """Apply Non-maximum suppression to prediction outputs."""
         if len(preds) == 6:  # DeGirum export
-            preds = self.decode_bbox(preds)
+            preds = self.decode_bbox(preds, img_shape)
         return ops.non_max_suppression(preds,
                                        self.args.conf,
                                        self.args.iou,

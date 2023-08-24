@@ -185,7 +185,7 @@ class BaseValidator:
 
             # Postprocess
             with dt[3]:
-                preds = self.postprocess(preds)
+                preds = self.postprocess(preds, batch['img'][0].shape)
 
             self.update_metrics(preds, batch)
             if self.args.plots and batch_i < 3:

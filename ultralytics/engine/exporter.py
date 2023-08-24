@@ -356,7 +356,7 @@ class Exporter:
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
-
+            
         onnx.save(model_onnx, f)
         return f, model_onnx
 

@@ -184,7 +184,7 @@ class BaseTrainer:
             # Command
             cmd, file = generate_ddp_command(world_size, self)
             try:
-                LOGGER.info(f'DDP command: {cmd.join(" ")}')
+                LOGGER.info(f'DDP command: {" ".join(cmd)}')
                 subprocess.run(cmd, check=True)
             except Exception as e:
                 raise e

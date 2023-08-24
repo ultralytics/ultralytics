@@ -343,7 +343,7 @@ def check_cls_dataset(dataset: str, split=''):
 
     # Print to console
     for k, v in {'train': train_set, 'val': val_set, 'test': test_set}.items():
-        prefix = f'{colorstr(k)} {v}...'
+        prefix = f'{colorstr(f"{k}:")} {v}...'
         if v is None:
             LOGGER.info(prefix)
         else:

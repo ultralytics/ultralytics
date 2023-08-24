@@ -9,8 +9,6 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
-from ultralytics.utils.checks import check_requirements
-
 
 def coco91_to_coco80_class():
     """Converts 91-index COCO class IDs to 80-index COCO class IDs.
@@ -18,7 +16,6 @@ def coco91_to_coco80_class():
     Returns:
         (list): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
             corresponding 91-index class ID.
-
     """
     return [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, None, 24, 25, None,
@@ -119,9 +116,7 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
                     if len(ann['segmentation']) == 0:
                         segments.append([])
                         continue
-                    if isinstance(ann['segmentation'], dict):
-                        ann['segmentation'] = rle2polygon(ann['segmentation'])
-                    if len(ann['segmentation']) > 1:
+                    elif len(ann['segmentation']) > 1:
                         s = merge_multi_segment(ann['segmentation'])
                         s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
                     else:
@@ -131,9 +126,8 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
                     if s not in segments:
                         segments.append(s)
                 if use_keypoints and ann.get('keypoints') is not None:
-                    k = (np.array(ann['keypoints']).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
-                    k = box + k
-                    keypoints.append(k)
+                    keypoints.append(box + (np.array(ann['keypoints']).reshape(-1, 3) /
+                                            np.array([w, h, 1])).reshape(-1).tolist())
 
             # Write
             with open((fn / f).with_suffix('.txt'), 'a') as file:
@@ -235,34 +229,6 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
             img = cv2.imread(str(image_path))
             h, w = img.shape[:2]
             convert_label(image_name_without_ext, w, h, orig_label_dir, save_dir)
-
-
-def rle2polygon(segmentation):
-    """
-    Convert Run-Length Encoding (RLE) mask to polygon coordinates.
-
-    Args:
-        segmentation (dict, list): RLE mask representation of the object segmentation.
-
-    Returns:
-        (list): A list of lists representing the polygon coordinates for each contour.
-
-    Note:
-        Requires the 'pycocotools' package to be installed.
-    """
-    check_requirements('pycocotools')
-    from pycocotools import mask
-
-    m = mask.decode(segmentation)
-    m[m > 0] = 255
-    contours, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
-    polygons = []
-    for contour in contours:
-        epsilon = 0.001 * cv2.arcLength(contour, True)
-        contour_approx = cv2.approxPolyDP(contour, epsilon, True)
-        polygon = contour_approx.flatten().tolist()
-        polygons.append(polygon)
-    return polygons
 
 
 def min_index(arr1, arr2):

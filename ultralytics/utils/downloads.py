@@ -101,7 +101,11 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), p
     zip_file = directory.with_suffix('.zip')
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, 'w', compression) as f:
-        for file in tqdm(files_to_zip, desc=f'Zipping {directory} to {zip_file}...', unit='file', disable=not progress):
+        for file in tqdm(files_to_zip,
+                         desc=f'Zipping {directory} to {zip_file}...',
+                         unit='file',
+                         disable=not progress,
+                         bar_format=TQDM_BAR_FORMAT):
             f.write(file, file.relative_to(directory))
 
     return zip_file  # return path to zip file
@@ -159,7 +163,11 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
             LOGGER.info(f'Skipping {file} unzip (already unzipped)')
             return path
 
-        for f in tqdm(files, desc=f'Unzipping {file} to {Path(path).resolve()}...', unit='file', disable=not progress):
+        for f in tqdm(files,
+                      desc=f'Unzipping {file} to {Path(path).resolve()}...',
+                      unit='file',
+                      disable=not progress,
+                      bar_format=TQDM_BAR_FORMAT):
             zipObj.extract(f, path=extract_path)
 
     return path  # return unzip dir

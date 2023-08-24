@@ -127,7 +127,7 @@ class Exporter:
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
-        save_dir (Path): Directory to save results.
+        callbacks (list, optional): List of callback functions. Defaults to None.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

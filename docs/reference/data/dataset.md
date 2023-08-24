@@ -20,3 +20,11 @@ keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data m
 ---
 ## ::: ultralytics.data.dataset.SemanticDataset
 <br><br>
+
+---
+## ::: ultralytics.data.dataset.load_dataset_cache_file
+<br><br>
+
+---
+## ::: ultralytics.data.dataset.save_dataset_cache_file
+<br><br>

@@ -13,7 +13,7 @@ from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS, WINDOWS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
@@ -26,18 +26,24 @@ TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
 def test_model_forward():
     model = YOLO(CFG)
-    model(SOURCE, imgsz=32, augment=True)
+    model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
 def test_model_methods():
     model = YOLO(MODEL)
+
+    # Model methods
     model.info(verbose=True, detailed=True)
     model = model.reset_weights()
     model = model.load(MODEL)
     model.to('cpu')
     model.fuse()
+
+    # Model properties
     _ = model.names
     _ = model.device
+    _ = model.transforms
+    _ = model.task_map
 
 
 def test_predict_txt():
@@ -88,12 +94,13 @@ def test_predict_img():
 def test_predict_grey_and_4ch():
     # Convert SOURCE to greyscale and 4-ch
     im = Image.open(SOURCE)
-    stem = SOURCE.parent / SOURCE.stem
+    directory = TMP / 'im4'
+    directory.mkdir(parents=True, exist_ok=True)
 
-    source_greyscale = Path(f'{stem}_greyscale.jpg')
-    source_rgba = Path(f'{stem}_4ch.png')
-    source_non_utf = Path(f'{stem}_veículo.jpg')
-    source_spaces = Path(f'{stem} with spaces.jpg')
+    source_greyscale = directory / 'greyscale.jpg'
+    source_rgba = directory / '4ch.png'
+    source_non_utf = directory / 'non_UTF_测试文件_tést_image.jpg'
+    source_spaces = directory / 'image with spaces.jpg'
 
     im.convert('L').save(source_greyscale)  # greyscale
     im.convert('RGBA').save(source_rgba)  # 4-ch PNG with alpha
@@ -116,7 +123,7 @@ def test_track_stream():
     import yaml
 
     model = YOLO(MODEL)
-    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96)
+    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96, save=True)
     model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='bytetrack.yaml')
     model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='botsort.yaml')
 
@@ -150,7 +157,7 @@ def test_train_pretrained():
 
 def test_export_torchscript():
     model = YOLO(MODEL)
-    f = model.export(format='torchscript')
+    f = model.export(format='torchscript', optimize=True)
     YOLO(f)(SOURCE)  # exported model inference
 
 
@@ -166,11 +173,12 @@ def test_export_openvino():
     YOLO(f)(SOURCE)  # exported model inference
 
 
-def test_export_coreml():  # sourcery skip: move-assign
-    model = YOLO(MODEL)
-    model.export(format='coreml', nms=True)
-    # if MACOS:
-    #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
+def test_export_coreml():
+    if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
+        model = YOLO(MODEL)
+        model.export(format='coreml', nms=True)
+        # if MACOS:
+        #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
 def test_export_tflite(enabled=False):
@@ -196,7 +204,7 @@ def test_export_paddle(enabled=False):
         model.export(format='paddle')
 
 
-def test_export_ncnn(enabled=False):
+def test_export_ncnn():
     model = YOLO(MODEL)
     f = model.export(format='ncnn')
     YOLO(f)(SOURCE)  # exported model inference

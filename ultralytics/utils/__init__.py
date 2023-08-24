@@ -852,9 +852,10 @@ ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' 
 TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
 set_sentry()
 
-# Apply monkey patches if the script is being run from within the parent directory of the script's location
-from .patches import imread, imshow, imwrite
+# Apply monkey patches
+from .patches import imread, imshow, imwrite, torch_save
 
-# torch.save = torch_save
-if Path(inspect.stack()[0].filename).parent.parent.as_posix() in inspect.stack()[-1].filename:
+torch.save = torch_save
+if WINDOWS:
+    # Apply cv2 patches for non-ASCII and non-UTF characters in image paths
     cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow

@@ -275,7 +275,7 @@ def test_data_utils():
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
+    download('https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip', unzip=False)
     shutil.move('coco8.zip', TMP)
     stats = HUBDatasetStats(TMP / 'coco8.zip', task='detect')
     stats.get_json(save=True)

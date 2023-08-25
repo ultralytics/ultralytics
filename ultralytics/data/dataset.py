@@ -12,8 +12,8 @@ from tqdm import tqdm
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, colorstr, is_dir_writeable
 
-from .augment import (IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD, Compose, Format, Instances, LetterBox,
-                      classify_albumentations, classify_transforms, classify_transforms_v2, v8_transforms)
+from .augment import (DEFAULT_MEAN, DEFAULT_STD, Compose, Format, Instances, LetterBox, classify_albumentations,
+                      classify_transforms, classify_transforms_v2, v8_transforms)
 from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
@@ -229,8 +229,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.torch_transforms = classify_transforms_v2(
             size=args.imgsz,
             scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
-            mean=IMAGENET_DEFAULT_MEAN,  # IMAGENET_MEAN
-            std=IMAGENET_DEFAULT_STD,  # IMAGENET_STD
+            mean=DEFAULT_MEAN,  # IMAGENET_MEAN
+            std=DEFAULT_STD,  # IMAGENET_STD
             hflip=args.fliplr,
             vflip=args.flipud,
             auto_augment=None) if augment else classify_transforms(size=args.imgsz)  # default torchvision transforms
@@ -244,8 +244,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
             hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
             hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-            mean=IMAGENET_DEFAULT_MEAN,  # IMAGENET_MEAN
-            std=IMAGENET_DEFAULT_STD,  # IMAGENET_STD
+            mean=DEFAULT_MEAN,  # IMAGENET_MEAN
+            std=DEFAULT_STD,  # IMAGENET_STD
             auto_aug=False) if augment else None
 
     def __getitem__(self, i):

@@ -17,8 +17,8 @@ from ultralytics.utils.ops import segment2box
 
 from .utils import polygons2masks, polygons2masks_overlap
 
-IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
-IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
+DEFAULT_MEAN = (0.0, 0.0, 0.0)
+DEFAULT_STD = (1.0, 1.0, 1.0)
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
@@ -796,7 +796,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224, mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD):  # IMAGENET_MEAN, IMAGENET_STD
+def classify_transforms(size=224, mean=DEFAULT_MEAN, std=DEFAULT_STD):  # IMAGENET_MEAN, IMAGENET_STD
     # Transforms to apply if albumentations not installed
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
@@ -809,8 +809,8 @@ def classify_transforms(size=224, mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAU
 # Classification augmentations v2 ---------------------------------------------------------------------------------------
 def classify_transforms_v2(
     size=224,
-    mean=IMAGENET_DEFAULT_MEAN,
-    std=IMAGENET_DEFAULT_STD,
+    mean=DEFAULT_MEAN,
+    std=DEFAULT_STD,
     scale=None,
     ratio=None,
     hflip=0.5,
@@ -904,8 +904,8 @@ def classify_albumentations(
     hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
     hsv_s=0.7,  # image HSV-Saturation augmentation (fraction)
     hsv_v=0.4,  # image HSV-Value augmentation (fraction)
-    mean=IMAGENET_DEFAULT_MEAN,  # IMAGENET_MEAN
-    std=IMAGENET_DEFAULT_STD,  # IMAGENET_STD
+    mean=DEFAULT_MEAN,  # IMAGENET_MEAN
+    std=DEFAULT_STD,  # IMAGENET_STD
     auto_aug=False,
 ):
     """YOLOv8 classification Albumentations (optional, only used if package is installed)."""

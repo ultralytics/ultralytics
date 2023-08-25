@@ -160,7 +160,6 @@ jobs:
             python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
           - os: gpu-latest  # do not pass python-version
-            torch: 'latest'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

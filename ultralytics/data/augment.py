@@ -795,8 +795,8 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         RandomFlip(direction='horizontal', p=hyp.fliplr, flip_idx=flip_idx)])  # transforms
 
 
-# Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224, mean=DEFAULT_MEAN, std=DEFAULT_STD):  # IMAGENET_MEAN, IMAGENET_STD
+# Classification augmentations eval -----------------------------------------------------------------------------------------
+def classify_transforms_eval(size=224, mean=DEFAULT_MEAN, std=DEFAULT_STD):  # IMAGENET_MEAN, IMAGENET_STD
     # Transforms to apply if albumentations not installed
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
@@ -806,8 +806,8 @@ def classify_transforms(size=224, mean=DEFAULT_MEAN, std=DEFAULT_STD):  # IMAGEN
         return T.Compose([CenterCrop(size), ToTensor()])
 
 
-# Classification augmentations v2 ---------------------------------------------------------------------------------------
-def classify_transforms_v2(
+# Classification augmentations train ---------------------------------------------------------------------------------------
+def classify_transforms_train(
     size=224,
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,

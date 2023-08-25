@@ -14,7 +14,7 @@ from tqdm import tqdm
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, colorstr, is_dir_writeable
 
 from .augment import (DEFAULT_MEAN, DEFAULT_STD, Compose, Format, Instances, LetterBox, classify_albumentations,
-                      classify_transforms, classify_transforms_v2, v8_transforms)
+                      classify_transforms_eval, classify_transforms_train, v8_transforms)
 from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
@@ -227,14 +227,15 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        self.torch_transforms = classify_transforms_v2(
+        self.torch_transforms = classify_transforms_train(
             size=args.imgsz,
             scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
             mean=DEFAULT_MEAN,  # IMAGENET_MEAN
             std=DEFAULT_STD,  # IMAGENET_STD
             hflip=args.fliplr,
             vflip=args.flipud,
-            auto_augment=None) if augment else classify_transforms(size=args.imgsz)  # default torchvision transforms
+            auto_augment=args.auto_augment) if augment else classify_transforms_eval(
+                size=args.imgsz)  # default torchvision transforms
 
         self.album_transforms = classify_albumentations(
             augment=augment,
@@ -260,12 +261,12 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR
-        if self.album_transforms:
-            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
-        else:
-            # Convert NumPy array to PIL image
-            im = Image.fromarray(im)
-            sample = self.torch_transforms(im)
+        # if self.album_transforms:
+        #     sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
+        # else:
+        # Convert NumPy array to PIL image
+        im = Image.fromarray(im)
+        sample = self.torch_transforms(im)
         return {'img': sample, 'cls': j}
 
     def __len__(self) -> int:

@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import torch
 import torchvision
+from PIL import Image
 from tqdm import tqdm
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, colorstr, is_dir_writeable
@@ -262,6 +263,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         if self.album_transforms:
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         else:
+            # Convert NumPy array to PIL image
+            im = Image.fromarray(im)
             sample = self.torch_transforms(im)
         return {'img': sample, 'cls': j}
 

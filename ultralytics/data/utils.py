@@ -144,9 +144,7 @@ def verify_image_label(args):
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
-                kpt_mask = np.ones(keypoints.shape[:2], dtype=np.float32)
-                kpt_mask = np.where(keypoints[..., 0] < 0, 0.0, kpt_mask)
-                kpt_mask = np.where(keypoints[..., 1] < 0, 0.0, kpt_mask)
+                kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)
                 keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
         lb = lb[:, :5]
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
@@ -345,7 +343,7 @@ def check_cls_dataset(dataset: str, split=''):
 
     # Print to console
     for k, v in {'train': train_set, 'val': val_set, 'test': test_set}.items():
-        prefix = f'{colorstr(k)} {v}...'
+        prefix = f'{colorstr(f"{k}:")} {v}...'
         if v is None:
             LOGGER.info(prefix)
         else:
@@ -375,6 +373,7 @@ class HUBDatasetStats:
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
     Example:
+        Download *.zip files from i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip.
         ```python
         from ultralytics.data.utils import HUBDatasetStats
 

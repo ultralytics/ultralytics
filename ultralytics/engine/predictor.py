@@ -343,8 +343,7 @@ class BasePredictor:
                     h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 else:  # stream
                     fps, w, h = 30, im0.shape[1], im0.shape[0]
-                suffix = '.mp4' if MACOS else '.avi' if WINDOWS else '.avi'
-                fourcc = 'avc1' if MACOS else 'WMV2' if WINDOWS else 'MJPG'
+                suffix, fourcc = ('.mp4', 'avc1') if MACOS else ('.avi', 'WMV2') if WINDOWS else ('.avi', 'MJPG')
                 save_path = str(Path(save_path).with_suffix(suffix))
                 self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
             self.vid_writer[idx].write(im0)

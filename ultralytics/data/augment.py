@@ -634,7 +634,7 @@ class CopyPaste:
 
             result = cv2.flip(im, 1)  # augment segments (flip left-right)
             i = cv2.flip(im_new, 1).astype(bool)
-            im[i] = result[i]  # cv2.imwrite('debug.jpg', im)  # debug
+            im[i] = result[i]
 
         labels['img'] = im
         labels['cls'] = cls

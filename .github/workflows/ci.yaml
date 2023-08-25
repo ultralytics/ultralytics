@@ -160,7 +160,7 @@ jobs:
             python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
           - os: 1xT4
-            python-version: '3.11.0'  # 3.11 will not work, requires patch version
+            python-version: '3.10.12'  # requires exact alignment to self-hosted runner version
             torch: 'latest'
     steps:
       - uses: actions/checkout@v3

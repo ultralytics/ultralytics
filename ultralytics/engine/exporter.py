@@ -127,7 +127,7 @@ class Exporter:
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
-        save_dir (Path): Directory to save results.
+        callbacks (list, optional): List of callback functions. Defaults to None.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -189,7 +189,7 @@ class Exporter:
         model.eval()
         model.float()
         model = model.fuse()
-        for k, m in model.named_modules():
+        for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
                 m.dynamic = self.args.dynamic
                 m.export = True
@@ -427,7 +427,7 @@ class Exporter:
             system = 'macos' if MACOS else 'ubuntu' if LINUX else 'windows'  # operating system
             asset = [x for x in assets if system in x][0] if assets else \
                 f'https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20230816-{system}.zip'  # fallback
-            attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
+            asset = attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
             unzip_dir = Path(asset).with_suffix('')
             pnnx = ROOT / pnnx_filename  # new location
             (unzip_dir / pnnx_filename).rename(pnnx)  # move binary to ROOT
@@ -484,7 +484,7 @@ class Exporter:
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
             model = self.model
         elif self.model.task == 'detect':
-            model = iOSDetectModel(self.model, self.im) if self.args.nms else self.model
+            model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolov8n.pt'.")
@@ -502,9 +502,9 @@ class Exporter:
                 check_requirements('scikit-learn')  # scikit-learn package required for k-means quantization
             if mlmodel:
                 ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
-            else:
+            elif bits == 8:  # mlprogram already quantized to FP16
                 import coremltools.optimize.coreml as cto
-                op_config = cto.OpPalettizerConfig(mode=mode, nbits=bits, weight_threshold=512)
+                op_config = cto.OpPalettizerConfig(mode='kmeans', nbits=bits, weight_threshold=512)
                 config = cto.OptimizationConfig(global_config=op_config)
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == 'detect':
@@ -839,27 +839,26 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')
-        batch_size, ch, h, w = list(self.im.shape)  # BCHW
+        _, _, h, w = list(self.im.shape)  # BCHW
 
         # Output shapes
         spec = model.get_spec()
         out0, out1 = iter(spec.description.output)
         if MACOS:
             from PIL import Image
-            img = Image.new('RGB', (w, h))  # img(192 width, 320 height)
-            # img = torch.zeros((*opt.img_size, 3)).numpy()  # img size(320,192,3) iDetection
+            img = Image.new('RGB', (w, h))  # w=192, h=320
             out = model.predict({'image': img})
-            out0_shape = out[out0.name].shape
-            out1_shape = out[out1.name].shape
-        else:  # linux and windows can not run model.predict(), get sizes from pytorch output y
+            out0_shape = out[out0.name].shape  # (3780, 80)
+            out1_shape = out[out1.name].shape  # (3780, 4)
+        else:  # linux and windows can not run model.predict(), get sizes from PyTorch model output y
             out0_shape = self.output_shape[2], self.output_shape[1] - 4  # (3780, 80)
             out1_shape = self.output_shape[2], 4  # (3780, 4)
 
         # Checks
         names = self.metadata['names']
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
-        na, nc = out0_shape
-        # na, nc = out0.type.multiArrayType.shape  # number anchors, classes
+        _, nc = out0_shape  # number of anchors, number of classes
+        # _, nc = out0.type.multiArrayType.shape
         assert len(names) == nc, f'{len(names)} names found for nc={nc}'  # check
 
         # Define output shapes (missing)
@@ -963,13 +962,13 @@ class Exporter:
             callback(self)
 
 
-class iOSDetectModel(torch.nn.Module):
-    """Wrap an Ultralytics YOLO model for iOS export."""
+class IOSDetectModel(torch.nn.Module):
+    """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
     def __init__(self, model, im):
-        """Initialize the iOSDetectModel class with a YOLO model and example image."""
+        """Initialize the IOSDetectModel class with a YOLO model and example image."""
         super().__init__()
-        b, c, h, w = im.shape  # batch, channel, height, width
+        _, _, h, w = im.shape  # batch, channel, height, width
         self.model = model
         self.nc = len(model.names)  # number of classes
         if w == h:
@@ -981,21 +980,3 @@ class iOSDetectModel(torch.nn.Module):
         """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
-
-
-def export(cfg=DEFAULT_CFG):
-    """Export a YOLOv model to a specific format."""
-    cfg.model = cfg.model or 'yolov8n.yaml'
-    cfg.format = cfg.format or 'torchscript'
-
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.export(**vars(cfg))
-
-
-if __name__ == '__main__':
-    """
-    CLI:
-    yolo mode=export model=yolov8n.yaml format=onnx
-    """
-    export()

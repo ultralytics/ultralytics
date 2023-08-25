@@ -12,7 +12,7 @@ from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, 
 from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis,
                                yaml_load)
 from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
-from ultralytics.utils.downloads import GITHUB_ASSET_STEMS
+from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 
@@ -86,7 +86,7 @@ class Model:
 
         # Load or create new YOLO model
         suffix = Path(model).suffix
-        if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
+        if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
         if suffix in ('.yaml', '.yml'):
             self._new(model, task)
@@ -122,7 +122,7 @@ class Model:
         self.model = model(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
 
-        # Below added to allow export from yamls
+        # Below added to allow export from YAMLs
         args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine model and default args, preferring model args
         self.model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
         self.model.task = self.task

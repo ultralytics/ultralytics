@@ -55,12 +55,14 @@ class Predictor(BasePredictor):
         return img
 
     def pre_transform(self, im):
-        """Pre-transform input image before inference.
+        """
+        Pre-transform input image before inference.
 
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
 
-        Return: A list of transformed imgs.
+        Returns:
+            (list): A list of transformed images.
         """
         assert len(im) == 1, 'SAM model has not supported batch inference yet!'
         return [LetterBox(self.args.imgsz, auto=False, center=False)(image=x) for x in im]
@@ -316,8 +318,9 @@ class Predictor(BasePredictor):
         pred_bboxes = preds[2] if self.segment_all else None
         names = dict(enumerate(str(i) for i in range(len(pred_masks))))
         results = []
+        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, masks in enumerate([pred_masks]):
-            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            orig_img = orig_imgs[i] if is_list else orig_imgs
             if pred_bboxes is not None:
                 pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
@@ -325,9 +328,8 @@ class Predictor(BasePredictor):
 
             masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
             masks = masks > self.model.mask_threshold  # to bool
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
+            img_path = self.batch[0][i]
+            results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False
         return results

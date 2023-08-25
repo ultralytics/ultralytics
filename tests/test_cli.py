@@ -40,6 +40,14 @@ def test_train(task, model, data):
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_val(task, model, data):
+    # Download annotations to run pycocotools eval
+    # from ultralytics.utils import SETTINGS, Path
+    # from ultralytics.utils.downloads import download
+    # url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
+    # download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8/annotations')
+    # download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
+
+    # Validate
     run(f'yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32 save_txt save_json')
 
 
@@ -55,7 +63,7 @@ def test_export(model, format):
 
 def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
     # Warning: MUST use imgsz=640
-    run(f'yolo train {task} model={model} data={data} imgsz=640 epochs=1 cache=disk')
+    run(f'yolo train {task} model={model} data={data} imgsz=640 epochs=1, cache = disk')  # add coma, space to args
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=640 save save_crop save_txt")
 
 

@@ -63,24 +63,58 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Retrieve Ultralytics version
+        id: get_version
+        run: |
+          VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F"'" '{print $2}')
+          echo "Retrieved Ultralytics version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          VERSION_TAG=$(echo "${{ matrix.tags }}" | sed "s/latest/${VERSION}/")
+          echo "Intended version tag: $VERSION_TAG"
+          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+
+      - name: Check if version tag exists on DockerHub
+        id: check_tag
+        run: |
+          RESPONSE=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG)
+          MESSAGE=$(echo $RESPONSE | jq -r '.message')
+          if [[ "$MESSAGE" == "null" ]]; then
+              echo "Tag $VERSION_TAG already exists on DockerHub."
+              echo "exists=true" >> $GITHUB_OUTPUT
+          elif [[ "$MESSAGE" == *"404"* ]]; then
+              echo "Tag $VERSION_TAG does not exist on DockerHub."
+              echo "exists=false" >> $GITHUB_OUTPUT
+          else
+              echo "Unexpected response from DockerHub. Please check manually."
+              echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
+
       - name: Build Image
         if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
         run: |
-          docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} -t ultralytics/ultralytics:${{ matrix.tags }} .
+          docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} \
+          -t ultralytics/ultralytics:${{ matrix.tags }} \
+          -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} .
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
-        run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
+        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
         # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
         if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile'  # arm64 images not supported on GitHub CI runners
-        run: |
-          docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
+        run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
-      - name: Push Image
-        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == true)
+      - name: Push Docker Image with Ultralytics version tag
+        if: (github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')) && steps.check_tag.outputs.exists == 'false'
+        run: |
+          docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
+
+      - name: Push Docker Image with latest tag
+        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')
         run: |
           docker push ultralytics/ultralytics:${{ matrix.tags }}
 

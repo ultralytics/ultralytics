@@ -39,4 +39,5 @@ def test_train_ddp():
 def test_utils_benchmarks():
     from ultralytics.utils.benchmarks import ProfileModels
 
-    ProfileModels(['yolov8n.yaml'], imgsz=32, half=False, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
+    YOLO(MODEL).export(format='engine', imgsz=32, dynamic=True, batch=1)  # pre-export engine model
+    ProfileModels([MODEL], imgsz=32, half=False, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()

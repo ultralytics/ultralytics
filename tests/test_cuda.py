@@ -6,7 +6,7 @@ import pytest
 
 from ultralytics import YOLO
 from ultralytics.utils import SETTINGS
-from ultralytics.utils.checks import cuda_is_available, cuda_device_count
+from ultralytics.utils.checks import cuda_device_count, cuda_is_available
 
 CUDA_IS_AVAILABLE = cuda_is_available()
 CUDA_DEVICE_COUNT = cuda_device_count()

@@ -8,14 +8,19 @@ import torch
 from ultralytics import YOLO
 from ultralytics.utils import SETTINGS
 
-# from ultralytics.utils.checks import cuda_device_count, cuda_is_available
-
 CUDA_IS_AVAILABLE = torch.cuda.is_available()
 CUDA_DEVICE_COUNT = torch.cuda.device_count()
 
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 DATA = 'coco8.yaml'
+
+
+def test_checks():
+    from ultralytics.utils.checks import cuda_device_count, cuda_is_available
+
+    assert cuda_device_count() == CUDA_DEVICE_COUNT
+    assert cuda_is_available() == CUDA_IS_AVAILABLE
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')

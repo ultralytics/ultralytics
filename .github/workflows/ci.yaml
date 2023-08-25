@@ -159,7 +159,7 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
-          - os: 1xT4  # do not pass python-version
+          - os: gpu-latest  # do not pass python-version
             torch: 'latest'
     steps:
       - uses: actions/checkout@v3
@@ -178,6 +178,7 @@ jobs:
           fi
       - name: Check environment
         run: |
+          yolo checks
           echo "RUNNER_OS is ${{ runner.os }}"
           echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
           echo "GITHUB_WORKFLOW is ${{ github.workflow }}"

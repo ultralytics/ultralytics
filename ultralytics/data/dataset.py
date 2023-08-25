@@ -227,15 +227,21 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
+        scale = (1.0 - args.scale, 1.0),  # (0.08, 1.0)
         self.torch_transforms = classify_transforms_train(
             size=args.imgsz,
-            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
-            mean=DEFAULT_MEAN,  # IMAGENET_MEAN
-            std=DEFAULT_STD,  # IMAGENET_STD
+            scale=scale,
+            mean=DEFAULT_MEAN,
+            std=DEFAULT_STD,
             hflip=args.fliplr,
             vflip=args.flipud,
-            auto_augment=args.auto_augment) if augment else classify_transforms_eval(
-                size=args.imgsz)  # default torchvision transforms
+            auto_augment=args.auto_augment) if augment else classify_transforms_eval(size=args.imgsz,
+                                                                                     scale=scale,
+                                                                                     mean=DEFAULT_MEAN,
+                                                                                     std=DEFAULT_STD,
+                                                                                     hflip=args.fliplr,
+                                                                                     vflip=args.flipud,
+                                                                                     auto_augment=args.auto_augment)
 
         self.album_transforms = classify_albumentations(
             augment=augment,

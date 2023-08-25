@@ -19,6 +19,7 @@ from .utils import polygons2masks, polygons2masks_overlap
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
+DEFAULT_CROP_PERCENTAGE = 0.875
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
@@ -796,14 +797,47 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 
 # Classification augmentations eval -----------------------------------------------------------------------------------------
-def classify_transforms_eval(size=224, mean=DEFAULT_MEAN, std=DEFAULT_STD):  # IMAGENET_MEAN, IMAGENET_STD
-    # Transforms to apply if albumentations not installed
-    if not isinstance(size, int):
-        raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
-    if any(mean) or any(std):
-        return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(mean, std, inplace=True)])
+def classify_transforms_eval(
+    size=224,
+    mean=DEFAULT_MEAN,
+    std=DEFAULT_STD,
+    interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
+    crop_percentage: float = DEFAULT_CROP_PERCENTAGE,
+):
+
+    if isinstance(size, (tuple, list)):
+        assert len(size) == 2
+        scale_size = tuple([math.floor(x / crop_percentage) for x in size])
     else:
-        return T.Compose([CenterCrop(size), ToTensor()])
+        scale_size = math.floor(size / crop_percentage)
+        scale_size = (scale_size, scale_size)
+
+    # aspect ratio is preserved, crops center within image, no borders are added, image is lost
+    if scale_size[0] == scale_size[1]:
+        # simple case, use torchvision built-in Resize w/ shortest edge mode (scalar size arg)
+        tfl = [T.Resize(scale_size[0], interpolation=interpolation)]
+    else:
+        # resize shortest edge to matching target dim for non-square target
+        tfl = [T.Resize(scale_size)]
+    tfl += [T.CenterCrop(size)]
+
+    tfl += [T.ToTensor(), T.Normalize(
+        mean=torch.tensor(mean),
+        std=torch.tensor(std),
+    )]
+
+    return T.Compose(tfl)
+
+
+def classify_transforms_noaug_train(
+    img_size=224,
+    interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
+    mean=DEFAULT_MEAN,
+    std=DEFAULT_STD,
+):
+    tfl = [T.Resize(img_size, interpolation=interpolation), T.CenterCrop(img_size)]
+    tfl += [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
+    return T.Compose(tfl)
 
 
 # Classification augmentations train ---------------------------------------------------------------------------------------

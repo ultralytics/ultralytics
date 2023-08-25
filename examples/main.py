@@ -12,8 +12,6 @@ import os
 j = 0
 fileToCopy = ''
 
-
-
 #main window creation
 root = Tk()
 root.title("Computer Vision Project")
@@ -27,7 +25,7 @@ myFont = font.Font(family = 'Helvetica',size = 30, weight= "bold")
 myFont1 = font.Font(family = 'Helvetica',size = 20, weight= "bold")
 
 #Background image
-img = Image.open('WallpaperDog.jpg')
+img = Image.open('../WallpaperDog.jpg')
 bg = ImageTk.PhotoImage(img)
 lbl = Label(root, image = bg, bg='pink')
 lbl.config(bg = "black", fg = "white")
@@ -43,7 +41,7 @@ lbl1.place(x=550,y=10)
 def buttonfunction():
     global fileToCopy
     fileToCopy = fd.askopenfilename(initialdir="/", title = "Select a File", filetypes = (("Jpg files", "*.jpg.*"), ("Jpeg files", "*.jpeg.*"), ("all files", "*.*")))
-    destination= 'D:/Python IDE/ComputerVisionGUI/inputdata' #Enter your destination path
+    destination= 'D:/Python IDE/ComputerVisionInterface/inputdata' #Enter your destination path
 
 
     try:
@@ -115,7 +113,7 @@ def buttonfunction2():
     myFont1 = font.Font(family='Helvetica', size=20, weight="bold")
     myFont2 = font.Font(family='Helvetica', size=15, weight="bold")
 
-    img = Image.open('WallpaperDog.jpg')
+    img = Image.open('../WallpaperDog.jpg')
     bg = ImageTk.PhotoImage(img)
     lbl = Label(root1, image=bg, bg='pink')
     lbl.config(bg="black", fg="white")
@@ -137,7 +135,7 @@ def buttonfunction2():
                 title="File not Selected!",
                 message="The File has not been uploaded. Please upload the file"
             )
-        model = YOLO("yolov8n.pt", "v8")
+        model = YOLO("../yolov8n.pt", "v8")
         det = model.predict( conf = 0.25, save = True, source = fileToCopy)
         b = Button(root1, text="Go To Download Page", bg='salmon', font=myFont2, command=main)
         b.place(x=950, y=310)
@@ -150,7 +148,7 @@ def buttonfunction2():
                 title="File not Selected!",
                 message="The File has not been uploaded. Please upload the file"
             )
-        model = YOLO("yolov8n-cls.pt", "v8")
+        model = YOLO("../yolov8n-cls.pt", "v8")
         det = model(source = fileToCopy , conf = 0.25, save = True)
         b = Button(root1, text="Go To Download Page", bg='salmon', font=myFont2, command=main)
         b.place(x=950, y=310)
@@ -163,7 +161,7 @@ def buttonfunction2():
                 title="File not Selected!",
                 message="The File has not been uploaded. Please upload the file"
             )
-        model = YOLO("yolov8n-pose.pt", "v8")
+        model = YOLO("../yolov8n-pose.pt", "v8")
         det = model(source = fileToCopy, conf = 0.25, save = True)
         b = Button(root1, text="Go To Download Page", bg='salmon', font=myFont2, command=main)
         b.place(x=950, y=310)
@@ -176,7 +174,7 @@ def buttonfunction2():
                 title="File not Selected!",
                 message="The File has not been uploaded. Please upload the file"
             )
-        model = YOLO("yolov8n-seg.pt", "v8")
+        model = YOLO("../yolov8n-seg.pt", "v8")
         det = model(source = fileToCopy, conf = 0.25, save = True)
         b = Button(root1, text="Go To Download Page", bg='salmon', font=myFont2, command=main)
         b.place(x=950, y=310)

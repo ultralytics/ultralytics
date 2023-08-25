@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import contextlib
 import shutil
 from copy import copy
 from pathlib import Path
@@ -312,6 +313,15 @@ def test_events():
     cfg = copy(DEFAULT_CFG)  # does not require deepcopy
     cfg.mode = 'test'
     events(cfg)
+
+
+def test_cfg_init():
+    from ultralytics.cfg import check_dict_alignment, copy_default_cfg, smart_value
+
+    with contextlib.suppress(SyntaxError):
+        check_dict_alignment({'a': 1}, {'b': 2})
+    copy_default_cfg()
+    [smart_value(x) for x in ['none', 'true', 'false']]
 
 
 def test_utils_init():

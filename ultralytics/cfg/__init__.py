@@ -4,7 +4,6 @@ import contextlib
 import re
 import shutil
 import sys
-from difflib import get_close_matches
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
@@ -177,6 +176,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
     mismatched = [k for k in custom_keys if k not in base_keys]
     if mismatched:
+        from difflib import get_close_matches
+
         string = ''
         for x in mismatched:
             matches = get_close_matches(x, base_keys)  # key list

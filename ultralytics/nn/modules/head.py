@@ -140,21 +140,23 @@ class Pose(Detect):
         """Perform forward pass through YOLO model and return predictions."""
         bs = x[0].shape[0]  # batch size
         kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
-        if self.separate_6_outputs and self.export:
-            kpt = torch.cat([torch.permute(self.cv4[i](x[i]),(0,2,3,1)).reshape(bs, -1, self.nk) for i in range(self.nl)], 1)  # (bs, 17*3, h*w)
         x = self.detect(self, x)
-        if self.separate_6_outputs and self.export:
-            return x, kpt
         if self.training:
             return x, kpt
+        if self.separate_6_outputs and self.export:
+            return x, self.kpts_decode(bs, torch.permute(kpt, (0,2,1)))
         pred_kpt = self.kpts_decode(bs, kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
-
+    
     def kpts_decode(self, bs, kpts):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
         if self.export:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
             y = kpts.view(bs, *self.kpt_shape, -1)
+            # torch.save(self.anchors, "anc.pth")
+            # torch.save(self.strides, "strd.pth")
+            self.anchors = torch.load("anc.pth")
+            self.strides = torch.load("strd.pth")
             a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)

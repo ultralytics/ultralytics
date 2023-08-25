@@ -91,6 +91,7 @@ class SegmentationValidator(DetectionValidator):
         pred_order = [item for index, item in enumerate(preds) if index not in [pidx, lci]]
         if len(preds) == 8:  # DeGirum export
             preds_decoded = self.decode_bbox(pred_order, img_shape)
+            print("hi", preds_decoded.shape)
             preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)
             """Post-processes YOLO predictions and returns output detections with proto."""
             p = ops.non_max_suppression(preds_decoded, #preds[0],

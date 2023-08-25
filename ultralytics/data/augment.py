@@ -502,6 +502,7 @@ class RandomHSV:
 
 class RandomFlip:
     """Applies random horizontal or vertical flip to an image with a given probability."""
+
     def __init__(self, p=0.5, direction='horizontal', flip_idx=None) -> None:
         assert direction in ['horizontal', 'vertical'], f'Support direction `horizontal` or `vertical`, got {direction}'
         assert 0 <= p <= 1.0

@@ -515,30 +515,14 @@ def cuda_device_count() -> int:
     Returns:
         (int): The number of NVIDIA GPUs available.
     """
-    import ctypes
-    from ctypes import byref
-
-    # Try to load the CUDA runtime library (Windows and Unix)
     try:
-        cuda = ctypes.CDLL('cudart64_110.dll' if platform.system() == 'Windows' else 'libcudart.so')
-    except OSError:
+        # Run the nvidia-smi command and capture its output
+        output = subprocess.check_output(['nvidia-smi', '--query-gpu=count', '--format=csv,noheader,nounits'],
+                                         encoding='utf-8')
+        return int(output.strip())
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # If the command fails or nvidia-smi is not found, assume no GPUs are available
         return 0
-
-    # Declare integer to store the GPU count
-    device_count = ctypes.c_int()
-
-    # Define function signature
-    cuda.cudaGetDeviceCount.restype = ctypes.c_int
-    cuda.cudaGetDeviceCount.argtypes = [ctypes.POINTER(ctypes.c_int)]
-
-    # Call cudaGetDeviceCount to get the device count
-    result = cuda.cudaGetDeviceCount(byref(device_count))
-
-    if result != 0:
-        print(f'cudaGetDeviceCount returned error code {result}, could not retrieve device count.')
-        return 0
-
-    return device_count.value
 
 
 def cuda_is_available() -> bool:

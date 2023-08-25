@@ -354,6 +354,7 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_utils_downloads():
     from ultralytics.utils.downloads import get_google_drive_file_info
 

@@ -190,7 +190,7 @@ jobs:
       - name: Pytest tests
         shell: bash  # for Windows compatibility
         run: |
-          if [ "${{ matrix.os }}" == "1xT4" ]; then
+          if [ "${{ matrix.os }}" == "gpu-latest" ]; then
               pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
           else
               pytest --cov=ultralytics/ --cov-report xml tests/

@@ -52,10 +52,10 @@ def test_predict_sam():
     model.info()
 
     # Run inference
-    model(ASSETS / 'bus.jpg')
+    model(ASSETS / 'bus.jpg', device=0)
 
     # Run inference with bboxes prompt
-    model(ASSETS / 'zidane.jpg', bboxes=[439, 437, 524, 709])
+    model(ASSETS / 'zidane.jpg', bboxes=[439, 437, 524, 709], device=0)
 
     # Run inference with points prompt
-    model(ASSETS / 'zidane.jpg', points=[900, 370], labels=[1])
+    model(ASSETS / 'zidane.jpg', points=[900, 370], labels=[1], device=0)

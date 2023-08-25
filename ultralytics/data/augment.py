@@ -643,7 +643,9 @@ class CopyPaste:
 
 
 class Albumentations:
-    """YOLOv8 Albumentations class (optional, only used if package is installed)"""
+    """Albumentations transformations. Optional, uninstall package to disable.
+    Applies Blur, Median Blur, convert to grayscale, Contrast Limited Adaptive Histogram Equalization,
+    random change of brightness and contrast, RandomGamma and lowering of image quality by compression."""
 
     def __init__(self, p=1.0):
         """Initialize the transform object for YOLO bbox formatted params."""

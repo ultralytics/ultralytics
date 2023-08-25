@@ -507,3 +507,37 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
         file = Path(file).stem
     s = (f'{file}: ' if show_file else '') + (f'{func}: ' if show_func else '')
     LOGGER.info(colorstr(s) + ', '.join(f'{k}={strip_auth(v)}' for k, v in args.items()))
+
+
+def cuda_device_count() -> int:
+    """Get the number of NVIDIA GPUs available in the environment.
+
+    Returns:
+        (int): The number of NVIDIA GPUs available.
+    """
+    import ctypes
+
+    try:
+        # Try to load the CUDA runtime library (Windows and Unix)
+        cuda = ctypes.CDLL('cudart64_101.dll' if platform.system() == 'Windows' else 'libcudart.so')
+    except OSError:
+        # If there's any error (e.g., library not found), assume no GPUs are available
+        return 0
+
+    # Declare integer to store the GPU count
+    device_count = ctypes.c_int()
+
+    # Call cudaGetDeviceCount to get the device count
+    result = cuda.cudaGetDeviceCount(ctypes.byref(device_count))
+
+    # Check if the result is zero (indicating success) and return the device count
+    return device_count.value if result == 0 else 0
+
+
+def cuda_is_available() -> bool:
+    """Check if CUDA is available in the environment.
+
+    Returns:
+        (bool): True if one or more NVIDIA GPUs are available, False otherwise.
+    """
+    return cuda_device_count() > 0

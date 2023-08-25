@@ -14,7 +14,7 @@ from ultralytics.utils import colorstr, ops
 __all__ = 'RTDETRValidator',  # tuple or list
 
 
-# TODO: Temporarily, RT-DETR does not need padding.
+# TODO: Temporarily RT-DETR does not need padding.
 class RTDETRDataset(YOLODataset):
 
     def __init__(self, *args, data=None, **kwargs):
@@ -47,7 +47,7 @@ class RTDETRDataset(YOLODataset):
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def build_transforms(self, hyp=None):
-        """Temporarily, only for evaluation."""
+        """Temporary, only for evaluation."""
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
@@ -76,12 +76,13 @@ class RTDETRValidator(DetectionValidator):
 
         args = dict(model='rtdetr-l.pt', data='coco8.yaml')
         validator = RTDETRValidator(args=args)
-        validator(model=args['model'])
+        validator()
         ```
     """
 
     def build_dataset(self, img_path, mode='val', batch=None):
-        """Build YOLO Dataset
+        """
+        Build an RTDETR Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.

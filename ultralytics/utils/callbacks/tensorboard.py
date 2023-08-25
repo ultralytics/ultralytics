@@ -23,7 +23,7 @@ def _log_scalars(scalars, step=0):
 
 
 def _log_tensorboard_graph(trainer):
-    # Log model graph to TensorBoard
+    """Log model graph to TensorBoard."""
     try:
         import warnings
 
@@ -32,9 +32,9 @@ def _log_tensorboard_graph(trainer):
         imgsz = trainer.args.imgsz
         imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
         p = next(trainer.model.parameters())  # for device, type
-        im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input (WARNING: must be zeros, not empty)
-        with warnings.catch_warnings(category=UserWarning):
-            warnings.simplefilter('ignore')  # suppress jit trace warning
+        im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=UserWarning)  # suppress jit trace warning
             WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ TensorBoard graph visualization failure {e}')
@@ -48,9 +48,14 @@ def on_pretrain_routine_start(trainer):
             WRITER = SummaryWriter(str(trainer.save_dir))
             prefix = colorstr('TensorBoard: ')
             LOGGER.info(f"{prefix}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
-            _log_tensorboard_graph(trainer)
         except Exception as e:
             LOGGER.warning(f'WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}')
+
+
+def on_train_start(trainer):
+    """Log TensorBoard graph."""
+    if WRITER:
+        _log_tensorboard_graph(trainer)
 
 
 def on_batch_end(trainer):
@@ -65,5 +70,6 @@ def on_fit_epoch_end(trainer):
 
 callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_train_start': on_train_start,
     'on_fit_epoch_end': on_fit_epoch_end,
     'on_batch_end': on_batch_end}

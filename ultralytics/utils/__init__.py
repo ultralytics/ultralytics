@@ -341,10 +341,10 @@ def yaml_load(file='data.yaml', append_filename=False):
 
 def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
     """
-    Pretty prints a yaml file or a yaml-formatted dictionary.
+    Pretty prints a YAML file or a YAML-formatted dictionary.
 
     Args:
-        yaml_file: The file path of the yaml file or a yaml-formatted dictionary.
+        yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
 
     Returns:
         None
@@ -852,9 +852,10 @@ ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' 
 TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
 set_sentry()
 
-# Apply monkey patches if the script is being run from within the parent directory of the script's location
-from .patches import imread, imshow, imwrite
+# Apply monkey patches
+from .patches import imread, imshow, imwrite, torch_save
 
-# torch.save = torch_save
-if Path(inspect.stack()[0].filename).parent.parent.as_posix() in inspect.stack()[-1].filename:
+torch.save = torch_save
+if WINDOWS:
+    # Apply cv2 patches for non-ASCII and non-UTF characters in image paths
     cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow

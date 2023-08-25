@@ -13,7 +13,7 @@ from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS, WINDOWS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
@@ -26,27 +26,34 @@ TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
 def test_model_forward():
     model = YOLO(CFG)
-    model(SOURCE, imgsz=32, augment=True)
+    model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
 def test_model_methods():
     model = YOLO(MODEL)
+
+    # Model methods
     model.info(verbose=True, detailed=True)
     model = model.reset_weights()
     model = model.load(MODEL)
     model.to('cpu')
-    _ = model.names
-    _ = model.device
-
-
-def test_model_fuse():
-    model = YOLO(MODEL)
     model.fuse()
 
+    # Model properties
+    _ = model.names
+    _ = model.device
+    _ = model.transforms
+    _ = model.task_map
 
-def test_predict_dir():
+
+def test_predict_txt():
+    # Write a list of sources (file, dir, glob, recursive glob) to a txt file
+    txt_file = TMP / 'sources.txt'
+    with open(txt_file, 'w') as f:
+        for x in [ASSETS / 'bus.jpg', ASSETS, ASSETS / '*', ASSETS / '**/*.jpg']:
+            f.write(f'{x}\n')
     model = YOLO(MODEL)
-    model(source=ASSETS, imgsz=32)
+    model(source=txt_file, imgsz=32)
 
 
 def test_predict_img():
@@ -87,20 +94,26 @@ def test_predict_img():
 def test_predict_grey_and_4ch():
     # Convert SOURCE to greyscale and 4-ch
     im = Image.open(SOURCE)
-    source_greyscale = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
-    source_rgba = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
+    directory = TMP / 'im4'
+    directory.mkdir(parents=True, exist_ok=True)
+
+    source_greyscale = directory / 'greyscale.jpg'
+    source_rgba = directory / '4ch.png'
+    source_non_utf = directory / 'non_UTF_测试文件_tést_image.jpg'
+    source_spaces = directory / 'image with spaces.jpg'
+
     im.convert('L').save(source_greyscale)  # greyscale
     im.convert('RGBA').save(source_rgba)  # 4-ch PNG with alpha
+    im.save(source_non_utf)  # non-UTF characters in filename
+    im.save(source_spaces)  # spaces in filename
 
     # Inference
     model = YOLO(MODEL)
-    for f in source_rgba, source_greyscale:
+    for f in source_rgba, source_greyscale, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
-            model(source, save=True, verbose=True, imgsz=32)
-
-    # Cleanup
-    source_greyscale.unlink()
-    source_rgba.unlink()
+            results = model(source, save=True, verbose=True, imgsz=32)
+            assert len(results) == 1  # verify that an image was run
+        f.unlink()  # cleanup
 
 
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
@@ -110,7 +123,7 @@ def test_track_stream():
     import yaml
 
     model = YOLO(MODEL)
-    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96)
+    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96, save=True)
     model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='bytetrack.yaml')
     model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='botsort.yaml')
 
@@ -127,24 +140,24 @@ def test_track_stream():
 
 def test_val():
     model = YOLO(MODEL)
-    model.val(data='coco8.yaml', imgsz=32)
+    model.val(data='coco8.yaml', imgsz=32, save_hybrid=True)
 
 
 def test_train_scratch():
     model = YOLO(CFG)
-    model.train(data='coco8.yaml', epochs=2, imgsz=32, cache='disk', batch=-1, close_mosaic=1)
+    model.train(data='coco8.yaml', epochs=2, imgsz=32, cache='disk', batch=-1, close_mosaic=1, name='model')
     model(SOURCE)
 
 
 def test_train_pretrained():
     model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
-    model.train(data='coco8-seg.yaml', epochs=1, imgsz=32, cache='ram', copy_paste=0.5, mixup=0.5)
+    model.train(data='coco8-seg.yaml', epochs=1, imgsz=32, cache='ram', copy_paste=0.5, mixup=0.5, name=0)
     model(SOURCE)
 
 
 def test_export_torchscript():
     model = YOLO(MODEL)
-    f = model.export(format='torchscript')
+    f = model.export(format='torchscript', optimize=True)
     YOLO(f)(SOURCE)  # exported model inference
 
 
@@ -160,11 +173,12 @@ def test_export_openvino():
     YOLO(f)(SOURCE)  # exported model inference
 
 
-def test_export_coreml():  # sourcery skip: move-assign
-    model = YOLO(MODEL)
-    model.export(format='coreml', nms=True)
-    # if MACOS:
-    #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
+def test_export_coreml():
+    if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
+        model = YOLO(MODEL)
+        model.export(format='coreml', nms=True)
+        # if MACOS:
+        #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
 def test_export_tflite(enabled=False):
@@ -190,7 +204,7 @@ def test_export_paddle(enabled=False):
         model.export(format='paddle')
 
 
-def test_export_ncnn(enabled=False):
+def test_export_ncnn():
     model = YOLO(MODEL)
     f = model.export(format='ncnn')
     YOLO(f)(SOURCE)  # exported model inference
@@ -261,7 +275,7 @@ def test_data_utils():
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    download('https://github.com/ultralytics/hub/raw/master/example_datasets/coco8.zip', unzip=False)
+    download('https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip', unzip=False)
     shutil.move('coco8.zip', TMP)
     stats = HUBDatasetStats(TMP / 'coco8.zip', task='detect')
     stats.get_json(save=True)
@@ -310,14 +324,15 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    from ultralytics.utils.checks import (check_imgsz, check_requirements, check_yolov5u_filename, git_describe,
-                                          print_args)
+    from ultralytics.utils.checks import (check_imgsz, check_imshow, check_requirements, check_yolov5u_filename,
+                                          git_describe, print_args)
 
     check_yolov5u_filename('yolov5n.pt')
     # check_imshow(warn=True)
     git_describe(ROOT)
     check_requirements()  # check requirements.txt
     check_imgsz([600, 600], max_dim=1)
+    check_imshow()
     print_args()
 
 
@@ -346,9 +361,20 @@ def test_utils_downloads():
 
 
 def test_utils_ops():
-    from ultralytics.utils.ops import make_divisible
+    from ultralytics.utils.ops import (ltwh2xywh, ltwh2xyxy, make_divisible, xywh2ltwh, xywh2xyxy, xywhn2xyxy,
+                                       xywhr2xyxyxyxy, xyxy2ltwh, xyxy2xywh, xyxy2xywhn, xyxyxyxy2xywhr)
 
-    make_divisible(17, 8)
+    make_divisible(17, torch.tensor([8]))
+
+    boxes = torch.rand(10, 4)  # xywh
+    torch.allclose(boxes, xyxy2xywh(xywh2xyxy(boxes)))
+    torch.allclose(boxes, xyxy2xywhn(xywhn2xyxy(boxes)))
+    torch.allclose(boxes, ltwh2xywh(xywh2ltwh(boxes)))
+    torch.allclose(boxes, xyxy2ltwh(ltwh2xyxy(boxes)))
+
+    boxes = torch.rand(10, 5)  # xywhr for OBB
+    boxes[:, 4] = torch.randn(10) * 30
+    torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3)
 
 
 def test_utils_files():
@@ -362,3 +388,42 @@ def test_utils_files():
     path.mkdir(parents=True, exist_ok=True)
     with spaces_in_path(path) as new_path:
         print(new_path)
+
+
+def test_nn_modules_conv():
+    from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus
+
+    c1, c2 = 8, 16  # input and output channels
+    x = torch.zeros(4, c1, 10, 10)  # BCHW
+
+    # Run all modules not otherwise covered in tests
+    DWConvTranspose2d(c1, c2)(x)
+    ConvTranspose(c1, c2)(x)
+    Focus(c1, c2)(x)
+    CBAM(c1)(x)
+
+    # Fuse ops
+    m = Conv2(c1, c2)
+    m.fuse_convs()
+    m(x)
+
+
+def test_nn_modules_block():
+    from ultralytics.nn.modules.block import C1, C3TR, BottleneckCSP, C3Ghost, C3x
+
+    c1, c2 = 8, 16  # input and output channels
+    x = torch.zeros(4, c1, 10, 10)  # BCHW
+
+    # Run all modules not otherwise covered in tests
+    C1(c1, c2)(x)
+    C3x(c1, c2)(x)
+    C3TR(c1, c2)(x)
+    C3Ghost(c1, c2)(x)
+    BottleneckCSP(c1, c2)(x)
+
+
+def test_hub():
+    from ultralytics.hub import export_fmts_hub, logout
+
+    export_fmts_hub()
+    logout()

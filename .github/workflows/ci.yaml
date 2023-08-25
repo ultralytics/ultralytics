@@ -159,7 +159,7 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
-          - os: gpu-latest
+          - os: 1xT4
             python-version: '3.11'
             torch: 'latest'
     steps:

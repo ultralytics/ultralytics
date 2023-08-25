@@ -227,7 +227,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        scale = (1.0 - args.scale, 1.0),  # (0.08, 1.0)
+        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
         self.torch_transforms = classify_transforms_train(
             size=args.imgsz,
             scale=scale,

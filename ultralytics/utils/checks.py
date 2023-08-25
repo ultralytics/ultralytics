@@ -532,7 +532,7 @@ def cuda_device_count() -> int:
 
     # Check for errors and print the result if not successful
     if result != 0:
-        print(f"cudaGetDeviceCount returned error code {result}")
+        print(f'cudaGetDeviceCount returned error code {result}')
         return 0
 
     # Reset CUDA device (optional, might help with repeated calls)
@@ -540,7 +540,6 @@ def cuda_device_count() -> int:
 
     # Return the device count
     return device_count.value
-
 
 
 def cuda_is_available() -> bool:

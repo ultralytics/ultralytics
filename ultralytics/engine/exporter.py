@@ -161,7 +161,7 @@ class Exporter:
 
         # Device
         if format == 'engine' and self.args.device is None:
-            LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")
+            LOGGER.warning('WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0')
             self.args.device = '0'
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
 

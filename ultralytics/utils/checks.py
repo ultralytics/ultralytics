@@ -519,7 +519,7 @@ def cuda_device_count() -> int:
 
     try:
         # Try to load the CUDA runtime library (Windows and Unix)
-        cuda = ctypes.CDLL('cudart64_101.dll' if platform.system() == 'Windows' else 'libcudart.so')
+        cuda = ctypes.CDLL('cudart64_110.dll' if platform.system() == 'Windows' else 'libcudart.so')
     except OSError:
         # If there's any error (e.g., library not found), assume no GPUs are available
         return 0
@@ -530,8 +530,17 @@ def cuda_device_count() -> int:
     # Call cudaGetDeviceCount to get the device count
     result = cuda.cudaGetDeviceCount(ctypes.byref(device_count))
 
-    # Check if the result is zero (indicating success) and return the device count
-    return device_count.value if result == 0 else 0
+    # Check for errors and print the result if not successful
+    if result != 0:
+        print(f"cudaGetDeviceCount returned error code {result}")
+        return 0
+
+    # Reset CUDA device (optional, might help with repeated calls)
+    cuda.cudaDeviceReset()
+
+    # Return the device count
+    return device_count.value
+
 
 
 def cuda_is_available() -> bool:

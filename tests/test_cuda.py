@@ -25,14 +25,12 @@ def test_checks():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_train():
-    model = YOLO(MODEL)
-    model(data=DATA, imgsz=32, epochs=1, batch=-1, device=0)  # also test AutoBatch
+    YOLO(MODEL).train(data=DATA, imgsz=32, epochs=1, batch=-1, device=0)  # also test AutoBatch
 
 
 @pytest.mark.skipif(CUDA_DEVICE_COUNT < 2, reason=f'DDP is not available, {CUDA_DEVICE_COUNT} device(s) found')
 def test_train_ddp():
-    model = YOLO(MODEL)
-    model(data=DATA, imgsz=32, epochs=1, device=[0, 1])
+    YOLO(MODEL).train(data=DATA, imgsz=32, epochs=1, device=[0, 1])
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')

@@ -82,7 +82,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t
+        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
         ```
 
         The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flag assigns a pseudo-TTY and maintains stdin open, enabling you to interact with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, which is crucial for tasks that require GPU computation.

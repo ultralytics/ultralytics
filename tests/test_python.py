@@ -281,10 +281,8 @@ def test_data_utils():
         download(f'https://github.com/ultralytics/hub/raw/main/example_datasets/{file}', unzip=False)
         shutil.move(file, TMP)
         stats = HUBDatasetStats(TMP / file, task=task)
-        stats.get_json(save=False)
-
-    stats.get_json(save=True)
-    stats.process_images()
+        stats.get_json(save=True)
+        stats.process_images()
 
     autosplit(TMP / 'coco8')
     zip_directory(TMP / 'coco8/images/val')  # zip

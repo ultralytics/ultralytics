@@ -210,7 +210,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install requirements
-        run: pip install -e . pytest-cov
+        run: pip install -e .
       - name: Check environment
         run: |
           yolo checks

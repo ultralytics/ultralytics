@@ -43,7 +43,7 @@ class ClassificationPredictor(BasePredictor):
 .
 .
 """)
-            print('SELF.TRANSFORMS:', self.transforms)
+            print('SELF.TRANSFORMS:', self.transforms.transforms)
             has_legacy_transforms = any([isinstance(transform, ToTensor) for transform in self.transforms.transforms])
             if has_legacy_transforms:  # to handle legacy transforms
                 img = torch.stack([self.transforms(im) for im in img], dim=0)

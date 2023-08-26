@@ -182,6 +182,7 @@ class ProfileModels:
                  num_warmup_runs=10,
                  min_time=60,
                  imgsz=640,
+                 half=True,
                  trt=True,
                  device=None):
         self.paths = paths
@@ -189,6 +190,7 @@ class ProfileModels:
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
         self.imgsz = imgsz
+        self.half = half
         self.trt = trt  # run TensorRT profiling
         self.device = device or torch.device(0 if torch.cuda.is_available() else 'cpu')
 
@@ -209,12 +211,12 @@ class ProfileModels:
                 model_info = model.info()
                 if self.trt and self.device.type != 'cpu' and not engine_file.is_file():
                     engine_file = model.export(format='engine',
-                                               half=True,
+                                               half=self.half,
                                                imgsz=self.imgsz,
                                                device=self.device,
                                                verbose=False)
                 onnx_file = model.export(format='onnx',
-                                         half=True,
+                                         half=self.half,
                                          imgsz=self.imgsz,
                                          simplify=True,
                                          device=self.device,

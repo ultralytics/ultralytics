@@ -44,5 +44,5 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
-    for directory in ['.pytest_cache/', TMP]:
+    for directory in [ROOT / '../.pytest_cache', TMP]:
         shutil.rmtree(directory, ignore_errors=True)

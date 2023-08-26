@@ -24,6 +24,10 @@ on:
         description: 'Run Benchmarks'
         default: false
         type: boolean
+      gpu:
+        description: 'Run GPU'
+        default: false
+        type: boolean
 
 jobs:
   HUB:
@@ -47,6 +51,7 @@ jobs:
           pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
+          yolo checks
           echo "RUNNER_OS is ${{ runner.os }}"
           echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
           echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
@@ -110,6 +115,7 @@ jobs:
           yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
+          yolo checks
           echo "RUNNER_OS is ${{ runner.os }}"
           echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
           echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
@@ -159,7 +165,6 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
-          - os: gpu-latest  # do not pass python-version
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -189,12 +194,7 @@ jobs:
           pip list
       - name: Pytest tests
         shell: bash  # for Windows compatibility
-        run: |
-          if [ "${{ matrix.os }}" == "gpu-latest" ]; then
-              pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
-          else
-              pytest --cov=ultralytics/ --cov-report xml tests/
-          fi
+        run: pytest --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
@@ -203,13 +203,42 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  GPU:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    timeout-minutes: 60
+    runs-on: gpu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install requirements
+        run: pip install -e .
+      - name: Check environment
+        run: |
+          yolo checks
+          echo "RUNNER_OS is ${{ runner.os }}"
+          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
+          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
+          echo "GITHUB_ACTOR is ${{ github.actor }}"
+          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
+          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
+          python --version
+          pip --version
+          pip list
+      - name: Pytest tests
+        run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
+      - name: Upload Coverage Reports to CodeCov
+        uses: codecov/codecov-action@v3
+        with:
+          flags: GPU
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests] # Add job names that you want to check for failure
+    needs: [HUB, Benchmarks, Tests, GPU] # Add job names that you want to check for failure
     if: always() # This ensures the job runs even if previous jobs fail
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |

@@ -115,7 +115,7 @@ class BaseDataset(Dataset):
                     raise FileNotFoundError(f'{self.prefix}{p} does not exist')
             im_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
-            assert im_files, f'{self.prefix}No images found'
+            assert im_files, f'{self.prefix}No images found in {img_path}'
         except Exception as e:
             raise FileNotFoundError(f'{self.prefix}Error loading data from {img_path}\n{HELP_URL}') from e
         if self.fraction < 1:

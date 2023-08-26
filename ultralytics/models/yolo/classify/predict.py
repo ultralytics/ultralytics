@@ -3,7 +3,7 @@
 import torch
 from PIL import Image
 
-from ultralytics.data.augment import CenterCrop
+from ultralytics.data.augment import ToTensor
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG
@@ -30,7 +30,7 @@ class ClassificationPredictor(BasePredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'classify'
-        self.has_legacy_transforms = CenterCrop in self.transforms
+        self.has_legacy_transforms = any([isinstance(transform, ToTensor) for transform in self.transforms.transforms])
 
     def preprocess(self, img):
         """Converts input image to model-compatible data type."""

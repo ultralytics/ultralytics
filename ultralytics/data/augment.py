@@ -802,7 +802,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 def classify_transforms(size=224, mean=DEFAULT_MEAN, std=DEFAULT_STD):
     """
-    Legacy classification transforms for training. Only for backward compatibility.
+    Legacy classification transforms for training. Only for backwards compatibility.
     """
 
     if not isinstance(size, int):
@@ -940,15 +940,15 @@ def classify_transforms_train(
 
         if auto_augment == 'randaugment':
             if not TORCHVISION_0_11:
-                raise RuntimeError('"auto_augment=randaugment" requires torchvision >= 0.11.0')
+                LOGGER.warning('"auto_augment=randaugment" requires torchvision >= 0.11.0. Disabling it.')
             secondary_tfl += [T.RandAugment(interpolation=interpolation)]
         elif auto_augment == 'augmix':
             if not TORCHVISION_0_13:
-                raise RuntimeError('"auto_augment=augmix" requires torchvision >= 0.13.0')
+                LOGGER.warning('"auto_augment=augmix" requires torchvision >= 0.13.0. Disabling it.')
             secondary_tfl += [T.AugMix(interpolation=interpolation)]
         elif auto_augment == 'autoaugment':
             if not TORCHVISION_0_10:
-                raise RuntimeError('"auto_augment=autoaugment" requires torchvision >= 0.10.0')
+                LOGGER.warning('"auto_augment=autoaugment" requires torchvision >= 0.10.0. Disabling it.')
             secondary_tfl += [T.AutoAugment(interpolation=interpolation)]
         else:
             raise ValueError(f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '

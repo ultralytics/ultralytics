@@ -105,11 +105,7 @@ class Results(SimpleClass):
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
-        r = self.new()
-        for k in self._keys:
-            if v := getattr(self, k):
-                setattr(r, k, v[idx])
-        return r
+        return self._apply('__getitem__', idx)
 
     def __len__(self):
         """Return the number of detections in the Results object."""

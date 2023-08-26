@@ -263,10 +263,7 @@ def test_results():
             r.tojson(normalize=True)
             r.plot(pil=True)
             r.plot(conf=True, boxes=True)
-            print(r)
-            print(r.path)
-            for k in r._keys:
-                print(getattr(r, k))
+            print(r, len(r), r.path)
 
 
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')

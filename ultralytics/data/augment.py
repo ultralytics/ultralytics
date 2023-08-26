@@ -807,6 +807,20 @@ def classify_transforms_eval(
     interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
     crop_percentage: float = DEFAULT_CROP_PERCENTAGE,
 ):
+    """
+    Classification transforms for evaluation/inference.
+    Inspired by timm/data/transforms_factory.py
+
+    Args:
+        size (int): image size
+        mean (tuple): mean values of RGB channels
+        std (tuple): std values of RGB channels
+        interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
+        crop_percentage (float): percentage of image to crop. default is 0.875.
+
+    Returns:
+        T.Compose: torchvision transforms
+    """
 
     if isinstance(size, (tuple, list)):
         assert len(size) == 2
@@ -838,6 +852,18 @@ def classify_transforms_noaug_train(
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
 ):
+    """
+    Classification transforms without augmentation for training.
+
+    Args:
+        img_size (int): image size
+        interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
+        mean (tuple): mean values of RGB channels
+        std (tuple): std values of RGB channels
+
+    Returns:
+        T.Compose: torchvision transforms
+    """
     tfl = [T.Resize(img_size, interpolation=interpolation), T.CenterCrop(img_size)]
     tfl += [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
     return T.Compose(tfl)
@@ -859,7 +885,7 @@ def classify_transforms_train(
     interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
 ):
     """
-    Classification augmentation with torchvision.
+    Classification transforms with augmentation for training.
     Inspired by timm/data/transforms_factory.py
 
     Args:

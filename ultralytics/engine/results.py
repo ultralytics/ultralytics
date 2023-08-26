@@ -126,8 +126,7 @@ class Results(SimpleClass):
     def _apply(self, fn, *args, **kwargs):
         r = self.new()
         for k in self._keys:
-            v = getattr(self, k)
-            if v is not None:
+            if (v := getattr(self, k)) is not None:
                 setattr(r, k, getattr(v, fn)(*args, **kwargs))
         return r
 

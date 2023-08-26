@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 
-from ultralytics.utils import LOGGER, RANK, colorstr
+from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
@@ -668,8 +668,7 @@ class Albumentations:
                 A.ImageCompression(quality_lower=75, p=0.0)]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
 
-            if RANK in {0, 1}:
-                LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
+            LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
         except Exception as e:

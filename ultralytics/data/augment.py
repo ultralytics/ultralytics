@@ -483,7 +483,7 @@ class RandomHSV:
         self.vgain = vgain
 
     def __call__(self, labels):
-        """Applies random horizontal or vertical flip to an image with a given probability."""
+        """Applies image HSV augmentation"""
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
@@ -501,6 +501,7 @@ class RandomHSV:
 
 
 class RandomFlip:
+    """Applies random horizontal or vertical flip to an image with a given probability."""
 
     def __init__(self, p=0.5, direction='horizontal', flip_idx=None) -> None:
         assert direction in ['horizontal', 'vertical'], f'Support direction `horizontal` or `vertical`, got {direction}'
@@ -643,7 +644,9 @@ class CopyPaste:
 
 
 class Albumentations:
-    """YOLOv8 Albumentations class (optional, only used if package is installed)"""
+    """Albumentations transformations. Optional, uninstall package to disable.
+    Applies Blur, Median Blur, convert to grayscale, Contrast Limited Adaptive Histogram Equalization,
+    random change of brightness and contrast, RandomGamma and lowering of image quality by compression."""
 
     def __init__(self, p=1.0):
         """Initialize the transform object for YOLO bbox formatted params."""

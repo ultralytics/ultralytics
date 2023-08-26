@@ -29,8 +29,7 @@ class ClassificationPredictor(BasePredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'classify'
-        self._legacy_transform_names = [
-            'ultralytics.yolo.data.augment.CenterCrop', 'ultralytics.yolo.data.augment.ToTensor']
+        self._legacy_transform_name = 'ultralytics.yolo.data.augment.ToTensor'
 
     def preprocess(self, img):
         """Converts input image to model-compatible data type."""
@@ -45,10 +44,10 @@ class ClassificationPredictor(BasePredictor):
 .
 """)
             print('SELF.TRANSFORMS:', self.transforms.transforms)
-            has_legacy_transforms = any(transform in self._legacy_transform_names
-                                        for transform in self.transforms.transforms)
-            print('HAS_LEGACY_TRANSFORMS:', has_legacy_transforms)
-            if has_legacy_transforms:  # to handle legacy transforms
+            is_legacy_transform = any(self._legacy_transform_name in str(transform)
+                                      for transform in self.transforms.transforms)
+            print('IS_LEGACY_TRANSFORMS:', is_legacy_transform)
+            if is_legacy_transform:  # to handle legacy transforms
                 img = torch.stack([self.transforms(im) for im in img], dim=0)
             else:
                 img = torch.stack([self.transforms(Image.fromarray(im)) for im in img], dim=0)

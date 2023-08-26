@@ -44,6 +44,7 @@ def test_utils_benchmarks():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_predict_sam():
     from ultralytics import SAM
+    from ultralytics.models.sam import Predictor as SAMPredictor
 
     # Load a model
     model = SAM(WEIGHTS_DIR / 'sam_b.pt')
@@ -59,6 +60,18 @@ def test_predict_sam():
 
     # Run inference with points prompt
     model(ASSETS / 'zidane.jpg', points=[900, 370], labels=[1], device=0)
+
+    # Create SAMPredictor
+    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model='mobile_sam.pt')
+    predictor = SAMPredictor(overrides=overrides)
+
+    # Set image
+    predictor.set_image('ultralytics/assets/zidane.jpg')  # set with image file
+    # predictor(bboxes=[439, 437, 524, 709])
+    # predictor(points=[900, 370], labels=[1])
+
+    # Reset image
+    predictor.reset_image()
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')

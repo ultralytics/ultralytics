@@ -14,6 +14,7 @@ from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box
+from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 from .utils import polygons2masks, polygons2masks_overlap
 
@@ -799,6 +800,19 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         RandomFlip(direction='horizontal', p=hyp.fliplr, flip_idx=flip_idx)])  # transforms
 
 
+def classify_transforms(size=224, mean=DEFAULT_MEAN, std=DEFAULT_STD):
+    """
+    Legacy classification transforms for training. Only for backward compatibility.
+    """
+
+    if not isinstance(size, int):
+        raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
+    if any(mean) or any(std):
+        return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(mean, std, inplace=True)])
+    else:
+        return T.Compose([CenterCrop(size), ToTensor()])
+
+
 # Classification augmentations eval -----------------------------------------------------------------------------------------
 def classify_transforms_eval(
     size=224,
@@ -925,10 +939,16 @@ def classify_transforms_train(
         disable_color_jitter = not force_color_jitter
 
         if auto_augment == 'randaugment':
+            if not TORCHVISION_0_11:
+                raise RuntimeError('"auto_augment=randaugment" requires torchvision >= 0.11.0')
             secondary_tfl += [T.RandAugment(interpolation=interpolation)]
         elif auto_augment == 'augmix':
+            if not TORCHVISION_0_13:
+                raise RuntimeError('"auto_augment=augmix" requires torchvision >= 0.13.0')
             secondary_tfl += [T.AugMix(interpolation=interpolation)]
         elif auto_augment == 'autoaugment':
+            if not TORCHVISION_0_10:
+                raise RuntimeError('"auto_augment=autoaugment" requires torchvision >= 0.10.0')
             secondary_tfl += [T.AutoAugment(interpolation=interpolation)]
         else:
             raise ValueError(f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '

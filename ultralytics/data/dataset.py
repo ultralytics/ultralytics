@@ -235,13 +235,9 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             std=DEFAULT_STD,
             hflip=args.fliplr,
             vflip=args.flipud,
-            auto_augment=args.auto_augment) if augment else classify_transforms_eval(size=args.imgsz,
-                                                                                     scale=scale,
-                                                                                     mean=DEFAULT_MEAN,
-                                                                                     std=DEFAULT_STD,
-                                                                                     hflip=args.fliplr,
-                                                                                     vflip=args.flipud,
-                                                                                     auto_augment=args.auto_augment)
+            re_prob=args.random_erasing,
+            auto_augment=args.auto_augment) if augment else classify_transforms_eval(
+                size=args.imgsz, mean=DEFAULT_MEAN, std=DEFAULT_STD, crop_percentage=args.crop_percentage)
 
         self.album_transforms = classify_albumentations(
             augment=augment,

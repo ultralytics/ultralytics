@@ -893,7 +893,9 @@ def classify_transforms_train(
     hflip=0.5,
     vflip=0.0,
     auto_augment=None,
-    color_jitter=0.4,
+    hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
+    hsv_s=0.4,  # image HSV-Saturation augmentation (fraction)
+    hsv_v=0.4,  # image HSV-Value augmentation (fraction)
     force_color_jitter=False,
     re_prob=0.,
     interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
@@ -911,7 +913,10 @@ def classify_transforms_train(
         hflip (float): probability of horizontal flip
         vflip (float): probability of vertical flip
         auto_augment (str): auto augmentation policy. can be 'randaugment', 'augmix', 'autoaugment' or None.
-        color_jitter (float or tuple): color jitter factor or tuple of 3 values for brightness, contrast, saturation
+        hsv_h (float): image HSV-Hue augmentation (fraction)
+        hsv_s (float): image HSV-Saturation augmentation (fraction)
+        hsv_v (float): image HSV-Value augmentation (fraction)
+        contrast (float): image contrast augmentation (fraction)
         force_color_jitter (bool): force to apply color jitter even if auto augment is enabled
         re_prob (float): probability of random erasing
         interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
@@ -960,16 +965,8 @@ def classify_transforms_train(
             raise ValueError(f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '
                              f'"augmix", "autoaugment" or None')
 
-    if color_jitter is not None and not disable_color_jitter:
-        # color jitter is enabled when not using AA or when forced
-        if isinstance(color_jitter, (list, tuple)):
-            # color jitter should be a 3-tuple/list if spec brightness/contrast/saturation
-            # or 4 if also augmenting hue
-            assert len(color_jitter) in (3, 4)
-        else:
-            # if it's a scalar, duplicate for brightness, contrast, and saturation, no hue
-            color_jitter = (float(color_jitter), ) * 3
-        secondary_tfl += [T.ColorJitter(*color_jitter)]
+    if not disable_color_jitter:
+        secondary_tfl += [T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h)]
 
     final_tfl = []
     final_tfl += [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]

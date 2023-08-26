@@ -101,19 +101,21 @@ class Results(SimpleClass):
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = [k for k in ('boxes', 'masks', 'probs', 'keypoints') if getattr(self, k) is not None]
+        self._keys = 'boxes', 'masks', 'probs', 'keypoints'
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
         r = self.new()
         for k in self._keys:
-            setattr(r, k, getattr(self, k)[idx])
+            if v := getattr(self, k):
+                setattr(r, k, v[idx])
         return r
 
     def __len__(self):
         """Return the number of detections in the Results object."""
         for k in self._keys:
-            return len(getattr(self, k))
+            if v := getattr(self, k):
+                return len(v)
 
     def update(self, boxes=None, masks=None, probs=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
@@ -125,39 +127,33 @@ class Results(SimpleClass):
         if probs is not None:
             self.probs = probs
 
-    def cpu(self):
-        """Return a copy of the Results object with all tensors on CPU memory."""
+    def _apply(self, fn, *args, **kwargs):
         r = self.new()
         for k in self._keys:
-            setattr(r, k, getattr(self, k).cpu())
+            v = getattr(self, k)
+            if v is not None:
+                setattr(r, k, getattr(v, fn)(*args, **kwargs))
         return r
+
+    def cpu(self):
+        """Return a copy of the Results object with all tensors on CPU memory."""
+        return self._apply('cpu')
 
     def numpy(self):
         """Return a copy of the Results object with all tensors as numpy arrays."""
-        r = self.new()
-        for k in self._keys:
-            setattr(r, k, getattr(self, k).numpy())
-        return r
+        return self._apply('numpy')
 
     def cuda(self):
         """Return a copy of the Results object with all tensors on GPU memory."""
-        r = self.new()
-        for k in self._keys:
-            setattr(r, k, getattr(self, k).cuda())
-        return r
+        return self._apply('cuda')
 
     def to(self, *args, **kwargs):
         """Return a copy of the Results object with tensors on the specified device and dtype."""
-        r = self.new()
-        for k in self._keys:
-            setattr(r, k, getattr(self, k).to(*args, **kwargs))
-        return r
+        return self._apply('to', *args, **kwargs)
 
     def new(self):
         """Return a new Results object with the same image, path, and names."""
-        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        r._keys = self._keys
-        return r
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names)
 
     def plot(
             self,

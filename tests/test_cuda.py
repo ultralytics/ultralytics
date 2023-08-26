@@ -59,3 +59,25 @@ def test_predict_sam():
 
     # Run inference with points prompt
     model(ASSETS / 'zidane.jpg', points=[900, 370], labels=[1], device=0)
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+def test_model_tune():
+    YOLO('yolov8n-cls.yaml').tune(data='imagenet10',
+                                  grace_period=1,
+                                  max_samples=1,
+                                  imgsz=32,
+                                  epochs=1,
+                                  plots=False,
+                                  device='cpu')
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+def test_model_tune_gpu():
+    YOLO('yolov8n-cls.yaml').tune(data='imagenet10',
+                                  grace_period=1,
+                                  max_samples=1,
+                                  imgsz=32,
+                                  epochs=1,
+                                  plots=False,
+                                  device='0')

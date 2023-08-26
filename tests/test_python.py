@@ -39,6 +39,8 @@ def test_model_methods():
     model = model.load(MODEL)
     model.to('cpu')
     model.fuse()
+    model.clear_callback('on_train_start')
+    model._reset_callbacks()
 
     # Model properties
     _ = model.names
@@ -433,8 +435,11 @@ def test_nn_modules_block():
     BottleneckCSP(c1, c2)(x)
 
 
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_hub():
     from ultralytics.hub import export_fmts_hub, logout
+    from ultralytics.hub.utils import smart_request
 
     export_fmts_hub()
     logout()
+    smart_request('GET', 'http://github.com', progress=True)

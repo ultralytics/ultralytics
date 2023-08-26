@@ -30,12 +30,12 @@ class ClassificationPredictor(BasePredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'classify'
-        self.has_legacy_transforms = any([isinstance(transform, ToTensor) for transform in self.transforms.transforms])
 
     def preprocess(self, img):
         """Converts input image to model-compatible data type."""
         if not isinstance(img, torch.Tensor):
-            if self.has_legacy_transforms:  # to handle legacy transforms
+            has_legacy_transforms = any([isinstance(transform, ToTensor) for transform in self.transforms.transforms])
+            if has_legacy_transforms:  # to handle legacy transforms
                 img = torch.stack([self.transforms(im) for im in img], dim=0)
             else:
                 img = torch.stack([self.transforms(Image.fromarray(im)) for im in img], dim=0)

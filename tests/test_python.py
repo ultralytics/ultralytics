@@ -483,7 +483,7 @@ def test_classify_transforms_train(image, auto_augment, re_prob, force_color_jit
         interpolation=T.InterpolationMode.BILINEAR,
     )
 
-    transformed_image = transform(image)
+    transformed_image = transform(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
     assert transformed_image.shape == (3, 224, 224)
     assert torch.is_tensor(transformed_image)

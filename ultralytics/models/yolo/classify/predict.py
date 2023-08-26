@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import cv2
 import torch
 from PIL import Image
 
@@ -34,21 +35,10 @@ class ClassificationPredictor(BasePredictor):
     def preprocess(self, img):
         """Converts input image to model-compatible data type."""
         if not isinstance(img, torch.Tensor):
-            print("""
-.
-.
-.
-.
-.
-.
-.
-""")
-            print('SELF.TRANSFORMS:', self.transforms.transforms)
             is_legacy_transform = any(self._legacy_transform_name in str(transform)
                                       for transform in self.transforms.transforms)
-            print('IS_LEGACY_TRANSFORMS:', is_legacy_transform)
             if is_legacy_transform:  # to handle legacy transforms
-                img = torch.stack([self.transforms(im) for im in img], dim=0)
+                img = torch.stack([self.transforms(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)) for im in img], dim=0)
             else:
                 img = torch.stack([self.transforms(Image.fromarray(im)) for im in img], dim=0)
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)

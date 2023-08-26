@@ -447,7 +447,10 @@ def test_hub():
 
 @pytest.fixture
 def image():
-    return torch.rand(3, 224, 224)
+    import numpy as np
+
+    # Create a 224x224 RGB image with random pixel values
+    return np.random.rand(224, 224, 3)
 
 
 @pytest.mark.parametrize(

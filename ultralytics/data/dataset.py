@@ -268,6 +268,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         #     sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         # else:
         # Convert NumPy array to PIL image
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         im = Image.fromarray(im)
         sample = self.torch_transforms(im)
         return {'img': sample, 'cls': j}

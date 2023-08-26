@@ -155,7 +155,9 @@ class Results(SimpleClass):
 
     def new(self):
         """Return a new Results object with the same image, path, and names."""
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        r._keys = self._keys
+        return r
 
     def plot(
             self,

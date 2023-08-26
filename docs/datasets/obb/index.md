@@ -69,11 +69,15 @@ For those looking to introduce their own datasets with oriented bounding boxes, 
 
 Transitioning labels from the DOTA dataset format to the YOLO OBB format can be achieved with this script:
 
-```python
-from ultralytics.data.converter import convert_dota_to_yolo_obb
+!!! example ""
 
-convert_dota_to_yolo_obb('path/to/DOTA')
-```
+    === "Python"
+
+        ```python
+        from ultralytics.data.converter import convert_dota_to_yolo_obb
+        
+        convert_dota_to_yolo_obb('path/to/DOTA')
+        ```
 
 This conversion mechanism is instrumental for datasets in the DOTA format, ensuring alignment with the Ultralytics YOLO OBB format.
 

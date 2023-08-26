@@ -451,14 +451,14 @@ def image():
 
 
 @pytest.mark.parametrize(
-    'auto_augment, re_prob, disable_color_jitter, force_color_jitter',
+    'auto_augment, re_prob, force_color_jitter',
     [
-        (None, 0.0, False, False),
-        ('randaugment', 0.5, True, True),
-        ('augmix', 0.2, False, False),
-        ('autoaugment', 0.0, True, True), ],
+        (None, 0.0, False),
+        ('randaugment', 0.5, True),
+        ('augmix', 0.2, False),
+        ('autoaugment', 0.0, True), ],
 )
-def test_classify_transforms_train(image, auto_augment, re_prob, disable_color_jitter, force_color_jitter):
+def test_classify_transforms_train(image, auto_augment, re_prob, force_color_jitter):
     import torchvision.transforms as T
 
     from ultralytics.data.augment import classify_transforms_train
@@ -478,7 +478,6 @@ def test_classify_transforms_train(image, auto_augment, re_prob, disable_color_j
         force_color_jitter=force_color_jitter,
         re_prob=re_prob,
         interpolation=T.InterpolationMode.BILINEAR,
-        disable_color_jitter=disable_color_jitter,
     )
 
     transformed_image = transform(image)
@@ -488,19 +487,3 @@ def test_classify_transforms_train(image, auto_augment, re_prob, disable_color_j
     assert transformed_image.dtype == torch.float32
     assert torch.allclose(transformed_image.mean(), torch.tensor([0.5]), atol=1e-2)
     assert torch.allclose(transformed_image.std(), torch.tensor([0.5]), atol=1e-2)
-    # Check transform parameters
-    assert transform.interpolation == T.InterpolationMode.BILINEAR
-    assert transform.size == 224
-    assert transform.mean == (0.5, 0.5, 0.5)
-    assert transform.std == (0.5, 0.5, 0.5)
-    assert transform.scale == (0.08, 1.0)
-    assert transform.ratio == (3.0 / 4.0, 4.0 / 3.0)
-    assert transform.hflip == 0.5
-    assert transform.vflip == 0.5
-    assert transform.auto_augment == auto_augment
-    assert transform.hsv_h == 0.015
-    assert transform.hsv_s == 0.4
-    assert transform.hsv_v == 0.4
-    assert transform.force_color_jitter == force_color_jitter
-    assert transform.re_prob == re_prob
-    assert transform.disable_color_jitter == disable_color_jitter

@@ -939,17 +939,23 @@ def classify_transforms_train(
         disable_color_jitter = not force_color_jitter
 
         if auto_augment == 'randaugment':
-            if not TORCHVISION_0_11:
+            if TORCHVISION_0_11:
+                secondary_tfl += [T.RandAugment(interpolation=interpolation)]
+            else:
                 LOGGER.warning('"auto_augment=randaugment" requires torchvision >= 0.11.0. Disabling it.')
-            secondary_tfl += [T.RandAugment(interpolation=interpolation)]
+
         elif auto_augment == 'augmix':
-            if not TORCHVISION_0_13:
+            if TORCHVISION_0_13:
+                secondary_tfl += [T.AugMix(interpolation=interpolation)]
+            else:
                 LOGGER.warning('"auto_augment=augmix" requires torchvision >= 0.13.0. Disabling it.')
-            secondary_tfl += [T.AugMix(interpolation=interpolation)]
+
         elif auto_augment == 'autoaugment':
-            if not TORCHVISION_0_10:
+            if TORCHVISION_0_10:
+                secondary_tfl += [T.AutoAugment(interpolation=interpolation)]
+            else:
                 LOGGER.warning('"auto_augment=autoaugment" requires torchvision >= 0.10.0. Disabling it.')
-            secondary_tfl += [T.AutoAugment(interpolation=interpolation)]
+
         else:
             raise ValueError(f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '
                              f'"augmix", "autoaugment" or None')

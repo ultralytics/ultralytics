@@ -279,7 +279,7 @@ def test_data_utils():
     for task in 'detect', 'segment', 'pose':
         file = Path(TASK2DATA[task]).with_suffix('.zip')  # i.e. coco8.zip
         download(f'https://github.com/ultralytics/hub/raw/main/example_datasets/{file}', unzip=False)
-        shutil.move(file, TMP)
+        shutil.move(str(file), TMP)  # Python 3.8 requires string input to shutil.move()
         stats = HUBDatasetStats(TMP / file, task=task)
         stats.get_json(save=True)
         stats.process_images()

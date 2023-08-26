@@ -80,3 +80,11 @@ keywords: Ultralytics, utility checks, ASCII, check_version, pip_update, check_p
 ---
 ## ::: ultralytics.utils.checks.print_args
 <br><br>
+
+---
+## ::: ultralytics.utils.checks.cuda_device_count
+<br><br>
+
+---
+## ::: ultralytics.utils.checks.cuda_is_available
+<br><br>

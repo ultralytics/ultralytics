@@ -264,7 +264,7 @@ Below are code examples for using each source type:
         ```
 
     === "Streams"
-        Run inference on remote streaming sources using RTSP, RTMP, and IP address protocols. If mutliple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
+        Run inference on remote streaming sources using RTSP, RTMP, and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
         ```python
         from ultralytics import YOLO
 

@@ -376,7 +376,7 @@ class Predictor(BasePredictor):
             nms_thresh (float): NMS threshold.
         Returns:
             new_masks (torch.Tensor): New Masks, (N, H, W).
-            keep (List[int]): The indices of the new masks, which can be used to filter 
+            keep (List[int]): The indices of the new masks, which can be used to filter
                 the corresponding boxes.
         """
         if len(masks) == 0:

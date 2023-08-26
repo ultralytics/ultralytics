@@ -75,12 +75,16 @@ def test_fastsam(task='segment', model=WEIGHTS_DIR / 'FastSAM-s.pt', data='coco8
 
     from ultralytics import FastSAM
     from ultralytics.models.fastsam import FastSAMPrompt
+    from ultralytics.models.sam import Predictor
 
     # Create a FastSAM model
     sam_model = FastSAM(model)  # or FastSAM-x.pt
 
     # Run inference on an image
     everything_results = sam_model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+
+    # Remove small regions
+    new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
     # Everything prompt
     prompt_process = FastSAMPrompt(source, everything_results, device='cpu')

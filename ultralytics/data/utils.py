@@ -447,10 +447,17 @@ class HUBDatasetStats:
             return [[int(c[0]), *(round(float(x), 4) for x in points)] for c, points in zipped]
 
         for split in 'train', 'val', 'test':
-            if self.data.get(split) is None:
-                self.stats[split] = None  # i.e. no test set
+            self.stats[split] = None  # predefine
+            path = self.data.get(split)
+
+            # Check split
+            if path is None:  # no split
+                continue
+            files = [f for f in Path(path).rglob('*.*') if f.suffix[1:].lower() in IMG_FORMATS]  # image files in split
+            if not files:  # no images
                 continue
 
+            # Get dataset statistics
             dataset = YOLODataset(img_path=self.data[split],
                                   data=self.data,
                                   use_segments=self.task == 'segment',

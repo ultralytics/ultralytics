@@ -41,7 +41,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
         !!! note
         
-            If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necesary.
+            If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
             ```bash
             # Install all packages together using conda
             conda install -c conda-forge -c pytorch -c nvidia ultralytics pytorch torchvision pytorch-cuda=11.8 

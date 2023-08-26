@@ -269,6 +269,10 @@ class PositionEmbeddingRandom(nn.Module):
             scale = 1.0
         self.register_buffer('positional_encoding_gaussian_matrix', scale * torch.randn((2, num_pos_feats)))
 
+        # Set deterministic=False to avoid error 'cumsum_cuda_kernel does not have a deterministic implementation'
+        torch.use_deterministic_algorithms(False)
+        torch.backends.cudnn.deterministic = False
+
     def _pe_encoding(self, coords: torch.Tensor) -> torch.Tensor:
         """Positionally encode points that are normalized to [0,1]."""
         # assuming coords are in [0, 1]^2 square and have d_1 x ... x d_n x 2 shape

@@ -40,7 +40,8 @@ class ClassificationPredictor(BasePredictor):
             if is_legacy_transform:  # to handle legacy transforms
                 img = torch.stack([self.transforms(im) for im in img], dim=0)
             else:
-                img = torch.stack([self.transforms(Image.fromarray(cv2.cvtColor(im))) for im in img], dim=0)
+                img = torch.stack([self.transforms(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in img],
+                                  dim=0)
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
         return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
 

@@ -896,7 +896,7 @@ def classify_transforms_train(
         disable_color_jitter = not force_color_jitter
 
         if auto_augment == 'randaugment':
-            secondary_tfl += [T.RandAugment(ainterpolation=interpolation)]
+            secondary_tfl += [T.RandAugment(interpolation=interpolation)]
         elif auto_augment == 'augmix':
             secondary_tfl += [T.AugMix(interpolation=interpolation)]
         elif auto_augment == 'autoaugment':

@@ -265,7 +265,7 @@ def test_results():
             r.plot(conf=True, boxes=True)
             print(r)
             print(r.path)
-            for k in r.keys:
+            for k in r._keys:
                 print(getattr(r, k))
 
 

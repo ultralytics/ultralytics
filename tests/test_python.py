@@ -443,3 +443,87 @@ def test_hub():
     export_fmts_hub()
     logout()
     smart_request('GET', 'http://github.com', progress=True)
+
+
+def test_classify_transforms_train():
+    import torchvision.transforms as T
+
+    from ultralytics.data.augment import classify_transforms_train
+
+    # Define input parameters
+    size = 224
+    mean = (0.485, 0.456, 0.406)
+    std = (0.229, 0.224, 0.225)
+    scale = (0.08, 1.0)
+    ratio = (3. / 4., 4. / 3.)
+    hflip = 0.5
+    vflip = 0.0
+    auto_augment = None
+    color_jitter = 0.4
+    force_color_jitter = False
+    re_prob = 0.
+    interpolation = T.InterpolationMode.BILINEAR
+
+    # Create transforms
+    transforms = classify_transforms_train(size=size,
+                                           mean=mean,
+                                           std=std,
+                                           scale=scale,
+                                           ratio=ratio,
+                                           hflip=hflip,
+                                           vflip=vflip,
+                                           auto_augment=auto_augment,
+                                           color_jitter=color_jitter,
+                                           force_color_jitter=force_color_jitter,
+                                           re_prob=re_prob,
+                                           interpolation=interpolation)
+
+    # Test transforms
+    assert isinstance(transforms, T.Compose)
+    assert len(transforms.transforms) == 5
+
+    # Test primary transforms
+    primary_tfl = transforms.transforms[:3]
+    assert isinstance(primary_tfl[0], T.RandomResizedCrop)
+    assert primary_tfl[0].size == size
+    assert primary_tfl[0].scale == scale
+    assert primary_tfl[0].ratio == ratio
+    assert isinstance(primary_tfl[1], T.RandomHorizontalFlip)
+    assert primary_tfl[1].p == hflip
+    assert isinstance(primary_tfl[2], T.RandomVerticalFlip)
+    assert primary_tfl[2].p == vflip
+
+    # Test secondary transforms
+    secondary_tfl = transforms.transforms[3:4]
+    if auto_augment is not None:
+        if auto_augment == 'randaugment':
+            assert isinstance(secondary_tfl[0], T.RandAugment)
+            assert secondary_tfl[0].interpolation == interpolation
+        elif auto_augment == 'augmix':
+            assert isinstance(secondary_tfl[0], T.AugMix)
+            assert secondary_tfl[0].interpolation == interpolation
+        elif auto_augment == 'autoaugment':
+            assert isinstance(secondary_tfl[0], T.AutoAugment)
+            assert secondary_tfl[0].interpolation == interpolation
+        else:
+            raise ValueError(f'Invalid auto_augment policy: {auto_augment}')
+    elif color_jitter is not None and not force_color_jitter:
+        assert isinstance(secondary_tfl[0], T.ColorJitter)
+        if isinstance(color_jitter, (list, tuple)):
+            assert len(color_jitter) == len(secondary_tfl[0].brightness)
+        else:
+            assert color_jitter == secondary_tfl[0].brightness[0]
+    else:
+        assert len(secondary_tfl) == 0
+
+    # Test final transforms
+    final_tfl = transforms.transforms[4:]
+    assert isinstance(final_tfl[0], T.ToTensor)
+    assert isinstance(final_tfl[1], T.Normalize)
+    assert torch.all(torch.eq(final_tfl[1].mean, torch.tensor(mean)))
+    assert torch.all(torch.eq(final_tfl[1].std, torch.tensor(std)))
+    if re_prob > 0.:
+        assert isinstance(final_tfl[2], T.RandomErasing)
+        assert final_tfl[2].p == re_prob
+    else:
+        assert len(final_tfl) == 2

@@ -110,7 +110,8 @@ class Results(SimpleClass):
     def __len__(self):
         """Return the number of detections in the Results object."""
         for k in self._keys:
-            if (v := getattr(self, k)) is not None:
+            v = getattr(self, k)
+            if v is not None:
                 return len(v)
 
     def update(self, boxes=None, masks=None, probs=None):
@@ -126,7 +127,8 @@ class Results(SimpleClass):
     def _apply(self, fn, *args, **kwargs):
         r = self.new()
         for k in self._keys:
-            if (v := getattr(self, k)) is not None:
+            v = getattr(self, k)
+            if v is not None:
                 setattr(r, k, getattr(v, fn)(*args, **kwargs))
         return r
 

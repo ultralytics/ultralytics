@@ -269,7 +269,7 @@ class PositionEmbeddingRandom(nn.Module):
             scale = 1.0
         self.register_buffer('positional_encoding_gaussian_matrix', scale * torch.randn((2, num_pos_feats)))
 
-        # Set deterministic=False to avoid error 'cumsum_cuda_kernel does not have a deterministic implementation'
+        # Set non-deterministic for forward() error 'cumsum_cuda_kernel does not have a deterministic implementation'
         torch.use_deterministic_algorithms(False)
         torch.backends.cudnn.deterministic = False
 

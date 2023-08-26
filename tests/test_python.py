@@ -13,6 +13,7 @@ from PIL import Image
 from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
+from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS, WINDOWS
 from ultralytics.utils.downloads import download
@@ -275,11 +276,13 @@ def test_data_utils():
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    download('https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip', unzip=False)
-    shutil.move('coco8.zip', TMP)
-    stats = HUBDatasetStats(TMP / 'coco8.zip', task='detect')
-    stats.get_json(save=True)
-    stats.process_images()
+    for task in 'detect', 'segment', 'pose':
+        file = Path(TASK2DATA[task]).with_suffix('.zip')  # i.e. coco8.zip
+        download(f'https://github.com/ultralytics/hub/raw/main/example_datasets/{file}', unzip=False)
+        shutil.move(str(file), TMP)  # Python 3.8 requires string input to shutil.move()
+        stats = HUBDatasetStats(TMP / file, task=task)
+        stats.get_json(save=True)
+        stats.process_images()
 
     autosplit(TMP / 'coco8')
     zip_directory(TMP / 'coco8/images/val')  # zip

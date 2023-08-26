@@ -133,13 +133,15 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
         auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
         ```
 
-| Argument   | Type                | Description                                                                                             | Default      |
-|------------|---------------------|---------------------------------------------------------------------------------------------------------|--------------|
-| data       | str                 | Path to a folder containing images to be annotated.                                                     |              |
-| det_model  | str, optional       | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | 'yolov8x.pt' |
-| sam_model  | str, optional       | Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.                                             | 'sam_b.pt'   |
-| device     | str, optional       | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                    |              |
-| output_dir | str, None, optional | Directory to save the annotated results. Defaults to a 'labels' folder in the same directory as 'data'. | None         |
+Certainly, here is the table updated with code snippets:
+
+| Argument     | Type                    | Description                                                                                                 | Default        |
+|--------------|-------------------------|-------------------------------------------------------------------------------------------------------------|----------------|
+| `data`       | `str`                   | Path to a folder containing images to be annotated.                                                         | `None`         |
+| `det_model`  | `str, optional`         | Pre-trained YOLO detection model. Defaults to `'yolov8x.pt'`.                                               | `'yolov8x.pt'` |
+| `sam_model`  | `str, optional`         | Pre-trained SAM segmentation model. Defaults to `'sam_b.pt'`.                                               | `'sam_b.pt'`   |
+| `device`     | `str, optional`         | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                        | `''`           |
+| `output_dir` | `str or None, optional` | Directory to save the annotated results. Defaults to a `'labels'` folder in the same directory as `'data'`. | `None`         |
 
 The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pre-trained detection and [SAM segmentation models](https://docs.ultralytics.com/models/sam), the device to run the models on, and the output directory for saving the annotated results.
 

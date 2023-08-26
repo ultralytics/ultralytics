@@ -10,9 +10,7 @@ keywords: Ultralytics, YOLO, pose estimation, datasets, training, YAML, keypoint
 
 ### Ultralytics YOLO format
 
-** Label Format **
-
-The dataset format used for training YOLO pose models is as follows:
+The dataset label format used for training YOLO pose models is as follows:
 
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
@@ -119,10 +117,14 @@ If you have your own dataset and would like to use it for training pose estimati
 
 Ultralytics provides a convenient conversion tool to convert labels from the popular COCO dataset format to YOLO format:
 
-```python
-from ultralytics.data.converter import convert_coco
+!!! example ""
 
-convert_coco(labels_dir='../coco/annotations/', use_keypoints=True)
-```
+    === "Python"
+
+        ```python
+        from ultralytics.data.converter import convert_coco
+        
+        convert_coco(labels_dir='path/to/coco/annotations/', use_keypoints=True)
+        ```
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The `use_keypoints` parameter specifies whether to include keypoints (for pose estimation) in the converted labels.

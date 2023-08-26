@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import contextlib
 import shutil
 from copy import copy
 from pathlib import Path
@@ -38,6 +39,8 @@ def test_model_methods():
     model = model.load(MODEL)
     model.to('cpu')
     model.fuse()
+    model.clear_callback('on_train_start')
+    model._reset_callbacks()
 
     # Model properties
     _ = model.names
@@ -314,6 +317,15 @@ def test_events():
     events(cfg)
 
 
+def test_cfg_init():
+    from ultralytics.cfg import check_dict_alignment, copy_default_cfg, smart_value
+
+    with contextlib.suppress(SyntaxError):
+        check_dict_alignment({'a': 1}, {'b': 2})
+    copy_default_cfg()
+    [smart_value(x) for x in ['none', 'true', 'false']]
+
+
 def test_utils_init():
     from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_actions_ci
 
@@ -354,6 +366,7 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_utils_downloads():
     from ultralytics.utils.downloads import get_google_drive_file_info
 
@@ -422,8 +435,11 @@ def test_nn_modules_block():
     BottleneckCSP(c1, c2)(x)
 
 
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_hub():
     from ultralytics.hub import export_fmts_hub, logout
+    from ultralytics.hub.utils import smart_request
 
     export_fmts_hub()
     logout()
+    smart_request('GET', 'http://github.com', progress=True)

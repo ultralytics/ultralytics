@@ -63,7 +63,7 @@ def test_export(model, format):
 
 def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
     # Warning: MUST use imgsz=640
-    run(f'yolo train {task} model={model} data={data} imgsz=640 epochs=1, cache = disk')  # add coma, space to args
+    run(f'yolo train {task} model={model} data={data} --imgsz= 640 epochs =1, cache = disk')  # add coma, spaces to args
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=640 save save_crop save_txt")
 
 

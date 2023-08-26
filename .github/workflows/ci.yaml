@@ -159,6 +159,7 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
+          - os: gpu-latest  # do not pass python-version
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -176,6 +177,7 @@ jobs:
           fi
       - name: Check environment
         run: |
+          yolo checks
           echo "RUNNER_OS is ${{ runner.os }}"
           echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
           echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
@@ -187,9 +189,14 @@ jobs:
           pip list
       - name: Pytest tests
         shell: bash  # for Windows compatibility
-        run: pytest --cov=ultralytics/ --cov-report xml tests/
+        run: |
+          if [ "${{ matrix.os }}" == "gpu-latest" ]; then
+              pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
+          else
+              pytest --cov=ultralytics/ --cov-report xml tests/
+          fi
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
         with:
           flags: Tests

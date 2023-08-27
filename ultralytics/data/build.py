@@ -135,7 +135,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, imgsz=640, vid_stride=1):
+def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=False):
     """
     Loads an inference source for object detection and applies necessary transformations.
 

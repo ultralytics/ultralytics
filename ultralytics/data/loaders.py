@@ -31,7 +31,7 @@ class SourceTypes:
 class LoadStreams:
     """YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`."""
 
-    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1):
+    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, stream_buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.running = True  # running flag for Thread

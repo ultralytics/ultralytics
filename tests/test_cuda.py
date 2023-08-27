@@ -87,7 +87,7 @@ def test_rtdetr():
     model.info()
 
     # Train the model on the COCO8 example dataset for 100 epochs
-    _ = model.train(data='coco8.yaml', epochs=1, imgsz=640)
+    _ = model.train(data='coco8.yaml', epochs=1, imgsz=640, device=0)
 
     # Run inference with the RT-DETR-l model on the 'bus.jpg' image
     _ = model(ASSETS / 'bus.jpg')

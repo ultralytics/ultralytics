@@ -77,6 +77,23 @@ def test_predict_sam():
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+def test_rtdetr():
+    from ultralytics import RTDETR
+
+    # Load a COCO-pretrained RT-DETR-l model
+    model = RTDETR('rtdetr-l.pt')
+
+    # Display model information (optional)
+    model.info()
+
+    # Train the model on the COCO8 example dataset for 100 epochs
+    _ = model.train(data='coco8.yaml', epochs=1, imgsz=640)
+
+    # Run inference with the RT-DETR-l model on the 'bus.jpg' image
+    _ = model(ASSETS / 'bus.jpg')
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_model_tune():
     subprocess.run('pip install ray[tune]'.split(), check=True)
     YOLO('yolov8n-cls.yaml').tune(data='imagenet10',

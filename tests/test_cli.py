@@ -40,14 +40,6 @@ def test_train(task, model, data):
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_val(task, model, data):
-    # Download annotations to run pycocotools eval
-    # from ultralytics.utils import SETTINGS, Path
-    # from ultralytics.utils.downloads import download
-    # url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
-    # download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8/annotations')
-    # download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
-
-    # Validate
     run(f'yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32 save_txt save_json')
 
 

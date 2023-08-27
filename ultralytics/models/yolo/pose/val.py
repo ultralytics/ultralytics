@@ -11,7 +11,7 @@ from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
-from ultralytics.utils.dg_utils import decode_bbox
+from ultralytics.utils.post_process_utils import decode_bbox
 
 class PoseValidator(DetectionValidator):
     """
@@ -50,7 +50,7 @@ class PoseValidator(DetectionValidator):
                                          'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds, img_shape):
-        if len(preds) == 7:  # DeGirum export
+        if self.separate_outputs:  # Quant friendly export with separated outputs
             pred_order = decode_bbox(preds[:6], img_shape, self.device)
             pred_order = torch.cat([pred_order, preds[-1]], 1)
             return ops.non_max_suppression(pred_order,

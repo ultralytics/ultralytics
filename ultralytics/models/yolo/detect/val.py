@@ -15,7 +15,7 @@ from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
 from ultralytics.utils.torch_utils import de_parallel
-from ultralytics.utils.dg_utils import decode_bbox
+from ultralytics.utils.post_process_utils import decode_bbox
 
 
 class DetectionValidator(BaseValidator):
@@ -43,8 +43,7 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
-        # self.imgsz = args.imgsz
-
+        
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
         batch['img'] = batch['img'].to(self.device, non_blocking=True)
@@ -84,7 +83,7 @@ class DetectionValidator(BaseValidator):
 
     def postprocess(self, preds, img_shape):
         """Apply Non-maximum suppression to prediction outputs."""
-        if self.separate_outputs:  # DeGirum export
+        if self.separate_outputs:  # Quant friendly export with separated outputs
             preds = decode_bbox(preds, img_shape, self.device)
             return ops.non_max_suppression(preds,
                                         self.args.conf,

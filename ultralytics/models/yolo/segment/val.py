@@ -14,7 +14,7 @@ from ultralytics.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
-from ultralytics.utils.dg_utils import decode_bbox
+from ultralytics.utils.post_process_utils import decode_bbox
 
 
 class SegmentationValidator(DetectionValidator):
@@ -62,7 +62,7 @@ class SegmentationValidator(DetectionValidator):
 
     def postprocess(self, preds, img_shape):
         """Post-processes YOLO predictions and returns output detections with proto."""
-        if len(preds) != 2:  # DeGirum export
+        if self.separate_outputs:  # Quant friendly export with separated outputs
             mcv = float('-inf')
             lci = -1
             for idx, s in enumerate(preds):

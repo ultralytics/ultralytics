@@ -3,7 +3,7 @@
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
-from ultralytics.utils.dg_utils import decode_bbox
+from ultralytics.utils.post_process_utils import decode_bbox
 
 class PosePredictor(DetectionPredictor):
     """
@@ -29,13 +29,25 @@ class PosePredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Return detection results for a given input image or list of images."""
-        preds = ops.non_max_suppression(preds,
+        if self.separate_outputs:  # Quant friendly export with separated outputs
+            pred_order = decode_bbox(preds[:6], img_shape, self.device)
+            pred_order = torch.cat([pred_order, preds[-1]], 1)
+            preds= ops.non_max_suppression(pred_order,
                                         self.args.conf,
                                         self.args.iou,
-                                        agnostic=self.args.agnostic_nms,
+                                        labels=self.lb,
+                                        multi_label=True,
+                                        agnostic=self.args.single_cls,
                                         max_det=self.args.max_det,
-                                        classes=self.args.classes,
-                                        nc=len(self.model.names))
+                                        nc=self.nc)
+        else:
+            preds = ops.non_max_suppression(preds,
+                                            self.args.conf,
+                                            self.args.iou,
+                                            agnostic=self.args.agnostic_nms,
+                                            max_det=self.args.max_det,
+                                            classes=self.args.classes,
+                                            nc=len(self.model.names))
 
         results = []
         is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor

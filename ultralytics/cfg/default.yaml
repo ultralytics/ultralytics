@@ -60,6 +60,7 @@ save_crop: False  # (bool) save cropped images with results
 show_labels: True  # (bool) show object labels in plots
 show_conf: True  # (bool) show object confidence scores in plots
 vid_stride: 1  # (int) video frame-rate stride
+stream_buffer: False  # (bool) buffer all streaming frames (True) or return the most recent frame (False)
 line_width:   # (int, optional) line width of the bounding boxes, auto if missing
 visualize: False  # (bool) visualize model features
 augment: False  # (bool) apply image augmentation to prediction sources

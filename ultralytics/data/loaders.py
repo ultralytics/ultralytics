@@ -31,9 +31,10 @@ class SourceTypes:
 class LoadStreams:
     """YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`."""
 
-    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1):
+    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, stream_buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
+        self.stream_buffer = stream_buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = 'stream'
         self.imgsz = imgsz
@@ -81,7 +82,7 @@ class LoadStreams:
         n, f = 0, self.frames[i]  # frame number, frame array
         while self.running and cap.isOpened() and n < (f - 1):
             # Only read a new frame if the buffer is empty
-            if not self.imgs[i]:
+            if not self.imgs[i] or not self.stream_buffer:
                 n += 1
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
@@ -124,7 +125,16 @@ class LoadStreams:
             time.sleep(1 / min(self.fps))
 
         # Get and remove the next frame from imgs buffer
-        return self.sources, [x.pop(0) for x in self.imgs], None, ''
+        if self.stream_buffer:
+            images = [x.pop(0) for x in self.imgs]
+        else:
+            # Get the latest frame, and clear the rest from the imgs buffer
+            images = []
+            for x in self.imgs:
+                images.append(x.pop(-1) if x else None)
+                x.clear()
+
+        return self.sources, images, None, ''
 
     def __len__(self):
         """Return the length of the sources object."""

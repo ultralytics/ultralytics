@@ -54,21 +54,21 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 
     Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
-| Source        | Argument                                   | Type            | Notes                                                                                       |
-|---------------|--------------------------------------------|-----------------|---------------------------------------------------------------------------------------------|
-| image         | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
-| URL           | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |
-| screenshot    | `'screen'`                                 | `str`           | Capture a screenshot.                                                                       |
-| PIL           | `Image.open('im.jpg')`                     | `PIL.Image`     | HWC format with RGB channels.                                                               |
-| OpenCV        | `cv2.imread('im.jpg')`                     | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
-| numpy         | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
-| torch         | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                          |
-| CSV           | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                |
-| video ✅       | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                   |
-| directory ✅   | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
-| glob ✅        | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
-| YouTube ✅     | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`           | URL to a YouTube video.                                                                     |
-| stream ✅      | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, or an IP address.                           |
+| Source         | Argument                                   | Type            | Notes                                                                                       |
+|----------------|--------------------------------------------|-----------------|---------------------------------------------------------------------------------------------|
+| image          | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
+| URL            | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |
+| screenshot     | `'screen'`                                 | `str`           | Capture a screenshot.                                                                       |
+| PIL            | `Image.open('im.jpg')`                     | `PIL.Image`     | HWC format with RGB channels.                                                               |
+| OpenCV         | `cv2.imread('im.jpg')`                     | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
+| numpy          | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
+| torch          | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                          |
+| CSV            | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                |
+| video ✅        | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                   |
+| directory ✅    | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
+| glob ✅         | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
+| YouTube ✅      | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`           | URL to a YouTube video.                                                                     |
+| stream ✅       | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, or an IP address.                           |
 | multi-stream ✅ | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
 
 Below are code examples for using each source type:
@@ -299,30 +299,31 @@ Below are code examples for using each source type:
 
 All supported arguments:
 
-| Name           | Type           | Default                | Description                                                                    |
-|----------------|----------------|------------------------|--------------------------------------------------------------------------------|
-| `source`       | `str`          | `'ultralytics/assets'` | source directory for images or videos                                          |
-| `conf`         | `float`        | `0.25`                 | object confidence threshold for detection                                      |
-| `iou`          | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
-| `imgsz`        | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                           |
-| `half`         | `bool`         | `False`                | use half precision (FP16)                                                      |
-| `device`       | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
-| `show`         | `bool`         | `False`                | show results if possible                                                       |
-| `save`         | `bool`         | `False`                | save images with results                                                       |
-| `save_txt`     | `bool`         | `False`                | save results as .txt file                                                      |
-| `save_conf`    | `bool`         | `False`                | save results with confidence scores                                            |
-| `save_crop`    | `bool`         | `False`                | save cropped images with results                                               |
-| `hide_labels`  | `bool`         | `False`                | hide labels                                                                    |
-| `hide_conf`    | `bool`         | `False`                | hide confidence scores                                                         |
-| `max_det`      | `int`          | `300`                  | maximum number of detections per image                                         |
-| `vid_stride`   | `bool`         | `False`                | video frame-rate stride                                                        |
-| `line_width`   | `None or int`  | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
-| `visualize`    | `bool`         | `False`                | visualize model features                                                       |
-| `augment`      | `bool`         | `False`                | apply image augmentation to prediction sources                                 |
-| `agnostic_nms` | `bool`         | `False`                | class-agnostic NMS                                                             |
-| `retina_masks` | `bool`         | `False`                | use high-resolution segmentation masks                                         |
-| `classes`      | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                    |
-| `boxes`        | `bool`         | `True`                 | Show boxes in segmentation predictions                                         |
+| Name            | Type           | Default                | Description                                                                    |
+|-----------------|----------------|------------------------|--------------------------------------------------------------------------------|
+| `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                          |
+| `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                      |
+| `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
+| `imgsz`         | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                           |
+| `half`          | `bool`         | `False`                | use half precision (FP16)                                                      |
+| `device`        | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
+| `show`          | `bool`         | `False`                | show results if possible                                                       |
+| `save`          | `bool`         | `False`                | save images with results                                                       |
+| `save_txt`      | `bool`         | `False`                | save results as .txt file                                                      |
+| `save_conf`     | `bool`         | `False`                | save results with confidence scores                                            |
+| `save_crop`     | `bool`         | `False`                | save cropped images with results                                               |
+| `hide_labels`   | `bool`         | `False`                | hide labels                                                                    |
+| `hide_conf`     | `bool`         | `False`                | hide confidence scores                                                         |
+| `max_det`       | `int`          | `300`                  | maximum number of detections per image                                         |
+| `vid_stride`    | `bool`         | `False`                | video frame-rate stride                                                        |
+| `stream_buffer` | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False)     |
+| `line_width`    | `None or int`  | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
+| `visualize`     | `bool`         | `False`                | visualize model features                                                       |
+| `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                                 |
+| `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                             |
+| `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                         |
+| `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                    |
+| `boxes`         | `bool`         | `True`                 | Show boxes in segmentation predictions                                         |
 
 ## Image and Video Formats
 

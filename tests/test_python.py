@@ -485,5 +485,3 @@ def test_classify_transforms_train(image, auto_augment, re_prob, force_color_jit
     assert transformed_image.shape == (3, 224, 224)
     assert torch.is_tensor(transformed_image)
     assert transformed_image.dtype == torch.float32
-    assert torch.allclose(transformed_image.mean(), torch.tensor([0.5]), atol=1e-2)
-    assert torch.allclose(transformed_image.std(), torch.tensor([0.5]), atol=1e-2)

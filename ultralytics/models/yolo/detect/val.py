@@ -43,7 +43,7 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
-        self.imgsz = args.imgsz
+        # self.imgsz = args.imgsz
 
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""

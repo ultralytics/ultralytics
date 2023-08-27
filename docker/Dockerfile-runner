@@ -16,8 +16,8 @@ RUN curl -o actions-runner-linux-x64-2.308.0.tar.gz -L https://github.com/action
 # Install runner dependencies
 ENV RUNNER_ALLOW_RUNASROOT=1
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get -y install libicu-dev && \
-    ./bin/installdependencies.sh
+RUN ./bin/installdependencies.sh
+RUN apt-get -y install libicu-dev
 
 # Inline ENTRYPOINT command to configure and start runner
 ENTRYPOINT sh -c './config.sh --url https://github.com/ultralytics/ultralytics \

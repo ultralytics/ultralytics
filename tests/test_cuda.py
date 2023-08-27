@@ -89,19 +89,17 @@ def test_model_tune():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_pycocotools():
-    # Download annotations to run pycocotools eval
     from ultralytics.models.yolo.detect import DetectionValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator
 
+    # Download annotations after each dataset downloads first
     url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
-    download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8/annotations')
-    download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-seg/annotations')
-    download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
 
     validator = DetectionValidator(args={'model': 'yolov8n.pt', 'data': 'coco8.yaml', 'save_json': True, 'imgsz': 64})
     validator()
     validator.is_coco = True
+    download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8/annotations')
     _ = validator.eval_json(validator.stats)
 
     validator = SegmentationValidator(args={
@@ -111,6 +109,7 @@ def test_pycocotools():
         'imgsz': 64})
     validator()
     validator.is_coco = True
+    download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-seg/annotations')
     _ = validator.eval_json(validator.stats)
 
     validator = PoseValidator(args={
@@ -120,4 +119,5 @@ def test_pycocotools():
         'imgsz': 64})
     validator()
     validator.is_coco = True
+    download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
     _ = validator.eval_json(validator.stats)

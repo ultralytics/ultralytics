@@ -27,7 +27,7 @@ def test_checks():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_train():
-    device = 0 if CUDA_DEVICE_COUNT < 2 else [0, 1]
+    device = 0 if CUDA_DEVICE_COUNT == 1 else [0, 1]
     YOLO(MODEL).train(data=DATA, imgsz=64, epochs=1, batch=-1, device=device)  # also test AutoBatch, requires imgsz>=64
 
 

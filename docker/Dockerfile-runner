@@ -16,6 +16,8 @@ RUN curl -o actions-runner-linux-x64-2.308.0.tar.gz -L https://github.com/action
 # Install runner dependencies
 ENV RUNNER_ALLOW_RUNASROOT=1
 ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    rm -rf /var/lib/apt/lists/* # Clear package list so it isn't included in the layer
 RUN ./bin/installdependencies.sh
 RUN apt-get -y install libicu-dev
 

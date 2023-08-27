@@ -447,10 +447,7 @@ def test_hub():
 
 @pytest.fixture
 def image():
-    import numpy as np
-
-    # Create a 224x224 RGB image with random pixel values
-    return np.random.rand(224, 224, 3)
+    return cv2.imread(str(SOURCE))
 
 
 @pytest.mark.parametrize(

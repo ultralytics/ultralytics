@@ -14,6 +14,7 @@ RUN tar xzf ./actions-runner-linux-x64-2.308.0.tar.gz
 ENV RUNNER_ALLOW_RUNASROOT=1
 ENV DEBIAN_FRONTEND=noninteractive
 RUN ./bin/installdependencies.sh
+RUN apt-get -y install libicu-dev
 # Use the environment variable GITHUB_RUNNER_TOKEN
 RUN echo "" | ./config.sh --url https://github.com/ultralytics/ultralytics --token ${GITHUB_RUNNER_TOKEN:-AGMXEGI54KO5WISICKIKRMTE5FOG6} --name gpu-runners --labels gpu-latest
 

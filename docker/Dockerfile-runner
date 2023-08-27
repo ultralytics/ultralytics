@@ -3,7 +3,7 @@
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference tests
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
-FROM ultralytics/ultralytics:runner
+FROM ultralytics/ultralytics:latest
 
 # Download the latest runner from https://github.com/actions/runner
 RUN mkdir actions-runner && cd actions-runner
@@ -24,5 +24,7 @@ RUN ./run.sh
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest
-# docker run -e GITHUB_RUNNER_TOKEN=your_new_token_here --ipc=host --gpus '"device=0,1"' $t
+# t=ultralytics/ultralytics:latest-runner && sudo docker build -f docker/Dockerfile-runner -t $t . && sudo docker push $t
+
+# Pull and Run with access to GPUs 2 and 3 (inside container CUDA devices will appear as 0 and 1)
+# t=ultralytics/ultralytics:latest-runner && sudo docker run -e GITHUB_RUNNER_TOKEN=your_new_token_here --ipc=host --gpus '"device=2,3"' $t

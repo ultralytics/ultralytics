@@ -519,9 +519,13 @@ def cuda_device_count() -> int:
         # Run the nvidia-smi command and capture its output
         output = subprocess.check_output(['nvidia-smi', '--query-gpu=count', '--format=csv,noheader,nounits'],
                                          encoding='utf-8')
-        return int(output.strip())
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        # If the command fails or nvidia-smi is not found, assume no GPUs are available
+
+        # Take the first line and strip any leading/trailing white space
+        first_line = output.strip().split('\n')[0]
+
+        return int(first_line)
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
         return 0
 
 

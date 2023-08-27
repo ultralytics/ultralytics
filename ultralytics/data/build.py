@@ -143,6 +143,7 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=Fa
         source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.
         imgsz (int, optional): The size of the image for inference. Default is 640.
         vid_stride (int, optional): The frame interval for video sources. Default is 1.
+        stream_buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
 
     Returns:
         dataset (Dataset): A dataset object for the specified input source.

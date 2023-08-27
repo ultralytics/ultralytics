@@ -5,7 +5,7 @@ from ultralytics.engine.results import Results
 from ultralytics.utils import ops
 from ultralytics.nn.modules.block import DFL
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
-from ultralytics.utils.post_process_utils import decode_bbox
+from ultralytics.utils.postprocess_utils import decode_bbox
 
 class DetectionPredictor(BasePredictor):
     """

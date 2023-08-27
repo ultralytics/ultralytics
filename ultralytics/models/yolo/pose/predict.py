@@ -3,7 +3,7 @@
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
-from ultralytics.utils.post_process_utils import decode_bbox
+from ultralytics.utils.postprocess_utils import decode_bbox
 
 class PosePredictor(DetectionPredictor):
     """

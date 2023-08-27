@@ -264,7 +264,7 @@ class BaseValidator:
         """Preprocesses an input batch."""
         return batch
 
-    def postprocess(self, preds):
+    def postprocess(self, preds, img_shape):
         """Describes and summarizes the purpose of 'postprocess()' but no details mentioned."""
         return preds
 

@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
-import shutil
 from copy import copy
 from pathlib import Path
 
@@ -15,7 +14,7 @@ from torchvision.transforms import ToTensor
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, ONLINE, ROOT, SETTINGS, WINDOWS
+from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, MACOS, ONLINE, ROOT, SETTINGS, WINDOWS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
@@ -50,14 +49,22 @@ def test_model_methods():
     _ = model.task_map
 
 
+def test_model_profile():
+    # Test profile=True model argument
+    from ultralytics.nn.tasks import DetectionModel
+
+    model = DetectionModel()  # build model
+    im = torch.randn(1, 3, 64, 64)  # requires min imgsz=64
+    _ = model.predict(im, profile=True)
+
+
 def test_predict_txt():
     # Write a list of sources (file, dir, glob, recursive glob) to a txt file
     txt_file = TMP / 'sources.txt'
     with open(txt_file, 'w') as f:
         for x in [ASSETS / 'bus.jpg', ASSETS, ASSETS / '*', ASSETS / '**/*.jpg']:
             f.write(f'{x}\n')
-    model = YOLO(MODEL)
-    model(source=txt_file, imgsz=32)
+    _ = YOLO(MODEL)(source=txt_file, imgsz=32)
 
 
 def test_predict_img():
@@ -143,8 +150,7 @@ def test_track_stream():
 
 
 def test_val():
-    model = YOLO(MODEL)
-    model.val(data='coco8.yaml', imgsz=32, save_hybrid=True)
+    YOLO(MODEL).val(data='coco8.yaml', imgsz=32, save_hybrid=True)
 
 
 def test_train_scratch():
@@ -160,29 +166,25 @@ def test_train_pretrained():
 
 
 def test_export_torchscript():
-    model = YOLO(MODEL)
-    f = model.export(format='torchscript', optimize=True)
+    f = YOLO(MODEL).export(format='torchscript', optimize=True)
     YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_onnx():
-    model = YOLO(MODEL)
-    f = model.export(format='onnx', dynamic=True)
+    f = YOLO(MODEL).export(format='onnx', dynamic=True)
     YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_openvino():
-    model = YOLO(MODEL)
-    f = model.export(format='openvino')
+    f = YOLO(MODEL).export(format='openvino')
     YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_coreml():
     if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
-        model = YOLO(MODEL)
-        model.export(format='coreml', nms=True)
-        # if MACOS:
-        #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
+        f = YOLO(MODEL).export(format='coreml', nms=True)
+        if MACOS:
+            YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
 def test_export_tflite(enabled=False):
@@ -204,13 +206,11 @@ def test_export_pb(enabled=False):
 def test_export_paddle(enabled=False):
     # Paddle protobuf requirements conflicting with onnx protobuf requirements
     if enabled:
-        model = YOLO(MODEL)
-        model.export(format='paddle')
+        YOLO(MODEL).export(format='paddle')
 
 
 def test_export_ncnn():
-    model = YOLO(MODEL)
-    f = model.export(format='ncnn')
+    f = YOLO(MODEL).export(format='ncnn')
     YOLO(f)(SOURCE)  # exported model inference
 
 
@@ -218,14 +218,14 @@ def test_all_model_yamls():
     for m in (ROOT / 'cfg' / 'models').rglob('*.yaml'):
         if 'rtdetr' in m.name:
             if TORCH_1_9:  # torch<=1.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
-                RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
+                _ = RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
         else:
             YOLO(m.name)
 
 
 def test_workflow():
     model = YOLO(MODEL)
-    model.train(data='coco8.yaml', epochs=1, imgsz=32)
+    model.train(data='coco8.yaml', epochs=1, imgsz=32, optimizer='SGD')
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
     model.export(format='onnx')  # export a model to ONNX format
@@ -254,8 +254,7 @@ def test_predict_callback_and_setup():
 
 def test_results():
     for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
-        model = YOLO(m)
-        results = model([SOURCE, SOURCE], imgsz=160)
+        results = YOLO(m)([SOURCE, SOURCE], imgsz=160)
         for r in results:
             r = r.cpu().numpy()
             r = r.to(device='cpu', dtype=torch.float32)
@@ -278,8 +277,7 @@ def test_data_utils():
 
     for task in 'detect', 'segment', 'pose':
         file = Path(TASK2DATA[task]).with_suffix('.zip')  # i.e. coco8.zip
-        download(f'https://github.com/ultralytics/hub/raw/main/example_datasets/{file}', unzip=False)
-        shutil.move(str(file), TMP)  # Python 3.8 requires string input to shutil.move()
+        download(f'https://github.com/ultralytics/hub/raw/main/example_datasets/{file}', unzip=False, dir=TMP)
         stats = HUBDatasetStats(TMP / file, task=task)
         stats.get_json(save=True)
         stats.process_images()
@@ -294,8 +292,7 @@ def test_data_converter():
     from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
     file = 'instances_val2017.json'
-    download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}')
-    shutil.move(file, TMP)
+    download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}', dir=TMP)
     convert_coco(labels_dir=TMP, use_segments=True, use_keypoints=False, cls91to80=True)
     coco80_to_coco91_class()
 

@@ -153,8 +153,7 @@ class Predictor(BasePredictor):
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes *= r
         if masks is not None:
-            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device)
-            masks = masks[:, None, :, :]
+            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
         points = (points, labels) if points is not None else None
         # Embed prompts
@@ -257,9 +256,7 @@ class Predictor(BasePredictor):
                 pred_bbox = batched_mask_to_box(pred_mask).float()
                 keep_mask = ~is_box_near_crop_edge(pred_bbox, crop_region, [0, 0, iw, ih])
                 if not torch.all(keep_mask):
-                    pred_bbox = pred_bbox[keep_mask]
-                    pred_mask = pred_mask[keep_mask]
-                    pred_score = pred_score[keep_mask]
+                    pred_bbox, pred_mask, pred_score = pred_bbox[keep_mask], pred_mask[keep_mask], pred_score[keep_mask]
 
                 crop_masks.append(pred_mask)
                 crop_bboxes.append(pred_bbox)
@@ -288,9 +285,7 @@ class Predictor(BasePredictor):
         if len(crop_regions) > 1:
             scores = 1 / region_areas
             keep = torchvision.ops.nms(pred_bboxes, scores, crop_nms_thresh)
-            pred_masks = pred_masks[keep]
-            pred_bboxes = pred_bboxes[keep]
-            pred_scores = pred_scores[keep]
+            pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
 
         return pred_masks, pred_scores, pred_bboxes
 

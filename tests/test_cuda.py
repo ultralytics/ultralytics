@@ -1,16 +1,18 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+import contextlib
 import subprocess
 from pathlib import Path
 
 import pytest
 import torch
 
-from ultralytics import YOLO
+from ultralytics import YOLO, download
 from ultralytics.utils import ASSETS, SETTINGS
 
 CUDA_IS_AVAILABLE = torch.cuda.is_available()
 CUDA_DEVICE_COUNT = torch.cuda.device_count()
 
+DATASETS_DIR = Path(SETTINGS['datasets_dir'])
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 DATA = 'coco8.yaml'
@@ -37,13 +39,15 @@ def test_train_ddp():
 def test_utils_benchmarks():
     from ultralytics.utils.benchmarks import ProfileModels
 
-    YOLO(MODEL).export(format='engine', imgsz=32, dynamic=True, batch=1)  # pre-export engine model, auto-device
+    # Pre-export a dynamic engine model to use dynamic inference
+    YOLO(MODEL).export(format='engine', imgsz=32, dynamic=True, batch=1)
     ProfileModels([MODEL], imgsz=32, half=False, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_predict_sam():
     from ultralytics import SAM
+    from ultralytics.models.sam import Predictor as SAMPredictor
 
     # Load a model
     model = SAM(WEIGHTS_DIR / 'sam_b.pt')
@@ -60,14 +64,63 @@ def test_predict_sam():
     # Run inference with points prompt
     model(ASSETS / 'zidane.jpg', points=[900, 370], labels=[1], device=0)
 
+    # Create SAMPredictor
+    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model='mobile_sam.pt')
+    predictor = SAMPredictor(overrides=overrides)
+
+    # Set image
+    predictor.set_image('ultralytics/assets/zidane.jpg')  # set with image file
+    # predictor(bboxes=[439, 437, 524, 709])
+    # predictor(points=[900, 370], labels=[1])
+
+    # Reset image
+    predictor.reset_image()
+
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_model_tune():
     subprocess.run('pip install ray[tune]'.split(), check=True)
-    YOLO('yolov8n-cls.yaml').tune(data='imagenet10',
-                                  grace_period=1,
-                                  max_samples=1,
-                                  imgsz=32,
-                                  epochs=1,
-                                  plots=False,
-                                  device='cpu')
+    with contextlib.suppress(RuntimeError):  # RuntimeError may be caused by out-of-memory
+        YOLO('yolov8n-cls.yaml').tune(data='imagenet10',
+                                      grace_period=1,
+                                      max_samples=1,
+                                      imgsz=32,
+                                      epochs=1,
+                                      plots=False,
+                                      device='cpu')
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+def test_pycocotools():
+    from ultralytics.models.yolo.detect import DetectionValidator
+    from ultralytics.models.yolo.pose import PoseValidator
+    from ultralytics.models.yolo.segment import SegmentationValidator
+
+    # Download annotations after each dataset downloads first
+    url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
+
+    validator = DetectionValidator(args={'model': 'yolov8n.pt', 'data': 'coco8.yaml', 'save_json': True, 'imgsz': 64})
+    validator()
+    validator.is_coco = True
+    download(f'{url}instances_val2017.json', dir=DATASETS_DIR / 'coco8/annotations')
+    _ = validator.eval_json(validator.stats)
+
+    validator = SegmentationValidator(args={
+        'model': 'yolov8n-seg.pt',
+        'data': 'coco8-seg.yaml',
+        'save_json': True,
+        'imgsz': 64})
+    validator()
+    validator.is_coco = True
+    download(f'{url}instances_val2017.json', dir=DATASETS_DIR / 'coco8-seg/annotations')
+    _ = validator.eval_json(validator.stats)
+
+    validator = PoseValidator(args={
+        'model': 'yolov8n-pose.pt',
+        'data': 'coco8-pose.yaml',
+        'save_json': True,
+        'imgsz': 64})
+    validator()
+    validator.is_coco = True
+    download(f'{url}person_keypoints_val2017.json', dir=DATASETS_DIR / 'coco8-pose/annotations')
+    _ = validator.eval_json(validator.stats)

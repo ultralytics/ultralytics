@@ -34,6 +34,7 @@ class LoadStreams:
     def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, stream_buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
+        self.stream_buffer = stream_buffer
         self.running = True  # running flag for Thread
         self.mode = 'stream'
         self.imgsz = imgsz

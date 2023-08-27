@@ -154,8 +154,8 @@ class Pose(Detect):
             y = kpts.view(bs, *self.kpt_shape, -1)
             # torch.save(self.anchors, "anc.pth")
             # torch.save(self.strides, "strd.pth")
-            self.anchors = torch.load("anc.pth")
-            self.strides = torch.load("strd.pth")
+            # self.anchors = torch.load("anc.pth")
+            # self.strides = torch.load("strd.pth")
             a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)

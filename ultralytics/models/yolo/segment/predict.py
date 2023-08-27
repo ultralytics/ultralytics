@@ -44,20 +44,18 @@ class SegmentationPredictor(DetectionPredictor):
             p = ops.non_max_suppression(preds_decoded, #preds[0],
                                         self.args.conf,
                                         self.args.iou,
-                                        labels=self.lb,
-                                        multi_label=True,
-                                        agnostic=self.args.single_cls,
+                                        agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det,
-                                        nc=self.nc)
+                                        nc=len(self.model.names),
+                                        classes=self.args.classes)
         else:
             p = ops.non_max_suppression(preds[0],
                                         self.args.conf,
                                         self.args.iou,
-                                        labels=self.lb,
-                                        multi_label=True,
-                                        agnostic=self.args.single_cls,
+                                        agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det,
-                                        nc=self.nc)
+                                        nc=len(self.model.names),
+                                        classes=self.args.classes)
             proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         
         results = []

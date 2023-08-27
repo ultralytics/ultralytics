@@ -197,7 +197,7 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                m.separate_6_outputs = self.args.separate_6_outputs
+                m.separate_outputs = self.args.separate_outputs
             elif isinstance(m, C2f):
                 if self.args.export_hw_optimized:
                     # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
@@ -664,8 +664,8 @@ class Exporter:
         else:
             verbosity = '--non_verbose'
             int8 = ''
-        # replace_json = ROOT / "utils/replace.json"
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf replace.json'.strip()
+        replace_json = ROOT / "utils/replace.json"
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf {replace_json}'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

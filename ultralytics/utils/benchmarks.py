@@ -99,7 +99,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 assert gpu, 'inference not supported on GPU'
 
             # Export
-            if format not in ('-','torchscript','saved_model','pb'):
+            if format not in ('-','torchscript','saved_model','pb','ncnn'):
                 separate_outputs=True 
             else:
                 separate_outputs=False

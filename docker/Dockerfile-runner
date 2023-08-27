@@ -23,7 +23,8 @@ RUN ./bin/installdependencies.sh && \
 ENTRYPOINT sh -c './config.sh --url https://github.com/ultralytics/ultralytics \
                               --token ${GITHUB_RUNNER_TOKEN:-AGMXEGI54KO5WISICKIKRMTE5FOG6} \
                               --name gpu-runners \
-                              --labels gpu-latest && \
+                              --labels gpu-latest \
+                              --replace && \
                   ./run.sh'
 
 
@@ -32,5 +33,5 @@ ENTRYPOINT sh -c './config.sh --url https://github.com/ultralytics/ultralytics \
 # Build and Push
 # t=ultralytics/ultralytics:latest-runner && sudo docker build -f docker/Dockerfile-runner -t $t .
 
-# Pull and Run with access to GPUs 2 and 3 (inside container CUDA devices will appear as 0 and 1)
-# t=ultralytics/ultralytics:latest-runner && sudo docker run -e GITHUB_RUNNER_TOKEN=your_new_token_here --ipc=host --gpus '"device=2,3"' $t
+# Pull and Run in detached mode with access to GPUs 2 and 3 (inside container CUDA devices will appear as 0 and 1)
+# t=ultralytics/ultralytics:latest-runner && sudo docker run -d -e GITHUB_RUNNER_TOKEN=AGMXEGI54KO5WISICKIKRMTE5FOG6 --ipc=host --gpus '"device=2,3"' $t

@@ -54,13 +54,13 @@ plots: True  # (bool) save plots during train/val
 # Prediction settings --------------------------------------------------------------------------------------------------
 source:  # (str, optional) source directory for images or videos
 show: False  # (bool) show results if possible
-stream_buffer: False # (bool) True/False : buffer every frame of stream/get most reacent frame
 save_txt: False  # (bool) save results as .txt file
 save_conf: False  # (bool) save results with confidence scores
 save_crop: False  # (bool) save cropped images with results
 show_labels: True  # (bool) show object labels in plots
 show_conf: True  # (bool) show object confidence scores in plots
 vid_stride: 1  # (int) video frame-rate stride
+stream_buffer: False  # (bool) buffer all streaming frames (True) or return the most recent frame (False)
 line_width:   # (int, optional) line width of the bounding boxes, auto if missing
 visualize: False  # (bool) visualize model features
 augment: False  # (bool) apply image augmentation to prediction sources

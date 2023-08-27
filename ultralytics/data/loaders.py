@@ -127,12 +127,12 @@ class LoadStreams:
         # Get and remove the next frame from imgs buffer
         if self.stream_buffer:
             return self.sources, [x.pop(0) for x in self.imgs], None, ''
+
         # Get the latest frame, and clear the rest from the imgs buffer
-        else:
-            last_elements = [x.pop(-1) if x else None for x in self.imgs]
-            for x in self.imgs:
-                x.clear()
-            return self.sources, last_elements, None, ''
+        last_elements = [x.pop(-1) if x else None for x in self.imgs]
+        for x in self.imgs:
+            x.clear()
+        return self.sources, last_elements, None, ''
 
     def __len__(self):
         """Return the length of the sources object."""

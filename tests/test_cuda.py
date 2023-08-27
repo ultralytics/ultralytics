@@ -87,7 +87,7 @@ def test_model_tune():
                                   device='cpu')
 
 
-# @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_pycocotools():
     # Download annotations to run pycocotools eval
     from ultralytics.models.yolo.detect import DetectionValidator

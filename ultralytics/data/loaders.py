@@ -119,7 +119,7 @@ class LoadStreams:
         # Wait until a frame is available in each buffer
         while not all(self.imgs):
             if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
-                cv2.destroyAllWindows()
+                self.close()
                 raise StopIteration
             time.sleep(1 / min(self.fps))
 

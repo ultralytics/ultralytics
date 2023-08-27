@@ -125,7 +125,7 @@ class LoadStreams:
             time.sleep(1 / min(self.fps))
 
         # Get and remove the next frame from imgs buffer
-        if self.stream_buffer==True:
+        if self.stream_buffer == True:
             return self.sources, [x.pop(0) for x in self.imgs], None, ''
         # Get the latest frame, and clear the rest from the imgs buffer
         else:

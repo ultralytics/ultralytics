@@ -157,7 +157,7 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=Fa
     elif in_memory:
         dataset = source
     elif webcam:
-        dataset = LoadStreams(source, imgsz=imgsz, vid_stride=vid_stride, stream_buffer=stream_buffer )
+        dataset = LoadStreams(source, imgsz=imgsz, vid_stride=vid_stride, stream_buffer=stream_buffer)
     elif screenshot:
         dataset = LoadScreenshots(source, imgsz=imgsz)
     elif from_img:

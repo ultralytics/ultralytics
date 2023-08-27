@@ -54,7 +54,7 @@ plots: True  # (bool) save plots during train/val
 # Prediction settings --------------------------------------------------------------------------------------------------
 source:  # (str, optional) source directory for images or videos
 show: False  # (bool) show results if possible
-stream_buffer: False # (bool) True/False : buffer every frame of stream/get most reacent frame 
+stream_buffer: False # (bool) True/False : buffer every frame of stream/get most reacent frame
 save_txt: False  # (bool) save results as .txt file
 save_conf: False  # (bool) save results with confidence scores
 save_crop: False  # (bool) save cropped images with results

@@ -34,7 +34,7 @@ class LoadStreams:
     def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, stream_buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
-        self.stream_buffer = stream_buffer
+        self.stream_buffer = stream_buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = 'stream'
         self.imgsz = imgsz
@@ -126,13 +126,15 @@ class LoadStreams:
 
         # Get and remove the next frame from imgs buffer
         if self.stream_buffer:
-            return self.sources, [x.pop(0) for x in self.imgs], None, ''
+            images = [x.pop(0) for x in self.imgs]
+        else:
+            # Get the latest frame, and clear the rest from the imgs buffer
+            images = []
+            for x in self.imgs:
+                images.append(x.pop(-1) if x else None)
+                x.clear()
 
-        # Get the latest frame, and clear the rest from the imgs buffer
-        last_elements = [x.pop(-1) if x else None for x in self.imgs]
-        for x in self.imgs:
-            x.clear()
-        return self.sources, last_elements, None, ''
+        return self.sources, images, None, ''
 
     def __len__(self):
         """Return the length of the sources object."""

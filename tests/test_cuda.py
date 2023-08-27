@@ -11,6 +11,7 @@ from ultralytics.utils import ASSETS, SETTINGS
 CUDA_IS_AVAILABLE = torch.cuda.is_available()
 CUDA_DEVICE_COUNT = torch.cuda.device_count()
 
+DATASETS_DIR = Path(SETTINGS['datasets_dir'])
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 DATA = 'coco8.yaml'
@@ -99,7 +100,7 @@ def test_pycocotools():
     validator = DetectionValidator(args={'model': 'yolov8n.pt', 'data': 'coco8.yaml', 'save_json': True, 'imgsz': 64})
     validator()
     validator.is_coco = True
-    download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8/annotations')
+    download(f'{url}instances_val2017.json', dir=DATASETS_DIR / 'coco8/annotations')
     _ = validator.eval_json(validator.stats)
 
     validator = SegmentationValidator(args={
@@ -109,7 +110,7 @@ def test_pycocotools():
         'imgsz': 64})
     validator()
     validator.is_coco = True
-    download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-seg/annotations')
+    download(f'{url}instances_val2017.json', dir=DATASETS_DIR / 'coco8-seg/annotations')
     _ = validator.eval_json(validator.stats)
 
     validator = PoseValidator(args={
@@ -119,5 +120,5 @@ def test_pycocotools():
         'imgsz': 64})
     validator()
     validator.is_coco = True
-    download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
+    download(f'{url}person_keypoints_val2017.json', dir=DATASETS_DIR / 'coco8-pose/annotations')
     _ = validator.eval_json(validator.stats)

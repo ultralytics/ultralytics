@@ -24,7 +24,7 @@ class DetectionPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions and returns a list of Results objects."""
-        if len(preds) != 1:  # DeGirum export
+        if self.separate_outputs:  # DeGirum export
             preds = decode_bbox(preds, img.shape, self.device)
             preds = ops.non_max_suppression(preds,
                                             self.args.conf,

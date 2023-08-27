@@ -84,7 +84,7 @@ class DetectionValidator(BaseValidator):
 
     def postprocess(self, preds, img_shape):
         """Apply Non-maximum suppression to prediction outputs."""
-        if len(preds) != 1:  # DeGirum export
+        if self.separate_outputs:  # DeGirum export
             preds = decode_bbox(preds, img_shape, self.device)
             return ops.non_max_suppression(preds,
                                         self.args.conf,

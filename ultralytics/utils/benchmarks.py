@@ -124,7 +124,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                                  device=device,
                                  half=half,
                                  int8=int8,
-                                 separate_outputs=True
+                                 separate_outputs=True,
                                  verbose=False)
             metric, speed = results.results_dict[key], results.speed['inference']
             y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])

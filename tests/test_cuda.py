@@ -37,8 +37,8 @@ def test_train_ddp():
 def test_utils_benchmarks():
     from ultralytics.utils.benchmarks import ProfileModels
 
-    # Pre-export a dynamic engine model at a different imgsz to use dynamic inference
-    YOLO(MODEL).export(format='engine', imgsz=64, dynamic=True, batch=1)
+    # Pre-export a dynamic engine model to use dynamic inference
+    YOLO(MODEL).export(format='engine', imgsz=32, dynamic=True, batch=1)
     ProfileModels([MODEL], imgsz=32, half=False, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
 
 
@@ -87,16 +87,37 @@ def test_model_tune():
                                   device='cpu')
 
 
-@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+# @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_pycocotools():
     # Download annotations to run pycocotools eval
     from ultralytics.models.yolo.detect import DetectionValidator
+    from ultralytics.models.yolo.pose import PoseValidator
+    from ultralytics.models.yolo.segment import SegmentationValidator
 
     url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
     download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8/annotations')
-    # download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
+    download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-seg/annotations')
+    download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
 
     validator = DetectionValidator(args={'model': 'yolov8n.pt', 'data': 'coco8.yaml', 'save_json': True, 'imgsz': 64})
     validator()
     validator.is_coco = True
-    validator.eval_json(validator.stats)
+    _ = validator.eval_json(validator.stats)
+
+    validator = SegmentationValidator(args={
+        'model': 'yolov8n-seg.pt',
+        'data': 'coco8-seg.yaml',
+        'save_json': True,
+        'imgsz': 64})
+    validator()
+    validator.is_coco = True
+    _ = validator.eval_json(validator.stats)
+
+    validator = PoseValidator(args={
+        'model': 'yolov8n-pose.pt',
+        'data': 'coco8-pose.yaml',
+        'save_json': True,
+        'imgsz': 64})
+    validator()
+    validator.is_coco = True
+    _ = validator.eval_json(validator.stats)

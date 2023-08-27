@@ -82,7 +82,7 @@ class LoadStreams:
         n, f = 0, self.frames[i]  # frame number, frame array
         while self.running and cap.isOpened() and n < (f - 1):
             # Only read a new frame if the buffer is empty
-            if not self.imgs[i]:
+            if not self.imgs[i] or self.stream_buffer == False:
                 n += 1
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:

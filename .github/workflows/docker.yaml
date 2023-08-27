@@ -117,6 +117,9 @@ jobs:
         if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')
         run: |
           docker push ultralytics/ultralytics:${{ matrix.tags }}
+          if [[ "${{ matrix.tags }}" == "latest" ]]; then
+            t=ultralytics/ultralytics:latest-runner && sudo docker build -f docker/Dockerfile-runner -t $t . && sudo docker push $t
+          fi
 
       - name: Notify on failure
         if: github.event_name == 'push' && failure()  # do not notify on cancelled() as cancelling is performed by hand

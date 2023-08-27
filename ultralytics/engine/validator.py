@@ -92,7 +92,7 @@ class BaseValidator:
         self.iouv = None
         self.jdict = None
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.separate_outputs=False
+        self.separate_outputs=args.separate_outputs
 
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f'{self.args.mode}'

@@ -169,7 +169,7 @@ class BaseTrainer:
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
+            world_size = len(self.args.device.split(','))
         elif isinstance(self.args.device, tuple):  # multi devices from cli is tuple type
             world_size = len(self.args.device)
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number

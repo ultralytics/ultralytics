@@ -222,10 +222,9 @@ class Model:
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
 
-        custom = {'conf': 0.25}  # method defaults
+        custom = {'conf': 0.25, 'save': False if is_cli else DEFAULT_CFG_DICT['save']}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'predict'}  # highest priority args on the right
-        if not is_cli:
-            args['save'] = kwargs.get('save', False)  # do not save by default if called in Python
+        prompts = args.pop('prompts', None)  # for SAM-type models
 
         if not self.predictor:
             self.predictor = (predictor or self.smart_load('predictor'))(overrides=args, _callbacks=self.callbacks)
@@ -234,9 +233,8 @@ class Model:
             self.predictor.args = get_cfg(self.predictor.args, args)
             if 'project' in args or 'name' in args:
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
-        # Set prompts for SAM/FastSAM
-        if 'prompts' in kwargs and hasattr(self.predictor, 'set_prompts'):
-            self.predictor.set_prompts(kwargs.pop('prompts', None))
+        if prompts and hasattr(self.predictor, 'set_prompts'):  # for SAM-type models
+            self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):
@@ -269,7 +267,7 @@ class Model:
             validator (BaseValidator): Customized validator.
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
-        custom = {'imgsz': self.model.args['imgsz'], 'rect': True}  # method defaults
+        custom = {'rect': True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'val'}  # highest priority args on the right
         args['imgsz'] = check_imgsz(args['imgsz'], max_dim=1)
 

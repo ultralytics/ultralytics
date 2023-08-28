@@ -64,8 +64,8 @@ from ultralytics.cfg import get_cfg
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
-from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
-                               colorstr, get_default_args, yaml_save, INTEGRATION_CALLBACKS)
+from ultralytics.utils import (ARM64, DEFAULT_CFG, INTEGRATION_CALLBACKS, LINUX, LOGGER, MACOS, ROOT, WINDOWS,
+                               __version__, callbacks, colorstr, get_default_args, yaml_save)
 from ultralytics.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
 from ultralytics.utils.files import file_size, spaces_in_path

@@ -35,7 +35,7 @@ DEFAULT_CFG_PATH = ROOT / 'cfg/default.yaml'
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
 VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbose mode
-INTEGRATION_CALLBACKS = str(os.getenv("YOLO_INTEGRATION_CALLBACKS", True)).lower() == 'true'
+INTEGRATION_CALLBACKS = str(os.getenv('YOLO_INTEGRATION_CALLBACKS', True)).lower() == 'true'
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
 LOGGING_NAME = 'ultralytics'
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans

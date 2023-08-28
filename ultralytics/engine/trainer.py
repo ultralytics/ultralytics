@@ -26,8 +26,8 @@ from tqdm import tqdm
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
-from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, TQDM_BAR_FORMAT, __version__, callbacks, clean_url, colorstr,
-                               emojis, yaml_save, INTEGRATION_CALLBACKS, VERBOSE)
+from ultralytics.utils import (DEFAULT_CFG, INTEGRATION_CALLBACKS, LOGGER, RANK, TQDM_BAR_FORMAT, VERBOSE, __version__,
+                               callbacks, clean_url, colorstr, emojis, yaml_save)
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command

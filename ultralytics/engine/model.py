@@ -304,7 +304,7 @@ class Model:
         from ultralytics.utils.benchmarks import benchmark
 
         custom = {'verbose': False}  # method defaults
-        args = {**self.model.args, **custom, **kwargs, 'mode': 'benchmark'}  # highest priority args on the right
+        args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, 'mode': 'benchmark'}
         return benchmark(model=self,
                          data=args['data'],
                          imgsz=args['imgsz'],

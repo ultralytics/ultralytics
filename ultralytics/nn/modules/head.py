@@ -143,6 +143,7 @@ class Pose(Detect):
         if self.training:
             return x, kpt
         if self.separate_outputs and self.export:
+            print(self.kpts_decode(bs, kpt).shape)
             return x, torch.permute(self.kpts_decode(bs, kpt),(0,2,1))
         pred_kpt = self.kpts_decode(bs, kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
@@ -152,8 +153,8 @@ class Pose(Detect):
         ndim = self.kpt_shape[1]
         if self.export:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
             y = kpts.view(bs, *self.kpt_shape, -1)
-            # torch.save(self.anchors, "anc.pth")
-            # torch.save(self.strides, "strd.pth")
+            torch.save(self.anchors, "anc.pth")
+            torch.save(self.strides, "strd.pth")
             # self.anchors = torch.load("anc.pth")
             # self.strides = torch.load("strd.pth")
             a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides

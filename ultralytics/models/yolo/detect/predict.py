@@ -26,6 +26,7 @@ class DetectionPredictor(BasePredictor):
         """Post-processes predictions and returns a list of Results objects."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
             preds = decode_bbox(preds, img.shape, self.device)
+            print(self.args.classes)
             preds = ops.non_max_suppression(preds,
                                             self.args.conf,
                                             self.args.iou,

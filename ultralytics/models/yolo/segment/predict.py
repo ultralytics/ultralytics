@@ -41,13 +41,14 @@ class SegmentationPredictor(DetectionPredictor):
             proto = proto.permute(0,3,1,2) 
             pred_order = [item for index, item in enumerate(preds) if index not in [pidx, lci]]
             preds_decoded = decode_bbox(pred_order, img.shape, self.device)
+            nc = preds_decoded.shape[1] - 4
             preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)
             p = ops.non_max_suppression(preds_decoded, #preds[0],
                                         self.args.conf,
                                         self.args.iou,
                                         agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det,
-                                        nc=len(self.model.names),
+                                        nc=nc,
                                         classes=self.args.classes)
         else:
             p = ops.non_max_suppression(preds[0],

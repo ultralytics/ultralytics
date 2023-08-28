@@ -18,7 +18,6 @@ from PIL import Image
 from ultralytics.utils import ARM64, LINUX, LOGGER, ROOT, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
-from ultralytics.utils.ops import xywh2xyxy
 
 
 def check_class_names(names):
@@ -364,8 +363,9 @@ class AutoBackend(nn.Module):
             y = self.model.predict({'image': im_pil})  # coordinates are xywh normalized
             if 'confidence' in y:
                 raise TypeError('Ultralytics only supports inference of non-pipelined CoreML models exported with '
-                                "'nms=False', but 'model={w}' has an NMS pipeline created by an 'nms=True' export.")
+                                f"'nms=False', but 'model={w}' has an NMS pipeline created by an 'nms=True' export.")
                 # TODO: CoreML NMS inference handling
+                # from ultralytics.utils.ops import xywh2xyxy
                 # box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
                 # conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float32)
                 # y = np.concatenate((box, conf.reshape(-1, 1), cls.reshape(-1, 1)), 1)

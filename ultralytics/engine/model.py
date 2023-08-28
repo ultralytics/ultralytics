@@ -8,8 +8,7 @@ from typing import Union
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import (ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis,
-                               yaml_load)
+from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis, yaml_load
 from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode
@@ -292,13 +291,14 @@ class Model:
 
         custom = {'verbose': False}  # method defaults
         args = {**self.model.args, **custom, **kwargs, 'mode': 'benchmark'}
-        return benchmark(model=self,
-                         data=kwargs.get('data'),  # if no 'data' argument passed set data=None for default datasets
-                         imgsz=args['imgsz'],
-                         half=args['half'],
-                         int8=args['int8'],
-                         device=args['device'],
-                         verbose=kwargs.get('verbose'))
+        return benchmark(
+            model=self,
+            data=kwargs.get('data'),  # if no 'data' argument passed set data=None for default datasets
+            imgsz=args['imgsz'],
+            half=args['half'],
+            int8=args['int8'],
+            device=args['device'],
+            verbose=kwargs.get('verbose'))
 
     def export(self, **kwargs):
         """

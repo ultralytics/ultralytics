@@ -8,9 +8,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, SETTINGS, SETTINGS_YAML,
-                               IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
-                               yaml_print)
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS,
+                               SETTINGS_YAML, IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn,
+                               yaml_load, yaml_print)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
@@ -146,8 +146,23 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
+def get_save_dir(args):
+    """Return save_dir as created from train/val/predict arguments."""
+
+    if hasattr(args, 'save_dir') and args.save_dir:
+        save_dir = args.save_dir
+    else:
+        from ultralytics.utils.files import increment_path
+
+        project = args.project or Path(SETTINGS['runs_dir']) / args.task
+        name = args.name or f'{args.mode}'
+        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in (-1, 0) else True)
+
+    return Path(save_dir)
+
+
 def _handle_deprecation(custom):
-    """Hardcoded function to handle deprecated config keys"""
+    """Hardcoded function to handle deprecated config keys."""
 
     for key in custom.copy().keys():
         if key == 'hide_labels':

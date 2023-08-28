@@ -117,8 +117,7 @@ class Model:
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
-        model = model or self.smart_load('model')
-        self.model = model(cfg_dict, verbose=verbose and RANK == -1)  # build model
+        self.model = (model or self.smart_load('model'))(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
         self.overrides['task'] = self.task
 

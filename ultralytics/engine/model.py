@@ -302,18 +302,17 @@ class Model:
         """
         self._check_is_pytorch_model()
         from ultralytics.utils.benchmarks import benchmark
-        overrides = self.model.args.copy()
-        overrides.update(kwargs)
-        overrides['mode'] = 'benchmark'
-        overrides = {**DEFAULT_CFG_DICT, **overrides}  # fill in missing overrides keys with defaults
+
+        custom = {'verbose': False}  # method defaults
+        args = {**self.model.args, **custom, **kwargs, 'mode': 'benchmark'}  # highest priority args on the right
         return benchmark(
             model=self,
-            data=kwargs.get('data'),  # if no 'data' argument passed set data=None for default datasets
-            imgsz=overrides['imgsz'],
-            half=overrides['half'],
-            int8=overrides['int8'],
-            device=overrides['device'],
-            verbose=kwargs.get('verbose'))
+            data=args['data'],
+            imgsz=args['imgsz'],
+            half=args['half'],
+            int8=args['int8'],
+            device=args['device'],
+            verbose=args['verbose'])
 
     def export(self, **kwargs):
         """

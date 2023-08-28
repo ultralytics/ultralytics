@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import subprocess
+
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 
@@ -31,6 +33,8 @@ def run_ray_tune(model,
         train_args = {}
 
     try:
+        subprocess.run('pip install ray[tune]'.split(), check=True)
+
         from ray import tune
         from ray.air import RunConfig
         from ray.air.integrations.wandb import WandbLoggerCallback

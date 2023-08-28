@@ -393,7 +393,7 @@ class Model:
         self.model.to(device)
         return self
 
-    def tune(self, ray=False, *args, **kwargs):
+    def tune(self, use_ray=False, *args, **kwargs):
         """
         Runs hyperparameter tuning, optionally using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
 
@@ -401,7 +401,7 @@ class Model:
             (dict): A dictionary containing the results of the hyperparameter search.
         """
         self._check_is_pytorch_model()
-        if ray:
+        if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
             return run_ray_tune(self, *args, **kwargs)
         else:

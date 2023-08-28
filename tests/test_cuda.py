@@ -77,7 +77,8 @@ def test_predict_sam():
 def test_model_tune():
     subprocess.run('pip install ray[tune]'.split(), check=True)
     with contextlib.suppress(RuntimeError):  # RuntimeError may be caused by out-of-memory
-        YOLO('yolov8n-cls.yaml').tune(data='imagenet10',
+        YOLO('yolov8n-cls.yaml').tune(ray=True,
+                                      data='imagenet10',
                                       grace_period=1,
                                       max_samples=1,
                                       imgsz=32,

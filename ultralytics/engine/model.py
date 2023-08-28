@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Union
 
 from ultralytics.cfg import get_cfg
-from ultralytics.engine.exporter import Exporter
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis,
@@ -329,6 +328,7 @@ class Model:
             **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
         self._check_is_pytorch_model()
+        from .exporter import Exporter
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides['mode'] = 'export'
@@ -393,19 +393,24 @@ class Model:
         self.model.to(device)
         return self
 
-    def tune(self, *args, **kwargs):
+    def tune(self, ray=False, *args, **kwargs):
         """
-        Runs hyperparameter tuning using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
+        Runs hyperparameter tuning, optionally using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
 
         Returns:
             (dict): A dictionary containing the results of the hyperparameter search.
-
-        Raises:
-            ModuleNotFoundError: If Ray Tune is not installed.
         """
         self._check_is_pytorch_model()
-        from ultralytics.utils.tuner import run_ray_tune
-        return run_ray_tune(self, *args, **kwargs)
+        if ray:
+            from ultralytics.utils.tuner import run_ray_tune
+            return run_ray_tune(self, *args, **kwargs)
+        else:
+            from .tuner import Tuner
+            overrides = self.overrides.copy()
+            overrides.update(kwargs)
+            args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
+            args.task = self.task
+            return Tuner(args=args, _callbacks=self.callbacks)(model=self.model)
 
     @property
     def names(self):

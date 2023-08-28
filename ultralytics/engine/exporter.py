@@ -678,7 +678,7 @@ class Exporter:
             for file in f.rglob('*_integer_quant_with_int16_act.tflite'):
                 file.unlink()  # delete extra fp16 activation TFLite files
 
-        Add TFLite metadata
+        # Add TFLite metadata
         for file in f.rglob('*.tflite'):
             f.unlink() if 'quant_with_int16_act.tflite' in str(f) else self._add_tflite_metadata(file)
 

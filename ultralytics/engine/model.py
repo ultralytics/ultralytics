@@ -5,8 +5,7 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.engine.exporter import Exporter
+from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis,
@@ -121,6 +120,7 @@ class Model:
         model = model or self.smart_load('model')
         self.model = model(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
+        self.overrides['task'] = self.task
 
         # Below added to allow export from YAMLs
         args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine model and default args, preferring model args
@@ -232,7 +232,6 @@ class Model:
         if not is_cli:
             overrides['save'] = kwargs.get('save', False)  # do not save by default if called in Python
         if not self.predictor:
-            self.task = overrides.get('task') or self.task
             predictor = predictor or self.smart_load('predictor')
             self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
@@ -257,7 +256,6 @@ class Model:
 
         Returns:
             (List[ultralytics.engine.results.Results]): The tracking results.
-
         """
         if not hasattr(self.predictor, 'trackers'):
             from ultralytics.trackers import register_tracker
@@ -286,10 +284,6 @@ class Model:
             overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
-        if 'task' in overrides:
-            self.task = args.task
-        else:
-            args.task = self.task
         validator = validator or self.smart_load('validator')
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
@@ -327,22 +321,13 @@ class Model:
         Export model.
 
         Args:
-            **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
+            **kwargs : Any other args accepted by the Exporter. To see all args check 'configuration' section in docs.
         """
         self._check_is_pytorch_model()
-        overrides = self.overrides.copy()
-        overrides.update(kwargs)
-        overrides['mode'] = 'export'
-        if overrides.get('imgsz') is None:
-            overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
-        if 'batch' not in kwargs:
-            overrides['batch'] = 1  # default to 1 if not modified
-        if 'data' not in kwargs:
-            overrides['data'] = None  # default to None if not modified (avoid int8 calibration with coco.yaml)
-        if 'verbose' not in kwargs:
-            overrides['verbose'] = False
-        args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
-        args.task = self.task
+        from .exporter import Exporter
+
+        custom = {'imgsz': self.model.args['imgsz'], 'batch': 1, 'data': None, 'verbose': False}  # method defaults
+        args = {**self.overrides, **custom, **kwargs, 'mode': 'export'}  # highest priority args on the right
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
     def train(self, trainer=None, **kwargs):
@@ -369,7 +354,8 @@ class Model:
             raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
         if overrides.get('resume'):
             overrides['resume'] = self.ckpt_path
-        self.task = overrides.get('task') or self.task
+        if 'data' not in kwargs:
+            overrides['data'] = TASK2DATA[self.task]
         trainer = trainer or self.smart_load('trainer')
         self.trainer = trainer(overrides=overrides, _callbacks=self.callbacks)
         if not overrides.get('resume'):  # manually set model only if not resuming
@@ -455,7 +441,7 @@ class Model:
             name = self.__class__.__name__
             mode = inspect.stack()[1][3]  # get the function name.
             raise NotImplementedError(
-                emojis(f'WARNING ⚠️ `{name}` model does not support `{mode}` mode for `{self.task}` task yet.')) from e
+                emojis(f"WARNING ⚠️ '{name}' model does not support '{mode}' mode for '{self.task}' task yet.")) from e
 
     @property
     def task_map(self):

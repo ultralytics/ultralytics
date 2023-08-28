@@ -12,7 +12,3 @@ keywords: Ultralytics, YOLO, DetectionPredictor, detect, predict, object detecti
 ---
 ## ::: ultralytics.models.yolo.detect.predict.DetectionPredictor
 <br><br>
-
----
-## ::: ultralytics.models.yolo.detect.predict.predict
-<br><br>

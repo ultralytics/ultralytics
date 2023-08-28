@@ -16,7 +16,7 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import ASSETS, LOGGER, is_colab, is_kaggle, ops
+from ultralytics.utils import LOGGER, is_colab, is_kaggle, ops
 from ultralytics.utils.checks import check_requirements
 
 
@@ -31,9 +31,10 @@ class SourceTypes:
 class LoadStreams:
     """YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`."""
 
-    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1):
+    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, stream_buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
+        self.stream_buffer = stream_buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = 'stream'
         self.imgsz = imgsz
@@ -81,7 +82,7 @@ class LoadStreams:
         n, f = 0, self.frames[i]  # frame number, frame array
         while self.running and cap.isOpened() and n < (f - 1):
             # Only read a new frame if the buffer is empty
-            if not self.imgs[i]:
+            if not self.imgs[i] or not self.stream_buffer:
                 n += 1
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
@@ -119,12 +120,21 @@ class LoadStreams:
         # Wait until a frame is available in each buffer
         while not all(self.imgs):
             if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
-                cv2.destroyAllWindows()
+                self.close()
                 raise StopIteration
             time.sleep(1 / min(self.fps))
 
         # Get and remove the next frame from imgs buffer
-        return self.sources, [x.pop(0) for x in self.imgs], None, ''
+        if self.stream_buffer:
+            images = [x.pop(0) for x in self.imgs]
+        else:
+            # Get the latest frame, and clear the rest from the imgs buffer
+            images = []
+            for x in self.imgs:
+                images.append(x.pop(-1) if x else None)
+                x.clear()
+
+        return self.sources, images, None, ''
 
     def __len__(self):
         """Return the length of the sources object."""
@@ -167,7 +177,7 @@ class LoadScreenshots:
 
     def __next__(self):
         """mss screen capture: get raw pixels from the screen as np array."""
-        im0 = np.array(self.sct.grab(self.monitor))[:, :, :3]  # [:, :, :3] BGRA to BGR
+        im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
         s = f'screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: '
 
         self.frame += 1
@@ -182,7 +192,7 @@ class LoadImages:
         parent = None
         if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
             parent = Path(path).parent
-            path = Path(path).read_text().rsplit()
+            path = Path(path).read_text().splitlines()  # list of sources
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
@@ -400,10 +410,3 @@ def get_best_youtube_url(url, use_pafy=False):
             good_size = (f.get('width') or 0) >= 1920 or (f.get('height') or 0) >= 1080
             if good_size and f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
                 return f.get('url')
-
-
-if __name__ == '__main__':
-    img = cv2.imread(str(ASSETS / 'bus.jpg'))
-    dataset = LoadPilAndNumpy(im0=img)
-    for d in dataset:
-        print(d[0])

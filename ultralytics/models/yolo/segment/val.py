@@ -8,13 +8,25 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import DEFAULT_CFG, LOGGER, NUM_THREADS, ops
+from ultralytics.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class SegmentationValidator(DetectionValidator):
+    """
+    A class extending the DetectionValidator class for validation based on a segmentation model.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.segment import SegmentationValidator
+
+        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml')
+        validator = SegmentationValidator(args=args)
+        validator()
+        ```
+    """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
@@ -133,9 +145,11 @@ class SegmentationValidator(DetectionValidator):
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
         Return correct prediction matrix
-        Arguments:
+
+        Args:
             detections (array[N, 6]), x1, y1, x2, y2, conf, class
             labels (array[M, 5]), class, x1, y1, x2, y2
+
         Returns:
             correct (array[N, 10]), for 10 IoU levels
         """
@@ -231,21 +245,3 @@ class SegmentationValidator(DetectionValidator):
             except Exception as e:
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats
-
-
-def val(cfg=DEFAULT_CFG, use_python=False):
-    """Validate trained YOLO model on validation data."""
-    model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco8-seg.yaml'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).val(**args)
-    else:
-        validator = SegmentationValidator(args=args)
-        validator(model=args['model'])
-
-
-if __name__ == '__main__':
-    val()

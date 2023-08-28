@@ -401,6 +401,7 @@ plugins:
       handlers:
         python:
           options:
+            docstring_style: google
             show_root_heading: true
             show_source: true
   - ultralytics:

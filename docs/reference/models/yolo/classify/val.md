@@ -12,7 +12,3 @@ keywords: Ultralytics, YOLO, ClassificationValidator, model validation, model fi
 ---
 ## ::: ultralytics.models.yolo.classify.val.ClassificationValidator
 <br><br>
-
----
-## ::: ultralytics.models.yolo.classify.val.val
-<br><br>

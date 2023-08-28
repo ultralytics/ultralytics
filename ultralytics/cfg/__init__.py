@@ -149,7 +149,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 def get_save_dir(args):
     """Return save_dir as created from train/val/predict arguments."""
 
-    if hasattr(args, 'save_dir') and args.save_dir:
+    if getattr(args, 'save_dir', None):
         save_dir = args.save_dir
     else:
         from ultralytics.utils.files import increment_path

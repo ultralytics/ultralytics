@@ -13,7 +13,7 @@ Example:
     from ultralytics import YOLO
 
     model = YOLO('yolov8n.pt')
-    model.tune(data='coco8.yaml', imgsz=640, epochs=30, iterations=300)
+    model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10)
     ```
 """
 import random
@@ -23,7 +23,7 @@ import numpy as np
 
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr
+from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, yaml_print, yaml_save
 
 
 class Tuner:
@@ -35,7 +35,7 @@ class Tuner:
 
      Attributes:
          space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
-         save_dir (Path): Directory where evolution logs and results will be saved.
+         tune_dir (Path): Directory where evolution logs and results will be saved.
          evolve_csv (Path): Path to the CSV file where evolution logs are saved.
 
      Methods:
@@ -51,7 +51,7 @@ class Tuner:
          from ultralytics import YOLO
 
          model = YOLO('yolov8n.pt')
-         model.tune(data='coco8.yaml', imgsz=64, epochs=1, iterations=3)
+         model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10)
          ```
      """
 
@@ -92,12 +92,13 @@ class Tuner:
         callbacks.add_integration_callbacks(self)
         LOGGER.info(f"Initialized Tuner instance with 'tune_dir={self.tune_dir}'.")
 
-    def _mutate(self, parent='single', mutation=0.8, sigma=0.2):
+    def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.6, return_best=False):
         """
         Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
             parent (str): Parent selection method: 'single' or 'weighted'.
+            n (int): Number of parents to consider.
             mutation (float): Probability of a parameter mutation in any given iteration.
             sigma (float): Standard deviation for Gaussian random number generator.
 
@@ -108,8 +109,11 @@ class Tuner:
             # Select parent(s)
             x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
             fitness = x[:, 0]  # first column
-            n = min(5, len(x))  # number of previous results to consider
+            n = min(n, len(x))  # number of previous results to consider
             x = x[np.argsort(-fitness)][:n]  # top n mutations
+            if return_best:
+                return {k: float(x[0, i + 1]) for i, k in enumerate(self.space.keys())}
+            fitness = x[:, 0]  # first column
             w = fitness - fitness.min() + 1E-6  # weights (sum > 0)
             if parent == 'single' or len(x) == 1:
                 # x = x[random.randint(0, n - 1)]  # random selection
@@ -174,3 +178,6 @@ class Tuner:
                 f.write(headers + ','.join(map(str, log_row)) + '\n')
 
         LOGGER.info(f'{prefix} All iterations complete. Results saved to {colorstr("bold", self.tune_dir)}')
+        best_hyp = self._mutate(return_best=True)  # best hyps
+        yaml_save(self.tune_dir / 'best.yaml', best_hyp)
+        yaml_print(self.tune_dir / 'best.yaml')

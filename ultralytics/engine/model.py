@@ -8,8 +8,7 @@ from typing import Union
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import (ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis,
-                               yaml_load)
+from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis, yaml_load
 from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode
@@ -291,14 +290,15 @@ class Model:
         from ultralytics.utils.benchmarks import benchmark
 
         custom = {'verbose': False}  # method defaults
-        args = {**self.model.args, **custom, **kwargs, 'mode': 'benchmark'}
-        return benchmark(model=self,
-                         data=kwargs.get('data'),  # if no 'data' argument passed set data=None for default datasets
-                         imgsz=args['imgsz'],
-                         half=args['half'],
-                         int8=args['int8'],
-                         device=args['device'],
-                         verbose=kwargs.get('verbose'))
+        args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, 'mode': 'benchmark'}
+        return benchmark(
+            model=self,
+            data=kwargs.get('data'),  # if no 'data' argument passed set data=None for default datasets
+            imgsz=args['imgsz'],
+            half=args['half'],
+            int8=args['int8'],
+            device=args['device'],
+            verbose=kwargs.get('verbose'))
 
     def export(self, **kwargs):
         """
@@ -328,21 +328,15 @@ class Model:
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
             kwargs = self.session.train_args
         check_pip_update_available()
-        overrides = self.overrides.copy()
-        if kwargs.get('cfg'):
-            LOGGER.info(f"cfg file passed. Overriding default params with {kwargs['cfg']}.")
-            overrides = yaml_load(check_yaml(kwargs['cfg']))
-        overrides.update(kwargs)
-        overrides['mode'] = 'train'
-        if not overrides.get('data'):
-            raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
-        if overrides.get('resume'):
-            overrides['resume'] = self.ckpt_path
-        if 'data' not in kwargs:
-            overrides['data'] = TASK2DATA[self.task]
-        trainer = trainer or self.smart_load('trainer')
-        self.trainer = trainer(overrides=overrides, _callbacks=self.callbacks)
-        if not overrides.get('resume'):  # manually set model only if not resuming
+
+        overrides = yaml_load(check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
+        custom = {'data': TASK2DATA[self.task]}  # method defaults
+        args = {**overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
+        if args.get('resume'):
+            args['resume'] = self.ckpt_path
+
+        self.trainer = (trainer or self.smart_load('trainer'))(overrides=args, _callbacks=self.callbacks)
+        if not args.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session

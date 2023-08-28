@@ -346,17 +346,6 @@ class Model:
             self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
         return self.metrics
 
-    def to(self, device):
-        """
-        Sends the model to the given device.
-
-        Args:
-            device (str): device
-        """
-        self._check_is_pytorch_model()
-        self.model.to(device)
-        return self
-
     def tune(self, use_ray=False, iterations=10, *args, **kwargs):
         """
         Runs hyperparameter tuning, optionally using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
@@ -370,11 +359,21 @@ class Model:
             return run_ray_tune(self, max_samples=iterations, *args, **kwargs)
         else:
             from .tuner import Tuner
-            overrides = self.overrides.copy()
-            overrides.update(kwargs)
-            args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
-            args.task = self.task
+
+            custom = {}  # method defaults
+            args = {**self.overrides, **custom, **kwargs, 'mode': 'export'}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(model=self.model, iterations=iterations)
+
+    def to(self, device):
+        """
+        Sends the model to the given device.
+
+        Args:
+            device (str): device
+        """
+        self._check_is_pytorch_model()
+        self.model.to(device)
+        return self
 
     @property
     def names(self):

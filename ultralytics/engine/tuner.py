@@ -18,13 +18,12 @@ Example:
 """
 import random
 import time
-from pathlib import Path
 
 import numpy as np
-import yaml
 
 from ultralytics import YOLO
-from ultralytics.utils import DEFAULT_CFG, SETTINGS, callbacks
+from ultralytics.cfg import get_cfg, get_save_dir
+from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr
 
 
 class Tuner:
@@ -52,7 +51,7 @@ class Tuner:
          from ultralytics import YOLO
 
          model = YOLO('yolov8n.pt')
-         model.tune(data='coco8.yaml', imgsz=640, epochs=30, iterations=300)
+         model.tune(data='coco8.yaml', imgsz=64, epochs=1, iterations=3)
          ```
      """
 
@@ -63,7 +62,7 @@ class Tuner:
         Args:
             args (dict, optional): Configuration for hyperparameter evolution.
         """
-        self.args = args
+        self.args = get_cfg(overrides=args)
         self.space = {
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
             'lr0': (1e-5, 1e-1),
@@ -87,24 +86,26 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
-        self.save_dir = Path(SETTINGS['runs_dir']) / self.args.task
-        self.evolve_csv = self.save_dir / 'evolve.csv'
+        self.tune_dir = get_save_dir(self.args, name='tune')
+        self.evolve_csv = self.tune_dir / 'evolve.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
+        LOGGER.info(f"Initialized Tuner instance with 'tune_dir={self.tune_dir}'.")
 
-    def _mutate(self, hyp):
+    def _mutate(self, parent='single', mutation=0.8, sigma=0.2):
         """
         Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
-            hyp (dict): Dictionary containing current hyperparameters.
+            parent (str): Parent selection method: 'single' or 'weighted'.
+            mutation (float): Probability of a parameter mutation in any given iteration.
+            sigma (float): Standard deviation for Gaussian random number generator.
 
         Returns:
             (dict): A dictionary containing mutated hyperparameters.
         """
         if self.evolve_csv.exists():  # if evolve.csv exists: select best hyps and mutate
             # Select parent(s)
-            parent = 'single'  # parent selection method: 'single' or 'weighted'
             x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
             fitness = x[:, 0]  # first column
             n = min(5, len(x))  # number of previous results to consider
@@ -117,16 +118,16 @@ class Tuner:
                 x = (x * w.reshape(n, 1)).sum(0) / w.sum()  # weighted combination
 
             # Mutate
-            mp, s = 0.8, 0.2  # mutation probability, sigma
-            npr = np.random
-            npr.seed(int(time.time()))
-            g = np.array([self.space[k][0] for k in hyp.keys()])  # gains 0-1
+            r = np.random  # method
+            r.seed(int(time.time()))
+            g = np.array([self.space[k][0] for k in self.space.keys()])  # gains 0-1
             ng = len(self.space)
             v = np.ones(ng)
             while all(v == 1):  # mutate until a change occurs (prevent duplicates)
-                v = (g * (npr.random(ng) < mp) * npr.randn(ng) * npr.random() * s + 1).clip(0.3, 3.0)
-            for i, k in enumerate(hyp.keys()):  # plt.hist(v.ravel(), 300)
-                hyp[k] = float(x[i + 1] * v[i])  # mutate
+                v = (g * (r.random(ng) < mutation) * r.randn(ng) * r.random() * sigma + 1).clip(0.3, 3.0)
+            hyp = {k: float(x[i + 1] * v[i]) for i, k in enumerate(self.space.keys())}
+        else:
+            hyp = {k: getattr(self.args, k) for k in self.space.keys()}
 
         # Constrain to limits
         for k, v in self.space.items():
@@ -136,7 +137,7 @@ class Tuner:
 
         return hyp
 
-    def __call__(self, model=None, iterations=10):
+    def __call__(self, model=None, iterations=10, prefix=colorstr('Tuner:')):
         """
         Executes the hyperparameter evolution process when the Tuner instance is called.
 
@@ -154,18 +155,12 @@ class Tuner:
            The method utilizes the `self.evolve_csv` Path object to read and log hyperparameters and fitness scores.
            Ensure this path is set correctly in the Tuner instance.
         """
-        self.save_dir.mkdir(parents=True, exist_ok=True)
-        for gen in range(iterations):
-            # Load or initialize hyperparameters
-            if self.evolve_csv.exists():
-                with open(self.evolve_csv) as f:
-                    hyp = yaml.safe_load(f)
-            else:
-                hyp = {k: v for k, v in vars(self.args).items() if k in self.space}  # default hyps
 
+        self.tune_dir.mkdir(parents=True, exist_ok=True)
+        for i in range(iterations):
             # Mutate hyperparameters
-            mutated_hyp = self._mutate(hyp)
-            print(f'Running generation {gen + 1} with hyperparameters: {mutated_hyp}')
+            mutated_hyp = self._mutate()
+            LOGGER.info(f'{prefix} Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}')
 
             # Initialize and train YOLOv8 model
             model = YOLO('yolov8n.pt')
@@ -173,7 +168,9 @@ class Tuner:
             results = model.train(**train_args)
 
             # Save results and mutated_hyp to evolve_csv
-            fitness_score = results.fitness  # Replace this with the metric you want to use for fitness
-            log_row = [fitness_score] + [mutated_hyp[k] for k in self.space.keys()]
+            headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
+            log_row = [results.fitness] + [mutated_hyp[k] for k in self.space.keys()]
             with open(self.evolve_csv, 'a') as f:
-                f.write(','.join(map(str, log_row)) + '\n')
+                f.write(headers + ','.join(map(str, log_row)) + '\n')
+
+        LOGGER.info(f'{prefix} All iterations complete. Results saved to {colorstr("bold", self.tune_dir)}')

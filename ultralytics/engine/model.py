@@ -257,7 +257,6 @@ class Model:
 
         Returns:
             (List[ultralytics.engine.results.Results]): The tracking results.
-
         """
         if not hasattr(self.predictor, 'trackers'):
             from ultralytics.trackers import register_tracker

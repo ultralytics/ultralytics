@@ -106,7 +106,7 @@ class Tuner:
             # Select parent(s)
             parent = 'single'  # parent selection method: 'single' or 'weighted'
             x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
-            fitness = x[:, -1]  # last column
+            fitness = x[:, 0]  # first column
             n = min(5, len(x))  # number of previous results to consider
             x = x[np.argsort(-fitness)][:n]  # top n mutations
             w = fitness - fitness.min() + 1E-6  # weights (sum > 0)
@@ -126,13 +126,15 @@ class Tuner:
             while all(v == 1):  # mutate until a change occurs (prevent duplicates)
                 v = (g * (npr.random(ng) < mp) * npr.randn(ng) * npr.random() * s + 1).clip(0.3, 3.0)
             for i, k in enumerate(hyp.keys()):  # plt.hist(v.ravel(), 300)
-                hyp[k] = float(x[i + 7] * v[i])  # mutate
+                hyp[k] = float(x[i + 1] * v[i])  # mutate
 
         # Constrain to limits
         for k, v in self.space.items():
             hyp[k] = max(hyp[k], v[0])  # lower limit
             hyp[k] = min(hyp[k], v[1])  # upper limit
             hyp[k] = round(hyp[k], 5)  # significant digits
+
+        return hyp
 
     def __call__(self, model=None, iterations=10):
         """
@@ -159,7 +161,7 @@ class Tuner:
                 with open(self.evolve_csv) as f:
                     hyp = yaml.safe_load(f)
             else:
-                hyp = {}  # Initialize your default hyperparameters here
+                hyp = {k: v for k, v in vars(self.args).items() if k in self.space}  # default hyps
 
             # Mutate hyperparameters
             mutated_hyp = self._mutate(hyp)
@@ -167,7 +169,8 @@ class Tuner:
 
             # Initialize and train YOLOv8 model
             model = YOLO('yolov8n.pt')
-            results = model.train(**{**vars(self.args), **mutated_hyp})
+            train_args = {**vars(self.args), **mutated_hyp}
+            results = model.train(**train_args)
 
             # Save results and mutated_hyp to evolve_csv
             fitness_score = results.fitness  # Replace this with the metric you want to use for fitness

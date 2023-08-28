@@ -85,7 +85,7 @@ def test_model_tune():
         YOLO('yolov8n-cls.yaml').tune(use_ray=True,
                                       data='imagenet10',
                                       grace_period=1,
-                                      max_samples=1,
+                                      iterations=1,
                                       imgsz=32,
                                       epochs=1,
                                       plots=False,

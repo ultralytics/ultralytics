@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from ultralytics.cfg import get_cfg, get_save_dir
+from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis,
@@ -369,6 +369,8 @@ class Model:
         if overrides.get('resume'):
             overrides['resume'] = self.ckpt_path
         self.task = overrides.get('task') or self.task
+        if 'data' not in kwargs:
+            overrides['data'] = TASK2DATA[self.task]
         trainer = trainer or self.smart_load('trainer')
         self.trainer = trainer(overrides=overrides, _callbacks=self.callbacks)
         if not overrides.get('resume'):  # manually set model only if not resuming
@@ -394,7 +396,7 @@ class Model:
         self.model.to(device)
         return self
 
-    def tune(self, use_ray=False, *args, **kwargs):
+    def tune(self, use_ray=False, iterations=10, *args, **kwargs):
         """
         Runs hyperparameter tuning, optionally using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
 
@@ -404,14 +406,14 @@ class Model:
         self._check_is_pytorch_model()
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
-            return run_ray_tune(self, *args, **kwargs)
+            return run_ray_tune(self, max_samples=iterations, *args, **kwargs)
         else:
             from .tuner import Tuner
             overrides = self.overrides.copy()
             overrides.update(kwargs)
             args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
             args.task = self.task
-            return Tuner(args=args, _callbacks=self.callbacks)(model=self.model)
+            return Tuner(args=args, _callbacks=self.callbacks)(model=self.model, iterations=iterations)
 
     @property
     def names(self):

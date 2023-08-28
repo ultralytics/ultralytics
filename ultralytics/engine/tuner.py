@@ -16,7 +16,8 @@ Example:
     model.tune(data='coco8.yaml', imgsz=640, epochs=30, iterations=300)
     ```
 """
-
+import random
+import time
 from pathlib import Path
 
 import numpy as np
@@ -101,11 +102,37 @@ class Tuner:
         Returns:
             (dict): A dictionary containing mutated hyperparameters.
         """
+        if self.evolve_csv.exists():  # if evolve.csv exists: select best hyps and mutate
+            # Select parent(s)
+            parent = 'single'  # parent selection method: 'single' or 'weighted'
+            x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
+            fitness = x[:, -1]  # last column
+            n = min(5, len(x))  # number of previous results to consider
+            x = x[np.argsort(-fitness)][:n]  # top n mutations
+            w = fitness - fitness.min() + 1E-6  # weights (sum > 0)
+            if parent == 'single' or len(x) == 1:
+                # x = x[random.randint(0, n - 1)]  # random selection
+                x = x[random.choices(range(n), weights=w)[0]]  # weighted selection
+            elif parent == 'weighted':
+                x = (x * w.reshape(n, 1)).sum(0) / w.sum()  # weighted combination
+
+            # Mutate
+            mp, s = 0.8, 0.2  # mutation probability, sigma
+            npr = np.random
+            npr.seed(int(time.time()))
+            g = np.array([self.space[k][0] for k in hyp.keys()])  # gains 0-1
+            ng = len(self.space)
+            v = np.ones(ng)
+            while all(v == 1):  # mutate until a change occurs (prevent duplicates)
+                v = (g * (npr.random(ng) < mp) * npr.randn(ng) * npr.random() * s + 1).clip(0.3, 3.0)
+            for i, k in enumerate(hyp.keys()):  # plt.hist(v.ravel(), 300)
+                hyp[k] = float(x[i + 7] * v[i])  # mutate
+
+        # Constrain to limits
         for k, v in self.space.items():
-            scale, lower, upper = v
-            x = hyp.get(k, 0)  # get value or 0 if not exist
-            hyp[k] = np.clip(x * np.random.uniform(1 - scale, 1 + scale), lower, upper)
-        return hyp
+            hyp[k] = max(hyp[k], v[0])  # lower limit
+            hyp[k] = min(hyp[k], v[1])  # upper limit
+            hyp[k] = round(hyp[k], 5)  # significant digits
 
     def __call__(self, model=None, iterations=10):
         """
@@ -139,8 +166,8 @@ class Tuner:
             print(f'Running generation {gen + 1} with hyperparameters: {mutated_hyp}')
 
             # Initialize and train YOLOv8 model
-            model = YOLO('yolov8n.yaml').load('yolov8n.pt')
-            results = model.train(data='coco128.yaml', epochs=100, imgsz=640, **mutated_hyp)
+            model = YOLO('yolov8n.pt')
+            results = model.train(**{**vars(self.args), **mutated_hyp})
 
             # Save results and mutated_hyp to evolve_csv
             fitness_score = results.fitness  # Replace this with the metric you want to use for fitness

@@ -38,7 +38,7 @@ from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox, classify_transforms
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops, INTEGRATION_CALLBACKS
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
@@ -106,7 +106,8 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
-        callbacks.add_integration_callbacks(self)
+        if INTEGRATION_CALLBACKS:
+            callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
         """Prepares input image before inference.

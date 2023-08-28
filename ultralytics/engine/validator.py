@@ -29,7 +29,7 @@ from tqdm import tqdm
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, callbacks, colorstr, emojis
+from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, callbacks, colorstr, emojis, INTEGRATION_CALLBACKS
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
@@ -119,7 +119,8 @@ class BaseValidator:
             self.args.plots = trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
-            callbacks.add_integration_callbacks(self)
+            if INTEGRATION_CALLBACKS:
+                callbacks.add_integration_callbacks(self)
             self.run_callbacks('on_val_start')
             model = AutoBackend(model or self.args.model,
                                 device=select_device(self.args.device, self.args.batch),

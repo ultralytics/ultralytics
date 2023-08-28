@@ -29,7 +29,7 @@ from tqdm import tqdm
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, callbacks, colorstr, emojis, INTEGRATION_CALLBACKS
+from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, callbacks, colorstr, emojis, INTEGRATION_CALLBACKS, VERBOSE
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
@@ -160,7 +160,7 @@ class BaseValidator:
         # NOTE: keeping `not self.training` in tqdm will eliminate pbar after segmentation evaluation during training,
         # which may affect classification task since this arg is in yolov5/classify/val.py.
         # bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
-        bar = tqdm(self.dataloader, desc, n_batches, bar_format=TQDM_BAR_FORMAT)
+        bar = tqdm(self.dataloader, desc, n_batches, bar_format=TQDM_BAR_FORMAT, disable=not VERBOSE)
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):

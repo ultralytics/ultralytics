@@ -222,7 +222,7 @@ class Model:
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
 
-        custom = {'imgsz': self.model.args['imgsz'], 'conf': 0.25}  # method defaults
+        custom = {'conf': 0.25}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'predict'}  # highest priority args on the right
         if not is_cli:
             args['save'] = kwargs.get('save', False)  # do not save by default if called in Python

@@ -816,21 +816,22 @@ class Exporter:
         input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
 
         # Create output info
-        output1 = _metadata_fb.TensorMetadataT()
-        output1.name = 'output'
-        output1.description = 'Coordinates of detected objects, class labels, and confidence score'
-        output1.associatedFiles = [label_file]
-        if self.model.task == 'segment':
-            output2 = _metadata_fb.TensorMetadataT()
-            output2.name = 'output'
-            output2.description = 'Mask protos'
-            output2.associatedFiles = [label_file]
-
-        # Create subgraph info
-        subgraph = _metadata_fb.SubGraphMetadataT()
-        subgraph.inputTensorMetadata = [input_meta]
-        subgraph.outputTensorMetadata = [output1, output2] if self.model.task == 'segment' else [output1]
-        model_meta.subgraphMetadata = [subgraph]
+        if not self.args.separate_outputs:
+            output1 = _metadata_fb.TensorMetadataT()
+            output1.name = 'output'
+            output1.description = 'Coordinates of detected objects, class labels, and confidence score'
+            output1.associatedFiles = [label_file]
+            if self.model.task == 'segment':
+                output2 = _metadata_fb.TensorMetadataT()
+                output2.name = 'output'
+                output2.description = 'Mask protos'
+                output2.associatedFiles = [label_file]
+    
+            # Create subgraph info
+            subgraph = _metadata_fb.SubGraphMetadataT()
+            subgraph.inputTensorMetadata = [input_meta]
+            subgraph.outputTensorMetadata = [output1, output2] if self.model.task == 'segment' else [output1]
+            model_meta.subgraphMetadata = [subgraph]
 
         b = flatbuffers.Builder(0)
         b.Finish(model_meta.Pack(b), _metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)

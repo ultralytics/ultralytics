@@ -24,9 +24,6 @@ CFG = 'yolov8n.yaml'
 SOURCE = ASSETS / 'bus.jpg'
 TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
-f = YOLO(MODEL).export(format='coreml', nms=True)
-YOLO(f)(np.random.rand(640, 640, 3))
-
 
 def test_model_forward():
     model = YOLO(CFG)

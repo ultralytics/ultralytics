@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import torch
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
@@ -30,7 +31,7 @@ class PosePredictor(DetectionPredictor):
     def postprocess(self, preds, img, orig_imgs):
         """Return detection results for a given input image or list of images."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            pred_order = decode_bbox(preds[:6], img_shape, self.device)
+            pred_order = decode_bbox(preds[:6], img.shape, self.device)
             pred_order = torch.cat([pred_order, preds[-1]], 1)
             preds= ops.non_max_suppression(pred_order,
                                         self.args.conf,

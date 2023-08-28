@@ -739,7 +739,7 @@ class Exporter:
         cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
-        # self._add_tflite_metadata(f)
+        self._add_tflite_metadata(f)
         return f, None
 
     @try_export

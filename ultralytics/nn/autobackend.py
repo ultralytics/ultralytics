@@ -199,6 +199,9 @@ class AutoBackend(nn.Module):
             import coremltools as ct
             model = ct.models.MLModel(w)
             metadata = dict(model.user_defined_metadata)
+            assert 'confidenceThreshold' not in model.input_description, \
+                ("Ultralytics only supports inference of non-pipelined CoreML models exported with 'nms=False', "
+                 "but 'model={w}' has an NMS pipeline created by an 'nms=True' export.")
         elif saved_model:  # TF SavedModel
             LOGGER.info(f'Loading {w} for TensorFlow SavedModel inference...')
             import tensorflow as tf
@@ -364,7 +367,7 @@ class AutoBackend(nn.Module):
             y = self.model.predict({'image': im_pil})  # coordinates are xywh normalized
             if 'confidence' in y:
                 box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
-                conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float)
+                conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float32)
                 y = np.concatenate((box, conf.reshape(-1, 1), cls.reshape(-1, 1)), 1)
             elif len(y) == 1:  # classification model
                 y = list(y.values())

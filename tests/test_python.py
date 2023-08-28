@@ -24,6 +24,9 @@ CFG = 'yolov8n.yaml'
 SOURCE = ASSETS / 'bus.jpg'
 TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
+f = YOLO(MODEL).export(format='coreml', nms=True)
+YOLO(f)(np.random.rand(640, 640, 3))
+
 
 def test_model_forward():
     model = YOLO(CFG)
@@ -182,9 +185,11 @@ def test_export_openvino():
 
 def test_export_coreml():
     if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
-        f = YOLO(MODEL).export(format='coreml', nms=True)
         if MACOS:
-            YOLO(f)(SOURCE)  # model prediction only supported on macOS
+            f = YOLO(MODEL).export(format='coreml')
+            YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
+        else:
+            YOLO(MODEL).export(format='coreml', nms=True)
 
 
 def test_export_tflite(enabled=False):

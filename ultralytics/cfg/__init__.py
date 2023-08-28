@@ -186,6 +186,7 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
     Args:
         custom (dict): a dictionary of custom configuration options
         base (dict): a dictionary of base configuration options
+        e (Error, optional): An optional error that is passed by the calling function.
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))

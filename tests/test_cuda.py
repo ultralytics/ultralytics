@@ -35,7 +35,7 @@ def test_train():
 def test_autobatch():
     from ultralytics.utils.autobatch import check_train_batch_size
 
-    check_train_batch_size(YOLO(MODEL).model, imgsz=128, amp=True)
+    check_train_batch_size(YOLO(MODEL).model.cuda(), imgsz=128, amp=True)
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')

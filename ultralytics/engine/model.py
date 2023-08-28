@@ -381,6 +381,7 @@ class Model:
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
             self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
+        return self.metrics
 
     def to(self, device):
         """

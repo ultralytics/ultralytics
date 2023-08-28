@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from ultralytics.cfg import get_cfg
+from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.engine.exporter import Exporter
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
@@ -239,7 +239,7 @@ class Model:
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
             if 'project' in overrides or 'name' in overrides:
-                self.predictor.save_dir = self.predictor.get_save_dir()
+                self.predictor.save_dir = get_save_dir(self.predictor.args)
         # Set prompts for SAM/FastSAM
         if len and hasattr(self.predictor, 'set_prompts'):
             self.predictor.set_prompts(prompts)

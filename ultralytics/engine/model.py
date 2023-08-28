@@ -8,7 +8,7 @@ from typing import Union
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis,
+from ultralytics.utils import (ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis,
                                yaml_load)
 from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
@@ -219,28 +219,25 @@ class Model:
         if source is None:
             source = ASSETS
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
+
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
-        # Check prompts for SAM/FastSAM
-        prompts = kwargs.pop('prompts', None)
-        overrides = self.overrides.copy()
-        overrides['conf'] = 0.25
-        overrides.update(kwargs)  # prefer kwargs
-        overrides['mode'] = kwargs.get('mode', 'predict')
-        assert overrides['mode'] in ['track', 'predict']
+
+        custom = {'imgsz': self.model.args['imgsz'], 'conf': 0.25}  # method defaults
+        args = {**self.overrides, **custom, **kwargs, 'mode': 'predict'}  # highest priority args on the right
         if not is_cli:
-            overrides['save'] = kwargs.get('save', False)  # do not save by default if called in Python
+            args['save'] = kwargs.get('save', False)  # do not save by default if called in Python
+
         if not self.predictor:
-            predictor = predictor or self.smart_load('predictor')
-            self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
+            self.predictor = (predictor or self.smart_load('predictor'))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
-            self.predictor.args = get_cfg(self.predictor.args, overrides)
-            if 'project' in overrides or 'name' in overrides:
+            self.predictor.args = get_cfg(self.predictor.args, args)
+            if 'project' in args or 'name' in args:
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
         # Set prompts for SAM/FastSAM
-        if len and hasattr(self.predictor, 'set_prompts'):
-            self.predictor.set_prompts(prompts)
+        if 'prompts' in kwargs and hasattr(self.predictor, 'set_prompts'):
+            self.predictor.set_prompts(kwargs.pop('prompts', None))
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):
@@ -260,36 +257,26 @@ class Model:
             from ultralytics.trackers import register_tracker
             register_tracker(self, persist)
         # ByteTrack-based method needs low confidence predictions as input
-        conf = kwargs.get('conf') or 0.1
-        kwargs['conf'] = conf
+        kwargs['conf'] = kwargs.get('conf') or 0.1
         kwargs['mode'] = 'track'
         return self.predict(source=source, stream=stream, **kwargs)
 
     @smart_inference_mode()
-    def val(self, data=None, validator=None, **kwargs):
+    def val(self, validator=None, **kwargs):
         """
         Validate a model on a given dataset.
 
         Args:
-            data (str): The dataset to validate on. Accepts all formats accepted by yolo
             validator (BaseValidator): Customized validator.
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
-        overrides = self.overrides.copy()
-        overrides['rect'] = True  # rect batches as default
-        overrides.update(kwargs)
-        overrides['mode'] = 'val'
-        if overrides.get('imgsz') is None:
-            overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
-        args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
-        args.data = data or args.data
-        validator = validator or self.smart_load('validator')
-        args.imgsz = check_imgsz(args.imgsz, max_dim=1)
+        custom = {'imgsz': self.model.args['imgsz'], 'rect': True}  # method defaults
+        args = {**self.overrides, **custom, **kwargs, 'mode': 'val'}  # highest priority args on the right
+        args['imgsz'] = check_imgsz(args['imgsz'], max_dim=1)
 
-        validator = validator(args=args, _callbacks=self.callbacks)
+        validator = (validator or self.smart_load('validator'))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
-
         return validator.metrics
 
     @smart_inference_mode()
@@ -304,14 +291,14 @@ class Model:
         from ultralytics.utils.benchmarks import benchmark
 
         custom = {'verbose': False}  # method defaults
-        args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, 'mode': 'benchmark'}
+        args = {**self.model.args, **custom, **kwargs, 'mode': 'benchmark'}
         return benchmark(model=self,
-                         data=args['data'],
+                         data=kwargs.get('data'),  # if no 'data' argument passed set data=None for default datasets
                          imgsz=args['imgsz'],
                          half=args['half'],
                          int8=args['int8'],
                          device=args['device'],
-                         verbose=args['verbose'])
+                         verbose=kwargs.get('verbose'))
 
     def export(self, **kwargs):
         """

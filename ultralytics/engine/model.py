@@ -305,14 +305,13 @@ class Model:
 
         custom = {'verbose': False}  # method defaults
         args = {**self.model.args, **custom, **kwargs, 'mode': 'benchmark'}  # highest priority args on the right
-        return benchmark(
-            model=self,
-            data=args['data'],
-            imgsz=args['imgsz'],
-            half=args['half'],
-            int8=args['int8'],
-            device=args['device'],
-            verbose=args['verbose'])
+        return benchmark(model=self,
+                         data=args['data'],
+                         imgsz=args['imgsz'],
+                         half=args['half'],
+                         int8=args['int8'],
+                         device=args['device'],
+                         verbose=args['verbose'])
 
     def export(self, **kwargs):
         """

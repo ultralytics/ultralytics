@@ -143,7 +143,7 @@ class Pose(Detect):
         if self.training:
             return x, kpt
         if self.separate_outputs and self.export:
-            return x, self.kpts_decode(bs, torch.permute(kpt, (0,2,1)))
+            return x, torch.permute(self.kpts_decode(bs, kpt),(0,2,1))
         pred_kpt = self.kpts_decode(bs, kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
     

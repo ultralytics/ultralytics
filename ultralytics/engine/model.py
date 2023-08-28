@@ -222,7 +222,7 @@ class Model:
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
 
-        custom = {'conf': 0.25, 'save': False if is_cli else DEFAULT_CFG_DICT['save']}  # method defaults
+        custom = {'conf': 0.25, 'save': is_cli}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'predict'}  # highest priority args on the right
         prompts = args.pop('prompts', None)  # for SAM-type models
 

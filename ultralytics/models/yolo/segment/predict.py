@@ -4,6 +4,7 @@ from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, ops
 from ultralytics.utils.postprocess_utils import decode_bbox
+import torch
 
 class SegmentationPredictor(DetectionPredictor):
     """

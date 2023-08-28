@@ -355,15 +355,15 @@ class DeformableTransformerDecoder(nn.Module):
         for i, layer in enumerate(self.layers):
             output = layer(output, refer_bbox, feats, shapes, padding_mask, attn_mask, pos_mlp(refer_bbox))
 
-            # refine bboxes, (bs, num_queries+num_denoising, 4)
-            refined_bbox = torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(refer_bbox))
+            bbox = bbox_head[i](output)
+            refined_bbox = torch.sigmoid(bbox + inverse_sigmoid(refer_bbox))
 
             if self.training:
                 dec_cls.append(score_head[i](output))
                 if i == 0:
                     dec_bboxes.append(refined_bbox)
                 else:
-                    dec_bboxes.append(torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(last_refined_bbox)))
+                    dec_bboxes.append(torch.sigmoid(bbox + inverse_sigmoid(last_refined_bbox)))
             elif i == self.eval_idx:
                 dec_cls.append(score_head[i](output))
                 dec_bboxes.append(refined_bbox)

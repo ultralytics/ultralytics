@@ -215,6 +215,7 @@ nav:
   - Guides:
       - guides/index.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
+      - Hyperparameter Tuning: guides/hyperparameter-tuning.md
   - Integrations:
       - integrations/index.md
       - OpenVINO: integrations/openvino.md

@@ -211,21 +211,21 @@ factors that may affect the augmentation process include the size and compositio
 specific task the model is being used for. It is important to carefully tune and experiment with these settings to
 ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
 
-| Key           | Value | Description                                     |
-|---------------|-------|-------------------------------------------------|
-| `hsv_h`       | 0.015 | image HSV-Hue augmentation (fraction)           |
-| `hsv_s`       | 0.7   | image HSV-Saturation augmentation (fraction)    |
-| `hsv_v`       | 0.4   | image HSV-Value augmentation (fraction)         |
-| `degrees`     | 0.0   | image rotation (+/- deg)                        |
-| `translate`   | 0.1   | image translation (+/- fraction)                |
-| `scale`       | 0.5   | image scale (+/- gain)                          |
-| `shear`       | 0.0   | image shear (+/- deg)                           |
-| `perspective` | 0.0   | image perspective (+/- fraction), range 0-0.001 |
-| `flipud`      | 0.0   | image flip up-down (probability)                |
-| `fliplr`      | 0.5   | image flip left-right (probability)             |
-| `mosaic`      | 1.0   | image mosaic (probability)                      |
-| `mixup`       | 0.0   | image mixup (probability)                       |
-| `copy_paste`  | 0.0   | segment copy-paste (probability)                |
+| Key           | Value   | Description                                     |
+|---------------|---------|-------------------------------------------------|
+| `hsv_h`       | `0.015` | image HSV-Hue augmentation (fraction)           |
+| `hsv_s`       | `0.7`   | image HSV-Saturation augmentation (fraction)    |
+| `hsv_v`       | `0.4`   | image HSV-Value augmentation (fraction)         |
+| `degrees`     | `0.0`   | image rotation (+/- deg)                        |
+| `translate`   | `0.1`   | image translation (+/- fraction)                |
+| `scale`       | `0.5`   | image scale (+/- gain)                          |
+| `shear`       | `0.0`   | image shear (+/- deg)                           |
+| `perspective` | `0.0`   | image perspective (+/- fraction), range 0-0.001 |
+| `flipud`      | `0.0`   | image flip up-down (probability)                |
+| `fliplr`      | `0.5`   | image flip left-right (probability)             |
+| `mosaic`      | `1.0`   | image mosaic (probability)                      |
+| `mixup`       | `0.0`   | image mixup (probability)                       |
+| `copy_paste`  | `0.0`   | segment copy-paste (probability)                |
 
 ## Logging, checkpoints, plotting and file management
 

@@ -14,6 +14,7 @@ Example:
 
     model = YOLO('yolov8n.pt')
     model.tune(data='coco8.yaml', imgsz=640, epochs=30, iterations=300)
+    ```
 """
 
 from pathlib import Path
@@ -38,19 +39,19 @@ class Tuner:
          evolve_csv (Path): Path to the CSV file where evolution logs are saved.
 
      Methods:
-         mutate(hyp: dict) -> dict:
+         _mutate(hyp: dict) -> dict:
              Mutates the given hyperparameters within the bounds specified in `self.space`.
 
-         run_evolution():
+         __call__():
              Executes the hyperparameter evolution across multiple iterations.
 
      Example:
+         Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
          ```python
          from ultralytics import YOLO
 
          model = YOLO('yolov8n.pt')
-         tuner = Tuner(iterations=300)
-         tuner.run_evolution()
+         model.tune(data='coco8.yaml', imgsz=640, epochs=30, iterations=300)
          ```
      """
 

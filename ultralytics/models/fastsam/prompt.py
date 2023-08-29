@@ -49,16 +49,14 @@ class FastSAMPrompt:
         n = len(result.masks.data)
         for i in range(n):
             mask = result.masks.data[i] == 1.0
-
-            if torch.sum(mask) < filter:
-                continue
-            annotation = {
-                'id': i,
-                'segmentation': mask.cpu().numpy(),
-                'bbox': result.boxes.data[i],
-                'score': result.boxes.conf[i]}
-            annotation['area'] = annotation['segmentation'].sum()
-            annotations.append(annotation)
+            if torch.sum(mask) >= filter:
+                annotation = {
+                    'id': i,
+                    'segmentation': mask.cpu().numpy(),
+                    'bbox': result.boxes.data[i],
+                    'score': result.boxes.conf[i]}
+                annotation['area'] = annotation['segmentation'].sum()
+                annotations.append(annotation)
         return annotations
 
     @staticmethod

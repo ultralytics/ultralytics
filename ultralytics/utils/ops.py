@@ -17,6 +17,16 @@ from ultralytics.utils import LOGGER
 class Profile(contextlib.ContextDecorator):
     """
     YOLOv8 Profile class. Use as a decorator with @Profile() or as a context manager with 'with Profile():'.
+
+    Example:
+        ```python
+        from ultralytics.utils.ops import Profile
+
+        with Profile() as dt:
+            pass  # slow operation here
+
+        print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
+        ```
     """
 
     def __init__(self, t=0.0):
@@ -38,6 +48,9 @@ class Profile(contextlib.ContextDecorator):
         """Stop timing."""
         self.dt = self.time() - self.start  # delta-time
         self.t += self.dt  # accumulate dt
+
+    def __str__(self):
+        return f'Elapsed time is {self.t} s'
 
     def time(self):
         """Get current time."""

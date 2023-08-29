@@ -124,7 +124,7 @@ class FastSAMPrompt:
                 target_height=original_h,
                 target_width=original_w,
             )
- 
+
             if withContours:
                 contour_all = []
                 temp = np.zeros((original_h, original_w, 1))

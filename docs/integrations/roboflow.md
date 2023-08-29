@@ -116,7 +116,7 @@ For example, the following text query finds images that contain people in a data
 You can narrow your search to images with a particular tag using the "Tags" selector:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_filter_by_tag.png" alt="Filter images by tag" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_filter_by_tag.png" alt="Filter images by tag" width="350"/>
 </p>
 
 Before you start training a model with your dataset, we recommend using Roboflow [Health Check](https://docs.roboflow.com/datasets/dataset-health-check), a web tool that provides an insight into your dataset and how you can improve the dataset prior to training a vision model.

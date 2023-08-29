@@ -24,7 +24,7 @@ class FastSAMPrompt:
             import clip  # for linear_assignment
         except ImportError:
             from ultralytics.utils.checks import check_requirements
-            check_requirements('git+https://github.com/openai/CLIP.git')  # required before installing lap from source
+            check_requirements('git+https://github.com/openai/CLIP.git')
             import clip
         self.clip = clip
 

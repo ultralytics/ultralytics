@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from PIL import Image
 from tqdm import tqdm
+
 from ultralytics.utils import TQDM_BAR_FORMAT
 
 
@@ -158,7 +159,7 @@ class FastSAMPrompt:
             img_array = np.frombuffer(buf, dtype=np.uint8).reshape(rows, cols, 3)
             cv2.imwrite(os.path.join(save_path, result_name), cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR))
             plt.close()
-            pbar.set_description("Saving {} to {}".format(result_name, os.path.join(save_path, result_name)))
+            pbar.set_description('Saving {} to {}'.format(result_name, os.path.join(save_path, result_name)))
 
     @staticmethod
     def fast_show_mask(

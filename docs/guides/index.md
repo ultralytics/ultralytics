@@ -15,5 +15,6 @@ Whether you're a beginner or an expert in deep learning, our tutorials offer val
 Here's a compilation of in-depth guides to help you master different aspects of Ultralytics YOLO.
 
 * [K-Fold Cross Validation](kfold-cross-validation.md) 🚀 NEW: Learn how to improve model generalization using K-Fold cross-validation technique.
+* [Hyperparameter Tuning](hyperparameter-tuning.md) 🚀 NEW: Discover how to optimize your YOLO models by fine-tuning hyperparameters using the Tuner class and genetic evolution algorithms.
 
 Note: More guides about training, exporting, predicting, and deploying with Ultralytics YOLO are coming soon. Stay tuned!

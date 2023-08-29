@@ -86,7 +86,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     if export_hw_optimized == True:
         model_yaml = "/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/" +model.ckpt_path.split("/")[-1].replace("n.pt", ".yaml")
         print(model_yaml)
-        model = YOLO(model_yaml).load(model)
+        model = YOLO(model_yaml).load(model.ckpt_path)
     else:   
         if isinstance(model, (str, Path)):
             model = YOLO(model)

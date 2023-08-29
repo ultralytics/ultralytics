@@ -65,7 +65,7 @@ class PosePredictor(DetectionPredictor):
             orig_img = orig_imgs[i] if is_list else orig_imgs
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
             if self.separate_outputs == True:
-                pred_kpts = pred[:, 6:].view(len(pred), kpt_shape) if len(pred) else pred[:, 6:]
+                pred_kpts = pred[:, 6:].view(len(pred), 17, 3) if len(pred) else pred[:, 6:]
             else:
                 pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)

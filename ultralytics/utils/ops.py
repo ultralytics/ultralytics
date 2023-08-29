@@ -488,7 +488,7 @@ def xyxyxyxy2xywhr(corners):
     is_numpy = isinstance(corners, np.ndarray)
     atan2, sqrt = (np.arctan2, np.sqrt) if is_numpy else (torch.atan2, torch.sqrt)
 
-    x1, y1, x2, y2, x3, y3, x4, y4 = corners.T
+    x1, y1, x2, y2, x3, y3, _, _ = corners.T
     cx = (x1 + x3) / 2
     cy = (y1 + y3) / 2
     dx21 = x2 - x1
@@ -606,12 +606,12 @@ def crop_mask(masks, boxes):
     Returns:
         (torch.Tensor): The masks are being cropped to the bounding box.
     """
-    n, h, w = masks.shape
+    _, h, w = masks.shape
     x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
     r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
     c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
 
-    return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    return masks * ((x1 <= r < x2) * (y1 <= c < y2))
 
 
 def process_mask_upsample(protos, masks_in, bboxes, shape):

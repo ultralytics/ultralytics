@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to streamline hyperparameter tuning for YOLOv8 models with Ray Tune. Learn to accelerate tuning, integrate with Weights & Biases, and analyze results.
-keywords: Ultralytics, YOLOv8, Ray Tune, hyperparameter tuning, machine learning optimization, Weights & Biases integration, result analysis
+description: Learn how to use Roboflow with Ultralytics for labeling and managing images for use in training, and for evaluating model performance.
+keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data management, image labeling
 ---
 
 <style>
@@ -168,20 +168,22 @@ To access a confusion matrix, go to your model page on the Roboflow dashboard, t
 
 A pop up will appear showing a confusion matrix:
 
-[add image]
+![A confusion matrix](https://media.roboflow.com/ultralytics/rf_confusion_matrix.png)
 
-Click on a quadrant to see images in that quadrant. Click on an image to view the model predictions and ground truth data associated with that image.
+Hover over a box on the confusion matrix to see the value associated with the box. Click on a box to see images in the respective category. Click on an image to view the model predictions and ground truth data associated with that image.
 
 For more insights, click Vector Analysis. This will show a scatter plot of the images in your dataset, calculated using CLIP. The closer images are in the plot, the more similar they are, semantically. Ecah image is represented as a dot with a color between white and red. The more red the dot, the worse the model performed.
 
-[add vector analysis example]
+![A vector analysis plot](https://media.roboflow.com/ultralytics/rf_vector_analysis.png)
 
 You can use Vector Analysis to:
 
-Find clusters of images;
-Identify clusters where the model performs poorly, and;
-Visualize commonalities between images on which the model performs poorly.
-Learning Resources
+- Find clusters of images;
+- Identify clusters where the model performs poorly, and;
+- Visualize commonalities between images on which the model performs poorly.
+
+## Learning Resources
+
 Want to learn more about using Roboflow for creating YOLOv8 models? The following resources may be helpful in your work.
 
 - [Train YOLOv8 on a Custom Dataset](https://github.com/roboflow/notebooks/blob/main/notebooks/train-yolov8-object-detection-on-custom-dataset.ipynb): Follow our interactive notebook that shows you how to train a YOLOv8 model on a custom dataset.

@@ -50,7 +50,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
               int8=False,
               device='cpu',
               verbose=False,
-              seprate_outputs=False):
+              separate_outputs=False):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
 
@@ -100,16 +100,18 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 assert gpu, 'inference not supported on GPU'
 
             # Export
-            if format not in ('-','torchscript','saved_model','pb','ncnn'):
-                separate_outputs=True 
-            else:
-                separate_outputs=False
+            # if format not in ('-','torchscript','saved_model','pb','ncnn'):
+            #     separate_outputs=True 
+            # else:
+            #     separate_outputs=False
+            if format in ('-','torchscript','saved_model','pb','ncnn'):
+                continue
 
             if format == '-':
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False,separate_outputs=separate_outputs,export_hw_optimized=True)
+                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False,separate_outputs=separate_outputs)
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded

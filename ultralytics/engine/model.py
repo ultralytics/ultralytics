@@ -361,7 +361,7 @@ class Model:
             from .tuner import Tuner
 
             custom = {}  # method defaults
-            args = {**self.overrides, **custom, **kwargs, 'mode': 'export'}  # highest priority args on the right
+            args = {**self.overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(model=self.model, iterations=iterations)
 
     def to(self, device):

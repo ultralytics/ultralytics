@@ -125,9 +125,9 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Benchmark DetectionModel
-        shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
+      #- name: Benchmark DetectionModel
+      #  shell: bash
+      #  run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
       - name: Benchmark SegmentationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.30

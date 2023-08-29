@@ -6,8 +6,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ultralytics.nn.modules.block import DFL
-from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, NUM_THREADS, ops

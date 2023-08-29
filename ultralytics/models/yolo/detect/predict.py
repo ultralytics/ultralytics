@@ -1,10 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-import torch
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import ops
 from ultralytics.nn.modules.block import DFL
-from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 from ultralytics.utils.postprocess_utils import decode_bbox
 
 class DetectionPredictor(BasePredictor):
@@ -26,7 +24,6 @@ class DetectionPredictor(BasePredictor):
         """Post-processes predictions and returns a list of Results objects."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
             preds = decode_bbox(preds, img.shape, self.device)
-            print(self.args.classes)
             preds = ops.non_max_suppression(preds,
                                             self.args.conf,
                                             self.args.iou,

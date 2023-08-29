@@ -5,8 +5,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from ultralytics.nn.modules.block import DFL
-from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
@@ -43,7 +41,7 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
-        
+
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
         batch['img'] = batch['img'].to(self.device, non_blocking=True)
@@ -79,7 +77,6 @@ class DetectionValidator(BaseValidator):
     def get_desc(self):
         """Return a formatted string summarizing class metrics of YOLO model."""
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)')
-
 
     def postprocess(self, preds, img_shape):
         """Apply Non-maximum suppression to prediction outputs."""

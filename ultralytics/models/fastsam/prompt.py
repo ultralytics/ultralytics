@@ -61,20 +61,6 @@ class FastSAMPrompt:
         return annotations
 
     @staticmethod
-    def filter_masks(annotations):  # filter the overlap mask
-        annotations.sort(key=lambda x: x['area'], reverse=True)
-        to_remove = set()
-        for i in range(len(annotations)):
-            a = annotations[i]
-            for j in range(i + 1, len(annotations)):
-                b = annotations[j]
-                if i != j and j not in to_remove and b['area'] < a['area'] and \
-                        (a['segmentation'] & b['segmentation']).sum() / b['segmentation'].sum() > 0.8:
-                    to_remove.add(j)
-
-        return [a for i, a in enumerate(annotations) if i not in to_remove], to_remove
-
-    @staticmethod
     def _get_bbox_from_mask(mask):
         mask = mask.astype(np.uint8)
         contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -125,7 +111,19 @@ class FastSAMPrompt:
                 for i, mask in enumerate(masks):
                     mask = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
                     masks[i] = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_OPEN, np.ones((8, 8), np.uint8))
-                    
+
+            self.fast_show_mask(
+                masks,
+                plt.gca(),
+                random_color=mask_random_color,
+                bbox=bbox,
+                points=points,
+                pointlabel=point_label,
+                retinamask=retina,
+                target_height=original_h,
+                target_width=original_w,
+            )
+ 
             if withContours:
                 contour_all = []
                 temp = np.zeros((original_h, original_w, 1))
@@ -143,19 +141,6 @@ class FastSAMPrompt:
                 color = np.array([0 / 255, 0 / 255, 1.0, 0.8])
                 contour_mask = temp / 255 * color.reshape(1, 1, -1)
                 plt.imshow(contour_mask)
-
-            masks = torch.from_numpy(masks)
-            self.fast_show_mask(
-                masks,
-                plt.gca(),
-                random_color=mask_random_color,
-                bbox=bbox,
-                points=points,
-                pointlabel=point_label,
-                retinamask=retina,
-                target_height=original_h,
-                target_width=original_w,
-            )
 
             save_path = output
             if not os.path.exists(save_path):
@@ -175,8 +160,8 @@ class FastSAMPrompt:
             plt.close()
             pbar.set_description("Saving {} to {}".format(result_name, os.path.join(save_path, result_name)))
 
+    @staticmethod
     def fast_show_mask(
-        self,
         annotation,
         ax,
         random_color=False,
@@ -187,33 +172,29 @@ class FastSAMPrompt:
         target_height=960,
         target_width=960,
     ):
-        msak_sum = annotation.shape[0]
-        height = annotation.shape[1]
-        weight = annotation.shape[2]
-        areas = torch.sum(annotation, dim=(1, 2))
-        sorted_indices = torch.argsort(areas, descending=False)
-        annotation = annotation[sorted_indices]
-        # 找每个位置第一个非零值下标
-        index = (annotation != 0).to(torch.long).argmax(dim=0)
+        n, h, w = annotation.shape  # batch, height, width
+
+        areas = np.sum(annotation, axis=(1, 2))
+        annotation = annotation[np.argsort(areas)]
+
+        index = (annotation != 0).argmax(axis=0)
         if random_color:
-            color = torch.rand((msak_sum, 1, 1, 3)).to(annotation.device)
+            color = np.random.random((n, 1, 1, 3))
         else:
-            color = torch.ones((msak_sum, 1, 1, 3)).to(annotation.device) * torch.tensor([30 / 255, 144 / 255, 1.0]).to(
-                annotation.device)
-        transparency = torch.ones((msak_sum, 1, 1, 1)).to(annotation.device) * 0.6
-        visual = torch.cat([color, transparency], dim=-1)
-        mask_image = torch.unsqueeze(annotation, -1) * visual
-        # 按index取数，index指每个位置选哪个batch的数，把mask_image转成一个batch的形式
-        show = torch.zeros((height, weight, 4)).to(annotation.device)
-        h_indices, w_indices = torch.meshgrid(torch.arange(height), torch.arange(weight), indexing='ij')
+            color = np.ones((n, 1, 1, 3)) * np.array([30 / 255, 144 / 255, 1.0])
+        transparency = np.ones((n, 1, 1, 1)) * 0.6
+        visual = np.concatenate([color, transparency], axis=-1)
+        mask_image = np.expand_dims(annotation, -1) * visual
+
+        show = np.zeros((h, w, 4))
+        h_indices, w_indices = np.meshgrid(np.arange(h), np.arange(w), indexing='ij')
         indices = (index[h_indices, w_indices], h_indices, w_indices, slice(None))
-        # 使用向量化索引更新show的值
+
         show[h_indices, w_indices, :] = mask_image[indices]
-        show_cpu = show.cpu().numpy()
         if bbox is not None:
             x1, y1, x2, y2 = bbox
             ax.add_patch(plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='b', linewidth=1))
-        # draw point
+        # Draw point
         if points is not None:
             plt.scatter(
                 [point[0] for i, point in enumerate(points) if pointlabel[i] == 1],
@@ -227,11 +208,11 @@ class FastSAMPrompt:
                 s=20,
                 c='m',
             )
-        if not retinamask:
-            show_cpu = cv2.resize(show_cpu, (target_width, target_height), interpolation=cv2.INTER_NEAREST)
-        ax.imshow(show_cpu)
 
-    # clip
+        if not retinamask:
+            show = cv2.resize(show, (target_width, target_height), interpolation=cv2.INTER_NEAREST)
+        ax.imshow(show)
+
     @torch.no_grad()
     def retrieve(self, model, preprocess, elements, search_text: str, device) -> int:
         preprocessed_images = [preprocess(image).to(device) for image in elements]
@@ -257,15 +238,12 @@ class FastSAMPrompt:
         cropped_images = []
         not_crop = []
         filter_id = []
-        # annotations, _ = filter_masks(annotations)
-        # filter_id = list(_)
         for _, mask in enumerate(annotations):
             if np.sum(mask['segmentation']) <= 100:
                 filter_id.append(_)
                 continue
             bbox = self._get_bbox_from_mask(mask['segmentation'])  # mask 的 bbox
             cropped_boxes.append(self._segment_image(image, bbox))  # 保存裁剪的图片
-            # cropped_boxes.append(segment_image(image,mask["segmentation"]))
             cropped_images.append(bbox)  # 保存裁剪的图片的bbox
 
         return cropped_boxes, cropped_images, not_crop, filter_id, annotations

@@ -1,0 +1,10 @@
+path: /home/zh/pythonhub/military-data/
+train: train.txt
+val: val.txt
+test:
+
+names:
+  0: tank
+  1: armored
+  2: truck
+  3: light

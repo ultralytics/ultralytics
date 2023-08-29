@@ -296,7 +296,7 @@ def check_det_dataset(dataset, autodownload=True):
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: str, split=''):
+def check_cls_dataset(dataset, split=''):
     """
     Checks a classification dataset such as Imagenet.
 
@@ -304,7 +304,7 @@ def check_cls_dataset(dataset: str, split=''):
     If the dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
-        dataset (str): The name of the dataset.
+        dataset (str | Path): The name of the dataset.
         split (str, optional): The split of the dataset. Either 'val', 'test', or ''. Defaults to ''.
 
     Returns:
@@ -374,7 +374,7 @@ class HUBDatasetStats:
 
     Example:
         Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
-            i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip.
+            i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
         ```python
         from ultralytics.data.utils import HUBDatasetStats
 
@@ -392,19 +392,10 @@ class HUBDatasetStats:
         """Initialize class."""
         path = Path(path).resolve()
         LOGGER.info(f'Starting HUB dataset checks for {path}....')
-        zipped, data_dir, yaml_path = self._unzip(path)
-        try:
-            # data = yaml_load(check_yaml(yaml_path))  # data dict
-            data = check_det_dataset(yaml_path, autodownload)  # data dict
-            if zipped:
-                data['path'] = data_dir
-        except Exception as e:
-            raise Exception('error/HUB/dataset_stats/yaml_load') from e
 
         self.task = task  # detect, segment, pose, classify
         if self.task == 'classify':
             unzip_dir = unzip_file(path)
-            unzip_dir = Path(unzip_dir) / Path(path).stem
             data = check_cls_dataset(unzip_dir)
             data['path'] = unzip_dir
         else:  # detect, segment, pose
@@ -417,7 +408,7 @@ class HUBDatasetStats:
             except Exception as e:
                 raise Exception('error/HUB/dataset_stats/init') from e
 
-        self.hub_dir = Path(str(data['path']) + '-hub')
+        self.hub_dir = Path(f'{data["path"]}-hub')
         self.im_dir = self.hub_dir / 'images'
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
         self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary

@@ -43,13 +43,12 @@ class PosePredictor(DetectionPredictor):
             kpt_shape = (preds[lci].shape[-1] // 3, 3)
             kpts_decoded = decode_kpts(pred_order, img.shape, torch.permute(preds[lci], (0,2,1)), kpt_shape, self.device, bs=1)
             pred_order = torch.cat([pred_decoded, kpts_decoded], 1)
-            nc = next((o.shape[2] for o in preds if o.shape[2] != 64), -1)
             preds= ops.non_max_suppression(pred_order,
                                         self.args.conf,
                                         self.args.iou,
                                         agnostic=self.args.single_cls,
                                         max_det=self.args.max_det,
-                                        nc=nc)
+                                        nc=1)
         else:
             preds = ops.non_max_suppression(preds,
                                             self.args.conf,
@@ -57,14 +56,17 @@ class PosePredictor(DetectionPredictor):
                                             agnostic=self.args.agnostic_nms,
                                             max_det=self.args.max_det,
                                             classes=self.args.classes,
-                                            nc=len(self.model.names))
+                                            nc=1)
 
         results = []
         is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, pred in enumerate(preds):
             orig_img = orig_imgs[i] if is_list else orig_imgs
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
-            pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
+            if self.separate_outputs == True:
+                pred_kpts = pred[:, 6:].view(len(pred), kpt_shape) if len(pred) else pred[:, 6:]
+            else:
+                pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
             img_path = self.batch[0][i]
             results.append(

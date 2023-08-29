@@ -360,7 +360,7 @@ def check_cls_dataset(dataset, split=''):
             else:
                 LOGGER.info(f'{prefix} found {nf} images in {nd} classes ✅ ')
 
-    return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
+    return {'train': train_set, 'val': val_set, 'test': test_set, 'nc': nc, 'names': names}
 
 
 class HUBDatasetStats:

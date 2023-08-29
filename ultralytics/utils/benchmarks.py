@@ -104,7 +104,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             #     separate_outputs=True 
             # else:
             #     separate_outputs=False
-            if format in ('-','torchscript','saved_model','pb','ncnn'):
+            if format in ('-','torchscript','saved_model','pb','ncnn') and separate_outputs==True:
                 continue
 
             if format == '-':

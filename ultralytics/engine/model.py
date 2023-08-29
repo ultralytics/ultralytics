@@ -296,7 +296,8 @@ class Model:
             half=args['half'],
             int8=args['int8'],
             device=args['device'],
-            verbose=kwargs.get('verbose'))
+            verbose=kwargs.get('verbose'),
+            separate_outputs=args['separate_outputs'])
 
     def export(self, **kwargs):
         """

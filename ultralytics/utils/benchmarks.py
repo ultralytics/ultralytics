@@ -83,7 +83,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
     if export_hw_optimized == True:
-        model_yaml = model.name.split("n.")[0]+".yaml"
+        model_yaml = model.ckpt_path.replace("n.pt", ".yaml")
         model = YOLO(model_yaml).load(model)
     else:   
         if isinstance(model, (str, Path)):

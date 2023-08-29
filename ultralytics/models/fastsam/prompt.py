@@ -73,8 +73,6 @@ class FastSAMPrompt:
                 y1 = min(y1, y_t)
                 x2 = max(x2, x_t + w_t)
                 y2 = max(y2, y_t + h_t)
-            h = y2 - y1
-            w = x2 - x1
         return [x1, y1, x2, y2]
 
     def plot(self,

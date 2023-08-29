@@ -344,6 +344,25 @@ class Model:
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
             self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
+        return self.metrics
+
+    def tune(self, use_ray=False, iterations=10, *args, **kwargs):
+        """
+        Runs hyperparameter tuning, optionally using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
+
+        Returns:
+            (dict): A dictionary containing the results of the hyperparameter search.
+        """
+        self._check_is_pytorch_model()
+        if use_ray:
+            from ultralytics.utils.tuner import run_ray_tune
+            return run_ray_tune(self, max_samples=iterations, *args, **kwargs)
+        else:
+            from .tuner import Tuner
+
+            custom = {}  # method defaults
+            args = {**self.overrides, **custom, **kwargs, 'mode': 'export'}  # highest priority args on the right
+            return Tuner(args=args, _callbacks=self.callbacks)(model=self.model, iterations=iterations)
 
     def to(self, device):
         """
@@ -355,20 +374,6 @@ class Model:
         self._check_is_pytorch_model()
         self.model.to(device)
         return self
-
-    def tune(self, *args, **kwargs):
-        """
-        Runs hyperparameter tuning using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
-
-        Returns:
-            (dict): A dictionary containing the results of the hyperparameter search.
-
-        Raises:
-            ModuleNotFoundError: If Ray Tune is not installed.
-        """
-        self._check_is_pytorch_model()
-        from ultralytics.utils.tuner import run_ray_tune
-        return run_ray_tune(self, *args, **kwargs)
 
     @property
     def names(self):

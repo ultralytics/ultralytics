@@ -146,7 +146,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
-def get_save_dir(args):
+def get_save_dir(args, name=None):
     """Return save_dir as created from train/val/predict arguments."""
 
     if getattr(args, 'save_dir', None):
@@ -155,7 +155,7 @@ def get_save_dir(args):
         from ultralytics.utils.files import increment_path
 
         project = args.project or Path(SETTINGS['runs_dir']) / args.task
-        name = args.name or f'{args.mode}'
+        name = name or args.name or f'{args.mode}'
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in (-1, 0) else True)
 
     return Path(save_dir)

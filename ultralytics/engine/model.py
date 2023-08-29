@@ -298,7 +298,7 @@ class Model:
             device=args['device'],
             verbose=kwargs.get('verbose'),
             separate_outputs=args['separate_outputs'],
-            export_hw_optimized-args['export_hw_optimized'])
+            export_hw_optimized=args['export_hw_optimized'])
 
     def export(self, **kwargs):
         """

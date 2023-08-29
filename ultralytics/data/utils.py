@@ -439,7 +439,6 @@ class HUBDatasetStats:
 
     def get_json(self, save=False, verbose=False):
         """Return dataset JSON for Ultralytics HUB."""
-        from ultralytics.data import YOLODataset  # ClassificationDataset
 
         def _round(labels):
             """Update labels to integer class and 4 decimal place floats."""
@@ -467,23 +466,45 @@ class HUBDatasetStats:
                 continue
 
             # Get dataset statistics
-            dataset = YOLODataset(img_path=self.data[split],
-                                  data=self.data,
-                                  use_segments=self.task == 'segment',
-                                  use_keypoints=self.task == 'pose')
-            x = np.array([
-                np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
-                for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
-            self.stats[split] = {
-                'instance_stats': {
-                    'total': int(x.sum()),
-                    'per_class': x.sum(0).tolist()},
-                'image_stats': {
-                    'total': len(dataset),
-                    'unlabelled': int(np.all(x == 0, 1).sum()),
-                    'per_class': (x > 0).sum(0).tolist()},
-                'labels': [{
-                    Path(k).name: _round(v)} for k, v in zip(dataset.im_files, dataset.labels)]}
+            if self.task == 'classify':
+                from torchvision.datasets import ImageFolder
+
+                dataset = ImageFolder(self.data[split])
+
+                x = np.zeros(len(dataset.classes)).astype(int)
+                for im in dataset.imgs:
+                    x[im[1]] += 1
+
+                self.stats[split] = {
+                    'instance_stats': {
+                        'total': len(dataset),
+                        'per_class': x.tolist()},
+                    'image_stats': {
+                        'total': len(dataset),
+                        'unlabelled': 0,
+                        'per_class': x.tolist()},
+                    'labels': [{
+                        Path(k).name: v} for k, v in dataset.imgs]}
+            else:
+                from ultralytics.data import YOLODataset
+
+                dataset = YOLODataset(img_path=self.data[split],
+                                      data=self.data,
+                                      use_segments=self.task == 'segment',
+                                      use_keypoints=self.task == 'pose')
+                x = np.array([
+                    np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
+                    for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
+                self.stats[split] = {
+                    'instance_stats': {
+                        'total': int(x.sum()),
+                        'per_class': x.sum(0).tolist()},
+                    'image_stats': {
+                        'total': len(dataset),
+                        'unlabelled': int(np.all(x == 0, 1).sum()),
+                        'per_class': (x > 0).sum(0).tolist()},
+                    'labels': [{
+                        Path(k).name: _round(v)} for k, v in zip(dataset.im_files, dataset.labels)]}
 
         # Save, print and return
         if save:

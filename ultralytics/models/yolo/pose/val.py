@@ -4,14 +4,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from ultralytics.nn.modules.block import DFL
-from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
-from ultralytics.utils.postprocess_utils import decode_bbox
+from ultralytics.utils.postprocess_utils import decode_bbox, decode_kpts
 
 class PoseValidator(DetectionValidator):
     """
@@ -51,8 +49,18 @@ class PoseValidator(DetectionValidator):
 
     def postprocess(self, preds, img_shape):
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            pred_order = decode_bbox(preds[:6], img_shape, self.device)
-            pred_order = torch.cat([pred_order, preds[-1]], 1)
+            mcv = float('-inf')
+            lci = -1
+            for idx, s in enumerate(preds):
+                dim_1 = s.shape[1]
+                if dim_1 > mcv:
+                    mcv = dim_1
+                    lci = idx
+            pred_order = [item for index, item in enumerate(preds) if index not in [lci]]
+            pred_decoded = decode_bbox(pred_order, img_shape, self.device)
+            kpt_shape = (preds[lci].shape[-1] // 3, 3)
+            kpts_decoded = decode_kpts(pred_order, img_shape, torch.permute(preds[lci], (0,2,1)), kpt_shape, self.device, bs=1)
+            pred_order = torch.cat([pred_decoded, kpts_decoded], 1)
             return ops.non_max_suppression(pred_order,
                                         self.args.conf,
                                         self.args.iou,

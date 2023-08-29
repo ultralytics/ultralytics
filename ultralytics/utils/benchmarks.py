@@ -79,10 +79,12 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     """
 
     import pandas as pd
+    import os
     pd.options.display.max_columns = 10
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
     if export_hw_optimized == True:
+        model_yaml = os.path.abspath(__file__)+model.ckpt_path.split("/")[-1].replace("n.pt", ".yaml")
         model_yaml = "../ultralytics/cfg/models/v8/" +model.ckpt_path.split("/")[-1].replace("n.pt", ".yaml")
         print(model_yaml)
         model = YOLO(model_yaml).load(model)

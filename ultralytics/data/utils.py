@@ -296,7 +296,7 @@ def check_det_dataset(dataset, autodownload=True):
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: str, split=''):
+def check_cls_dataset(dataset, split=''):
     """
     Checks a classification dataset such as Imagenet.
 
@@ -304,7 +304,7 @@ def check_cls_dataset(dataset: str, split=''):
     If the dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
-        dataset (str): The name of the dataset.
+        dataset (str | Path): The name of the dataset.
         split (str, optional): The split of the dataset. Either 'val', 'test', or ''. Defaults to ''.
 
     Returns:
@@ -360,7 +360,7 @@ def check_cls_dataset(dataset: str, split=''):
             else:
                 LOGGER.info(f'{prefix} found {nf} images in {nd} classes ✅ ')
 
-    return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
+    return {'train': train_set, 'val': val_set, 'test': test_set, 'nc': nc, 'names': names}
 
 
 class HUBDatasetStats:
@@ -373,14 +373,17 @@ class HUBDatasetStats:
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
     Example:
-        Download *.zip files from i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip.
+        Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
+            i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
         ```python
         from ultralytics.data.utils import HUBDatasetStats
 
         stats = HUBDatasetStats('path/to/coco8.zip', task='detect')  # detect dataset
         stats = HUBDatasetStats('path/to/coco8-seg.zip', task='segment')  # segment dataset
         stats = HUBDatasetStats('path/to/coco8-pose.zip', task='pose')  # pose dataset
-        stats.get_json(save=False)
+        stats = HUBDatasetStats('path/to/imagenet10.zip', task='classify')  # classification dataset
+
+        stats.get_json(save=True)
         stats.process_images()
         ```
     """
@@ -389,21 +392,27 @@ class HUBDatasetStats:
         """Initialize class."""
         path = Path(path).resolve()
         LOGGER.info(f'Starting HUB dataset checks for {path}....')
-        zipped, data_dir, yaml_path = self._unzip(path)
-        try:
-            # data = yaml_load(check_yaml(yaml_path))  # data dict
-            data = check_det_dataset(yaml_path, autodownload)  # data dict
-            if zipped:
-                data['path'] = data_dir
-        except Exception as e:
-            raise Exception('error/HUB/dataset_stats/yaml_load') from e
 
-        self.hub_dir = Path(str(data['path']) + '-hub')
+        self.task = task  # detect, segment, pose, classify
+        if self.task == 'classify':
+            unzip_dir = unzip_file(path)
+            data = check_cls_dataset(unzip_dir)
+            data['path'] = unzip_dir
+        else:  # detect, segment, pose
+            zipped, data_dir, yaml_path = self._unzip(Path(path))
+            try:
+                # data = yaml_load(check_yaml(yaml_path))  # data dict
+                data = check_det_dataset(yaml_path, autodownload)  # data dict
+                if zipped:
+                    data['path'] = data_dir
+            except Exception as e:
+                raise Exception('error/HUB/dataset_stats/init') from e
+
+        self.hub_dir = Path(f'{data["path"]}-hub')
         self.im_dir = self.hub_dir / 'images'
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
         self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary
         self.data = data
-        self.task = task  # detect, segment, pose, classify
 
     @staticmethod
     def _find_yaml(dir):
@@ -430,7 +439,6 @@ class HUBDatasetStats:
 
     def get_json(self, save=False, verbose=False):
         """Return dataset JSON for Ultralytics HUB."""
-        from ultralytics.data import YOLODataset  # ClassificationDataset
 
         def _round(labels):
             """Update labels to integer class and 4 decimal place floats."""
@@ -458,23 +466,45 @@ class HUBDatasetStats:
                 continue
 
             # Get dataset statistics
-            dataset = YOLODataset(img_path=self.data[split],
-                                  data=self.data,
-                                  use_segments=self.task == 'segment',
-                                  use_keypoints=self.task == 'pose')
-            x = np.array([
-                np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
-                for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
-            self.stats[split] = {
-                'instance_stats': {
-                    'total': int(x.sum()),
-                    'per_class': x.sum(0).tolist()},
-                'image_stats': {
-                    'total': len(dataset),
-                    'unlabelled': int(np.all(x == 0, 1).sum()),
-                    'per_class': (x > 0).sum(0).tolist()},
-                'labels': [{
-                    Path(k).name: _round(v)} for k, v in zip(dataset.im_files, dataset.labels)]}
+            if self.task == 'classify':
+                from torchvision.datasets import ImageFolder
+
+                dataset = ImageFolder(self.data[split])
+
+                x = np.zeros(len(dataset.classes)).astype(int)
+                for im in dataset.imgs:
+                    x[im[1]] += 1
+
+                self.stats[split] = {
+                    'instance_stats': {
+                        'total': len(dataset),
+                        'per_class': x.tolist()},
+                    'image_stats': {
+                        'total': len(dataset),
+                        'unlabelled': 0,
+                        'per_class': x.tolist()},
+                    'labels': [{
+                        Path(k).name: v} for k, v in dataset.imgs]}
+            else:
+                from ultralytics.data import YOLODataset
+
+                dataset = YOLODataset(img_path=self.data[split],
+                                      data=self.data,
+                                      use_segments=self.task == 'segment',
+                                      use_keypoints=self.task == 'pose')
+                x = np.array([
+                    np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
+                    for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
+                self.stats[split] = {
+                    'instance_stats': {
+                        'total': int(x.sum()),
+                        'per_class': x.sum(0).tolist()},
+                    'image_stats': {
+                        'total': len(dataset),
+                        'unlabelled': int(np.all(x == 0, 1).sum()),
+                        'per_class': (x > 0).sum(0).tolist()},
+                    'labels': [{
+                        Path(k).name: _round(v)} for k, v in zip(dataset.im_files, dataset.labels)]}
 
         # Save, print and return
         if save:

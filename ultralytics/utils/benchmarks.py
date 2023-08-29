@@ -120,8 +120,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             assert model.task != 'pose' or i != 7, 'GraphDef Pose inference is not supported'
             assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
-            if model.task != 'pose':
-                export.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half,separate_outputs=separate_outputs)
+            # if model.task != 'pose':
+            export.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half,separate_outputs=separate_outputs)
 
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect

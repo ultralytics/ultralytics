@@ -137,16 +137,16 @@ jobs:
       - name: Benchmark PoseModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.17
-      - name: Benchmark DetectionModel
+      - name: Benchmark DetectionModel with separate outputs
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 separate_outputs=True verbose=0.26
-      - name: Benchmark SegmentationModel
+      - name: Benchmark SegmentationModel with separate outputs
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 separate_outputs=True verbose=0.30
-      - name: Benchmark ClassificationModel
+      - name: Benchmark ClassificationModel with separate outputs
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 separate_outputs=True verbose=0.36
-      - name: Benchmark PoseModel
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 separate_outputs=True verbose=0.16
+      - name: Benchmark PoseModel with separate outputs
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 separate_outputs=True verbose=0.17
       - name: Merge Coverage Reports

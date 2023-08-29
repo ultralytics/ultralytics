@@ -682,8 +682,8 @@ class Exporter:
                 file.unlink()  # delete extra fp16 activation TFLite files
 
         # Add TFLite metadata
-        # for file in f.rglob('*.tflite'):
-        #     f.unlink() if 'quant_with_int16_act.tflite' in str(f) else self._add_tflite_metadata(file)
+        for file in f.rglob('*.tflite'):
+            f.unlink() if 'quant_with_int16_act.tflite' in str(f) else ( self._add_tflite_metadata(file) if not self.args.separate_outputs )
 
         return str(f), tf.saved_model.load(f, tags=None, options=None)  # load saved_model as Keras model
 
@@ -742,7 +742,8 @@ class Exporter:
         cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
-        # self._add_tflite_metadata(f)
+        if not self.args.separate_outputs:
+            self._add_tflite_metadata(f)
         return f, None
 
     @try_export

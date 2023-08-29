@@ -44,11 +44,12 @@ class PosePredictor(DetectionPredictor):
             kpts_decoded = decode_kpts(pred_order, img.shape, torch.permute(preds[lci], (0,2,1)), kpt_shape, self.device, bs=1)
             pred_order = torch.cat([pred_decoded, kpts_decoded], 1)
             preds= ops.non_max_suppression(pred_order,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        agnostic=self.args.single_cls,
-                                        max_det=self.args.max_det,
-                                        nc=1)
+                                            self.args.conf,
+                                            self.args.iou,
+                                            agnostic=self.args.agnostic_nms,
+                                            max_det=self.args.max_det,
+                                            classes=self.args.classes,
+                                            nc=1)
         else:
             preds = ops.non_max_suppression(preds,
                                             self.args.conf,
@@ -56,7 +57,7 @@ class PosePredictor(DetectionPredictor):
                                             agnostic=self.args.agnostic_nms,
                                             max_det=self.args.max_det,
                                             classes=self.args.classes,
-                                            nc=1)
+                                            nc=len(self.model.names))
 
         results = []
         is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor

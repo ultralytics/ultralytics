@@ -85,7 +85,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     if export_hw_optimized == True:
-        model = YOLO(model.replace(".pt", ".yaml")).load(model)
+        model_yaml = model.replace(".pt", ".yaml")
+        model = YOLO(model_yaml).load(model)
 
     y = []
     t0 = time.time()

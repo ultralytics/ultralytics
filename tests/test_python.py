@@ -277,7 +277,7 @@ def test_data_utils():
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    for task in 'detect', 'segment', 'pose':
+    for task in 'detect', 'segment', 'pose', 'classify':
         file = Path(TASK2DATA[task]).with_suffix('.zip')  # i.e. coco8.zip
         download(f'https://github.com/ultralytics/hub/raw/main/example_datasets/{file}', unzip=False, dir=TMP)
         stats = HUBDatasetStats(TMP / file, task=task)

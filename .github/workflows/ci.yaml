@@ -128,6 +128,9 @@ jobs:
       #- name: Benchmark DetectionModel
       #  shell: bash
       #  run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
+      - name: Benchmark DetectionModel with export_hw_optimized
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 export_hw_optimized=True verbose=0.26
       - name: Benchmark SegmentationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.30

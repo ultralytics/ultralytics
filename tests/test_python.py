@@ -182,9 +182,11 @@ def test_export_openvino():
 
 def test_export_coreml():
     if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
-        f = YOLO(MODEL).export(format='coreml', nms=True)
         if MACOS:
-            YOLO(f)(SOURCE)  # model prediction only supported on macOS
+            f = YOLO(MODEL).export(format='coreml')
+            YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
+        else:
+            YOLO(MODEL).export(format='coreml', nms=True)
 
 
 def test_export_tflite(enabled=False):
@@ -275,7 +277,7 @@ def test_data_utils():
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    for task in 'detect', 'segment', 'pose':
+    for task in 'detect', 'segment', 'pose', 'classify':
         file = Path(TASK2DATA[task]).with_suffix('.zip')  # i.e. coco8.zip
         download(f'https://github.com/ultralytics/hub/raw/main/example_datasets/{file}', unzip=False, dir=TMP)
         stats = HUBDatasetStats(TMP / file, task=task)

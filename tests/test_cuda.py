@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import contextlib
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -28,7 +27,14 @@ def test_checks():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_train():
     device = 0 if CUDA_DEVICE_COUNT == 1 else [0, 1]
-    YOLO(MODEL).train(data=DATA, imgsz=64, epochs=1, batch=-1, device=device)  # also test AutoBatch, requires imgsz>=64
+    YOLO(MODEL).train(data=DATA, imgsz=64, epochs=1, device=device)  # requires imgsz>=64
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+def test_autobatch():
+    from ultralytics.utils.autobatch import check_train_batch_size
+
+    check_train_batch_size(YOLO(MODEL).model.cuda(), imgsz=128, amp=True)
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
@@ -74,16 +80,21 @@ def test_predict_sam():
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
-def test_model_tune():
-    subprocess.run('pip install ray[tune]'.split(), check=True)
+def test_model_ray_tune():
     with contextlib.suppress(RuntimeError):  # RuntimeError may be caused by out-of-memory
-        YOLO('yolov8n-cls.yaml').tune(data='imagenet10',
+        YOLO('yolov8n-cls.yaml').tune(use_ray=True,
+                                      data='imagenet10',
                                       grace_period=1,
-                                      max_samples=1,
+                                      iterations=1,
                                       imgsz=32,
                                       epochs=1,
                                       plots=False,
                                       device='cpu')
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+def test_model_tune():
+    YOLO('yolov8n.pt').tune(data='coco8.yaml', imgsz=32, epochs=1, iterations=2, plots=False, device='cpu')
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')

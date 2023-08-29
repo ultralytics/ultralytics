@@ -164,7 +164,7 @@ class BaseTrainer:
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(','))
-        elif isinstance(self.args.device, tuple):  # multi devices from cli is tuple type
+        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
@@ -175,8 +175,13 @@ class BaseTrainer:
         if world_size > 1 and 'LOCAL_RANK' not in os.environ:
             # Argument checks
             if self.args.rect:
-                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting rect=False")
+                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
+            if self.args.batch == -1:
+                LOGGER.warning("WARNING ⚠️ 'batch=-1' for AutoBatch is incompatible with Multi-GPU training, setting "
+                               "default 'batch=16'")
+                self.args.batch = 16
+
             # Command
             cmd, file = generate_ddp_command(world_size, self)
             try:
@@ -186,6 +191,7 @@ class BaseTrainer:
                 raise e
             finally:
                 ddp_cleanup(self, str(file))
+
         else:
             self._do_train(world_size)
 
@@ -248,9 +254,6 @@ class BaseTrainer:
         if self.batch_size == -1:
             if RANK == -1:  # single-GPU only, estimate best batch size
                 self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
-            else:
-                SyntaxError('batch=-1 to use AutoBatch is only available in Single-GPU training. '
-                            'Please pass a valid batch size value for Multi-GPU DDP training, i.e. batch=16')
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)

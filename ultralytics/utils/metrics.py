@@ -520,7 +520,6 @@ class Metric(SimpleClass):
             maps(): mAP of each class. Returns: Array of mAP scores, shape: (nc,).
             fitness(): Model fitness as a weighted combination of metrics. Returns: Float.
             update(results): Update metric attributes with new evaluation results.
-
         """
 
     def __init__(self) -> None:

@@ -215,6 +215,7 @@ nav:
   - Guides:
       - guides/index.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
+      - Hyperparameter Tuning: guides/hyperparameter-tuning.md
   - Integrations:
       - integrations/index.md
       - OpenVINO: integrations/openvino.md
@@ -279,6 +280,7 @@ nav:
           - predictor: reference/engine/predictor.md
           - results: reference/engine/results.md
           - trainer: reference/engine/trainer.md
+          - tuner: reference/engine/tuner.md
           - validator: reference/engine/validator.md
       - hub:
           - __init__: reference/hub/__init__.md

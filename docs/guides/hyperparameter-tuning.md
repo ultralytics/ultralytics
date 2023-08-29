@@ -20,7 +20,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
 - **Architecture Specifics**: Such as anchor box sizes, number of layers, types of activation functions, etc.
 
 <p align="center">
-  <img width="800" src="https://user-images.githubusercontent.com/26833433/263858934-4f109a2f-82d9-4d08-8bd6-6fd1ff520bcd.png" alt="Hyperparameter Tuning Visual">
+  <img width="1000" src="https://user-images.githubusercontent.com/26833433/263858934-4f109a2f-82d9-4d08-8bd6-6fd1ff520bcd.png" alt="Hyperparameter Tuning Visual">
 </p>
 
 For a full list of augmentation hyperparameters used in YOLOv8 please refer to https://docs.ultralytics.com/usage/cfg/#augmentation.

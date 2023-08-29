@@ -4,8 +4,6 @@ from ultralytics.nn.modules.block import DFL
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
 def decode_bbox(preds, img_shape, device):
-    for p in preds:
-        print(p.shape)
     num_classes = next((o.shape[2] for o in preds if o.shape[2] != 64), -1)
     assert num_classes != -1, 'cannot infer postprocessor inputs via output shape if there are 64 classes'
     pos =  [i for i,_ in sorted(enumerate(preds), key = lambda x: (x[1].shape[2] if num_classes > 64 else -x[1].shape[2], -x[1].shape[1]))]

@@ -4,11 +4,9 @@ description: Master YOLOv8 settings and hyperparameters for improved model perfo
 keywords: YOLOv8, settings, hyperparameters, YOLO CLI commands, YOLO tasks, YOLO modes, Ultralytics documentation, model optimization, YOLOv8 training
 ---
 
-YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings
-and hyperparameters can affect the model's behavior at various stages of the model development process, including
-training, validation, and prediction.
+YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings and hyperparameters can affect the model's behavior at various stages of the model development process, including training, validation, and prediction.
 
-YOLOv8 'yolo' CLI commands use the following syntax:
+YOLOv8 `yolo` CLI commands use the following syntax:
 
 !!! example ""
 
@@ -32,18 +30,15 @@ YOLOv8 'yolo' CLI commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify, pose]`. If it is not passed explicitly YOLOv8 will try to
-  guess
-  the `TASK` from the model type.
+- `TASK` (optional) is one of `[detect, segment, classify, pose]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
-  For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
-  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
+
+For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml` GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 #### Tasks
 
-YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks
-differ in the type of output they produce and the specific problem they are designed to solve.
+YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks differ in the type of output they produce and the specific problem they are designed to solve.
 
 **Detect**: For identifying and localizing objects or regions of interest in an image or video.
 **Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
@@ -58,8 +53,7 @@ differ in the type of output they produce and the specific problem they are desi
 
 #### Modes
 
-YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes
-include:
+YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes include:
 
 **Train**: For training a YOLOv8 model on a custom dataset.
 **Val**: For validating a YOLOv8 model after it has been trained.
@@ -202,50 +196,34 @@ Export settings for YOLO models encompass configurations and options related to 
 
 ## Augmentation
 
-Augmentation settings for YOLO models refer to the various transformations and modifications
-applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's
-performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the
-transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each
-transformation is applied, and the presence of additional features such as masks or multiple labels per box. Other
-factors that may affect the augmentation process include the size and composition of the original dataset and the
-specific task the model is being used for. It is important to carefully tune and experiment with these settings to
-ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
+Augmentation settings for YOLO models refer to the various transformations and modifications applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each transformation is applied, and the presence of additional features such as masks or multiple labels per box. Other factors that may affect the augmentation process include the size and composition of the original dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
 
-| Key           | Value | Description                                     |
-|---------------|-------|-------------------------------------------------|
-| `hsv_h`       | 0.015 | image HSV-Hue augmentation (fraction)           |
-| `hsv_s`       | 0.7   | image HSV-Saturation augmentation (fraction)    |
-| `hsv_v`       | 0.4   | image HSV-Value augmentation (fraction)         |
-| `degrees`     | 0.0   | image rotation (+/- deg)                        |
-| `translate`   | 0.1   | image translation (+/- fraction)                |
-| `scale`       | 0.5   | image scale (+/- gain)                          |
-| `shear`       | 0.0   | image shear (+/- deg)                           |
-| `perspective` | 0.0   | image perspective (+/- fraction), range 0-0.001 |
-| `flipud`      | 0.0   | image flip up-down (probability)                |
-| `fliplr`      | 0.5   | image flip left-right (probability)             |
-| `mosaic`      | 1.0   | image mosaic (probability)                      |
-| `mixup`       | 0.0   | image mixup (probability)                       |
-| `copy_paste`  | 0.0   | segment copy-paste (probability)                |
+| Key           | Value   | Description                                     |
+|---------------|---------|-------------------------------------------------|
+| `hsv_h`       | `0.015` | image HSV-Hue augmentation (fraction)           |
+| `hsv_s`       | `0.7`   | image HSV-Saturation augmentation (fraction)    |
+| `hsv_v`       | `0.4`   | image HSV-Value augmentation (fraction)         |
+| `degrees`     | `0.0`   | image rotation (+/- deg)                        |
+| `translate`   | `0.1`   | image translation (+/- fraction)                |
+| `scale`       | `0.5`   | image scale (+/- gain)                          |
+| `shear`       | `0.0`   | image shear (+/- deg)                           |
+| `perspective` | `0.0`   | image perspective (+/- fraction), range 0-0.001 |
+| `flipud`      | `0.0`   | image flip up-down (probability)                |
+| `fliplr`      | `0.5`   | image flip left-right (probability)             |
+| `mosaic`      | `1.0`   | image mosaic (probability)                      |
+| `mixup`       | `0.0`   | image mixup (probability)                       |
+| `copy_paste`  | `0.0`   | segment copy-paste (probability)                |
 
 ## Logging, checkpoints, plotting and file management
 
 Logging, checkpoints, plotting, and file management are important considerations when training a YOLO model.
 
-- Logging: It is often helpful to log various metrics and statistics during training to track the model's progress and
-  diagnose any issues that may arise. This can be done using a logging library such as TensorBoard or by writing log
-  messages to a file.
-- Checkpoints: It is a good practice to save checkpoints of the model at regular intervals during training. This allows
-  you to resume training from a previous point if the training process is interrupted or if you want to experiment with
-  different training configurations.
-- Plotting: Visualizing the model's performance and training progress can be helpful for understanding how the model is
-  behaving and identifying potential issues. This can be done using a plotting library such as matplotlib or by
-  generating plots using a logging library such as TensorBoard.
-- File management: Managing the various files generated during the training process, such as model checkpoints, log
-  files, and plots, can be challenging. It is important to have a clear and organized file structure to keep track of
-  these files and make it easy to access and analyze them as needed.
+- Logging: It is often helpful to log various metrics and statistics during training to track the model's progress and diagnose any issues that may arise. This can be done using a logging library such as TensorBoard or by writing log messages to a file.
+- Checkpoints: It is a good practice to save checkpoints of the model at regular intervals during training. This allows you to resume training from a previous point if the training process is interrupted or if you want to experiment with different training configurations.
+- Plotting: Visualizing the model's performance and training progress can be helpful for understanding how the model is behaving and identifying potential issues. This can be done using a plotting library such as matplotlib or by generating plots using a logging library such as TensorBoard.
+- File management: Managing the various files generated during the training process, such as model checkpoints, log files, and plots, can be challenging. It is important to have a clear and organized file structure to keep track of these files and make it easy to access and analyze them as needed.
 
-Effective logging, checkpointing, plotting, and file management can help you keep track of the model's progress and make
-it easier to debug and optimize the training process.
+Effective logging, checkpointing, plotting, and file management can help you keep track of the model's progress and make it easier to debug and optimize the training process.
 
 | Key        | Value    | Description                                                                                    |
 |------------|----------|------------------------------------------------------------------------------------------------|

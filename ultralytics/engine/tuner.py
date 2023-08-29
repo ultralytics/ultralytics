@@ -92,7 +92,7 @@ class Tuner:
         callbacks.add_integration_callbacks(self)
         LOGGER.info(f"Initialized Tuner instance with 'tune_dir={self.tune_dir}'.")
 
-    def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.6, return_best=False):
+    def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.2, return_best=False):
         """
         Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
 

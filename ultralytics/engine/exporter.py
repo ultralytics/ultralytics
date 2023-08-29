@@ -683,8 +683,11 @@ class Exporter:
 
         # Add TFLite metadata
         for file in f.rglob('*.tflite'):
-            f.unlink() if 'quant_with_int16_act.tflite' in str(f) else ( self._add_tflite_metadata(file) if not self.args.separate_outputs )
-
+            if 'quant_with_int16_act.tflite' in str(f):
+                f.unlink() 
+            else:
+                if not self.args.separate_outputs:
+                    self._add_tflite_metadata(file)
         return str(f), tf.saved_model.load(f, tags=None, options=None)  # load saved_model as Keras model
 
     @try_export

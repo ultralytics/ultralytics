@@ -15,7 +15,7 @@ keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data
 
 [Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy computer vision models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you’re in need of [data labeling](https://roboflow.com/annotate?ref=ultralytics), [model training](https://roboflow.com/train?ref=ultralytics), or [model deployment](https://roboflow.com/deploy?ref=ultralytics), Roboflow gives you building blocks to bring custom computer vision solutions to your project.
 
-In this guide, we are going to showcase how to find, label, and organize data for use in training a custom Ultralytics YOLOv8 model. Use the table of contents below to jump directly to a specific section: 
+In this guide, we are going to showcase how to find, label, and organize data for use in training a custom Ultralytics YOLOv8 model. Use the table of contents below to jump directly to a specific section:
 
 - Gather data for training a custom YOLOv8 model
 - Upload, convert and label data for YOLOv8 format
@@ -55,13 +55,13 @@ Next, upload your images, and any pre-existing annotations you have from other t
 
 ![Upload images to Roboflow](https://media.roboflow.com/ultralytics/rf_upload_data.png)
 
-Select the batch of images you have uploaded on the Annotate page to which you are taken after uploading images. Then, click "Start Annotating" to label images. 
+Select the batch of images you have uploaded on the Annotate page to which you are taken after uploading images. Then, click "Start Annotating" to label images.
 
 To label with bounding boxes, press the `B` key on your keyboard or click the box icon in the sidebar. Click on a point where you want to start your bounding box, then drag to create the box:
 
 ![Annotating an image in Roboflow](https://media.roboflow.com/ultralytics/rf_annotate.png)
 
-A pop up will appear asking you to select a class for your annotation once you have created an annotation.
+A pop-up will appear asking you to select a class for your annotation once you have created an annotation.
 
 To label with polygons, press the `P` key on your keyboard, or the polygon icon in the sidebar. With the polygon annotation tool enabled, click on individual points in the image to draw a polygon.
 
@@ -115,7 +115,7 @@ To export your data, you will need a dataset version. A version is a state of yo
 
 ![Creating a dataset version on Roboflow](https://media.roboflow.com/ultralytics/rf_generate_dataset.png)
 
-For each augmentation you select, a pop up will appear allowing you to tune the augmentation to your needs. Here is an example of tuning a brightness augmentation within specified parameters:
+For each augmentation you select, a pop-up will appear allowing you to tune the augmentation to your needs. Here is an example of tuning a brightness augmentation within specified parameters:
 
 ![Applying augmentations to a dataset](https://media.roboflow.com/ultralytics/rf_augmentations.png)
 
@@ -123,7 +123,7 @@ When your dataset version has been generated, you can export your data into a ra
 
 ![Exporting a dataset](https://media.roboflow.com/ultralytics/rf_export_data.png)
 
-You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [Youtube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](https://docs.ultralytics.com/modes/train/).
+You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [YouTube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](https://docs.ultralytics.com/modes/train/).
 
 ## Upload Custom YOLOv8 Model Weights for Testing and Deployment
 
@@ -132,9 +132,7 @@ Roboflow offers an infinitely scalable API for deployed models and SDKs for use 
 You can deploy YOLOv8 models by uploading YOLOv8 weights to Roboflow. You can do this in a few lines of Python code. Create a new Python file and add the following code:
 
 ```python
-!pip install roboflow --quiet
-
-import roboflow
+import roboflow  # install with 'pip install roboflow'
 
 roboflow.login()
 
@@ -166,13 +164,13 @@ To access a confusion matrix, go to your model page on the Roboflow dashboard, t
 
 ![Start a Roboflow model evaluation](https://media.roboflow.com/ultralytics/rf_model_eval.png)
 
-A pop up will appear showing a confusion matrix:
+A pop-up will appear showing a confusion matrix:
 
 ![A confusion matrix](https://media.roboflow.com/ultralytics/rf_confusion_matrix.png)
 
 Hover over a box on the confusion matrix to see the value associated with the box. Click on a box to see images in the respective category. Click on an image to view the model predictions and ground truth data associated with that image.
 
-For more insights, click Vector Analysis. This will show a scatter plot of the images in your dataset, calculated using CLIP. The closer images are in the plot, the more similar they are, semantically. Ecah image is represented as a dot with a color between white and red. The more red the dot, the worse the model performed.
+For more insights, click Vector Analysis. This will show a scatter plot of the images in your dataset, calculated using CLIP. The closer images are in the plot, the more similar they are, semantically. Each image is represented as a dot with a color between white and red. The more red the dot, the worse the model performed.
 
 ![A vector analysis plot](https://media.roboflow.com/ultralytics/rf_vector_analysis.png)
 

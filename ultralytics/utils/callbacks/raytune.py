@@ -3,11 +3,10 @@
 from ultralytics.utils import SETTINGS
 
 try:
+    assert SETTINGS['raytune'] is True  # verify integration is enabled
     import ray
     from ray import tune
     from ray.air import session
-
-    assert SETTINGS['raytune'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     tune = None
 

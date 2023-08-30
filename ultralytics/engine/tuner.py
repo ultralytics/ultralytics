@@ -174,7 +174,7 @@ class Tuner:
                 fitness = 0.0
 
             # Save results and mutated_hyp to evolve_csv
-            log_row = [fitness] + [mutated_hyp[k] for k in self.space.keys()]
+            log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
             headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
             with open(self.evolve_csv, 'a') as f:
                 f.write(headers + ','.join(map(str, log_row)) + '\n')
@@ -183,9 +183,9 @@ class Tuner:
         x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
         fitness = x[:, 0]  # first column
         i = np.argsort(-fitness)[0]  # best fitness index
-        LOGGER.info(f'{prefix} All iterations complete ✅ ({time.time() - t0:.2f}s)\n'
+        LOGGER.info(f'\n{prefix} All iterations complete ✅ ({time.time() - t0:.2f}s)\n'
                     f'{prefix} Results saved to {colorstr("bold", self.tune_dir)}\n'
-                    f'{prefix} Best fitness={fitness[i]} observed at iteration {i}.\n')
+                    f'{prefix} Best fitness={fitness[i]} observed at iteration {i}')
 
         # Save turning results
         yaml_save(self.tune_dir / 'best.yaml', data={k: float(x[0, i + 1]) for i, k in enumerate(self.space.keys())})

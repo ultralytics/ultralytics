@@ -27,10 +27,10 @@ TASK2METRIC = {
     'classify': 'metrics/accuracy_top1',
     'pose': 'metrics/mAP50-95(P)'}
 TASK2YAML = {
-    'detect': 'yolov8n.yaml',
-    'segment': 'yolov8n-seg.yaml',
-    'classify': 'yolov8n-cls.yaml',
-    'pose': 'yolov8n-pose.yaml'}
+    'detect': 'yolov8.yaml',
+    'segment': 'yolov8-seg.yaml',
+    'classify': 'yolov8-cls.yaml',
+    'pose': 'yolov8-pose.yaml'}
 CLI_HELP_MSG = \
     f"""
     Arguments received: {str(['yolo'] + sys.argv[1:])}. Ultralytics 'yolo' commands use the following syntax:

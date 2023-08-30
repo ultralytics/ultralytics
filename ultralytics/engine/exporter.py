@@ -463,7 +463,7 @@ class Exporter:
 
         # Remove debug files
         pnnx_files = [x.split('=')[-1] for x in pnnx_args]
-        for f_debug in 'debug.bin', 'debug.param', 'debug2.bin', 'debug2.param', *pnnx_files:
+        for f_debug in ('debug.bin', 'debug.param', 'debug2.bin', 'debug2.param', *pnnx_files):
             Path(f_debug).unlink(missing_ok=True)
 
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

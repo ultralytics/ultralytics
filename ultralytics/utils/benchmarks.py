@@ -83,11 +83,10 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     pd.options.display.max_columns = 10
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
-    if export_hw_optimized == True:
+    if export_hw_optimized:
         name = Path(model.ckpt_path)
         model_yaml = "/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/" + TASK2YAML[model.task]
-        model = YOLO(model_yaml).load(model.ckpt_path)
-        
+        model = YOLO(model_yaml).load(model.ckpt_path)        
     else:   
         if isinstance(model, (str, Path)):
             model = YOLO(model)
@@ -106,18 +105,10 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:
                 assert gpu, 'inference not supported on GPU'
-
-            # Export
-            # if format not in ('-','torchscript','saved_model','pb','ncnn'):
-            #     separate_outputs=True 
-            # else:
-            #     separate_outputs=False
-            if format in ('-','torchscript','saved_model','pb','ncnn') and separate_outputs==True:
+            if format in ('-','torchscript','saved_model','pb','ncnn') and separate_outputs:
                 continue
-
-            if format in ("coreml", "paddle", 'ncnn') and export_hw_optimized==True:
+            if format in ("coreml", "paddle", 'ncnn') and export_hw_optimized:
                 continue
-
             if format == '-':
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
@@ -125,17 +116,12 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, separate_outputs=separate_outputs, export_hw_optimized=export_hw_optimized)
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
-            # else:
-            #     filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, export_hw_optimized=export_hw_optimized)
-            #     export = YOLO(filename, task=model.task)
-            #     assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
 
             # Predict
             assert model.task != 'pose' or i != 7, 'GraphDef Pose inference is not supported'
             assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
-            # if model.task != 'pose':
             export.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half,separate_outputs=separate_outputs)
 
             # Validate
@@ -162,7 +148,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     check_yolo(device=device)  # print system info
     df = pd.DataFrame(y, columns=['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)'])
 
-    if export_hw_optimized == True:
+    if export_hw_optimized:
         name = model.ckpt_path
     else:
         name = Path(model.ckpt_path).name

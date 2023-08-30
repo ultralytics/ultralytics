@@ -18,7 +18,7 @@ device:  # (int | str | list, optional) device to run on, i.e. cuda device=0 or 
 workers: 8  # (int) number of worker threads for data loading (per RANK if DDP)
 project:  # (str, optional) project name
 name:  # (str, optional) experiment name, results saved to 'project/name' directory
-exist_ok: False  # (bool) whether to overwrite existing experimentc
+exist_ok: False  # (bool) whether to overwrite existing experiment
 pretrained: True  # (bool | str) whether to use a pretrained model (bool) or a model to load weights from (str)
 optimizer: auto  # (str) optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]
 verbose: True  # (bool) whether to print verbose output
@@ -81,6 +81,7 @@ workspace: 4  # (int) TensorRT: workspace size (GB)
 nms: False  # (bool) CoreML: add NMS
 separate_outputs: False # export model with 6 outputs - no concatenation
 export_hw_optimized: False
+
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01  # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
 lrf: 0.01  # (float) final learning rate (lr0 * lrf)

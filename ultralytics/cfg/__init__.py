@@ -31,6 +31,7 @@ TASK2YAML = {
     'segment': 'yolov8-seg.yaml',
     'classify': 'yolov8-cls.yaml',
     'pose': 'yolov8-pose.yaml'}
+
 CLI_HELP_MSG = \
     f"""
     Arguments received: {str(['yolo'] + sys.argv[1:])}. Ultralytics 'yolo' commands use the following syntax:

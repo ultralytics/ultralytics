@@ -177,7 +177,10 @@ class Exporter:
             assert self.device.type == 'cpu', "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if edgetpu and not LINUX:
             raise SystemError('Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/')
-
+        if self.args.separate_outputs:
+            assert format not in ('-','torchscript','saved_model','pb','ncnn'), "separate_outputs=True is not compatible with formats: -, torchscript, saved_model, pb and nccn"
+        if self.args.export_hw_optimized:
+            assert format not in ('coreml', 'paddle', 'ncnn'), "export_hw_optimized =True is not compatible with formats: coreml, paddle, and nccn"
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
         file = Path(
@@ -359,7 +362,7 @@ class Exporter:
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
-            
+ 
         onnx.save(model_onnx, f)
         return f, model_onnx
 
@@ -668,6 +671,7 @@ class Exporter:
             replace_json = ROOT / "utils/pose_replace.json"
         else:
             replace_json = ROOT / "utils/replace.json"
+        
         cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf {replace_json}'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
@@ -823,22 +827,21 @@ class Exporter:
         input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
 
         # Create output info
-        if not self.args.separate_outputs:
-            output1 = _metadata_fb.TensorMetadataT()
-            output1.name = 'output'
-            output1.description = 'Coordinates of detected objects, class labels, and confidence score'
-            output1.associatedFiles = [label_file]
-            if self.model.task == 'segment':
-                output2 = _metadata_fb.TensorMetadataT()
-                output2.name = 'output'
-                output2.description = 'Mask protos'
-                output2.associatedFiles = [label_file]
-    
-            # Create subgraph info
-            subgraph = _metadata_fb.SubGraphMetadataT()
-            subgraph.inputTensorMetadata = [input_meta]
-            subgraph.outputTensorMetadata = [output1, output2] if self.model.task == 'segment' else [output1]
-            model_meta.subgraphMetadata = [subgraph]
+        output1 = _metadata_fb.TensorMetadataT()
+        output1.name = 'output'
+        output1.description = 'Coordinates of detected objects, class labels, and confidence score'
+        output1.associatedFiles = [label_file]
+        if self.model.task == 'segment':
+            output2 = _metadata_fb.TensorMetadataT()
+            output2.name = 'output'
+            output2.description = 'Mask protos'
+            output2.associatedFiles = [label_file]
+
+        # Create subgraph info
+        subgraph = _metadata_fb.SubGraphMetadataT()
+        subgraph.inputTensorMetadata = [input_meta]
+        subgraph.outputTensorMetadata = [output1, output2] if self.model.task == 'segment' else [output1]
+        model_meta.subgraphMetadata = [subgraph]
 
         b = flatbuffers.Builder(0)
         b.Finish(model_meta.Pack(b), _metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)

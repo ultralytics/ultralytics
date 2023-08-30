@@ -22,7 +22,7 @@ class FastSAMPredictor(DetectionPredictor):
                                     max_det=self.args.max_det,
                                     nc=len(self.model.names),
                                     classes=self.args.classes)
-        full_box = torch.zeros_like(p[0][0])
+        full_box = torch.zeros(p[0].shape[1])
         full_box[2], full_box[3], full_box[4], full_box[6:] = img.shape[3], img.shape[2], 1.0, 1.0
         full_box = full_box.view(1, -1)
         critical_iou_index = bbox_iou(full_box[0][:4], p[0][:, :4], iou_thres=0.9, image_shape=img.shape[2:])

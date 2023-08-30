@@ -363,7 +363,7 @@ class Model:
 
             custom = {'plots': False, 'save': False}  # method defaults
             args = {**self.overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
-            return Tuner(args=args, _callbacks=self.callbacks)(model=self.model, iterations=iterations)
+            return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
 
     def to(self, device):
         """

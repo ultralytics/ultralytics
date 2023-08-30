@@ -153,7 +153,7 @@ class Tuner:
         4. Log the fitness score and mutated hyperparameters to a CSV file.
 
         Args:
-           model (YOLO): A pre-initialized YOLO model to be used for training.
+           model (Model): A pre-initialized YOLO model to be used for training.
            iterations (int): The number of generations to run the evolution for.
 
         Note:
@@ -162,7 +162,6 @@ class Tuner:
         """
 
         self.tune_dir.mkdir(parents=True, exist_ok=True)
-        headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
         for i in range(iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
@@ -178,6 +177,7 @@ class Tuner:
 
             # Save results and mutated_hyp to evolve_csv
             log_row = [fitness] + [mutated_hyp[k] for k in self.space.keys()]
+            headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
             with open(self.evolve_csv, 'a') as f:
                 f.write(headers + ','.join(map(str, log_row)) + '\n')
 

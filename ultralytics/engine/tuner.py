@@ -52,7 +52,7 @@ class Tuner:
          from ultralytics import YOLO
 
          model = YOLO('yolov8n.pt')
-         model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10)
+         model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10, val=False, cache=True)
          ```
      """
 
@@ -64,11 +64,11 @@ class Tuner:
             args (dict, optional): Configuration for hyperparameter evolution.
         """
         self.args = get_cfg(overrides=args)
-        self.space = {
+        self.space = {  # key: (min, max, gain(optionaL))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
             'lr0': (1e-5, 1e-1),
             'lrf': (0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
-            'momentum': (0.6, 0.98),  # SGD momentum/Adam beta1
+            'momentum': (0.6, 0.98, 0.3),  # SGD momentum/Adam beta1
             'weight_decay': (0.0, 0.001),  # optimizer weight decay 5e-4
             'warmup_epochs': (0.0, 5.0),  # warmup epochs (fractions ok)
             'warmup_momentum': (0.0, 0.95),  # warmup initial momentum
@@ -87,7 +87,7 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
-        self.tune_dir = get_save_dir(self.args, name='tune')
+        self.tune_dir = get_save_dir(self.args, name='_tune')
         self.evolve_csv = self.tune_dir / 'evolve.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
@@ -106,6 +106,7 @@ class Tuner:
         Returns:
             (dict): A dictionary containing mutated hyperparameters.
         """
+        keys = self.space.keys()
         if self.evolve_csv.exists():  # if evolve.csv exists: select best hyps and mutate
             # Select parent(s)
             x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
@@ -113,7 +114,7 @@ class Tuner:
             n = min(n, len(x))  # number of previous results to consider
             x = x[np.argsort(-fitness)][:n]  # top n mutations
             if return_best:
-                return {k: float(x[0, i + 1]) for i, k in enumerate(self.space.keys())}
+                return {k: float(x[0, i + 1]) for i, k in enumerate(keys)}
             fitness = x[:, 0]  # first column
             w = fitness - fitness.min() + 1E-6  # weights (sum > 0)
             if parent == 'single' or len(x) == 1:
@@ -125,14 +126,15 @@ class Tuner:
             # Mutate
             r = np.random  # method
             r.seed(int(time.time()))
-            g = np.array([self.space[k][0] for k in self.space.keys()])  # gains 0-1
+            g = np.array([v[2] if len(v) == 3 else 1.0 for k, v in self.space.items()])  # gains 0-1
             ng = len(self.space)
             v = np.ones(ng)
             while all(v == 1):  # mutate until a change occurs (prevent duplicates)
                 v = (g * (r.random(ng) < mutation) * r.randn(ng) * r.random() * sigma + 1).clip(0.3, 3.0)
-            hyp = {k: float(x[i + 1] * v[i]) for i, k in enumerate(self.space.keys())}
+            print(v)
+            hyp = {k: float(x[i + 1] * v[i]) for i, k in enumerate(keys)}
         else:
-            hyp = {k: getattr(self.args, k) for k in self.space.keys()}
+            hyp = {k: getattr(self.args, k) for k in keys}
 
         # Constrain to limits
         for k, v in self.space.items():

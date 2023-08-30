@@ -116,7 +116,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             if format == '-':
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
-            elif format in ("coreml", "paddle"):
+            elif format in ("coreml", "paddle", 'ncnn'):
                 filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, separate_outputs=separate_outputs)
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'

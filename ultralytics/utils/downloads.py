@@ -188,8 +188,7 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
     r = requests.head(url)  # response
 
     # Check response
-    if r.status_code != 200:
-        assert r.status_code == 200, f'URL error for {url}: {r.status_code} {r.reason}'
+    assert r.status_code < 400, f'URL error for {url}: {r.status_code} {r.reason}'
 
     # Check file size
     gib = 1 << 30  # bytes per GiB

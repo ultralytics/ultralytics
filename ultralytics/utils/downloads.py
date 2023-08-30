@@ -160,7 +160,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         # Check if destination directory already exists and contains files
         if path.exists() and any(path.iterdir()) and not exist_ok:
             # If it exists and is not empty, return the path without unzipping
-            LOGGER.info(f'Skipping {file} unzip (already unzipped)')
+            LOGGER.warning(f'WARNING ⚠️ Skipping {file} unzip as destination directory {path} is not empty.')
             return path
 
         for f in tqdm(files,

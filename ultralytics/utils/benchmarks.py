@@ -84,8 +84,11 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
     if export_hw_optimized == True:
+        name = Path(model.ckpt_path)
+        print(name)
         model_yaml = "/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/" +model.ckpt_path.split("/")[-1].replace("n.pt", ".yaml")
         model = YOLO(model_yaml).load(model.ckpt_path)
+        
     else:   
         if isinstance(model, (str, Path)):
             model = YOLO(model)
@@ -157,7 +160,11 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     check_yolo(device=device)  # print system info
     df = pd.DataFrame(y, columns=['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)'])
 
-    name = Path(model.ckpt_path).name
+    if export_hw_optimized == True:
+        name = model.ckpt_path
+    else:
+        name = Path(model.ckpt_path).name
+        
     s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n'
     LOGGER.info(s)
     with open('benchmarks.log', 'a', errors='ignore', encoding='utf-8') as f:

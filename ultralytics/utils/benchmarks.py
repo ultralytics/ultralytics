@@ -114,18 +114,21 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             #     separate_outputs=False
             if format in ('-','torchscript','saved_model','pb','ncnn') and separate_outputs==True:
                 continue
-            
+
+            if format in ("coreml", "paddle", 'ncnn') and export_hw_optimized=True:
+                continue
+
             if format == '-':
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
-            elif format in ("coreml", "paddle", 'ncnn'):
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, separate_outputs=separate_outputs)
-                export = YOLO(filename, task=model.task)
-                assert suffix in str(filename), 'export failed'
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, export_hw_optimized=export_hw_optimized)
+                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, separate_outputs=separate_outputs, export_hw_optimized=export_hw_optimized)
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
+            # else:
+            #     filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, export_hw_optimized=export_hw_optimized)
+            #     export = YOLO(filename, task=model.task)
+            #     assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
 
             # Predict

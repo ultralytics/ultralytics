@@ -111,12 +111,12 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            model = trainer.ema.ema or trainer.model
             self.args.half = self.device.type != 'cpu'  # force FP16 val during training
+            model = trainer.ema.ema or trainer.model
             model = model.half() if self.args.half else model.float()
-            self.model = model
+            # self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
-            self.args.plots = trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
+            self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
             callbacks.add_integration_callbacks(self)
@@ -126,7 +126,7 @@ class BaseValidator:
                                 dnn=self.args.dnn,
                                 data=self.args.data,
                                 fp16=self.args.half)
-            self.model = model
+            # self.model = model
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
@@ -297,8 +297,7 @@ class BaseValidator:
 
     def on_plot(self, name, data=None):
         """Registers plots (e.g. to be consumed in callbacks)"""
-        path = Path(name)
-        self.plots[path] = {'data': data, 'timestamp': time.time()}
+        self.plots[Path(name)] = {'data': data, 'timestamp': time.time()}
 
     # TODO: may need to put these following functions into callback
     def plot_val_samples(self, batch, ni):

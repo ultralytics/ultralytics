@@ -352,7 +352,7 @@ def check_cls_dataset(dataset, split=''):
         LOGGER.info(s)
     train_set = data_dir / 'train'
     val_set = data_dir / 'val' if (data_dir / 'val').exists() else data_dir / 'validation' if (
-            data_dir / 'validation').exists() else None  # data/test or data/val
+        data_dir / 'validation').exists() else None  # data/test or data/val
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
     if split == 'val' and not val_set:
         LOGGER.warning("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")

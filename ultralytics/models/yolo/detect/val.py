@@ -12,8 +12,8 @@ from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
-from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.utils.postprocess_utils import decode_bbox
+from ultralytics.utils.torch_utils import de_parallel
 
 
 class DetectionValidator(BaseValidator):
@@ -83,20 +83,20 @@ class DetectionValidator(BaseValidator):
         if self.separate_outputs:  # Quant friendly export with separated outputs
             preds = decode_bbox(preds, img_shape, self.device)
             return ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        labels=self.lb,
-                                        multi_label=True,
-                                        agnostic=self.args.single_cls,
-                                        max_det=self.args.max_det)
+                                           self.args.conf,
+                                           self.args.iou,
+                                           labels=self.lb,
+                                           multi_label=True,
+                                           agnostic=self.args.single_cls,
+                                           max_det=self.args.max_det)
         else:
             return ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        labels=self.lb,
-                                        multi_label=True,
-                                        agnostic=self.args.single_cls,
-                                        max_det=self.args.max_det)
+                                           self.args.conf,
+                                           self.args.iou,
+                                           labels=self.lb,
+                                           multi_label=True,
+                                           agnostic=self.args.single_cls,
+                                           max_det=self.args.max_det)
 
     def update_metrics(self, preds, batch):
         """Metrics."""

@@ -70,13 +70,13 @@ class SegmentationValidator(DetectionValidator):
                     lci = idx
                 if len(s.shape) == 4:
                     proto = s
-                    pidx = idx  
+                    pidx = idx
             mask = preds[lci]
-            proto = proto.permute(0,3,1,2) 
+            proto = proto.permute(0, 3, 1, 2)
             pred_order = [item for index, item in enumerate(preds) if index not in [pidx, lci]]
             preds_decoded = decode_bbox(pred_order, img_shape, self.device)
             preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)
-            p = ops.non_max_suppression(preds_decoded, #preds[0],
+            p = ops.non_max_suppression(preds_decoded,
                                         self.args.conf,
                                         self.args.iou,
                                         labels=self.lb,
@@ -93,7 +93,8 @@ class SegmentationValidator(DetectionValidator):
                                         agnostic=self.args.single_cls,
                                         max_det=self.args.max_det,
                                         nc=self.nc)
-            proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+            proto = preds[1][-1] if len(
+                preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
     def update_metrics(self, preds, batch):

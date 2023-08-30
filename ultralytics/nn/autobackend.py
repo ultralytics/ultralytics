@@ -404,7 +404,8 @@ class AutoBackend(nn.Module):
                     self.names = {i: f'class{i}' for i in range(nc)}
             else:  # Lite or Edge TPU
                 details = self.input_details[0]
-                integer = details['dtype'] in (np.int8, np.uint8, np.int16)  # is TFLite quantized int8, unit8 or int16 model
+                integer = details['dtype'] in (np.int8, np.uint8, np.int16
+                                               )  # is TFLite quantized int8, unit8 or int16 model
                 if integer:
                     scale, zero_point = details['quantization']
                     im = (im / scale + zero_point).astype(details['dtype'])  # de-scale

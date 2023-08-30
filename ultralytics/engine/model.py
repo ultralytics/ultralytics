@@ -120,7 +120,7 @@ class Model:
         self.overrides['model'] = self.cfg
         self.overrides['task'] = self.task
         if self.task == 'pose':
-            self.model.kpt_shape = cfg_dict["kpt_shape"]
+            self.model.kpt_shape = cfg_dict['kpt_shape']
 
         # Below added to allow export from YAMLs
         args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine model and default args, preferring model args

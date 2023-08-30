@@ -1,10 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import torch
+
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.utils.postprocess_utils import decode_bbox, decode_kpts
+
 
 class PosePredictor(DetectionPredictor):
     """
@@ -41,9 +43,14 @@ class PosePredictor(DetectionPredictor):
             pred_order = [item for index, item in enumerate(preds) if index not in [lci]]
             pred_decoded = decode_bbox(pred_order, img.shape, self.device)
             kpt_shape = (preds[lci].shape[-1] // 3, 3)
-            kpts_decoded = decode_kpts(pred_order, img.shape, torch.permute(preds[lci], (0,2,1)), kpt_shape, self.device, bs=1)
+            kpts_decoded = decode_kpts(pred_order,
+                                       img.shape,
+                                       torch.permute(preds[lci], (0, 2, 1)),
+                                       kpt_shape,
+                                       self.device,
+                                       bs=1)
             pred_order = torch.cat([pred_decoded, kpts_decoded], 1)
-            preds= ops.non_max_suppression(pred_order,
+            preds = ops.non_max_suppression(pred_order,
                                             self.args.conf,
                                             self.args.iou,
                                             agnostic=self.args.agnostic_nms,
@@ -64,7 +71,7 @@ class PosePredictor(DetectionPredictor):
         for i, pred in enumerate(preds):
             orig_img = orig_imgs[i] if is_list else orig_imgs
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
-            if self.separate_outputs == True:
+            if self.separate_outputs:
                 pred_kpts = pred[:, 6:].view(len(pred), *kpt_shape) if len(pred) else pred[:, 6:]
             else:
                 pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]

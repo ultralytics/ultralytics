@@ -188,17 +188,17 @@ class C2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
+
     def forward_hw_optimized(self, x):
 
         cv1_1, cv1_2 = {}, {}
         state_dict = self.cv1.state_dict()
-        weight = state_dict["conv.weight"]
-        bias = state_dict["conv.bias"]
-        cv1_1["conv.weight"] = weight[:self.c, :, :, :]
-        cv1_2["conv.weight"] = weight[self.c:, :, :, :]
-        cv1_1["conv.bias"] = bias[:self.c]
-        cv1_2["conv.bias"] = bias[self.c:]
+        weight = state_dict['conv.weight']
+        bias = state_dict['conv.bias']
+        cv1_1['conv.weight'] = weight[:self.c, :, :, :]
+        cv1_2['conv.weight'] = weight[self.c:, :, :, :]
+        cv1_1['conv.bias'] = bias[:self.c]
+        cv1_2['conv.bias'] = bias[self.c:]
         if not hasattr(self, 'cv1_1'):
             self.cv1_1 = Conv(self.cv1.conv.in_channels, self.c, 1, 1)
             self.cv1_2 = Conv(self.cv1.conv.in_channels, self.c, 1, 1)

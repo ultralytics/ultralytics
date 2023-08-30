@@ -100,7 +100,7 @@ class RTDETRValidator(DetectionValidator):
             prefix=colorstr(f'{mode}: '),
             data=self.data)
 
-    def postprocess(self, preds,img_shape):
+    def postprocess(self, preds, img_shape):
         """Apply Non-maximum suppression to prediction outputs."""
         bs, _, nd = preds[0].shape
         bboxes, scores = preds[0].split((4, nd - 4), dim=-1)

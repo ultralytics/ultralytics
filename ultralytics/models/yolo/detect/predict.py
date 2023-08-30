@@ -2,8 +2,8 @@
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import ops
-from ultralytics.nn.modules.block import DFL
 from ultralytics.utils.postprocess_utils import decode_bbox
+
 
 class DetectionPredictor(BasePredictor):
     """
@@ -32,11 +32,11 @@ class DetectionPredictor(BasePredictor):
                                             classes=self.args.classes)
         else:
             preds = ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        agnostic=self.args.agnostic_nms,
-                                        max_det=self.args.max_det,
-                                        classes=self.args.classes)
+                                            self.args.conf,
+                                            self.args.iou,
+                                            agnostic=self.args.agnostic_nms,
+                                            max_det=self.args.max_det,
+                                            classes=self.args.classes)
 
         results = []
         is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor

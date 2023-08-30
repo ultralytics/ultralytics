@@ -178,9 +178,13 @@ class Exporter:
         if edgetpu and not LINUX:
             raise SystemError('Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/')
         if self.args.separate_outputs:
-            assert format not in ('-','torchscript','saved_model','pb','ncnn'), "separate_outputs=True is not compatible with formats: -, torchscript, saved_model, pb and nccn"
+            assert format not in (
+                '-', 'torchscript', 'saved_model', 'pb', 'ncnn'
+            ), 'separate_outputs=True is not compatible with formats: -, torchscript, saved_model, pb and nccn'
         if self.args.export_hw_optimized:
-            assert format not in ('coreml', 'paddle', 'ncnn'), "export_hw_optimized =True is not compatible with formats: coreml, paddle, and nccn"
+            assert format not in (
+                'coreml', 'paddle',
+                'ncnn'), 'export_hw_optimized =True is not compatible with formats: coreml, paddle, and nccn'
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
         file = Path(
@@ -204,7 +208,7 @@ class Exporter:
             elif isinstance(m, C2f):
                 if self.args.export_hw_optimized:
                     # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
-                    m.forward = m.forward_hw_optimized  
+                    m.forward = m.forward_hw_optimized
                 elif not any((saved_model, pb, tflite, edgetpu, tfjs)):
                     # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                     m.forward = m.forward_split
@@ -362,7 +366,7 @@ class Exporter:
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
- 
+
         onnx.save(model_onnx, f)
         return f, model_onnx
 
@@ -667,11 +671,11 @@ class Exporter:
         else:
             verbosity = '--non_verbose'
             int8 = ''
-        if self.model.task == "pose":
-            replace_json = ROOT / "utils/pose_replace.json"
+        if self.model.task == 'pose':
+            replace_json = ROOT / 'utils/pose_replace.json'
         else:
-            replace_json = ROOT / "utils/replace.json"
-        
+            replace_json = ROOT / 'utils/replace.json'
+
         cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf {replace_json}'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
@@ -688,7 +692,7 @@ class Exporter:
         # Add TFLite metadata
         for file in f.rglob('*.tflite'):
             if 'quant_with_int16_act.tflite' in str(f):
-                f.unlink() 
+                f.unlink()
             else:
                 if not self.args.separate_outputs:
                     self._add_tflite_metadata(file)

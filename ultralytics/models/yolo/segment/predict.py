@@ -1,10 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import torch
+
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, ops
 from ultralytics.utils.postprocess_utils import decode_bbox
-import torch
+
 
 class SegmentationPredictor(DetectionPredictor):
     """
@@ -36,14 +38,14 @@ class SegmentationPredictor(DetectionPredictor):
                     lci = idx
                 if len(s.shape) == 4:
                     proto = s
-                    pidx = idx  
+                    pidx = idx
             mask = preds[lci]
-            proto = proto.permute(0,3,1,2) 
+            proto = proto.permute(0, 3, 1, 2)
             pred_order = [item for index, item in enumerate(preds) if index not in [pidx, lci]]
             preds_decoded = decode_bbox(pred_order, img.shape, self.device)
             nc = preds_decoded.shape[1] - 4
             preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)
-            p = ops.non_max_suppression(preds_decoded, #preds[0],
+            p = ops.non_max_suppression(preds_decoded,
                                         self.args.conf,
                                         self.args.iou,
                                         agnostic=self.args.agnostic_nms,
@@ -51,7 +53,7 @@ class SegmentationPredictor(DetectionPredictor):
                                         nc=nc,
                                         classes=self.args.classes)
         else:
-            nc=preds[0].shape[1]-4-32
+            nc = preds[0].shape[1] - 4 - 32
             p = ops.non_max_suppression(preds[0],
                                         self.args.conf,
                                         self.args.iou,
@@ -59,8 +61,9 @@ class SegmentationPredictor(DetectionPredictor):
                                         max_det=self.args.max_det,
                                         nc=nc,
                                         classes=self.args.classes)
-            proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
-        
+            proto = preds[1][-1] if len(
+                preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+
         results = []
         is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, pred in enumerate(p):

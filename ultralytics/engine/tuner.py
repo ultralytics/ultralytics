@@ -18,6 +18,7 @@ Example:
 """
 import random
 import time
+from copy import deepcopy
 
 import numpy as np
 
@@ -161,19 +162,22 @@ class Tuner:
         """
 
         self.tune_dir.mkdir(parents=True, exist_ok=True)
+        headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
         for i in range(iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
             LOGGER.info(f'{prefix} Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}')
 
             # Initialize and train YOLOv8 model
-            model = YOLO('yolov8n.pt')
-            train_args = {**vars(self.args), **mutated_hyp}
-            results = model.train(**train_args)
+            try:
+                train_args = {**vars(self.args), **mutated_hyp}
+                results = (deepcopy(model) or YOLO(self.args.model)).train(**train_args)
+                fitness = results.fitness
+            except Exception:
+                fitness = 0.0
 
             # Save results and mutated_hyp to evolve_csv
-            headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
-            log_row = [results.fitness] + [mutated_hyp[k] for k in self.space.keys()]
+            log_row = [fitness] + [mutated_hyp[k] for k in self.space.keys()]
             with open(self.evolve_csv, 'a') as f:
                 f.write(headers + ','.join(map(str, log_row)) + '\n')
 

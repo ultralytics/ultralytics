@@ -3,7 +3,7 @@ import datetime
 
 time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-model_name = 'yolov8n-baseline.yaml'
+model_name = 'yolov8n-baseline'
 epochs = 200
 batch_size = 32
 patience = 50
@@ -20,9 +20,9 @@ model.train(
     imgsz = img_size,
     project = 'military',
     name = f'{model_name}-{img_size}-{optimizer}-{epochs}-{time}',
-    exit_ok = True,
+    exist_ok = True,
     optimizer = optimizer,
     verbose = True,
     cos_lr = True,
-    close_mosaic = True,
+    close_mosaic = 200,
 )

@@ -35,7 +35,7 @@ import torch.cuda
 from tqdm import tqdm
 
 from ultralytics import YOLO
-from ultralytics.cfg import TASK2DATA, TASK2METRIC
+from ultralytics.cfg import TASK2DATA, TASK2METRIC, TASK2YAML
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS
 from ultralytics.utils.checks import check_requirements, check_yolo
@@ -86,7 +86,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     if export_hw_optimized == True:
         name = Path(model.ckpt_path)
         print(name)
-        model_yaml = "/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/" +model.ckpt_path.split("/")[-1].replace("n.pt", ".yaml")
+        model_yaml = "/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/" + TASK2YAML[model.task]
         model = YOLO(model_yaml).load(model.ckpt_path)
         
     else:   
@@ -164,7 +164,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
         name = model.ckpt_path
     else:
         name = Path(model.ckpt_path).name
-        
+
     s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n'
     LOGGER.info(s)
     with open('benchmarks.log', 'a', errors='ignore', encoding='utf-8') as f:

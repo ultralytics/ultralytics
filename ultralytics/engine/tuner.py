@@ -93,7 +93,7 @@ class Tuner:
         callbacks.add_integration_callbacks(self)
         LOGGER.info(f"Initialized Tuner instance with 'tune_dir={self.tune_dir}'.")
 
-    def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.2, return_best=False):
+    def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.2):
         """
         Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
 
@@ -106,17 +106,13 @@ class Tuner:
         Returns:
             (dict): A dictionary containing mutated hyperparameters.
         """
-        keys = self.space.keys()
         if self.evolve_csv.exists():  # if evolve.csv exists: select best hyps and mutate
             # Select parent(s)
             x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
             fitness = x[:, 0]  # first column
             n = min(n, len(x))  # number of previous results to consider
             x = x[np.argsort(-fitness)][:n]  # top n mutations
-            if return_best:
-                return {k: float(x[0, i + 1]) for i, k in enumerate(keys)}
-            fitness = x[:, 0]  # first column
-            w = fitness - fitness.min() + 1E-6  # weights (sum > 0)
+            w = x[:, 0] - x[:, 0].min() + 1E-6  # weights (sum > 0)
             if parent == 'single' or len(x) == 1:
                 # x = x[random.randint(0, n - 1)]  # random selection
                 x = x[random.choices(range(n), weights=w)[0]]  # weighted selection
@@ -131,10 +127,9 @@ class Tuner:
             v = np.ones(ng)
             while all(v == 1):  # mutate until a change occurs (prevent duplicates)
                 v = (g * (r.random(ng) < mutation) * r.randn(ng) * r.random() * sigma + 1).clip(0.3, 3.0)
-            print(v)
-            hyp = {k: float(x[i + 1] * v[i]) for i, k in enumerate(keys)}
+            hyp = {k: float(x[i + 1] * v[i]) for i, k in enumerate(self.space.keys())}
         else:
-            hyp = {k: getattr(self.args, k) for k in keys}
+            hyp = {k: getattr(self.args, k) for k in self.space.keys()}
 
         # Constrain to limits
         for k, v in self.space.items():
@@ -163,6 +158,7 @@ class Tuner:
            Ensure this path is set correctly in the Tuner instance.
         """
 
+        t0 = time.time()
         self.tune_dir.mkdir(parents=True, exist_ok=True)
         for i in range(iterations):
             # Mutate hyperparameters
@@ -172,9 +168,9 @@ class Tuner:
             # Initialize and train YOLOv8 model
             try:
                 train_args = {**vars(self.args), **mutated_hyp}
-                results = (deepcopy(model) or YOLO(self.args.model)).train(**train_args)
-                fitness = results.fitness
-            except Exception:
+                fitness = (deepcopy(model) or YOLO(self.args.model)).train(**train_args).fitness  # results.fitness
+            except Exception as e:
+                LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i}\n{e}')
                 fitness = 0.0
 
             # Save results and mutated_hyp to evolve_csv
@@ -183,7 +179,14 @@ class Tuner:
             with open(self.evolve_csv, 'a') as f:
                 f.write(headers + ','.join(map(str, log_row)) + '\n')
 
-        LOGGER.info(f'{prefix} All iterations complete. Results saved to {colorstr("bold", self.tune_dir)}')
-        best_hyp = self._mutate(return_best=True)  # best hyps
-        yaml_save(self.tune_dir / 'best.yaml', best_hyp)
+        # Print tuning results
+        x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
+        fitness = x[:, 0]  # first column
+        i = np.argsort(-fitness)[0]  # best fitness index
+        LOGGER.info(f'{prefix} All iterations complete ✅ ({time.time() - t0:.2f}s)\n'
+                    f'{prefix} Results saved to {colorstr("bold", self.tune_dir)}\n'
+                    f'{prefix} Best fitness={fitness[i]} observed at iteration {i}.\n')
+
+        # Save turning results
+        yaml_save(self.tune_dir / 'best.yaml', data={k: float(x[0, i + 1]) for i, k in enumerate(self.space.keys())})
         yaml_print(self.tune_dir / 'best.yaml')

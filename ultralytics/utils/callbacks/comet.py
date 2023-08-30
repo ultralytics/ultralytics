@@ -59,7 +59,8 @@ def _get_experiment_type(mode, project_name):
     if mode == 'offline':
         return comet_ml.OfflineExperiment(project_name=project_name)
     import yaml
-    with open('/home/zh/pythonhub/military-target-detection/ultralytics/cfg/callbacks/comet.yaml', encoding='utf-8') as file:
+    with open('/home/zh/pythonhub/military-target-detection/ultralytics/cfg/callbacks/comet.yaml',
+              encoding='utf-8') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
     return comet_ml.Experiment(
         project_name=project_name,

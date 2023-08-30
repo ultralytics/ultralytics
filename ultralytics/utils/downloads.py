@@ -160,7 +160,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         # Check if destination directory already exists and contains files
         if path.exists() and any(path.iterdir()) and not exist_ok:
             # If it exists and is not empty, return the path without unzipping
-            LOGGER.info(f'Skipping {file} unzip (already unzipped)')
+            LOGGER.warning(f'WARNING ⚠️ Skipping {file} unzip as destination directory {path} is not empty.')
             return path
 
         for f in tqdm(files,
@@ -185,22 +185,25 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    with contextlib.suppress(Exception):
-        gib = 1 << 30  # bytes per GiB
-        data = int(requests.head(url).headers['Content-Length']) / gib  # file size (GB)
-        total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
-        if data * sf < free:
-            return True  # sufficient space
+    r = requests.head(url)  # response
 
-        # Insufficient space
-        text = (f'WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
-                f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
-        if hard:
-            raise MemoryError(text)
-        LOGGER.warning(text)
-        return False
+    # Check response
+    assert r.status_code < 400, f'URL error for {url}: {r.status_code} {r.reason}'
 
-    return True
+    # Check file size
+    gib = 1 << 30  # bytes per GiB
+    data = int(r.headers.get('Content-Length', 0)) / gib  # file size (GB)
+    total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
+    if data * sf < free:
+        return True  # sufficient space
+
+    # Insufficient space
+    text = (f'WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
+            f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
+    if hard:
+        raise MemoryError(text)
+    LOGGER.warning(text)
+    return False
 
 
 def get_google_drive_file_info(link):

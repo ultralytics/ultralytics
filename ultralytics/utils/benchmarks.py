@@ -83,7 +83,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     pd.options.display.max_columns = 10
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
-    if export_hw_optimized == True and format not in ("coreml"):
+    if export_hw_optimized == True:
         model_yaml = "/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/" +model.ckpt_path.split("/")[-1].replace("n.pt", ".yaml")
         print(model_yaml)
         model = YOLO(model_yaml).load(model.ckpt_path)
@@ -117,7 +117,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             if format == '-':
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
-            elif format not in ("coreml"):
+            elif format in ("coreml"):
                 filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, separate_outputs=separate_outputs)
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'

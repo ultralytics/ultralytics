@@ -119,6 +119,7 @@ class Model:
         self.model = (model or self.smart_load('model'))(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
         self.overrides['task'] = self.task
+        self.model.kpt_shape = cfg_dict["kpt_shape"]
 
         # Below added to allow export from YAMLs
         args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine model and default args, preferring model args

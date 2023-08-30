@@ -127,7 +127,7 @@ jobs:
           pip list
       - name: Benchmark PoseModel with export_hw_optimized
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 separate_outputs=True export_hw_optimized=True verbose=0.17
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 export_hw_optimized=True verbose=0.17
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
@@ -163,7 +163,7 @@ jobs:
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 export_hw_optimized=True verbose=0.16
       # - name: Benchmark PoseModel with export_hw_optimized
       #   shell: bash
-      #   run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 separate_outputs=True export_hw_optimized=True verbose=0.17
+      #   run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 export_hw_optimized=True verbose=0.17
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml

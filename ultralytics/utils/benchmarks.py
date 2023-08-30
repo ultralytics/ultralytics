@@ -85,7 +85,6 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     device = select_device(device, verbose=False)
     if export_hw_optimized == True:
         name = Path(model.ckpt_path)
-        print(name)
         model_yaml = "/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/" + TASK2YAML[model.task]
         model = YOLO(model_yaml).load(model.ckpt_path)
         
@@ -124,7 +123,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, separate_outputs=separate_outputs, export_hw_optimized=export_hw_optimized)
+                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, export_hw_optimized=export_hw_optimized)
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded

@@ -325,6 +325,7 @@ def yaml_load(file='data.yaml', append_filename=False):
     Returns:
         (dict): YAML data and file name.
     """
+    assert Path(file).suffix in ('.yaml', '.yml'), f'Attempting to load non-YAML file {file} with yaml_load()'
     with open(file, errors='ignore', encoding='utf-8') as f:
         s = f.read()  # string
 

@@ -115,7 +115,7 @@ class BaseTrainer:
         try:
             if self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data)
-            elif self.args.data.split('.')[-1] in ('yaml', 'yml') or self.args.task in ('detect', 'segment'):
+            elif self.args.data.split('.')[-1] in ('yaml', 'yml') or self.args.task in ('detect', 'segment', 'pose'):
                 self.data = check_det_dataset(self.args.data)
                 if 'yaml_file' in self.data:
                     self.args.data = self.data['yaml_file']  # for validating 'yolo train data=url.zip' usage
@@ -251,9 +251,8 @@ class BaseTrainer:
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
 
         # Batch size
-        if self.batch_size == -1:
-            if RANK == -1:  # single-GPU only, estimate best batch size
-                self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
+        if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
+            self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
@@ -262,7 +261,7 @@ class BaseTrainer:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val')
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
-            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
+            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
             self.ema = ModelEMA(self.model)
             if self.args.plots:
                 self.plot_training_labels()

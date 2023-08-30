@@ -18,6 +18,7 @@ Example:
 """
 import random
 import time
+from copy import deepcopy
 
 import numpy as np
 
@@ -51,7 +52,7 @@ class Tuner:
          from ultralytics import YOLO
 
          model = YOLO('yolov8n.pt')
-         model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10)
+         model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10, val=False, cache=True)
          ```
      """
 
@@ -63,11 +64,11 @@ class Tuner:
             args (dict, optional): Configuration for hyperparameter evolution.
         """
         self.args = get_cfg(overrides=args)
-        self.space = {
+        self.space = {  # key: (min, max, gain(optionaL))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
             'lr0': (1e-5, 1e-1),
             'lrf': (0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
-            'momentum': (0.6, 0.98),  # SGD momentum/Adam beta1
+            'momentum': (0.6, 0.98, 0.3),  # SGD momentum/Adam beta1
             'weight_decay': (0.0, 0.001),  # optimizer weight decay 5e-4
             'warmup_epochs': (0.0, 5.0),  # warmup epochs (fractions ok)
             'warmup_momentum': (0.0, 0.95),  # warmup initial momentum
@@ -86,13 +87,13 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
-        self.tune_dir = get_save_dir(self.args, name='tune')
+        self.tune_dir = get_save_dir(self.args, name='_tune')
         self.evolve_csv = self.tune_dir / 'evolve.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
         LOGGER.info(f"Initialized Tuner instance with 'tune_dir={self.tune_dir}'.")
 
-    def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.2, return_best=False):
+    def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.2):
         """
         Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
 
@@ -111,10 +112,7 @@ class Tuner:
             fitness = x[:, 0]  # first column
             n = min(n, len(x))  # number of previous results to consider
             x = x[np.argsort(-fitness)][:n]  # top n mutations
-            if return_best:
-                return {k: float(x[0, i + 1]) for i, k in enumerate(self.space.keys())}
-            fitness = x[:, 0]  # first column
-            w = fitness - fitness.min() + 1E-6  # weights (sum > 0)
+            w = x[:, 0] - x[:, 0].min() + 1E-6  # weights (sum > 0)
             if parent == 'single' or len(x) == 1:
                 # x = x[random.randint(0, n - 1)]  # random selection
                 x = x[random.choices(range(n), weights=w)[0]]  # weighted selection
@@ -124,7 +122,7 @@ class Tuner:
             # Mutate
             r = np.random  # method
             r.seed(int(time.time()))
-            g = np.array([self.space[k][0] for k in self.space.keys()])  # gains 0-1
+            g = np.array([v[2] if len(v) == 3 else 1.0 for k, v in self.space.items()])  # gains 0-1
             ng = len(self.space)
             v = np.ones(ng)
             while all(v == 1):  # mutate until a change occurs (prevent duplicates)
@@ -152,7 +150,7 @@ class Tuner:
         4. Log the fitness score and mutated hyperparameters to a CSV file.
 
         Args:
-           model (YOLO): A pre-initialized YOLO model to be used for training.
+           model (Model): A pre-initialized YOLO model to be used for training.
            iterations (int): The number of generations to run the evolution for.
 
         Note:
@@ -160,6 +158,7 @@ class Tuner:
            Ensure this path is set correctly in the Tuner instance.
         """
 
+        t0 = time.time()
         self.tune_dir.mkdir(parents=True, exist_ok=True)
         for i in range(iterations):
             # Mutate hyperparameters
@@ -167,17 +166,27 @@ class Tuner:
             LOGGER.info(f'{prefix} Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}')
 
             # Initialize and train YOLOv8 model
-            model = YOLO('yolov8n.pt')
-            train_args = {**vars(self.args), **mutated_hyp}
-            results = model.train(**train_args)
+            try:
+                train_args = {**vars(self.args), **mutated_hyp}
+                fitness = (deepcopy(model) or YOLO(self.args.model)).train(**train_args).fitness  # results.fitness
+            except Exception as e:
+                LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i}\n{e}')
+                fitness = 0.0
 
             # Save results and mutated_hyp to evolve_csv
+            log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
             headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
-            log_row = [results.fitness] + [mutated_hyp[k] for k in self.space.keys()]
             with open(self.evolve_csv, 'a') as f:
                 f.write(headers + ','.join(map(str, log_row)) + '\n')
 
-        LOGGER.info(f'{prefix} All iterations complete. Results saved to {colorstr("bold", self.tune_dir)}')
-        best_hyp = self._mutate(return_best=True)  # best hyps
-        yaml_save(self.tune_dir / 'best.yaml', best_hyp)
+        # Print tuning results
+        x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
+        fitness = x[:, 0]  # first column
+        i = np.argsort(-fitness)[0]  # best fitness index
+        LOGGER.info(f'\n{prefix} All iterations complete ✅ ({time.time() - t0:.2f}s)\n'
+                    f'{prefix} Results saved to {colorstr("bold", self.tune_dir)}\n'
+                    f'{prefix} Best fitness={fitness[i]} observed at iteration {i}')
+
+        # Save turning results
+        yaml_save(self.tune_dir / 'best.yaml', data={k: float(x[0, i + 1]) for i, k in enumerate(self.space.keys())})
         yaml_print(self.tune_dir / 'best.yaml')

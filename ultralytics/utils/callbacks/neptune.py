@@ -7,12 +7,12 @@ from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
+    assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['neptune'] is True  # verify integration is enabled
     import neptune
     from neptune.types import File
 
-    assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(neptune, '__version__')
-    assert SETTINGS['neptune'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     neptune = None
 

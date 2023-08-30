@@ -115,7 +115,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             if format in ('-','torchscript','saved_model','pb','ncnn') and separate_outputs==True:
                 continue
 
-            if format in ("coreml", "paddle", 'ncnn') and export_hw_optimized=True:
+            if format in ("coreml", "paddle", 'ncnn') and export_hw_optimized==True:
                 continue
 
             if format == '-':

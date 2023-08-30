@@ -245,7 +245,7 @@ def check_det_dataset(dataset, autodownload=True):
     # Download (optional)
     extract_dir = ''
     if isinstance(data, (str, Path)) and (zipfile.is_zipfile(data) or is_tarfile(data)):
-        new_dir = safe_download(data, dir=DATASETS_DIR, unzip=True, delete=False, curl=False)
+        new_dir = safe_download(data, dir=DATASETS_DIR, unzip=True, delete=False)
         data = find_dataset_yaml(DATASETS_DIR / new_dir)
         extract_dir, autodownload = data.parent, False
 
@@ -338,6 +338,10 @@ def check_cls_dataset(dataset, split=''):
             - 'names' (dict): A dictionary of class names in the dataset.
     """
 
+    # Download (optional if dataset=https://file.zip is passed directly)
+    if str(dataset).startswith(('http:/', 'https:/')):
+        dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
+
     dataset = Path(dataset)
     data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
     if not data_dir.is_dir():
@@ -351,8 +355,8 @@ def check_cls_dataset(dataset, split=''):
         s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
         LOGGER.info(s)
     train_set = data_dir / 'train'
-    val_set = data_dir / 'val' if (data_dir / 'val').exists() else data_dir / 'validation' if (
-        data_dir / 'validation').exists() else None  # data/test or data/val
+    val_set = data_dir / 'val' if (data_dir / 'val').exists() else data_dir / 'validation' if \
+        (data_dir / 'validation').exists() else None  # data/test or data/val
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
     if split == 'val' and not val_set:
         LOGGER.warning("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")

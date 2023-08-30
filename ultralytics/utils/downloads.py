@@ -192,7 +192,7 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
 
     # Check file size
     gib = 1 << 30  # bytes per GiB
-    data = int(r.headers['Content-Length']) / gib  # file size (GB)
+    data = int(r.headers.get('Content-Length', 0)) / gib  # file size (GB)
     total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
     if data * sf < free:
         return True  # sufficient space

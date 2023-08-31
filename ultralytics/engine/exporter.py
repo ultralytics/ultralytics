@@ -438,18 +438,16 @@ class Exporter:
             Path(asset).unlink()  # delete zip
             pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
 
-        use_ncnn = True
         ncnn_args = [
             f'ncnnparam={f / "model.ncnn.param"}',
             f'ncnnbin={f / "model.ncnn.bin"}',
-            f'ncnnpy={f / "model_ncnn.py"}', ] if use_ncnn else []
+            f'ncnnpy={f / "model_ncnn.py"}', ]
 
-        use_pnnx = False
         pnnx_args = [
             f'pnnxparam={f / "model.pnnx.param"}',
             f'pnnxbin={f / "model.pnnx.bin"}',
             f'pnnxpy={f / "model_pnnx.py"}',
-            f'pnnxonnx={f / "model.pnnx.onnx"}', ] if use_pnnx else []
+            f'pnnxonnx={f / "model.pnnx.onnx"}', ]
 
         cmd = [
             str(pnnx),
@@ -462,7 +460,10 @@ class Exporter:
         f.mkdir(exist_ok=True)  # make ncnn_model directory
         LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
-        for f_debug in 'debug.bin', 'debug.param', 'debug2.bin', 'debug2.param':  # remove debug files
+
+        # Remove debug files
+        pnnx_files = [x.split('=')[-1] for x in pnnx_args]
+        for f_debug in ('debug.bin', 'debug.param', 'debug2.bin', 'debug2.param', *pnnx_files):
             Path(f_debug).unlink(missing_ok=True)
 
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

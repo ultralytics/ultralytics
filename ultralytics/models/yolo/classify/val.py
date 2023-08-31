@@ -55,7 +55,7 @@ class ClassificationValidator(BaseValidator):
 
     def update_metrics(self, preds, batch):
         """Updates running metrics with model predictions and batch targets."""
-        n5 = min(len(self.model.names), 5)
+        n5 = min(len(self.names), 5)
         self.pred.append(preds.argsort(1, descending=True)[:, :n5])
         self.targets.append(batch['cls'])
 

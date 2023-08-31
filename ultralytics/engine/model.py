@@ -341,7 +341,8 @@ class Model:
         self.trainer.train()
         # Update model and cfg after training
         if RANK in (-1, 0):
-            self.model, _ = attempt_load_one_weight(str(self.trainer.best))
+            ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
+            self.model, _ = attempt_load_one_weight(ckpt)
             self.overrides = self.model.args
             self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
         return self.metrics
@@ -360,9 +361,9 @@ class Model:
         else:
             from .tuner import Tuner
 
-            custom = {}  # method defaults
+            custom = {'plots': False, 'save': False}  # method defaults
             args = {**self.overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
-            return Tuner(args=args, _callbacks=self.callbacks)(model=self.model, iterations=iterations)
+            return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
 
     def to(self, device):
         """

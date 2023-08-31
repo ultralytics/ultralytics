@@ -8,18 +8,25 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      dockerfile:
-        type: choice
-        description: Select Dockerfile
-        options:
-          - Dockerfile-arm64
-          - Dockerfile-jetson
-          - Dockerfile-python
-          - Dockerfile-cpu
-          - Dockerfile
+      Dockerfile:
+        type: boolean
+        description: Use Dockerfile
+        default: true
+      Dockerfile-cpu:
+        type: boolean
+        description: Use Dockerfile-cpu
+      Dockerfile-arm64:
+        type: boolean
+        description: Use Dockerfile-arm64
+      Dockerfile-jetson:
+        type: boolean
+        description: Use Dockerfile-jetson
+      Dockerfile-python:
+        type: boolean
+        description: Use Dockerfile-python
       push:
         type: boolean
-        description: Push image to Docker Hub
+        description: Push images to Docker Hub
         default: true
 
 jobs:
@@ -93,28 +100,28 @@ jobs:
           VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
 
       - name: Build Image
-        if: github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile
+        if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
         run: |
           docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} \
           -t ultralytics/ultralytics:${{ matrix.tags }} \
           -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} .
 
       - name: Run Tests
-        if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
         # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
-        if: (github.event_name == 'push' || github.event.inputs.dockerfile == matrix.dockerfile) && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile'  # arm64 images not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
       - name: Push Docker Image with Ultralytics version tag
-        if: (github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')) && steps.check_tag.outputs.exists == 'false'
+        if: (github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')) && steps.check_tag.outputs.exists == 'false'
         run: |
           docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
 
       - name: Push Docker Image with latest tag
-        if: github.event_name == 'push' || (github.event.inputs.dockerfile == matrix.dockerfile && github.event.inputs.push == 'true')
+        if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
         run: |
           docker push ultralytics/ultralytics:${{ matrix.tags }}
           if [[ "${{ matrix.tags }}" == "latest" ]]; then

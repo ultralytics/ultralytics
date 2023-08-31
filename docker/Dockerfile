@@ -24,7 +24,7 @@ WORKDIR /usr/src/ultralytics
 
 # Copy contents
 # COPY . /usr/src/ultralytics
-RUN git clone https://github.com/ultralytics/ultralytics -b hub-classify /usr/src/ultralytics
+RUN git clone https://github.com/ultralytics/ultralytics -b docker_updates /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
 
 # Install pip packages

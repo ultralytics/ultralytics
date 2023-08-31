@@ -275,10 +275,11 @@ class Exporter:
                                   f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
             predict_data = f'data={data}' if model.task == 'segment' and format == 'pb' else ''
+            q = 'int8' if self.args.int8 else 'half' if self.args.half else ''  # quantization
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {predict_data}'
-                        f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {s}'
+                        f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q} {predict_data}'
+                        f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}'
                         f'\nVisualize:       https://netron.app')
 
         self.run_callbacks('on_export_end')
@@ -391,7 +392,8 @@ class Exporter:
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)  # export
 
-        if self.args.data and self.args.int8:
+        if self.args.int8:
+            assert self.args.data, "INT8 export requires a data argument for calibration, i.e. 'data=coco8.yaml'"
             check_requirements('nncf')
             import nncf
             import numpy as np
@@ -417,6 +419,7 @@ class Exporter:
                                                preset=nncf.QuantizationPreset.MIXED,
                                                ignored_scope=ignored_scope)
             serialize(quantized_ov_model, fq_ov)
+            return fq, None
 
         serialize(ov_model, f_ov)
         return f, None

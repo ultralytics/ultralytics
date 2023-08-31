@@ -380,9 +380,10 @@ class Exporter:
             import numpy as np
             check_requirements('nncf')
             import nncf
+
+            from ultralytics.data import build_dataloader
             from ultralytics.data.dataset import YOLODataset
             from ultralytics.data.utils import check_det_dataset
-            from ultralytics.data import build_dataloader
 
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
@@ -412,23 +413,20 @@ class Exporter:
 
             quantization_dataset = nncf.Dataset(dl, transform_fn)
             ignored_scope = nncf.IgnoredScope(
-                types=["Multiply", "Subtract", "Sigmoid"],  # ignore operation
-
+                types=['Multiply', 'Subtract', 'Sigmoid'],  # ignore operation
             )
             # Detection model
-            quantized_ov_model = nncf.quantize(
-                ov_model,
-                quantization_dataset,
-                preset=nncf.QuantizationPreset.MIXED,
-               ignored_scope=ignored_scope
-            )
+            quantized_ov_model = nncf.quantize(ov_model,
+                                               quantization_dataset,
+                                               preset=nncf.QuantizationPreset.MIXED,
+                                               ignored_scope=ignored_scope)
             quantized_ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
             quantized_ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
             quantized_ov_model.set_rt_info(114, ['model_info', 'pad_value'])
             quantized_ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
             quantized_ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
             quantized_ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
-                                 ['model_info', 'labels'])
+                                           ['model_info', 'labels'])
             if self.model.task != 'classify':
                 quantized_ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
             ov.serialize(quantized_ov_model, fq_ov)

@@ -372,79 +372,54 @@ class Exporter:
         f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
         fq_ov = str(Path(fq) / self.file.with_suffix('.xml').name)
 
+        def serialize(ov_model, file):
+            """Set RT info, serialize and save metadata YAML."""
+            ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
+            ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
+            ov_model.set_rt_info(114, ['model_info', 'pad_value'])
+            ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
+            ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
+            ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
+                                 ['model_info', 'labels'])
+            if self.model.task != 'classify':
+                ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
+
+            ov.serialize(ov_model, file)  # save
+            yaml_save(Path(file).parent / 'metadata.yaml', self.metadata)  # add metadata.yaml
+
         ov_model = mo.convert_model(f_onnx,
                                     model_name=self.pretty_name,
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)  # export
+
         if self.args.data and self.args.int8:
-            import numpy as np
             check_requirements('nncf')
             import nncf
+            import numpy as np
 
             from ultralytics.data import build_dataloader
             from ultralytics.data.dataset import YOLODataset
             from ultralytics.data.utils import check_det_dataset
 
+            def transform_fn(data_item):
+                """Quantization transform function."""
+                im = data_item['img'].numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+                return np.expand_dims(im, 0) if im.ndim == 3 else im
+
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
             data = check_det_dataset(self.args.data)
             dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
-            dl = build_dataloader(dataset, batch=1, workers=self.args.workers)
-
-            def prepare_input_tensor(image: np.ndarray):
-                input_tensor = image.astype(np.float32)  # uint8 to fp16/32
-                input_tensor /= 255.0  # 0 - 255 to 0.0 - 1.0
-
-                if input_tensor.ndim == 3:
-                    input_tensor = np.expand_dims(input_tensor, 0)
-                return input_tensor
-
-            def transform_fn(data_item):
-                """
-                Quantization transform function. Extracts and preprocess input data from dataloader item for quantization.
-                Parameters:
-                   data_item: Tuple with data item produced by DataLoader during iteration
-                Returns:
-                    input_tensor: Input data for quantization
-                """
-                img = data_item['img'].numpy()
-                input_tensor = prepare_input_tensor(img)
-                return input_tensor
-
-            quantization_dataset = nncf.Dataset(dl, transform_fn)
-            ignored_scope = nncf.IgnoredScope(
-                types=['Multiply', 'Subtract', 'Sigmoid'],  # ignore operation
-            )
-            # Detection model
+            dataloader = build_dataloader(dataset, batch=1, workers=self.args.workers)
+            quantization_dataset = nncf.Dataset(dataloader, transform_fn)
+            ignored_scope = nncf.IgnoredScope(types=['Multiply', 'Subtract', 'Sigmoid'])  # ignore operation
             quantized_ov_model = nncf.quantize(ov_model,
                                                quantization_dataset,
                                                preset=nncf.QuantizationPreset.MIXED,
                                                ignored_scope=ignored_scope)
-            quantized_ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
-            quantized_ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
-            quantized_ov_model.set_rt_info(114, ['model_info', 'pad_value'])
-            quantized_ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
-            quantized_ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
-            quantized_ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
-                                           ['model_info', 'labels'])
-            if self.model.task != 'classify':
-                quantized_ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
-            ov.serialize(quantized_ov_model, fq_ov)
-            yaml_save(Path(fq) / 'metadata.yaml', self.metadata)  # add metadata.yaml
+            serialize(quantized_ov_model, fq_ov)
 
-        # Set RT info
-        ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
-        ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
-        ov_model.set_rt_info(114, ['model_info', 'pad_value'])
-        ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
-        ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
-        ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
-                             ['model_info', 'labels'])
-        if self.model.task != 'classify':
-            ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
-
-        ov.serialize(ov_model, f_ov)  # save
-        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
+        serialize(ov_model, f_ov)
         return f, None
 
     @try_export

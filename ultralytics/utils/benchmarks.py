@@ -26,7 +26,6 @@ ncnn                    | `ncnn`                    | yolov8n_ncnn_model/
 
 import glob
 import platform
-import sys
 import time
 from pathlib import Path
 
@@ -37,7 +36,7 @@ from tqdm import tqdm
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS
+from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS, is_docker
 from ultralytics.utils.checks import check_requirements, check_yolo
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
@@ -92,7 +91,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             if i == 10:  # TF.js
                 assert MACOS or LINUX, 'TF.js export only supported on macOS and Linux'
             elif i == 11:  # PaddlePaddle
-                assert sys.version_info < (3, 12), 'PaddlePaddle export only supported on Python<=3.10'
+                assert not is_docker(), 'PaddlePaddle known issue https://github.com/PaddlePaddle/X2Paddle/issues/991'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:

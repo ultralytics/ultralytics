@@ -3,9 +3,10 @@
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
+    from torch.utils.tensorboard import SummaryWriter
+
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['tensorboard'] is True  # verify integration is enabled
-    from torch.utils.tensorboard import SummaryWriter
 except (ImportError, AssertionError, TypeError):
     # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
     SummaryWriter = None

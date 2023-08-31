@@ -165,8 +165,8 @@ class Tuner:
             mutated_hyp = self._mutate()
             LOGGER.info(f'{prefix} Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}')
 
-            # Initialize and train YOLOv8 model
             try:
+                # Train YOLO model with mutated hyperparameters
                 train_args = {**vars(self.args), **mutated_hyp}
                 fitness = (deepcopy(model) or YOLO(self.args.model)).train(**train_args).fitness  # results.fitness
             except Exception as e:

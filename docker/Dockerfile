@@ -39,6 +39,8 @@ RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
 # Fix error: `np.bool` was a deprecated alias for the builtin `bool`
 RUN pip install --no-cache numpy==1.23.5
+# Fix 7.0.b2 bug: TypeError: Descriptors cannot not be created directly.
+RUN pip install --no-cache coremltools>=7.0.b1,!=7.0.b2
 # Remove exported models
 RUN rm -rf tmp
 

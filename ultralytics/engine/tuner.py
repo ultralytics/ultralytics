@@ -158,8 +158,8 @@ class Tuner:
            Ensure this path is set correctly in the Tuner instance.
         """
 
-        best_save_dir = None
         t0 = time.time()
+        best_save_dir, best_metrics = None, None
         self.tune_dir.mkdir(parents=True, exist_ok=True)
         for i in range(iterations):
             # Mutate hyperparameters
@@ -188,9 +188,11 @@ class Tuner:
             best_is_current = best_idx == i
             if best_is_current:
                 best_save_dir = results.save_dir
+                best_metrics = {k: round(v, 5) for k, v in results.results_dict.items()}
             header = (f'{prefix} {i + 1} iterations complete ✅ ({time.time() - t0:.2f}s)\n'
                       f'{prefix} Results saved to {colorstr("bold", self.tune_dir)}\n'
                       f'{prefix} Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n'
+                      f'{prefix} Best fitness metrics are {best_metrics}\n'
                       f'{prefix} Best fitness model is {best_save_dir}\n'
                       f'{prefix} Best fitness hyperparameters are printed below.\n')
 
@@ -198,6 +200,6 @@ class Tuner:
 
             # Save turning results
             data = {k: float(x[0, i + 1]) for i, k in enumerate(self.space.keys())}
-            header = header.replace(prefix, '#').replace('[1m/', '').replace('[0m', '')
+            header = header.replace(prefix, '#').replace('[1m/', '').replace('[0m', '') + '\n'
             yaml_save(self.tune_dir / 'best.yaml', data=data, header=header)
             yaml_print(self.tune_dir / 'best.yaml')

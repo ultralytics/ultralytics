@@ -9,18 +9,24 @@ on:
   workflow_dispatch:
     inputs:
       dockerfile:
-        type: choice
-        description: Select Dockerfile
-        options:
-          - Dockerfile-arm64
-          - Dockerfile-jetson
-          - Dockerfile-python
-          - Dockerfile-cpu
-          - Dockerfile
+        type: boolean
+        description: Use Dockerfile
+        default: true
+      dockerfile-cpu:
+        type: boolean
+        description: Use Dockerfile-cpu
+      dockerfile-arm64:
+        type: boolean
+        description: Use Dockerfile-arm64
+      dockerfile-jetson:
+        type: boolean
+        description: Use Dockerfile-jetson
+      dockerfile-python:
+        type: boolean
+        description: Use Dockerfile-python
       push:
         type: boolean
-        description: Push image to Docker Hub
-        default: true
+        description: Push images to Docker Hub
 
 jobs:
   docker:

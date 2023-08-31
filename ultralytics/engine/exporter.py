@@ -378,6 +378,7 @@ class Exporter:
                                     compress_to_fp16=self.args.half)  # export
         if self.args.data and self.args.int8:
             import numpy as np
+            check_requirements('nncf')
             import nncf
             from ultralytics.data.dataset import YOLODataset
             from ultralytics.data.utils import check_det_dataset

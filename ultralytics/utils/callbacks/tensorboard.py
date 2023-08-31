@@ -3,6 +3,7 @@
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
+    # WARNING: do not move import due to protobuf issue in https://github.com/ultralytics/ultralytics/pull/4674
     from torch.utils.tensorboard import SummaryWriter
 
     assert not TESTS_RUNNING  # do not log pytest

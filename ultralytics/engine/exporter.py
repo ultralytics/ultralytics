@@ -394,7 +394,7 @@ class Exporter:
 
         if self.args.int8:
             assert self.args.data, "INT8 export requires a data argument for calibration, i.e. 'data=coco8.yaml'"
-            check_requirements('nncf')
+            check_requirements('nncf>=2.5.0')
             import nncf
             import numpy as np
 

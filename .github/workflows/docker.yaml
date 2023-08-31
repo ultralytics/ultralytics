@@ -57,6 +57,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # copy full .git directory to access full git history in Docker images
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2

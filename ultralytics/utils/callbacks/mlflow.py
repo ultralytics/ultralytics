@@ -7,11 +7,11 @@ from pathlib import Path
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
+    assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['mlflow'] is True  # verify integration is enabled
     import mlflow
 
-    assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(mlflow, '__version__')  # verify package is not directory
-    assert SETTINGS['mlflow'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     mlflow = None
 

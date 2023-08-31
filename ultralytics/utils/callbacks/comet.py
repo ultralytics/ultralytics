@@ -7,11 +7,11 @@ from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
+    assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['comet'] is True  # verify integration is enabled
     import comet_ml
 
-    assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(comet_ml, '__version__')  # verify package is not directory
-    assert SETTINGS['comet'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     comet_ml = None
 

@@ -367,13 +367,71 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with openvino {ov.__version__}...')
         f = str(self.file).replace(self.file.suffix, f'_openvino_model{os.sep}')
+        fq = str(self.file).replace(self.file.suffix, f'_int8_openvino_model{os.sep}')
         f_onnx = self.file.with_suffix('.onnx')
         f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
+        fq_ov = str(Path(fq) / self.file.with_suffix('.xml').name)
 
         ov_model = mo.convert_model(f_onnx,
                                     model_name=self.pretty_name,
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)  # export
+        if self.args.data and self.args.int8:
+            import numpy as np
+            import nncf
+            from ultralytics.data.dataset import YOLODataset
+            from ultralytics.data.utils import check_det_dataset
+            from ultralytics.data import build_dataloader
+
+            # Generate calibration data for integer quantization
+            LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
+            data = check_det_dataset(self.args.data)
+            dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
+            dl = build_dataloader(dataset, batch=1, workers=self.args.workers)
+
+            def prepare_input_tensor(image: np.ndarray):
+                input_tensor = image.astype(np.float32)  # uint8 to fp16/32
+                input_tensor /= 255.0  # 0 - 255 to 0.0 - 1.0
+
+                if input_tensor.ndim == 3:
+                    input_tensor = np.expand_dims(input_tensor, 0)
+                return input_tensor
+
+            def transform_fn(data_item):
+                """
+                Quantization transform function. Extracts and preprocess input data from dataloader item for quantization.
+                Parameters:
+                   data_item: Tuple with data item produced by DataLoader during iteration
+                Returns:
+                    input_tensor: Input data for quantization
+                """
+                img = data_item['img'].numpy()
+                input_tensor = prepare_input_tensor(img)
+                return input_tensor
+
+            quantization_dataset = nncf.Dataset(dl, transform_fn)
+            ignored_scope = nncf.IgnoredScope(
+                types=["Multiply", "Subtract", "Sigmoid"],  # ignore operation
+
+            )
+            # Detection model
+            quantized_ov_model = nncf.quantize(
+                ov_model,
+                quantization_dataset,
+                preset=nncf.QuantizationPreset.MIXED,
+               ignored_scope=ignored_scope
+            )
+            quantized_ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
+            quantized_ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
+            quantized_ov_model.set_rt_info(114, ['model_info', 'pad_value'])
+            quantized_ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
+            quantized_ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
+            quantized_ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
+                                 ['model_info', 'labels'])
+            if self.model.task != 'classify':
+                quantized_ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
+            ov.serialize(quantized_ov_model, fq_ov)
+            yaml_save(Path(fq) / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Set RT info
         ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])

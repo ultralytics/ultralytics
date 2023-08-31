@@ -58,6 +58,7 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg
@@ -396,9 +397,8 @@ class Exporter:
             assert self.args.data, "INT8 export requires a data argument for calibration, i.e. 'data=coco8.yaml'"
             check_requirements('nncf>=2.5.0')
             import nncf
-            import numpy as np
 
-            from ultralytics.data import build_dataloader
+            # from ultralytics.data import build_dataloader
             from ultralytics.data.dataset import YOLODataset
             from ultralytics.data.utils import check_det_dataset
 
@@ -411,8 +411,8 @@ class Exporter:
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
             data = check_det_dataset(self.args.data)
             dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
-            dataloader = build_dataloader(dataset, batch=1, workers=self.args.workers)
-            quantization_dataset = nncf.Dataset(dataloader, transform_fn)
+            # dataloader = build_dataloader(dataset, batch=1, workers=self.args.workers)
+            quantization_dataset = nncf.Dataset(dataset, transform_fn)
             ignored_scope = nncf.IgnoredScope(types=['Multiply', 'Subtract', 'Sigmoid'])  # ignore operation
             quantized_ov_model = nncf.quantize(ov_model,
                                                quantization_dataset,
@@ -667,8 +667,6 @@ class Exporter:
         if self.args.int8:
             verbosity = '--verbosity info'
             if self.args.data:
-                import numpy as np
-
                 from ultralytics.data.dataset import YOLODataset
                 from ultralytics.data.utils import check_det_dataset
 

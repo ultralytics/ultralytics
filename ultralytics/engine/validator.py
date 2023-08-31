@@ -29,7 +29,7 @@ from tqdm import tqdm
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, callbacks, colorstr, emojis, DISABLE_TQDM
+from ultralytics.utils import DISABLE_TQDM, LOGGER, TQDM_BAR_FORMAT, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode

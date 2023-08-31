@@ -62,6 +62,8 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg
+from ultralytics.data.dataset import YOLODataset
+from ultralytics.data.utils import check_det_dataset
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
@@ -398,10 +400,6 @@ class Exporter:
             check_requirements('nncf>=2.5.0')
             import nncf
 
-            # from ultralytics.data import build_dataloader
-            from ultralytics.data.dataset import YOLODataset
-            from ultralytics.data.utils import check_det_dataset
-
             def transform_fn(data_item):
                 """Quantization transform function."""
                 im = data_item['img'].numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
@@ -411,7 +409,6 @@ class Exporter:
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
             data = check_det_dataset(self.args.data)
             dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
-            # dataloader = build_dataloader(dataset, batch=1, workers=self.args.workers)
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
             ignored_scope = nncf.IgnoredScope(types=['Multiply', 'Subtract', 'Sigmoid'])  # ignore operation
             quantized_ov_model = nncf.quantize(ov_model,
@@ -667,17 +664,13 @@ class Exporter:
         if self.args.int8:
             verbosity = '--verbosity info'
             if self.args.data:
-                from ultralytics.data.dataset import YOLODataset
-                from ultralytics.data.utils import check_det_dataset
-
                 # Generate calibration data for integer quantization
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
                 data = check_det_dataset(self.args.data)
                 dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
                 images = []
-                n_images = 100  # maximum number of images
-                for n, batch in enumerate(dataset):
-                    if n >= n_images:
+                for i, batch in enumerate(dataset):
+                    if i >= 100:  # maximum number of calibration images
                         break
                     im = batch['img'].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC
                     images.append(im)

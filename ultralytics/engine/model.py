@@ -55,7 +55,7 @@ class Model:
         list(ultralytics.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None) -> None:
+    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None, nc=None, reg_max=None) -> None:
         """
         Initializes the YOLO model.
 
@@ -87,7 +87,7 @@ class Model:
         if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
         if suffix in ('.yaml', '.yml'):
-            self._new(model, task)
+            self._new(model, task, nc=nc, reg_max=reg_max)
         else:
             self._load(model, task)
 
@@ -103,7 +103,7 @@ class Model:
             [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
             len(model) == 20 and not Path(model).exists() and all(x not in model for x in './\\')))  # MODELID
 
-    def _new(self, cfg: str, task=None, model=None, verbose=True):
+    def _new(self, cfg: str, task=None, model=None, nc=None, reg_max=None, verbose=True):
         """
         Initializes a new model and infers the task type from the model definitions.
 
@@ -116,7 +116,7 @@ class Model:
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
-        self.model = (model or self.smart_load('model'))(cfg_dict, verbose=verbose and RANK == -1)  # build model
+        self.model = (model or self.smart_load('model'))(cfg_dict, nc=nc, reg_max=reg_max, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
         self.overrides['task'] = self.task
 

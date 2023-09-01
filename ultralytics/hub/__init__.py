@@ -8,7 +8,7 @@ from ultralytics.utils import LOGGER, SETTINGS, emojis, is_colab
 from ultralytics.data.utils import HUBDatasetStats
 
 
-def login(api_key: str = None) -> bool:
+def login(api_key: str = None, save=True) -> bool:
     """Log in to the Ultralytics HUB API using the provided API key.
 
     The session is not stored; a new session is created when needed using the saved SETTINGS or the HUB_API_KEY environment variable if successfully authenticated.
@@ -21,16 +21,19 @@ def login(api_key: str = None) -> bool:
         bool: True if authentication is successful, False otherwise.
     """
     api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # Set the redirect URL
-    active_key = api_key or SETTINGS.get("api_key")
-    credentials = {"api_key": active_key} if active_key else None  # Set credentials
+    saved_key = SETTINGS.get('api_key')
+    active_key = api_key or saved_key
+    credentials = {"api_key": active_key} if active_key and active_key != '' else None  # Set credentials
 
     client = HUBClient(credentials)  # Initialize HUBClient
 
     if client.authenticated:
         # Successfully authenticated with HUB
-        SETTINGS.update(
-            {"api_key": client.api_key}
-        )  # Update settings with valid API key
+
+        if save and client.api_key != saved_key:
+            SETTINGS.update(
+                {"api_key": client.api_key}
+            )  # Update settings with valid API key
 
         # Set message based on whether key was provided or retrieved from settings
         log_message = (

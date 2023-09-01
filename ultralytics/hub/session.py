@@ -3,12 +3,13 @@
 import signal
 import sys
 from pathlib import Path
-from time import sleep
+import time
+import threading
 
 import requests
-
-from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX, smart_request
-from ultralytics.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
+from ultralytics_hub_sdk import HUBClient, HUB_API_ROOT, HUB_WEB_ROOT
+from ultralytics.hub.utils import PREFIX, TryExcept
+from ultralytics.utils import SETTINGS, LOGGER, __version__, checks, emojis, is_colab, threaded
 from ultralytics.utils.errors import HUBModelError
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
@@ -47,97 +48,122 @@ class HUBTrainingSession:
             ConnectionError: If connecting with global API key is not supported.
         """
 
-        from ultralytics.hub.auth import Auth
-
         # Parse input
-        if url.startswith(f'{HUB_WEB_ROOT}/models/'):
-            url = url.split(f'{HUB_WEB_ROOT}/models/')[-1]
-        if [len(x) for x in url.split('_')] == [42, 20]:
-            key, model_id = url.split('_')
-        elif len(url) == 20:
-            key, model_id = '', url
+        api_key, model_id = self.parse_model_url(url)
+
+        # Get credentials
+        active_key = api_key or SETTINGS.get("api_key")
+        credentials = {"api_key": active_key} if active_key else None  # Set credentials
+
+        # Initialize client
+        client = HUBClient(credentials)
+
+        # Initialize model
+        self.model = client.model(model_id)
+        self.agent_id = None  # identifies which instance is communicating with server
+        self.model_url = f'{HUB_WEB_ROOT}/models/{self.model.id}'
+        self.api_url = f'{HUB_API_ROOT}/v1/models/{self.model.id}'
+
+        self.set_train_args()
+
+        # Start heartbeats for HUB to monitor agent
+        self.model.start_heartbeat()
+
+        self.rate_limits = {'metrics': 3.0, 'ckpt': 900.0, 'heartbeat': 300.0}  # rate limits (seconds)
+        self.timers = {}  # rate limit timers (seconds)
+        self.metrics_queue = {}  # metrics queue
+
+        LOGGER.info(f'{PREFIX}View model at {self.model_url} 🚀')
+
+    def parse_model_url(self, url):
+        # Split the URL based on the last occurrence of '/models/'
+        parts = url.split(f'{HUB_WEB_ROOT}/models/')[-1].split('_')
+
+        # Check if the parts have the expected lengths
+        if len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
+            # Is old format 'key*42_id*20'
+            api_key, model_id = parts
+        elif len(parts) == 1 and len(parts[0]) == 20:
+            # Is new format 'id*20'
+            api_key, model_id = '', parts[0]
         else:
             raise HUBModelError(f"model='{url}' not found. Check format is correct, i.e. "
                                 f"model='{HUB_WEB_ROOT}/models/MODEL_ID' and try again.")
 
-        # Authorize
-        auth = Auth(key)
-        self.agent_id = None  # identifies which instance is communicating with server
-        self.model_id = model_id
-        self.model_url = f'{HUB_WEB_ROOT}/models/{model_id}'
-        self.api_url = f'{HUB_API_ROOT}/v1/models/{model_id}'
-        self.auth_header = auth.get_auth_header()
-        self.rate_limits = {'metrics': 3.0, 'ckpt': 900.0, 'heartbeat': 300.0}  # rate limits (seconds)
-        self.timers = {}  # rate limit timers (seconds)
-        self.metrics_queue = {}  # metrics queue
-        self.model = self._get_model()
-        self.alive = True
-        self._start_heartbeat()  # start heartbeats
-        self._register_signal_handlers()
-        LOGGER.info(f'{PREFIX}View model at {self.model_url} 🚀')
+        return api_key, model_id
 
-    def _register_signal_handlers(self):
-        """Register signal handlers for SIGTERM and SIGINT signals to gracefully handle termination."""
-        signal.signal(signal.SIGTERM, self._handle_signal)
-        signal.signal(signal.SIGINT, self._handle_signal)
+    def set_train_args(self, **kwargs):
+        if self.model.is_trained():
+            # Model is already trained
+            raise ValueError(emojis(f'Model is already trained and uploaded to {self.model_url} 🚀'))
 
-    def _handle_signal(self, signum, frame):
-        """
-        Handle kill signals and prevent heartbeats from being sent on Colab after termination.
-        This method does not use frame, it is included as it is passed by signal.
-        """
-        if self.alive is True:
-            LOGGER.info(f'{PREFIX}Kill signal received! ❌')
-            self._stop_heartbeat()
-            sys.exit(signum)
+        if self.model.is_resumable():
+            # Model has saved weights
+            self.train_args = {'data': self.model.get_dataset_url(), 'resume': True}
+            self.model_file = self.model.get_weights_url('last')
+        else:
+            # Model has no saved weights
+            def get_train_args(config):
+                return {
+                    'batch': config['batchSize'],
+                    'epochs': config['epochs'],
+                    'imgsz': config['imageSize'],
+                    'patience': config['patience'],
+                    'device': config['device'],
+                    'cache': config['cache'],
+                    'data': self.model.get_dataset_url()
+                }
+            self.train_args = get_train_args(self.model.data.get("config"))
+            # Set the model file as either a *.pt or *.yaml file
+            self.model_file = self.model.get_weights_url('parent') if self.model.is_pretrained() else self.model.get_architecture()
 
-    def _stop_heartbeat(self):
-        """Terminate the heartbeat loop."""
-        self.alive = False
+        if not self.train_args.get('data'):
+            raise ValueError('Dataset may still be processing. Please wait a minute and try again.')  # RF fix
+
+        self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False) # YOLOv5->YOLOv5u
+
+    def request_queue(self, request_func, retry=3, timeout=30, thread=True, verbose=True, progress=False, *args, **kwargs,):
+        retry_codes = (408, 500)  # retry only these codes
+
+        @TryExcept(verbose=verbose)
+        def func(func_method, **func_kwargs):
+            r = None  # response
+            t0 = time.time()  # initial time for timer
+            for i in range(retry + 1):
+                if (time.time() - t0) > timeout:
+                    break
+                r = request_func(*args, **kwargs)
+                if r.status_code < 300:  # return codes in the 2xx range are generally considered "good" or "successful"
+                    break
+                try:
+                    m = r.json().get('message', 'No JSON message.')
+                except AttributeError:
+                    m = 'Unable to read JSON.'
+                if i == 0:
+                    if r.status_code in retry_codes:
+                        m += f' Retrying {retry}x for {timeout}s.' if retry else ''
+                    elif r.status_code == 429:  # rate limit
+                        h = r.headers  # response headers
+                        m = f"Rate limit reached ({h['X-RateLimit-Remaining']}/{h['X-RateLimit-Limit']}). " \
+                            f"Please retry after {h['Retry-After']}s."
+                    if verbose:
+                        LOGGER.warning(f'{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})')
+                    if r.status_code not in retry_codes:
+                        return r
+                time.sleep(2 ** i)  # exponential standoff
+            return r
+
+        if thread:
+            threading.Thread(target=func, args=[request_func], kwargs=kwargs, daemon=True).start()
+        else:
+            return func(request_func, **kwargs)
+
 
     def upload_metrics(self):
         """Upload model metrics to Ultralytics HUB."""
-        payload = {'metrics': self.metrics_queue.copy(), 'type': 'metrics'}
-        smart_request('post', self.api_url, json=payload, headers=self.auth_header, code=2)
+        self.request_queue(self.model.upload_metrics, metrics=self.metrics_queue.copy(), thread=True)
 
-    def _get_model(self):
-        """Fetch and return model data from Ultralytics HUB."""
-        api_url = f'{HUB_API_ROOT}/v1/models/{self.model_id}'
-
-        try:
-            response = smart_request('get', api_url, headers=self.auth_header, thread=False, code=0)
-            data = response.json().get('data', None)
-
-            if data.get('status', None) == 'trained':
-                raise ValueError(emojis(f'Model is already trained and uploaded to {self.model_url} 🚀'))
-
-            if not data.get('data', None):
-                raise ValueError('Dataset may still be processing. Please wait a minute and try again.')  # RF fix
-            self.model_id = data['id']
-
-            if data['status'] == 'new':  # new model to start training
-                self.train_args = {
-                    # TODO deprecate 'batch_size' argument in favor of 'batch'
-                    'batch': data['batch' if 'batch' in data else 'batch_size'],
-                    'epochs': data['epochs'],
-                    'imgsz': data['imgsz'],
-                    'patience': data['patience'],
-                    'device': data['device'],
-                    'cache': data['cache'],
-                    'data': data['data']}
-                self.model_file = data.get('cfg') or data.get('weights')  # cfg for pretrained=False
-                self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
-            elif data['status'] == 'training':  # existing model to resume training
-                self.train_args = {'data': data['data'], 'resume': True}
-                self.model_file = data['resume']
-
-            return data
-        except requests.exceptions.ConnectionError as e:
-            raise ConnectionRefusedError('ERROR: The HUB server is not online. Please try again later.') from e
-        except Exception:
-            raise
-
-    def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
+    def upload_model(self, epoch, weights, is_best=False, mAP=0.0, final=False):
         """
         Upload a model checkpoint to Ultralytics HUB.
 
@@ -149,42 +175,7 @@ class HUBTrainingSession:
             final (bool): Indicates if the model is the final model after training.
         """
         if Path(weights).is_file():
-            with open(weights, 'rb') as f:
-                file = f.read()
+            self.model.upload_model(epoch=epoch, weights=weights, is_best=is_best, mAP=mAP, final=final, retry=10, timeout=3600, thread=not final, progress=True)
         else:
             LOGGER.warning(f'{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.')
-            file = None
-        url = f'{self.api_url}/upload'
-        # url = 'http://httpbin.org/post'  # for debug
-        data = {'epoch': epoch}
-        if final:
-            data.update({'type': 'final', 'map': map})
-            smart_request('post',
-                          url,
-                          data=data,
-                          files={'best.pt': file},
-                          headers=self.auth_header,
-                          retry=10,
-                          timeout=3600,
-                          thread=False,
-                          progress=True,
-                          code=4)
-        else:
-            data.update({'type': 'epoch', 'isBest': bool(is_best)})
-            smart_request('post', url, data=data, files={'last.pt': file}, headers=self.auth_header, code=3)
 
-    @threaded
-    def _start_heartbeat(self):
-        """Begin a threaded heartbeat loop to report the agent's status to Ultralytics HUB."""
-        while self.alive:
-            r = smart_request('post',
-                              f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',
-                              json={
-                                  'agent': AGENT_NAME,
-                                  'agentId': self.agent_id},
-                              headers=self.auth_header,
-                              retry=0,
-                              code=5,
-                              thread=False)  # already in a thread
-            self.agent_id = r.json().get('data', {}).get('agentId', None)
-            sleep(self.rate_limits['heartbeat'])

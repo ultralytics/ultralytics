@@ -163,7 +163,7 @@ class HUBTrainingSession:
         """Upload model metrics to Ultralytics HUB."""
         self.request_queue(self.model.upload_metrics, metrics=self.metrics_queue.copy(), thread=True)
 
-    def upload_model(self, epoch, weights, is_best=False, mAP=0.0, final=False):
+    def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         """
         Upload a model checkpoint to Ultralytics HUB.
 
@@ -175,7 +175,7 @@ class HUBTrainingSession:
             final (bool): Indicates if the model is the final model after training.
         """
         if Path(weights).is_file():
-            self.model.upload_model(epoch=epoch, weights=weights, is_best=is_best, mAP=mAP, final=final, retry=10, timeout=3600, thread=not final, progress=True)
+            self.model.upload_model(epoch=epoch, weights=weights, is_best=is_best, map=map, final=final, retry=10, timeout=3600, thread=not final, progress=True)
         else:
             LOGGER.warning(f'{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.')
 

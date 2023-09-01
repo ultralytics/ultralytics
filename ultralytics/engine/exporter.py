@@ -503,6 +503,7 @@ class Exporter:
     @try_export
     def export_coreml(self, prefix=colorstr('CoreML:')):
         """YOLOv8 CoreML export."""
+        os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
         mlmodel = self.args.format.lower() == 'mlmodel'  # legacy *.mlmodel export format requested
         check_requirements('coremltools>=6.0,<=6.2' if mlmodel else 'coremltools>=7.0.b1')
         import coremltools as ct  # noqa

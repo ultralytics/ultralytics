@@ -212,6 +212,11 @@ def add_integration_callbacks(instance):
         from .wb import callbacks as wb_cb
         callbacks.update({**clear_cb, **comet_cb, **dvc_cb, **mlflow_cb, **neptune_cb, **tune_cb, **tb_cb, **wb_cb})
 
+    # Load training callbacks
+    if 'Exporter' in instance.__class__.__name__:
+        from .tensorboard import callbacks as tb_cb
+        callbacks.update(tb_cb)
+
     for k, v in callbacks.items():
         if v not in instance.callbacks[k]:  # prevent duplicate callbacks addition
             instance.callbacks[k].append(v)  # callback[name].append(func)

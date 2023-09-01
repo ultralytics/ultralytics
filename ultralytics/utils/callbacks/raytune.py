@@ -7,6 +7,7 @@ try:
     import ray
     from ray import tune
     from ray.air import session
+
 except (ImportError, AssertionError):
     tune = None
 

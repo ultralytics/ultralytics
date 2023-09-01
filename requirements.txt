@@ -43,3 +43,6 @@ py-cpuinfo  # display CPU info
 # albumentations>=1.0.3  # training augmentations
 # pycocotools>=2.0.6  # COCO mAP
 # roboflow
+
+# Install HUB SDK
+ultralytics-hub-sdk

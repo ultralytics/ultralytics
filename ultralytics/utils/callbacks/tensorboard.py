@@ -3,11 +3,13 @@
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
+    # WARNING: do not move import due to protobuf issue in https://github.com/ultralytics/ultralytics/pull/4674
+    from torch.utils.tensorboard import SummaryWriter
+
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['tensorboard'] is True  # verify integration is enabled
-    from torch.utils.tensorboard import SummaryWriter
-# TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
 except (ImportError, AssertionError, TypeError):
+    # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
     SummaryWriter = None
 
 WRITER = None  # TensorBoard SummaryWriter instance

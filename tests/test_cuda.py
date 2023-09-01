@@ -71,7 +71,7 @@ def test_predict_sam():
     predictor = SAMPredictor(overrides=overrides)
 
     # Set image
-    predictor.set_image('ultralytics/assets/zidane.jpg')  # set with image file
+    predictor.set_image(ASSETS / 'zidane.jpg')  # set with image file
     # predictor(bboxes=[439, 437, 524, 709])
     # predictor(points=[900, 370], labels=[1])
 

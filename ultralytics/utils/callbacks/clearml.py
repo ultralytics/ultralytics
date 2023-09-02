@@ -9,6 +9,7 @@ try:
     from clearml import Task
     from clearml.binding.frameworks.pytorch_bind import PatchPyTorchModelIO
     from clearml.binding.matplotlib_bind import PatchedMatplotlib
+
     assert hasattr(clearml, '__version__')  # verify package is not directory
 
 except (ImportError, AssertionError):

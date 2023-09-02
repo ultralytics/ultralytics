@@ -8,10 +8,11 @@ FROM ultralytics/ultralytics:latest
 # Set the working directory
 WORKDIR /actions-runner
 
-# Download and unpack the latest runner
-RUN curl -o actions-runner-linux-x64-2.308.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.308.0/actions-runner-linux-x64-2.308.0.tar.gz && \
-    tar xzf actions-runner-linux-x64-2.308.0.tar.gz && \
-    rm actions-runner-linux-x64-2.308.0.tar.gz
+# Download and unpack the latest runner from https://github.com/actions/runner
+RUN FILENAME=actions-runner-linux-x64-2.308.0.tar.gz && \
+    curl -o $FILENAME -L https://github.com/actions/runner/releases/download/v2.308.0/$FILENAME && \
+    tar xzf $FILENAME && \
+    rm $FILENAME
 
 # Install runner dependencies
 ENV RUNNER_ALLOW_RUNASROOT=1

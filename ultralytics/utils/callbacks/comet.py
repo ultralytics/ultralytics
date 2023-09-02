@@ -1,10 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import os
-from pathlib import Path
-
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
-from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -12,17 +8,21 @@ try:
     import comet_ml
 
     assert hasattr(comet_ml, '__version__')  # verify package is not directory
+
+    import os
+    from pathlib import Path
+
+    # Ensures certain logging functions only run for supported tasks
+    COMET_SUPPORTED_TASKS = ['detect']
+
+    # Names of plots created by YOLOv8 that are logged to Comet
+    EVALUATION_PLOT_NAMES = 'F1_curve', 'P_curve', 'R_curve', 'PR_curve', 'confusion_matrix'
+    LABEL_PLOT_NAMES = 'labels', 'labels_correlogram'
+
+    _comet_image_prediction_count = 0
+
 except (ImportError, AssertionError):
     comet_ml = None
-
-# Ensures certain logging functions only run for supported tasks
-COMET_SUPPORTED_TASKS = ['detect']
-
-# Names of plots created by YOLOv8 that are logged to Comet
-EVALUATION_PLOT_NAMES = 'F1_curve', 'P_curve', 'R_curve', 'PR_curve', 'confusion_matrix'
-LABEL_PLOT_NAMES = 'labels', 'labels_correlogram'
-
-_comet_image_prediction_count = 0
 
 
 def _get_comet_mode():
@@ -327,6 +327,7 @@ def on_fit_epoch_end(trainer):
     experiment.log_metrics(trainer.metrics, step=curr_step, epoch=curr_epoch)
     experiment.log_metrics(trainer.lr, step=curr_step, epoch=curr_epoch)
     if curr_epoch == 1:
+        from ultralytics.utils.torch_utils import model_info_for_loggers
         experiment.log_metrics(model_info_for_loggers(trainer), step=curr_step, epoch=curr_epoch)
 
     if not save_assets:

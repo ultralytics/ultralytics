@@ -68,7 +68,6 @@ class FastSAMPrompt:
         if len(contours) > 1:
             for b in contours:
                 x_t, y_t, w_t, h_t = cv2.boundingRect(b)
-                # 将多个bbox合并成一个
                 x1 = min(x1, x_t)
                 y1 = min(y1, y_t)
                 x2 = max(x2, x_t + w_t)
@@ -84,9 +83,8 @@ class FastSAMPrompt:
              mask_random_color=True,
              better_quality=True,
              retina=False,
-             withContours=True):
-        n = len(annotations)
-        pbar = TQDM(annotations, total=n)
+             with_contours=True):
+        pbar = TQDM(annotations, total=len(annotations))
         for ann in pbar:
             result_name = os.path.basename(ann.path)
             image = ann.orig_img
@@ -122,17 +120,13 @@ class FastSAMPrompt:
                     target_width=original_w,
                 )
 
-                if withContours:
+                if with_contours:
                     contour_all = []
                     temp = np.zeros((original_h, original_w, 1))
                     for i, mask in enumerate(masks):
                         mask = mask.astype(np.uint8)
                         if not retina:
-                            mask = cv2.resize(
-                                mask,
-                                (original_w, original_h),
-                                interpolation=cv2.INTER_NEAREST,
-                            )
+                            mask = cv2.resize(mask, (original_w, original_h), interpolation=cv2.INTER_NEAREST)
                         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                         contour_all.extend(iter(contours))
                     cv2.drawContours(temp, contour_all, -1, (255, 255, 255), 2)
@@ -143,17 +137,14 @@ class FastSAMPrompt:
             plt.axis('off')
             fig = plt.gcf()
 
-            try:
-                buf = fig.canvas.tostring_rgb()
-            except AttributeError:
+            # Check if the canvas has been drawn
+            if fig.canvas.get_renderer() is None:  # macOS requires this or tests fail
                 fig.canvas.draw()
-                buf = fig.canvas.tostring_rgb()
-            cols, rows = fig.canvas.get_width_height()
-            img_array = np.frombuffer(buf, dtype=np.uint8).reshape(rows, cols, 3)
 
             save_path = Path(output) / result_name
             save_path.parent.mkdir(exist_ok=True, parents=True)
-            cv2.imwrite(str(save_path), img_array)
+            image = Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.tostring_rgb())
+            image.save(save_path)
             plt.close()
             pbar.set_description(f'Saving {result_name} to {save_path}')
 
@@ -289,7 +280,7 @@ class FastSAMPrompt:
             if h != target_height or w != target_width:
                 points = [[int(point[0] * w / target_width), int(point[1] * h / target_height)] for point in points]
             onemask = np.zeros((h, w))
-            for i, annotation in enumerate(masks):
+            for annotation in masks:
                 mask = annotation['segmentation'] if isinstance(annotation, dict) else annotation
                 for i, point in enumerate(points):
                     if mask[point[1], point[0]] == 1 and pointlabel[i] == 1:

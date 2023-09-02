@@ -150,15 +150,15 @@ class FastSAMPrompt:
 
     @staticmethod
     def fast_show_mask(
-            annotation,
-            ax,
-            random_color=False,
-            bbox=None,
-            points=None,
-            pointlabel=None,
-            retinamask=True,
-            target_height=960,
-            target_width=960,
+        annotation,
+        ax,
+        random_color=False,
+        bbox=None,
+        points=None,
+        pointlabel=None,
+        retinamask=True,
+        target_height=960,
+        target_width=960,
     ):
         n, h, w = annotation.shape  # batch, height, width
 

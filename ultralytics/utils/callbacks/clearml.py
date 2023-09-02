@@ -1,12 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import re
-
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
-from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -15,8 +9,8 @@ try:
     from clearml import Task
     from clearml.binding.frameworks.pytorch_bind import PatchPyTorchModelIO
     from clearml.binding.matplotlib_bind import PatchedMatplotlib
-
     assert hasattr(clearml, '__version__')  # verify package is not directory
+
 except (ImportError, AssertionError):
     clearml = None
 
@@ -29,6 +23,8 @@ def _log_debug_samples(files, title='Debug Samples') -> None:
         files (list): A list of file paths in PosixPath format.
         title (str): A title that groups together images with the same values.
     """
+    import re
+
     if task := Task.current_task():
         for f in files:
             if f.exists():
@@ -48,6 +44,9 @@ def _log_plot(title, plot_path) -> None:
         title (str): The title of the plot.
         plot_path (str): The path to the saved image file.
     """
+    import matplotlib.image as mpimg
+    import matplotlib.pyplot as plt
+
     img = mpimg.imread(plot_path)
     fig = plt.figure()
     ax = fig.add_axes([0, 0, 1, 1], frameon=False, aspect='auto', xticks=[], yticks=[])  # no ticks
@@ -103,6 +102,7 @@ def on_fit_epoch_end(trainer):
                                         value=trainer.epoch_time,
                                         iteration=trainer.epoch)
         if trainer.epoch == 0:
+            from ultralytics.utils.torch_utils import model_info_for_loggers
             for k, v in model_info_for_loggers(trainer).items():
                 task.get_logger().report_single_value(k, v)
 

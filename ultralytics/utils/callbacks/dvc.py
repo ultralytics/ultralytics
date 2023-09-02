@@ -1,36 +1,36 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import os
-import re
-from pathlib import Path
-
-import pkg_resources as pkg
-
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
-from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['dvc'] is True  # verify integration is enabled
-    from importlib.metadata import version
-
     import dvclive
+
+    assert hasattr(dvclive, '__version__')  # verify package is not directory
+
+    import os
+    import re
+    from importlib.metadata import version
+    from pathlib import Path
+
+    import pkg_resources as pkg
 
     ver = version('dvclive')
     if pkg.parse_version(ver) < pkg.parse_version('2.11.0'):
         LOGGER.debug(f'DVCLive is detected but version {ver} is incompatible (>=2.11 required).')
         dvclive = None  # noqa: F811
+
+    # DVCLive logger instance
+    live = None
+    _processed_plots = {}
+
+    # `on_fit_epoch_end` is called on final validation (probably need to be fixed) for now this is the way we
+    # distinguish final evaluation of the best model vs last epoch validation
+    _training_epoch = False
+
 except (ImportError, AssertionError, TypeError):
     dvclive = None
-
-# DVCLive logger instance
-live = None
-_processed_plots = {}
-
-# `on_fit_epoch_end` is called on final validation (probably need to be fixed)
-# for now this is the way we distinguish final evaluation of the best model vs
-# last epoch validation
-_training_epoch = False
 
 
 def _log_images(path, prefix=''):
@@ -103,6 +103,7 @@ def on_fit_epoch_end(trainer):
             live.log_metric(metric, value)
 
         if trainer.epoch == 0:
+            from ultralytics.utils.torch_utils import model_info_for_loggers
             for metric, value in model_info_for_loggers(trainer).items():
                 live.log_metric(metric, value, plot=False)
 

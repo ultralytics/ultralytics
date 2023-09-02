@@ -24,6 +24,9 @@ on:
       Dockerfile-python:
         type: boolean
         description: Use Dockerfile-python
+      Dockerfile-conda:
+        type: boolean
+        description: Use Dockerfile-conda
       push:
         type: boolean
         description: Push images to Docker Hub
@@ -36,9 +39,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 6
       matrix:
         include:
+          - dockerfile: "Dockerfile"
+            tags: "latest"
+            platforms: "linux/amd64"
+          - dockerfile: "Dockerfile-cpu"
+            tags: "latest-cpu"
+            platforms: "linux/amd64"
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
             platforms: "linux/arm64"
@@ -48,11 +57,8 @@ jobs:
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
-          - dockerfile: "Dockerfile-cpu"
-            tags: "latest-cpu"
-            platforms: "linux/amd64"
-          - dockerfile: "Dockerfile"
-            tags: "latest"
+          - dockerfile: "Dockerfile-conda"
+            tags: "latest-conda"
             platforms: "linux/amd64"
     steps:
       - name: Checkout repo

@@ -17,7 +17,7 @@ from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
-DATASET_CACHE_VERSION = '1.0.4'
+DATASET_CACHE_VERSION = '1.0.3'
 
 
 class YOLODataset(BaseDataset):
@@ -244,7 +244,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
             if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f))
+                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR

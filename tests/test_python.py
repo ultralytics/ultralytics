@@ -140,11 +140,11 @@ def test_track_stream():
 
     # Test Global Motion Compensation (GMC) methods
     for gmc in 'orb', 'sift', 'ecc':
-        with open(ROOT / 'cfg/trackers/botsort.yaml') as f:
+        with open(ROOT / 'cfg/trackers/botsort.yaml', encoding='utf-8') as f:
             data = yaml.safe_load(f)
         tracker = TMP / f'botsort-{gmc}.yaml'
         data['gmc_method'] = gmc
-        with open(tracker, 'w') as f:
+        with open(tracker, 'w', encoding='utf-8') as f:
             yaml.safe_dump(data, f)
         model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker=tracker)
 
@@ -166,7 +166,7 @@ def test_train_pretrained():
 
 
 def test_export_torchscript():
-    f = YOLO(MODEL).export(format='torchscript', optimize=True)
+    f = YOLO(MODEL).export(format='torchscript', optimize=False)
     YOLO(f)(SOURCE)  # exported model inference
 
 

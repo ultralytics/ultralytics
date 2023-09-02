@@ -144,6 +144,7 @@ jobs:
         run: |
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
+        if: github.repository == 'ultralytics/ultralytics'
         uses: codecov/codecov-action@v3
         with:
           flags: Benchmarks

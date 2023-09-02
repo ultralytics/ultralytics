@@ -15,11 +15,10 @@ from tarfile import is_tarfile
 import cv2
 import numpy as np
 from PIL import Image, ImageOps
-from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, clean_url, colorstr, emojis,
-                               yaml_load)
+from ultralytics.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, TQDM, clean_url, colorstr,
+                               emojis, yaml_load)
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes
@@ -510,7 +509,7 @@ class HUBDatasetStats:
                                       use_keypoints=self.task == 'pose')
                 x = np.array([
                     np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
-                    for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
+                    for label in TQDM(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
                 self.stats[split] = {
                     'instance_stats': {
                         'total': int(x.sum()),
@@ -541,7 +540,7 @@ class HUBDatasetStats:
                 continue
             dataset = YOLODataset(img_path=self.data[split], data=self.data)
             with ThreadPool(NUM_THREADS) as pool:
-                for _ in tqdm(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f'{split} images'):
+                for _ in TQDM(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f'{split} images'):
                     pass
         LOGGER.info(f'Done. All images saved to {self.im_dir}')
         return self.im_dir
@@ -614,7 +613,7 @@ def autosplit(path=DATASETS_DIR / 'coco8/images', weights=(0.9, 0.1, 0.0), annot
             (path.parent / x).unlink()  # remove existing
 
     LOGGER.info(f'Autosplitting images from {path}' + ', using *.txt labeled images only' * annotated_only)
-    for i, img in tqdm(zip(indices, files), total=n):
+    for i, img in TQDM(zip(indices, files), total=n):
         if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
             with open(path.parent / txt[i], 'a') as f:
                 f.write(f'./{img.relative_to(path.parent).as_posix()}' + '\n')  # add image to txt file

@@ -8,9 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image
-from tqdm import tqdm
 
-from ultralytics.utils import TQDM_BAR_FORMAT
+from ultralytics.utils import TQDM
 
 
 class FastSAMPrompt:
@@ -87,7 +86,7 @@ class FastSAMPrompt:
              retina=False,
              withContours=True):
         n = len(annotations)
-        pbar = tqdm(annotations, total=n, bar_format=TQDM_BAR_FORMAT)
+        pbar = TQDM(annotations, total=n)
         for ann in pbar:
             result_name = os.path.basename(ann.path)
             image = ann.orig_img
@@ -156,7 +155,7 @@ class FastSAMPrompt:
             save_path.parent.mkdir(exist_ok=True, parents=True)
             cv2.imwrite(str(save_path), img_array)
             plt.close()
-            pbar.set_description('Saving {} to {}'.format(result_name, save_path))
+            pbar.set_description(f'Saving {result_name} to {save_path}')
 
     @staticmethod
     def fast_show_mask(

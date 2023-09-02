@@ -13,9 +13,8 @@ import cv2
 import numpy as np
 import psutil
 from torch.utils.data import Dataset
-from tqdm import tqdm
 
-from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 
 from .utils import HELP_URL, IMG_FORMATS
 
@@ -178,7 +177,7 @@ class BaseDataset(Dataset):
         fcn = self.cache_images_to_disk if cache == 'disk' else self.load_image
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(fcn, range(self.ni))
-            pbar = tqdm(enumerate(results), total=self.ni, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
+            pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
             for i, x in pbar:
                 if cache == 'disk':
                     b += self.npy_files[i].stat().st_size

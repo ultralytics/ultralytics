@@ -32,12 +32,11 @@ from pathlib import Path
 
 import numpy as np
 import torch.cuda
-from tqdm import tqdm
 
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS
+from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS, TQDM
 from ultralytics.utils.checks import check_requirements, check_yolo
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
@@ -285,7 +284,7 @@ class ProfileModels:
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(num_runs), desc=engine_file):
+        for _ in TQDM(range(num_runs), desc=engine_file):
             results = model(input_data, imgsz=self.imgsz, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
@@ -336,7 +335,7 @@ class ProfileModels:
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(num_runs), desc=onnx_file):
+        for _ in TQDM(range(num_runs), desc=onnx_file):
             start_time = time.time()
             sess.run([output_name], {input_name: input_data})
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds

@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
+from tqdm import tqdm as tqdm_original
 
 from ultralytics import __version__
 
@@ -104,6 +105,22 @@ cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with Py
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # suppress verbose TF compiler warnings in Colab
+
+
+class TQDM(tqdm_original):
+    """
+    Custom Ultralytics tqdm class with different default arguments.
+
+    Args:
+        (*args): Positional arguments passed to original tqdm.
+        (**kwargs): Keyword arguments, with custom defaults applied.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # Set new default values (these can still be overridden when calling TQDM)
+        kwargs['enabled'] = VERBOSE and kwargs.get('enabled', True)  # logical 'and' with default value if passed
+        kwargs.setdefault('bar_format', TQDM_BAR_FORMAT)  # override default value if passed
+        super().__init__(*args, **kwargs)
 
 
 class SimpleClass:

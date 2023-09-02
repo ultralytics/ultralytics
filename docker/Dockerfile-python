@@ -45,5 +45,8 @@ RUN rm -rf tmp
 # Run
 # t=ultralytics/ultralytics:latest-python && sudo docker run -it --ipc=host $t
 
+# Pull and Run
+# t=ultralytics/ultralytics:latest-python && sudo docker pull $t && sudo docker run -it --ipc=host $t
+
 # Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:latest-python && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

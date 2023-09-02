@@ -19,7 +19,8 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt .
 # Install conda packages
 RUN conda install -c conda-forge ultralytics
 
-------------------------------------------------------------------------------------------
+
+# Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
 # t=ultralytics/ultralytics:latest-conda && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t

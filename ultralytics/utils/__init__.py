@@ -118,7 +118,7 @@ class TQDM(tqdm_original):
 
     def __init__(self, *args, **kwargs):
         # Set new default values (these can still be overridden when calling TQDM)
-        kwargs['enabled'] = VERBOSE and kwargs.get('enabled', True)  # logical 'and' with default value if passed
+        kwargs['disabled'] = not VERBOSE or kwargs.get('disabled', False)  # logical 'and' with default value if passed
         kwargs.setdefault('bar_format', TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 

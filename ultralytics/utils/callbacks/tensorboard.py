@@ -8,11 +8,11 @@ try:
 
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['tensorboard'] is True  # verify integration is enabled
+    WRITER = None  # TensorBoard SummaryWriter instance
+
 except (ImportError, AssertionError, TypeError):
     # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
     SummaryWriter = None
-
-WRITER = None  # TensorBoard SummaryWriter instance
 
 
 def _log_scalars(scalars, step=0):
@@ -72,4 +72,4 @@ callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_start': on_train_start,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_batch_end': on_batch_end}
+    'on_batch_end': on_batch_end} if SummaryWriter else {}

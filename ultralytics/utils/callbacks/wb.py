@@ -9,10 +9,11 @@ try:
     import wandb as wb
 
     assert hasattr(wb, '__version__')
+
+    _processed_plots = {}
+
 except (ImportError, AssertionError):
     wb = None
-
-_processed_plots = {}
 
 
 def _log_plots(plots, step):

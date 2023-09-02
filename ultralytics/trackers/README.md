@@ -86,4 +86,3 @@ By default, trackers will use the configuration in `ultralytics/cfg/trackers`. W
 ## Contributing New Trackers
 
 If you've developed a new tracker architecture or have improvements for existing trackers that you'd like to contribute to the Ultralytics community, please submit your contribution in a new Pull Request. For more details, visit our [Contributing Guide](https://docs.ultralytics.com/help/contributing).
-

@@ -31,8 +31,9 @@ class DetectionPredictor(BasePredictor):
                                         classes=self.args.classes)
 
         results = []
-        if isinstance(orig_imgs, torch.Tensor) and orig_imgs.dim() == 4: # process for batch input
-            orig_imgs = (orig_imgs.permute(0, 2, 3, 1).contiguous() * 255).to(torch.uint8).numpy() # convert to [(HWC) x B]
+        if isinstance(orig_imgs, torch.Tensor) and orig_imgs.dim() == 4:  # process for batch input
+            orig_imgs = (orig_imgs.permute(0, 2, 3, 1).contiguous() * 255).to(
+                torch.uint8).numpy()  # convert to [(HWC) x B]
         for i, pred in enumerate(preds):
             orig_img = orig_imgs[i]
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)

@@ -128,9 +128,9 @@ jobs:
           python --version
           pip --version
           pip list
-#      - name: Benchmark DetectionModel
-#        shell: bash
-#        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
+      #      - name: Benchmark DetectionModel
+      #        shell: bash
+      #        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.286
@@ -144,6 +144,7 @@ jobs:
         run: |
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
+        if: github.repository == 'ultralytics/ultralytics'
         uses: codecov/codecov-action@v3
         with:
           flags: Benchmarks
@@ -235,13 +236,73 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  Conda:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.11']
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          mamba-version: "*"
+          channels: conda-forge,defaults
+          channel-priority: true
+          activate-environment: anaconda-client-env
+      - name: Install Libmamba
+        run: |
+          # conda install conda-libmamba-solver
+          conda config --set solver libmamba
+      - name: Install Ultralytics package from conda-forge
+        run: |
+          conda install -c conda-forge ultralytics
+      - name: Install pip packages
+        run: |
+          pip install pytest 'coremltools>=7.0.b1' # 'openvino-dev>=2023.0'
+      - name: Check environment
+        run: |
+          echo "RUNNER_OS is ${{ runner.os }}"
+          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
+          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
+          echo "GITHUB_ACTOR is ${{ github.actor }}"
+          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
+          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
+          python --version
+          conda list
+      - name: Test CLI
+        run: |
+          yolo predict model=yolov8n.pt imgsz=320
+          yolo train model=yolov8n.pt data=coco8.yaml epochs=1 imgsz=32
+          yolo val model=yolov8n.pt data=coco8.yaml imgsz=32
+          yolo export model=yolov8n.pt format=torchscript imgsz=160
+      - name: Test Python
+        run: |
+          python -c "
+          from ultralytics import YOLO
+          model = YOLO('yolov8n.pt')
+          results = model.train(data='coco8.yaml', epochs=3, imgsz=160)
+          results = model.val(imgsz=160)
+          results = model.predict(imgsz=160)
+          results = model.export(format='onnx', imgsz=160)
+          "
+      - name: PyTest
+        run: |
+          git clone https://github.com/ultralytics/ultralytics
+          pytest ultralytics/tests/test_cli.py  # full tests fail due to openvino export failure
+
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, GPU] # Add job names that you want to check for failure
+    needs: [HUB, Benchmarks, Tests, GPU, Conda] # Add job names that you want to check for failure
     if: always() # This ensures the job runs even if previous jobs fail
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.Conda.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |

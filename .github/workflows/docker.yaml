@@ -24,6 +24,9 @@ on:
       Dockerfile-python:
         type: boolean
         description: Use Dockerfile-python
+      Dockerfile-conda:
+        type: boolean
+        description: Use Dockerfile-conda
       push:
         type: boolean
         description: Push images to Docker Hub
@@ -36,9 +39,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 6
       matrix:
         include:
+          - dockerfile: "Dockerfile"
+            tags: "latest"
+            platforms: "linux/amd64"
+          - dockerfile: "Dockerfile-cpu"
+            tags: "latest-cpu"
+            platforms: "linux/amd64"
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
             platforms: "linux/arm64"
@@ -48,12 +57,9 @@ jobs:
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
-          - dockerfile: "Dockerfile-cpu"
-            tags: "latest-cpu"
-            platforms: "linux/amd64"
-          - dockerfile: "Dockerfile"
-            tags: "latest"
-            platforms: "linux/amd64"
+          # - dockerfile: "Dockerfile-conda"
+          #   tags: "latest-conda"
+          #   platforms: "linux/amd64"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -109,16 +115,16 @@ jobs:
           -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} .
 
       - name: Run Tests
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda'  # arm64 images not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
         # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'  # arm64 images not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.26
 
       - name: Push Docker Image with Ultralytics version tag
-        if: (github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')) && steps.check_tag.outputs.exists == 'false'
+        if: (github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')) && steps.check_tag.outputs.exists == 'false' && matrix.dockerfile != 'Dockerfile-conda'
         run: |
           docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
 

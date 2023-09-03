@@ -9,18 +9,16 @@ FROM continuumio/miniconda3:latest
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
-# libjpeg-dev and libpng-dev are required by torchvision
 RUN apt update \
-    && apt install --no-install-recommends -y git zip curl htop libgl1-mesa-glx libglib2.0-0 gnupg g++ libusb-1.0-0 libjpeg-dev libpng-dev
-
+    && apt install --no-install-recommends -y libgl1-mesa-glx
 
 # Copy contents
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt .
 
 # Install conda packages
 RUN conda config --set solver libmamba && \
-    conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+    conda install -c conda-forge ultralytics
+    # conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

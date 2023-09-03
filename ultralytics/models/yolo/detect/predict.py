@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-import torch
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results

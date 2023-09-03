@@ -17,7 +17,8 @@ RUN apt update \
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt .
 
 # Install conda packages
-RUN conda install -c conda-forge ultralytics
+RUN conda config --set solver libmamba && \
+    conda install -c conda-forge ultralytics
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

@@ -220,7 +220,7 @@ class BaseValidator:
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
         # LxD matrix where L - labels (rows), D - detections (columns)
         correct_class = true_classes[:, None] == pred_classes
-        iou = iou * correct_class # zero out the wrong classes
+        iou = iou * correct_class  # zero out the wrong classes
         for i, threshold in enumerate(self.iouv):
             indices = torch.nonzero(iou >= threshold)  # IoU > threshold and classes match
             if indices.shape[0]:

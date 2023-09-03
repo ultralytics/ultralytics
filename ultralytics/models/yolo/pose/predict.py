@@ -37,10 +37,13 @@ class PosePredictor(DetectionPredictor):
                                         classes=self.args.classes,
                                         nc=len(self.model.names))
 
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            import torch
+            orig_imgs = (orig_imgs.permute(0, 2, 3, 1).contiguous() * 255).to(torch.uint8).numpy()  # BCHW to BHWC
+
         results = []
-        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, pred in enumerate(preds):
-            orig_img = orig_imgs[i] if is_list else orig_imgs
+            orig_img = orig_imgs[i]
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
             pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)

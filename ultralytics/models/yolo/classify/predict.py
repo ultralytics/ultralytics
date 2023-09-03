@@ -38,10 +38,12 @@ class ClassificationPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions to return Results objects."""
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = (orig_imgs.permute(0, 2, 3, 1).contiguous() * 255).to(torch.uint8).numpy()  # BCHW to BHWC
+
         results = []
-        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, pred in enumerate(preds):
-            orig_img = orig_imgs[i] if is_list else orig_imgs
+            orig_img = orig_imgs[i]
             img_path = self.batch[0][i]
             results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
         return results

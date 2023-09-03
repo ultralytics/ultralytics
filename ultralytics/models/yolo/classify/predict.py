@@ -4,7 +4,7 @@ import torch
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class ClassificationPredictor(BasePredictor):
@@ -39,7 +39,7 @@ class ClassificationPredictor(BasePredictor):
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions to return Results objects."""
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = (orig_imgs.permute(0, 2, 3, 1).contiguous() * 255).to(torch.uint8).numpy()  # BCHW to BHWC
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
         for i, pred in enumerate(preds):

@@ -29,7 +29,7 @@ class RTDETRPredictor(BasePredictor):
         bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = (orig_imgs.permute(0, 2, 3, 1).contiguous() * 255).to(torch.uint8).numpy()  # BCHW to BHWC
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
         for i, bbox in enumerate(bboxes):  # (300, 4)

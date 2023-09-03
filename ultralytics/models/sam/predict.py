@@ -314,7 +314,7 @@ class Predictor(BasePredictor):
         names = dict(enumerate(str(i) for i in range(len(pred_masks))))
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = (orig_imgs.permute(0, 2, 3, 1).contiguous() * 255).to(torch.uint8).numpy()  # BCHW to BHWC
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
         for i, masks in enumerate([pred_masks]):

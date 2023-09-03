@@ -34,8 +34,7 @@ class SegmentationPredictor(DetectionPredictor):
                                     classes=self.args.classes)
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            import torch
-            orig_imgs = (orig_imgs.permute(0, 2, 3, 1).contiguous() * 255).to(torch.uint8).numpy()  # BCHW to BHWC
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported

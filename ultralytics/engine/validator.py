@@ -216,15 +216,18 @@ class BaseValidator:
         Returns:
             (torch.Tensor): Correct tensor of shape(N,10) for 10 IoU thresholds.
         """
+        # Dx10 matrix, where D - detections, 10 - IoU thresholds
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
+        # LxD matrix where L - labels (rows), D - detections (columns)
         correct_class = true_classes[:, None] == pred_classes
-        for i, iouv in enumerate(self.iouv):
-            x = torch.nonzero(iou.ge(iouv) & correct_class)  # IoU > threshold and classes match
-            if x.shape[0]:
-                # Concatenate [label, detect, iou]
-                matches = torch.cat((x, iou[x[:, 0], x[:, 1]].unsqueeze(1)), 1).cpu().numpy()
-                if x.shape[0] > 1:
-                    matches = matches[matches[:, 2].argsort()[::-1]]
+        iou = iou * correct_class # zero out the wrong classes
+        for i, threshold in enumerate(self.iouv):
+            indices = torch.nonzero(iou >= threshold)  # IoU > threshold and classes match
+            if indices.shape[0]:
+                matches = indices.cpu().numpy()
+                if indices.shape[0] > 1:
+                    iou_sort_indices = iou[indices[:, 0], indices[:, 1]].argsort(descending=True)
+                    matches = matches[iou_sort_indices]
                     matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
                     # matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]

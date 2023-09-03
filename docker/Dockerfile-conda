@@ -20,7 +20,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt .
 
 # Install conda packages
 RUN conda config --set solver libmamba && \
-    conda conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+    conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

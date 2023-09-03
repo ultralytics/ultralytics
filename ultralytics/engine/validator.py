@@ -222,8 +222,8 @@ class BaseValidator:
         correct_class = true_classes[:, None] == pred_classes
         iou = iou * correct_class  # zero out the wrong classes
         iou = iou.cpu().numpy()
-        for i, threshold in enumerate(self.iouv):
-            matches = np.nonzero(iou >= threshold.item())  # IoU > threshold and classes match
+        for i, threshold in enumerate(self.iouv.cpu().tolist()):
+            matches = np.nonzero(iou >= threshold)  # IoU > threshold and classes match
             matches = np.array(matches).T
             if matches.shape[0]:
                 if matches.shape[0] > 1:

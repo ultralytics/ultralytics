@@ -237,7 +237,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event_name == 'pull_request')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

@@ -10,8 +10,10 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 
 # Install linux packages
 # g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
+# libjpeg-dev and libpng-dev are required by torchvision
 RUN apt update \
-    && apt install --no-install-recommends -y git zip curl htop libgl1-mesa-glx libglib2.0-0 gnupg g++ libusb-1.0-0
+    && apt install --no-install-recommends -y git zip curl htop libgl1-mesa-glx libglib2.0-0 gnupg g++ libusb-1.0-0 libjpeg-dev libpng-dev
+
 
 # Copy contents
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt .

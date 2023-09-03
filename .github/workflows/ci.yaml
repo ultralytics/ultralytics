@@ -237,7 +237,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event_name == 'schedule')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event_name == 'pull_request')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -294,7 +294,7 @@ jobs:
       - name: PyTest
         run: |
           git clone https://github.com/ultralytics/ultralytics
-          pytest ultralytics/tests_cli.py  # full tests fail due to openvino export failure
+          pytest ultralytics/tests/test_cli.py  # full tests fail due to openvino export failure
 
   Summary:
     runs-on: ubuntu-latest

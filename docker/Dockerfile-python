@@ -37,6 +37,7 @@ RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
 # Remove exported models
 RUN rm -rf tmp
 
+
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push

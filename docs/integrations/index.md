@@ -12,7 +12,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Datasets Integrations
 
-- [Roboflow](/integrations/roboflow/): Facilitate seamless dataset management for Ultralytics models, offering robust annotation, preprocessing, and augmentation capabilities.
+- [Roboflow](roboflow.md): Facilitate seamless dataset management for Ultralytics models, offering robust annotation, preprocessing, and augmentation capabilities.
 
 ## Training Integrations
 

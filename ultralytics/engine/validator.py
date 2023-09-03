@@ -24,7 +24,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from scipy.optimize import linear_sum_assignment
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -226,9 +225,11 @@ class BaseValidator:
         iou = iou.cpu().numpy()
         for i, threshold in enumerate(self.iouv.cpu().tolist()):
             if use_scipy:
+                # WARNING: known issue that reduces mAP in https://github.com/ultralytics/ultralytics/pull/4708
+                import scipy  # scope import to avoid importing for all commands
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
-                    labels_idx, detections_idx = linear_sum_assignment(cost_matrix, maximize=True)
+                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix, maximize=True)
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True

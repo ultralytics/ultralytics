@@ -221,13 +221,13 @@ class BaseValidator:
         # LxD matrix where L - labels (rows), D - detections (columns)
         correct_class = true_classes[:, None] == pred_classes
         iou = iou * correct_class  # zero out the wrong classes
+        iou = iou.cpu().numpy()
         for i, threshold in enumerate(self.iouv):
-            indices = torch.nonzero(iou >= threshold)  # IoU > threshold and classes match
-            if indices.shape[0]:
-                matches = indices.cpu().numpy()
-                if indices.shape[0] > 1:
-                    iou_sort_indices = iou[indices[:, 0], indices[:, 1]].argsort(descending=True)
-                    matches = matches[iou_sort_indices]
+            matches = np.nonzero(iou >= threshold.item())  # IoU > threshold and classes match
+            matches = np.array(matches).T
+            if matches.shape[0]:
+                if matches.shape[0] > 1:
+                    matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
                     # matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]

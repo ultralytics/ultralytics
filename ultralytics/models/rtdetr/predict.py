@@ -27,8 +27,11 @@ class RTDETRPredictor(BasePredictor):
         """Postprocess predictions and returns a list of Results objects."""
         nd = preds[0].shape[-1]
         bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
         results = []
-        is_list = isinstance(orig_imgs, list)  # input images are a list, not a torch.Tensor
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1, keepdim=True)  # (300, 1)
@@ -36,11 +39,10 @@ class RTDETRPredictor(BasePredictor):
             if self.args.classes is not None:
                 idx = (cls == torch.tensor(self.args.classes, device=cls.device)).any(1) & idx
             pred = torch.cat([bbox, score, cls], dim=-1)[idx]  # filter
-            orig_img = orig_imgs[i] if is_list else orig_imgs
+            orig_img = orig_imgs[i]
             oh, ow = orig_img.shape[:2]
-            if is_list:
-                pred[..., [0, 2]] *= ow
-                pred[..., [1, 3]] *= oh
+            pred[..., [0, 2]] *= ow
+            pred[..., [1, 3]] *= oh
             img_path = self.batch[0][i]
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results

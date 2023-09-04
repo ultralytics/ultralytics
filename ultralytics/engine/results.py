@@ -205,7 +205,7 @@ class Results(SimpleClass):
             ```
         """
         if img is None and isinstance(self.orig_img, torch.Tensor):
-            img = (self.orig_img[0].detach().permute(1, 2, 0).cpu().contiguous() * 255).to(torch.uint8).numpy()
+            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
         # Deprecation warn TODO: remove in 8.2
         if 'show_conf' in kwargs:

@@ -112,8 +112,8 @@ class TQDM(tqdm_original):
     Custom Ultralytics tqdm class with different default arguments.
 
     Args:
-        (*args): Positional arguments passed to original tqdm.
-        (**kwargs): Keyword arguments, with custom defaults applied.
+        *args (list): Positional arguments passed to original tqdm.
+        **kwargs (dict): Keyword arguments, with custom defaults applied.
     """
 
     def __init__(self, *args, **kwargs):

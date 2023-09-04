@@ -46,6 +46,10 @@ keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mas
 <br><br>
 
 ---
+## ::: ultralytics.data.utils.find_dataset_yaml
+<br><br>
+
+---
 ## ::: ultralytics.data.utils.check_det_dataset
 <br><br>
 

@@ -9,9 +9,8 @@ import numpy as np
 import torch
 import torchvision
 from PIL import Image
-from tqdm import tqdm
 
-from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, colorstr, is_dir_writeable
+from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
 
 from .augment import (DEFAULT_MEAN, DEFAULT_STD, Compose, Format, Instances, LetterBox, classify_albumentations,
                       classify_transforms_eval, classify_transforms_train, v8_transforms)
@@ -62,7 +61,7 @@ class YOLODataset(BaseDataset):
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
                                              repeat(self.use_keypoints), repeat(len(self.data['names'])), repeat(nkpt),
                                              repeat(ndim)))
-            pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
+            pbar = TQDM(results, desc=desc, total=total)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
@@ -109,7 +108,7 @@ class YOLODataset(BaseDataset):
         nf, nm, ne, nc, n = cache.pop('results')  # found, missing, empty, corrupt, total
         if exists and LOCAL_RANK in (-1, 0):
             d = f'Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt'
-            tqdm(None, desc=self.prefix + d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)  # display results
+            TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
             if cache['msgs']:
                 LOGGER.info('\n'.join(cache['msgs']))  # display warnings
 
@@ -260,7 +259,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
             if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f))
+                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR
@@ -288,7 +287,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             nf, nc, n, samples = cache.pop('results')  # found, missing, empty, corrupt, total
             if LOCAL_RANK in (-1, 0):
                 d = f'{desc} {nf} images, {nc} corrupt'
-                tqdm(None, desc=d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)
+                TQDM(None, desc=d, total=n, initial=n)
                 if cache['msgs']:
                     LOGGER.info('\n'.join(cache['msgs']))  # display warnings
             return samples
@@ -297,7 +296,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         nf, nc, msgs, samples, x = 0, 0, [], [], {}
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
-            pbar = tqdm(results, desc=desc, total=len(self.samples), bar_format=TQDM_BAR_FORMAT)
+            pbar = TQDM(results, desc=desc, total=len(self.samples))
             for sample, nf_f, nc_f, msg in pbar:
                 if nf_f:
                     samples.append(sample)

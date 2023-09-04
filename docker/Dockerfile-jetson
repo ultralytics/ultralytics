@@ -42,5 +42,8 @@ ENV OMP_NUM_THREADS=1
 # Run
 # t=ultralytics/ultralytics:latest-jetson && sudo docker run -it --ipc=host $t
 
+# Pull and Run
+# t=ultralytics/ultralytics:latest-jetson && sudo docker pull $t && sudo docker run -it --ipc=host $t
+
 # Pull and Run with NVIDIA runtime
 # t=ultralytics/ultralytics:latest-jetson && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t

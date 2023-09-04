@@ -14,11 +14,11 @@ class HungarianMatcher(nn.Module):
     A module implementing the HungarianMatcher, which is a differentiable module to solve the assignment problem in
     an end-to-end fashion.
 
-    HungarianMatcher performs optimal assignment over predicted and ground truth bounding boxes using a cost function
-    that considers classification scores, bounding box coordinates, and optionally, mask predictions.
+    HungarianMatcher performs optimal assignment over the predicted and ground truth bounding boxes using a cost
+    function that considers classification scores, bounding box coordinates, and optionally, mask predictions.
 
     Attributes:
-        cost_gain (dict): Dictionary of cost coefficients for different components: 'class', 'bbox', 'giou', 'mask', and 'dice'.
+        cost_gain (dict): Dictionary of cost coefficients: 'class', 'bbox', 'giou', 'mask', and 'dice'.
         use_fl (bool): Indicates whether to use Focal Loss for the classification cost calculation.
         with_mask (bool): Indicates whether the model makes mask predictions.
         num_sample_points (int): The number of sample points used in mask cost calculation.
@@ -26,8 +26,8 @@ class HungarianMatcher(nn.Module):
         gamma (float): The gamma factor in Focal Loss calculation.
 
     Methods:
-        forward(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=None, gt_mask=None): Computes the assignment
-        between predictions and ground truths for a batch.
+        forward(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=None, gt_mask=None): Computes the
+            assignment between predictions and ground truths for a batch.
         _cost_mask(bs, num_gts, masks=None, gt_mask=None): Computes the mask cost and dice cost if masks are predicted.
     """
 

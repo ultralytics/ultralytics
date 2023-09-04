@@ -37,6 +37,7 @@ RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # Remove exported models
 RUN rm -rf tmp
 
+
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
@@ -44,6 +45,9 @@ RUN rm -rf tmp
 
 # Run
 # t=ultralytics/ultralytics:latest-cpu && sudo docker run -it --ipc=host $t
+
+# Pull and Run
+# t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host $t
 
 # Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

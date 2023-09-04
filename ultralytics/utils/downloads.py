@@ -11,9 +11,8 @@ from urllib import parse, request
 
 import requests
 import torch
-from tqdm import tqdm
 
-from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = 'ultralytics/assets'
@@ -101,11 +100,7 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), p
     zip_file = directory.with_suffix('.zip')
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, 'w', compression) as f:
-        for file in tqdm(files_to_zip,
-                         desc=f'Zipping {directory} to {zip_file}...',
-                         unit='file',
-                         disable=not progress,
-                         bar_format=TQDM_BAR_FORMAT):
+        for file in TQDM(files_to_zip, desc=f'Zipping {directory} to {zip_file}...', unit='file', disable=not progress):
             f.write(file, file.relative_to(directory))
 
     return zip_file  # return path to zip file
@@ -163,11 +158,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
             LOGGER.warning(f'WARNING ⚠️ Skipping {file} unzip as destination directory {path} is not empty.')
             return path
 
-        for f in tqdm(files,
-                      desc=f'Unzipping {file} to {Path(path).resolve()}...',
-                      unit='file',
-                      disable=not progress,
-                      bar_format=TQDM_BAR_FORMAT):
+        for f in TQDM(files, desc=f'Unzipping {file} to {Path(path).resolve()}...', unit='file', disable=not progress):
             zipObj.extract(f, path=extract_path)
 
     return path  # return unzip dir
@@ -297,13 +288,12 @@ def safe_download(url,
                     if method == 'torch':
                         torch.hub.download_url_to_file(url, f, progress=progress)
                     else:
-                        with request.urlopen(url) as response, tqdm(total=int(response.getheader('Content-Length', 0)),
+                        with request.urlopen(url) as response, TQDM(total=int(response.getheader('Content-Length', 0)),
                                                                     desc=desc,
                                                                     disable=not progress,
                                                                     unit='B',
                                                                     unit_scale=True,
-                                                                    unit_divisor=1024,
-                                                                    bar_format=TQDM_BAR_FORMAT) as pbar:
+                                                                    unit_divisor=1024) as pbar:
                             with open(f, 'wb') as f_opened:
                                 for data in response:
                                     f_opened.write(data)

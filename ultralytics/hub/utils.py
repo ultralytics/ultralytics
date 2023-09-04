@@ -9,10 +9,9 @@ import time
 from pathlib import Path
 
 import requests
-from tqdm import tqdm
 
-from ultralytics.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT, TryExcept,
-                               __version__, colorstr, get_git_origin_url, is_colab, is_git_dir, is_pip_package)
+from ultralytics.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM, TryExcept, __version__,
+                               colorstr, get_git_origin_url, is_colab, is_git_dir, is_pip_package)
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 
 PREFIX = colorstr('Ultralytics HUB: ')
@@ -80,7 +79,7 @@ def requests_with_progress(method, url, **kwargs):
     response = requests.request(method, url, stream=True, **kwargs)
     total = int(response.headers.get('content-length', 0))  # total size
     try:
-        pbar = tqdm(total=total, unit='B', unit_scale=True, unit_divisor=1024, bar_format=TQDM_BAR_FORMAT)
+        pbar = TQDM(total=total, unit='B', unit_scale=True, unit_divisor=1024)
         for data in response.iter_content(chunk_size=1024):
             pbar.update(len(data))
         pbar.close()

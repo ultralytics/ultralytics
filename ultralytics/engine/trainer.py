@@ -21,13 +21,12 @@ from torch import distributed as dist
 from torch import nn, optim
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
-from tqdm import tqdm
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
-from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, TQDM_BAR_FORMAT, __version__, callbacks, clean_url, colorstr,
-                               emojis, yaml_save)
+from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, TQDM, __version__, callbacks, clean_url, colorstr, emojis,
+                               yaml_save)
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
@@ -326,7 +325,7 @@ class BaseTrainer:
 
             if RANK in (-1, 0):
                 LOGGER.info(self.progress_string())
-                pbar = tqdm(enumerate(self.train_loader), total=nb, bar_format=TQDM_BAR_FORMAT)
+                pbar = TQDM(enumerate(self.train_loader), total=nb)
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:

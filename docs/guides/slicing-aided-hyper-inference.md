@@ -73,6 +73,7 @@ result.export_visuals(export_dir="demo_data/")
 Image("demo_data/prediction_visual.png")
 ```
 
+
 ## 2. Sliced Inference with a YOLOv8 Model
 
 - To perform sliced prediction we need to specify slice parameters. In this example we will perform prediction over slices of 256x256 with an overlap ratio of 0.2:

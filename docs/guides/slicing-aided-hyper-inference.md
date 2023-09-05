@@ -2,12 +2,12 @@
 
 ![teaser](https://raw.githubusercontent.com/obss/sahi/main/resources/sliced_inference.gif)
 
-## 0. Preperation
+## 0. Preparation
 
 - Install latest version of SAHI and ultralytics:
 
 ```bash
-pip install -U torch sahi ultralytics
+pip install -U ultralytics sahi
 ```
 
 - Import required modules:
@@ -161,4 +161,3 @@ predict(
     overlap_width_ratio=overlap_width_ratio,
 )
 ```
-

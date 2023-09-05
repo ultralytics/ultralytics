@@ -1,25 +1,19 @@
-
-
 # SAHI: Slicing Aided Hyper Inference
 
 ![teaser](https://raw.githubusercontent.com/obss/sahi/main/resources/sliced_inference.gif)
-
-
-
-
 
 ## 0. Preperation
 
 - Install latest version of SAHI and ultralytics:
 
-```python
-!pip install -U torch sahi ultralytics
+```bash
+pip install -U torch sahi ultralytics
 ```
 
 - Import required modules:
 
 ```python
-from sahi.utils.yolov8 import (download_yolov8s_model,)
+from sahi.utils.yolov8 import download_yolov8s_model
 
 from sahi import AutoDetectionModel
 from sahi.utils.cv import read_image
@@ -31,11 +25,11 @@ from IPython.display import Image
 - Download a yolov8 model and two test images:
 
 ```python
-# download YOLOv5s6 model to 'models/yolov5s6.pt'
+# Download YOLOv5s6 model to 'models/yolov5s6.pt'
 yolov8_model_path = "models/yolov8s.pt"
 download_yolov8s_model(yolov8_model_path)
 
-# download test images into demo_data folder
+# Download test images into demo_data folder
 download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg', 'demo_data/small-vehicles1.jpeg')
 download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png', 'demo_data/terrain2.png')
 ```
@@ -49,7 +43,7 @@ detection_model = AutoDetectionModel.from_pretrained(
     model_type='yolov8',
     model_path=yolov8_model_path,
     confidence_threshold=0.3,
-    device="cpu", # or 'cuda:0'
+    device="cpu",  # or 'cuda:0'
 )
 ```
 
@@ -73,7 +67,6 @@ result.export_visuals(export_dir="demo_data/")
 Image("demo_data/prediction_visual.png")
 ```
 
-
 ## 2. Sliced Inference with a YOLOv8 Model
 
 - To perform sliced prediction we need to specify slice parameters. In this example we will perform prediction over slices of 256x256 with an overlap ratio of 0.2:
@@ -82,10 +75,10 @@ Image("demo_data/prediction_visual.png")
 result = get_sliced_prediction(
     "demo_data/small-vehicles1.jpeg",
     detection_model,
-    slice_height = 256,
-    slice_width = 256,
-    overlap_height_ratio = 0.2,
-    overlap_width_ratio = 0.2
+    slice_height=256,
+    slice_width=256,
+    overlap_height_ratio=0.2,
+    overlap_width_ratio=0.2
 )
 ```
 
@@ -98,7 +91,6 @@ result.export_visuals(export_dir="demo_data/")
 
 Image("demo_data/prediction_visual.png")
 ```
-
 
 ## 3. Prediction Result
 
@@ -143,7 +135,7 @@ result.to_fiftyone_detections()[:3]
 ```python
 model_type = "yolov8"
 model_path = yolov8_model_path
-model_device = "cpu" # or 'cuda:0'
+model_device = "cpu"  # or 'cuda:0'
 model_confidence_threshold = 0.4
 
 slice_height = 256

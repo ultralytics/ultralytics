@@ -11,9 +11,8 @@ from urllib import parse, request
 
 import requests
 import torch
-from tqdm import tqdm
 
-from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = 'ultralytics/assets'
@@ -101,11 +100,7 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), p
     zip_file = directory.with_suffix('.zip')
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, 'w', compression) as f:
-        for file in tqdm(files_to_zip,
-                         desc=f'Zipping {directory} to {zip_file}...',
-                         unit='file',
-                         disable=not progress,
-                         bar_format=TQDM_BAR_FORMAT):
+        for file in TQDM(files_to_zip, desc=f'Zipping {directory} to {zip_file}...', unit='file', disable=not progress):
             f.write(file, file.relative_to(directory))
 
     return zip_file  # return path to zip file
@@ -160,14 +155,10 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         # Check if destination directory already exists and contains files
         if path.exists() and any(path.iterdir()) and not exist_ok:
             # If it exists and is not empty, return the path without unzipping
-            LOGGER.info(f'Skipping {file} unzip (already unzipped)')
+            LOGGER.warning(f'WARNING ⚠️ Skipping {file} unzip as destination directory {path} is not empty.')
             return path
 
-        for f in tqdm(files,
-                      desc=f'Unzipping {file} to {Path(path).resolve()}...',
-                      unit='file',
-                      disable=not progress,
-                      bar_format=TQDM_BAR_FORMAT):
+        for f in TQDM(files, desc=f'Unzipping {file} to {Path(path).resolve()}...', unit='file', disable=not progress):
             zipObj.extract(f, path=extract_path)
 
     return path  # return unzip dir
@@ -185,22 +176,25 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    with contextlib.suppress(Exception):
-        gib = 1 << 30  # bytes per GiB
-        data = int(requests.head(url).headers['Content-Length']) / gib  # file size (GB)
-        total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
-        if data * sf < free:
-            return True  # sufficient space
+    r = requests.head(url)  # response
 
-        # Insufficient space
-        text = (f'WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
-                f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
-        if hard:
-            raise MemoryError(text)
-        LOGGER.warning(text)
-        return False
+    # Check response
+    assert r.status_code < 400, f'URL error for {url}: {r.status_code} {r.reason}'
 
-    return True
+    # Check file size
+    gib = 1 << 30  # bytes per GiB
+    data = int(r.headers.get('Content-Length', 0)) / gib  # file size (GB)
+    total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
+    if data * sf < free:
+        return True  # sufficient space
+
+    # Insufficient space
+    text = (f'WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
+            f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
+    if hard:
+        raise MemoryError(text)
+    LOGGER.warning(text)
+    return False
 
 
 def get_google_drive_file_info(link):
@@ -270,7 +264,7 @@ def safe_download(url,
     """
 
     # Check if the URL is a Google Drive link
-    gdrive = 'drive.google.com' in url
+    gdrive = url.startswith('https://drive.google.com/')
     if gdrive:
         url, file = get_google_drive_file_info(url)
 
@@ -294,13 +288,12 @@ def safe_download(url,
                     if method == 'torch':
                         torch.hub.download_url_to_file(url, f, progress=progress)
                     else:
-                        with request.urlopen(url) as response, tqdm(total=int(response.getheader('Content-Length', 0)),
+                        with request.urlopen(url) as response, TQDM(total=int(response.getheader('Content-Length', 0)),
                                                                     desc=desc,
                                                                     disable=not progress,
                                                                     unit='B',
                                                                     unit_scale=True,
-                                                                    unit_divisor=1024,
-                                                                    bar_format=TQDM_BAR_FORMAT) as pbar:
+                                                                    unit_divisor=1024) as pbar:
                             with open(f, 'wb') as f_opened:
                                 for data in response:
                                     f_opened.write(data)

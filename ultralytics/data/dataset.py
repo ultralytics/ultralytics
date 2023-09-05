@@ -8,9 +8,8 @@ import cv2
 import numpy as np
 import torch
 import torchvision
-from tqdm import tqdm
 
-from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, colorstr, is_dir_writeable
+from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
 
 from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
 from .base import BaseDataset
@@ -60,7 +59,7 @@ class YOLODataset(BaseDataset):
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
                                              repeat(self.use_keypoints), repeat(len(self.data['names'])), repeat(nkpt),
                                              repeat(ndim)))
-            pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
+            pbar = TQDM(results, desc=desc, total=total)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
@@ -107,16 +106,15 @@ class YOLODataset(BaseDataset):
         nf, nm, ne, nc, n = cache.pop('results')  # found, missing, empty, corrupt, total
         if exists and LOCAL_RANK in (-1, 0):
             d = f'Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt'
-            tqdm(None, desc=self.prefix + d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)  # display results
+            TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
             if cache['msgs']:
                 LOGGER.info('\n'.join(cache['msgs']))  # display warnings
-        if nf == 0:  # number of labels found
-            raise FileNotFoundError(f'{self.prefix}No labels found in {cache_path}, can not start training. {HELP_URL}')
 
         # Read cache
         [cache.pop(k) for k in ('hash', 'version', 'msgs')]  # remove items
         labels = cache['labels']
-        assert len(labels), f'No valid labels found, please check your dataset. {HELP_URL}'
+        if not labels:
+            LOGGER.warning(f'WARNING ⚠️ No images found in {cache_path}, training may not work correctly. {HELP_URL}')
         self.im_files = [lb['im_file'] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments
@@ -130,10 +128,9 @@ class YOLODataset(BaseDataset):
             for lb in labels:
                 lb['segments'] = []
         if len_cls == 0:
-            raise ValueError(f'All labels empty in {cache_path}, can not start training without labels. {HELP_URL}')
+            LOGGER.warning(f'WARNING ⚠️ No labels found in {cache_path}, training may not work correctly. {HELP_URL}')
         return labels
 
-    # TODO: use hyp config to set all these augmentations
     def build_transforms(self, hyp=None):
         """Builds and appends transforms to the list."""
         if self.augment:
@@ -246,7 +243,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
             if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f))
+                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR
@@ -271,7 +268,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             nf, nc, n, samples = cache.pop('results')  # found, missing, empty, corrupt, total
             if LOCAL_RANK in (-1, 0):
                 d = f'{desc} {nf} images, {nc} corrupt'
-                tqdm(None, desc=d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)
+                TQDM(None, desc=d, total=n, initial=n)
                 if cache['msgs']:
                     LOGGER.info('\n'.join(cache['msgs']))  # display warnings
             return samples
@@ -280,7 +277,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         nf, nc, msgs, samples, x = 0, 0, [], [], {}
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
-            pbar = tqdm(results, desc=desc, total=len(self.samples), bar_format=TQDM_BAR_FORMAT)
+            pbar = TQDM(results, desc=desc, total=len(self.samples))
             for sample, nf_f, nc_f, msg in pbar:
                 if nf_f:
                     samples.append(sample)

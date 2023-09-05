@@ -10,6 +10,10 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
     Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
 
 ---
+## ::: ultralytics.utils.TQDM
+<br><br>
+
+---
 ## ::: ultralytics.utils.SimpleClass
 <br><br>
 

@@ -34,25 +34,25 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.cfg import get_cfg
+from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox, classify_transforms
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, SETTINGS, WINDOWS, callbacks, colorstr, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 STREAM_WARNING = """
-    WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless `stream=True` is passed,
-    causing potential out-of-memory errors for large sources or long-running streams/videos.
+WARNING ⚠️ inference results will accumulate in RAM unless `stream=True` is passed, causing potential out-of-memory
+errors for large sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
 
-    Example:
-        results = model(source=..., stream=True)  # generator of Results objects
-        for r in results:
-            boxes = r.boxes  # Boxes object for bbox outputs
-            masks = r.masks  # Masks object for segment masks outputs
-            probs = r.probs  # Class probabilities for classification outputs
+Example:
+    results = model(source=..., stream=True)  # generator of Results objects
+    for r in results:
+        boxes = r.boxes  # Boxes object for bbox outputs
+        masks = r.masks  # Masks object for segment masks outputs
+        probs = r.probs  # Class probabilities for classification outputs
 """
 
 
@@ -84,7 +84,7 @@ class BasePredictor:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.save_dir = self.get_save_dir()
+        self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
         self.done_warmup = False
@@ -107,11 +107,6 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
         callbacks.add_integration_callbacks(self)
-
-    def get_save_dir(self):
-        project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
-        name = self.args.name or f'{self.args.mode}'
-        return increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
 
     def preprocess(self, im):
         """Prepares input image before inference.
@@ -209,7 +204,10 @@ class BasePredictor:
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
         self.transforms = getattr(self.model.model, 'transforms', classify_transforms(
             self.imgsz[0])) if self.args.task == 'classify' else None
-        self.dataset = load_inference_source(source=source, imgsz=self.imgsz, vid_stride=self.args.vid_stride)
+        self.dataset = load_inference_source(source=source,
+                                             imgsz=self.imgsz,
+                                             vid_stride=self.args.vid_stride,
+                                             stream_buffer=self.args.stream_buffer)
         self.source_type = self.dataset.source_type
         if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
                                                   len(self.dataset) > 1000 or  # images

@@ -7,7 +7,8 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from tqdm import tqdm
+
+from ultralytics.utils import TQDM
 
 
 def coco91_to_coco80_class():
@@ -90,7 +91,7 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
             imgToAnns[ann['image_id']].append(ann)
 
         # Write labels file
-        for img_id, anns in tqdm(imgToAnns.items(), desc=f'Annotations {json_file}'):
+        for img_id, anns in TQDM(imgToAnns.items(), desc=f'Annotations {json_file}'):
             img = images[f'{img_id:d}']
             h, w, f = img['height'], img['width'], img['file_name']
 
@@ -222,7 +223,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         save_dir.mkdir(parents=True, exist_ok=True)
 
         image_paths = list(image_dir.iterdir())
-        for image_path in tqdm(image_paths, desc=f'Processing {phase} images'):
+        for image_path in TQDM(image_paths, desc=f'Processing {phase} images'):
             if image_path.suffix != '.png':
                 continue
             image_name_without_ext = image_path.stem

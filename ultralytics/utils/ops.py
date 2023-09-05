@@ -17,6 +17,16 @@ from ultralytics.utils import LOGGER
 class Profile(contextlib.ContextDecorator):
     """
     YOLOv8 Profile class. Use as a decorator with @Profile() or as a context manager with 'with Profile():'.
+
+    Example:
+        ```python
+        from ultralytics.utils.ops import Profile
+
+        with Profile() as dt:
+            pass  # slow operation here
+
+        print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
+        ```
     """
 
     def __init__(self, t=0.0):
@@ -38,6 +48,9 @@ class Profile(contextlib.ContextDecorator):
         """Stop timing."""
         self.dt = self.time() - self.start  # delta-time
         self.t += self.dt  # accumulate dt
+
+    def __str__(self):
+        return f'Elapsed time is {self.t} s'
 
     def time(self):
         """Get current time."""
@@ -756,6 +769,19 @@ def masks2segments(masks, strategy='largest'):
             c = np.zeros((0, 2))  # no segments found
         segments.append(c.astype('float32'))
     return segments
+
+
+def convert_torch2numpy_batch(batch: torch.Tensor) -> np.ndarray:
+    """
+    Convert a batch of FP32 torch tensors (0.0-1.0) to a NumPy uint8 array (0-255), changing from BCHW to BHWC layout.
+
+    Args:
+        batch (torch.Tensor): Input tensor batch of shape (Batch, Channels, Height, Width) and dtype torch.float32.
+
+    Returns:
+        (np.ndarray): Output NumPy array batch of shape (Batch, Height, Width, Channels) and dtype uint8.
+    """
+    return (batch.permute(0, 2, 3, 1).contiguous() * 255).clamp(0, 255).to(torch.uint8).cpu().numpy()
 
 
 def clean_str(s):

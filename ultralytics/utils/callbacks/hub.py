@@ -5,7 +5,6 @@ from time import time
 
 from ultralytics.hub.utils import HUB_WEB_ROOT, PREFIX, events
 from ultralytics.utils import LOGGER, SETTINGS
-from ultralytics.utils.torch_utils import model_info_for_loggers
 
 
 def on_pretrain_routine_end(trainer):
@@ -24,6 +23,7 @@ def on_fit_epoch_end(trainer):
         # Upload metrics after val end
         all_plots = {**trainer.label_loss_items(trainer.tloss, prefix='train'), **trainer.metrics}
         if trainer.epoch == 0:
+            from ultralytics.utils.torch_utils import model_info_for_loggers
             all_plots = {**all_plots, **model_info_for_loggers(trainer)}
         session.metrics_queue[trainer.epoch] = json.dumps(all_plots)
         if time() - session.timers['metrics'] > session.rate_limits['metrics']:

@@ -3,16 +3,16 @@
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
+    # WARNING: do not move import due to protobuf issue in https://github.com/ultralytics/ultralytics/pull/4674
     from torch.utils.tensorboard import SummaryWriter
 
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['tensorboard'] is True  # verify integration is enabled
+    WRITER = None  # TensorBoard SummaryWriter instance
 
-# TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
 except (ImportError, AssertionError, TypeError):
+    # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
     SummaryWriter = None
-
-WRITER = None  # TensorBoard SummaryWriter instance
 
 
 def _log_scalars(scalars, step=0):
@@ -23,7 +23,7 @@ def _log_scalars(scalars, step=0):
 
 
 def _log_tensorboard_graph(trainer):
-    # Log model graph to TensorBoard
+    """Log model graph to TensorBoard."""
     try:
         import warnings
 
@@ -48,9 +48,14 @@ def on_pretrain_routine_start(trainer):
             WRITER = SummaryWriter(str(trainer.save_dir))
             prefix = colorstr('TensorBoard: ')
             LOGGER.info(f"{prefix}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
-            _log_tensorboard_graph(trainer)
         except Exception as e:
             LOGGER.warning(f'WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}')
+
+
+def on_train_start(trainer):
+    """Log TensorBoard graph."""
+    if WRITER:
+        _log_tensorboard_graph(trainer)
 
 
 def on_batch_end(trainer):
@@ -65,5 +70,6 @@ def on_fit_epoch_end(trainer):
 
 callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_train_start': on_train_start,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_batch_end': on_batch_end}
+    'on_batch_end': on_batch_end} if SummaryWriter else {}

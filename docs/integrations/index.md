@@ -59,3 +59,13 @@ We also support a variety of model export formats for deployment in different en
 | [NCNN](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 
 Explore the links to learn more about each integration and how to get the most out of them with Ultralytics.
+
+## Contribute to Our Integrations
+
+We're always excited to see how the community integrates Ultralytics YOLO with other technologies, tools, and platforms! If you have successfully integrated YOLO with a new system or have valuable insights to share, consider contributing to our Integrations Docs.
+
+By writing a guide or tutorial, you can help expand our documentation and provide real-world examples that benefit the community. It's an excellent way to contribute to the growing ecosystem around Ultralytics YOLO.
+
+To contribute, please check out our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for instructions on how to submit a Pull Request (PR) 🛠️. We eagerly await your contributions!
+
+Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feature-rich 🙏!

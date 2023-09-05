@@ -22,7 +22,7 @@ from sahi.predict import get_prediction, get_sliced_prediction, predict
 from IPython.display import Image
 ```
 
-- Download a yolov8 model and two test images:
+- Download a YOLOv8 model and two test images:
 
 ```python
 # Download YOLOv5s6 model to 'models/yolov5s6.pt'
@@ -130,34 +130,18 @@ result.to_fiftyone_detections()[:3]
 
 ## 4. Batch Prediction
 
-- Set model and directory parameters:
-
-```python
-model_type = "yolov8"
-model_path = yolov8_model_path
-model_device = "cpu"  # or 'cuda:0'
-model_confidence_threshold = 0.4
-
-slice_height = 256
-slice_width = 256
-overlap_height_ratio = 0.2
-overlap_width_ratio = 0.2
-
-source_image_dir = "demo_data/"
-```
-
-- Perform sliced inference on given folder:
+- Set inference arguments and perform sliced inference on given folder:
 
 ```python
 predict(
-    model_type=model_type,
-    model_path=model_path,
-    model_device=model_device,
-    model_confidence_threshold=model_confidence_threshold,
-    source=source_image_dir,
-    slice_height=slice_height,
-    slice_width=slice_width,
-    overlap_height_ratio=overlap_height_ratio,
-    overlap_width_ratio=overlap_width_ratio,
+    model_type="yolov8",
+    model_path="path/to/yolov8n.pt",
+    model_device="cpu",  # or 'cuda:0'
+    model_confidence_threshold=0.4,
+    source="path/to/dir",
+    slice_height=256,
+    slice_width=256,
+    overlap_height_ratio=0.2,
+    overlap_width_ratio=0.2,
 )
 ```

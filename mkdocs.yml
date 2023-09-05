@@ -216,6 +216,7 @@ nav:
       - guides/index.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
+      - SAHI Tiled Inference: guides/sahi-tiled-inference.md
   - Integrations:
       - integrations/index.md
       - OpenVINO: integrations/openvino.md

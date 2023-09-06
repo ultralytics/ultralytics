@@ -118,5 +118,9 @@ keywords: Ultralytics YOLO, Utility Operations, segment2box, make_divisible, cli
 <br><br>
 
 ---
+## ::: ultralytics.utils.ops.convert_torch2numpy_batch
+<br><br>
+
+---
 ## ::: ultralytics.utils.ops.clean_str
 <br><br>

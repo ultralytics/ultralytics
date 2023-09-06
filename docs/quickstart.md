@@ -20,7 +20,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         pip install ultralytics
         ```
 
-        You can also install the `ultralytics` package directly from the GitHub repository. This might be useful if you want the latest development version. Make sure to have the Git command-line tool installed on your system. The `@main` command installs the `main` branch and may be modified to another branch, i.e. `@my-branch`, or removed alltogether to default to `main` branch.
+        You can also install the `ultralytics` package directly from the GitHub [repository](https://github.com/ultralytics/ultralytics). This might be useful if you want the latest development version. Make sure to have the Git command-line tool installed on your system. The `@main` command installs the `main` branch and may be modified to another branch, i.e. `@my-branch`, or removed alltogether to default to `main` branch.
     
         ```bash
         # Install the ultralytics package from GitHub
@@ -44,8 +44,24 @@ Ultralytics provides various installation methods including pip, conda, and Dock
             If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
             ```bash
             # Install all packages together using conda
-            conda install -c conda-forge -c pytorch -c nvidia ultralytics pytorch torchvision pytorch-cuda=11.8 
+            conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics 
             ```
+
+        ### Conda Docker Image
+    
+        Ultralytics Conda Docker images are also available from [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and are an simple way to start using `ultralytics` in a Conda environment.
+
+        ```bash
+        # Set image name as a variable
+        t=ultralytics/ultralytics:latest-conda
+
+        # Pull the latest ultralytics image from Docker Hub
+        sudo docker pull $t
+
+        # Run the ultralytics image in a container with GPU support
+        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+        ```
 
     === "Git clone"
         Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
@@ -71,6 +87,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         - **Dockerfile-cpu:** Ubuntu-based CPU-only version suitable for inference and environments without GPUs.
         - **Dockerfile-jetson:** Tailored for NVIDIA Jetson devices, integrating GPU support optimized for these platforms.
         - **Dockerfile-python:** Minimal image with just Python and necessary dependencies, ideal for lightweight applications and development.
+        - **Dockerfile-conda:** Based on Miniconda3 with conda installation of ultralytics package.
         
         Below are the commands to get the latest image and execute it:
 
@@ -109,8 +126,7 @@ See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralyt
 
 ## Use Ultralytics with CLI
 
-The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment.
-CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
+The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment. CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
 
 !!! example
 

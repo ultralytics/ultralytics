@@ -154,7 +154,8 @@ class Exporter:
         format = self.args.format.lower()  # to lowercase
         if format in ('tensorrt', 'trt'):  # 'engine' aliases
             format = 'engine'
-        if format in ('mlmodel', 'mlpackage', 'mlprogram', 'apple', 'ios'):  # 'coreml' aliases
+        if format in ('mlmodel', 'mlpackage', 'mlprogram', 'apple', 'ios', 'coreml'):  # 'coreml' aliases
+            os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'  # fix attempt for protobuf<3.20.x errors
             format = 'coreml'
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
         flags = [x == format for x in fmts]

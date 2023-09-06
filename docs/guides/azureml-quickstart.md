@@ -6,20 +6,21 @@ keywords: Ultralytics, YOLO, Deep Learning, Object detection, quickstart, Azure,
 
 # YOLOv8 🚀 on AzureML
 
-Note that this guide is only for quick trials from a compute terminal or from a Notebook.
-If you want to unlock the full power AzureML, you can find the documentation to:
+Note that this guide is only for quick trials from a compute terminal or from a Notebook. If you want to unlock the full power AzureML, you can find the documentation to:
+
 - [Create a data asset](https://learn.microsoft.com/azure/machine-learning/how-to-create-data-assets)
 - [Create an AzureML job](https://learn.microsoft.com/azure/machine-learning/how-to-train-model)
 - [Register a model](https://learn.microsoft.com/azure/machine-learning/how-to-manage-models)
 - [Train YOLOv8 with the AzureML Python SDK](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azure-machine-learning-python-sdk-8268696be8ba)
 - [Train YOLOv8 with the Azureml cli](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azureml-and-the-az-cli-73d3c870ba8e)
 
-## Prerequisites 
+## Prerequisites
+
 You need an [AzureML workspace](https://learn.microsoft.com/azure/machine-learning/concept-workspace?view=azureml-api-2).
 
 ## Create a compute instance
 
-From your AzureML workspace, select Compute > Compute instances > New, select the compute with the resources you need.
+From your AzureML workspace, select Compute > Compute instances > New, select the instance with the resources you need.
 
 <img width="1741" alt="create-compute-arrow" src="https://github.com/ouphi/ultralytics/assets/17216799/3e92fcc0-a08e-41a4-af81-d289cfe3b8f2">
 
@@ -51,11 +52,13 @@ pip install onnx>=1.12.0
 ### Perform YOLOv8 tasks
 
 Predict:
+
 ```bash
 yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
 Train a detection model for 10 epochs with an initial learning_rate of 0.01:
+
 ```bash
 yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
@@ -63,6 +66,7 @@ yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 You can find more [instructions to use the Ultralytics cli here](https://docs.ultralytics.com/quickstart/#use-ultralytics-with-cli).
 
 ## Quickstart from a Notebook
+
 ### Create a new IPython kernel
 
 Open the compute Terminal.
@@ -102,14 +106,13 @@ source activate yolov8env
 yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-Or with the [Ultralytic Python interface](https://docs.ultralytics.com/quickstart/#use-ultralytics-with-python), for example to train the model:
+Or with the [Ultralytics Python interface](https://docs.ultralytics.com/quickstart/#use-ultralytics-with-python), for example to train the model:
 
 ```python
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.yaml")  # build a new model from scratch
-model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+model = YOLO("yolov8n.pt")  # load an official YOLOv8n model
 
 # Use the model
 model.train(data="coco128.yaml", epochs=3)  # train the model

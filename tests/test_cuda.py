@@ -94,7 +94,8 @@ def test_model_ray_tune():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_model_tune():
-    YOLO('yolov8n.pt').tune(data='coco8.yaml', imgsz=32, epochs=1, iterations=2, plots=False, device='cpu')
+    YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', imgsz=32, epochs=1, iterations=2, device='cpu')
+    YOLO('yolov8n-cls.pt').tune(data='imagenet10', imgsz=32, epochs=1, iterations=2, device='cpu')
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')

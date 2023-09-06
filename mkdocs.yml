@@ -217,6 +217,7 @@ nav:
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
+      - AzureML Quickstart: guides/azureml-quickstart.md
   - Integrations:
       - integrations/index.md
       - OpenVINO: integrations/openvino.md
@@ -234,6 +235,7 @@ nav:
       - Environments:
           - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
           - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md
+          - AzureML: yolov5/environments/azureml_quickstart_tutorial.md
           - Docker Image: yolov5/environments/docker_image_quickstart_tutorial.md
       - Tutorials:
           - Train Custom Data: yolov5/tutorials/train_custom_data.md

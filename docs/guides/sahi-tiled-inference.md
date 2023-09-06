@@ -6,19 +6,11 @@ keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, Large S
 
 # Ultralytics Docs: Using YOLOv8 with SAHI for Sliced Inference
 
-Welcome to the Ultralytics documentation on how to use YOLOv8 with SAHI (Slicing Aided Hyper Inference). In this comprehensive guide, we'll discuss what SAHI is, the benefits of sliced inference, and how to use SAHI with YOLOv8 for object detection tasks.
+Welcome to the Ultralytics documentation on how to use YOLOv8 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). In this comprehensive guide, we'll discuss what SAHI is, the benefits of sliced inference, and how to use SAHI with YOLOv8 for object detection tasks.
 
-![SAHI Sliced Inference](https://raw.githubusercontent.com/obss/sahi/main/resources/sliced_inference.gif)
-
-## Table of Contents
-
-1. [Introduction to SAHI](#introduction-to-sahi)
-2. [What is Sliced Inference?](#what-is-sliced-inference)
-3. [Installation and Preparation](#installation-and-preparation)
-4. [Standard Inference with YOLOv8](#standard-inference-with-yolov8)
-5. [Sliced Inference with YOLOv8](#sliced-inference-with-yolov8)
-6. [Handling Prediction Results](#handling-prediction-results)
-7. [Batch Prediction](#batch-prediction)
+<p align="center">
+  <img width="1024" src="https://raw.githubusercontent.com/obss/sahi/main/resources/sliced_inference.gif" alt="SAHI Sliced Inference Overview">
+</p>
 
 ## Introduction to SAHI
 
@@ -27,6 +19,17 @@ SAHI is a powerful library aimed at performing efficient and accurate object det
 ## What is Sliced Inference?
 
 Sliced Inference is a technique that divides a large image into smaller slices, performs object detection on each slice, and then aggregates the results back onto the original image. This method is especially beneficial when dealing with high-resolution images as it significantly reduces the computational load without sacrificing detection accuracy.
+
+<table border="0">
+<tr>
+  <th>YOLOv8 without SAHI</th>
+  <th>YOLOv8 with SAHI</th>
+</tr>
+<tr>
+  <td><img src="https://user-images.githubusercontent.com/26833433/266123241-260a9740-5998-4e9a-ad04-b39b7767e731.png" alt="YOLOv8 without SAHI" width="300"></td>
+  <td><img src="https://user-images.githubusercontent.com/26833433/266123245-55f696ad-ec74-4e71-9155-c211d693bb69.png" alt="YOLOv8 with SAHI" width="300"></td>
+</tr>
+</table>
 
 ## Installation and Preparation
 
@@ -145,3 +148,24 @@ predict(
 ```
 
 That's it! Now you're equipped to use YOLOv8 with SAHI for both standard and sliced inference.
+
+## Citations and Acknowledgments
+
+If you use SAHI in your research or development work, please cite the original SAHI paper and acknowledge the authors:
+
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{akyon2022sahi,
+          title={Slicing Aided Hyper Inference and Fine-tuning for Small Object Detection},
+          author={Akyon, Fatih Cagatay and Altinuc, Sinan Onur and Temizel, Alptekin},
+          journal={2022 IEEE International Conference on Image Processing (ICIP)},
+          doi={10.1109/ICIP46576.2022.9897990},
+          pages={966-970},
+          year={2022}
+        }
+        ```
+
+We extend our thanks to the SAHI research group for creating and maintaining this invaluable resource for the computer vision community. For more information about SAHI and its creators, visit the [SAHI GitHub repository](https://github.com/obss/sahi).

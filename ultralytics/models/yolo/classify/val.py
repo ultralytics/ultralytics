@@ -70,6 +70,7 @@ class ClassificationValidator(BaseValidator):
                                            on_plot=self.on_plot)
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
+        self.metrics.save_dir = self.save_dir
 
     def get_stats(self):
         """Returns a dictionary of metrics obtained by processing targets and predictions."""

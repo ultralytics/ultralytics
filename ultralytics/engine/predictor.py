@@ -144,7 +144,8 @@ class BasePredictor:
         """
         same_shapes = all(x.shape == im[0].shape for x in im)
         auto = same_shapes and self.model.pt
-        return [LetterBox(self.imgsz, auto=auto, stride=self.model.stride)(image=x) for x in im]
+        ObjectLetterBox = LetterBox(self.imgsz, auto=auto, stride=self.model.stride)
+        return [ObjectLetterBox(image=x) for x in im]
 
     def write_results(self, idx, results, batch):
         """Write inference results to a file or directory."""

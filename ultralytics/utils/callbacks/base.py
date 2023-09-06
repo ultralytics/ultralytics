@@ -214,7 +214,7 @@ def add_integration_callbacks(instance):
         callbacks_list.extend([clear_cb, comet_cb, dvc_cb, mlflow_cb, neptune_cb, tune_cb, tb_cb, wb_cb])
 
     # Load export callbacks (patch to avoid CoreML protobuf error)
-    if 'Exporter' in instance.__class__.__name__:
+    if 'Exporter' in instance.__class__.__name__ and instance.args.format in ('coreml', 'mlmodel'):
         from .tensorboard import callbacks as tb_cb
         callbacks_list.append(tb_cb)
 

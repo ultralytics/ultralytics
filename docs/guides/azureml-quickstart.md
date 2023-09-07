@@ -1,34 +1,48 @@
 ---
 comments: true
-description: Azure Machine Learning YOLOv8 quickstart
-keywords: Ultralytics, YOLO, Deep Learning, Object detection, quickstart, Azure, AzureML
+description: Step-by-step Quickstart Guide to Running YOLOv8 Object Detection Models on AzureML for Fast Prototyping and Testing
+keywords: Ultralytics, YOLOv8, Object Detection, Azure Machine Learning, Quickstart Guide, Prototype, Compute Instance, Terminal, Notebook, IPython Kernel, CLI, Python SDK
 ---
 
 # YOLOv8 🚀 on AzureML
 
-Note that this guide is only for quick trials from a compute terminal or from a Notebook. If you want to unlock the full power AzureML, you can find the documentation to:
+## What is Azure?
 
-- [Create a data asset](https://learn.microsoft.com/azure/machine-learning/how-to-create-data-assets)
-- [Create an AzureML job](https://learn.microsoft.com/azure/machine-learning/how-to-train-model)
-- [Register a model](https://learn.microsoft.com/azure/machine-learning/how-to-manage-models)
-- [Train YOLOv8 with the AzureML Python SDK](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azure-machine-learning-python-sdk-8268696be8ba)
-- [Train YOLOv8 with the Azureml cli](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azureml-and-the-az-cli-73d3c870ba8e)
+[Azure](https://azure.microsoft.com/) is Microsoft's cloud computing platform, designed to help organizations move their workloads to the cloud from on-premises data centers. With the full spectrum of cloud services including those for computing, databases, analytics, machine learning, and networking, users can pick and choose from these services to develop and scale new applications, or run existing applications, in the public cloud.
+
+## What is Azure Machine Learning (AzureML)?
+
+Azure Machine Learning, commonly referred to as AzureML, is a fully managed cloud service that enables data scientists and developers to efficiently embed predictive analytics into their applications, helping organizations use massive data sets and bring all the benefits of the cloud to machine learning. AzureML offers a variety of services and capabilities aimed at making machine learning accessible, easy to use, and scalable. It provides capabilities like automated machine learning, drag-and-drop model training, as well as a robust Python SDK so that developers can make the most out of their machine learning models.
+
+## How Does AzureML Benefit YOLO Users?
+
+For users of YOLO (You Only Look Once), AzureML provides a robust, scalable, and efficient platform to both train and deploy machine learning models. Whether you are looking to run quick prototypes or scale up to handle more extensive data, AzureML's flexible and user-friendly environment offers various tools and services to fit your needs. You can leverage AzureML to:
+
+- Easily manage large datasets and computational resources for training.
+- Utilize built-in tools for data preprocessing, feature selection, and model training.
+- Collaborate more efficiently with capabilities for MLOps (Machine Learning Operations), including but not limited to monitoring, auditing, and versioning of models and data.
+
+In the subsequent sections, you will find a quickstart guide detailing how to run YOLOv8 object detection models using AzureML, either from a compute terminal or a notebook.
 
 ## Prerequisites
 
-You need an [AzureML workspace](https://learn.microsoft.com/azure/machine-learning/concept-workspace?view=azureml-api-2).
+Before you can get started, make sure you have access to an AzureML workspace. If you don't have one, you can create a new [AzureML workspace](https://learn.microsoft.com/azure/machine-learning/concept-workspace?view=azureml-api-2) by following Azure's official documentation. This workspace acts as a centralized place to manage all AzureML resources.
 
 ## Create a compute instance
 
 From your AzureML workspace, select Compute > Compute instances > New, select the instance with the resources you need.
 
-<img width="1741" alt="create-compute-arrow" src="https://github.com/ouphi/ultralytics/assets/17216799/3e92fcc0-a08e-41a4-af81-d289cfe3b8f2">
+<p align="center">
+  <img width="1280" src="https://github.com/ouphi/ultralytics/assets/17216799/3e92fcc0-a08e-41a4-af81-d289cfe3b8f2" alt="Create Azure Compute Instance">
+</p>
 
 ## Quickstart from Terminal
 
 Start your compute and open a Terminal:
 
-![open-terminal](https://github.com/ouphi/ultralytics/assets/17216799/635152f1-f4a3-4261-b111-d416cb5ef357)
+<p align="center">
+  <img width="480" src="https://github.com/ouphi/ultralytics/assets/17216799/635152f1-f4a3-4261-b111-d416cb5ef357" alt="Open Terminal">
+</p>
 
 ### Create virtualenv
 
@@ -71,7 +85,9 @@ You can find more [instructions to use the Ultralytics cli here](https://docs.ul
 
 Open the compute Terminal.
 
-![open-terminal](https://github.com/ouphi/ultralytics/assets/17216799/635152f1-f4a3-4261-b111-d416cb5ef357)
+<p align="center">
+  <img width="480" src="https://github.com/ouphi/ultralytics/assets/17216799/635152f1-f4a3-4261-b111-d416cb5ef357" alt="Open Terminal">
+</p>
 
 From your compute terminal, you need to create a new ipykernel that will be used by your notebook to manage your dependencies:
 
@@ -120,3 +136,17 @@ metrics = model.val()  # evaluate model performance on the validation set
 results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 path = model.export(format="onnx")  # export the model to ONNX format
 ```
+
+You can use either the Ultralytics CLI or Python interface for running YOLOv8 tasks, as described in the terminal section above.
+
+By following these steps, you should be able to get YOLOv8 running quickly on AzureML for quick trials. For more advanced uses, you may refer to the full AzureML documentation linked at the beginning of this guide.
+
+## Explore More with AzureML
+
+This guide serves as an introduction to get you up and running with YOLOv8 on AzureML. However, it only scratches the surface of what AzureML can offer. To delve deeper and unlock the full potential of AzureML for your machine learning projects, consider exploring the following resources:
+
+- [Create a Data Asset](https://learn.microsoft.com/azure/machine-learning/how-to-create-data-assets): Learn how to set up and manage your data assets effectively within the AzureML environment.
+- [Initiate an AzureML Job](https://learn.microsoft.com/azure/machine-learning/how-to-train-model): Get a comprehensive understanding of how to kickstart your machine learning training jobs on AzureML.
+- [Register a Model](https://learn.microsoft.com/azure/machine-learning/how-to-manage-models): Familiarize yourself with model management practices including registration, versioning, and deployment.
+- [Train YOLOv8 with AzureML Python SDK](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azure-machine-learning-python-sdk-8268696be8ba): Explore a step-by-step guide on using the AzureML Python SDK to train your YOLOv8 models.
+- [Train YOLOv8 with AzureML CLI](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azureml-and-the-az-cli-73d3c870ba8e): Discover how to utilize the command-line interface for streamlined training and management of YOLOv8 models on AzureML.

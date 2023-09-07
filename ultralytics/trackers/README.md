@@ -69,7 +69,7 @@ while True:
 
 ## Change tracker parameters
 
-You can change the tracker parameters by eding the `tracker.yaml` file which is located in the ultralytics/cfg/trackers folder.
+You can change the tracker parameters by editing the `tracker.yaml` file which is located in the ultralytics/cfg/trackers folder.
 
 ## Command Line Interface (CLI)
 
@@ -81,6 +81,14 @@ yolo segment track source=... tracker=...
 yolo pose track source=... tracker=...
 ```
 
-By default, trackers will use the configuration in `ultralytics/cfg/trackers`.
-We also support using a modified tracker config file. Please refer to the tracker config files
-in `ultralytics/cfg/trackers`.<br>
+By default, trackers will use the configuration in `ultralytics/cfg/trackers`. We also support using a modified tracker config file. Please refer to the tracker config files in `ultralytics/cfg/trackers`.
+
+## Contribute to Our Trackers Section
+
+Are you proficient in multi-object tracking and have successfully implemented or adapted a tracking algorithm with Ultralytics YOLO? We invite you to contribute to our Trackers section! Your real-world applications and solutions could be invaluable for users working on tracking tasks.
+
+By contributing to this section, you help expand the scope of tracking solutions available within the Ultralytics YOLO framework, adding another layer of functionality and utility for the community.
+
+To initiate your contribution, please refer to our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for comprehensive instructions on submitting a Pull Request (PR) 🛠️. We are excited to see what you bring to the table!
+
+Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!

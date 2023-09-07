@@ -189,7 +189,7 @@ class ConfusionMatrix:
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == 'detect' else np.zeros((nc, nc))
         self.nc = nc  # number of classes
-        self.conf = conf
+        self.conf = 0.25 if conf is None else conf  # argument may be None from default cfg
         self.iou_thres = iou_thres
 
     def process_cls_preds(self, preds, targets):
@@ -520,7 +520,6 @@ class Metric(SimpleClass):
             maps(): mAP of each class. Returns: Array of mAP scores, shape: (nc,).
             fitness(): Model fitness as a weighted combination of metrics. Returns: Float.
             update(results): Update metric attributes with new evaluation results.
-
         """
 
     def __init__(self) -> None:

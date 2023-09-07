@@ -4,15 +4,16 @@ from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
+    assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['wandb'] is True  # verify integration is enabled
     import wandb as wb
 
     assert hasattr(wb, '__version__')
-    assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS['wandb'] is True  # verify integration is enabled
+
+    _processed_plots = {}
+
 except (ImportError, AssertionError):
     wb = None
-
-_processed_plots = {}
 
 
 def _log_plots(plots, step):

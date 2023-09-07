@@ -51,7 +51,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
 
         # Run inference with points prompt
-        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
         ```
 
 !!! example "Segment everything"

@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import cv2
-import numpy as np
 import torch
 
 from ultralytics.data import YOLODataset
@@ -21,30 +19,9 @@ class RTDETRDataset(YOLODataset):
         super().__init__(*args, data=data, use_segments=False, use_keypoints=False, **kwargs)
 
     # NOTE: add stretch version load_image for rtdetr mosaic
-    def load_image(self, i):
+    def load_image(self, i, rect_mode=False):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
-        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
-        if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
-                im = np.load(fn)
-            else:  # read image
-                im = cv2.imread(f)  # BGR
-                if im is None:
-                    raise FileNotFoundError(f'Image Not Found {f}')
-            h0, w0 = im.shape[:2]  # orig hw
-            im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
-
-            # Add to buffer if training with augmentations
-            if self.augment:
-                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
-                self.buffer.append(i)
-                if len(self.buffer) >= self.max_buffer_length:
-                    j = self.buffer.pop(0)
-                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-
-            return im, (h0, w0), im.shape[:2]
-
-        return self.ims[i], self.im_hw0[i], self.im_hw[i]
+        return super().load_image(i=i, rect_mode=rect_mode)
 
     def build_transforms(self, hyp=None):
         """Temporary, only for evaluation."""

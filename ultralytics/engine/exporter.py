@@ -58,9 +58,12 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg
+from ultralytics.data.dataset import YOLODataset
+from ultralytics.data.utils import check_det_dataset
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
@@ -127,7 +130,7 @@ class Exporter:
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
-        save_dir (Path): Directory to save results.
+        callbacks (list, optional): List of callback functions. Defaults to None.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -151,7 +154,8 @@ class Exporter:
         format = self.args.format.lower()  # to lowercase
         if format in ('tensorrt', 'trt'):  # 'engine' aliases
             format = 'engine'
-        if format in ('mlmodel', 'mlpackage', 'mlprogram', 'apple', 'ios'):  # 'coreml' aliases
+        if format in ('mlmodel', 'mlpackage', 'mlprogram', 'apple', 'ios', 'coreml'):  # 'coreml' aliases
+            os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'  # fix attempt for protobuf<3.20.x errors
             format = 'coreml'
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
         flags = [x == format for x in fmts]
@@ -159,7 +163,10 @@ class Exporter:
             raise ValueError(f"Invalid export format='{format}'. Valid formats are {fmts}")
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
 
-        # Load PyTorch model
+        # Device
+        if format == 'engine' and self.args.device is None:
+            LOGGER.warning('WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0')
+            self.args.device = '0'
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
 
         # Checks
@@ -189,7 +196,7 @@ class Exporter:
         model.eval()
         model.float()
         model = model.fuse()
-        for k, m in model.named_modules():
+        for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
                 m.dynamic = self.args.dynamic
                 m.export = True
@@ -272,10 +279,11 @@ class Exporter:
                                   f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
             predict_data = f'data={data}' if model.task == 'segment' and format == 'pb' else ''
+            q = 'int8' if self.args.int8 else 'half' if self.args.half else ''  # quantization
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {predict_data}'
-                        f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {s}'
+                        f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q} {predict_data}'
+                        f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}'
                         f'\nVisualize:       https://netron.app')
 
         self.run_callbacks('on_export_end')
@@ -364,27 +372,54 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with openvino {ov.__version__}...')
         f = str(self.file).replace(self.file.suffix, f'_openvino_model{os.sep}')
+        fq = str(self.file).replace(self.file.suffix, f'_int8_openvino_model{os.sep}')
         f_onnx = self.file.with_suffix('.onnx')
         f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
+        fq_ov = str(Path(fq) / self.file.with_suffix('.xml').name)
+
+        def serialize(ov_model, file):
+            """Set RT info, serialize and save metadata YAML."""
+            ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
+            ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
+            ov_model.set_rt_info(114, ['model_info', 'pad_value'])
+            ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
+            ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
+            ov_model.set_rt_info([v.replace(' ', '_') for v in self.model.names.values()], ['model_info', 'labels'])
+            if self.model.task != 'classify':
+                ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
+
+            ov.serialize(ov_model, file)  # save
+            yaml_save(Path(file).parent / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         ov_model = mo.convert_model(f_onnx,
                                     model_name=self.pretty_name,
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)  # export
 
-        # Set RT info
-        ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
-        ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
-        ov_model.set_rt_info(114, ['model_info', 'pad_value'])
-        ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
-        ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
-        ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
-                             ['model_info', 'labels'])
-        if self.model.task != 'classify':
-            ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
+        if self.args.int8:
+            assert self.args.data, "INT8 export requires a data argument for calibration, i.e. 'data=coco8.yaml'"
+            check_requirements('nncf>=2.5.0')
+            import nncf
 
-        ov.serialize(ov_model, f_ov)  # save
-        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
+            def transform_fn(data_item):
+                """Quantization transform function."""
+                im = data_item['img'].numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+                return np.expand_dims(im, 0) if im.ndim == 3 else im
+
+            # Generate calibration data for integer quantization
+            LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
+            data = check_det_dataset(self.args.data)
+            dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
+            quantization_dataset = nncf.Dataset(dataset, transform_fn)
+            ignored_scope = nncf.IgnoredScope(types=['Multiply', 'Subtract', 'Sigmoid'])  # ignore operation
+            quantized_ov_model = nncf.quantize(ov_model,
+                                               quantization_dataset,
+                                               preset=nncf.QuantizationPreset.MIXED,
+                                               ignored_scope=ignored_scope)
+            serialize(quantized_ov_model, fq_ov)
+            return fq, None
+
+        serialize(ov_model, f_ov)
         return f, None
 
     @try_export
@@ -427,7 +462,7 @@ class Exporter:
             system = 'macos' if MACOS else 'ubuntu' if LINUX else 'windows'  # operating system
             asset = [x for x in assets if system in x][0] if assets else \
                 f'https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20230816-{system}.zip'  # fallback
-            attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
+            asset = attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
             unzip_dir = Path(asset).with_suffix('')
             pnnx = ROOT / pnnx_filename  # new location
             (unzip_dir / pnnx_filename).rename(pnnx)  # move binary to ROOT
@@ -435,18 +470,16 @@ class Exporter:
             Path(asset).unlink()  # delete zip
             pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
 
-        use_ncnn = True
         ncnn_args = [
             f'ncnnparam={f / "model.ncnn.param"}',
             f'ncnnbin={f / "model.ncnn.bin"}',
-            f'ncnnpy={f / "model_ncnn.py"}', ] if use_ncnn else []
+            f'ncnnpy={f / "model_ncnn.py"}', ]
 
-        use_pnnx = False
         pnnx_args = [
             f'pnnxparam={f / "model.pnnx.param"}',
             f'pnnxbin={f / "model.pnnx.bin"}',
             f'pnnxpy={f / "model_pnnx.py"}',
-            f'pnnxonnx={f / "model.pnnx.onnx"}', ] if use_pnnx else []
+            f'pnnxonnx={f / "model.pnnx.onnx"}', ]
 
         cmd = [
             str(pnnx),
@@ -459,7 +492,10 @@ class Exporter:
         f.mkdir(exist_ok=True)  # make ncnn_model directory
         LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
-        for f_debug in 'debug.bin', 'debug.param', 'debug2.bin', 'debug2.param':  # remove debug files
+
+        # Remove debug files
+        pnnx_files = [x.split('=')[-1] for x in pnnx_args]
+        for f_debug in ('debug.bin', 'debug.param', 'debug2.bin', 'debug2.param', *pnnx_files):
             Path(f_debug).unlink(missing_ok=True)
 
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
@@ -502,9 +538,9 @@ class Exporter:
                 check_requirements('scikit-learn')  # scikit-learn package required for k-means quantization
             if mlmodel:
                 ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
-            else:
+            elif bits == 8:  # mlprogram already quantized to FP16
                 import coremltools.optimize.coreml as cto
-                op_config = cto.OpPalettizerConfig(mode=mode, nbits=bits, weight_threshold=512)
+                op_config = cto.OpPalettizerConfig(mode='kmeans', nbits=bits, weight_threshold=512)
                 config = cto.OptimizationConfig(global_config=op_config)
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == 'detect':
@@ -629,19 +665,13 @@ class Exporter:
         if self.args.int8:
             verbosity = '--verbosity info'
             if self.args.data:
-                import numpy as np
-
-                from ultralytics.data.dataset import YOLODataset
-                from ultralytics.data.utils import check_det_dataset
-
                 # Generate calibration data for integer quantization
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
                 data = check_det_dataset(self.args.data)
                 dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
                 images = []
-                n_images = 100  # maximum number of images
-                for n, batch in enumerate(dataset):
-                    if n >= n_images:
+                for i, batch in enumerate(dataset):
+                    if i >= 100:  # maximum number of calibration images
                         break
                     im = batch['img'].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC
                     images.append(im)
@@ -839,7 +869,7 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')
-        batch_size, ch, h, w = list(self.im.shape)  # BCHW
+        _, _, h, w = list(self.im.shape)  # BCHW
 
         # Output shapes
         spec = model.get_spec()
@@ -857,8 +887,8 @@ class Exporter:
         # Checks
         names = self.metadata['names']
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
-        na, nc = out0_shape
-        # na, nc = out0.type.multiArrayType.shape  # number anchors, classes
+        _, nc = out0_shape  # number of anchors, number of classes
+        # _, nc = out0.type.multiArrayType.shape
         assert len(names) == nc, f'{len(names)} names found for nc={nc}'  # check
 
         # Define output shapes (missing)
@@ -968,7 +998,7 @@ class IOSDetectModel(torch.nn.Module):
     def __init__(self, model, im):
         """Initialize the IOSDetectModel class with a YOLO model and example image."""
         super().__init__()
-        b, c, h, w = im.shape  # batch, channel, height, width
+        _, _, h, w = im.shape  # batch, channel, height, width
         self.model = model
         self.nc = len(model.names)  # number of classes
         if w == h:

@@ -263,6 +263,10 @@ class ConfusionMatrix:
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
         return (tp[:-1], fp[:-1]) if self.task == 'detect' else (tp, fp)  # remove background class if task=detect
 
+    def accuracy(self):
+        """Returns the total accuracy using the values in the confusion matrix."""
+        return np.diag(self.matrix).sum()/(self.matrix.sum() + 1e-16)
+
     @TryExcept('WARNING ⚠️ ConfusionMatrix plot failure')
     @plt_settings()
     def plot(self, normalize=True, save_dir='', names=(), on_plot=None):

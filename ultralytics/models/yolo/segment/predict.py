@@ -52,7 +52,6 @@ class SegmentationPredictor(DetectionPredictor):
                                         max_det=self.args.max_det,
                                         nc=nc,
                                         classes=self.args.classes)
-            print(proto.shape)
         else:
             nc = preds[0].shape[1] - 4 - 32
             p = ops.non_max_suppression(preds[0],
@@ -64,8 +63,8 @@ class SegmentationPredictor(DetectionPredictor):
                                         classes=self.args.classes)
             if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
                 orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
-
-            proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+            proto = preds[1][-1] if len(
+                preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         results = []
         for i, pred in enumerate(p):
             orig_img = orig_imgs[i]

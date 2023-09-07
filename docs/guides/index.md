@@ -18,6 +18,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 * [Hyperparameter Tuning](hyperparameter-tuning.md) 🚀 NEW: Discover how to optimize your YOLO models by fine-tuning hyperparameters using the Tuner class and genetic evolution algorithms.
 * [Using YOLOv8 with SAHI for Sliced Inference](sahi-tiled-inference.md) 🚀 NEW: Comprehensive guide on leveraging SAHI's sliced inference capabilities with YOLOv8 for object detection in high-resolution images.
 * [AzureML Quickstart](azureml-quickstart.md) 🚀 NEW: Get up and running with Ultralytics YOLO models on Microsoft's Azure Machine Learning platform. Learn how to train, deploy, and scale your object detection projects in the cloud.
+* [Conda Quickstart](conda-quickstart.md) 🚀 NEW: Step-by-step guide to setting up a Conda environment for Ultralytics. Learn how to install and start using the Ultralytics package efficiently with Conda.
 
 ## Contribute to Our Guides
 

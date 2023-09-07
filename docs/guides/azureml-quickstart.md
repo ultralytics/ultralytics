@@ -32,13 +32,17 @@ Before you can get started, make sure you have access to an AzureML workspace. I
 
 From your AzureML workspace, select Compute > Compute instances > New, select the instance with the resources you need.
 
-<img width="1741" alt="create-compute-arrow" src="https://github.com/ouphi/ultralytics/assets/17216799/3e92fcc0-a08e-41a4-af81-d289cfe3b8f2">
+<p align="center">
+  <img width="1280" src="https://github.com/ouphi/ultralytics/assets/17216799/3e92fcc0-a08e-41a4-af81-d289cfe3b8f2" alt="Create Azure Compute Instance">
+</p>
 
 ## Quickstart from Terminal
 
 Start your compute and open a Terminal:
 
-![open-terminal](https://github.com/ouphi/ultralytics/assets/17216799/635152f1-f4a3-4261-b111-d416cb5ef357)
+<p align="center">
+  <img width="480" src="https://github.com/ouphi/ultralytics/assets/17216799/635152f1-f4a3-4261-b111-d416cb5ef357" alt="Open Terminal">
+</p>
 
 ### Create virtualenv
 
@@ -81,7 +85,9 @@ You can find more [instructions to use the Ultralytics cli here](https://docs.ul
 
 Open the compute Terminal.
 
-![open-terminal](https://github.com/ouphi/ultralytics/assets/17216799/635152f1-f4a3-4261-b111-d416cb5ef357)
+<p align="center">
+  <img width="480" src="https://github.com/ouphi/ultralytics/assets/17216799/635152f1-f4a3-4261-b111-d416cb5ef357" alt="Open Terminal">
+</p>
 
 From your compute terminal, you need to create a new ipykernel that will be used by your notebook to manage your dependencies:
 

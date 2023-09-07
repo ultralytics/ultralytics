@@ -571,6 +571,7 @@ class BaseTrainer:
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
                     LOGGER.info(f'\nValidating {f}...')
+                    self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')

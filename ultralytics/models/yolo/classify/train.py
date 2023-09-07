@@ -58,7 +58,7 @@ class ClassificationTrainer(BaseTrainer):
         return model
 
     def setup_model(self):
-        """load/create/download model for any task"""
+        """Load, create or download model for any task."""
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
@@ -131,13 +131,13 @@ class ClassificationTrainer(BaseTrainer):
         for f in self.last, self.best:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
-                # TODO: validate best.pt after training completes
-                # if f is self.best:
-                #     LOGGER.info(f'\nValidating {f}...')
-                #     self.validator.args.save_json = True
-                #     self.metrics = self.validator(model=f)
-                #     self.metrics.pop('fitness', None)
-                #     self.run_callbacks('on_fit_epoch_end')
+                if f is self.best:
+                    LOGGER.info(f'\nValidating {f}...')
+                    self.validator.args.data = self.args.data
+                    self.validator.args.plots = self.args.plots
+                    self.metrics = self.validator(model=f)
+                    self.metrics.pop('fitness', None)
+                    self.run_callbacks('on_fit_epoch_end')
         LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
 
     def plot_training_samples(self, batch, ni):

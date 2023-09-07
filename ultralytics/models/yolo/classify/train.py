@@ -58,7 +58,7 @@ class ClassificationTrainer(BaseTrainer):
         return model
 
     def setup_model(self):
-        """load/create/download model for any task"""
+        """Load, create or download model for any task."""
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 

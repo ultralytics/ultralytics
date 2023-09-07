@@ -6,28 +6,25 @@ from ultralytics import YOLO
 #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"] = "2,3,4,5,6,7"
 
-# Initialize COMET logger, first log done in notebook where API key was asked, now seems to be saved in .comet.config
-comet_ml.init()
+# Do not log anything in comet.ml
+os.environ['COMET_DISABLE_AUTO_LOGGING'] = '1'
 
 # Initialize model and load matching weights
-model = YOLO('yolov8s.yaml', task='detect')#.load('./../models/yolov8n.pt')
-#model = YOLO('/home-net/ierregue/project/detector/small-fast-detector/training_baselines/8np2-300e-64b2/weights/last.pt', task='detect')
-
-epochs = 300
+model = YOLO('yolov8n.yaml', task='detect').load('./../models/yolov8n.pt')
+epochs = 3
 batch = 64
 
 model.train(
     resume=False,
-    data='coco.yaml',
+    data='coco128.yaml',
     epochs=epochs,
     batch=batch,
-    cache=True,
-    save=False,
-    device=[1,2,3,7],
-    project='training_baselines',
-    name=f'8s-{epochs}e-{batch}b',
+    save=True,
+    device=[1],
+    project='fine-tune-cdv1',
+    name=f'8n-{epochs}e-{batch}b',
     verbose=True,
-    save_period=50,
+    save_period=1,
     patience=25,
 
 )

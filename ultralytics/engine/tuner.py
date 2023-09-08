@@ -199,7 +199,7 @@ class Tuner:
             LOGGER.info('\n' + header)
 
             # Save turning results
-            data = {k: float(x[0, i + 1]) for i, k in enumerate(self.space.keys())}
+            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
             header = header.replace(prefix, '#').replace('[1m/', '').replace('[0m', '') + '\n'
             yaml_save(self.tune_dir / 'best.yaml', data=data, header=header)
             yaml_print(self.tune_dir / 'best.yaml')

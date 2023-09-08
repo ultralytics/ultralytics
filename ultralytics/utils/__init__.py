@@ -635,7 +635,33 @@ SETTINGS_YAML = USER_CONFIG_DIR / 'settings.yaml'
 
 
 def colorstr(*input):
-    """Colors a string https://en.wikipedia.org/wiki/ANSI_escape_code, i.e.  colorstr('blue', 'hello world')."""
+    """
+    Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
+    See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
+
+    This function can be called in two ways:
+        - colorstr('color', 'style', 'your string')
+        - colorstr('your string')
+
+    In the second form, 'blue' and 'bold' will be applied by default.
+
+    Args:
+        *input (str): A sequence of strings where the first n-1 strings are color and style arguments,
+                      and the last string is the one to be colored.
+
+    Supported Colors and Styles:
+        Basic Colors: 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
+        Bright Colors: 'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
+                       'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white'
+        Misc: 'end', 'bold', 'underline'
+
+    Returns:
+        (str): The input string wrapped with ANSI escape codes for the specified color and style.
+
+    Examples:
+        >>> colorstr('blue', 'bold', 'hello world')
+        >>> '\033[34m\033[1mhello world\033[0m'
+    """
     *args, string = input if len(input) > 1 else ('blue', 'bold', input[0])  # color arguments, string
     colors = {
         'black': '\033[30m',  # basic colors
@@ -658,6 +684,24 @@ def colorstr(*input):
         'bold': '\033[1m',
         'underline': '\033[4m'}
     return ''.join(colors[x] for x in args) + f'{string}' + colors['end']
+
+
+def remove_colorstr(input_string):
+    """
+    Removes ANSI escape codes from a string, effectively un-coloring it.
+
+    Args:
+        input_string (str): The string to remove color and style from.
+
+    Returns:
+        (str): A new string with all ANSI escape codes removed.
+
+    Examples:
+        >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
+        >>> 'hello world'
+    """
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', input_string)
 
 
 class TryExcept(contextlib.ContextDecorator):

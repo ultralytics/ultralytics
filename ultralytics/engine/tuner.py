@@ -173,7 +173,7 @@ class Tuner:
                 results = (deepcopy(model) or YOLO(self.args.model)).train(**train_args)
                 fitness = results.fitness
             except Exception as e:
-                LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i}\n{e}')
+                LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}')
                 fitness = 0.0
 
             # Save results and mutated_hyp to CSV

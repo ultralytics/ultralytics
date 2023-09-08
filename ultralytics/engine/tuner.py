@@ -68,19 +68,19 @@ class Tuner:
         self.space = {  # key: (min, max, gain(optionaL))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
             'lr0': (1e-5, 1e-1),
-            'lrf': (0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
-            'momentum': (0.6, 0.98, 0.3),  # SGD momentum/Adam beta1
+            'lrf': (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
+            'momentum': (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
             'weight_decay': (0.0, 0.001),  # optimizer weight decay 5e-4
             'warmup_epochs': (0.0, 5.0),  # warmup epochs (fractions ok)
             'warmup_momentum': (0.0, 0.95),  # warmup initial momentum
-            'box': (0.02, 0.2),  # box loss gain
+            'box': (1.0, 20.0),  # box loss gain
             'cls': (0.2, 4.0),  # cls loss gain (scale with pixels)
             'hsv_h': (0.0, 0.1),  # image HSV-Hue augmentation (fraction)
             'hsv_s': (0.0, 0.9),  # image HSV-Saturation augmentation (fraction)
             'hsv_v': (0.0, 0.9),  # image HSV-Value augmentation (fraction)
             'degrees': (0.0, 45.0),  # image rotation (+/- deg)
             'translate': (0.0, 0.9),  # image translation (+/- fraction)
-            'scale': (0.0, 0.9),  # image scale (+/- gain)
+            'scale': (0.0, 0.95),  # image scale (+/- gain)
             'shear': (0.0, 10.0),  # image shear (+/- deg)
             'perspective': (0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
             'flipud': (0.0, 1.0),  # image flip up-down (probability)

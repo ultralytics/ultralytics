@@ -171,11 +171,9 @@ class Tuner:
             try:
                 # Train YOLO model with mutated hyperparameters
                 train_args = {**vars(self.args), **mutated_hyp}
-                # model_i = deepcopy(model) or YOLO(self.args.model)
-                model_i = YOLO(self.args.model)
-                results = model_i.train(**train_args)
+                # results = (deepcopy(model) or YOLO(self.args.model)).train(**train_args)
+                results = model.train(**train_args)
                 fitness = results.fitness
-                del model_i
             except Exception as e:
                 LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}')
                 fitness = 0.0

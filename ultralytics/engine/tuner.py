@@ -66,7 +66,7 @@ class Tuner:
             args (dict, optional): Configuration for hyperparameter evolution.
         """
         self.args = get_cfg(overrides=args)
-        self.space = {  # key: (min, max, gain(optionaL))
+        self.space = {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
             'lr0': (1e-5, 1e-1),
             'lrf': (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
@@ -198,17 +198,15 @@ class Tuner:
             # Plot tune results
             plot_tune_results(self.tune_dir / 'evolve.csv')
 
-            # Save tune results
-            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
-            header = remove_colorstr(header.replace(prefix, '#')) + '\n'
-            yaml_save(self.tune_dir / 'best.yaml', data=data, header=header)
-
-            # Print tune results
+            # Save and print tune results
             header = (f'{prefix} {i + 1} iterations complete ✅ ({time.time() - t0:.2f}s)\n'
                       f'{prefix} Results saved to {colorstr("bold", self.tune_dir)}\n'
                       f'{prefix} Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n'
                       f'{prefix} Best fitness metrics are {best_metrics}\n'
                       f'{prefix} Best fitness model is {best_save_dir}\n'
                       f'{prefix} Best fitness hyperparameters are printed below.\n')
+            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
+            header = remove_colorstr(header.replace(prefix, '#')) + '\n'
+            yaml_save(self.tune_dir / 'best.yaml', data=data, header=header)
             LOGGER.info('\n' + header)
             yaml_print(self.tune_dir / 'best.yaml')

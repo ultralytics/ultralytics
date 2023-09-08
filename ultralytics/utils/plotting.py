@@ -498,13 +498,23 @@ def plot_images(images,
 @plt_settings()
 def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, classify=False, on_plot=None):
     """
-    Plot training results from results CSV file.
+    Plot training results from a results CSV file. The function supports various types of data including segmentation,
+    pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
+
+    Args:
+        file (str, optional): Path to the CSV file containing the training results. Defaults to 'path/to/results.csv'.
+        dir (str, optional): Directory where the CSV file is located if 'file' is not provided. Defaults to ''.
+        segment (bool, optional): Flag to indicate if the data is for segmentation. Defaults to False.
+        pose (bool, optional): Flag to indicate if the data is for pose estimation. Defaults to False.
+        classify (bool, optional): Flag to indicate if the data is for classification. Defaults to False.
+        on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
+            Defaults to None.
 
     Example:
         ```python
         from ultralytics.utils.plotting import plot_results
 
-        plot_results('path/to/results.csv')
+        plot_results('path/to/results.csv', segment=True)
         ```
     """
     import pandas as pd
@@ -546,6 +556,71 @@ def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, 
     plt.close()
     if on_plot:
         on_plot(fname)
+
+
+def plt_color_scatter(v, f, bins=20, cmap='viridis', alpha=0.8, edgecolors='none'):
+    """
+    Plots a scatter plot with points colored based on a 2D histogram.
+
+    Args:
+        v (array-like): Values for the x-axis.
+        f (array-like): Values for the y-axis.
+        bins (int, optional): Number of bins for the histogram. Defaults to 20.
+        cmap (str, optional): Colormap for the scatter plot. Defaults to 'viridis'.
+        alpha (float, optional): Alpha for the scatter plot. Defaults to 0.8.
+        edgecolors (str, optional): Edge colors for the scatter plot. Defaults to 'none'.
+
+    Examples:
+        >>> v = np.random.rand(100)
+        >>> f = np.random.rand(100)
+        >>> plt_color_scatter(v, f)
+    """
+
+    # Calculate 2D histogram and corresponding colors
+    hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
+    colors = [
+        hist[min(np.digitize(v[i], xedges, right=True) - 1, hist.shape[0] - 1),
+             min(np.digitize(f[i], yedges, right=True) - 1, hist.shape[1] - 1)] for i in range(len(v))]
+
+    # Scatter plot
+    plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
+
+
+def plot_tune_results(evolve_csv='evolve.csv'):
+    """
+    Plot the evolution results stored in an 'evolve.csv' file. The function generates a scatter plot for each key in
+    the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
+
+    Args:
+        evolve_csv (str, optional): The path to the CSV file containing the evolution results. Defaults to 'evolve.csv'.
+
+    Examples:
+        >>> plot_tune_results('path/to/evolve.csv')
+    """
+
+    import pandas as pd
+    evolve_csv = Path(evolve_csv)
+    data = pd.read_csv(evolve_csv)
+    keys = [x.strip() for x in data.columns]
+    x = data.values
+    f = x[:, 0]  # fitness
+    j = np.argmax(f)  # max fitness index
+    plt.figure(figsize=(10, 12), tight_layout=True)
+    num_metrics_columns = 1
+    for i, k in enumerate(keys[num_metrics_columns:]):
+        v = x[:, num_metrics_columns + i]
+        mu = v[j]  # best single result
+        plt.subplot(6, 5, i + 1)
+        plt_color_scatter(v, f, cmap='viridis', alpha=.8, edgecolors='none')
+        plt.plot(mu, f.max(), 'k+', markersize=15)
+        plt.title(f'{k} = {mu:.3g}', fontdict={'size': 9})  # limit to 40 characters
+        plt.tick_params(axis='both', labelsize=8)  # Set axis label size to 8
+        if i % 5 != 0:
+            plt.yticks([])
+    f = evolve_csv.with_suffix('.png')  # filename
+    plt.savefig(f, dpi=200)
+    plt.close()
+    LOGGER.info(f'Saved {f}')
 
 
 def output_to_target(output, max_det=300):

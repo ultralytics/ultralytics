@@ -20,11 +20,13 @@ import random
 import time
 
 import numpy as np
+import torch
 
-from ultralytics import YOLO
+# from ultralytics import YOLO
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, remove_colorstr, yaml_print, yaml_save
 from ultralytics.utils.plotting import plot_tune_results
+
 
 # from copy import deepcopy
 
@@ -170,6 +172,7 @@ class Tuner:
 
             try:
                 # Train YOLO model with mutated hyperparameters
+                torch.utils.data._utils.MP_STATUS_CHECK_INTERVAL = 300.0
                 train_args = {**vars(self.args), **mutated_hyp}
                 # results = (deepcopy(model) or YOLO(self.args.model)).train(**train_args)
                 results = model.train(**train_args)

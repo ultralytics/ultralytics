@@ -18,7 +18,6 @@ Example:
 """
 import random
 import time
-from copy import deepcopy
 
 import numpy as np
 
@@ -26,6 +25,9 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, remove_colorstr, yaml_print, yaml_save
 from ultralytics.utils.plotting import plot_tune_results
+
+
+# from copy import deepcopy
 
 
 class Tuner:
@@ -170,7 +172,8 @@ class Tuner:
             try:
                 # Train YOLO model with mutated hyperparameters
                 train_args = {**vars(self.args), **mutated_hyp}
-                model_i = deepcopy(model) or YOLO(self.args.model)
+                # model_i = deepcopy(model) or YOLO(self.args.model)
+                model_i = YOLO(self.args.model)
                 results = model_i.train(**train_args)
                 fitness = results.fitness
                 del model_i
@@ -183,6 +186,14 @@ class Tuner:
             headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
             with open(self.evolve_csv, 'a') as f:
                 f.write(headers + ','.join(map(str, log_row)) + '\n')
+
+            # Plot tune results
+            plot_tune_results(self.tune_dir / 'evolve.csv')
+
+            # Save tune results
+            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
+            header = remove_colorstr(header.replace(prefix, '#')) + '\n'
+            yaml_save(self.tune_dir / 'best.yaml', data=data, header=header)
 
             # Print tune results
             x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
@@ -198,14 +209,5 @@ class Tuner:
                       f'{prefix} Best fitness metrics are {best_metrics}\n'
                       f'{prefix} Best fitness model is {best_save_dir}\n'
                       f'{prefix} Best fitness hyperparameters are printed below.\n')
-
             LOGGER.info('\n' + header)
-
-            # Save tune results
-            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
-            header = remove_colorstr(header.replace(prefix, '#')) + '\n'
-            yaml_save(self.tune_dir / 'best.yaml', data=data, header=header)
             yaml_print(self.tune_dir / 'best.yaml')
-
-            # Plot tune results
-            plot_tune_results(self.tune_dir / 'evolve.csv')

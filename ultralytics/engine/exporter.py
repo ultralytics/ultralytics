@@ -175,7 +175,9 @@ class Exporter:
             LOGGER.warning('WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0')
             self.args.half = False
             assert not self.args.dynamic, 'half=True not compatible with dynamic=True, i.e. use only one.'
-        self.ch = model.ch
+        first_parameter = next(model.parameters())
+        input_shape = first_parameter.size()
+        self.ch = input_shape[1]
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"

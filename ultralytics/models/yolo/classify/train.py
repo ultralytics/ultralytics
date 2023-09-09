@@ -58,14 +58,14 @@ class ClassificationTrainer(BaseTrainer):
         return model
 
     def setup_model(self):
-        """load/create/download model for any task"""
+        """Load, create or download model for any task."""
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
-        model = str(self.model)
+        model, ckpt = str(self.model), None
         # Load a YOLO model locally, from torchvision, or from Ultralytics assets
         if model.endswith('.pt'):
-            self.model, _ = attempt_load_one_weight(model, device='cpu')
+            self.model, ckpt = attempt_load_one_weight(model, device='cpu')
             for p in self.model.parameters():
                 p.requires_grad = True  # for training
         elif model.split('.')[-1] in ('yaml', 'yml'):
@@ -76,10 +76,10 @@ class ClassificationTrainer(BaseTrainer):
             FileNotFoundError(f'ERROR: model={model} not found locally or online. Please check model name.')
         ClassificationModel.reshape_outputs(self.model, self.data['nc'])
 
-        return  # do not return ckpt. Classification doesn't support resume
+        return ckpt
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train')
+        return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train', prefix=mode)
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
@@ -122,10 +122,6 @@ class ClassificationTrainer(BaseTrainer):
         loss_items = [round(float(loss_items), 5)]
         return dict(zip(keys, loss_items))
 
-    def resume_training(self, ckpt):
-        """Resumes training from a given checkpoint."""
-        pass
-
     def plot_metrics(self):
         """Plots metrics from a CSV file."""
         plot_results(file=self.csv, classify=True, on_plot=self.on_plot)  # save results.png
@@ -135,13 +131,13 @@ class ClassificationTrainer(BaseTrainer):
         for f in self.last, self.best:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
-                # TODO: validate best.pt after training completes
-                # if f is self.best:
-                #     LOGGER.info(f'\nValidating {f}...')
-                #     self.validator.args.save_json = True
-                #     self.metrics = self.validator(model=f)
-                #     self.metrics.pop('fitness', None)
-                #     self.run_callbacks('on_fit_epoch_end')
+                if f is self.best:
+                    LOGGER.info(f'\nValidating {f}...')
+                    self.validator.args.data = self.args.data
+                    self.validator.args.plots = self.args.plots
+                    self.metrics = self.validator(model=f)
+                    self.metrics.pop('fitness', None)
+                    self.run_callbacks('on_fit_epoch_end')
         LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
 
     def plot_training_samples(self, batch, ni):

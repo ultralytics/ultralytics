@@ -23,7 +23,7 @@ For example, if your dataset is called "coco8", as our [COCO8](https://docs.ultr
 zip -r coco8.zip coco8
 ```
 
-You can download our [COCO8](https://github.com/ultralytics/hub/blob/master/example_datasets/coco8.zip) example dataset and unzip it to see exactly how to structure your dataset.
+You can download our [COCO8](https://github.com/ultralytics/hub/blob/main/example_datasets/coco8.zip) example dataset and unzip it to see exactly how to structure your dataset.
 
 <p align="center">
   <img  src="https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_1.jpg" alt="COCO8 Dataset Structure" width="80%" />

@@ -10,6 +10,7 @@ import math
 import os
 import subprocess
 import time
+import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -20,17 +21,16 @@ from torch import distributed as dist
 from torch import nn, optim
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
-from tqdm import tqdm
 
-from ultralytics.cfg import get_cfg
+from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
-from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, __version__, callbacks, clean_url,
-                               colorstr, emojis, yaml_save)
+from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, TQDM, __version__, callbacks, clean_url, colorstr, emojis,
+                               yaml_save)
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
-from ultralytics.utils.files import get_latest_run, increment_path
+from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
                                            strip_optimizer)
 
@@ -90,13 +90,7 @@ class BaseTrainer:
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
-        project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
-        name = self.args.name or f'{self.args.mode}'
-        if hasattr(self.args, 'save_dir'):
-            self.save_dir = Path(self.args.save_dir)
-        else:
-            self.save_dir = Path(
-                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in (-1, 0) else True))
+        self.save_dir = get_save_dir(self.args)
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in (-1, 0):
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -112,7 +106,7 @@ class BaseTrainer:
             print_args(vars(self.args))
 
         # Device
-        if self.device.type == 'cpu':
+        if self.device.type in ('cpu', 'mps'):
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
         # Model and Dataset
@@ -120,7 +114,7 @@ class BaseTrainer:
         try:
             if self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data)
-            elif self.args.data.split('.')[-1] in ('yaml', 'yml') or self.args.task in ('detect', 'segment'):
+            elif self.args.data.split('.')[-1] in ('yaml', 'yml') or self.args.task in ('detect', 'segment', 'pose'):
                 self.data = check_det_dataset(self.args.data)
                 if 'yaml_file' in self.data:
                     self.args.data = self.data['yaml_file']  # for validating 'yolo train data=url.zip' usage
@@ -167,9 +161,11 @@ class BaseTrainer:
 
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
-        if isinstance(self.args.device, int) or self.args.device:  # i.e. device=0 or device=[0,1,2,3]
-            world_size = torch.cuda.device_count()
-        elif torch.cuda.is_available():  # i.e. device=None or device=''
+        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
+            world_size = len(self.args.device.split(','))
+        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
+            world_size = len(self.args.device)
+        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
         else:  # i.e. device='cpu' or 'mps'
             world_size = 0
@@ -178,17 +174,23 @@ class BaseTrainer:
         if world_size > 1 and 'LOCAL_RANK' not in os.environ:
             # Argument checks
             if self.args.rect:
-                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting rect=False")
+                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
+            if self.args.batch == -1:
+                LOGGER.warning("WARNING ⚠️ 'batch=-1' for AutoBatch is incompatible with Multi-GPU training, setting "
+                               "default 'batch=16'")
+                self.args.batch = 16
+
             # Command
             cmd, file = generate_ddp_command(world_size, self)
             try:
-                LOGGER.info(f'DDP command: {cmd}')
+                LOGGER.info(f'{colorstr("DDP:")} debug command {" ".join(cmd)}')
                 subprocess.run(cmd, check=True)
             except Exception as e:
                 raise e
             finally:
                 ddp_cleanup(self, str(file))
+
         else:
             self._do_train(world_size)
 
@@ -196,7 +198,7 @@ class BaseTrainer:
         """Initializes and sets the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device('cuda', RANK)
-        LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
+        # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         os.environ['NCCL_BLOCKING_WAIT'] = '1'  # set to enforce timeout
         dist.init_process_group(
             'nccl' if dist.is_nccl_available() else 'gloo',
@@ -248,12 +250,8 @@ class BaseTrainer:
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
 
         # Batch size
-        if self.batch_size == -1:
-            if RANK == -1:  # single-GPU only, estimate best batch size
-                self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
-            else:
-                SyntaxError('batch=-1 to use AutoBatch is only available in Single-GPU training. '
-                            'Please pass a valid batch size value for Multi-GPU DDP training, i.e. batch=16')
+        if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
+            self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
@@ -262,7 +260,7 @@ class BaseTrainer:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val')
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
-            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
+            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
             self.ema = ModelEMA(self.model)
             if self.args.plots:
                 self.plot_training_labels()
@@ -298,8 +296,7 @@ class BaseTrainer:
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
         nb = len(self.train_loader)  # number of batches
-        nw = max(round(self.args.warmup_epochs *
-                       nb), 100) if self.args.warmup_epochs > 0 else -1  # number of warmup iterations
+        nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1  # warmup iterations
         last_opt_step = -1
         self.run_callbacks('on_train_start')
         LOGGER.info(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
@@ -328,7 +325,7 @@ class BaseTrainer:
 
             if RANK in (-1, 0):
                 LOGGER.info(self.progress_string())
-                pbar = tqdm(enumerate(self.train_loader), total=nb, bar_format=TQDM_BAR_FORMAT)
+                pbar = TQDM(enumerate(self.train_loader), total=nb)
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
@@ -378,7 +375,9 @@ class BaseTrainer:
 
             self.lr = {f'lr/pg{ir}': x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
 
-            self.scheduler.step()
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
+                self.scheduler.step()
             self.run_callbacks('on_train_epoch_end')
 
             if RANK in (-1, 0):
@@ -554,7 +553,7 @@ class BaseTrainer:
         n = len(metrics) + 1  # number of cols
         s = '' if self.csv.exists() else (('%23s,' * n % tuple(['epoch'] + keys)).rstrip(',') + '\n')  # header
         with open(self.csv, 'a') as f:
-            f.write(s + ('%23.5g,' * n % tuple([self.epoch] + vals)).rstrip(',') + '\n')
+            f.write(s + ('%23.5g,' * n % tuple([self.epoch + 1] + vals)).rstrip(',') + '\n')
 
     def plot_metrics(self):
         """Plot and display metrics visually."""
@@ -572,6 +571,7 @@ class BaseTrainer:
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
                     LOGGER.info(f'\nValidating {f}...')
+                    self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')

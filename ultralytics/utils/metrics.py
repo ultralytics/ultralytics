@@ -15,12 +15,6 @@ from ultralytics.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
 
 
-# Boxes
-def box_area(box):
-    """Return box area, where box shape is xyxy(4,n)."""
-    return (box[2] - box[0]) * (box[3] - box[1])
-
-
 def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     """
     Calculate the intersection over box2 area given box1 and box2. Boxes are in x1y1x2y2 format.
@@ -195,7 +189,7 @@ class ConfusionMatrix:
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == 'detect' else np.zeros((nc, nc))
         self.nc = nc  # number of classes
-        self.conf = conf
+        self.conf = 0.25 if conf is None else conf  # argument may be None from default cfg
         self.iou_thres = iou_thres
 
     def process_cls_preds(self, preds, targets):
@@ -382,7 +376,7 @@ def compute_ap(recall, precision):
     """
     Compute the average precision (AP) given the recall and precision curves.
 
-    Arguments:
+    Args:
         recall (list): The recall curve.
         precision (list): The precision curve.
 
@@ -526,7 +520,6 @@ class Metric(SimpleClass):
             maps(): mAP of each class. Returns: Array of mAP scores, shape: (nc,).
             fitness(): Model fitness as a weighted combination of metrics. Returns: Float.
             update(results): Update metric attributes with new evaluation results.
-
         """
 
     def __init__(self) -> None:
@@ -868,11 +861,6 @@ class PoseMetrics(SegmentMetrics):
         self.box = Metric()
         self.pose = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-
-    def __getattr__(self, attr):
-        """Raises an AttributeError if an invalid attribute is accessed."""
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     def process(self, tp_b, tp_p, conf, pred_cls, target_cls):
         """

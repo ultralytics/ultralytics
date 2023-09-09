@@ -22,7 +22,7 @@ class ClassificationValidator(BaseValidator):
 
         args = dict(model='yolov8n-cls.pt', data='imagenet10')
         validator = ClassificationValidator(args=args)
-        validator(model=args['model'])
+        validator()
         ```
     """
 
@@ -42,7 +42,7 @@ class ClassificationValidator(BaseValidator):
         """Initialize confusion matrix, class names, and top-1 and top-5 accuracy."""
         self.names = model.names
         self.nc = len(model.names)
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, task='classify')
+        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task='classify')
         self.pred = []
         self.targets = []
 
@@ -55,7 +55,7 @@ class ClassificationValidator(BaseValidator):
 
     def update_metrics(self, preds, batch):
         """Updates running metrics with model predictions and batch targets."""
-        n5 = min(len(self.model.names), 5)
+        n5 = min(len(self.names), 5)
         self.pred.append(preds.argsort(1, descending=True)[:, :n5])
         self.targets.append(batch['cls'])
 
@@ -70,6 +70,7 @@ class ClassificationValidator(BaseValidator):
                                            on_plot=self.on_plot)
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
+        self.metrics.save_dir = self.save_dir
 
     def get_stats(self):
         """Returns a dictionary of metrics obtained by processing targets and predictions."""
@@ -77,7 +78,7 @@ class ClassificationValidator(BaseValidator):
         return self.metrics.results_dict
 
     def build_dataset(self, img_path):
-        return ClassificationDataset(root=img_path, args=self.args, augment=False)
+        return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
 
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader for classification tasks with given parameters."""

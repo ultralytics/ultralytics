@@ -32,12 +32,11 @@ from pathlib import Path
 
 import numpy as np
 import torch.cuda
-from tqdm import tqdm
 
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS
+from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS, TQDM
 from ultralytics.utils.checks import check_requirements, check_yolo
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
@@ -182,6 +181,7 @@ class ProfileModels:
                  num_warmup_runs=10,
                  min_time=60,
                  imgsz=640,
+                 half=True,
                  trt=True,
                  device=None):
         self.paths = paths
@@ -189,6 +189,7 @@ class ProfileModels:
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
         self.imgsz = imgsz
+        self.half = half
         self.trt = trt  # run TensorRT profiling
         self.device = device or torch.device(0 if torch.cuda.is_available() else 'cpu')
 
@@ -209,12 +210,12 @@ class ProfileModels:
                 model_info = model.info()
                 if self.trt and self.device.type != 'cpu' and not engine_file.is_file():
                     engine_file = model.export(format='engine',
-                                               half=True,
+                                               half=self.half,
                                                imgsz=self.imgsz,
                                                device=self.device,
                                                verbose=False)
                 onnx_file = model.export(format='onnx',
-                                         half=True,
+                                         half=self.half,
                                          imgsz=self.imgsz,
                                          simplify=True,
                                          device=self.device,
@@ -240,7 +241,7 @@ class ProfileModels:
             if path.is_dir():
                 extensions = ['*.pt', '*.onnx', '*.yaml']
                 files.extend([file for ext in extensions for file in glob.glob(str(path / ext))])
-            elif path.suffix in ('.pt', '.yaml', '.yml'):  # add non-existing
+            elif path.suffix in {'.pt', '.yaml', '.yml'}:  # add non-existing
                 files.append(str(path))
             else:
                 files.extend(glob.glob(str(path)))
@@ -262,7 +263,7 @@ class ProfileModels:
             data = clipped_data
         return data
 
-    def profile_tensorrt_model(self, engine_file: str):
+    def profile_tensorrt_model(self, engine_file: str, eps: float = 1e-3):
         if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
 
@@ -279,18 +280,18 @@ class ProfileModels:
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
-        num_runs = max(round(self.min_time / elapsed * self.num_warmup_runs), self.num_timed_runs * 50)
+        num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs * 50)
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(num_runs), desc=engine_file):
+        for _ in TQDM(range(num_runs), desc=engine_file):
             results = model(input_data, imgsz=self.imgsz, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
-    def profile_onnx_model(self, onnx_file: str):
+    def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
         check_requirements('onnxruntime')
         import onnxruntime as ort
 
@@ -330,11 +331,11 @@ class ProfileModels:
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
-        num_runs = max(round(self.min_time / elapsed * self.num_warmup_runs), self.num_timed_runs)
+        num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs)
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(num_runs), desc=onnx_file):
+        for _ in TQDM(range(num_runs), desc=onnx_file):
             start_time = time.time()
             sess.run([output_name], {input_name: input_data})
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds

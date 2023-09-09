@@ -56,14 +56,3 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     def plot_metrics(self):
         """Plots training/val metrics."""
         plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png
-
-
-def train(cfg=DEFAULT_CFG):
-    """Train a YOLO segmentation model based on passed arguments."""
-    args = dict(model=cfg.model or 'yolov8n-seg.pt', data=cfg.data or 'coco8-seg.yaml')
-    trainer = SegmentationTrainer(overrides=args)
-    trainer.train()
-
-
-if __name__ == '__main__':
-    train()

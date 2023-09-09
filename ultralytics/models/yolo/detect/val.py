@@ -25,7 +25,7 @@ class DetectionValidator(BaseValidator):
 
         args = dict(model='yolov8n.pt', data='coco8.yaml')
         validator = DetectionValidator(args=args)
-        validator(model=args['model'])
+        validator()
         ```
     """
 
@@ -68,7 +68,7 @@ class DetectionValidator(BaseValidator):
         self.nc = len(model.names)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc)
+        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
         self.seen = 0
         self.jdict = []
         self.stats = []

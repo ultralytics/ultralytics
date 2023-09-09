@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import subprocess
+
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 
@@ -24,13 +26,23 @@ def run_ray_tune(model,
     Returns:
         (dict): A dictionary containing the results of the hyperparameter search.
 
-    Raises:
-        ModuleNotFoundError: If Ray Tune is not installed.
+    Example:
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLOv8n model
+        model = YOLO('yolov8n.pt')
+
+        # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
+        result_grid = model.tune(data='coco8.yaml', use_ray=True)
+        ```
     """
     if train_args is None:
         train_args = {}
 
     try:
+        subprocess.run('pip install ray[tune]'.split(), check=True)
+
         from ray import tune
         from ray.air import RunConfig
         from ray.air.integrations.wandb import WandbLoggerCallback

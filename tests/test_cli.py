@@ -40,14 +40,6 @@ def test_train(task, model, data):
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_val(task, model, data):
-    # Download annotations to run pycocotools eval
-    # from ultralytics.utils import SETTINGS, Path
-    # from ultralytics.utils.downloads import download
-    # url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
-    # download(f'{url}instances_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8/annotations')
-    # download(f'{url}person_keypoints_val2017.json', dir=Path(SETTINGS['datasets_dir']) / 'coco8-pose/annotations')
-
-    # Validate
     run(f'yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32 save_txt save_json')
 
 
@@ -63,7 +55,7 @@ def test_export(model, format):
 
 def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
     # Warning: MUST use imgsz=640
-    run(f'yolo train {task} model={model} data={data} imgsz=640 epochs=1 cache=disk')
+    run(f'yolo train {task} model={model} data={data} --imgsz= 640 epochs =1, cache = disk')  # add coma, spaces to args
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=640 save save_crop save_txt")
 
 
@@ -75,12 +67,16 @@ def test_fastsam(task='segment', model=WEIGHTS_DIR / 'FastSAM-s.pt', data='coco8
 
     from ultralytics import FastSAM
     from ultralytics.models.fastsam import FastSAMPrompt
+    from ultralytics.models.sam import Predictor
 
     # Create a FastSAM model
     sam_model = FastSAM(model)  # or FastSAM-x.pt
 
     # Run inference on an image
     everything_results = sam_model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+
+    # Remove small regions
+    new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
     # Everything prompt
     prompt_process = FastSAMPrompt(source, everything_results, device='cpu')

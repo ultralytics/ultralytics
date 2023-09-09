@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from ultralytics.utils import ROOT
+from ultralytics.utils.torch_utils import init_seeds
 
 TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
 
@@ -32,6 +33,7 @@ def pytest_sessionstart(session):
     """
     Called after the 'Session' object has been created and before performing test collection.
     """
+    init_seeds()
     shutil.rmtree(TMP, ignore_errors=True)  # delete any existing tests/tmp directory
     TMP.mkdir(parents=True, exist_ok=True)  # create a new empty directory
 
@@ -42,5 +44,5 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
-    for directory in ['.pytest_cache/', TMP]:
+    for directory in [ROOT / '../.pytest_cache', TMP]:
         shutil.rmtree(directory, ignore_errors=True)

@@ -4,19 +4,18 @@ import contextlib
 import re
 import shutil
 import sys
-from difflib import get_close_matches
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, SETTINGS, SETTINGS_YAML,
-                               IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
-                               yaml_print)
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS,
+                               SETTINGS_YAML, IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn,
+                               yaml_load, yaml_print)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
 TASKS = 'detect', 'segment', 'classify', 'pose'
-TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet100', 'pose': 'coco8-pose.yaml'}
+TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet10', 'pose': 'coco8-pose.yaml'}
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
@@ -82,7 +81,7 @@ def cfg2dict(cfg):
     Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
 
     Args:
-        cfg (str | Path | SimpleNamespace): Configuration object to be converted to a dictionary.
+        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted to a dictionary.
 
     Returns:
         cfg (dict): Configuration object in dictionary format.
@@ -110,6 +109,8 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     # Merge overrides
     if overrides:
         overrides = cfg2dict(overrides)
+        if 'save_dir' not in cfg:
+            overrides.pop('save_dir', None)  # special override keys to ignore
         check_dict_alignment(cfg, overrides)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
@@ -145,8 +146,23 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
+def get_save_dir(args, name=None):
+    """Return save_dir as created from train/val/predict arguments."""
+
+    if getattr(args, 'save_dir', None):
+        save_dir = args.save_dir
+    else:
+        from ultralytics.utils.files import increment_path
+
+        project = args.project or Path(SETTINGS['runs_dir']) / args.task
+        name = name or args.name or f'{args.mode}'
+        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in (-1, 0) else True)
+
+    return Path(save_dir)
+
+
 def _handle_deprecation(custom):
-    """Hardcoded function to handle deprecated config keys"""
+    """Hardcoded function to handle deprecated config keys."""
 
     for key in custom.copy().keys():
         if key == 'hide_labels':
@@ -170,11 +186,14 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
     Args:
         custom (dict): a dictionary of custom configuration options
         base (dict): a dictionary of base configuration options
+        e (Error, optional): An optional error that is passed by the calling function.
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
     mismatched = [k for k in custom_keys if k not in base_keys]
     if mismatched:
+        from difflib import get_close_matches
+
         string = ''
         for x in mismatched:
             matches = get_close_matches(x, base_keys)  # key list
@@ -371,11 +390,7 @@ def entrypoint(debug=''):
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
     elif mode not in MODES:
-        if mode not in ('checks', checks):
-            raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
-        LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
-        checks.check_yolo()
-        return
+        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
 
     # Task
     task = overrides.pop('task', None)
@@ -418,7 +433,7 @@ def entrypoint(debug=''):
         overrides['source'] = DEFAULT_CFG.source or ASSETS
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
-        if 'data' not in overrides:
+        if 'data' not in overrides and 'resume' not in overrides:
             overrides['data'] = TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':

@@ -20,9 +20,9 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (ASSETS, AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked, TryExcept,
-                               clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle,
-                               is_online, is_pip_package, url2file)
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked,
+                               TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter,
+                               is_kaggle, is_online, is_pip_package, url2file)
 
 
 def is_ascii(s) -> bool:
@@ -389,8 +389,9 @@ def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
-        assert not any((is_colab(), is_kaggle(), is_docker()))
-        cv2.imshow('test', np.zeros((1, 1, 3)))
+        if LINUX:
+            assert 'DISPLAY' in os.environ and not is_docker() and not is_colab() and not is_kaggle()
+        cv2.imshow('test', np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
         cv2.waitKey(1)
@@ -506,3 +507,32 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
         file = Path(file).stem
     s = (f'{file}: ' if show_file else '') + (f'{func}: ' if show_func else '')
     LOGGER.info(colorstr(s) + ', '.join(f'{k}={strip_auth(v)}' for k, v in args.items()))
+
+
+def cuda_device_count() -> int:
+    """Get the number of NVIDIA GPUs available in the environment.
+
+    Returns:
+        (int): The number of NVIDIA GPUs available.
+    """
+    try:
+        # Run the nvidia-smi command and capture its output
+        output = subprocess.check_output(['nvidia-smi', '--query-gpu=count', '--format=csv,noheader,nounits'],
+                                         encoding='utf-8')
+
+        # Take the first line and strip any leading/trailing white space
+        first_line = output.strip().split('\n')[0]
+
+        return int(first_line)
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+        return 0
+
+
+def cuda_is_available() -> bool:
+    """Check if CUDA is available in the environment.
+
+    Returns:
+        (bool): True if one or more NVIDIA GPUs are available, False otherwise.
+    """
+    return cuda_device_count() > 0

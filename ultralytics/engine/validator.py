@@ -176,6 +176,7 @@ class BaseValidator:
             if ch is None:
                 try:
                     preds = model(batch['img'], augment=augment)
+                    ch = 3
                 except RuntimeError:
                     ch = 1
             elif ch == 1 and batch['img'].shape[1] == 3:

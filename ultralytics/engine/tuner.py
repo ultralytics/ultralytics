@@ -38,7 +38,7 @@ class Tuner:
      Attributes:
          space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
          tune_dir (Path): Directory where evolution logs and results will be saved.
-         evolve_csv (Path): Path to the CSV file where evolution logs are saved.
+         tune_csv (Path): Path to the CSV file where evolution logs are saved.
 
      Methods:
          _mutate(hyp: dict) -> dict:
@@ -89,8 +89,8 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
-        self.tune_dir = get_save_dir(self.args, name='_tune')
-        self.evolve_csv = self.tune_dir / 'evolve.csv'
+        self.tune_dir = get_save_dir(self.args, name='tune')
+        self.tune_csv = self.tune_dir / 'tune_results.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr('Tuner: ')
         callbacks.add_integration_callbacks(self)
@@ -110,9 +110,9 @@ class Tuner:
         Returns:
             (dict): A dictionary containing mutated hyperparameters.
         """
-        if self.evolve_csv.exists():  # if evolve.csv exists: select best hyps and mutate
+        if self.tune_csv.exists():  # if CSV file exists: select best hyps and mutate
             # Select parent(s)
-            x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
+            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=',', skiprows=1)
             fitness = x[:, 0]  # first column
             n = min(n, len(x))  # number of previous results to consider
             x = x[np.argsort(-fitness)][:n]  # top n mutations
@@ -158,7 +158,7 @@ class Tuner:
            iterations (int): The number of generations to run the evolution for.
 
         Note:
-           The method utilizes the `self.evolve_csv` Path object to read and log hyperparameters and fitness scores.
+           The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
            Ensure this path is set correctly in the Tuner instance.
         """
 
@@ -187,12 +187,12 @@ class Tuner:
             # Save results and mutated_hyp to CSV
             fitness = metrics.get('fitness', 0.0)
             log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
-            headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
-            with open(self.evolve_csv, 'a') as f:
+            headers = '' if self.tune_csv.exists() else (','.join(['fitness'] + list(self.space.keys())) + '\n')
+            with open(self.tune_csv, 'a') as f:
                 f.write(headers + ','.join(map(str, log_row)) + '\n')
 
             # Get best results
-            x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
+            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=',', skiprows=1)
             fitness = x[:, 0]  # first column
             best_idx = fitness.argmax()
             best_is_current = best_idx == i
@@ -201,7 +201,7 @@ class Tuner:
                 best_metrics = {k: round(v, 5) for k, v in metrics.items()}
 
             # Plot tune results
-            plot_tune_results(self.tune_dir / 'evolve.csv')
+            plot_tune_results(self.tune_csv)
 
             # Save and print tune results
             header = (f'{self.prefix}{i + 1}/{iterations} iterations complete ✅ ({time.time() - t0:.2f}s)\n'
@@ -212,7 +212,7 @@ class Tuner:
                       f'{self.prefix}Best fitness hyperparameters are printed below.\n')
             LOGGER.info('\n' + header)
             data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
-            yaml_save(self.tune_dir / 'best.yaml',
+            yaml_save(self.tune_dir / 'best_hyperparameters.yaml',
                       data=data,
                       header=remove_colorstr(header.replace(self.prefix, '# ')) + '\n')
-            yaml_print(self.tune_dir / 'best.yaml')
+            yaml_print(self.tune_dir / 'best_hyperparameters.yaml')

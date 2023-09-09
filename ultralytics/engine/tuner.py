@@ -202,7 +202,7 @@ class Tuner:
             plot_tune_results(self.tune_dir / 'evolve.csv')
 
             # Save and print tune results
-            header = (f'{self.prefix}{i + 1} iterations complete ✅ ({time.time() - t0:.2f}s)\n'
+            header = (f'{self.prefix}{i + 1}/{iterations} iterations complete ✅ ({time.time() - t0:.2f}s)\n'
                       f'{self.prefix}Results saved to {colorstr("bold", self.tune_dir)}\n'
                       f'{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n'
                       f'{self.prefix}Best fitness metrics are {best_metrics}\n'

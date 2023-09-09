@@ -21,6 +21,7 @@ from torch import distributed as dist
 from torch import nn, optim
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
+from torchvision.transforms.functional import rgb_to_grayscale
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -345,6 +346,8 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
+                    if self.model.yaml['ch'] == 1 and batch['img'].shape[1] == 3:
+                        batch['img'] = rgb_to_grayscale(batch['img'])
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
                         self.loss *= world_size

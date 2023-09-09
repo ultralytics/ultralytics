@@ -175,6 +175,7 @@ class Exporter:
             LOGGER.warning('WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0')
             self.args.half = False
             assert not self.args.dynamic, 'half=True not compatible with dynamic=True, i.e. use only one.'
+        self.nc = model.yaml['ch']
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
@@ -183,7 +184,7 @@ class Exporter:
             raise SystemError('Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/')
 
         # Input
-        im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
+        im = torch.zeros(self.args.batch, self.nc, *self.imgsz).to(self.device)
         file = Path(
             getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml.get('yaml_file', ''))
         if file.suffix in ('.yaml', '.yml'):
@@ -488,7 +489,7 @@ class Exporter:
             *pnnx_args,
             f'fp16={int(self.args.half)}',
             f'device={self.device.type}',
-            f'inputshape="{[self.args.batch, 3, *self.imgsz]}"', ]
+            f'inputshape="{[self.args.batch, self.nc, *self.imgsz]}"', ]
         f.mkdir(exist_ok=True)  # make ncnn_model directory
         LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
@@ -951,7 +952,7 @@ class Exporter:
         nms_model = ct.models.MLModel(nms_spec)
 
         # 4. Pipeline models together
-        pipeline = ct.models.pipeline.Pipeline(input_features=[('image', ct.models.datatypes.Array(3, ny, nx)),
+        pipeline = ct.models.pipeline.Pipeline(input_features=[('image', ct.models.datatypes.Array(self.nc, ny, nx)),
                                                                ('iouThreshold', ct.models.datatypes.Double()),
                                                                ('confidenceThreshold', ct.models.datatypes.Double())],
                                                output_features=['confidence', 'coordinates'])

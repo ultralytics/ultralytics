@@ -13,7 +13,7 @@ Example:
     from ultralytics import YOLO
 
     model = YOLO('yolov8n.pt')
-    model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10, optimizer='AdamW')
+    model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
     ```
 """
 import random
@@ -50,10 +50,10 @@ class Tuner:
      Example:
          Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
          ```python
-from ultralytics import YOLO
+         from ultralytics import YOLO
 
-model = YOLO('yolov8n.pt')
-model.tune(data='coco8.yaml', imgsz=640, epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+         model = YOLO('yolov8n.pt')
+         model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
          ```
      """
 
@@ -93,7 +93,7 @@ model.tune(data='coco8.yaml', imgsz=640, epochs=10, iterations=300, optimizer='A
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr('Tuner: ')
         callbacks.add_integration_callbacks(self)
-        LOGGER.info(f"{self.prefix}Initialized Tuner instance with 'tune_dir={self.tune_dir}'"
+        LOGGER.info(f"{self.prefix}Initialized Tuner instance with 'tune_dir={self.tune_dir}'\n"
                     f'{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning')
 
     def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.2):

@@ -361,7 +361,7 @@ class Model:
         else:
             from .tuner import Tuner
 
-            custom = {'plots': False, 'save': False}  # method defaults
+            custom = {'plots': False}  # method defaults
             args = {**self.overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
 

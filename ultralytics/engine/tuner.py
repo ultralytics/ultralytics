@@ -13,7 +13,7 @@ Example:
     from ultralytics import YOLO
 
     model = YOLO('yolov8n.pt')
-    model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10)
+    model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10, optimizer='AdamW')
     ```
 """
 import random
@@ -53,7 +53,7 @@ class Tuner:
          from ultralytics import YOLO
 
          model = YOLO('yolov8n.pt')
-         model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10, val=False, cache=True)
+         model.tune(data='coco8.yaml', imgsz=640, epochs=100, iterations=10, optimizer='AdamW')
          ```
      """
 

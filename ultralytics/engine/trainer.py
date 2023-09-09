@@ -250,7 +250,7 @@ class BaseTrainer:
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
-        
+
         first_parameter = next(self.model.parameters())
         input_shape = first_parameter.size()
         self.ch = input_shape[1]

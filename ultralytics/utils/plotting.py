@@ -612,7 +612,7 @@ def plot_tune_results(csv_file='tune_results.csv'):
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)
     for i, k in enumerate(keys):
-        v = x[:, i]
+        v = x[:, i + num_metrics_columns]
         mu = v[j]  # best single result
         plt.subplot(n, n, i + 1)
         plt_color_scatter(v, fitness, cmap='viridis', alpha=.8, edgecolors='none')

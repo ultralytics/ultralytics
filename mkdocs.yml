@@ -218,6 +218,7 @@ nav:
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
       - AzureML Quickstart: guides/azureml-quickstart.md
+      - Conda Quickstart: guides/conda-quickstart.md
   - Integrations:
       - integrations/index.md
       - OpenVINO: integrations/openvino.md

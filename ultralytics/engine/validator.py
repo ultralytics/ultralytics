@@ -157,17 +157,29 @@ class BaseValidator:
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
-        first_parameter = next(model.parameters())
-        input_shape = first_parameter.size()
-        ch = input_shape[1]
+
+        ch = None
+        try:
+            first_parameter = next(model.parameters())
+            input_shape = first_parameter.size()
+            ch = input_shape[1]
+        except StopIteration:
+            pass
+
         for batch_i, batch in enumerate(bar):
-            if ch == 1 and batch['img'].shape[1] == 3:
-                batch['img'] = rgb_to_grayscale(batch['img'])
             self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
             # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
+
+            if ch is None:
+                try:
+                    preds = model(batch['img'], augment=augment)
+                except RuntimeError:
+                    ch = 1
+            elif ch == 1 and batch['img'].shape[1] == 3:
+                batch['img'] = rgb_to_grayscale(batch['img'])
 
             # Inference
             with dt[1]:

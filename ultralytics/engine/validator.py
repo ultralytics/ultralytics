@@ -157,8 +157,11 @@ class BaseValidator:
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
+        first_parameter = next(model.parameters())
+        input_shape = first_parameter.size()
+        ch = input_shape[1]
         for batch_i, batch in enumerate(bar):
-            if model.yaml['ch'] == 1 and batch['img'].shape[1] == 3:
+            if ch == 1 and batch['img'].shape[1] == 3:
                 batch['img'] = rgb_to_grayscale(batch['img'])
             self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i

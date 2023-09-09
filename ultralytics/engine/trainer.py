@@ -346,7 +346,7 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    if self.model.yaml['ch'] == 1 and batch['img'].shape[1] == 3:
+                    if self.model.ch == 1 and batch['img'].shape[1] == 3:
                         batch['img'] = rgb_to_grayscale(batch['img'])
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:

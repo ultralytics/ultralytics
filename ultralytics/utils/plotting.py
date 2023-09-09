@@ -601,21 +601,22 @@ def plot_tune_results(evolve_csv='evolve.csv'):
     import pandas as pd
     evolve_csv = Path(evolve_csv)
     data = pd.read_csv(evolve_csv)
-    keys = [x.strip() for x in data.columns]
+    num_metrics_columns = 1
+    keys = [x.strip() for x in data.columns][num_metrics_columns:]
     x = data.values
     f = x[:, 0]  # fitness
     j = np.argmax(f)  # max fitness index
-    plt.figure(figsize=(10, 12), tight_layout=True)
-    num_metrics_columns = 1
-    for i, k in enumerate(keys[num_metrics_columns:]):
-        v = x[:, num_metrics_columns + i]
+    n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
+    plt.figure(figsize=(10, 10), tight_layout=True)
+    for i, k in enumerate(keys):
+        v = x[:, i]
         mu = v[j]  # best single result
-        plt.subplot(6, 5, i + 1)
+        plt.subplot(n, n, i + 1)
         plt_color_scatter(v, f, cmap='viridis', alpha=.8, edgecolors='none')
         plt.plot(mu, f.max(), 'k+', markersize=15)
         plt.title(f'{k} = {mu:.3g}', fontdict={'size': 9})  # limit to 40 characters
         plt.tick_params(axis='both', labelsize=8)  # Set axis label size to 8
-        if i % 5 != 0:
+        if i % n != 0:
             plt.yticks([])
     f = evolve_csv.with_suffix('.png')  # filename
     plt.savefig(f, dpi=200)

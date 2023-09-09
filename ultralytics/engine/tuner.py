@@ -89,7 +89,7 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
-        self.tune_dir = get_save_dir(self.args, name='_tune')
+        self.tune_dir = get_save_dir(self.args, name='tune')
         self.evolve_csv = self.tune_dir / 'evolve.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr('Tuner: ')

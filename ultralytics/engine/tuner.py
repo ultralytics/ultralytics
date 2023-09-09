@@ -17,18 +17,15 @@ Example:
     ```
 """
 import random
+import subprocess
 import time
 
 import numpy as np
 import torch
 
-# from ultralytics import YOLO
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, remove_colorstr, yaml_print, yaml_save
 from ultralytics.utils.plotting import plot_tune_results
-
-
-# from copy import deepcopy
 
 
 class Tuner:
@@ -94,8 +91,9 @@ class Tuner:
         self.tune_dir = get_save_dir(self.args, name='_tune')
         self.evolve_csv = self.tune_dir / 'evolve.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
+        self.prefix = colorstr('Tuner: ')
         callbacks.add_integration_callbacks(self)
-        LOGGER.info(f"Initialized Tuner instance with 'tune_dir={self.tune_dir}'.")
+        LOGGER.info(f"{self.prefix}Initialized Tuner instance with 'tune_dir={self.tune_dir}'.")
 
     def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.2):
         """
@@ -143,7 +141,7 @@ class Tuner:
 
         return hyp
 
-    def __call__(self, model=None, iterations=10, prefix=colorstr('Tuner:')):
+    def __call__(self, model=None, iterations=10):
         """
         Executes the hyperparameter evolution process when the Tuner instance is called.
 
@@ -168,20 +166,24 @@ class Tuner:
         for i in range(iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
-            LOGGER.info(f'{prefix} Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}')
+            LOGGER.info(f'{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}')
 
+            metrics = {}
+            train_args = {**vars(self.args), **mutated_hyp}
+            save_dir = get_save_dir(get_cfg(train_args))
             try:
-                # Train YOLO model with mutated hyperparameters
-                torch.utils.data._utils.MP_STATUS_CHECK_INTERVAL = 300.0
-                train_args = {**vars(self.args), **mutated_hyp}
-                # results = (deepcopy(model) or YOLO(self.args.model)).train(**train_args)
-                results = model.train(**train_args)
-                fitness = results.fitness
+                # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
+                weights_dir = save_dir / 'weights'
+                cmd = ['yolo', 'train', *(f'{k}={v}' for k, v in train_args.items())]
+                assert subprocess.run(cmd, check=True).returncode == 0, 'training failed'
+                ckpt_file = weights_dir / ('best.pt' if (weights_dir / 'best.pt').exists() else 'last.pt')
+                metrics = torch.load(ckpt_file)['train_metrics']
+
             except Exception as e:
                 LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}')
-                fitness = 0.0
 
             # Save results and mutated_hyp to CSV
+            fitness = metrics.get('fitness', 0.0)
             log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
             headers = '' if self.evolve_csv.exists() else (','.join(['fitness_score'] + list(self.space.keys())) + '\n')
             with open(self.evolve_csv, 'a') as f:
@@ -193,21 +195,22 @@ class Tuner:
             best_idx = fitness.argmax()
             best_is_current = best_idx == i
             if best_is_current:
-                best_save_dir = results.save_dir
-                best_metrics = {k: round(v, 5) for k, v in results.results_dict.items()}
+                best_save_dir = save_dir
+                best_metrics = {k: round(v, 5) for k, v in metrics.items()}
 
             # Plot tune results
             plot_tune_results(self.tune_dir / 'evolve.csv')
 
             # Save and print tune results
-            header = (f'{prefix} {i + 1} iterations complete ✅ ({time.time() - t0:.2f}s)\n'
-                      f'{prefix} Results saved to {colorstr("bold", self.tune_dir)}\n'
-                      f'{prefix} Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n'
-                      f'{prefix} Best fitness metrics are {best_metrics}\n'
-                      f'{prefix} Best fitness model is {best_save_dir}\n'
-                      f'{prefix} Best fitness hyperparameters are printed below.\n')
-            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
-            header = remove_colorstr(header.replace(prefix, '#')) + '\n'
-            yaml_save(self.tune_dir / 'best.yaml', data=data, header=header)
+            header = (f'{self.prefix}{i + 1} iterations complete ✅ ({time.time() - t0:.2f}s)\n'
+                      f'{self.prefix}Results saved to {colorstr("bold", self.tune_dir)}\n'
+                      f'{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n'
+                      f'{self.prefix}Best fitness metrics are {best_metrics}\n'
+                      f'{self.prefix}Best fitness model is {best_save_dir}\n'
+                      f'{self.prefix}Best fitness hyperparameters are printed below.\n')
             LOGGER.info('\n' + header)
+            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
+            yaml_save(self.tune_dir / 'best.yaml',
+                      data=data,
+                      header=remove_colorstr(header.replace(self.prefix, '# ')) + '\n')
             yaml_print(self.tune_dir / 'best.yaml')

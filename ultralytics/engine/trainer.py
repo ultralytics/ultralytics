@@ -432,21 +432,19 @@ class BaseTrainer:
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
             'train_args': vars(self.args),  # save as dict
+            'train_metrics': {
+                **self.metrics,
+                **{
+                    'fitness': self.fitness}},
             'date': datetime.now().isoformat(),
             'version': __version__}
 
-        # Use dill (if exists) to serialize the lambda functions where pickle does not do this
-        try:
-            import dill as pickle
-        except ImportError:
-            import pickle
-
         # Save last, best and delete
-        torch.save(ckpt, self.last, pickle_module=pickle)
+        torch.save(ckpt, self.last)
         if self.best_fitness == self.fitness:
-            torch.save(ckpt, self.best, pickle_module=pickle)
+            torch.save(ckpt, self.best)
         if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt', pickle_module=pickle)
+            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
         del ckpt
 
     @staticmethod
@@ -573,6 +571,7 @@ class BaseTrainer:
                     LOGGER.info(f'\nValidating {f}...')
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
+                    self.save_model()  # update ckpt results with new meetrics
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')
 

@@ -166,7 +166,7 @@ class Tuner:
 
         t0 = time.time()
         best_save_dir, best_metrics = None, None
-        self.tune_dir.mkdir(parents=True, exist_ok=True)
+        (self.tune_dir / 'weights').mkdir(parents=True, exist_ok=True)
         for i in range(iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
@@ -201,8 +201,9 @@ class Tuner:
             if best_is_current:
                 best_save_dir = save_dir
                 best_metrics = {k: round(v, 5) for k, v in metrics.items()}
-                shutil.copy2(ckpt_file, self.tune_dir / 'weights')
-            if cleanup:
+                for ckpt in weights_dir.glob('*.pt'):
+                    shutil.copy2(ckpt, self.tune_dir / 'weights')
+            elif cleanup:
                 shutil.rmtree(ckpt_file.parent)  # remove iteration weights/ dir to reduce storage space
 
             # Plot tune results

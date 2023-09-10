@@ -11,7 +11,7 @@ Usage - sources:
                                                 list.txt                        # list of images
                                                 list.streams                    # list of streams
                                                 'path/*.jpg'                    # glob
-                                                'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                                                'https://youtu.be/LNwODJXcvt4'  # YouTube
                                                 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 
 Usage - formats:

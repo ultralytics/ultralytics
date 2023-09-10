@@ -37,18 +37,18 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         model = YOLO('path/to/best.pt')  # Load a custom trained model
 
         # Perform tracking with the model
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True)  # Tracking with default tracker
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml")  # Tracking with ByteTrack tracker
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # Tracking with ByteTrack tracker
         ```
 
     === "CLI"
 
         ```bash
         # Perform tracking with various models using the command line interface
-        yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Detect model
-        yolo track model=yolov8n-seg.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Segment model
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Pose model
-        yolo track model=path/to/best.pt source="https://youtu.be/Zgi9g1ksQHc"  # Custom trained model
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # Official Detect model
+        yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # Official Pose model
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Custom trained model
 
         # Track using ByteTrack tracker
         yolo track model=path/to/best.pt tracker="bytetrack.yaml" 
@@ -71,14 +71,14 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
 
         # Configure the tracking parameters and run the tracker
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True)
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
     === "CLI"
 
         ```bash
         # Configure tracking parameters and run the tracker using the command line interface
-        yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" conf=0.3, iou=0.5 show
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
         ```
 
 ### Tracker Selection
@@ -94,14 +94,14 @@ Ultralytics also allows you to use a modified tracker configuration file. To do 
 
         # Load the model and run the tracker with a custom configuration file
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", tracker='custom_tracker.yaml')
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
         ```
 
     === "CLI"
 
         ```bash
         # Load the model and run the tracker with a custom configuration file using the command line interface
-        yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" tracker='custom_tracker.yaml'
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
         ```
 
 For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) page.

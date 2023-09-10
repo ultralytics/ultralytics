@@ -34,7 +34,7 @@ CLI requires no customization or Python code. You can simply run all tasks from 
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
-        yolo predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
+        yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"
@@ -196,7 +196,7 @@ Default arguments can be overridden by simply passing them as arguments in the C
     === "Predict"
         Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
+        yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"

@@ -135,7 +135,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=False):
+def load_inference_source(source=None, imgsz=640, vid_stride=1, buffer=False):
     """
     Loads an inference source for object detection and applies necessary transformations.
 
@@ -143,7 +143,7 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=Fa
         source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.
         imgsz (int, optional): The size of the image for inference. Default is 640.
         vid_stride (int, optional): The frame interval for video sources. Default is 1.
-        stream_buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
+        buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
 
     Returns:
         dataset (Dataset): A dataset object for the specified input source.
@@ -157,7 +157,7 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=Fa
     elif in_memory:
         dataset = source
     elif webcam:
-        dataset = LoadStreams(source, imgsz=imgsz, vid_stride=vid_stride, stream_buffer=stream_buffer)
+        dataset = LoadStreams(source, imgsz=imgsz, vid_stride=vid_stride, buffer=buffer)
     elif screenshot:
         dataset = LoadScreenshots(source, imgsz=imgsz)
     elif from_img:

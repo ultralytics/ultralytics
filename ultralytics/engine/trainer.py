@@ -444,7 +444,7 @@ class BaseTrainer:
         torch.save(ckpt, self.last)
         if self.best_fitness == self.fitness:
             torch.save(ckpt, self.best)
-        if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
+        if (self.save_period > 0) and (self.epoch > 0) and (self.epoch % self.save_period == 0):
             torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
 
     @staticmethod
@@ -571,7 +571,6 @@ class BaseTrainer:
                     LOGGER.info(f'\nValidating {f}...')
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
-                    self.save_model()  # update ckpt with final metrics
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')
 

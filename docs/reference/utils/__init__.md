@@ -134,6 +134,10 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 <br><br>
 
 ---
+## ::: ultralytics.utils.remove_colorstr
+<br><br>
+
+---
 ## ::: ultralytics.utils.threaded
 <br><br>
 

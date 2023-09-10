@@ -67,7 +67,7 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 | video ✅        | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                   |
 | directory ✅    | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
 | glob ✅         | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
-| YouTube ✅      | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`           | URL to a YouTube video.                                                                     |
+| YouTube ✅      | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL to a YouTube video.                                                                     |
 | stream ✅       | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, or an IP address.                           |
 | multi-stream ✅ | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
 
@@ -257,7 +257,7 @@ Below are code examples for using each source type:
         model = YOLO('yolov8n.pt')
 
         # Define source as YouTube video URL
-        source = 'https://youtu.be/Zgi9g1ksQHc'
+        source = 'https://youtu.be/LNwODJXcvt4'
 
         # Run inference on the source
         results = model(source, stream=True)  # generator of Results objects

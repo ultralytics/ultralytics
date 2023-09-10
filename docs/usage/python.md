@@ -220,8 +220,8 @@ for applications such as surveillance systems or self-driving cars.
         model = YOLO('path/to/best.pt')  # load a custom model
 
         # Track with the model
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True)
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")
         ```
 
 [Track Examples](../modes/track.md){ .md-button .md-button--primary}

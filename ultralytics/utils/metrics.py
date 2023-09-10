@@ -189,7 +189,7 @@ class ConfusionMatrix:
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == 'detect' else np.zeros((nc, nc))
         self.nc = nc  # number of classes
-        self.conf = 0.25 if conf is None else conf  # argument may be None from default cfg
+        self.conf = 0.25 if conf in (None, 0.001) else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres
 
     def process_cls_preds(self, preds, targets):

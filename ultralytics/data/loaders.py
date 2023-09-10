@@ -31,10 +31,10 @@ class SourceTypes:
 class LoadStreams:
     """YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`."""
 
-    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, stream_buffer=False):
+    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
-        self.stream_buffer = stream_buffer  # buffer input streams
+        self.buffer = buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = 'stream'
         self.imgsz = imgsz
@@ -81,8 +81,7 @@ class LoadStreams:
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
         while self.running and cap.isOpened() and n < (f - 1):
-            # Only read a new frame if the buffer is empty
-            if not self.imgs[i] or not self.stream_buffer:
+            if len(self.imgs[i]) < 30:  # keep a <=30-image buffer
                 n += 1
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
@@ -91,7 +90,10 @@ class LoadStreams:
                         im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
                         cap.open(stream)  # re-open stream if signal was lost
-                    self.imgs[i].append(im)  # add image to buffer
+                    if self.buffer:
+                        self.imgs[i].append(im)
+                    else:
+                        self.imgs[i] = [im]
             else:
                 time.sleep(0.01)  # wait until the buffer is empty
 
@@ -125,10 +127,11 @@ class LoadStreams:
                 if not self.threads[i].is_alive() or cv2.waitKey(1) == ord('q'):  # q to quit
                     self.close()
                     raise StopIteration
+                LOGGER.warning(f'WARNING ⚠️ Waiting for stream {i}')
                 time.sleep(1 / min(self.fps))
 
             # Get and remove the first frame from imgs buffer
-            if self.stream_buffer:
+            if self.buffer:
                 images.append(x.pop(0))
 
             # Get the last frame, and clear the rest from the imgs buffer

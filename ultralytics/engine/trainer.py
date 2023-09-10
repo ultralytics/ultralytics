@@ -444,7 +444,7 @@ class BaseTrainer:
         torch.save(ckpt, self.last)
         if self.best_fitness == self.fitness:
             torch.save(ckpt, self.best)
-        if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
+        if (self.save_period > 0) and (self.epoch > 0) and (self.epoch % self.save_period == 0):
             torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
 
     @staticmethod

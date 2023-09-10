@@ -17,6 +17,8 @@ Example:
     ```
 """
 import random
+
+import shutil
 import subprocess
 import time
 
@@ -143,7 +145,8 @@ class Tuner:
 
         return hyp
 
-    def __call__(self, model=None, iterations=10):
+
+    def __call__(self, model=None, iterations=10, cleanup=True):
         """
         Executes the hyperparameter evolution process when the Tuner instance is called.
 
@@ -156,6 +159,7 @@ class Tuner:
         Args:
            model (Model): A pre-initialized YOLO model to be used for training.
            iterations (int): The number of generations to run the evolution for.
+           cleanup (bool): Whether to delete iteration weights to reduce storage space used during tuning.
 
         Note:
            The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
@@ -164,7 +168,7 @@ class Tuner:
 
         t0 = time.time()
         best_save_dir, best_metrics = None, None
-        self.tune_dir.mkdir(parents=True, exist_ok=True)
+        (self.tune_dir / 'weights').mkdir(parents=True, exist_ok=True)
         for i in range(iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
@@ -199,6 +203,10 @@ class Tuner:
             if best_is_current:
                 best_save_dir = save_dir
                 best_metrics = {k: round(v, 5) for k, v in metrics.items()}
+                for ckpt in weights_dir.glob('*.pt'):
+                    shutil.copy2(ckpt, self.tune_dir / 'weights')
+            elif cleanup:
+                shutil.rmtree(ckpt_file.parent)  # remove iteration weights/ dir to reduce storage space
 
             # Plot tune results
             plot_tune_results(self.tune_csv)

@@ -445,7 +445,7 @@ def entrypoint(debug=''):
     getattr(model, mode)(**overrides)  # default args from model
 
     # Show help
-    LOGGER.info(f'💡Learn more at https://docs.ultralytics.com/modes/{mode}')
+    LOGGER.info(f'💡 Learn more at https://docs.ultralytics.com/modes/{mode}')
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

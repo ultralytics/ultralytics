@@ -14,10 +14,10 @@ Hyperparameter tuning is not just a one-time set-up but an iterative process aim
 
 Hyperparameters are high-level, structural settings for the algorithm. They are set prior to the training phase and remain constant during it. Here are some commonly tuned hyperparameters in Ultralytics YOLO:
 
-- **Learning Rate**: Determines the step size at each iteration while moving towards a minimum in the loss function.
-- **Batch Size**: Number of training samples utilized in one iteration.
-- **Number of Epochs**: An epoch is one complete forward and backward pass of all the training examples.
-- **Architecture Specifics**: Such as anchor box sizes, number of layers, types of activation functions, etc.
+- **Learning Rate** `lr0`: Determines the step size at each iteration while moving towards a minimum in the loss function.
+- **Batch Size** `batch`: Number of images processed simultaneously in a forward pass.
+- **Number of Epochs** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
+- **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc.
 
 <p align="center">
   <img width="640" src="https://user-images.githubusercontent.com/26833433/263858934-4f109a2f-82d9-4d08-8bd6-6fd1ff520bcd.png" alt="Hyperparameter Tuning Visual">
@@ -89,7 +89,7 @@ After you've successfully completed the hyperparameter tuning process, you will 
 
 ### File Structure
 
-Here's what the directory structure of the results will look like. Training directories like `train1/` contain individual tuning iterations, i.e. one model trained with one set of hyperparameters. The `tune/` directory contains all tuning results from all the individual model trainings:
+Here's what the directory structure of the results will look like. Training directories like `train1/` contain individual tuning iterations, i.e. one model trained with one set of hyperparameters. The `tune/` directory contains tuning results from all the individual model trainings:
 
 ```plaintext
 runs/

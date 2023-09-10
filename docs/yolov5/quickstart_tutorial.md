@@ -55,7 +55,7 @@ python detect.py --weights yolov5s.pt --source 0                               #
                                                list.txt                        # list of images
                                                list.streams                    # list of streams
                                                'path/*.jpg'                    # glob
-                                               'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                                               'https://youtu.be/LNwODJXcvt4'  # YouTube
                                                'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 ```
 

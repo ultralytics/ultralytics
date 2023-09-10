@@ -358,7 +358,7 @@ def entrypoint(debug=''):
         if '=' in a:
             try:
                 k, v = parse_key_value_pair(a)
-                if k == 'cfg':  # custom.yaml passed
+                if k == 'cfg' and v is not None:  # custom.yaml passed
                     LOGGER.info(f'Overriding {DEFAULT_CFG_PATH} with {v}')
                     overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != 'cfg'}
                 else:

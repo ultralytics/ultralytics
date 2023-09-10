@@ -17,7 +17,6 @@ Example:
     ```
 """
 import random
-
 import shutil
 import subprocess
 import time
@@ -144,7 +143,6 @@ class Tuner:
             hyp[k] = round(hyp[k], 5)  # significant digits
 
         return hyp
-
 
     def __call__(self, model=None, iterations=10, cleanup=True):
         """

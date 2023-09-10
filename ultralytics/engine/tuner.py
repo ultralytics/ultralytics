@@ -17,6 +17,7 @@ Example:
     ```
 """
 import random
+import shutil
 import subprocess
 import time
 
@@ -199,6 +200,7 @@ class Tuner:
             if best_is_current:
                 best_save_dir = save_dir
                 best_metrics = {k: round(v, 5) for k, v in metrics.items()}
+                shutil.copy2(ckpt_file, self.tune_dir / 'weights')
 
             # Plot tune results
             plot_tune_results(self.tune_csv)

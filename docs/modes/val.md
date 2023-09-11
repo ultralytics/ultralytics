@@ -1,6 +1,6 @@
 ---
 comments: true
-description: 'Guide for Validating YOLOv8 Models: Learn how to evaluate the performance of your YOLO models using validation settings and metrics with Python and CLI examples.'
+description: Guide for Validating YOLOv8 Models. Learn how to evaluate the performance of your YOLO models using validation settings and metrics with Python and CLI examples.
 keywords: Ultralytics, YOLO Docs, YOLOv8, validation, model evaluation, hyperparameters, accuracy, metrics, Python, CLI
 ---
 

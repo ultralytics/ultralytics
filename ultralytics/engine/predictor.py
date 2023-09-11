@@ -28,6 +28,7 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
+import re
 from pathlib import Path
 
 import cv2
@@ -300,10 +301,20 @@ class BasePredictor:
 
         self.run_callbacks('on_predict_end')
 
+    def is_plausible_device(self, device):
+        # Define a regular expression pattern to match 'cuda:x' format where x is an integer.
+        pattern = r'^cuda:\d+$'
+
+        # Use the re.match() function to check if the input_string matches the pattern.
+        match = re.match(pattern, device)
+
+        # If there is a match, return True. Otherwise, return False.
+        return bool(match)
+
     def setup_model(self, model, verbose=True):
         """Initialize YOLO model with given parameters and set it to evaluation mode."""
         self.model = AutoBackend(model or self.args.model,
-                                 device=select_device(self.args.device, verbose=verbose),
+                                 device=self.args.device if self.is_plausible_device(self.args.device) else select_device(self.args.device, verbose=verbose),
                                  dnn=self.args.dnn,
                                  data=self.args.data,
                                  fp16=self.args.half,

@@ -94,8 +94,8 @@ def test_model_ray_tune():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_model_tune():
-    YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', imgsz=32, epochs=1, iterations=2, device='cpu')
-    YOLO('yolov8n-cls.pt').tune(data='imagenet10', imgsz=32, epochs=1, iterations=2, device='cpu')
+    YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
+    YOLO('yolov8n-cls.pt').tune(data='imagenet10', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
@@ -107,27 +107,22 @@ def test_pycocotools():
     # Download annotations after each dataset downloads first
     url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
 
-    validator = DetectionValidator(args={'model': 'yolov8n.pt', 'data': 'coco8.yaml', 'save_json': True, 'imgsz': 64})
+    args = {'model': 'yolov8n.pt', 'data': 'coco8.yaml', 'save_json': True, 'imgsz': 64}
+    validator = DetectionValidator(args=args)
     validator()
     validator.is_coco = True
     download(f'{url}instances_val2017.json', dir=DATASETS_DIR / 'coco8/annotations')
     _ = validator.eval_json(validator.stats)
 
-    validator = SegmentationValidator(args={
-        'model': 'yolov8n-seg.pt',
-        'data': 'coco8-seg.yaml',
-        'save_json': True,
-        'imgsz': 64})
+    args = {'model': 'yolov8n-seg.pt', 'data': 'coco8-seg.yaml', 'save_json': True, 'imgsz': 64}
+    validator = SegmentationValidator(args=args)
     validator()
     validator.is_coco = True
     download(f'{url}instances_val2017.json', dir=DATASETS_DIR / 'coco8-seg/annotations')
     _ = validator.eval_json(validator.stats)
 
-    validator = PoseValidator(args={
-        'model': 'yolov8n-pose.pt',
-        'data': 'coco8-pose.yaml',
-        'save_json': True,
-        'imgsz': 64})
+    args = {'model': 'yolov8n-pose.pt', 'data': 'coco8-pose.yaml', 'save_json': True, 'imgsz': 64}
+    validator = PoseValidator(args=args)
     validator()
     validator.is_coco = True
     download(f'{url}person_keypoints_val2017.json', dir=DATASETS_DIR / 'coco8-pose/annotations')

@@ -302,6 +302,10 @@ class BasePredictor:
         self.run_callbacks('on_predict_end')
 
     def is_plausible_device(self, device):
+        # Check if device is cpu
+        if device == 'cpu':
+            return True
+
         # Define a regular expression pattern to match 'cuda:x' format where x is an integer.
         pattern = r'^cuda:\d+$'
 

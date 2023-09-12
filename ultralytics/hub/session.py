@@ -117,8 +117,7 @@ class HUBTrainingSession:
 
             if data['status'] == 'new':  # new model to start training
                 self.train_args = {
-                    # TODO deprecate 'batch_size' argument in favor of 'batch'
-                    'batch': data['batch' if 'batch' in data else 'batch_size'],
+                    'batch': data['batch_size'],  # note HUB argument is slightly different
                     'epochs': data['epochs'],
                     'imgsz': data['imgsz'],
                     'patience': data['patience'],

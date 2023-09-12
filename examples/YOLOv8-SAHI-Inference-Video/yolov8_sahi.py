@@ -79,8 +79,8 @@ def run(
             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (56, 56, 255), 2)
             label = str(cls)
             t_size = cv2.getTextSize(label, 0, fontScale=0.6, thickness=1)[0]
-            cv2.rectangle(frame, (int(x1), int(y1) - t_size[1] - 3), (int(x1) + t_size[0], int(y1) + 3),
-                          (56, 56, 255), -1)
+            cv2.rectangle(frame, (int(x1), int(y1) - t_size[1] - 3), (int(x1) + t_size[0], int(y1) + 3), (56, 56, 255),
+                          -1)
             cv2.putText(frame,
                         label, (int(x1), int(y1) - 2),
                         0,

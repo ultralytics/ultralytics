@@ -167,13 +167,6 @@ class HUBTrainingSession:
                     'patience': config['patience'],
                     'device': config['device'],
                     'cache': config['cache'],
-<<<<<<< HEAD
-                    'data': self.model.get_dataset_url()
-                }
-            self.train_args = get_train_args(self.model.data.get("config"))
-            # Set the model file as either a *.pt or *.yaml file
-            self.model_file = self.model.get_weights_url('parent') if self.model.is_pretrained() else self.model.get_architecture()
-=======
                     'data': self.model.get_dataset_url(),
                 }
 
@@ -184,7 +177,6 @@ class HUBTrainingSession:
                 if self.model.is_pretrained()
                 else self.model.get_architecture()
             )
->>>>>>> bf9a4a0 (feat: allow hub training from cli)
 
         if not self.train_args.get('data'):
             raise ValueError(

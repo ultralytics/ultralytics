@@ -1,6 +1,10 @@
 ### YOLOv8 with SAHI (Inference on Video)
 
+SAHI designed to optimize object detection algorithms for large-scale and high-resolution imagery. Its core functionality lies in partitioning images into manageable slices, running object detection on each slice, and then stitching the results back together.
+
 #### Step 1: Install the required libraries
+
+Just clone the repository and run
 
 ```
 

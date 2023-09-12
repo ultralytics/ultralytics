@@ -5,10 +5,11 @@ import sys
 from pathlib import Path
 from typing import Union
 
+from ultralytics_hub_sdk.config import HUB_WEB_ROOT
+
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
-from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis, yaml_load
+from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, SETTINGS, callbacks, emojis, yaml_load
 from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode
@@ -78,9 +79,16 @@ class Model:
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
+            # Fetch model from HUB
             from ultralytics.hub.session import HUBTrainingSession
+
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
+        elif SETTINGS['hub'] is True:
+            # Create a model in HUB
+            from ultralytics.hub.session import HUBTrainingSession
+
+            self.session = HUBTrainingSession(model)
 
         # Load or create new YOLO model
         suffix = Path(model).suffix
@@ -321,10 +329,11 @@ class Model:
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
         self._check_is_pytorch_model()
-        if self.session:  # Ultralytics HUB session
+        if hasattr(self.session, 'model') and self.session.model.id: # Ultralytics HUB session with loaded model
+            kwargs = self.session.train_args # Overwrite kwargs
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
-            kwargs = self.session.train_args
+
         check_pip_update_available()
 
         overrides = yaml_load(check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
@@ -337,6 +346,11 @@ class Model:
         if not args.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
+
+            # Create HUB model
+            if self.session and not self.session.model.id:
+                self.session.create_model(args)
+
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
         # Update model and cfg after training

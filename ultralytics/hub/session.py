@@ -1,18 +1,22 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import signal
-import sys
+import threading
+import time
+from http import HTTPStatus
 from pathlib import Path
 import time
 import threading
 
 import requests
-from ultralytics_hub_sdk import HUBClient, HUB_API_ROOT, HUB_WEB_ROOT
-from ultralytics.hub.utils import PREFIX, TryExcept
-from ultralytics.utils import SETTINGS, LOGGER, __version__, checks, emojis, is_colab, threaded
+from ultralytics_hub_sdk import HUB_WEB_ROOT, HUBClient
+
+from ultralytics.hub.utils import HELP_MSG, PREFIX, TQDM
+from ultralytics.utils import LOGGER, SETTINGS, __version__, checks, emojis, is_colab
 from ultralytics.utils.errors import HUBModelError
 
-AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
+AGENT_NAME = (
+    f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
+)
 
 
 class HUBTrainingSession:
@@ -23,7 +27,6 @@ class HUBTrainingSession:
         url (str): Model identifier used to initialize the HUB training session.
 
     Attributes:
-        agent_id (str): Identifier for the instance communicating with the server.
         model_id (str): Identifier for the YOLOv5 model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
         api_url (str): API URL for the model in Ultralytics HUB.
@@ -35,49 +38,95 @@ class HUBTrainingSession:
         alive (bool): Indicates if the heartbeat loop is active.
     """
 
-    def __init__(self, url):
+    def __init__(self, identifier):
         """
         Initialize the HUBTrainingSession with the provided model identifier.
 
         Args:
-            url (str): Model identifier used to initialize the HUB training session.
+            identifier (str): Model identifier used to initialize the HUB training session.
                          It can be a URL string or a model key with specific format.
 
         Raises:
             ValueError: If the provided model identifier is invalid.
             ConnectionError: If connecting with global API key is not supported.
         """
+        self.rate_limits = {
+            'metrics': 3.0,
+            'ckpt': 900.0,
+            'heartbeat': 300.0,
+        }  # rate limits (seconds)
+        self.metrics_queue = {}  # holds metrics for each epoch until upload
+        self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
+        self.rate_limits = {
+            'metrics': 3.0,
+            'ckpt': 5.0,
+            'heartbeat': 5.0,
+        }  # rate limits (seconds)
 
         # Parse input
-        api_key, model_id = self.parse_model_url(url)
+        api_key, model_id, self.filename = self._parse_identifier(identifier)
 
         # Get credentials
         active_key = api_key or SETTINGS.get("api_key")
         credentials = {"api_key": active_key} if active_key else None  # Set credentials
 
         # Initialize client
-        client = HUBClient(credentials)
+        self.client = HUBClient(credentials)
 
+        if model_id:
+            self.load_model(model_id)  # Load existing model
+        else:
+            self.model = self.client.model()  # Load empty model
+
+    def load_model(self, model_id):
         # Initialize model
-        self.model = client.model(model_id)
-        self.agent_id = None  # identifies which instance is communicating with server
+        self.model = self.client.model(model_id)
         self.model_url = f'{HUB_WEB_ROOT}/models/{self.model.id}'
-        self.api_url = f'{HUB_API_ROOT}/v1/models/{self.model.id}'
 
-        self.set_train_args()
+        self._set_train_args()
 
         # Start heartbeats for HUB to monitor agent
-        self.model.start_heartbeat()
-
-        self.rate_limits = {'metrics': 3.0, 'ckpt': 900.0, 'heartbeat': 300.0}  # rate limits (seconds)
-        self.timers = {}  # rate limit timers (seconds)
-        self.metrics_queue = {}  # metrics queue
+        self.model.start_heartbeat(self.rate_limits['heartbeat'])
 
         LOGGER.info(f'{PREFIX}View model at {self.model_url} 🚀')
 
-    def parse_model_url(self, url):
-        # Split the URL based on the last occurrence of '/models/'
-        parts = url.split(f'{HUB_WEB_ROOT}/models/')[-1].split('_')
+    def create_model(self, model_args):
+        # Initialize model
+        payload = {
+            "config": {
+                'batchSize': model_args.get('batch', -1),
+                'epochs': model_args.get('epochs', 300),
+                'imageSize': model_args.get('imgsz', 640),
+                'patience': model_args.get('patience', 100),
+                'device': model_args.get('device', ''),
+                'cache': model_args.get('cache', 'ram'),
+            },
+            "dataset": {"name": model_args.get('data')},
+            "lineage": {
+                "architecture": {
+                    "name": self.filename.replace('.pt', '').replace('.yaml', ''),
+                },
+                "parent": {},
+            },
+            "meta": {"name": self.filename},
+        }
+
+        if self.filename.endswith('.pt'):
+            payload['lineage']['parent']['name'] = self.filename
+
+        self.model.create_model(payload)
+        self.model_url = f'{HUB_WEB_ROOT}/models/{self.model.id}'
+
+        # Start heartbeats for HUB to monitor agent
+        self.model.start_heartbeat(self.rate_limits['heartbeat'])
+
+        LOGGER.info(f'{PREFIX}View model at {self.model_url} 🚀')
+
+    def _parse_identifier(self, identifier):
+        # Split the identifier based on the last occurrence of '/models/'
+        parts = identifier.split(f'{HUB_WEB_ROOT}/models/')[-1].split('_')
+
+        api_key, model_id, filename = None, None, None
 
         # Check if the parts have the expected lengths
         if len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
@@ -85,17 +134,24 @@ class HUBTrainingSession:
             api_key, model_id = parts
         elif len(parts) == 1 and len(parts[0]) == 20:
             # Is new format 'id*20'
-            api_key, model_id = '', parts[0]
+            model_id = parts[0]
+        elif parts[0].endswith('.pt') or parts[0].endswith('.yaml'):
+            # Is local file or default
+            filename = parts[0]
         else:
-            raise HUBModelError(f"model='{url}' not found. Check format is correct, i.e. "
-                                f"model='{HUB_WEB_ROOT}/models/MODEL_ID' and try again.")
+            raise HUBModelError(
+                f"model='{identifier}' not found. Check format is correct, i.e. "
+                f"model='{HUB_WEB_ROOT}/models/MODEL_ID' and try again."
+            )
 
-        return api_key, model_id
+        return (api_key, model_id, filename)
 
-    def set_train_args(self, **kwargs):
+    def _set_train_args(self, **kwargs):
         if self.model.is_trained():
             # Model is already trained
-            raise ValueError(emojis(f'Model is already trained and uploaded to {self.model_url} 🚀'))
+            raise ValueError(
+                emojis(f'Model is already trained and uploaded to {self.model_url} 🚀')
+            )
 
         if self.model.is_resumable():
             # Model has saved weights
@@ -111,59 +167,137 @@ class HUBTrainingSession:
                     'patience': config['patience'],
                     'device': config['device'],
                     'cache': config['cache'],
+<<<<<<< HEAD
                     'data': self.model.get_dataset_url()
                 }
             self.train_args = get_train_args(self.model.data.get("config"))
             # Set the model file as either a *.pt or *.yaml file
             self.model_file = self.model.get_weights_url('parent') if self.model.is_pretrained() else self.model.get_architecture()
+=======
+                    'data': self.model.get_dataset_url(),
+                }
+
+            self.train_args = get_train_args(self.model.data.get("config"))
+            # Set the model file as either a *.pt or *.yaml file
+            self.model_file = (
+                self.model.get_weights_url('parent')
+                if self.model.is_pretrained()
+                else self.model.get_architecture()
+            )
+>>>>>>> bf9a4a0 (feat: allow hub training from cli)
 
         if not self.train_args.get('data'):
-            raise ValueError('Dataset may still be processing. Please wait a minute and try again.')  # RF fix
+            raise ValueError(
+                'Dataset may still be processing. Please wait a minute and try again.'
+            )  # RF fix
 
-        self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False) # YOLOv5->YOLOv5u
+        self.model_file = checks.check_yolov5u_filename(
+            self.model_file, verbose=False
+        )  # YOLOv5->YOLOv5u
 
-    def request_queue(self, request_func, retry=3, timeout=30, thread=True, verbose=True, progress=False, *args, **kwargs,):
-        retry_codes = (408, 500)  # retry only these codes
-
-        @TryExcept(verbose=verbose)
-        def func(func_method, **func_kwargs):
-            r = None  # response
-            t0 = time.time()  # initial time for timer
+    def request_queue(
+        self,
+        request_func,
+        retry=3,
+        timeout=30,
+        thread=True,
+        verbose=True,
+        progress_total=None,
+        *args,
+        **kwargs,
+    ):
+        def retry_request():
+            t0 = time.time()  # Record the start time for the timeout
             for i in range(retry + 1):
                 if (time.time() - t0) > timeout:
-                    break
-                r = request_func(*args, **kwargs)
-                if r.status_code < 300:  # return codes in the 2xx range are generally considered "good" or "successful"
-                    break
-                try:
-                    m = r.json().get('message', 'No JSON message.')
-                except AttributeError:
-                    m = 'Unable to read JSON.'
+                    LOGGER.warning(f"{PREFIX}Timeout for request reached. {HELP_MSG}")
+                    break  # Timeout reached, exit loop
+
+                response = request_func(*args, **kwargs)
+                if progress_total:
+                    self._show_upload_progress(progress_total, response)
+
+                if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
+                    return response  # Success, no need to retry
+
                 if i == 0:
-                    if r.status_code in retry_codes:
-                        m += f' Retrying {retry}x for {timeout}s.' if retry else ''
-                    elif r.status_code == 429:  # rate limit
-                        h = r.headers  # response headers
-                        m = f"Rate limit reached ({h['X-RateLimit-Remaining']}/{h['X-RateLimit-Limit']}). " \
-                            f"Please retry after {h['Retry-After']}s."
+                    # Initial attempt, check status code and provide messages
+                    message = self._get_failure_message(response, retry, timeout)
+
                     if verbose:
-                        LOGGER.warning(f'{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})')
-                    if r.status_code not in retry_codes:
-                        return r
-                time.sleep(2 ** i)  # exponential standoff
-            return r
+                        LOGGER.warning(
+                            f"{PREFIX}{message} {HELP_MSG} ({response.status_code})"
+                        )
+
+                if not self._should_retry(response.status_code):
+                    LOGGER.warning(
+                        f"{PREFIX}Request failed. {HELP_MSG} ({response.status_code}"
+                    )
+                    break  # Not an error that should be retried, exit loop
+
+                time.sleep(2**i)  # Exponential backoff for retries
+
+            return response
 
         if thread:
-            threading.Thread(target=func, args=[request_func], kwargs=kwargs, daemon=True).start()
+            # Start a new thread to run the retry_request function
+            threading.Thread(target=retry_request, daemon=True).start()
         else:
-            return func(request_func, **kwargs)
+            # If running in the main thread, call retry_request directly
+            return retry_request()
+
+    def _should_retry(self, status_code):
+        # Status codes that trigger retries
+        retry_codes = {
+            HTTPStatus.REQUEST_TIMEOUT,
+            HTTPStatus.BAD_GATEWAY,
+            HTTPStatus.GATEWAY_TIMEOUT,
+        }
+        return true if status_code in retry_codes else false
+
+    def _get_failure_message(
+        self, response: requests.Response, retry: int, timeout: int
+    ):
+        """
+        Generate a retry message based on the response status code.
+
+        Args:
+            response: The HTTP response object.
+            retry: The number of retry attempts allowed.
+            timeout: The maximum timeout duration.
+
+        Returns:
+            str: The retry message.
+        """
+        if self._should_retry(response.status_code):
+            return f"Retrying {retry}x for {timeout}s." if retry else ""
+        elif response.status_code == HTTPStatus.TOO_MANY_REQUESTS:  # Rate limit
+            headers = response.headers
+            return (
+                f"Rate limit reached ({headers['X-RateLimit-Remaining']}/{headers['X-RateLimit-Limit']}). "
+                f"Please retry after {headers['Retry-After']}s."
+            )
+        else:
+            try:
+                return response.json().get('message', 'No JSON message.')
+            except AttributeError:
+                return 'Unable to read JSON.'
 
 
     def upload_metrics(self):
         """Upload model metrics to Ultralytics HUB."""
-        self.request_queue(self.model.upload_metrics, metrics=self.metrics_queue.copy(), thread=True)
+        return self.request_queue(
+            self.model.upload_metrics, metrics=self.metrics_queue.copy(), thread=True
+        )
 
-    def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
+    def upload_model(
+        self,
+        epoch: int,
+        weights: str,
+        is_best: bool = False,
+        map: float = 0.0,
+        final: bool = False,
+    ) -> None:
         """
         Upload a model checkpoint to Ultralytics HUB.
 
@@ -175,7 +309,41 @@ class HUBTrainingSession:
             final (bool): Indicates if the model is the final model after training.
         """
         if Path(weights).is_file():
-            self.model.upload_model(epoch=epoch, weights=weights, is_best=is_best, map=map, final=final, retry=10, timeout=3600, thread=not final, progress=True)
+            progress_total = (
+                Path(weights).stat().st_size if final else None
+            )  # Only show progress if final
+            self.request_queue(
+                self.model.upload_model,
+                epoch=epoch,
+                weights=weights,
+                is_best=is_best,
+                map=map,
+                final=final,
+                retry=10,
+                timeout=3600,
+                thread=not final,
+                progress_total=progress_total,
+            )
         else:
-            LOGGER.warning(f'{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.')
+            LOGGER.warning(
+                f'{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.'
+            )
 
+    def _show_upload_progress(
+        self, content_length: int, response: requests.Response
+    ) -> None:
+        """
+        Display a progress bar to track the upload progress of a file download.
+
+        Args:
+            content_length (int): The total size of the content to be downloaded in bytes.
+            response (requests.Response): The response object from the file download request.
+
+        Returns:
+            None
+        """
+        with TQDM(
+            total=content_length, unit='B', unit_scale=True, unit_divisor=1024
+        ) as pbar:
+            for data in response.iter_content(chunk_size=1024):
+                pbar.update(len(data))

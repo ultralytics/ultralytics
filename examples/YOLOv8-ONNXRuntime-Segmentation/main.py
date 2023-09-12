@@ -46,7 +46,7 @@ class Yolov8:
         Returns:
             None
         """
-        draw = ImageDraw.Draw(img, "RGBA")
+        draw = ImageDraw.Draw(img, 'RGBA')
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
 
@@ -63,7 +63,7 @@ class Yolov8:
         label = f'{self.classes[class_id]}: {score:.2f}'
 
         # Calculate the dimensions of the label text
-        font = ImageFont.truetype("arial", 10)
+        font = ImageFont.truetype('arial', 10)
         left, top, right, bottom = draw.textbbox((0, 0), label, font=font)
         label_width = right - left
         label_height = bottom - top
@@ -73,8 +73,10 @@ class Yolov8:
         label_y = y1 - 10 if y1 - 10 > label_height else y1 + 10
 
         # Draw a filled rectangle as the background for the label text
-        draw.rectangle([label_x, label_y - label_height, label_x + label_width, label_y + label_height], fill=alpha_color_mask, outline=alpha_color_box) 
-        
+        draw.rectangle([label_x, label_y - label_height, label_x + label_width, label_y + label_height],
+                       fill=alpha_color_mask,
+                       outline=alpha_color_box)
+
         # Draw the label text on the image
         draw.text((label_x, label_y), label, (0, 0, 0), font=font)
 
@@ -82,7 +84,7 @@ class Yolov8:
         min_x = min(polygon, key=lambda x: x[0])
         min_y = min(polygon, key=lambda x: x[1])
         updated_polygon = [(round(coord[0] + x1 - min_x[0]), round(coord[1] + y1 - min_y[1])) for coord in polygon]
-        draw.polygon(updated_polygon ,fill=alpha_color_mask)
+        draw.polygon(updated_polygon, fill=alpha_color_mask)
 
     def preprocess(self):
         """
@@ -114,10 +116,10 @@ class Yolov8:
 
         # Return the preprocessed image data
         return image_data
-    
+
     def sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
-    
+
     def get_mask(self, row, box, img_width, img_height):
         """
         Function extracts segmentation mask for object in a row
@@ -127,27 +129,27 @@ class Yolov8:
         :param img_height: Height of original image
         :return: Segmentation mask as NumPy array
         """
-        mask = row.reshape(160,160)
+        mask = row.reshape(160, 160)
         mask = self.sigmoid(mask)
-        mask = (mask > 0.5).astype('uint8')*255
-        x1,y1,x2,y2 = box
-        mask_x1 = round(x1/img_width*160)
-        mask_y1 = round(y1/img_height*160)
-        mask_x2 = round(x2/img_width*160)
-        mask_y2 = round(y2/img_height*160)
-        mask = mask[mask_y1:mask_y2,mask_x1:mask_x2]
-        img_mask = Image.fromarray(mask,"L")
-        img_mask = img_mask.resize((round(x2-x1),round(y2-y1)))
+        mask = (mask > 0.5).astype('uint8') * 255
+        x1, y1, x2, y2 = box
+        mask_x1 = round(x1 / img_width * 160)
+        mask_y1 = round(y1 / img_height * 160)
+        mask_x2 = round(x2 / img_width * 160)
+        mask_y2 = round(y2 / img_height * 160)
+        mask = mask[mask_y1:mask_y2, mask_x1:mask_x2]
+        img_mask = Image.fromarray(mask, 'L')
+        img_mask = img_mask.resize((round(x2 - x1), round(y2 - y1)))
         mask = np.array(img_mask)
         return mask
-    
+
     def get_polygon(self, mask):
         """
         Function calculates bounding polygon based on segmentation mask
         :param mask: Segmentation mask as Numpy Array
         :return:
         """
-        contours = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+        contours = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         polygon = [[int(contour[0][0]), int(contour[0][1])] for contour in contours[0][0]]
         return polygon
 
@@ -166,8 +168,8 @@ class Yolov8:
         img = Image.fromarray(input_image)
         # Transpose and squeeze the output to match the expected shape
         len_classes = len(self.classes)
-        output0 = output[0].astype("float")
-        output1 = output[1].astype("float")
+        output0 = output[0].astype('float')
+        output1 = output[1].astype('float')
         output0 = output0[0].transpose()
         masks = output0[:, (4 + len_classes):]
         output1 = output1.reshape(32, 160 * 160)
@@ -190,7 +192,7 @@ class Yolov8:
         # Iterate over each row in the outputs array
         for i in range(rows):
             # Extract the class scores from the current row
-            classes_scores = outputs[i][4: (4 + len_classes)] 
+            classes_scores = outputs[i][4:(4 + len_classes)]
             # Find the maximum score among the class scores
             max_score = np.amax(classes_scores)
 
@@ -212,9 +214,10 @@ class Yolov8:
                 scores.append(max_score)
                 boxes.append([left, top, width, height])
                 # Add the mask arrays to the respective lists
-                mask_array = self.get_mask(masks[i], (left, top, left + width, top + height), self.img_width, self.img_height)
+                mask_array = self.get_mask(masks[i], (left, top, left + width, top + height), self.img_width,
+                                           self.img_height)
                 mask_arrays.append(mask_array)
-                
+
         # Apply non-maximum suppression to filter out overlapping bounding boxes
         indices = cv2.dnn.NMSBoxes(boxes, scores, self.confidence_thres, self.iou_thres)
 

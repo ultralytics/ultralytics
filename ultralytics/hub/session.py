@@ -117,8 +117,7 @@ class HUBTrainingSession:
 
             if data['status'] == 'new':  # new model to start training
                 self.train_args = {
-                    # TODO deprecate 'batch_size' argument in favor of 'batch'
-                    'batch': data['batch' if 'batch' in data else 'batch_size'],
+                    'batch': data['batch_size'],  # note HUB argument is slightly different
                     'epochs': data['epochs'],
                     'imgsz': data['imgsz'],
                     'patience': data['patience'],
@@ -159,6 +158,7 @@ class HUBTrainingSession:
         data = {'epoch': epoch}
         if final:
             data.update({'type': 'final', 'map': map})
+            filesize = Path(weights).stat().st_size
             smart_request('post',
                           url,
                           data=data,
@@ -167,7 +167,7 @@ class HUBTrainingSession:
                           retry=10,
                           timeout=3600,
                           thread=False,
-                          progress=True,
+                          progress=filesize,
                           code=4)
         else:
             data.update({'type': 'epoch', 'isBest': bool(is_best)})

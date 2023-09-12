@@ -17,8 +17,7 @@ def on_pretrain_routine_end(trainer):
         LOGGER.info(f'{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model.id} 🚀')
         session.timers = {
             'metrics': time(),
-            'ckpt': time(),
-        }  # start timer on session.rate_limit
+            'ckpt': time(), }  # start timer on session.rate_limit
 
 
 def on_fit_epoch_end(trainer):
@@ -28,8 +27,7 @@ def on_fit_epoch_end(trainer):
         # Upload metrics after val end
         all_plots = {
             **trainer.label_loss_items(trainer.tloss, prefix='train'),
-            **trainer.metrics,
-        }
+            **trainer.metrics, }
         if trainer.epoch == 0:
             from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -48,9 +46,7 @@ def on_model_save(trainer):
         # Upload checkpoints with rate limiting
         is_best = trainer.best_fitness == trainer.fitness
         if time() - session.timers['ckpt'] > session.rate_limits['ckpt']:
-            LOGGER.info(
-                f'{PREFIX}Uploading checkpoint {HUB_WEB_ROOT}/models/{session.model.id}'
-            )
+            LOGGER.info(f'{PREFIX}Uploading checkpoint {HUB_WEB_ROOT}/models/{session.model.id}')
             session.upload_model(trainer.epoch, trainer.last, is_best)
             session.timers['ckpt'] = time()  # reset timer
 
@@ -68,10 +64,8 @@ def on_train_end(trainer):
             final=True,
         )
         session.alive = False  # stop heartbeats
-        LOGGER.info(
-            f'{PREFIX}Done ✅\n'
-            f'{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model.id} 🚀'
-        )
+        LOGGER.info(f'{PREFIX}Done ✅\n'
+                    f'{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model.id} 🚀')
 
 
 def on_train_start(trainer):
@@ -94,17 +88,12 @@ def on_export_start(exporter):
     events(exporter.args)
 
 
-callbacks = (
-    {
-        'on_pretrain_routine_end': on_pretrain_routine_end,
-        'on_fit_epoch_end': on_fit_epoch_end,
-        'on_model_save': on_model_save,
-        'on_train_end': on_train_end,
-        'on_train_start': on_train_start,
-        'on_val_start': on_val_start,
-        'on_predict_start': on_predict_start,
-        'on_export_start': on_export_start,
-    }
-    if SETTINGS['hub'] is True
-    else {}
-)  # verify enabled
+callbacks = ({
+    'on_pretrain_routine_end': on_pretrain_routine_end,
+    'on_fit_epoch_end': on_fit_epoch_end,
+    'on_model_save': on_model_save,
+    'on_train_end': on_train_end,
+    'on_train_start': on_train_start,
+    'on_val_start': on_val_start,
+    'on_predict_start': on_predict_start,
+    'on_export_start': on_export_start, } if SETTINGS['hub'] is True else {})  # verify enabled

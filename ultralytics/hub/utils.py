@@ -10,22 +10,8 @@ from pathlib import Path
 
 import requests
 
-from ultralytics.utils import (
-    ENVIRONMENT,
-    LOGGER,
-    ONLINE,
-    RANK,
-    SETTINGS,
-    TESTS_RUNNING,
-    TQDM,
-    TryExcept,
-    __version__,
-    colorstr,
-    get_git_origin_url,
-    is_colab,
-    is_git_dir,
-    is_pip_package,
-)
+from ultralytics.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM, TryExcept, __version__,
+                               colorstr, get_git_origin_url, is_colab, is_git_dir, is_pip_package)
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 
 PREFIX = colorstr('Ultralytics HUB: ')

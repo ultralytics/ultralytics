@@ -9,7 +9,8 @@ from ultralytics_hub_sdk.config import HUB_WEB_ROOT
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, SETTINGS, callbacks, emojis, yaml_load
+from ultralytics.utils import (ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, SETTINGS, callbacks, emojis,
+                               yaml_load)
 from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode
@@ -329,8 +330,8 @@ class Model:
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
         self._check_is_pytorch_model()
-        if hasattr(self.session, 'model') and self.session.model.id: # Ultralytics HUB session with loaded model
-            kwargs = self.session.train_args # Overwrite kwargs
+        if hasattr(self.session, 'model') and self.session.model.id:  # Ultralytics HUB session with loaded model
+            kwargs = self.session.train_args  # Overwrite kwargs
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
 

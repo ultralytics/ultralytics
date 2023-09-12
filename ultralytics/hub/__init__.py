@@ -1,11 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import requests
+from ultralytics_hub_sdk import HUB_API_ROOT, HUB_WEB_ROOT, HUBClient
 
-from ultralytics_hub_sdk import HUBClient, HUB_API_ROOT, HUB_WEB_ROOT
+from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.utils import PREFIX
 from ultralytics.utils import LOGGER, SETTINGS, emojis, is_colab
-from ultralytics.data.utils import HUBDatasetStats
 
 
 def login(api_key: str = None, save=True) -> bool:
@@ -20,10 +20,10 @@ def login(api_key: str = None, save=True) -> bool:
     Returns:
         bool: True if authentication is successful, False otherwise.
     """
-    api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # Set the redirect URL
+    api_key_url = f'{HUB_WEB_ROOT}/settings?tab=api+keys'  # Set the redirect URL
     saved_key = SETTINGS.get('api_key')
     active_key = api_key or saved_key
-    credentials = {"api_key": active_key} if active_key and active_key != '' else None  # Set credentials
+    credentials = {'api_key': active_key} if active_key and active_key != '' else None  # Set credentials
 
     client = HUBClient(credentials)  # Initialize HUBClient
 
@@ -31,22 +31,17 @@ def login(api_key: str = None, save=True) -> bool:
         # Successfully authenticated with HUB
 
         if save and client.api_key != saved_key:
-            SETTINGS.update(
-                {"api_key": client.api_key}
-            )  # Update settings with valid API key
+            SETTINGS.update({'api_key': client.api_key})  # Update settings with valid API key
 
         # Set message based on whether key was provided or retrieved from settings
-        log_message = (
-            "New authentication successful ✅"
-            if client.api_key == api_key or not credentials
-            else "Authenticated ✅"
-        )
-        LOGGER.info(f"{PREFIX}{log_message}")
+        log_message = ('New authentication successful ✅'
+                       if client.api_key == api_key or not credentials else 'Authenticated ✅')
+        LOGGER.info(f'{PREFIX}{log_message}')
 
         return True
     else:
         # Failed to authenticate with HUB
-        LOGGER.info(f"{PREFIX}Retrieve API key from {api_key_url}")
+        LOGGER.info(f'{PREFIX}Retrieve API key from {api_key_url}')
         return False
 
 

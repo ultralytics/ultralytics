@@ -1,5 +1,4 @@
 import argparse
-import os
 from pathlib import Path
 
 import cv2
@@ -7,50 +6,37 @@ from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
 from sahi.utils.yolov8 import download_yolov8s_model
 
-
-def increment_path(path, exist_ok=False, sep='', mkdir=False):
-    path = Path(path)
-    if path.exists() and not exist_ok:
-        path, suffix = (path.with_suffix(''), path.suffix) if path.is_file() else (path, '')
-        for n in range(2, 9999):
-            p = f'{path}{sep}{n}{suffix}'
-            if not os.path.exists(p):
-                break
-        path = Path(p)
-    if mkdir:
-        path.mkdir(parents=True, exist_ok=True)
-    return path
+from ultralytics.utils.files import increment_path
 
 
-def run(
-        weights='yolov8n.pt',  # model path
-        source='test.mp4',  # video file path
-        view_img=False,  # display inference results
-        save_img=False,  # save inference results
-        exist_ok=False):
+def run(weights='yolov8n.pt', source='test.mp4', view_img=False, save_img=False, exist_ok=False):
+    """
+    Run object detection on a video using YOLOv8 and SAHI.
+
+    Args:
+        weights (str): Model weights path.
+        source (str): Video file path.
+        view_img (bool): Show results.
+        save_img (bool): Save results.
+        exist_ok (bool): Overwrite existing files.
+    """
+
     yolov8_model_path = f'models/{weights}'
     download_yolov8s_model(yolov8_model_path)
-    detection_model = AutoDetectionModel.from_pretrained(
-        model_type='yolov8',
-        model_path=yolov8_model_path,
-        confidence_threshold=0.3,
-        device='cpu',
-    )
-    # video capture
-    videocapture = cv2.VideoCapture(source)
+    detection_model = AutoDetectionModel.from_pretrained(model_type='yolov8',
+                                                         model_path=yolov8_model_path,
+                                                         confidence_threshold=0.3,
+                                                         device='cpu')
 
-    # video writer and output directory
-    frame_width = int(videocapture.get(3))
-    frame_height = int(videocapture.get(4))
-    fps = int(videocapture.get(5))
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    # output directory
-    out_dir_path = Path('ultralytics_results_with_sahi')
-    save_dir = increment_path(out_dir_path / 'exp', exist_ok=exist_ok)
+    # Video setup
+    videocapture = cv2.VideoCapture(source)
+    frame_width, frame_height = int(videocapture.get(3)), int(videocapture.get(4))
+    fps, fourcc = int(videocapture.get(5)), cv2.VideoWriter_fourcc(*'mp4v')
+
+    # Output setup
+    save_dir = increment_path(Path('ultralytics_results_with_sahi') / 'exp', exist_ok)
     save_dir.mkdir(parents=True, exist_ok=True)
-    p = Path(source).stem
-    print(save_dir)
-    video_writer = cv2.VideoWriter(os.path.join(save_dir, f'{p}.mp4'), fourcc, fps, (frame_width, frame_height))
+    video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height))
 
     while videocapture.isOpened():
         success, frame = videocapture.read()
@@ -89,7 +75,7 @@ def run(
                         lineType=cv2.LINE_AA)
 
         if view_img:
-            cv2.imshow(p, frame)
+            cv2.imshow(Path(source).stem, frame)
         if save_img:
             video_writer.write(frame)
 
@@ -101,6 +87,7 @@ def run(
 
 
 def parse_opt():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str, default='yolov8n.pt', help='initial weights path')
     parser.add_argument('--source', type=str, required=True, help='video file path')
@@ -111,6 +98,7 @@ def parse_opt():
 
 
 def main(opt):
+    """Main function."""
     run(**vars(opt))
 
 

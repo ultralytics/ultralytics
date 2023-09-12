@@ -158,6 +158,7 @@ class HUBTrainingSession:
         data = {'epoch': epoch}
         if final:
             data.update({'type': 'final', 'map': map})
+            filesize = Path(weights).stat().st_size
             smart_request('post',
                           url,
                           data=data,
@@ -166,7 +167,7 @@ class HUBTrainingSession:
                           retry=10,
                           timeout=3600,
                           thread=False,
-                          progress=True,
+                          progress=filesize,
                           code=4)
         else:
             data.update({'type': 'epoch', 'isBest': bool(is_best)})

@@ -50,53 +50,51 @@ def run(
     save_dir.mkdir(parents=True, exist_ok=True)
     p = Path(source).stem
     print(save_dir)
-    video_writer = cv2.VideoWriter(os.path.join(save_dir, p + '.mp4'), fourcc, fps, (frame_width, frame_height))
+    video_writer = cv2.VideoWriter(os.path.join(save_dir, f'{p}.mp4'), fourcc, fps, (frame_width, frame_height))
 
-    while (videocapture.isOpened()):
+    while videocapture.isOpened():
         success, frame = videocapture.read()
-        if success:
-
-            results = get_sliced_prediction(frame,
-                                            detection_model,
-                                            slice_height=512,
-                                            slice_width=512,
-                                            overlap_height_ratio=0.2,
-                                            overlap_width_ratio=0.2)
-            object_prediction_list = results.object_prediction_list
-
-            boxes_list = []
-            clss_list = []
-            for ind, _ in enumerate(object_prediction_list):
-                boxes = object_prediction_list[ind].bbox.minx, object_prediction_list[ind].bbox.miny, \
-                    object_prediction_list[ind].bbox.maxx, object_prediction_list[ind].bbox.maxy
-                clss = object_prediction_list[ind].category.name
-                boxes_list.append(boxes)
-                clss_list.append(clss)
-
-            for box, cls in zip(boxes_list, clss_list):
-                x1, y1, x2, y2 = box
-                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (56, 56, 255), 2)
-                label = str(cls)
-                t_size = cv2.getTextSize(label, 0, fontScale=0.6, thickness=1)[0]
-                cv2.rectangle(frame, (int(x1), int(y1) - t_size[1] - 3), (int(x1) + t_size[0], int(y1) + 3),
-                              (56, 56, 255), -1)
-                cv2.putText(frame,
-                            label, (int(x1), int(y1) - 2),
-                            0,
-                            0.6, [255, 255, 255],
-                            thickness=1,
-                            lineType=cv2.LINE_AA)
-
-            if view_img:
-                cv2.imshow(p, frame)
-            if save_img:
-                video_writer.write(frame)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        else:
+        if not success:
             break
 
+        results = get_sliced_prediction(frame,
+                                        detection_model,
+                                        slice_height=512,
+                                        slice_width=512,
+                                        overlap_height_ratio=0.2,
+                                        overlap_width_ratio=0.2)
+        object_prediction_list = results.object_prediction_list
+
+        boxes_list = []
+        clss_list = []
+        for ind, _ in enumerate(object_prediction_list):
+            boxes = object_prediction_list[ind].bbox.minx, object_prediction_list[ind].bbox.miny, \
+                object_prediction_list[ind].bbox.maxx, object_prediction_list[ind].bbox.maxy
+            clss = object_prediction_list[ind].category.name
+            boxes_list.append(boxes)
+            clss_list.append(clss)
+
+        for box, cls in zip(boxes_list, clss_list):
+            x1, y1, x2, y2 = box
+            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (56, 56, 255), 2)
+            label = str(cls)
+            t_size = cv2.getTextSize(label, 0, fontScale=0.6, thickness=1)[0]
+            cv2.rectangle(frame, (int(x1), int(y1) - t_size[1] - 3), (int(x1) + t_size[0], int(y1) + 3),
+                          (56, 56, 255), -1)
+            cv2.putText(frame,
+                        label, (int(x1), int(y1) - 2),
+                        0,
+                        0.6, [255, 255, 255],
+                        thickness=1,
+                        lineType=cv2.LINE_AA)
+
+        if view_img:
+            cv2.imshow(p, frame)
+        if save_img:
+            video_writer.write(frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
     video_writer.release()
     videocapture.release()
     cv2.destroyAllWindows()
@@ -109,8 +107,7 @@ def parse_opt():
     parser.add_argument('--view-img', action='store_true', help='show results')
     parser.add_argument('--save-img', action='store_true', help='save results')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
-    opt = parser.parse_args()
-    return opt
+    return parser.parse_args()
 
 
 def main(opt):

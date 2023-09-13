@@ -4,6 +4,11 @@ description: Learn how to use Ultralytics YOLOv8 for pose estimation tasks. Find
 keywords: Ultralytics, YOLO, YOLOv8, pose estimation, keypoints detection, object detection, pre-trained models, machine learning, artificial intelligence
 ---
 
+# Pose Estimation
+
+<br>
+<iframe width="720" height="405" src="https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred
 to as keypoints. The keypoints can represent various parts of the object such as joints, landmarks, or other distinctive
 features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` or 3D `[x, y, visible]`

@@ -8,7 +8,10 @@ keywords: Ultralytics, YOLO, object tracking, video streams, BoT-SORT, ByteTrack
 
 Object tracking is a task that involves identifying the location and class of objects, then assigning a unique ID to that detection in video streams.
 
-The output of tracker is the same as detection with an added object ID.
+The output of Ultralytics trackers is the same as detection with an added object ID.
+
+<br>
+<iframe width="720" height="405" src="https://www.youtube.com/embed/hHyHmOtmEgs?si=VNZtXmm45Nb9s-N-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Available Trackers
 

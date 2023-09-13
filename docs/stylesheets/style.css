@@ -37,3 +37,11 @@ div.highlight {
     max-height: 20rem;
     overflow-y: auto; /* for adding a scrollbar when needed */
 }
+
+
+/* Center YouTube video iframes ------------------------------------------------------------------------------------- */
+iframe {
+  display: block; /* Makes the iframe a block-level element */
+  margin-left: auto; /* Automatic left margin */
+  margin-right: auto; /* Automatic right margin */
+}

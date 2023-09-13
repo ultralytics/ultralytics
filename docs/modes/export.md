@@ -15,6 +15,9 @@ when deploying the model to production environments.
     * Export to ONNX or OpenVINO for up to 3x CPU speedup.
     * Export to TensorRT for up to 5x GPU speedup.
 
+<br>
+<iframe width="720" height="405" src="https://www.youtube.com/embed/WbomGeoOT_k?si=aGmuyooWftA0ue9X" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 ## Usage Examples
 
 Export a YOLOv8n model to a different format like ONNX or TensorRT. See Arguments section below for a full list of

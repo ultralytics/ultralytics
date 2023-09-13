@@ -4,6 +4,8 @@ description: Learn about YOLOv8 Classify models for image classification. Get de
 keywords: Ultralytics, YOLOv8, Image Classification, Pretrained Models, YOLOv8n-cls, Training, Validation, Prediction, Model Export
 ---
 
+# Image Classification
+
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of
 predefined classes.
 

@@ -11,7 +11,7 @@
 
 ## Step 1: Install the Required Libraries
 
-Clone the repository, install the dependencies and `cd` to this local directory for commands in step 2.
+Clone the repository, install dependencies and `cd` to this local directory for commands in Step 2.
 
 ```bash
 # Clone ultralytics repo

@@ -571,7 +571,6 @@ class BaseTrainer:
                     LOGGER.info(f'\nValidating {f}...')
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
-                    self.save_model()  # update ckpt with final metrics
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')
 

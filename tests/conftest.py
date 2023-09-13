@@ -36,7 +36,8 @@ def pytest_runtest_setup(item):
         item (pytest.Item): The test item object.
     """
     if 'slow' in item.keywords and not item.config.getoption('--slow'):
-        pytest.skip('skip slow tests unless --slow is set')
+        # pytest.skip('skip slow tests unless --slow is set')
+        pytest.mark.skip(reason='skip slow tests unless --slow is set')
 
 
 def pytest_sessionstart(session):

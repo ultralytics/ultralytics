@@ -1,15 +1,18 @@
+import os
 import comet_ml
 from ultralytics import YOLO
 
+# Set number of threads
+os.environ['OMP_NUM_THREADS'] = '4'
 
 # Initialize COMET logger, first log done in notebook where API key was asked, now seems to be saved in .comet.config
 comet_ml.init()
 
 # Initialize model and load matching weights
-model = YOLO('yolov8n.yaml', task='detect').load('./../models/yolov8n.pt')
+model = YOLO('yolov8s.yaml', task='detect').load('./../models/yolov8s.pt')
 
-epochs = 3
-batch = 64
+epochs = 100
+batch = 256
 
 model.train(
     resume=False,
@@ -17,11 +20,11 @@ model.train(
     epochs=epochs,
     batch=batch,
     save=True,
-    device=[1,3],
+    device=[3,4,5,6],
     project='fine-tune-cdv1',
-    name=f'8n-{epochs}e-{batch}b',
+    name=f'8s-{epochs}e-{batch}b_4w',
     verbose=True,
-    save_period=1,
+    save_period=20,
     patience=25,
 
 )

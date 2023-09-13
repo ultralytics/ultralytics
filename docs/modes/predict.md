@@ -12,6 +12,17 @@ keywords: Ultralytics, YOLOv8, predict mode, inference sources, prediction tasks
 
 In the world of machine learning and computer vision, the process of making sense out of visual data is called 'inference' or 'prediction'. Ultralytics YOLOv8 offers a powerful feature known as **predict mode** that is tailored for high-performance, real-time inference on a wide range of data sources.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects.
+</p>
+
 ## Why Use Ultralytics YOLO for Inference?
 
 Here's why you should consider YOLOv8's predict mode for your various inference needs:
@@ -405,17 +416,6 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     results = model('bus.jpg')  # list of 1 Results object
     results = model(['bus.jpg', 'zidane.jpg'])  # list of 2 Results objects
     ```
-
-<p align="center">
-  <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects.
-</p>
 
 `Results` objects have the following attributes:
 

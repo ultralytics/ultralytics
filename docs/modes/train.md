@@ -4,9 +4,42 @@ description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO inc
 keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
 ---
 
+# Model Training with Ultralytics YOLO
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-**Train mode** is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image.
+## Introduction
+
+Training a deep learning model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLOv8 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLOv8's robust set of features.
+
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab.
+</p>
+
+## Why Choose Ultralytics YOLO for Training?
+
+Here are some compelling reasons to opt for YOLOv8's Train mode:
+
+- **Efficiency:** Make the most out of your hardware, whether you're on a single-GPU setup or scaling across multiple GPUs.
+- **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
+- **User-Friendly:** Simple yet powerful CLI and Python interfaces for a straightforward training experience.
+- **Hyperparameter Flexibility:** A broad range of customizable hyperparameters to fine-tune model performance.
+
+### Key Features of Train Mode
+
+The following are some notable features of YOLOv8's Train mode:
+
+- **Automatic Dataset Download:** Standard datasets like COCO, VOC, and ImageNet are downloaded automatically on first use.
+- **Multi-GPU Support:** Scale your training efforts seamlessly across multiple GPUs to expedite the process.
+- **Hyperparameter Configuration:** The option to modify hyperparameters through YAML configuration files or CLI arguments.
+- **Visualization and Monitoring:** Real-time tracking of training metrics and visualization of the learning process for better insights.
 
 !!! tip "Tip"
 

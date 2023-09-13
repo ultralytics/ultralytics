@@ -3,8 +3,6 @@
 import shutil
 from pathlib import Path
 
-import pytest
-
 from ultralytics.utils import ROOT
 from ultralytics.utils.torch_utils import init_seeds
 

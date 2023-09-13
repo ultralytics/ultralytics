@@ -24,7 +24,7 @@ def run(weights='yolov8n.pt', source='test.mp4', view_img=False, save_img=False,
 
     # Check source path
     if not os.path.exists(source):
-        print("Video File Path not exist")
+        print("The path to the video file does not exist. Exiting!")
         sys.exit()
 
     yolov8_model_path = f'models/{weights}'

@@ -1,4 +1,3 @@
-import comet_ml
 import os
 from ultralytics import YOLO
 
@@ -6,8 +5,8 @@ from ultralytics import YOLO
 #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"] = "2,3,4,5,6,7"
 
-# Do not log anything in comet.ml
-os.environ['COMET_DISABLE_AUTO_LOGGING'] = '1'
+from ultralytics.utils import SETTINGS
+SETTINGS['comet'] = False  # set True to log using Comet.ml
 
 # Initialize model and load matching weights
 model = YOLO('yolov8n.yaml', task='detect').load('./../models/yolov8n.pt')

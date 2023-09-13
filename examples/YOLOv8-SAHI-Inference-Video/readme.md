@@ -11,9 +11,11 @@
 
 ## Step 1: Install the Required Libraries
 
-Clone the repository and install the dependencies:
+Clone the repository, move to examples folder and install the dependencies:
 
 ```bash
+cd ultralytics/examples
+cd YOLOv8-SAHI-Inference-Video
 pip install sahi ultralytics
 ```
 

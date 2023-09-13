@@ -26,7 +26,7 @@ HUB is designed to be user-friendly and intuitive, with a drag-and-drop interfac
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/kONm9nE5_Fk?si=K0ueUqQWbBqVv8qe" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6" 
     title="YouTube video player" frameborder="0" 
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
     allowfullscreen>
@@ -34,7 +34,6 @@ HUB is designed to be user-friendly and intuitive, with a drag-and-drop interfac
   <br>
   <strong>Watch:</strong> Quick Tutorial on Ultralytics HUB.
 </p>
-
 
 We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
 

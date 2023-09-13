@@ -114,9 +114,9 @@ def test_mobilesam():
     # model(source)
 
 
-# Slow Tests
+# Slow Tests -----------------------------------------------------------------------------------------------------------
 @pytest.mark.slow
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_train_gpu(task, model, data):
-    run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 device="0"')  # single GPU
-    run(f'yolo train {task} model={model}.pt data={data} imgsz=32 epochs=1 device="0,1"')  # multi GPU
+    run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 device=0')  # single GPU
+    run(f'yolo train {task} model={model}.pt data={data} imgsz=32 epochs=1 device=0,1')  # multi GPU

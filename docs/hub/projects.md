@@ -6,7 +6,7 @@ keywords: Ultralytics, HUB projects, Create project, Edit project, Share project
 
 # Ultralytics HUB Projects
 
-Ultralytics HUB projects provide an effective solution for consolidating and managing your models. If you are working with several models that perform similar tasks or have related purposes, Ultralytics HUB projects allow you to group these models together.
+[Ultralytics HUB](https://hub.ultralytics.com/) projects provide an effective solution for consolidating and managing your models. If you are working with several models that perform similar tasks or have related purposes, Ultralytics HUB projects allow you to group these models together.
 
 This creates a unified and organized workspace that facilitates easier model management, comparison and development. Having similar models or various iterations together can facilitate rapid benchmarking, as you can compare their effectiveness. This can lead to faster, more insightful iterative development and refinement of your models.
 

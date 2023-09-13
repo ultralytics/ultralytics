@@ -37,10 +37,7 @@ def pytest_collection_modifyitems(config, items):
         items (list): List of collected test items.
     """
     if not config.getoption('--slow'):
-        skip_slow = pytest.mark.skip(reason="remove this test because it's slow")
-        for item in items:
-            if 'slow' in item.keywords:
-                item.add_marker(skip_slow)
+        items[:] = [item for item in items if 'slow' not in item.keywords]
 
 
 def pytest_sessionstart(session):

@@ -3,19 +3,64 @@
 import re
 from pathlib import Path
 
-import pkg_resources as pkg
-from setuptools import find_namespace_packages, setup
+from setuptools import setup
 
 # Settings
 FILE = Path(__file__).resolve()
 PARENT = FILE.parent  # root directory
 README = (PARENT / 'README.md').read_text(encoding='utf-8')
-REQUIREMENTS = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements((PARENT / 'requirements.txt').read_text())]
 
 
 def get_version():
     file = PARENT / 'ultralytics/__init__.py'
     return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(encoding='utf-8'), re.M)[1]
+
+
+def parse_requirements(file_path: Path):
+    """
+    Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
+
+    Args:
+        file_path (str | Path): Path to the requirements.txt file.
+
+    Returns:
+        List[str]: List of parsed requirements.
+    """
+
+    requirements = []
+    for line in Path(file_path).read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith('#'):
+            requirements.append(line.split('#')[0].strip())  # ignore inline comments
+
+    return requirements
+
+
+def find_packages(start_dir, exclude=()):
+    """
+    Custom implementation of setuptools.find_packages(). Finds all Python packages in a directory.
+
+    Args:
+        start_dir (str | Path, optional): The directory where the search will start. Defaults to the current directory.
+        exclude (list | tuple, optional): List of package names to exclude. Defaults to None.
+
+    Returns:
+        List[str]: List of package names.
+    """
+
+    packages = []
+    start_dir = Path(start_dir)
+    root_package = start_dir.name
+
+    if '__init__.py' in [child.name for child in start_dir.iterdir()]:
+        packages.append(root_package)
+    for package in start_dir.rglob('*'):
+        if package.is_dir() and '__init__.py' in [child.name for child in package.iterdir()]:
+            package_name = f"{root_package}.{package.relative_to(start_dir).as_posix().replace('/', '.')}"
+            if package_name not in exclude:
+                packages.append(package_name)
+
+    return packages
 
 
 setup(
@@ -34,9 +79,9 @@ setup(
         'Source': 'https://github.com/ultralytics/ultralytics'},
     author='Ultralytics',
     author_email='hello@ultralytics.com',
-    packages=find_namespace_packages(include=['ultralytics.*']),
+    packages=find_packages(start_dir='ultralytics'),  # required
     include_package_data=True,
-    install_requires=REQUIREMENTS,
+    install_requires=parse_requirements(PARENT / 'requirements.txt'),
     extras_require={
         'dev': [
             'ipython',

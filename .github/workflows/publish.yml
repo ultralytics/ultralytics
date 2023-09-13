@@ -47,7 +47,7 @@ jobs:
           print(f'Local version is {v_local}')
           print(f'PyPI version is {v_pypi}')
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
-          increment = (d[0] == d[1] == 0) and d[2] == 1  # only publish if patch version increments by 1
+          increment = (d[0] == d[1] == 0) and (0 < d[2] < 3)  # only publish if patch version increments by 1 or 2
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
           os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
           if increment:

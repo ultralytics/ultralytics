@@ -80,7 +80,9 @@ setup(
     author='Ultralytics',
     author_email='hello@ultralytics.com',
     packages=find_packages(start_dir='ultralytics'),  # required
-    package_data={"": ["*.yaml"], "ultralytics.assets": ["*.jpg"]},
+    package_data={
+        '': ['*.yaml'],
+        'ultralytics.assets': ['*.jpg']},
     include_package_data=True,
     install_requires=parse_requirements(PARENT / 'requirements.txt'),
     extras_require={

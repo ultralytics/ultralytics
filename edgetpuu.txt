@@ -27,7 +27,7 @@ First, download and install the[EdgeTPU Compiler](https://coral.ai/docs/edgetpu/
 
 
 !!! example ""
-	
+
     === "CLI"
         ```bash
         edgetpu_compiler "/path/to/yolov8n_full_integer_quant.tflite"

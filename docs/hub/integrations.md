@@ -18,7 +18,7 @@ Welcome to the Integrations guide for [Ultralytics HUB](https://hub.ultralytics.
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Quick Tutorial on Ultralytics HUB.
+  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB.
 </p>
 
 ## Available Integrations

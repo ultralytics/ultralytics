@@ -32,7 +32,7 @@ HUB is designed to be user-friendly and intuitive, with a drag-and-drop interfac
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Quick Tutorial on Ultralytics HUB.
+  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB.
 </p>
 
 We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!

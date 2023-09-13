@@ -6,15 +6,11 @@ keywords: YOLOv8, Ultralytics, object detection, pretrained models, training, va
 
 # Object Detection
 
-Object detection is a task that involves identifying the location and class of objects in an image or video stream.
-
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/243418624-5785cb93-74c9-4541-9179-d5c6782d491a.png">
 
+Object detection is a task that involves identifying the location and class of objects in an image or video stream.
+
 The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know exactly where the object is or its exact shape.
-
-!!! tip "Tip"
-
-    YOLOv8 Detect models are the default YOLOv8 models, i.e. `yolov8n.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
 <p align="center">
   <br>
@@ -24,8 +20,12 @@ The output of an object detector is a set of bounding boxes that enclose the obj
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Quick Tutorial on Object Detection.
+  <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLOv8 Model.
 </p>
+
+!!! tip "Tip"
+
+    YOLOv8 Detect models are the default YOLOv8 models, i.e. `yolov8n.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 

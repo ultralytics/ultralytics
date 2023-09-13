@@ -20,7 +20,7 @@ keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom datase
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Quick Tutorial on model Train Mode.
+  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab.
 </p>
 
 ## Usage Examples

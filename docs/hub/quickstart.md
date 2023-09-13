@@ -18,7 +18,7 @@ Thank you for visiting the Quickstart guide for [Ultralytics HUB](https://hub.ul
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Quick Tutorial on Ultralytics HUB.
+  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB.
 </p>
 
 In the meantime, here's a brief overview of what you can expect from Ultralytics HUB:

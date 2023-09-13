@@ -21,7 +21,7 @@ keywords: YOLO, YOLOv8, Ultralytics, Model export, ONNX, TensorRT, CoreML, Tenso
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Quick Tutorial on model Export Mode.
+  <strong>Watch:</strong> How To Export Custom Trained Ultralytics YOLOv8 Model and Run Live Inference on Webcam.
 </p>
 
 ## Usage Examples

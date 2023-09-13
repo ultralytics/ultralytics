@@ -12,8 +12,7 @@ Once uploaded, datasets can be immediately utilized for model training. This int
 
 ## Upload Dataset
 
-Ultralytics HUB datasets are just like YOLOv5 and YOLOv8 🚀 datasets. They use the same structure and the same label formats to keep
-everything simple.
+Ultralytics HUB datasets are just like YOLOv5 and YOLOv8 🚀 datasets. They use the same structure and the same label formats to keep everything simple.
 
 Before you upload a dataset to Ultralytics HUB, make sure to **place your dataset YAML file inside the dataset root directory** and that **your dataset YAML, directory and ZIP have the same name**, as shown in the example below, and then zip the dataset directory.
 
@@ -41,6 +40,7 @@ After zipping your dataset, you should validate it before uploading it to Ultral
 
 ```py
 from ultralytics.hub import check_dataset
+
 check_dataset('path/to/coco8.zip')
 ```
 

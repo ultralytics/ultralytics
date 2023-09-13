@@ -18,7 +18,7 @@ The output of Ultralytics trackers is the same as detection with an added object
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Quick Tutorial on model Track Mode.
+  <strong>Watch:</strong> Object Detection and Tracking with Ultralytics YOLOv8.
 </p>
 
 ## Available Trackers

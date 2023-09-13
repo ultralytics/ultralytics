@@ -390,7 +390,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Quick Tutorial on model Predict Mode.
+  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects.
 </p>
 
 `Results` objects have the following attributes:

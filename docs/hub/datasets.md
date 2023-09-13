@@ -6,7 +6,7 @@ keywords: Ultralytics, HUB datasets, YOLO model training, upload datasets, datas
 
 # HUB Datasets
 
-[Ultralytics HUB](https:://hub.ultralytics.com/) datasets are a practical solution for managing and leveraging your custom datasets.
+[Ultralytics HUB](https://hub.ultralytics.com/) datasets are a practical solution for managing and leveraging your custom datasets.
 
 Once uploaded, datasets can be immediately utilized for model training. This integrated approach facilitates a seamless transition from dataset management to model training, significantly simplifying the entire process.
 

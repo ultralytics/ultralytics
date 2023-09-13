@@ -24,7 +24,17 @@ keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, model deployment, pre
 
 HUB is designed to be user-friendly and intuitive, with a drag-and-drop interface that allows users to easily upload their data and train new models quickly. It offers a range of pre-trained models and templates to choose from, making it easy for users to get started with training their own models. Once a model is trained, it can be easily deployed and used for real-time object detection, instance segmentation and classification tasks.
 
-<iframe width="720" height="405" src="https://www.youtube.com/embed/kONm9nE5_Fk?si=K0ueUqQWbBqVv8qe" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/kONm9nE5_Fk?si=K0ueUqQWbBqVv8qe" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Quick Tutorial on Ultralytics HUB.
+</p>
+
 
 We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
 

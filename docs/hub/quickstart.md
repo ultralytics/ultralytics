@@ -10,7 +10,16 @@ keywords: Ultralytics HUB, Quickstart, YOLOv5, YOLOv8, model training, quick dep
 
 Thank you for visiting the Quickstart guide for [Ultralytics HUB](https://hub.ultralytics.com/)! We're currently hard at work building out this page to provide you with step-by-step instructions on how to get up and running with HUB in no time.
 
-<iframe width="720" height="405" src="https://www.youtube.com/embed/kONm9nE5_Fk?si=K0ueUqQWbBqVv8qe" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/kONm9nE5_Fk?si=K0ueUqQWbBqVv8qe" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Quick Tutorial on Ultralytics HUB.
+</p>
 
 In the meantime, here's a brief overview of what you can expect from Ultralytics HUB:
 

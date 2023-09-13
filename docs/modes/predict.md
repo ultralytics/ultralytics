@@ -4,9 +4,44 @@ description: Discover how to use YOLOv8 predict mode for various tasks. Learn ab
 keywords: Ultralytics, YOLOv8, predict mode, inference sources, prediction tasks, streaming mode, image processing, video processing, machine learning, AI
 ---
 
+# Model Prediction with Ultralytics YOLO
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-YOLOv8 **predict mode** can generate predictions for various tasks, returning either a list of `Results` objects or a memory-efficient generator of `Results` objects when using the streaming mode. Enable streaming mode by passing `stream=True` in the predictor's call method.
+## Introduction
+
+In the world of machine learning and computer vision, the process of making sense out of visual data is called 'inference' or 'prediction'. Ultralytics YOLOv8 offers a powerful feature known as **predict mode** that is tailored for high-performance, real-time inference on a wide range of data sources.
+
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects.
+</p>
+
+## Why Use Ultralytics YOLO for Inference?
+
+Here's why you should consider YOLOv8's predict mode for your various inference needs:
+
+- **Versatility:** Capable of making inferences on images, videos, and even live streams.
+- **Performance:** Engineered for real-time, high-speed processing without sacrificing accuracy.
+- **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
+- **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
+
+### Key Features of Predict Mode
+
+YOLOv8's predict mode is designed to be robust and versatile, featuring:
+
+- **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
+- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
+- **Batch Processing:** The ability to process multiple images or video frames in a single batch, further speeding up inference time.
+- **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
+
+Ultralytics YOLO models return either a Python list of `Results` objects, or a memory-efficient Python generator of `Results` objects when `stream=True` is passed to the model during inference:
 
 !!! example "Predict"
 

@@ -255,7 +255,7 @@ nav:
           - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
           - Comet Logging: yolov5/tutorials/comet_logging_integration.md
           - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
-  - Ultralytics HUB:
+  - HUB:
       - hub/index.md
       - Quickstart: hub/quickstart.md
       - Datasets: hub/datasets.md

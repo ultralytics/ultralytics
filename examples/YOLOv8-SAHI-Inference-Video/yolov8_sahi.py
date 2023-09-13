@@ -1,7 +1,8 @@
 import argparse
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
+
 import cv2
 from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
@@ -24,7 +25,7 @@ def run(weights='yolov8n.pt', source='test.mp4', view_img=False, save_img=False,
 
     # Check source path
     if not os.path.exists(source):
-        print("The path to the video file does not exist. Exiting!")
+        print('The path to the video file does not exist. Exiting!')
         sys.exit()
 
     yolov8_model_path = f'models/{weights}'

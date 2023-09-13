@@ -10,7 +10,6 @@ keywords: Ultralytics HUB, Integrations, Roboflow, Dataset, Export, YOLOv5, YOLO
 
 Welcome to the Integrations guide for [Ultralytics HUB](https:://hub.ultralytics.com/)! We are in the process of expanding this section to provide you with comprehensive guidance on integrating your YOLOv5 and YOLOv8 models with various platforms and formats. Currently, Roboflow is our available dataset integration, with a wide range of export integrations for your trained models.
 
-<br>
 <iframe width="720" height="405" src="https://www.youtube.com/embed/kONm9nE5_Fk?si=K0ueUqQWbBqVv8qe" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Available Integrations

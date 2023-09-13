@@ -382,7 +382,6 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     results = model(['bus.jpg', 'zidane.jpg'])  # list of 2 Results objects
     ```
 
-<br>
 <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 `Results` objects have the following attributes:

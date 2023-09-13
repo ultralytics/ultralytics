@@ -6,7 +6,6 @@ keywords: Ultralytics, YOLO, YOLOv8, pose estimation, keypoints detection, objec
 
 # Pose Estimation
 
-<br>
 <iframe width="720" height="405" src="https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred

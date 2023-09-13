@@ -21,11 +21,12 @@ def parse_requirements(file_path: Path):
     Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
-        file_path (Path): Path to the requirements.txt file.
+        file_path (str | Path): Path to the requirements.txt file.
 
     Returns:
         List[str]: List of parsed requirements.
     """
+
     requirements = []
     for line in Path(file_path).read_text().splitlines():
         line = line.strip()
@@ -35,12 +36,12 @@ def parse_requirements(file_path: Path):
     return requirements
 
 
-def find_packages(start_dir='', exclude=()):
+def find_packages(start_dir, exclude=()):
     """
     Custom implementation of setuptools.find_packages(). Finds all Python packages in a directory.
 
     Args:
-        start_dir (Path, optional): The directory where the search will start. Defaults to the current directory.
+        start_dir (str | Path, optional): The directory where the search will start. Defaults to the current directory.
         exclude (list | tuple, optional): List of package names to exclude. Defaults to None.
 
     Returns:

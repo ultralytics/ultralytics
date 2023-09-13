@@ -38,11 +38,3 @@ div.highlight {
     overflow-y: auto; /* for adding a scrollbar when needed */
 }
 
-
-/* Center YouTube video iframes ------------------------------------------------------------------------------------- */
-iframe {
-  padding: 20px;
-  display: block; /* Makes the iframe a block-level element */
-  margin-left: auto; /* Automatic left margin */
-  margin-right: auto; /* Automatic right margin */
-}

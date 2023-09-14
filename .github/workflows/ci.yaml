@@ -257,7 +257,6 @@ jobs:
           activate-environment: anaconda-client-env
       - name: Install Libmamba
         run: |
-          # conda install conda-libmamba-solver
           conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
         run: |

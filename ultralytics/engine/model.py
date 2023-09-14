@@ -14,7 +14,7 @@ from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 
-class Model:
+class Model(nn.Module):
     """
     A base model class to unify apis for all the models.
 
@@ -55,7 +55,7 @@ class Model:
         list(ultralytics.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None) -> None:
+    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None, *args, **kwargs) -> None:
         """
         Initializes the YOLO model.
 
@@ -63,6 +63,7 @@ class Model:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
             task (Any, optional): Task type for the YOLO model. Defaults to None.
         """
+        super().__init__(*args, **kwargs)
         self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor
         self.model = None  # model object
@@ -373,7 +374,19 @@ class Model:
             device (str): device
         """
         self._check_is_pytorch_model()
-        self.model.to(device)
+
+
+        # Your code before calling the base class method
+        print("Running some code before base class to()")
+
+        # Call the base class method
+        super().to(device)
+
+        # Your code after calling the base class method
+        print("Running some code after base class to()")
+
+        #self.model.to(device)
+        self.predictor = None
         return self
 
     @property
@@ -410,10 +423,10 @@ class Model:
         for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
-    def __getattr__(self, attr):
-        """Raises error if object has no requested attribute."""
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+    #def __getattr__(self, attr):
+    #    """Raises error if object has no requested attribute."""
+    #    name = self.__class__.__name__
+    #    raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     def smart_load(self, key):
         """Load model/trainer/validator/predictor."""

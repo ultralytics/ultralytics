@@ -47,7 +47,7 @@ def pytest_collection_modifyitems(config, items):
         config (pytest.config.Config): The pytest config object.
         items (list): List of test items to be executed.
     """
-    if not config.getoption("--slow"):
+    if not config.getoption('--slow'):
         # Remove the item entirely from the list of test items if it's marked as 'slow'
         items[:] = [item for item in items if 'slow' not in item.keywords]
 

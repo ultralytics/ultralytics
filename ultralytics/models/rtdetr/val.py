@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import cv2
-import numpy as np
 import torch
 
 from ultralytics.data import YOLODataset
@@ -14,40 +12,19 @@ from ultralytics.utils import colorstr, ops
 __all__ = 'RTDETRValidator',  # tuple or list
 
 
-# TODO: Temporarily, RT-DETR does not need padding.
+# TODO: Temporarily RT-DETR does not need padding.
 class RTDETRDataset(YOLODataset):
 
     def __init__(self, *args, data=None, **kwargs):
         super().__init__(*args, data=data, use_segments=False, use_keypoints=False, **kwargs)
 
     # NOTE: add stretch version load_image for rtdetr mosaic
-    def load_image(self, i):
+    def load_image(self, i, rect_mode=False):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
-        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
-        if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
-                im = np.load(fn)
-            else:  # read image
-                im = cv2.imread(f)  # BGR
-                if im is None:
-                    raise FileNotFoundError(f'Image Not Found {f}')
-            h0, w0 = im.shape[:2]  # orig hw
-            im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
-
-            # Add to buffer if training with augmentations
-            if self.augment:
-                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
-                self.buffer.append(i)
-                if len(self.buffer) >= self.max_buffer_length:
-                    j = self.buffer.pop(0)
-                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-
-            return im, (h0, w0), im.shape[:2]
-
-        return self.ims[i], self.im_hw0[i], self.im_hw[i]
+        return super().load_image(i=i, rect_mode=rect_mode)
 
     def build_transforms(self, hyp=None):
-        """Temporarily, only for evaluation."""
+        """Temporary, only for evaluation."""
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
@@ -67,9 +44,22 @@ class RTDETRDataset(YOLODataset):
 
 
 class RTDETRValidator(DetectionValidator):
+    """
+    A class extending the DetectionValidator class for validation based on an RT-DETR detection model.
+
+    Example:
+        ```python
+        from ultralytics.models.rtdetr import RTDETRValidator
+
+        args = dict(model='rtdetr-l.pt', data='coco8.yaml')
+        validator = RTDETRValidator(args=args)
+        validator()
+        ```
+    """
 
     def build_dataset(self, img_path, mode='val', batch=None):
-        """Build YOLO Dataset
+        """
+        Build an RTDETR Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.

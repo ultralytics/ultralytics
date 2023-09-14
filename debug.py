@@ -5,23 +5,23 @@ from ultralytics import YOLO
 #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"] = "2,3,4,5,6,7"
 
-from ultralytics.utils import SETTINGS
-SETTINGS['comet'] = False  # set True to log using Comet.ml
+#from ultralytics.utils import SETTINGS
+#SETTINGS['comet'] = False  # set True to log using Comet.ml
 
 # Initialize model and load matching weights
-model = YOLO('/home-net/ierregue/project/detector/small-fast-detector/fine-tune-cdv1/8s-100e-16b_4w/weights/best.pt', task='detect')
-epochs = 3
-batch = 64
+model = YOLO('yolov8n.pt')
+epochs = 2
+batch = 4
 
-metrics = model.val(data='custom_dataset.yaml', verbose=True, plots=True, save_json=True, device=[1])
-"""
+#metrics = model.val(data='custom_dataset.yaml', verbose=True, plots=True, save_json=True, device=[1])
+
 model.train(
     resume=False,
-    data='coco128.yaml',
+    data='coco8.yaml',
     epochs=epochs,
     batch=batch,
     save=True,
-    device=[1],
+    device=[4],
     project='fine-tune-cdv1',
     name=f'8n-{epochs}e-{batch}b',
     verbose=True,
@@ -29,7 +29,7 @@ model.train(
     patience=25,
 
 )
-"""
+
 """
 # Resume training from 'training/weights/last.pt'
 model = YOLO('last.pt')

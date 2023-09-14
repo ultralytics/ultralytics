@@ -3,12 +3,12 @@ description: Maximize your model's potential with Ultralytics YOLO Detection Tra
 keywords: Ultralytics YOLO, YOLO, Detection Trainer, Model Training, Machine Learning, Deep Learning, Computer Vision
 ---
 
-## DetectionTrainer
----
-### ::: ultralytics.models.yolo.detect.train.DetectionTrainer
-<br><br>
+# Reference for `ultralytics/models/yolo/detect/train.py`
 
-## train
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/train.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
+
 ---
-### ::: ultralytics.models.yolo.detect.train.train
+## ::: ultralytics.models.yolo.detect.train.DetectionTrainer
 <br><br>

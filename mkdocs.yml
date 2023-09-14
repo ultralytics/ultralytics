@@ -182,6 +182,7 @@ nav:
           - COCO8: datasets/detect/coco8.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - Objects365: datasets/detect/objects365.md
+          - OpenImagesV7: datasets/detect/open-images-v7.md
           - SKU-110K: datasets/detect/sku-110k.md
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
@@ -206,15 +207,23 @@ nav:
           - Imagenette: datasets/classify/imagenette.md
           - Imagewoof: datasets/classify/imagewoof.md
           - MNIST: datasets/classify/mnist.md
+      - Oriented Bounding Boxes (OBB):
+          - datasets/obb/index.md
+          - DOTAv2: datasets/obb/dota-v2.md
       - Multi-Object Tracking:
           - datasets/track/index.md
   - Guides:
       - guides/index.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
+      - Hyperparameter Tuning: guides/hyperparameter-tuning.md
+      - SAHI Tiled Inference: guides/sahi-tiled-inference.md
+      - AzureML Quickstart: guides/azureml-quickstart.md
+      - Conda Quickstart: guides/conda-quickstart.md
   - Integrations:
       - integrations/index.md
       - OpenVINO: integrations/openvino.md
       - Ray Tune: integrations/ray-tune.md
+      - Roboflow: integrations/roboflow.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md
@@ -227,6 +236,7 @@ nav:
       - Environments:
           - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
           - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md
+          - AzureML: yolov5/environments/azureml_quickstart_tutorial.md
           - Docker Image: yolov5/environments/docker_image_quickstart_tutorial.md
       - Tutorials:
           - Train Custom Data: yolov5/tutorials/train_custom_data.md
@@ -275,6 +285,7 @@ nav:
           - predictor: reference/engine/predictor.md
           - results: reference/engine/results.md
           - trainer: reference/engine/trainer.md
+          - tuner: reference/engine/tuner.md
           - validator: reference/engine/validator.md
       - hub:
           - __init__: reference/hub/__init__.md
@@ -390,8 +401,16 @@ nav:
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
-  - mkdocstrings
   - search
+  - mkdocstrings:
+      enabled: true
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_source: true
   - ultralytics:
       add_desc: False
       add_image: True

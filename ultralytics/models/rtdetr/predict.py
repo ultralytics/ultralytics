@@ -9,11 +9,28 @@ from ultralytics.utils import ops
 
 
 class RTDETRPredictor(BasePredictor):
+    """
+    A class extending the BasePredictor class for prediction based on an RT-DETR detection model.
+
+    Example:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.rtdetr import RTDETRPredictor
+
+        args = dict(model='rtdetr-l.pt', source=ASSETS)
+        predictor = RTDETRPredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+    """
 
     def postprocess(self, preds, img, orig_imgs):
         """Postprocess predictions and returns a list of Results objects."""
         nd = preds[0].shape[-1]
         bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
         results = []
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
@@ -22,14 +39,12 @@ class RTDETRPredictor(BasePredictor):
             if self.args.classes is not None:
                 idx = (cls == torch.tensor(self.args.classes, device=cls.device)).any(1) & idx
             pred = torch.cat([bbox, score, cls], dim=-1)[idx]  # filter
-            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            orig_img = orig_imgs[i]
             oh, ow = orig_img.shape[:2]
-            if not isinstance(orig_imgs, torch.Tensor):
-                pred[..., [0, 2]] *= ow
-                pred[..., [1, 3]] *= oh
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred))
+            pred[..., [0, 2]] *= ow
+            pred[..., [1, 3]] *= oh
+            img_path = self.batch[0][i]
+            results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results
 
     def pre_transform(self, im):
@@ -38,7 +53,10 @@ class RTDETRPredictor(BasePredictor):
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
 
-        Return: A list of transformed imgs.
+        Notes: The size must be square(640) and scaleFilled.
+
+        Returns:
+            (list): A list of transformed imgs.
         """
-        # The size must be square(640) and scaleFilled.
-        return [LetterBox(self.imgsz, auto=False, scaleFill=True)(image=x) for x in im]
+        letterbox = LetterBox(self.imgsz, auto=False, scaleFill=True)
+        return [letterbox(image=x) for x in im]

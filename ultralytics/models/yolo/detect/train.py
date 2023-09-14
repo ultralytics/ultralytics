@@ -8,13 +8,24 @@ from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
 
 
-# BaseTrainer python usage
 class DetectionTrainer(BaseTrainer):
+    """
+    A class extending the BaseTrainer class for training based on a detection model.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.detect import DetectionTrainer
+
+        args = dict(model='yolov8n.pt', data='coco8.yaml', epochs=3)
+        trainer = DetectionTrainer(overrides=args)
+        trainer.train()
+        ```
+    """
 
     def build_dataset(self, img_path, mode='train', batch=None):
         """
@@ -69,9 +80,9 @@ class DetectionTrainer(BaseTrainer):
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
-        Returns a loss dict with labelled training loss items tensor
+        Returns a loss dict with labelled training loss items tensor. Not needed for classification but necessary for
+        segmentation & detection
         """
-        # Not needed for classification but necessary for segmentation & detection
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is not None:
             loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
@@ -103,22 +114,3 @@ class DetectionTrainer(BaseTrainer):
         boxes = np.concatenate([lb['bboxes'] for lb in self.train_loader.dataset.labels], 0)
         cls = np.concatenate([lb['cls'] for lb in self.train_loader.dataset.labels], 0)
         plot_labels(boxes, cls.squeeze(), names=self.data['names'], save_dir=self.save_dir, on_plot=self.on_plot)
-
-
-def train(cfg=DEFAULT_CFG, use_python=False):
-    """Train and optimize YOLO model given training data and device."""
-    model = cfg.model or 'yolov8n.pt'
-    data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
-    device = cfg.device if cfg.device is not None else ''
-
-    args = dict(model=model, data=data, device=device)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).train(**args)
-    else:
-        trainer = DetectionTrainer(overrides=args)
-        trainer.train()
-
-
-if __name__ == '__main__':
-    train()

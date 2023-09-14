@@ -37,18 +37,18 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         model = YOLO('path/to/best.pt')  # Load a custom trained model
 
         # Perform tracking with the model
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True)  # Tracking with default tracker
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True, tracker="bytetrack.yaml")  # Tracking with ByteTrack tracker
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # Tracking with ByteTrack tracker
         ```
 
     === "CLI"
 
         ```bash
         # Perform tracking with various models using the command line interface
-        yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Detect model
-        yolo track model=yolov8n-seg.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Segment model
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/Zgi9g1ksQHc"  # Official Pose model
-        yolo track model=path/to/best.pt source="https://youtu.be/Zgi9g1ksQHc"  # Custom trained model
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # Official Detect model
+        yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # Official Pose model
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Custom trained model
 
         # Track using ByteTrack tracker
         yolo track model=path/to/best.pt tracker="bytetrack.yaml" 
@@ -71,14 +71,14 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
 
         # Configure the tracking parameters and run the tracker
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True)
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
     === "CLI"
 
         ```bash
         # Configure tracking parameters and run the tracker using the command line interface
-        yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" conf=0.3, iou=0.5 show
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
         ```
 
 ### Tracker Selection
@@ -94,14 +94,14 @@ Ultralytics also allows you to use a modified tracker configuration file. To do 
 
         # Load the model and run the tracker with a custom configuration file
         model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/Zgi9g1ksQHc", tracker='custom_tracker.yaml')
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
         ```
 
     === "CLI"
 
         ```bash
         # Load the model and run the tracker with a custom configuration file using the command line interface
-        yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" tracker='custom_tracker.yaml'
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
         ```
 
 For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) page.
@@ -122,7 +122,7 @@ Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking o
     model = YOLO('yolov8n.pt')
 
     # Open the video file
-    video_path = "path/to/your/video/file.mp4"
+    video_path = "path/to/video.mp4"
     cap = cv2.VideoCapture(video_path)
 
     # Loop through the video frames
@@ -153,6 +153,75 @@ Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking o
     ```
 
 Please note the change from `model(frame)` to `model.track(frame)`, which enables object tracking instead of simple detection. This modified script will run the tracker on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
+
+### Plotting Tracks Over Time
+
+Visualizing object tracks over consecutive frames can provide valuable insights into the movement patterns and behavior of detected objects within a video. With Ultralytics YOLOv8, plotting these tracks is a seamless and efficient process.
+
+In the following example, we demonstrate how to utilize YOLOv8's tracking capabilities to plot the movement of detected objects across multiple video frames. This script involves opening a video file, reading it frame by frame, and utilizing the YOLO model to identify and track various objects. By retaining the center points of the detected bounding boxes and connecting them, we can draw lines that represent the paths followed by the tracked objects.
+
+!!! example "Plotting tracks over multiple video frames"
+
+    ```python
+    from collections import defaultdict
+    
+    import cv2
+    import numpy as np
+    
+    from ultralytics import YOLO
+    
+    # Load the YOLOv8 model
+    model = YOLO('yolov8n.pt')
+    
+    # Open the video file
+    video_path = "path/to/video.mp4"
+    cap = cv2.VideoCapture(video_path)
+    
+    # Store the track history
+    track_history = defaultdict(lambda: [])
+    
+    # Loop through the video frames
+    while cap.isOpened():
+        # Read a frame from the video
+        success, frame = cap.read()
+    
+        if success:
+            # Run YOLOv8 tracking on the frame, persisting tracks between frames
+            results = model.track(frame, persist=True)
+    
+            # Get the boxes and track IDs
+            boxes = results[0].boxes.xywh.cpu()
+            track_ids = results[0].boxes.id.int().cpu().tolist()
+    
+            # Visualize the results on the frame
+            annotated_frame = results[0].plot()
+    
+            # Plot the tracks
+            for box, track_id in zip(boxes, track_ids):
+                x, y, w, h = box
+                track = track_history[track_id]
+                track.append((float(x), float(y)))  # x, y center point
+                if len(track) > 30:  # retain 90 tracks for 90 frames
+                    track.pop(0)
+    
+                # Draw the tracking lines
+                points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
+    
+            # Display the annotated frame
+            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+    
+            # Break the loop if 'q' is pressed
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        else:
+            # Break the loop if the end of the video is reached
+            break
+    
+    # Release the video capture object and close the display window
+    cap.release()
+    cv2.destroyAllWindows()
+    ```
 
 ### Multithreaded Tracking
 

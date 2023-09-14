@@ -2,11 +2,13 @@
 """
 YOLO-NAS model interface.
 
-Usage - Predict:
+Example:
+    ```python
     from ultralytics import NAS
 
     model = NAS('yolo_nas_s')
     results = model.predict('ultralytics/assets/bus.jpg')
+    ```
 """
 
 from pathlib import Path
@@ -23,7 +25,7 @@ from .val import NASValidator
 class NAS(Model):
 
     def __init__(self, model='yolo_nas_s.pt') -> None:
-        assert Path(model).suffix != '.yaml', 'YOLO-NAS models only support pre-trained models.'
+        assert Path(model).suffix not in ('.yaml', '.yml'), 'YOLO-NAS models only support pre-trained models.'
         super().__init__(model, task='detect')
 
     @smart_inference_mode()

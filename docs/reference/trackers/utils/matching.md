@@ -3,62 +3,24 @@ description: Explore in-depth guidance for using Ultralytics trackers utils matc
 keywords: Ultralytics, Trackers Utils, Matching, merge_matches, linear_assignment, iou_distance, embedding_distance, fuse_motion, fuse_score, documentation
 ---
 
-## merge_matches
+# Reference for `ultralytics/trackers/utils/matching.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
+
 ---
-### ::: ultralytics.trackers.utils.matching.merge_matches
+## ::: ultralytics.trackers.utils.matching.linear_assignment
 <br><br>
 
-## _indices_to_matches
 ---
-### ::: ultralytics.trackers.utils.matching._indices_to_matches
+## ::: ultralytics.trackers.utils.matching.iou_distance
 <br><br>
 
-## linear_assignment
 ---
-### ::: ultralytics.trackers.utils.matching.linear_assignment
+## ::: ultralytics.trackers.utils.matching.embedding_distance
 <br><br>
 
-## ious
 ---
-### ::: ultralytics.trackers.utils.matching.ious
-<br><br>
-
-## iou_distance
----
-### ::: ultralytics.trackers.utils.matching.iou_distance
-<br><br>
-
-## v_iou_distance
----
-### ::: ultralytics.trackers.utils.matching.v_iou_distance
-<br><br>
-
-## embedding_distance
----
-### ::: ultralytics.trackers.utils.matching.embedding_distance
-<br><br>
-
-## gate_cost_matrix
----
-### ::: ultralytics.trackers.utils.matching.gate_cost_matrix
-<br><br>
-
-## fuse_motion
----
-### ::: ultralytics.trackers.utils.matching.fuse_motion
-<br><br>
-
-## fuse_iou
----
-### ::: ultralytics.trackers.utils.matching.fuse_iou
-<br><br>
-
-## fuse_score
----
-### ::: ultralytics.trackers.utils.matching.fuse_score
-<br><br>
-
-## bbox_ious
----
-### ::: ultralytics.trackers.utils.matching.bbox_ious
+## ::: ultralytics.trackers.utils.matching.fuse_score
 <br><br>

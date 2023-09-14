@@ -1,22 +1,17 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import re
-
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
-from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
+    assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['clearml'] is True  # verify integration is enabled
     import clearml
     from clearml import Task
     from clearml.binding.frameworks.pytorch_bind import PatchPyTorchModelIO
     from clearml.binding.matplotlib_bind import PatchedMatplotlib
 
     assert hasattr(clearml, '__version__')  # verify package is not directory
-    assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS['clearml'] is True  # verify integration is enabled
+
 except (ImportError, AssertionError):
     clearml = None
 
@@ -29,8 +24,9 @@ def _log_debug_samples(files, title='Debug Samples') -> None:
         files (list): A list of file paths in PosixPath format.
         title (str): A title that groups together images with the same values.
     """
-    task = Task.current_task()
-    if task:
+    import re
+
+    if task := Task.current_task():
         for f in files:
             if f.exists():
                 it = re.search(r'_batch(\d+)', f.name)
@@ -49,6 +45,9 @@ def _log_plot(title, plot_path) -> None:
         title (str): The title of the plot.
         plot_path (str): The path to the saved image file.
     """
+    import matplotlib.image as mpimg
+    import matplotlib.pyplot as plt
+
     img = mpimg.imread(plot_path)
     fig = plt.figure()
     ax = fig.add_axes([0, 0, 1, 1], frameon=False, aspect='auto', xticks=[], yticks=[])  # no ticks
@@ -63,8 +62,7 @@ def _log_plot(title, plot_path) -> None:
 def on_pretrain_routine_start(trainer):
     """Runs at start of pretraining routine; initializes and connects/ logs task to ClearML."""
     try:
-        task = Task.current_task()
-        if task:
+        if task := Task.current_task():
             # Make sure the automatic pytorch and matplotlib bindings are disabled!
             # We are logging these plots and model files manually in the integration
             PatchPyTorchModelIO.update_current_task(None)
@@ -86,27 +84,26 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_train_epoch_end(trainer):
-    task = Task.current_task()
-
-    if task:
-        """Logs debug samples for the first epoch of YOLO training."""
+    """Logs debug samples for the first epoch of YOLO training and report current training progress."""
+    if task := Task.current_task():
+        # Log debug samples
         if trainer.epoch == 1:
             _log_debug_samples(sorted(trainer.save_dir.glob('train_batch*.jpg')), 'Mosaic')
-        """Report the current training progress."""
+        # Report the current training progress
         for k, v in trainer.validator.metrics.results_dict.items():
             task.get_logger().report_scalar('train', k, v, iteration=trainer.epoch)
 
 
 def on_fit_epoch_end(trainer):
     """Reports model information to logger at the end of an epoch."""
-    task = Task.current_task()
-    if task:
+    if task := Task.current_task():
         # You should have access to the validation bboxes under jdict
         task.get_logger().report_scalar(title='Epoch Time',
                                         series='Epoch Time',
                                         value=trainer.epoch_time,
                                         iteration=trainer.epoch)
         if trainer.epoch == 0:
+            from ultralytics.utils.torch_utils import model_info_for_loggers
             for k, v in model_info_for_loggers(trainer).items():
                 task.get_logger().report_single_value(k, v)
 
@@ -120,8 +117,7 @@ def on_val_end(validator):
 
 def on_train_end(trainer):
     """Logs final model and its name on training completion."""
-    task = Task.current_task()
-    if task:
+    if task := Task.current_task():
         # Log final results, CM matrix + PR plots
         files = [
             'results.png', 'confusion_matrix.png', 'confusion_matrix_normalized.png',

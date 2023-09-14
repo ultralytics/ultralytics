@@ -46,7 +46,7 @@ the benchmarks to their specific needs and compare the performance of different 
 | Key       | Value   | Description                                                           |
 |-----------|---------|-----------------------------------------------------------------------|
 | `model`   | `None`  | path to model file, i.e. yolov8n.pt, yolov8n.yaml                     |
-| `data`    | `None`  | path to yaml referencing the benchmarking dataset (under `val` label) |
+| `data`    | `None`  | path to YAML referencing the benchmarking dataset (under `val` label) |
 | `imgsz`   | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                  |
 | `half`    | `False` | FP16 quantization                                                     |
 | `int8`    | `False` | INT8 quantization                                                     |
@@ -64,7 +64,7 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
 | [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n_openvino_model/` | ✅        | `imgsz`, `half`                                     |
 | [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlmodel`         | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
 | [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n_saved_model/`    | ✅        | `imgsz`, `keras`                                    |
 | [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n.pb`              | ❌        | `imgsz`                                             |
 | [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n.tflite`          | ✅        | `imgsz`, `half`, `int8`                             |

@@ -48,22 +48,25 @@ class Predictor(BasePredictor):
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
 
-        img = im.to(self.device)
-        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
+        im = im.to(self.device)
+        im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
-            img = (img - self.mean) / self.std
-        return img
+            im = (im - self.mean) / self.std
+        return im
 
     def pre_transform(self, im):
-        """Pre-transform input image before inference.
+        """
+        Pre-transform input image before inference.
 
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
 
-        Return: A list of transformed imgs.
+        Returns:
+            (list): A list of transformed images.
         """
-        assert len(im) == 1, 'SAM model has not supported batch inference yet!'
-        return [LetterBox(self.args.imgsz, auto=False, center=False)(image=x) for x in im]
+        assert len(im) == 1, 'SAM model does not currently support batched inference'
+        letterbox = LetterBox(self.args.imgsz, auto=False, center=False)
+        return [letterbox(image=x) for x in im]
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """
@@ -151,8 +154,7 @@ class Predictor(BasePredictor):
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes *= r
         if masks is not None:
-            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device)
-            masks = masks[:, None, :, :]
+            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
         points = (points, labels) if points is not None else None
         # Embed prompts
@@ -255,9 +257,7 @@ class Predictor(BasePredictor):
                 pred_bbox = batched_mask_to_box(pred_mask).float()
                 keep_mask = ~is_box_near_crop_edge(pred_bbox, crop_region, [0, 0, iw, ih])
                 if not torch.all(keep_mask):
-                    pred_bbox = pred_bbox[keep_mask]
-                    pred_mask = pred_mask[keep_mask]
-                    pred_score = pred_score[keep_mask]
+                    pred_bbox, pred_mask, pred_score = pred_bbox[keep_mask], pred_mask[keep_mask], pred_score[keep_mask]
 
                 crop_masks.append(pred_mask)
                 crop_bboxes.append(pred_bbox)
@@ -286,9 +286,7 @@ class Predictor(BasePredictor):
         if len(crop_regions) > 1:
             scores = 1 / region_areas
             keep = torchvision.ops.nms(pred_bboxes, scores, crop_nms_thresh)
-            pred_masks = pred_masks[keep]
-            pred_bboxes = pred_bboxes[keep]
-            pred_scores = pred_scores[keep]
+            pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
 
         return pred_masks, pred_scores, pred_bboxes
 
@@ -310,14 +308,18 @@ class Predictor(BasePredictor):
         self.done_warmup = True
 
     def postprocess(self, preds, img, orig_imgs):
-        """Postprocesses inference output predictions to create detection masks for objects."""
+        """Post-processes inference output predictions to create detection masks for objects."""
         # (N, 1, H, W), (N, 1)
         pred_masks, pred_scores = preds[:2]
         pred_bboxes = preds[2] if self.segment_all else None
         names = dict(enumerate(str(i) for i in range(len(pred_masks))))
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
         results = []
         for i, masks in enumerate([pred_masks]):
-            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            orig_img = orig_imgs[i]
             if pred_bboxes is not None:
                 pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
@@ -325,9 +327,8 @@ class Predictor(BasePredictor):
 
             masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
             masks = masks > self.model.mask_threshold  # to bool
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
+            img_path = self.batch[0][i]
+            results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False
         return results
@@ -372,6 +373,10 @@ class Predictor(BasePredictor):
             masks (torch.Tensor): Masks, (N, H, W).
             min_area (int): Minimum area threshold.
             nms_thresh (float): NMS threshold.
+        Returns:
+            new_masks (torch.Tensor): New Masks, (N, H, W).
+            keep (List[int]): The indices of the new masks, which can be used to filter
+                the corresponding boxes.
         """
         if len(masks) == 0:
             return masks
@@ -380,7 +385,7 @@ class Predictor(BasePredictor):
         new_masks = []
         scores = []
         for mask in masks:
-            mask = mask.cpu().numpy()
+            mask = mask.cpu().numpy().astype(np.uint8)
             mask, changed = remove_small_regions(mask, min_area, mode='holes')
             unchanged = not changed
             mask, changed = remove_small_regions(mask, min_area, mode='islands')
@@ -400,9 +405,4 @@ class Predictor(BasePredictor):
             nms_thresh,
         )
 
-        # Only recalculate masks for masks that have changed
-        for i in keep:
-            if scores[i] == 0.0:
-                masks[i] = new_masks[i]
-
-        return masks[keep]
+        return new_masks[keep].to(device=masks.device, dtype=masks.dtype), keep

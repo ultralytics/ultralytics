@@ -4,13 +4,33 @@ description: Learn how to profile speed and accuracy of YOLOv8 across various ex
 keywords: Ultralytics, YOLOv8, benchmarking, speed profiling, accuracy profiling, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO export formats
 ---
 
+# Model Benchmarking with Ultralytics YOLO
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-**Benchmark mode** is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks
-provide information on the size of the exported format, its `mAP50-95` metrics (for object detection, segmentation and pose)
-or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export
-formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for
-their specific use case based on their requirements for speed and accuracy.
+## Introduction
+
+Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLOv8 serves this purpose by providing a robust framework for assessing the speed and accuracy of your model across a range of export formats.
+
+## Why Is Benchmarking Crucial?
+
+- **Informed Decisions:** Gain insights into the trade-offs between speed and accuracy.
+- **Resource Allocation:** Understand how different export formats perform on different hardware.
+- **Optimization:** Learn which export format offers the best performance for your specific use case.
+- **Cost Efficiency:** Make more efficient use of hardware resources based on benchmark results.
+
+### Key Metrics in Benchmark Mode
+
+- **mAP50-95:** For object detection, segmentation, and pose estimation.
+- **accuracy_top5:** For image classification.
+- **Inference Time:** Time taken for each image in milliseconds.
+
+### Supported Export Formats
+
+- **ONNX:** For optimal CPU performance
+- **TensorRT:** For maximal GPU efficiency
+- **OpenVINO:** For Intel hardware optimization
+- **CoreML, TensorFlow SavedModel, and More:** For diverse deployment needs.
 
 !!! tip "Tip"
 
@@ -19,8 +39,7 @@ their specific use case based on their requirements for speed and accuracy.
 
 ## Usage Examples
 
-Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a
-full list of export arguments.
+Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a full list of export arguments.
 
 !!! example ""
 
@@ -40,8 +59,7 @@ full list of export arguments.
 
 ## Arguments
 
-Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune
-the benchmarks to their specific needs and compare the performance of different export formats with ease.
+Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
 | Key       | Value   | Description                                                           |
 |-----------|---------|-----------------------------------------------------------------------|

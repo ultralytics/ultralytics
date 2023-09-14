@@ -29,18 +29,14 @@ def pytest_configure(config):
     config.addinivalue_line('markers', 'slow: mark test as slow to run')
 
 
-def pytest_collection_modifyitems(config, items):
-    """Modify collected test items based on custom command-line options.
+def pytest_runtest_setup(item):
+    """Setup hook to skip tests marked as slow if the --slow option is not provided.
 
     Args:
-        config (pytest.config.Config): The pytest config object.
-        items (list): List of collected test items.
+        item (pytest.Item): The test item object.
     """
-    if not config.getoption('--slow'):
-        skip_slow = pytest.mark.skip(reason="remove this test because it's slow")
-        for item in items:
-            if 'slow' in item.keywords:
-                item.add_marker(skip_slow)
+    if 'slow' in item.keywords and not item.config.getoption('--slow'):
+        pytest.skip('skip slow tests unless --slow is set')
 
 
 def pytest_sessionstart(session):

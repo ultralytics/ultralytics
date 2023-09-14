@@ -11,7 +11,6 @@ from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, 
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, emojis, yaml_load
 from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
-from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class Model(nn.Module):
@@ -160,7 +159,6 @@ class Model(nn.Module):
                             f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
                             f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.")
 
-    @smart_inference_mode()
     def reset_weights(self):
         """
         Resets the model modules parameters to randomly initialized values, losing all training information.
@@ -173,7 +171,6 @@ class Model(nn.Module):
             p.requires_grad = True
         return self
 
-    @smart_inference_mode()
     def load(self, weights='yolov8n.pt'):
         """
         Transfers parameters with matching names and shapes from 'weights' to model.
@@ -200,7 +197,6 @@ class Model(nn.Module):
         self._check_is_pytorch_model()
         self.model.fuse()
 
-    @smart_inference_mode()
     def predict(self, source=None, stream=False, predictor=None, **kwargs):
         """
         Perform prediction using the YOLO model.
@@ -223,7 +219,7 @@ class Model(nn.Module):
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
 
-        custom = {'conf': 0.25, 'save': is_cli}  # method defaults
+        custom = {'conf': 0.25, 'save': is_cli, 'device': self.device}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'predict'}  # highest priority args on the right
         prompts = args.pop('prompts', None)  # for SAM-type models
 
@@ -259,7 +255,6 @@ class Model(nn.Module):
         kwargs['mode'] = 'track'
         return self.predict(source=source, stream=stream, **kwargs)
 
-    @smart_inference_mode()
     def val(self, validator=None, **kwargs):
         """
         Validate a model on a given dataset.
@@ -277,7 +272,6 @@ class Model(nn.Module):
         self.metrics = validator.metrics
         return validator.metrics
 
-    @smart_inference_mode()
     def benchmark(self, **kwargs):
         """
         Benchmark a model on all export formats.
@@ -366,26 +360,10 @@ class Model(nn.Module):
             args = {**self.overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
 
-    def to(self, device):
-        """
-        Sends the model to the given device.
-
-        Args:
-            device (str): device
-        """
+    def _apply(self, fn):
+        # Apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers
         self._check_is_pytorch_model()
-
-
-        # Your code before calling the base class method
-        print("Running some code before base class to()")
-
-        # Call the base class method
-        super().to(device)
-
-        # Your code after calling the base class method
-        print("Running some code after base class to()")
-
-        #self.model.to(device)
+        self = super()._apply(fn)  # noqa
         self.predictor = None
         return self
 
@@ -423,7 +401,7 @@ class Model(nn.Module):
         for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
-    #def __getattr__(self, attr):
+    # def __getattr__(self, attr):
     #    """Raises error if object has no requested attribute."""
     #    name = self.__class__.__name__
     #    raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")

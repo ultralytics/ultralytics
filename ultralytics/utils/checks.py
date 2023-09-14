@@ -405,6 +405,7 @@ def check_imshow(warn=False):
 def check_yolo(verbose=True, device=''):
     """Return a human-readable YOLO software and hardware summary."""
     import psutil
+
     from ultralytics.utils.torch_utils import select_device
 
     if is_jupyter():

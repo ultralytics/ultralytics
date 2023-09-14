@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import contextlib
 import glob
 import inspect
@@ -15,7 +16,6 @@ from typing import Optional
 import cv2
 import numpy as np
 import pkg_resources as pkg
-import psutil
 import requests
 import torch
 from matplotlib import font_manager
@@ -404,6 +404,7 @@ def check_imshow(warn=False):
 
 def check_yolo(verbose=True, device=''):
     """Return a human-readable YOLO software and hardware summary."""
+    import psutil
     from ultralytics.utils.torch_utils import select_device
 
     if is_jupyter():

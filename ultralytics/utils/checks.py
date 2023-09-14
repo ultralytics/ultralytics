@@ -321,7 +321,7 @@ def check_torchvision():
 
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
-        if all(pkg.parse_version(v_torchvision) != pkg.parse_version(v) for v in compatible_versions):
+        if all(v_torchvision != v for v in compatible_versions):
             print(f'WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n'
                   f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
                   "'pip install -U torch torchvision' to update both.\n"

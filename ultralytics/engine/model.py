@@ -116,7 +116,7 @@ class Model(nn.Module):
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
-        self.model = (model or self.smart_load('model'))(cfg_dict, verbose=verbose and RANK == -1)  # build model
+        self.model = (model or self._smart_load('model'))(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
         self.overrides['task'] = self.task
 
@@ -224,7 +224,7 @@ class Model(nn.Module):
         prompts = args.pop('prompts', None)  # for SAM-type models
 
         if not self.predictor:
-            self.predictor = (predictor or self.smart_load('predictor'))(overrides=args, _callbacks=self.callbacks)
+            self.predictor = (predictor or self._smart_load('predictor'))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, args)
@@ -267,7 +267,7 @@ class Model(nn.Module):
         args = {**self.overrides, **custom, **kwargs, 'mode': 'val'}  # highest priority args on the right
         args['imgsz'] = check_imgsz(args['imgsz'], max_dim=1)
 
-        validator = (validator or self.smart_load('validator'))(args=args, _callbacks=self.callbacks)
+        validator = (validator or self._smart_load('validator'))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
         return validator.metrics
@@ -328,7 +328,7 @@ class Model(nn.Module):
         if args.get('resume'):
             args['resume'] = self.ckpt_path
 
-        self.trainer = (trainer or self.smart_load('trainer'))(overrides=args, _callbacks=self.callbacks)
+        self.trainer = (trainer or self._smart_load('trainer'))(overrides=args, _callbacks=self.callbacks)
         if not args.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
@@ -406,7 +406,7 @@ class Model(nn.Module):
     #    name = self.__class__.__name__
     #    raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def smart_load(self, key):
+    def _smart_load(self, key):
         """Load model/trainer/validator/predictor."""
         try:
             return self.task_map[self.task][key]

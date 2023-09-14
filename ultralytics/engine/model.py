@@ -218,7 +218,7 @@ class Model(nn.Module):
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
 
-        custom = {'conf': 0.25, 'save': is_cli, 'device': self.device}  # method defaults
+        custom = {'conf': 0.25, 'save': is_cli}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'predict'}  # highest priority args on the right
         prompts = args.pop('prompts', None)  # for SAM-type models
 
@@ -360,10 +360,11 @@ class Model(nn.Module):
             return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
 
     def _apply(self, fn):
-        # Apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers
+        """Apply to(), cpu(), cuda(), half(), float() to model tensors that are not parameters or registered buffers."""
         self._check_is_pytorch_model()
         self = super()._apply(fn)  # noqa
-        self.predictor = None
+        self.predictor = None  # reset predictor as device may have changed
+        self.overrides['device'] = str(self.device)  # i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
 
     @property

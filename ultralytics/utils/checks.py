@@ -141,7 +141,7 @@ def check_version(current: str = '0.0.0',
         elif op == '<' and not (current < version):
             result = False
     if not result:
-        warning_message = f'WARNING ⚠️ {name}{required} is required, but {name}{current} is currently installed'
+        warning_message = f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed'
         if hard:
             raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
         if verbose:

@@ -38,12 +38,11 @@ jobs:
         shell: python
         run: |
           import os
-          import pkg_resources as pkg
           import ultralytics
           from ultralytics.utils.checks import check_latest_pypi_version
 
-          v_local = pkg.parse_version(ultralytics.__version__).release
-          v_pypi = pkg.parse_version(check_latest_pypi_version()).release
+          v_local = tuple(map(int, ultralytics.__version__.split('.')))
+          v_pypi = tuple(map(int, check_latest_pypi_version().split('.')))
           print(f'Local version is {v_local}')
           print(f'PyPI version is {v_pypi}')
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff

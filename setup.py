@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # Settings
 FILE = Path(__file__).resolve()
@@ -36,33 +36,6 @@ def parse_requirements(file_path: Path):
     return requirements
 
 
-def find_packages(start_dir, exclude=()):
-    """
-    Custom implementation of setuptools.find_packages(). Finds all Python packages in a directory.
-
-    Args:
-        start_dir (str | Path, optional): The directory where the search will start. Defaults to the current directory.
-        exclude (list | tuple, optional): List of package names to exclude. Defaults to None.
-
-    Returns:
-        List[str]: List of package names.
-    """
-
-    packages = []
-    start_dir = Path(start_dir)
-    root_package = start_dir.name
-
-    if '__init__.py' in [child.name for child in start_dir.iterdir()]:
-        packages.append(root_package)
-    for package in start_dir.rglob('*'):
-        if package.is_dir() and '__init__.py' in [child.name for child in package.iterdir()]:
-            package_name = f"{root_package}.{package.relative_to(start_dir).as_posix().replace('/', '.')}"
-            if package_name not in exclude:
-                packages.append(package_name)
-
-    return packages
-
-
 setup(
     name='ultralytics',  # name of pypi package
     version=get_version(),  # version of pypi package
@@ -79,7 +52,10 @@ setup(
         'Source': 'https://github.com/ultralytics/ultralytics'},
     author='Ultralytics',
     author_email='hello@ultralytics.com',
-    packages=find_packages(start_dir='ultralytics'),  # required
+    packages=find_packages(),  # required
+    package_data={
+        '': ['*.yaml'],
+        'ultralytics.assets': ['*.jpg']},
     include_package_data=True,
     install_requires=parse_requirements(PARENT / 'requirements.txt'),
     extras_require={

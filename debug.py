@@ -9,10 +9,12 @@ from ultralytics.utils import SETTINGS
 SETTINGS['comet'] = False  # set True to log using Comet.ml
 
 # Initialize model and load matching weights
-model = YOLO('yolov8n.yaml', task='detect').load('./../models/yolov8n.pt')
+model = YOLO('/home-net/ierregue/project/detector/small-fast-detector/fine-tune-cdv1/8s-100e-16b_4w/weights/best.pt', task='detect')
 epochs = 3
 batch = 64
 
+metrics = model.val(data='custom_dataset.yaml', verbose=True, plots=True, save_json=True, device=[1])
+"""
 model.train(
     resume=False,
     data='coco128.yaml',
@@ -27,7 +29,7 @@ model.train(
     patience=25,
 
 )
-
+"""
 """
 # Resume training from 'training/weights/last.pt'
 model = YOLO('last.pt')

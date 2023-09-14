@@ -154,11 +154,11 @@ class Model(nn.Module):
         pt_module = isinstance(self.model, nn.Module)
         if not (pt_module or pt_str):
             raise TypeError(
-                f"model='{self.model}' should be a *.pt PyTorch model to run this method, but if a different format. "
-                f"PyTorch models can train, val, predict and export, i.e. 'yolo export model=yolov8n.pt', but exported "
+                f"model='{self.model}' should be a *.pt PyTorch model to run this method, but is a different format. "
+                f"PyTorch models can train, val, predict and export, i.e. 'model.train(data=...)', but exported "
                 f"formats like ONNX, TensorRT etc. only support 'predict' and 'val' modes, "
                 f"i.e. 'yolo predict model=yolov8n.onnx'.\nTo run CUDA or MPS inference please pass the device "
-                f"argument in your inference command, i.e. 'model.predict(source=..., device=0)'")
+                f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'")
 
     def reset_weights(self):
         """

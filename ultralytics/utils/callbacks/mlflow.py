@@ -14,7 +14,7 @@ except (ImportError, AssertionError):
     mlflow = None
 PREFIX = colorstr('MLFlow: ')
 
-
+PREFIX = colorstr('MLFlow: ')
 def on_pretrain_routine_end(trainer):
     """Logs training parameters to MLflow."""
     global mlflow, run, experiment_name
@@ -45,6 +45,15 @@ def on_pretrain_routine_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Logs training metrics to Mlflow."""
+    LOGGER.info("%s entered on fit epoch end", PREFIX)
+    if mlflow:
+        metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
+        run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
+
+
+def on_train_epoch_end(trainer):
+    """Logs training metrics to Mlflow."""
+    LOGGER.info("%s entered on train epoch end", PREFIX)
     if mlflow:
         metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
         LOGGER.debug('%s uploading metrics:%s ', PREFIX, metrics_dict)
@@ -72,4 +81,5 @@ def on_train_end(trainer):
 callbacks = {
     'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_fit_epoch_end': on_fit_epoch_end,
+    'on_train_epoch_end': on_train_epoch_end,
     'on_train_end': on_train_end} if mlflow else {}

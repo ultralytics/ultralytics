@@ -11,15 +11,12 @@ try:
 
     import os
     import re
-    from importlib.metadata import version
     from pathlib import Path
 
-    import pkg_resources as pkg
+    from ultralytics.utils.checks import check_version
 
-    ver = version('dvclive')
-    if pkg.parse_version(ver) < pkg.parse_version('2.11.0'):
-        LOGGER.debug(f'DVCLive is detected but version {ver} is incompatible (>=2.11 required).')
-        dvclive = None  # noqa: F811
+    if not check_version(dvclive.__version__, '2.11.0', name='dvclive', verbose=True):
+        dvclive = None
 
     # DVCLive logger instance
     live = None
@@ -74,9 +71,7 @@ def on_pretrain_routine_start(trainer):
     try:
         global live
         live = dvclive.Live(save_dvc_exp=True, cache_images=True)
-        LOGGER.info(
-            f'DVCLive is detected and auto logging is enabled (can be disabled in the {SETTINGS.file} with `dvc: false`).'
-        )
+        LOGGER.info("DVCLive is detected and auto logging is enabled (run 'yolo settings dvc=False' to disable).")
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ DVCLive installed but not initialized correctly, not logging this run. {e}')
 

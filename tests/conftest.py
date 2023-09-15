@@ -39,6 +39,19 @@ def pytest_runtest_setup(item):
         pytest.skip('skip slow tests unless --slow is set')
 
 
+def pytest_collection_modifyitems(config, items):
+    """
+    Modify the list of test items to remove tests marked as slow if the --slow option is not provided.
+
+    Args:
+        config (pytest.config.Config): The pytest config object.
+        items (list): List of test items to be executed.
+    """
+    if not config.getoption('--slow'):
+        # Remove the item entirely from the list of test items if it's marked as 'slow'
+        items[:] = [item for item in items if 'slow' not in item.keywords]
+
+
 def pytest_sessionstart(session):
     """
     Initialize session configurations for pytest.

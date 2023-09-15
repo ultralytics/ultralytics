@@ -189,7 +189,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `project`         | `None`   | project name                                                                                   |
 | `name`            | `None`   | experiment name                                                                                |
 | `exist_ok`        | `False`  | whether to overwrite existing experiment                                                       |
-| `pretrained`      | `False`  | whether to use a pretrained model                                                              |
+| `pretrained`      | `True`   | (bool | str) whether to use a pretrained model (bool) or a model to load weights from (str)    |
 | `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]              |
 | `verbose`         | `False`  | whether to print verbose output                                                                |
 | `seed`            | `0`      | random seed for reproducibility                                                                |

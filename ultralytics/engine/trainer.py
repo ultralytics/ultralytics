@@ -426,7 +426,7 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import pandas as pd  # scope for faster startup
         metrics = {**self.metrics, **{'fitness': self.fitness}}
-        results = {k.strip(): v for k, v in pd.read_csv(self.save_dir / 'results.csv').to_dict(orient='list').items()}
+        results = {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient='list').items()}
         ckpt = {
             'epoch': self.epoch,
             'best_fitness': self.best_fitness,

@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import contextlib
 import glob
 import inspect
@@ -15,7 +16,6 @@ from typing import Optional
 import cv2
 import numpy as np
 import pkg_resources as pkg
-import psutil
 import requests
 import torch
 from matplotlib import font_manager
@@ -141,7 +141,7 @@ def check_version(current: str = '0.0.0',
         elif op == '<' and not (current < version):
             result = False
     if not result:
-        warning_message = f'WARNING ⚠️ {name}{required} is required, but {name}{current} is currently installed'
+        warning_message = f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed'
         if hard:
             raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
         if verbose:
@@ -321,7 +321,7 @@ def check_torchvision():
 
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
-        if all(pkg.parse_version(v_torchvision) != pkg.parse_version(v) for v in compatible_versions):
+        if all(v_torchvision != v for v in compatible_versions):
             print(f'WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n'
                   f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
                   "'pip install -U torch torchvision' to update both.\n"
@@ -404,6 +404,8 @@ def check_imshow(warn=False):
 
 def check_yolo(verbose=True, device=''):
     """Return a human-readable YOLO software and hardware summary."""
+    import psutil
+
     from ultralytics.utils.torch_utils import select_device
 
     if is_jupyter():

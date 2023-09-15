@@ -1,20 +1,17 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+import os
+import re
 
-from ultralytics.utils import LOGGER, ROOT, SETTINGS, TESTS_RUNNING, colorstr
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['mlflow'] is True  # verify integration is enabled
     import mlflow
-
     assert hasattr(mlflow, '__version__')  # verify package is not directory
-
-    import os
-    import re
 
 except (ImportError, AssertionError):
     mlflow = None
-
 PREFIX = colorstr('MLFlow: ')
 
 
@@ -27,7 +24,7 @@ def on_pretrain_routine_end(trainer):
 
     if mlflow:
         mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
-        LOGGER.info('%s tracking url: %s', PREFIX, mlflow_location)
+        LOGGER.debug('%s tracking url: %s', PREFIX, mlflow_location)
         mlflow.set_tracking_uri(mlflow_location)
         experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME') or trainer.args.project or '/Shared/YOLOv8'
         run_name = os.environ.get('MLFLOW_RUN') or trainer.args.name
@@ -48,10 +45,9 @@ def on_pretrain_routine_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Logs training metrics to Mlflow."""
-    LOGGER.info('%s entering epocch end callback', PREFIX)
     if mlflow:
         metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
-        LOGGER.info('%s uploading metrics:%s ', PREFIX, metrics_dict)
+        LOGGER.debug('%s uploading metrics:%s ', PREFIX, metrics_dict)
         run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
 
 
@@ -61,22 +57,19 @@ def on_train_end(trainer):
         run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)
         run.log_artifact(trainer.save_dir)
-        # this is completely insane, logging entire venvs and codebases,
+        # this is logging entire venvs and codebases,
         # when used as an imported package the commit hash should be enough
         # run.pyfunc.log_model(artifact_path=experiment_name,
         #                       code_path=[str(ROOT.parent)],
         #                       artifacts={'model_path': str(trainer.save_dir)},
         #                       python_model=run.pyfunc.PythonModel()
         #                      )
-        LOGGER.info('%s ending run', PREFIX)
+
         mlflow.end_run()
+        LOGGER.debug('%s ending run', PREFIX)
 
-
-LOGGER.info('%s mlfow imported at %s', PREFIX, mlflow)
 
 callbacks = {
     'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_fit_epoch_end': on_fit_epoch_end,
     'on_train_end': on_train_end} if mlflow else {}
-
-LOGGER.info('%s callbacks registered as %s', PREFIX, callbacks)

@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 # Settings
 FILE = Path(__file__).resolve()
@@ -52,7 +52,7 @@ setup(
         'Source': 'https://github.com/ultralytics/ultralytics'},
     author='Ultralytics',
     author_email='hello@ultralytics.com',
-    packages=find_packages(),  # required
+    packages=['ultralytics'] + [str(x) for x in Path('ultralytics').rglob('*/') if x.is_dir() and '__' not in str(x)],
     package_data={
         '': ['*.yaml'],
         'ultralytics.assets': ['*.jpg']},

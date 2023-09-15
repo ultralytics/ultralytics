@@ -15,7 +15,7 @@ from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 class Model(nn.Module):
     """
-    A base model class to unify apis for all the models.
+    A base class to unify APIs for all models.
 
     Args:
         model (str, Path): Path to the model file to load or create.

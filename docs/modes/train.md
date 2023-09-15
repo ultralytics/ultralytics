@@ -221,6 +221,9 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                                     |
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                                               |
 | `val`             | `True`   | validate/test during training                                                                  |
+| `auto_augment`    | `'randaugment'`   | auto augmentation policy for classification (randaugment, autoaugment, augmix)                                                                  |
+| `random_erasing`  | `0.4`   | probability o random erasing during classification training (0-1) training                                                                  |
+| `crop_percentage` | `1.0`   | image crop percentage for classification evaluation/inference (0-1)                                                                  |
 
 ## Logging
 

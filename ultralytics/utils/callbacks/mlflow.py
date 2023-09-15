@@ -15,6 +15,8 @@ try:
 except (ImportError, AssertionError):
     mlflow = None
 
+PREFIX = colorstr('MLFlow: ')
+
 
 def on_pretrain_routine_end(trainer):
     """Logs training parameters to MLflow."""
@@ -25,15 +27,13 @@ def on_pretrain_routine_end(trainer):
 
     if mlflow:
         mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
+        LOGGER.info('%s tracking url: %s', PREFIX, mlflow_location)
         mlflow.set_tracking_uri(mlflow_location)
-
         experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME') or trainer.args.project or '/Shared/YOLOv8'
         run_name = os.environ.get('MLFLOW_RUN') or trainer.args.name
-        experiment = mlflow.get_experiment_by_name(experiment_name)
-        if experiment is None:
-            mlflow.create_experiment(experiment_name)
-        mlflow.set_experiment(experiment_name)
+        experiment = mlflow.set_experiment(experiment_name)  # change since mlflow does this now by default
 
+        mlflow.autolog()
         prefix = colorstr('MLFlow: ')
         try:
             run, active_run = mlflow, mlflow.active_run()
@@ -48,8 +48,10 @@ def on_pretrain_routine_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Logs training metrics to Mlflow."""
+    LOGGER.info('%s entering epocch end callback', PREFIX)
     if mlflow:
         metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
+        LOGGER.info('%s uploading metrics:%s ', PREFIX, metrics_dict)
         run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
 
 
@@ -58,13 +60,23 @@ def on_train_end(trainer):
     if mlflow:
         run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)
-        run.pyfunc.log_model(artifact_path=experiment_name,
-                             code_path=[str(ROOT.parent)],
-                             artifacts={'model_path': str(trainer.save_dir)},
-                             python_model=run.pyfunc.PythonModel())
+        run.log_artifact(trainer.save_dir)
+        # this is completely insane, logging entire venvs and codebases,
+        # when used as an imported package the commit hash should be enough
+        # run.pyfunc.log_model(artifact_path=experiment_name,
+        #                       code_path=[str(ROOT.parent)],
+        #                       artifacts={'model_path': str(trainer.save_dir)},
+        #                       python_model=run.pyfunc.PythonModel()
+        #                      )
+        LOGGER.info('%s ending run', PREFIX)
+        mlflow.end_run()
 
+
+LOGGER.info('%s mlfow imported at %s', PREFIX, mlflow)
 
 callbacks = {
     'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_fit_epoch_end': on_fit_epoch_end,
     'on_train_end': on_train_end} if mlflow else {}
+
+LOGGER.info('%s callbacks registered as %s', PREFIX, callbacks)

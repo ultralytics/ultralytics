@@ -1,8 +1,16 @@
 # Regions Counting Using YOLOv8 (Inference on Video)
 
+- Region counting is a method employed to tally the objects within a specified area, allowing for more sophisticated analyses when multiple regions are considered. These regions can be adjusted interactively using a Left Mouse Click, and the counting process occurs in real time.
+  
 - Regions can be adjusted to suit the user's preferences and requirements.
 
-Region counting is a method employed to tally the objects within a specified area, allowing for more sophisticated analyses when multiple regions are considered. These regions can be adjusted interactively using a Left Mouse Click, and the counting process occurs in real-time.
+<div>
+  <p align="center">
+  <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/978c8dd4-936d-468e-b41e-1046741ec323" width="45%"/>
+    <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/069fd81b-8451-40f3-9f14-709a7ac097ca" width="45%"/>
+&nbsp; &nbsp; &nbsp; &nbsp;
+</p>
+</div>
 
 ## Table of Contents
 

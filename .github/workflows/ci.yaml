@@ -257,10 +257,10 @@ jobs:
           activate-environment: anaconda-client-env
       - name: Install Libmamba
         run: |
-          # conda install conda-libmamba-solver
           conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
         run: |
+          conda install pytorch torchvision cpuonly -c pytorch
           conda install -c conda-forge ultralytics
       - name: Install pip packages
         run: |

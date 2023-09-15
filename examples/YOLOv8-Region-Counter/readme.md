@@ -1,5 +1,7 @@
 # Regions Counting Using YOLOv8 (Inference on Video)
+
 - Regions can be adjusted to suit the user's preferences and requirements.
+
 Region counting is a method employed to tally the objects within a specified area, allowing for more sophisticated analyses when multiple regions are considered. These regions can be adjusted interactively using a Left Mouse Click, and the counting process occurs in real-time.
 
 ## Table of Contents

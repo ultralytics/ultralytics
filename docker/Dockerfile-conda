@@ -18,8 +18,9 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt .
 # Install conda packages
 # mkl required to fix 'OSError: libmkl_intel_lp64.so.2: cannot open shared object file: No such file or directory'
 RUN conda config --set solver libmamba && \
+    conda install pytorch torchvision pytorch-cuda=11.8 -c pytorch -c nvidia && \
     conda install -c conda-forge ultralytics mkl
-    # conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+    # conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics mkl
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

@@ -120,6 +120,9 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                                     |
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                                               |
 | `val`             | `True`   | validate/test during training                                                                  |
+| `auto_augment`    | `'randaugment'`   | auto augmentation policy for classification (randaugment, autoaugment, augmix)                                                                  |
+| `random_erasing`  | `0.4`   | probability o random erasing during classification training (0-1) training                                                                  |
+| `crop_percentage` | `1.0`   | image crop percentage for classification evaluation/inference (0-1)                                                                  |
 
 [Train Guide](../modes/train.md){ .md-button .md-button--primary}
 
@@ -151,6 +154,7 @@ The prediction settings for YOLO models encompass a range of hyperparameters and
 | `retina_masks`  | `False`                | use high-resolution segmentation masks                                         |
 | `classes`       | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                    |
 | `boxes`         | `True`                 | Show boxes in segmentation predictions                                         |
+| `crop_percentage`| `1.0`                 | image crop percentage for classification evaluation/inference (0-1) |
 
 [Predict Guide](../modes/predict.md){ .md-button .md-button--primary}
 
@@ -171,6 +175,7 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 | `plots`       | `False` | show plots during training                                         |
 | `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
+| `crop_percentage`| `1.0` | image crop percentage for classification evaluation/inference (0-1)|
 
 [Val Guide](../modes/val.md){ .md-button .md-button--primary}
 

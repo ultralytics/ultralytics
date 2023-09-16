@@ -105,7 +105,7 @@ class HungarianMatcher(nn.Module):
 
         C = C.view(bs, nq, -1).cpu()
         # Resolving [ValueError: matrix contains invalid numeric entries], while training on a custom dataset
-        # Set invalid values (NaNs and infinities) to 0 
+        # Set invalid values (NaNs and infinities) to 0
         C[C.isnan() | C.isinf()] = 0
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_groups, -1))]
         gt_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)

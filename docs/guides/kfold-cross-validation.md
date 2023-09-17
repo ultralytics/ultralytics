@@ -83,6 +83,7 @@ Without further ado, let's dive in!
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
 
     ```python
+    yaml_file = 'custom_data.yaml'  # your data file which has path of data & names of classes
     with open(yaml_file, 'r', encoding="utf8") as y:
         classes = yaml.safe_load(y)['names']
     cls_idx = sorted(classes.keys())
@@ -177,10 +178,18 @@ The ideal scenario is for all class ratios to be reasonably similar for each spl
 4. Next, we create the directories and dataset YAML files for each split.
 
     ```python
+    supported_extensions = ['.jpg', '.jpeg', '.png']
+    
+    #Initialize an empty list to store image file paths
+    images = []
+    
+    #Loop through supported extensions and gather image files
+    for ext in supported_extensions:
+        images.extend(sorted((dataset_path / 'images').rglob(f"*{ext}")))
+    
+    # Create the necessary directories and dataset YAML files (unchanged)
     save_path = Path(dataset_path / f'{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val')
     save_path.mkdir(parents=True, exist_ok=True)
-    
-    images = sorted((dataset_path / 'images').rglob("*.jpg"))  # change file extension as needed
     ds_yamls = []
     
     for split in folds_df.columns:
@@ -244,10 +253,17 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 
     ```python
     results = {}
+    
+    # Define your additional arguments here
+    batch = 16
+    project = 'kfolddemo'
+    epochs = 100
+    
     for k in range(ksplit):
         dataset_yaml = ds_yamls[k]
-        model.train(data=dataset_yaml, *args, **kwargs)  # Include any training arguments
+        model.train(data=dataset_yaml,epochs=epochs, batch=batch, project=project)  # Include any training arguments
         results[k] = model.metrics  # save output metrics for further analysis
+    
     ```
 
 ## Conclusion

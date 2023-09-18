@@ -57,14 +57,6 @@ def on_train_end(trainer):
         run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)
         run.log_artifact(trainer.save_dir)
-        # this is logging entire venvs and codebases,
-        # when used as an imported package the commit hash should be enough
-        # run.pyfunc.log_model(artifact_path=experiment_name,
-        #                       code_path=[str(ROOT.parent)],
-        #                       artifacts={'model_path': str(trainer.save_dir)},
-        #                       python_model=run.pyfunc.PythonModel()
-        #                      )
-
         mlflow.end_run()
         LOGGER.debug(f'{PREFIX} ending run')
 

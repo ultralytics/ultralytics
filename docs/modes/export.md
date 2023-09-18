@@ -106,37 +106,3 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
 | [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
-
-### TF Edge TPU Export Example
-
-When you intend to use YOLOv8 on edge devices such as IP cameras, it becomes necessary to export the YOLOv8 model to edgetpu.
-
-!!! example ""
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
-
-        # Export the model with int8 quantization
-        model.export(format='tflite',int8=True)
-        ```
-    === "CLI"
-
-        ```bash
-        yolo export model=yolov8n.pt format=tflite int8=True  # export official model with int8 quantization
-        ```
-
-The export command will generate a file named ``yolov8n_full_integer_quant.tflite``.
-
-Download and install the [Edge TPU compiler](https://coral.ai/docs/edgetpu/compiler#download()) ensuring that, you adhere to the specified [system requirements](https://coral.ai/docs/edgetpu/compiler/#system-requirements). Once the installation is complete, you can utilize the EdgeTPU Compiler to compile the (TensorFlow Lite) tflite file using the provided command below.
-
-!!! example ""
-	
-    === "CLI"
-        ```bash
-        edgetpu_compiler "/path/to/yolov8n_full_integer_quant.tflite"
-        ```

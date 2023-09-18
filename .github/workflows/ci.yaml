@@ -16,16 +16,20 @@ on:
         description: 'Run HUB'
         default: false
         type: boolean
-      tests:
-        description: 'Run Tests'
-        default: false
-        type: boolean
       benchmarks:
         description: 'Run Benchmarks'
         default: false
         type: boolean
+      tests:
+        description: 'Run Tests'
+        default: false
+        type: boolean
       gpu:
         description: 'Run GPU'
+        default: false
+        type: boolean
+      conda:
+        description: 'Run Conda'
         default: false
         type: boolean
 
@@ -237,7 +241,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.conda == 'true' || github.event_name == 'schedule')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -260,8 +264,7 @@ jobs:
           conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
         run: |
-          conda install pytorch torchvision cpuonly -c pytorch
-          conda install -c conda-forge ultralytics
+          conda install -c pytorch -c conda-forge pytorch torchvision ultralytics
       - name: Install pip packages
         run: |
           pip install pytest 'coremltools>=7.0.b1' # 'openvino-dev>=2023.0'

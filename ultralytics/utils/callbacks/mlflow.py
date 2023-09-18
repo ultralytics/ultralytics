@@ -22,7 +22,7 @@ def on_pretrain_routine_end(trainer):
 
     if mlflow:
         mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
-        LOGGER.debug('%s tracking url: %s', PREFIX, mlflow_location)
+        LOGGER.debug('%s tracking uri: %s', PREFIX, mlflow_location)
         mlflow.set_tracking_uri(mlflow_location)
         experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME') or trainer.args.project or '/Shared/YOLOv8'
         run_name = os.environ.get('MLFLOW_RUN') or trainer.args.name

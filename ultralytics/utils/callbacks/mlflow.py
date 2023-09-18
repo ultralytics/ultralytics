@@ -1,6 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-import os
-import re
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
@@ -10,10 +8,12 @@ try:
     import mlflow
 
     assert hasattr(mlflow, '__version__')  # verify package is not directory
+    PREFIX = colorstr('MLFlow:')
+    import os
+    import re
 
 except (ImportError, AssertionError):
     mlflow = None
-PREFIX = colorstr('MLFlow: ')
 
 
 def on_pretrain_routine_end(trainer):
@@ -25,7 +25,7 @@ def on_pretrain_routine_end(trainer):
 
     if mlflow:
         mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
-        LOGGER.debug('%s tracking uri: %s', PREFIX, mlflow_location)
+        LOGGER.debug(f'{PREFIX} tracking uri: {mlflow_location}')
         mlflow.set_tracking_uri(mlflow_location)
         experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME') or trainer.args.project or '/Shared/YOLOv8'
         run_name = os.environ.get('MLFLOW_RUN') or trainer.args.name
@@ -66,7 +66,7 @@ def on_train_end(trainer):
         #                      )
 
         mlflow.end_run()
-        LOGGER.debug('%s ending run', PREFIX)
+        LOGGER.debug(f'{PREFIX} ending run')
 
 
 callbacks = {

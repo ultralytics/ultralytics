@@ -148,6 +148,7 @@ def run(weights='yolov8n.pt',
             center_y = roi_y + roi_h // 2
             text_margin = 15
 
+            # Region plotting
             cv2.rectangle(frame, (roi_x, roi_y), (roi_x + roi_w, roi_y + roi_h), region_color, region_thickness)
             t_size, _ = cv2.getTextSize(region_label, cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, thickness=line_thickness)
             text_x = center_x - t_size[0] // 2 - text_margin

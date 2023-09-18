@@ -8,11 +8,14 @@ try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['mlflow'] is True  # verify integration is enabled
     import mlflow
+
     assert hasattr(mlflow, '__version__')  # verify package is not directory
 
 except (ImportError, AssertionError):
     mlflow = None
 PREFIX = colorstr('MLFlow: ')
+
+
 def on_pretrain_routine_end(trainer):
     """Logs training parameters to MLflow."""
     global mlflow, run, experiment_name
@@ -43,10 +46,10 @@ def on_pretrain_routine_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Logs training metrics to Mlflow."""
-    LOGGER.info("%s entered on fit epoch end", PREFIX)
     if mlflow:
         metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
         run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
+
 
 def on_train_end(trainer):
     """Called at end of train loop to log model artifact info."""

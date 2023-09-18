@@ -6,7 +6,6 @@ Base callbacks
 from collections import defaultdict
 from copy import deepcopy
 
-
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
 

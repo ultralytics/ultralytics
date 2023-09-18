@@ -15,6 +15,7 @@ This repository features a collection of real-world applications and walkthrough
 | [YOLOv8 ONNXRuntime CPP](./YOLOv8-ONNXRuntime-CPP)                                                                                        | C++/ONNXRuntime    | [DennisJcy](https://github.com/DennisJcy), [Onuralp Sezer](https://github.com/onuralpszr) |
 | [RTDETR ONNXRuntime C#](https://github.com/Kayzwer/yolo-cs/blob/master/RTDETR.cs)                                                         | C#/ONNX            | [Kayzwer](https://github.com/Kayzwer)                                                     |
 | [YOLOv8 SAHI Video Inference](https://github.com/RizwanMunawar/ultralytics/blob/main/examples/YOLOv8-SAHI-Inference-Video/yolov8_sahi.py) | Python             | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar)                               |
+| [YOLOv8 Region Counter](https://github.com/RizwanMunawar/ultralytics/blob/main/examples/YOLOv8-Region-Counter/yolov8_region_counter.py)   | Python             | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar)                               |
 
 ### How to Contribute
 

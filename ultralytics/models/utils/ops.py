@@ -103,6 +103,9 @@ class HungarianMatcher(nn.Module):
         if self.with_mask:
             C += self._cost_mask(bs, gt_groups, masks, gt_mask)
 
+        # Set invalid values (NaNs and infinities) to 0 (fixes ValueError: matrix contains invalid numeric entries)
+        C[C.isnan() | C.isinf()] = 0.0
+
         C = C.view(bs, nq, -1).cpu()
         # Resolving [ValueError: matrix contains invalid numeric entries], while training on a custom dataset
         # Set invalid values (NaNs and infinities) to 0

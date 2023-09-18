@@ -27,18 +27,18 @@ counting_regions = [{
         'region_color': (255, 144, 31)}]
 
 
-# Compare bbox with region box
 def is_inside_roi(box, roi):
+    """Compare bbox with region box."""
     x, y, _, _ = box
     roi_x, roi_y, roi_w, roi_h = roi
     return roi_x < x < roi_x + roi_w and roi_y < y < roi_y + roi_h
 
 
-# Mouse call back event
 def mouse_callback(event, x, y, flags, param):
+    """Mouse call back event."""
     global current_region
 
-    # mouseleft button down event
+    # Mouse left button down event
     if event == cv2.EVENT_LBUTTONDOWN:
         for region in counting_regions:
             roi_x, roi_y, roi_w, roi_h = region['roi']
@@ -48,13 +48,13 @@ def mouse_callback(event, x, y, flags, param):
                 current_region['offset_x'] = x - roi_x
                 current_region['offset_y'] = y - roi_y
 
-    # mousemove event
+    # Mouse move event
     elif event == cv2.EVENT_MOUSEMOVE:
         if current_region is not None and current_region['dragging']:
             current_region['roi'] = (x - current_region['offset_x'], y - current_region['offset_y'],
                                      current_region['roi'][2], current_region['roi'][3])
 
-    # mouseleft button up event
+    # Mouse left button up event
     elif event == cv2.EVENT_LBUTTONUP:
         if current_region is not None and current_region['dragging']:
             current_region['dragging'] = False
@@ -68,17 +68,19 @@ def run(weights='yolov8n.pt',
         line_thickness=2,
         region_thickness=2):
     """
-        Run Region counting on a video using YOLOv8 and ByteTrack.
-        Supports moveable region for real time counting inside specific area
-        Supports multiple regions counting
-        Args:
-            weights (str): Model weights path.
-            source (str): Video file path.
-            view_img (bool): Show results.
-            save_img (bool): Save results.
-            exist_ok (bool): Overwrite existing files.
-            line_thickness (int): Bounding box thickness
-            region_thickness (int): Region thickness
+    Run Region counting on a video using YOLOv8 and ByteTrack.
+
+    Supports movable region for real time counting inside specific area.
+    Supports multiple regions counting.
+
+    Args:
+        weights (str): Model weights path.
+        source (str): Video file path.
+        view_img (bool): Show results.
+        save_img (bool): Save results.
+        exist_ok (bool): Overwrite existing files.
+        line_thickness (int): Bounding box thickness.
+        region_thickness (int): Region thickness.
     """
     vid_frame_count = 0
 
@@ -108,8 +110,6 @@ def run(weights='yolov8n.pt',
 
         # Extract the results
         results = model.track(frame, persist=True)
-        boxes = results[0].boxes.xywh.cpu()
-        track_ids = results[0].boxes.id.int().cpu().tolist()
         boxes = results[0].boxes.xywh.cpu()
         track_ids = results[0].boxes.id.int().cpu().tolist()
         clss = results[0].boxes.cls.cpu().tolist()
@@ -159,9 +159,9 @@ def run(weights='yolov8n.pt',
 
         if view_img:
             if vid_frame_count == 1:
-                cv2.namedWindow('Ultralytics YOLOv8 Region Counter Moveable')
-                cv2.setMouseCallback('Ultralytics YOLOv8 Region Counter Moveable', mouse_callback)
-            cv2.imshow('Ultralytics YOLOv8 Region Counter Moveable', frame)
+                cv2.namedWindow('Ultralytics YOLOv8 Region Counter Movable')
+                cv2.setMouseCallback('Ultralytics YOLOv8 Region Counter Movable', mouse_callback)
+            cv2.imshow('Ultralytics YOLOv8 Region Counter Movable', frame)
 
         if save_img:
             video_writer.write(frame)

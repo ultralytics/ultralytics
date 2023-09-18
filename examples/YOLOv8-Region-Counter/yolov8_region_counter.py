@@ -1,23 +1,30 @@
 import argparse
+from collections import defaultdict
 from pathlib import Path
 
 import cv2
 import numpy as np
+
 from ultralytics import YOLO
-from collections import defaultdict
+
 track_history = defaultdict(lambda: [])
 
 from ultralytics.utils.files import increment_path
-from ultralytics.utils.plotting import colors, Annotator
+from ultralytics.utils.plotting import Annotator, colors
 
 # Region utils
 current_region = None
-counting_regions = [
-    {"name": "YOLOv8 Region A", "roi": (50, 100, 240, 300),
-     "counts": 0, "dragging": False, "region_color": (0, 255, 0)},
-
-    {"name": "YOLOv8 Region B", "roi": (200, 250, 240, 300),
-     "counts": 0, "dragging": False, "region_color": (255, 144, 31)}]
+counting_regions = [{
+    'name': 'YOLOv8 Region A',
+    'roi': (50, 100, 240, 300),
+    'counts': 0,
+    'dragging': False,
+    'region_color': (0, 255, 0)}, {
+        'name': 'YOLOv8 Region B',
+        'roi': (200, 250, 240, 300),
+        'counts': 0,
+        'dragging': False,
+        'region_color': (255, 144, 31)}]
 
 
 # Compare bbox with region box
@@ -34,29 +41,32 @@ def mouse_callback(event, x, y, flags, param):
     # mouseleft button down event
     if event == cv2.EVENT_LBUTTONDOWN:
         for region in counting_regions:
-            roi_x, roi_y, roi_w, roi_h = region["roi"]
+            roi_x, roi_y, roi_w, roi_h = region['roi']
             if roi_x < x < roi_x + roi_w and roi_y < y < roi_y + roi_h:
                 current_region = region
-                current_region["dragging"] = True
-                current_region["offset_x"] = x - roi_x
-                current_region["offset_y"] = y - roi_y
+                current_region['dragging'] = True
+                current_region['offset_x'] = x - roi_x
+                current_region['offset_y'] = y - roi_y
 
     # mousemove event
     elif event == cv2.EVENT_MOUSEMOVE:
-        if current_region is not None and current_region["dragging"]:
-            current_region["roi"] = (x - current_region["offset_x"],
-                                     y - current_region["offset_y"],
-                                     current_region["roi"][2],
-                                     current_region["roi"][3])
+        if current_region is not None and current_region['dragging']:
+            current_region['roi'] = (x - current_region['offset_x'], y - current_region['offset_y'],
+                                     current_region['roi'][2], current_region['roi'][3])
 
     # mouseleft button up event
     elif event == cv2.EVENT_LBUTTONUP:
-        if current_region is not None and current_region["dragging"]:
-            current_region["dragging"] = False
+        if current_region is not None and current_region['dragging']:
+            current_region['dragging'] = False
 
 
-def run(weights='yolov8n.pt', source='test.mp4', view_img=False, save_img=False, exist_ok=False,
-        line_thickness=2, region_thickness=2):
+def run(weights='yolov8n.pt',
+        source='test.mp4',
+        view_img=False,
+        save_img=False,
+        exist_ok=False,
+        line_thickness=2,
+        region_thickness=2):
     """
         Run Region counting on a video using YOLOv8 and ByteTrack.
         Supports moveable region for real time counting inside specific area
@@ -87,8 +97,7 @@ def run(weights='yolov8n.pt', source='test.mp4', view_img=False, save_img=False,
     # Output setup
     save_dir = increment_path(Path('ultralytics_rc_output') / 'exp', exist_ok)
     save_dir.mkdir(parents=True, exist_ok=True)
-    video_writer = cv2.VideoWriter(str(save_dir / f'{Path(source).stem}.mp4'),
-                                   fourcc, fps, (frame_width, frame_height))
+    video_writer = cv2.VideoWriter(str(save_dir / f'{Path(source).stem}.mp4'), fourcc, fps, (frame_width, frame_height))
 
     # Iterate over video frames
     while videocapture.isOpened():
@@ -123,19 +132,18 @@ def run(weights='yolov8n.pt', source='test.mp4', view_img=False, save_img=False,
             if len(track) > 30:
                 track.pop(0)
             points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-            cv2.polylines(frame, [points], isClosed=False,
-                          color=bbox_color, thickness=line_thickness)
+            cv2.polylines(frame, [points], isClosed=False, color=bbox_color, thickness=line_thickness)
 
             # Check If detection inside region
             for region in counting_regions:
-                if is_inside_roi(box, region["roi"]):
-                    region["counts"] += 1
+                if is_inside_roi(box, region['roi']):
+                    region['counts'] += 1
 
         # Draw region boxes
         for region in counting_regions:
-            region_label = str(region["counts"])
-            roi_x, roi_y, roi_w, roi_h = region["roi"]
-            region_color = region["region_color"]
+            region_label = str(region['counts'])
+            roi_x, roi_y, roi_w, roi_h = region['roi']
+            region_color = region['region_color']
             center_x = roi_x + roi_w // 2
             center_y = roi_y + roi_h // 2
             text_margin = 15
@@ -150,17 +158,17 @@ def run(weights='yolov8n.pt', source='test.mp4', view_img=False, save_img=False,
 
         if view_img:
             if vid_frame_count == 1:
-                cv2.namedWindow("Ultralytics YOLOv8 Region Counter Moveable")
-                cv2.setMouseCallback("Ultralytics YOLOv8 Region Counter Moveable", mouse_callback)
-            cv2.imshow("Ultralytics YOLOv8 Region Counter Moveable", frame)
+                cv2.namedWindow('Ultralytics YOLOv8 Region Counter Moveable')
+                cv2.setMouseCallback('Ultralytics YOLOv8 Region Counter Moveable', mouse_callback)
+            cv2.imshow('Ultralytics YOLOv8 Region Counter Moveable', frame)
 
         if save_img:
             video_writer.write(frame)
 
         for region in counting_regions:  # Reinitialize count for each region
-            region["counts"] = 0
+            region['counts'] = 0
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     del vid_frame_count

@@ -30,7 +30,7 @@ Without further ado, let's dive in!
         - It includes 6 class labels, each with its total instance counts listed below.
 
           | Class Label | Instance Count |
-          |:------------|:--------------:|
+                    |:------------|:--------------:|
           | Apple       |      7049      |
           | Grapes      |      7202      |
           | Pineapple   |      1613      |
@@ -83,7 +83,7 @@ Without further ado, let's dive in!
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
 
     ```python
-    yaml_file = 'custom_data.yaml'  # your data file which has path of data & names of classes
+    yaml_file = 'path/to/data.yaml'  # your data YAML with data directories and names dictionary
     with open(yaml_file, 'r', encoding="utf8") as y:
         classes = yaml.safe_load(y)['names']
     cls_idx = sorted(classes.keys())
@@ -180,10 +180,10 @@ The ideal scenario is for all class ratios to be reasonably similar for each spl
     ```python
     supported_extensions = ['.jpg', '.jpeg', '.png']
     
-    #Initialize an empty list to store image file paths
+    # Initialize an empty list to store image file paths
     images = []
     
-    #Loop through supported extensions and gather image files
+    # Loop through supported extensions and gather image files
     for ext in supported_extensions:
         images.extend(sorted((dataset_path / 'images').rglob(f"*{ext}")))
     
@@ -225,8 +225,7 @@ The ideal scenario is for all class ratios to be reasonably similar for each spl
             img_to_path = save_path / split / k_split / 'images'
             lbl_to_path = save_path / split / k_split / 'labels'
         
-            # Copy image and label files to new directory 
-            # Might throw a SamefileError if file already exists
+            # Copy image and label files to new directory (SamefileError if file already exists)
             shutil.copy(image, img_to_path / image.name)
             shutil.copy(label, lbl_to_path / label.name)
     ```
@@ -256,14 +255,13 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
     
     # Define your additional arguments here
     batch = 16
-    project = 'kfolddemo'
+    project = 'kfold_demo'
     epochs = 100
-    
+
     for k in range(ksplit):
         dataset_yaml = ds_yamls[k]
-        model.train(data=dataset_yaml,epochs=epochs, batch=batch, project=project)  # Include any training arguments
+        model.train(data=dataset_yaml,epochs=epochs, batch=batch, project=project)  # include any train arguments
         results[k] = model.metrics  # save output metrics for further analysis
-    
     ```
 
 ## Conclusion

@@ -1,7 +1,6 @@
 # Regions Counting Using YOLOv8 (Inference on Video)
 
 - Region counting is a method employed to tally the objects within a specified area, allowing for more sophisticated analyses when multiple regions are considered. These regions can be adjusted interactively using a Left Mouse Click, and the counting process occurs in real time.
-
 - Regions can be adjusted to suit the user's preferences and requirements.
 
 <div>
@@ -40,15 +39,14 @@ Here are the basic commands for running the inference:
 After the video begins playing, you can freely move the region anywhere within the video by simply clicking and dragging using the left mouse button.
 
 ```bash
-#if you want to save results
+# If you want to save results
 python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-img
 
-#if you want to change model file
+# If you want to change model file
 python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weights "path/to/model.pt"
 
-#if you dont want to save results
+# If you dont want to save results
 python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
-
 ```
 
 ## Usage Options

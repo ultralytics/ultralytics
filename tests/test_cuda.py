@@ -78,6 +78,7 @@ def test_predict_sam():
     # Reset image
     predictor.reset_image()
 
+
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 @pytest.mark.skipif(True, reason="RayTune Error pyarrow.lib.ArrowInvalid: URI has empty scheme: './runs/tune'")
 def test_model_ray_tune():

@@ -2,7 +2,6 @@ include *.md
 include requirements.txt
 include LICENSE
 include setup.py
-recursive-exclude __pycache__ *
 include ultralytics/assets/bus.jpg
 include ultralytics/assets/zidane.jpg
 recursive-include ultralytics *.yaml

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils import LOGGER, ROOT, SETTINGS, TESTS_RUNNING, colorstr
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -8,7 +8,7 @@ try:
     import mlflow
 
     assert hasattr(mlflow, '__version__')  # verify package is not directory
-
+    PREFIX = colorstr('MLFlow:')
     import os
     import re
 
@@ -25,15 +25,13 @@ def on_pretrain_routine_end(trainer):
 
     if mlflow:
         mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
+        LOGGER.debug(f'{PREFIX} tracking uri: {mlflow_location}')
         mlflow.set_tracking_uri(mlflow_location)
-
         experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME') or trainer.args.project or '/Shared/YOLOv8'
         run_name = os.environ.get('MLFLOW_RUN') or trainer.args.name
-        experiment = mlflow.get_experiment_by_name(experiment_name)
-        if experiment is None:
-            mlflow.create_experiment(experiment_name)
-        mlflow.set_experiment(experiment_name)
+        experiment = mlflow.set_experiment(experiment_name)  # change since mlflow does this now by default
 
+        mlflow.autolog()
         prefix = colorstr('MLFlow: ')
         try:
             run, active_run = mlflow, mlflow.active_run()
@@ -58,10 +56,9 @@ def on_train_end(trainer):
     if mlflow:
         run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)
-        run.pyfunc.log_model(artifact_path=experiment_name,
-                             code_path=[str(ROOT.parent)],
-                             artifacts={'model_path': str(trainer.save_dir)},
-                             python_model=run.pyfunc.PythonModel())
+        run.log_artifact(trainer.save_dir)
+        mlflow.end_run()
+        LOGGER.debug(f'{PREFIX} ending run')
 
 
 callbacks = {

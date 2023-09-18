@@ -103,6 +103,9 @@ class HungarianMatcher(nn.Module):
         if self.with_mask:
             C += self._cost_mask(bs, gt_groups, masks, gt_mask)
 
+        # Set invalid values (NaNs and infinities) to 0 (fixes ValueError: matrix contains invalid numeric entries)
+        C[C.isnan() | C.isinf()] = 0.0
+
         C = C.view(bs, nq, -1).cpu()
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_groups, -1))]
         gt_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)

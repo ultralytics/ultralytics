@@ -6,10 +6,17 @@ Base callbacks
 from collections import defaultdict
 from copy import deepcopy
 
+
+from ultralytics.utils import LOGGER, colorstr
+# debug logging
+PREFIX = colorstr('MLFlow: ')
+
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
 
+
 def on_pretrain_routine_start(trainer):
+    logger.info("%s entered on_pretrain_routine_start")
     """Called before the pretraining routine starts."""
     pass
 

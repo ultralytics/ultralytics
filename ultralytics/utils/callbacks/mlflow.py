@@ -13,8 +13,6 @@ try:
 except (ImportError, AssertionError):
     mlflow = None
 PREFIX = colorstr('MLFlow: ')
-
-PREFIX = colorstr('MLFlow: ')
 def on_pretrain_routine_end(trainer):
     """Logs training parameters to MLflow."""
     global mlflow, run, experiment_name

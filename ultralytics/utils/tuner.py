@@ -95,7 +95,8 @@ def run_ray_tune(model,
         """
         model.reset_callbacks()
         config.update(train_args)
-        model.train(**config)
+        results = model.train(**config)
+        return results.results_dict
 
     # Get search space
     if not space:

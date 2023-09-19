@@ -9,6 +9,7 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Optional
@@ -23,6 +24,31 @@ from matplotlib import font_manager
 from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked,
                                TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter,
                                is_kaggle, is_online, is_pip_package, url2file)
+
+
+def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
+    """
+    Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
+
+    Args:
+        file_path (Path): Path to the requirements.txt file.
+
+    Returns:
+        List[Dict[str, str]]: List of parsed requirements as dictionaries with `name` and `specifier` keys.
+    """
+
+    requirements = []
+    for line in Path(file_path).read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith('#'):
+            line = line.split('#')[0].strip()  # ignore inline comments
+            match = re.match(r'([a-zA-Z0-9-_]+)([<>!=~]+.*)?', line)
+            if match:
+                name = match[1]
+                specifier = match[2].strip() if match[2] else ''
+                requirements.append({'name': name, 'specifier': specifier})
+
+    return requirements
 
 
 def is_ascii(s) -> bool:
@@ -428,6 +454,32 @@ def check_yolo(verbose=True, device=''):
 
     select_device(device=device, newline=False)
     LOGGER.info(f'Setup complete ✅ {s}')
+
+
+def collect_system_info():
+    """
+    Collect and print relevant system information including OS, Python version, RAM, CPU, and CUDA for bug reports.
+    """
+    from importlib.metadata import version
+
+    import psutil
+
+    from ultralytics.utils import ENVIRONMENT, is_git_dir
+    from ultralytics.utils.torch_utils import get_cpu_info
+
+    ram_info = psutil.virtual_memory().total / (1024 ** 3)  # Convert bytes to GB
+    check_yolo()
+    LOGGER.info(f"\n{'OS':<20}{platform.platform()}\n"
+                f"{'Environment':<20}{ENVIRONMENT}\n"
+                f"{'Python':<20}{sys.version.split()[0]}\n"
+                f"{'Install':<20}{'git' if is_git_dir() else 'pip' if is_pip_package() else 'other'}\n"
+                f"{'RAM':<20}{ram_info:.2f} GB\n"
+                f"{'CPU':<20}{get_cpu_info()}\n"
+                f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n")
+
+    for r in parse_requirements():
+        name = r['name']
+        LOGGER.info(f'{name:<20}{version(name)}')
 
 
 def check_amp(model):

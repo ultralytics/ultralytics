@@ -37,7 +37,7 @@ def parse_requirements(file_path: Path):
 
 
 setup(
-    name='ultralytics',  # name of pypi package
+    name='syml_ultralytics',  # name of pypi package
     version=get_version(),  # version of pypi package
     python_requires='>=3.8',
     license='AGPL-3.0',
@@ -50,7 +50,7 @@ setup(
         'Bug Reports': 'https://github.com/ultralytics/ultralytics/issues',
         'Funding': 'https://ultralytics.com',
         'Source': 'https://github.com/ultralytics/ultralytics'},
-    author='Ultralytics',
+    author='SyML Ultralytics',
     author_email='hello@ultralytics.com',
     packages=['ultralytics'] + [str(x) for x in Path('ultralytics').rglob('*/') if x.is_dir() and '__' not in str(x)],
     package_data={

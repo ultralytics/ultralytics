@@ -56,7 +56,7 @@ body:
           ```
           Ultralytics YOLOv8.0.181 🚀 Python-3.11.2 torch-2.0.1 CPU (Apple M2)
           Setup complete ✅ (8 CPUs, 16.0 GB RAM, 266.5/460.4 GB disk)
-  
+
           OS                  macOS-13.5.2
           Environment         Jupyter
           Python              3.11.2

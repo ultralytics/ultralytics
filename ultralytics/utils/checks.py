@@ -21,9 +21,9 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked,
-                               TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter,
-                               is_kaggle, is_online, is_pip_package, url2file)
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, SimpleNamespace,
+                               ThreadingLocked, TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
+                               is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
 
 
 def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
@@ -44,7 +44,7 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
             line = line.split('#')[0].strip()  # ignore inline comments
             match = re.match(r'([a-zA-Z0-9-_]+)([<>!=~]+.*)?', line)
             if match:
-                requirements.append({'name': match[1], 'specifier': match[2].strip() if match[2] else ''})
+                requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ''))
 
     return requirements
 
@@ -204,7 +204,7 @@ def check_pip_update_available():
         with contextlib.suppress(Exception):
             from ultralytics import __version__
             latest = check_latest_pypi_version()
-            if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
+            if check_version(__version__, f'<{latest}'):  # check if current version is < latest version
                 LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
                             f"Update with 'pip install -U ultralytics'")
                 return True
@@ -286,8 +286,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f'{prefix} {file} not found, check failed.'
-        with file.open() as f:
-            requirements = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements(f) if x.name not in exclude]
+        requirements = [f'{x.name}{x.specifier}' for x in parse_requirements(file) if x.name not in exclude]
     elif isinstance(requirements, str):
         requirements = [requirements]
 
@@ -299,7 +298,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         except pkg.DistributionNotFound:
             try:  # attempt to import (slower but more accurate)
                 import importlib
-                importlib.import_module(next(pkg.parse_requirements(r_stripped)).name)
+                importlib.import_module(r_stripped.split('<')[0].split('>')[0].split('=')[0])
             except ImportError:
                 pkgs.append(r)
         except pkg.VersionConflict:
@@ -479,11 +478,9 @@ def collect_system_info():
                 f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n")
 
     for r in parse_requirements():
-        name = r['name']
-        current = version(name)
-        required = r['specifier']
-        is_met = '✅ ' if check_version(current, required) else '❌ '
-        LOGGER.info(f'{name:<20}{is_met}{current}{required}')
+        current = version(r.name)
+        is_met = '✅ ' if check_version(current, r.specifier) else '❌ '
+        LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
 
 
 def check_amp(model):

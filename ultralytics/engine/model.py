@@ -392,16 +392,16 @@ class Model(nn.Module):
         """Clear all event callbacks."""
         self.callbacks[event] = []
 
+    def reset_callbacks(self):
+        """Reset all registered callbacks."""
+        for event in callbacks.default_callbacks.keys():
+            self.callbacks[event] = [callbacks.default_callbacks[event][0]]
+
     @staticmethod
     def _reset_ckpt_args(args):
         """Reset arguments when loading a PyTorch model."""
         include = {'imgsz', 'data', 'task', 'single_cls'}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
-
-    def _reset_callbacks(self):
-        """Reset all registered callbacks."""
-        for event in callbacks.default_callbacks.keys():
-            self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     # def __getattr__(self, attr):
     #    """Raises error if object has no requested attribute."""

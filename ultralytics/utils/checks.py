@@ -44,9 +44,7 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
             line = line.split('#')[0].strip()  # ignore inline comments
             match = re.match(r'([a-zA-Z0-9-_]+)([<>!=~]+.*)?', line)
             if match:
-                name = match[1]
-                specifier = match[2].strip() if match[2] else ''
-                requirements.append({'name': name, 'specifier': specifier})
+                requirements.append({'name': match[1], 'specifier': match[2].strip() if match[2] else ''})
 
     return requirements
 

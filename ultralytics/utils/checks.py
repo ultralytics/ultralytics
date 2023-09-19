@@ -34,7 +34,7 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
         file_path (Path): Path to the requirements.txt file.
 
     Returns:
-        List[Dict[str, str]]: List of parsed requirements as dictionaries with `name` and `specifier` keys.
+        (List[Dict[str, str]]): List of parsed requirements as dictionaries with `name` and `specifier` keys.
     """
 
     requirements = []
@@ -49,15 +49,15 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
     return requirements
 
 
-def parse_version(v: str) -> (tuple, str):
+def parse_version(v='0.0.0') -> tuple:
     """
     Convert a version string to a tuple of integers, also returning any extra non-numeric string attached to the version.
 
     Args:
-        v (str): Version string, e.g., '1.2.3+cpu'.
+        v (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        tuple: Tuple of integers representing the numeric part of the version and the extra string.
+        (tuple): Tuple of integers representing the numeric part of the version and the extra string, i.e. (2, 0, 1)
     """
     correct = [True if x == '.' else x.isdigit() for x in v]  # first non-number index
     if False in correct:
@@ -476,9 +476,7 @@ def check_yolo(verbose=True, device=''):
 
 
 def collect_system_info():
-    """
-    Collect and print relevant system information including OS, Python version, RAM, CPU, and CUDA for bug reports.
-    """
+    """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA."""
 
     import psutil
 

@@ -41,7 +41,7 @@ def test_model_methods():
     model.to('cpu')
     model.fuse()
     model.clear_callback('on_train_start')
-    model._reset_callbacks()
+    model.reset_callbacks()
 
     # Model properties
     _ = model.names

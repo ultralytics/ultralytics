@@ -17,7 +17,6 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import pkg_resources as pkg
 import requests
 import torch
 from matplotlib import font_manager
@@ -149,13 +148,19 @@ def check_version(current: str = '0.0.0',
     if not required:
         return True  # in case required is '' or None
 
-    current = pkg.parse_version(current)
+    # import pkg_resources as pkg
+    # current = pkg.parse_version(current)
+    current = tuple(map(int, current.split('.')))
+
     constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
 
     result = True
     for constraint in constraints:
         op, v = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
-        v = pkg.parse_version(v)
+
+        # v = pkg.parse_version(v)
+        v = tuple(map(int, v.split('.')))
+
         if op == '==' and current != v:
             result = False
         elif op == '!=' and current == v:

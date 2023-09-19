@@ -21,8 +21,8 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked,
-                               TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter,
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, ThreadingLocked, TryExcept,
+                               USER_CONFIG_DIR, clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter,
                                is_kaggle, is_online, is_pip_package, url2file)
 
 
@@ -147,6 +147,9 @@ def check_version(current: str = '0.0.0',
         # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
     """
+    if not required:
+        return True  # in case required is '' or None
+
     current = pkg.parse_version(current)
     constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
 
@@ -358,7 +361,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
@@ -479,7 +482,10 @@ def collect_system_info():
 
     for r in parse_requirements():
         name = r['name']
-        LOGGER.info(f'{name:<20}{version(name)}')
+        current = version(name)
+        required = r['specifier']
+        is_met = '✅  ' if check_version(current, required) else '❌  '
+        LOGGER.info(f"{name:<20}{is_met}{current}{required}")
 
 
 def check_amp(model):

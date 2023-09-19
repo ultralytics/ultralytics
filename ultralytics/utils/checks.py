@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import time
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Optional
 
@@ -153,19 +154,19 @@ def check_version(current: str = '0.0.0',
 
     result = True
     for constraint in constraints:
-        op, version = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
-        version = pkg.parse_version(version)
-        if op == '==' and current != version:
+        op, v = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
+        v = pkg.parse_version(v)
+        if op == '==' and current != v:
             result = False
-        elif op == '!=' and current == version:
+        elif op == '!=' and current == v:
             result = False
-        elif op == '>=' and not (current >= version):
+        elif op == '>=' and not (current >= v):
             result = False
-        elif op == '<=' and not (current <= version):
+        elif op == '<=' and not (current <= v):
             result = False
-        elif op == '>' and not (current > version):
+        elif op == '>' and not (current > v):
             result = False
-        elif op == '<' and not (current < version):
+        elif op == '<' and not (current < v):
             result = False
     if not result:
         warning_message = f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed'
@@ -280,6 +281,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         check_requirements(['numpy', 'ultralytics>=8.0.0'])
         ```
     """
+
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version
     check_torchvision()  # check torch-torchvision compatibility
@@ -293,15 +295,11 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     pkgs = []
     for r in requirements:
         r_stripped = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
+        match = re.match(r'([a-zA-Z0-9-_]+)([<>!=~]+.*)?', r_stripped)
+        name, required = match[1], match[2].strip() if match[2] else ''
         try:
-            pkg.require(r_stripped)  # exception if requirements not met
-        except pkg.DistributionNotFound:
-            try:  # attempt to import (slower but more accurate)
-                import importlib
-                importlib.import_module(r_stripped.split('<')[0].split('>')[0].split('=')[0])
-            except ImportError:
-                pkgs.append(r)
-        except pkg.VersionConflict:
+            assert check_version(version(name), required)  # exception if requirements not met
+        except (AssertionError, PackageNotFoundError):
             pkgs.append(r)
 
     s = ' '.join(f'"{x}"' for x in pkgs)  # console string
@@ -460,7 +458,6 @@ def collect_system_info():
     """
     Collect and print relevant system information including OS, Python version, RAM, CPU, and CUDA for bug reports.
     """
-    from importlib.metadata import version
 
     import psutil
 

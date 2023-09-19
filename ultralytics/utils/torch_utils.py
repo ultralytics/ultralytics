@@ -76,11 +76,11 @@ def select_device(device='', batch=0, newline=False, verbose=True):
         verbose (bool, optional): If True, logs the device information. Defaults to True.
 
     Returns:
-        torch.device: Selected device.
+        (torch.device): Selected device.
 
     Raises:
         ValueError: If the specified device is not available or if the batch size is not a multiple of the number of
-        devices when using multiple GPUs.
+            devices when using multiple GPUs.
 
     Examples:
         >>> select_device('cuda:0')

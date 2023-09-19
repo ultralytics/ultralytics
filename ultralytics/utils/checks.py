@@ -482,7 +482,7 @@ def collect_system_info():
         name = r['name']
         current = version(name)
         required = r['specifier']
-        is_met = '✅  ' if check_version(current, required) else '❌  '
+        is_met = '✅ ' if check_version(current, required) else '❌ '
         LOGGER.info(f'{name:<20}{is_met}{current}{required}')
 
 

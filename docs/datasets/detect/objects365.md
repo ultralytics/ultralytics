@@ -51,7 +51,7 @@ To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image 
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='Objects365.yaml', epochs=100, imgsz=640)
+        results = model.train(data='Objects365.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -75,14 +75,18 @@ The example showcases the variety and complexity of the data in the Objects365 d
 
 If you use the Objects365 dataset in your research or development work, please cite the following paper:
 
-```bibtex
-@inproceedings{shao2019objects365,
-  title={Objects365: A Large-scale, High-quality Dataset for Object Detection},
-  author={Shao, Shuai and Li, Zeming and Zhang, Tianyuan and Peng, Chao and Yu, Gang and Li, Jing and Zhang, Xiangyu and Sun, Jian},
-  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
-  pages={8425--8434},
-  year={2019}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @inproceedings{shao2019objects365,
+          title={Objects365: A Large-scale, High-quality Dataset for Object Detection},
+          author={Shao, Shuai and Li, Zeming and Zhang, Tianyuan and Peng, Chao and Yu, Gang and Li, Jing and Zhang, Xiangyu and Sun, Jian},
+          booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+          pages={8425--8434},
+          year={2019}
+        }
+        ```
 
 We would like to acknowledge the team of researchers who created and maintain the Objects365 dataset as a valuable resource for the computer vision research community. For more information about the Objects365 dataset and its creators, visit the [Objects365 dataset website](https://www.objects365.org/).

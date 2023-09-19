@@ -14,7 +14,9 @@ Hyperparameter tuning is vital in achieving peak model performance by discoverin
 
 ### Ray Tune
 
-![Ray Tune Overview](https://docs.ray.io/en/latest/_images/tune_overview.png)
+<p align="center">
+  <img width="640" src="https://docs.ray.io/en/latest/_images/tune_overview.png" alt="Ray Tune Overview">
+</p>
 
 [Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and seamlessly integrates with popular machine learning frameworks, including Ultralytics YOLOv8.
 
@@ -28,37 +30,44 @@ To install the required packages, run:
 
 !!! tip "Installation"
 
-    ```bash
-    # Install and update Ultralytics and Ray Tune packages
-    pip install -U ultralytics 'ray[tune]'
+    === "CLI"
 
-    # Optionally install W&B for logging
-    pip install wandb
-    ```
+        ```bash
+        # Install and update Ultralytics and Ray Tune packages
+        pip install -U ultralytics "ray[tune]"
+    
+        # Optionally install W&B for logging
+        pip install wandb
+        ```
 
 ## Usage
 
 !!! example "Usage"
 
-    ```python
-    from ultralytics import YOLO
+    === "Python"
 
-    model = YOLO("yolov8n.pt")
-    result_grid = model.tune(data="coco128.yaml")
-    ```
+        ```python
+        from ultralytics import YOLO
+    
+        # Load a YOLOv8n model
+        model = YOLO('yolov8n.pt')
+        
+        # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
+        result_grid = model.tune(data='coco8.yaml', use_ray=True)
+        ```
 
 ## `tune()` Method Parameters
 
 The `tune()` method in YOLOv8 provides an easy-to-use interface for hyperparameter tuning with Ray Tune. It accepts several arguments that allow you to customize the tuning process. Below is a detailed explanation of each parameter:
 
-| Parameter       | Type           | Description                                                                                                                                                                                                                                                                                    | Default Value |
-|-----------------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
-| `data`          | str            | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and validation data paths, as well as other dataset-specific settings.                                                                                                              |               |
-| `space`         | dict, optional | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLOv8 uses a default search space with various hyperparameters.                     |               |
-| `grace_period`  | int, optional  | The grace period in epochs for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping. | 10            |
-| `gpu_per_trial` | int, optional  | The number of GPUs to allocate per trial during tuning. This helps manage GPU usage, particularly in multi-GPU environments. If not provided, the tuner will use all available GPUs.                                                                                                           | None          |
-| `max_samples`   | int, optional  | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                 | 10            |
-| `**train_args`  | dict, optional | Additional arguments to pass to the `train()` method during tuning. These arguments can include settings like the number of training epochs, batch size, and other training-specific configurations.                                                                                           | {}            |
+| Parameter       | Type             | Description                                                                                                                                                                                                                                                                                    | Default Value |
+|-----------------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| `data`          | `str`            | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and validation data paths, as well as other dataset-specific settings.                                                                                                              |               |
+| `space`         | `dict, optional` | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLOv8 uses a default search space with various hyperparameters.                     |               |
+| `grace_period`  | `int, optional`  | The grace period in epochs for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping. | 10            |
+| `gpu_per_trial` | `int, optional`  | The number of GPUs to allocate per trial during tuning. This helps manage GPU usage, particularly in multi-GPU environments. If not provided, the tuner will use all available GPUs.                                                                                                           | None          |
+| `iterations`    | `int, optional`  | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                 | 10            |
+| `**train_args`  | `dict, optional` | Additional arguments to pass to the `train()` method during tuning. These arguments can include settings like the number of training epochs, batch size, and other training-specific configurations.                                                                                           | {}            |
 
 By customizing these parameters, you can fine-tune the hyperparameter optimization process to suit your specific needs and available computational resources.
 
@@ -66,29 +75,29 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 
 The following table lists the default search space parameters for hyperparameter tuning in YOLOv8 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
 
-| Parameter       | Value Range                | Description                              |
-|-----------------|----------------------------|------------------------------------------|
-| lr0             | `tune.uniform(1e-5, 1e-1)` | Initial learning rate                    |
-| lrf             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor               |
-| momentum        | `tune.uniform(0.6, 0.98)`  | Momentum                                 |
-| weight_decay    | `tune.uniform(0.0, 0.001)` | Weight decay                             |
-| warmup_epochs   | `tune.uniform(0.0, 5.0)`   | Warmup epochs                            |
-| warmup_momentum | `tune.uniform(0.0, 0.95)`  | Warmup momentum                          |
-| box             | `tune.uniform(0.02, 0.2)`  | Box loss weight                          |
-| cls             | `tune.uniform(0.2, 4.0)`   | Class loss weight                        |
-| hsv_h           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range                   |
-| hsv_s           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range            |
-| hsv_v           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range    |
-| degrees         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range (degrees)    |
-| translate       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range           |
-| scale           | `tune.uniform(0.0, 0.9)`   | Scaling augmentation range               |
-| shear           | `tune.uniform(0.0, 10.0)`  | Shear augmentation range (degrees)       |
-| perspective     | `tune.uniform(0.0, 0.001)` | Perspective augmentation range           |
-| flipud          | `tune.uniform(0.0, 1.0)`   | Vertical flip augmentation probability   |
-| fliplr          | `tune.uniform(0.0, 1.0)`   | Horizontal flip augmentation probability |
-| mosaic          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability          |
-| mixup           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability           |
-| copy_paste      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability      |
+| Parameter         | Value Range                | Description                              |
+|-------------------|----------------------------|------------------------------------------|
+| `lr0`             | `tune.uniform(1e-5, 1e-1)` | Initial learning rate                    |
+| `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor               |
+| `momentum`        | `tune.uniform(0.6, 0.98)`  | Momentum                                 |
+| `weight_decay`    | `tune.uniform(0.0, 0.001)` | Weight decay                             |
+| `warmup_epochs`   | `tune.uniform(0.0, 5.0)`   | Warmup epochs                            |
+| `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Warmup momentum                          |
+| `box`             | `tune.uniform(0.02, 0.2)`  | Box loss weight                          |
+| `cls`             | `tune.uniform(0.2, 4.0)`   | Class loss weight                        |
+| `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range                   |
+| `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range            |
+| `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range    |
+| `degrees`         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range (degrees)    |
+| `translate`       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range           |
+| `scale`           | `tune.uniform(0.0, 0.9)`   | Scaling augmentation range               |
+| `shear`           | `tune.uniform(0.0, 10.0)`  | Shear augmentation range (degrees)       |
+| `perspective`     | `tune.uniform(0.0, 0.001)` | Perspective augmentation range           |
+| `flipud`          | `tune.uniform(0.0, 1.0)`   | Vertical flip augmentation probability   |
+| `fliplr`          | `tune.uniform(0.0, 1.0)`   | Horizontal flip augmentation probability |
+| `mosaic`          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability          |
+| `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability           |
+| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability      |
 
 ## Custom Search Space Example
 
@@ -105,7 +114,8 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     # Run Ray Tune on the model
     result_grid = model.tune(data="coco128.yaml",
                              space={"lr0": tune.uniform(1e-5, 1e-1)},
-                             epochs=50)
+                             epochs=50,
+                             use_ray=True)
     ```
 
 In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco128.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.

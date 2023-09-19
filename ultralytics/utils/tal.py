@@ -10,12 +10,14 @@ TORCH_1_10 = check_version(torch.__version__, '1.10.0')
 
 
 def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
-    """select the positive anchor center in gt
+    """
+    Select the positive anchor center in gt.
 
     Args:
-        xy_centers (Tensor): shape(h*w, 4)
+        xy_centers (Tensor): shape(h*w, 2)
         gt_bboxes (Tensor): shape(b, n_boxes, 4)
-    Return:
+
+    Returns:
         (Tensor): shape(b, n_boxes, h*w)
     """
     n_anchors = xy_centers.shape[0]
@@ -27,13 +29,14 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
 
 
 def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
-    """if an anchor box is assigned to multiple gts,
-        the one with the highest iou will be selected.
+    """
+    If an anchor box is assigned to multiple gts, the one with the highest IoI will be selected.
 
     Args:
         mask_pos (Tensor): shape(b, n_max_boxes, h*w)
         overlaps (Tensor): shape(b, n_max_boxes, h*w)
-    Return:
+
+    Returns:
         target_gt_idx (Tensor): shape(b, h*w)
         fg_mask (Tensor): shape(b, h*w)
         mask_pos (Tensor): shape(b, n_max_boxes, h*w)
@@ -119,8 +122,8 @@ class TaskAlignedAssigner(nn.Module):
 
         # Normalize
         align_metric *= mask_pos
-        pos_align_metrics = align_metric.amax(axis=-1, keepdim=True)  # b, max_num_obj
-        pos_overlaps = (overlaps * mask_pos).amax(axis=-1, keepdim=True)  # b, max_num_obj
+        pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
+        pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
         norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
 
@@ -225,7 +228,7 @@ class TaskAlignedAssigner(nn.Module):
         target_gt_idx = target_gt_idx + batch_ind * self.n_max_boxes  # (b, h*w)
         target_labels = gt_labels.long().flatten()[target_gt_idx]  # (b, h*w)
 
-        # Assigned target boxes, (b, max_num_obj, 4) -> (b, h*w)
+        # Assigned target boxes, (b, max_num_obj, 4) -> (b, h*w, 4)
         target_bboxes = gt_bboxes.view(-1, 4)[target_gt_idx]
 
         # Assigned target scores

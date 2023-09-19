@@ -1,15 +1,16 @@
 # Ultralytics requirements
-# Usage: pip install -r requirements.txt
+# Example: pip install -r requirements.txt
 
 # Base ----------------------------------------
-matplotlib>=3.2.2
+matplotlib>=3.3.0
+numpy>=1.22.2 # pinned by Snyk to avoid a vulnerability
 opencv-python>=4.6.0
 pillow>=7.1.2
 pyyaml>=5.3.1
 requests>=2.23.0
 scipy>=1.4.1
-torch>=1.7.0
-torchvision>=0.8.1
+torch>=1.8.0
+torchvision>=0.9.0
 tqdm>=4.64.0
 
 # Logging -------------------------------------
@@ -23,7 +24,7 @@ pandas>=1.1.4
 seaborn>=0.11.0
 
 # Export --------------------------------------
-# coremltools>=6.0,<=6.2  # CoreML export
+# coremltools>=7.0.b1  # CoreML export
 # onnx>=1.12.0  # ONNX export
 # onnxsim>=0.4.1  # ONNX simplifier
 # nvidia-pyindex  # TensorRT export

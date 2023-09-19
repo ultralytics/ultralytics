@@ -1,46 +1,43 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import os
-import re
-from pathlib import Path
-
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
+    assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['mlflow'] is True  # verify integration is enabled
     import mlflow
 
-    assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(mlflow, '__version__')  # verify package is not directory
-    assert SETTINGS['mlflow'] is True  # verify integration is enabled
+    PREFIX = colorstr('MLFlow:')
+    import os
+    import re
+
 except (ImportError, AssertionError):
     mlflow = None
 
 
 def on_pretrain_routine_end(trainer):
     """Logs training parameters to MLflow."""
-    global mlflow, run, run_id, experiment_name
+    global mlflow, run, experiment_name
 
     if os.environ.get('MLFLOW_TRACKING_URI') is None:
         mlflow = None
 
     if mlflow:
         mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
+        LOGGER.debug(f'{PREFIX} tracking uri: {mlflow_location}')
         mlflow.set_tracking_uri(mlflow_location)
-
         experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME') or trainer.args.project or '/Shared/YOLOv8'
         run_name = os.environ.get('MLFLOW_RUN') or trainer.args.name
-        experiment = mlflow.get_experiment_by_name(experiment_name)
-        if experiment is None:
-            mlflow.create_experiment(experiment_name)
-        mlflow.set_experiment(experiment_name)
+        experiment = mlflow.set_experiment(experiment_name)  # change since mlflow does this now by default
 
+        mlflow.autolog()
         prefix = colorstr('MLFlow: ')
         try:
             run, active_run = mlflow, mlflow.active_run()
             if not active_run:
                 active_run = mlflow.start_run(experiment_id=experiment.experiment_id, run_name=run_name)
-            run_id = active_run.info.run_id
-            LOGGER.info(f'{prefix}Using run_id({run_id}) at {mlflow_location}')
+            LOGGER.info(f'{prefix}Using run_id({active_run.info.run_id}) at {mlflow_location}')
             run.log_params(vars(trainer.model.args))
         except Exception as err:
             LOGGER.error(f'{prefix}Failing init - {repr(err)}')
@@ -57,13 +54,11 @@ def on_fit_epoch_end(trainer):
 def on_train_end(trainer):
     """Called at end of train loop to log model artifact info."""
     if mlflow:
-        root_dir = Path(__file__).resolve().parents[3]
         run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)
-        run.pyfunc.log_model(artifact_path=experiment_name,
-                             code_path=[str(root_dir)],
-                             artifacts={'model_path': str(trainer.save_dir)},
-                             python_model=run.pyfunc.PythonModel())
+        run.log_artifact(trainer.save_dir)
+        mlflow.end_run()
+        LOGGER.debug(f'{PREFIX} ending run')
 
 
 callbacks = {

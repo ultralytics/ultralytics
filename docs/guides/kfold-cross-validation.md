@@ -4,11 +4,15 @@ description: An in-depth guide demonstrating the implementation of K-Fold Cross 
 keywords: K-Fold cross validation, Ultralytics, YOLO detection format, Python, sklearn, object detection
 ---
 
-# K-Fold Cross Validation in the Ultralytics Ecosystem
+# K-Fold Cross Validation with Ultralytics
 
 ## Introduction
 
 This comprehensive guide illustrates the implementation of K-Fold Cross Validation for object detection datasets within the Ultralytics ecosystem. We'll leverage the YOLO detection format and key Python libraries such as sklearn, pandas, and PyYaml to guide you through the necessary setup, the process of generating feature vectors, and the execution of a K-Fold dataset split.
+
+<p align="center">
+  <img width="800" src="https://user-images.githubusercontent.com/26833433/258589390-8d815058-ece8-48b9-a94e-0e1ab53ea0f6.png" alt="K-Fold Cross Validation Overview">
+</p>
 
 Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial aims to help you comprehend and apply K-Fold Cross Validation to bolster the reliability and robustness of your machine learning models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project.
 
@@ -79,6 +83,7 @@ Without further ado, let's dive in!
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
 
     ```python
+    yaml_file = 'path/to/data.yaml'  # your data YAML with data directories and names dictionary
     with open(yaml_file, 'r', encoding="utf8") as y:
         classes = yaml.safe_load(y)['names']
     cls_idx = sorted(classes.keys())
@@ -173,10 +178,18 @@ The ideal scenario is for all class ratios to be reasonably similar for each spl
 4. Next, we create the directories and dataset YAML files for each split.
 
     ```python
+    supported_extensions = ['.jpg', '.jpeg', '.png']
+    
+    # Initialize an empty list to store image file paths
+    images = []
+    
+    # Loop through supported extensions and gather image files
+    for ext in supported_extensions:
+        images.extend(sorted((dataset_path / 'images').rglob(f"*{ext}")))
+    
+    # Create the necessary directories and dataset YAML files (unchanged)
     save_path = Path(dataset_path / f'{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val')
     save_path.mkdir(parents=True, exist_ok=True)
-    
-    images = sorted((dataset_path / 'images').rglob("*.jpg"))  # change file extension as needed
     ds_yamls = []
     
     for split in folds_df.columns:
@@ -194,7 +207,7 @@ The ideal scenario is for all class ratios to be reasonably similar for each spl
     
         with open(dataset_yaml, 'w') as ds_y:
             yaml.safe_dump({
-                'path': save_path.as_posix(),
+                'path': split_dir.as_posix(),
                 'train': 'train',
                 'val': 'val',
                 'names': classes
@@ -212,8 +225,7 @@ The ideal scenario is for all class ratios to be reasonably similar for each spl
             img_to_path = save_path / split / k_split / 'images'
             lbl_to_path = save_path / split / k_split / 'labels'
         
-            # Copy image and label files to new directory 
-            # Might throw a SamefileError if file already exists
+            # Copy image and label files to new directory (SamefileError if file already exists)
             shutil.copy(image, img_to_path / image.name)
             shutil.copy(label, lbl_to_path / label.name)
     ```
@@ -240,9 +252,15 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 
     ```python
     results = {}
+    
+    # Define your additional arguments here
+    batch = 16
+    project = 'kfold_demo'
+    epochs = 100
+
     for k in range(ksplit):
         dataset_yaml = ds_yamls[k]
-        model.train(data=dataset_yaml, *args, **kwargs)  # Include any training arguments
+        model.train(data=dataset_yaml,epochs=epochs, batch=batch, project=project)  # include any train arguments
         results[k] = model.metrics  # save output metrics for further analysis
     ```
 

@@ -1,34 +1,30 @@
 ---
-description: Explore the exporter functionality of Ultralytics. Learn about exporting formats, iOSDetectModel, and try exporting with examples.
-keywords: Ultralytics, Exporter, iOSDetectModel, Export Formats, Try export
+description: Explore the exporter functionality of Ultralytics. Learn about exporting formats, IOSDetectModel, and try exporting with examples.
+keywords: Ultralytics, Exporter, IOSDetectModel, Export Formats, Try export
 ---
 
-## Exporter
+# Reference for `ultralytics/engine/exporter.py`
+
+!!! note
+
+    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!
+
 ---
-### ::: ultralytics.engine.exporter.Exporter
+## ::: ultralytics.engine.exporter.Exporter
 <br><br>
 
-## iOSDetectModel
 ---
-### ::: ultralytics.engine.exporter.iOSDetectModel
+## ::: ultralytics.engine.exporter.IOSDetectModel
 <br><br>
 
-## export_formats
 ---
-### ::: ultralytics.engine.exporter.export_formats
+## ::: ultralytics.engine.exporter.export_formats
 <br><br>
 
-## gd_outputs
 ---
-### ::: ultralytics.engine.exporter.gd_outputs
+## ::: ultralytics.engine.exporter.gd_outputs
 <br><br>
 
-## try_export
 ---
-### ::: ultralytics.engine.exporter.try_export
-<br><br>
-
-## export
----
-### ::: ultralytics.engine.exporter.export
+## ::: ultralytics.engine.exporter.try_export
 <br><br>

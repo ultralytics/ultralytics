@@ -17,8 +17,6 @@ from ultralytics.utils.ops import segment2box
 
 from .utils import polygons2masks, polygons2masks_overlap
 
-POSE_FLIPLR_INDEX = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
-
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
@@ -67,12 +65,7 @@ class Compose:
 
     def __repr__(self):
         """Return string representation of object."""
-        format_string = f'{self.__class__.__name__}('
-        for t in self.transforms:
-            format_string += '\n'
-            format_string += f'    {t}'
-        format_string += '\n)'
-        return format_string
+        return f"{self.__class__.__name__}({', '.join([f'{t}' for t in self.transforms])})"
 
 
 class BaseMixTransform:
@@ -404,7 +397,7 @@ class RandomPerspective:
             keypoints (ndarray): keypoints, [N, 17, 3].
             M (ndarray): affine matrix.
 
-        Return:
+        Returns:
             new_keypoints (ndarray): keypoints after affine, [N, 17, 3].
         """
         n, nkpt = keypoints.shape[:2]
@@ -485,7 +478,7 @@ class RandomHSV:
         self.vgain = vgain
 
     def __call__(self, labels):
-        """Applies random horizontal or vertical flip to an image with a given probability."""
+        """Applies image HSV augmentation"""
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
@@ -503,6 +496,7 @@ class RandomHSV:
 
 
 class RandomFlip:
+    """Applies random horizontal or vertical flip to an image with a given probability."""
 
     def __init__(self, p=0.5, direction='horizontal', flip_idx=None) -> None:
         assert direction in ['horizontal', 'vertical'], f'Support direction `horizontal` or `vertical`, got {direction}'
@@ -636,7 +630,7 @@ class CopyPaste:
 
             result = cv2.flip(im, 1)  # augment segments (flip left-right)
             i = cv2.flip(im_new, 1).astype(bool)
-            im[i] = result[i]  # cv2.imwrite('debug.jpg', im)  # debug
+            im[i] = result[i]
 
         labels['img'] = im
         labels['cls'] = cls
@@ -645,7 +639,9 @@ class CopyPaste:
 
 
 class Albumentations:
-    """YOLOv8 Albumentations class (optional, only used if package is installed)"""
+    """Albumentations transformations. Optional, uninstall package to disable.
+    Applies Blur, Median Blur, convert to grayscale, Contrast Limited Adaptive Histogram Equalization,
+    random change of brightness and contrast, RandomGamma and lowering of image quality by compression."""
 
     def __init__(self, p=1.0):
         """Initialize the transform object for YOLO bbox formatted params."""

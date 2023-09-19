@@ -333,8 +333,7 @@ def entrypoint(debug=''):
 
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
-        'checks': checks.check_yolo,
-        'system': checks.collect_system_info,
+        'checks': checks.collect_system_info,
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: handle_yolo_settings(args[1:]),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),

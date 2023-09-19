@@ -143,7 +143,7 @@ class FastSAMPrompt:
 
             save_path = Path(output) / result_name
             save_path.parent.mkdir(exist_ok=True, parents=True)
-            image = Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.tostring_rgb())
+            image = Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.buffer_rgba())
             image.save(save_path)
             plt.close()
             pbar.set_description(f'Saving {result_name} to {save_path}')

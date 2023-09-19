@@ -49,6 +49,22 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
     return requirements
 
 
+def parse_version(v: str) -> (tuple, str):
+    """
+    Convert a version string to a tuple of integers, also returning any extra non-numeric string attached to the version.
+
+    Args:
+        v (str): Version string, e.g., '1.2.3+cpu'.
+
+    Returns:
+        tuple: Tuple of integers representing the numeric part of the version and the extra string.
+    """
+    correct = [True if x == '.' else x.isdigit() for x in v]  # first non-number index
+    if False in correct:
+        v = v[:correct.index(False)]
+    return tuple(map(int, v.split('.')))  # '2.0.1+cpu' -> (2, 0, 1)
+
+
 def is_ascii(s) -> bool:
     """
     Check if a string is composed of only ASCII characters.
@@ -150,7 +166,7 @@ def check_version(current: str = '0.0.0',
 
     # import pkg_resources as pkg
     # current = pkg.parse_version(current)
-    current = tuple(map(int, current.split('.')))
+    current = parse_version(current)  # '1.2.3' -> (1, 2, 3)
 
     constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
 
@@ -159,7 +175,7 @@ def check_version(current: str = '0.0.0',
         op, v = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
 
         # v = pkg.parse_version(v)
-        v = tuple(map(int, v.split('.')))
+        v = parse_version(v)  # '1.2.3' -> (1, 2, 3)
 
         if op == '==' and current != v:
             result = False

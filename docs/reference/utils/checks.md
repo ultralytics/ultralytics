@@ -14,6 +14,10 @@ keywords: Ultralytics, utility checks, ASCII, check_version, pip_update, check_p
 <br><br>
 
 ---
+## ::: ultralytics.utils.checks.parse_version
+<br><br>
+
+---
 ## ::: ultralytics.utils.checks.is_ascii
 <br><br>
 

@@ -25,9 +25,6 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 # Remove python3.11/EXTERNALLY-MANAGED or use 'pip install --break-system-packages' avoid 'externally-managed-environment' Ubuntu nightly error
 RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
-# Creates a symbolic link to make 'python' point to 'python3'
-RUN ln -sf /usr/bin/python3 /usr/bin/python
-
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache -e ".[export]" thop --extra-index-url https://download.pytorch.org/whl/cpu
@@ -39,6 +36,9 @@ RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
 # Remove exported models
 RUN rm -rf tmp
+
+# Creates a symbolic link to make 'python' point to 'python3'
+RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

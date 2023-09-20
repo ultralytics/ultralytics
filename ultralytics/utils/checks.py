@@ -49,20 +49,25 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
     return requirements
 
 
-def parse_version(v='0.0.0') -> tuple:
+def parse_version(version='0.0.0') -> tuple:
     """
-    Convert a version string to a tuple of integers, also returning any extra non-numeric string attached to the version.
+    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
+    This function replaces deprecated 'pkg_resources.parse_version(v)'
 
     Args:
-        v (str): Version string, i.e. '2.0.1+cpu'
+        version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
         (tuple): Tuple of integers representing the numeric part of the version and the extra string, i.e. (2, 0, 1)
     """
-    correct = [True if x == '.' else x.isdigit() for x in v]  # first non-number index
-    if False in correct:
-        v = v[:correct.index(False)]
-    return tuple(map(int, v.split('.')))  # '2.0.1+cpu' -> (2, 0, 1)
+    try:
+        correct = [True if x == '.' else x.isdigit() for x in version]  # first non-number index
+        v = version[:correct.index(False)] if False in correct else version
+        return tuple(map(int, v.split('.')))  # '2.0.1+cpu' -> (2, 0, 1)
+    except Exception as e:
+        LOGGER.warning(f'WARNING ⚠️ failure for parse_version({version}), reverting to deprecated pkg_resources: {e}')
+        import pkg_resources
+        return pkg_resources.parse_version(version).release
 
 
 def is_ascii(s) -> bool:
@@ -161,22 +166,16 @@ def check_version(current: str = '0.0.0',
         # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
     """
-    if not required:
+    if not (current and required):  # if any inputs missing
+        LOGGER.warning(f'WARNING ⚠️ invalid check_version({current}, {required}) requested, please check values.')
         return True  # in case required is '' or None
 
-    # import pkg_resources as pkg
-    # current = pkg.parse_version(current)
     current = parse_version(current)  # '1.2.3' -> (1, 2, 3)
-
     constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
-
     result = True
     for constraint in constraints:
         op, v = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
-
-        # v = pkg.parse_version(v)
         v = parse_version(v)  # '1.2.3' -> (1, 2, 3)
-
         if op == '==' and current != v:
             result = False
         elif op == '!=' and current == v:

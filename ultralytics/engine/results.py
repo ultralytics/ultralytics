@@ -277,7 +277,7 @@ class Results(SimpleClass):
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
         return log_string
 
-    def save_txt(self,csv_file ,txt_file, save_conf=False):
+    def save_txt(self, csv_file, txt_file, save_conf=False):
         """
         Save predictions into txt file.
 
@@ -318,14 +318,14 @@ class Results(SimpleClass):
             with open(txt_file, 'a') as f:
                 f.writelines(text + '\n' for text in texts)
         if csv_data:
-            
+
             with open(csv_file, 'w', newline='') as f:
                 writer = csv.writer(f)
-                
+
                 # Write the header row
-                header = ["Image Name", "Confidence", "Detection"]
+                header = ['Image Name', 'Confidence', 'Detection']
                 writer.writerow(header)
-                
+
                 # Write the data rows
                 writer.writerows(csv_data)
 

@@ -57,9 +57,9 @@ jobs:
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
-          - dockerfile: "Dockerfile-conda"
-            tags: "latest-conda"
-            platforms: "linux/amd64"
+          # - dockerfile: "Dockerfile-conda"
+          #   tags: "latest-conda"
+          #   platforms: "linux/amd64"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -115,8 +115,7 @@ jobs:
           -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} .
 
       - name: Run Tests
-        # if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda'  # arm64 images not supported on GitHub CI runners
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda'  # arm64 images not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks

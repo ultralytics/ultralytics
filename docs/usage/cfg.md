@@ -88,7 +88,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `project`         | `None`   | project name                                                                                   |
 | `name`            | `None`   | experiment name                                                                                |
 | `exist_ok`        | `False`  | whether to overwrite existing experiment                                                       |
-| `pretrained`      | `True`   | (bool | str) whether to use a pretrained model (bool) or a model to load weights from (str)    |
+| `pretrained`      | `True`   | (bool \| str) whether to use a pretrained model (bool) or a model to load weights from (str)   |
 | `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]              |
 | `verbose`         | `False`  | whether to print verbose output                                                                |
 | `seed`            | `0`      | random seed for reproducibility                                                                |
@@ -101,7 +101,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]                                |
 | `fraction`        | `1.0`    | dataset fraction to train on (default is 1.0, all images in train set)                         |
 | `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                                   |
-| `freeze`          | `None`   | (int or list, optional) freeze first n layers, or freeze list of layer indices during training |
+| `freeze`          | `None`   | (int \| list, optional) freeze first n layers, or freeze list of layer indices during training |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                                               |
 | `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                                                |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                                        |

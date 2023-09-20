@@ -57,9 +57,9 @@ jobs:
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
-          # - dockerfile: "Dockerfile-conda"
-          #   tags: "latest-conda"
-          #   platforms: "linux/amd64"
+          - dockerfile: "Dockerfile-conda"
+            tags: "latest-conda"
+            platforms: "linux/amd64"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4

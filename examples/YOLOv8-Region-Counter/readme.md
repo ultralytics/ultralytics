@@ -63,6 +63,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 - `--track-thickness`: Specifies the track line thickness
 
 ## FAQ
+
 **1. What Does Region Counting Involve?**
 
 Region counting is a computational method utilized to ascertain the quantity of objects within a specific area in recorded video or real-time streams. This technique finds frequent application in image processing, computer vision, and pattern recognition, facilitating the analysis and segmentation of objects or features based on their spatial relationships.

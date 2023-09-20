@@ -1,16 +1,16 @@
 import argparse
+from collections import defaultdict
+from pathlib import Path
+
 import cv2
 import numpy as np
+from shapely.geometry import Polygon
+from shapely.geometry.point import Point
 
 from ultralytics import YOLO
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.plotting import Annotator, colors
-from pathlib import Path
 
-from shapely.geometry import Polygon
-from shapely.geometry.point import Point
-
-from collections import defaultdict
 track_history = defaultdict(lambda: [])
 
 current_region = None
@@ -30,8 +30,7 @@ counting_regions = [
         'dragging': False,
         'region_color': (37, 255, 225),  # BGR Value
         'text_color': (0, 0, 0),  # Region Text Color
-    },
-]
+    }, ]
 
 
 def is_inside_polygon(point, polygon):
@@ -57,8 +56,7 @@ def mouse_callback(event, x, y, flags, param):
             dx = x - current_region['offset_x']
             dy = y - current_region['offset_y']
             current_region['polygon'] = Polygon([
-                (p[0] + dx, p[1] + dy) for p in current_region['polygon'].exterior.coords
-            ])
+                (p[0] + dx, p[1] + dy) for p in current_region['polygon'].exterior.coords])
             current_region['offset_x'] = x
             current_region['offset_y'] = y
 
@@ -68,16 +66,17 @@ def mouse_callback(event, x, y, flags, param):
             current_region['dragging'] = False
 
 
-def run(weights='yolov8n.pt',
-        source=None,
-        device='cpu',
-        view_img=False,
-        save_img=False,
-        exist_ok=False,
-        line_thickness=2,
-        track_thickness=2,
-        region_thickness=2,
-        ):
+def run(
+    weights='yolov8n.pt',
+    source=None,
+    device='cpu',
+    view_img=False,
+    save_img=False,
+    exist_ok=False,
+    line_thickness=2,
+    track_thickness=2,
+    region_thickness=2,
+):
     """
     Run Region counting on a video using YOLOv8 and ByteTrack.
 
@@ -104,7 +103,7 @@ def run(weights='yolov8n.pt',
 
     # Setup Model
     model = YOLO(f'{weights}')
-    model.to("cuda") if device == "0" else model.to("cpu")
+    model.to('cuda') if device == '0' else model.to('cpu')
 
     # Video setup
     videocapture = cv2.VideoCapture(source)
@@ -158,16 +157,21 @@ def run(weights='yolov8n.pt',
         for region in counting_regions:
             region_label = str(region['counts'])
             region_color = region['region_color']
-            region_text_color = region["text_color"]
+            region_text_color = region['text_color']
 
             polygon_coords = np.array(region['polygon'].exterior.coords, dtype=np.int32)
             centroid_x, centroid_y = int(region['polygon'].centroid.x), int(region['polygon'].centroid.y)
 
-            text_size, _ = cv2.getTextSize(region_label, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.7, thickness=line_thickness)
+            text_size, _ = cv2.getTextSize(region_label,
+                                           cv2.FONT_HERSHEY_SIMPLEX,
+                                           fontScale=0.7,
+                                           thickness=line_thickness)
             text_x = centroid_x - text_size[0] // 2
             text_y = centroid_y + text_size[1] // 2
-            cv2.rectangle(frame, (text_x - 5, text_y - text_size[1] - 5), (text_x + text_size[0] + 5, text_y + 5), region_color, -1)
-            cv2.putText(frame, region_label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, region_text_color, line_thickness)
+            cv2.rectangle(frame, (text_x - 5, text_y - text_size[1] - 5), (text_x + text_size[0] + 5, text_y + 5),
+                          region_color, -1)
+            cv2.putText(frame, region_label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, region_text_color,
+                        line_thickness)
             cv2.polylines(frame, [polygon_coords], isClosed=True, color=region_color, thickness=region_thickness)
 
         if view_img:

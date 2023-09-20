@@ -161,7 +161,7 @@ def check_version(current: str = '0.0.0',
         # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
     """
-    if not required:
+    if not current or not required:
         return True  # in case required is '' or None
 
     # import pkg_resources as pkg

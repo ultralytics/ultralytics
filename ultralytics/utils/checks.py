@@ -493,9 +493,15 @@ def collect_system_info():
                 f"{'CPU':<20}{get_cpu_info()}\n"
                 f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n")
 
-    for r in parse_requirements():
+    if (ROOT.parent / 'requirements.txt').exists():  # pip install
+        requirements = parse_requirements()
+    else:  # git install
+        from pkg_resources import get_distribution
+        requirements = get_distribution('ultralytics').requires()
+
+    for r in requirements:
         current = version(r.name)
-        is_met = '✅ ' if check_version(current, r.specifier) else '❌ '
+        is_met = '✅ ' if check_version(current, str(r.specifier)) else '❌ '
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
 
 

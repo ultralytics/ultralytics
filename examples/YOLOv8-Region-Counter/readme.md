@@ -72,7 +72,7 @@ Region counting is a computational method utilized to ascertain the quantity of 
 
 The Region Counter offers the capability to create regions in various formats, such as polygons and rectangles. You have the flexibility to modify region attributes, including coordinates, colors, and other details, as demonstrated in the following code:
 
-```
+```python
 counting_regions = [
     {
         'name': 'YOLOv8 Polygon Region',

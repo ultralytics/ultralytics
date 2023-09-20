@@ -277,7 +277,7 @@ class Results(SimpleClass):
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
         return log_string
 
-    def save_txt(self, txt_file, save_conf=False):
+    def save_txt(self,csv_file ,txt_file, save_conf=False):
         """
         Save predictions into txt file.
 
@@ -290,9 +290,14 @@ class Results(SimpleClass):
         probs = self.probs
         kpts = self.keypoints
         texts = []
+        csv_data = []
         if probs is not None:
             # Classify
-            [texts.append(f'{probs.data[j]:.2f} {self.names[j]}') for j in probs.top5]
+            for j in probs.top5:
+                c = int(j)
+                conf = probs.data[j].item() if save_conf else None
+                class_name = self.names[c]
+                data.append([self.path, conf, class_name])
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
@@ -306,11 +311,23 @@ class Results(SimpleClass):
                     line += (*kpt.reshape(-1).tolist(), )
                 line += (conf, ) * save_conf + (() if id is None else (id, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)
+                csv_data.append([self.path, conf if save_conf else None, self.names[c]])
 
         if texts:
             Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
             with open(txt_file, 'a') as f:
                 f.writelines(text + '\n' for text in texts)
+        if csv_data:
+            
+            with open(csv_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                
+                # Write the header row
+                header = ["Image Name", "Confidence", "Detection"]
+                writer.writerow(header)
+                
+                # Write the data rows
+                writer.writerows(csv_data)
 
     def save_crop(self, save_dir, file_name=Path('im.jpg')):
         """

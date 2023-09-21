@@ -290,7 +290,7 @@ class Results(SimpleClass):
         probs = self.probs
         kpts = self.keypoints
         texts = []
-        if probs is not None:
+        if probs is not None and len(probs.data.shape) == 1:
             # Classify
             [texts.append(f'{probs.data[j]:.2f} {self.names[j]}') for j in probs.top5]
         elif boxes:

@@ -141,8 +141,7 @@ def non_max_suppression(
         max_time_img=0.05,
         max_nms=30000,
         max_wh=7680,
-        return_all_scores=False
-):
+        return_all_scores=False):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
 
@@ -267,7 +266,7 @@ def non_max_suppression(
         if (time.time() - t) > time_limit:
             LOGGER.warning(f'WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded')
             break  # time limit exceeded
-        
+
     if return_all_scores:
         return output, output_scores
     else:

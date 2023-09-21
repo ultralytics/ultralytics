@@ -267,10 +267,7 @@ def non_max_suppression(
             LOGGER.warning(f'WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded')
             break  # time limit exceeded
 
-    if return_all_scores:
-        return output, output_scores
-    else:
-        return output
+    return (output, output_scores) if return_all_scores else output
 
 
 def clip_boxes(boxes, shape):

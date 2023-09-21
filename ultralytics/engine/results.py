@@ -584,7 +584,7 @@ class Probs(BaseTensor):
     @lru_cache(maxsize=1)
     def top1conf(self):
         """Return the confidence of top 1."""
-        if type(self.data) == torch.Tensor:
+        if isinstance(self.data, torch.Tensor):
             return self.data.max(axis=-1).values
         else:
             return self.data.max(axis=-1)
@@ -593,7 +593,7 @@ class Probs(BaseTensor):
     @lru_cache(maxsize=1)
     def top5conf(self):
         """Return the confidences of top 5."""
-        if type(self.data) == torch.Tensor:
+        if isinstance(self.data, torch.Tensor):
             return self.data.topk(5, dim=-1).values
         else:
             return np.take_along_axis(self.data, np.int64(self.top5), axis=-1)

@@ -164,9 +164,12 @@ def check_version(current: str = '0.0.0',
         # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
     """
-    if not (current and required):  # if any inputs missing
+    if not current:  # if current is '' or None
         LOGGER.warning(f'WARNING ⚠️ invalid check_version({current}, {required}) requested, please check values.')
-        return True  # in case required is '' or None
+        return True
+
+    if not required:  # if required is '' or None
+        return True
 
     current = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
@@ -490,9 +493,9 @@ def collect_system_info():
                 f"{'CPU':<20}{get_cpu_info()}\n"
                 f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n")
 
-    if (ROOT.parent / 'requirements.txt').exists():  # pip install
+    if (ROOT.parent / 'requirements.txt').exists():  # git install
         requirements = parse_requirements()
-    else:  # git install
+    else:  # pip install
         from pkg_resources import get_distribution
         requirements = get_distribution('ultralytics').requires()
 

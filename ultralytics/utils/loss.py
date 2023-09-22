@@ -410,7 +410,8 @@ class v8PoseLoss(v8DetectionLoss):
         target_gt_idx_expanded = target_gt_idx.unsqueeze(-1).unsqueeze(-1)
 
         # Use target_gt_idx_expanded to select keypoints from batched_keypoints
-        selected_keypoints = batched_keypoints.gather(1, target_gt_idx_expanded.expand(-1, -1, keypoints.shape[1], keypoints.shape[2]))
+        selected_keypoints = batched_keypoints.gather(
+            1, target_gt_idx_expanded.expand(-1, -1, keypoints.shape[1], keypoints.shape[2]))
 
         # Divide coordinates by stride
         selected_keypoints /= stride_tensor.view(1, -1, 1, 1)

@@ -61,9 +61,7 @@ def parse_version(version='0.0.0') -> tuple:
         (tuple): Tuple of integers representing the numeric part of the version and the extra string, i.e. (2, 0, 1)
     """
     try:
-        correct = [True if x == '.' else x.isdigit() for x in version]  # first non-number index
-        v = version[:correct.index(False)] if False in correct else version
-        return tuple(map(int, v.split('.')))  # '2.0.1+cpu' -> (2, 0, 1)
+        return tuple(map(int, re.findall(r'\d+', version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ failure for parse_version({version}), reverting to deprecated pkg_resources: {e}')
         import pkg_resources

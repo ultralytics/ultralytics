@@ -355,12 +355,13 @@ class v8PoseLoss(v8DetectionLoss):
             keypoints = batch['keypoints'].to(self.device).float().clone()
             keypoints[..., 0] *= imgsz[1]
             keypoints[..., 1] *= imgsz[0]
-            
-            loss[1], loss[2] = self.calculate_keypoints_loss(fg_mask, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts)
+
+            loss[1], loss[2] = self.calculate_keypoints_loss(fg_mask, target_gt_idx, keypoints, batch_idx,
+                                                             stride_tensor, target_bboxes, pred_kpts)
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.pose # pose gain
-        loss[2] *= self.hyp.kobj # kobj gain
+        loss[1] *= self.hyp.pose  # pose gain
+        loss[2] *= self.hyp.kobj  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
 
@@ -374,8 +375,9 @@ class v8PoseLoss(v8DetectionLoss):
         y[..., 0] += anchor_points[:, [0]] - 0.5
         y[..., 1] += anchor_points[:, [1]] - 0.5
         return y
-        
-    def calculate_keypoints_loss(self, masks, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts):
+
+    def calculate_keypoints_loss(self, masks, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes,
+                                 pred_kpts):
         """
         Calculates keypoints loss
 
@@ -395,15 +397,14 @@ class v8PoseLoss(v8DetectionLoss):
         max_kpts = torch.unique(batch_idx, return_counts=True)[1].max()
 
         # Create a tensor to hold batched keypoints
-        batched_keypoints = torch.zeros(
-            (batch_size, max_kpts, keypoints.shape[1], keypoints.shape[2]), device=keypoints.device
-        )
+        batched_keypoints = torch.zeros((batch_size, max_kpts, keypoints.shape[1], keypoints.shape[2]),
+                                        device=keypoints.device)
 
         # TODO: any idea how to vectorize this?
         # Fill batched_keypoints with keypoints based on batch_idx
         for i in range(batch_size):
             keypoints_i = keypoints[batch_idx == i]
-            batched_keypoints[i, : keypoints_i.shape[0]] = keypoints_i
+            batched_keypoints[i, :keypoints_i.shape[0]] = keypoints_i
 
         # Expand dimensions of target_gt_idx to match the shape of batched_keypoints
         target_gt_idx_expanded = target_gt_idx.unsqueeze(-1).unsqueeze(-1)
@@ -418,7 +419,7 @@ class v8PoseLoss(v8DetectionLoss):
         area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
         pred_kpt = pred_kpts[masks]
         kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
-        
+
         kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
 
         if pred_kpt.shape[-1] == 3:

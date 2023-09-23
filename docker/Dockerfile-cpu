@@ -37,6 +37,9 @@ RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # Remove exported models
 RUN rm -rf tmp
 
+# Creates a symbolic link to make 'python' point to 'python3'
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

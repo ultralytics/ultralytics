@@ -176,10 +176,11 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    r = requests.head(url)  # response
-
-    # Check response
-    assert r.status_code < 400, f'URL error for {url}: {r.status_code} {r.reason}'
+    try:
+        r = requests.head(url)  # response
+        assert r.status_code < 400, f'URL error for {url}: {r.status_code} {r.reason}'  # check response
+    except Exception:
+        return True  # requests issue, default to True
 
     # Check file size
     gib = 1 << 30  # bytes per GiB

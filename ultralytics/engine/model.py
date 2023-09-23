@@ -264,8 +264,7 @@ class Model(nn.Module):
             validator (BaseValidator): Customized validator.
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
-        custom = {'rect': True}  # method defaults
-        args = {**self.overrides, **custom, **kwargs, 'mode': 'val'}  # highest priority args on the right
+        args = {**self.overrides, **kwargs}  # highest priority args on the right
         args['imgsz'] = check_imgsz(args['imgsz'], max_dim=1)
 
         validator = (validator or self._smart_load('validator'))(args=args, _callbacks=self.callbacks)

@@ -171,7 +171,8 @@ def check_version(current: str = '0.0.0',
         return True
     elif not current[0].isdigit():  # current is package name rather than version string, i.e. current='ultralytics'
         try:
-            current = version(current)  # get version string
+            name = current  # assigned package name to 'name' arg
+            current = version(current)  # get version string from package name
         except PackageNotFoundError:
             if hard:
                 raise ModuleNotFoundError(emojis(f'WARNING ⚠️ {current} package is required but not installed'))

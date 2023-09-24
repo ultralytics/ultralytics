@@ -11,7 +11,7 @@ try:
 
     import dvclive
 
-    assert checks.check_version('dvclive', '2.11.0', name='dvclive', verbose=True)
+    assert checks.check_version('dvclive', '2.11.0', verbose=True)
 
     # DVCLive logger instance
     live = None

@@ -16,8 +16,8 @@ from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = 'ultralytics/assets'
-GITHUB_ASSETS_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
-                      [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
+GITHUB_ASSETS_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '-cls', '-seg', '-pose')] + \
+                      [f'yolov5{k}{resolution}u.pt' for k in 'nsmlx' for resolution in ('', '6')] + \
                       [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] + \
                       [f'yolo_nas_{k}.pt' for k in 'sml'] + \
                       [f'sam_{k}.pt' for k in 'bl'] + \
@@ -176,10 +176,11 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    r = requests.head(url)  # response
-
-    # Check response
-    assert r.status_code < 400, f'URL error for {url}: {r.status_code} {r.reason}'
+    try:
+        r = requests.head(url)  # response
+        assert r.status_code < 400, f'URL error for {url}: {r.status_code} {r.reason}'  # check response
+    except Exception:
+        return True  # requests issue, default to True
 
     # Check file size
     gib = 1 << 30  # bytes per GiB

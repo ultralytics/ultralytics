@@ -153,7 +153,7 @@ class BaseDataset(Dataset):
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 r = self.imgsz / max(h0, w0)  # ratio
                 if r != 1:  # if sizes are not equal
-                    w, h = min(round(w0 * r), self.imgsz), min(round(h0 * r), self.imgsz)
+                    w, h = max(min(round(w0 * r), self.imgsz), 1), max(min(round(h0 * r), self.imgsz), 1)
                     im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)

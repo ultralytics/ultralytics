@@ -182,17 +182,16 @@ def check_version(current: str = '0.0.0',
     if not required:  # if required is '' or None
         return True
 
-    c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
-    constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
     result = True
-    for constraint in constraints:
-        op, v = re.match(r'([^0-9]*)([\d.]+)', constraint).groups()
+    c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
+    for r in required.strip(',').split(','):
+        op, v = re.match(r'([^0-9]*)([\d.]+)', r).groups()  # split '>=22.04' -> ('>=', '22.04')
         v = parse_version(v)  # '1.2.3' -> (1, 2, 3)
         if op == '==' and c != v:
             result = False
         elif op == '!=' and c == v:
             result = False
-        elif op == '>=' and not (c >= v):
+        elif op in ('>=', '') and not (c >= v):  # if no constraint passed assume '>=required'
             result = False
         elif op == '<=' and not (c <= v):
             result = False

@@ -731,17 +731,20 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
         coords (torch.Tensor): The scaled coordinates.
     """
     if ratio_pad is None:  # calculate from img0_shape
-        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+        min_gain = min(img1_shape[1] / img0_shape[1], img1_shape[0] / img0_shape[0])  # gain = old / new
+        discrete_width = round(img0_shape[1] * min_gain)
+        discrete_height = round(img0_shape[0] * min_gain)
+        gain = discrete_width / img0_shape[1], discrete_height / img0_shape[0]
+        pad = (img1_shape[1] - discrete_width) // 2, (img1_shape[0] - discrete_height) // 2  # wh padding
     else:
-        gain = ratio_pad[0][0]
+        gain = ratio_pad[0]
         pad = ratio_pad[1]
 
     if padding:
         coords[..., 0] -= pad[0]  # x padding
         coords[..., 1] -= pad[1]  # y padding
-    coords[..., 0] /= gain
-    coords[..., 1] /= gain
+    coords[..., 0] /= gain[0]
+    coords[..., 1] /= gain[1]
     clip_coords(coords, img0_shape)
     if normalize:
         coords[..., 0] /= img0_shape[1]  # width

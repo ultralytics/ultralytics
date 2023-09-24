@@ -213,7 +213,7 @@ def test_export_paddle(enabled=False):
     if enabled:
         YOLO(MODEL).export(format='paddle')
 
-
+@pytest.mark.slow
 def test_export_ncnn():
     f = YOLO(MODEL).export(format='ncnn')
     YOLO(f)(SOURCE)  # exported model inference

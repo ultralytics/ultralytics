@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import glob
-import math
 import os
 import random
 from copy import deepcopy

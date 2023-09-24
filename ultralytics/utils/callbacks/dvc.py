@@ -1,22 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, checks
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['dvc'] is True  # verify integration is enabled
     import dvclive
-
-    assert hasattr(dvclive, '__version__')  # verify package is not directory
+    assert checks.check_version('dvclive', '2.11.0', verbose=True)
 
     import os
     import re
     from pathlib import Path
-
-    from ultralytics.utils.checks import check_version
-
-    if not check_version(dvclive.__version__, '2.11.0', name='dvclive', verbose=True):
-        dvclive = None
 
     # DVCLive logger instance
     live = None

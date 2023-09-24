@@ -154,7 +154,7 @@ class BaseDataset(Dataset):
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 r = self.imgsz / max(h0, w0)  # ratio
                 if r != 1:  # if sizes are not equal
-                    w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
+                    w, h = min(round(w0 * r), self.imgsz), min(round(h0 * r), self.imgsz)
                     im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
@@ -245,8 +245,8 @@ class BaseDataset(Dataset):
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop('shape', None)  # shape is for rect, remove it
         label['img'], label['ori_shape'], label['resized_shape'] = self.load_image(index)
-        label['ratio_pad'] = (label['resized_shape'][0] / label['ori_shape'][0],
-                              label['resized_shape'][1] / label['ori_shape'][1])  # for evaluation
+        label['ratio_pad'] = (label['resized_shape'][1] / label['ori_shape'][1],
+                              label['resized_shape'][0] / label['ori_shape'][0])  # for evaluation
         if self.rect:
             label['rect_shape'] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)

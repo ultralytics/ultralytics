@@ -135,7 +135,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 def check_version(current: str = '0.0.0',
                   required: str = '0.0.0',
-                  name: str = 'version ',
+                  name: str = 'version',
                   hard: bool = False,
                   verbose: bool = False) -> bool:
     """
@@ -182,23 +182,23 @@ def check_version(current: str = '0.0.0',
     if not required:  # if required is '' or None
         return True
 
-    current = parse_version(current)  # '1.2.3' -> (1, 2, 3)
+    c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
     result = True
     for constraint in constraints:
-        op, v = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
+        op, v = re.match(r'([^0-9]*)([\d.]+)', constraint).groups()
         v = parse_version(v)  # '1.2.3' -> (1, 2, 3)
-        if op == '==' and current != v:
+        if op == '==' and c != v:
             result = False
-        elif op == '!=' and current == v:
+        elif op == '!=' and c == v:
             result = False
-        elif op == '>=' and not (current >= v):
+        elif op == '>=' and not (c >= v):
             result = False
-        elif op == '<=' and not (current <= v):
+        elif op == '<=' and not (c <= v):
             result = False
-        elif op == '>' and not (current > v):
+        elif op == '>' and not (c > v):
             result = False
-        elif op == '<' and not (current < v):
+        elif op == '<' and not (c < v):
             result = False
     if not result:
         warning_message = f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed'

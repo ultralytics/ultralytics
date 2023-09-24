@@ -142,7 +142,7 @@ def check_version(current: str = '0.0.0',
     Check current version against the required version or range.
 
     Args:
-        current (str): Current version.
+        current (str): Current version or package name to get version from.
         required (str): Required version or range (in pip-style format).
         name (str): Name to be used in warning message.
         hard (bool): If True, raise an AssertionError if the requirement is not met.
@@ -152,6 +152,7 @@ def check_version(current: str = '0.0.0',
         (bool): True if requirement is met, False otherwise.
 
     Example:
+        ```python
         # check if current version is exactly 22.04
         check_version(current='22.04', required='==22.04')
 
@@ -163,10 +164,19 @@ def check_version(current: str = '0.0.0',
 
         # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
+        ```
     """
     if not current:  # if current is '' or None
         LOGGER.warning(f'WARNING ⚠️ invalid check_version({current}, {required}) requested, please check values.')
         return True
+    elif not current[0].isdigit():  # current is package name rather than version string, i.e. current='ultralytics'
+        try:
+            current = version(current)  # get version string
+        except PackageNotFoundError:
+            if hard:
+                raise ModuleNotFoundError(emojis(f'WARNING ⚠️ {current} package is required but not installed'))
+            else:
+                return False
 
     if not required:  # if required is '' or None
         return True

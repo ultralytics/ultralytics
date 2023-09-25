@@ -1,25 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, checks
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['dvc'] is True  # verify integration is enabled
     import dvclive
-
-    assert hasattr(dvclive, '__version__')  # verify package is not directory
+    assert checks.check_version('dvclive', '2.11.0', verbose=True)
 
     import os
     import re
-    from importlib.metadata import version
     from pathlib import Path
-
-    import pkg_resources as pkg
-
-    ver = version('dvclive')
-    if pkg.parse_version(ver) < pkg.parse_version('2.11.0'):
-        LOGGER.debug(f'DVCLive is detected but version {ver} is incompatible (>=2.11 required).')
-        dvclive = None  # noqa: F811
 
     # DVCLive logger instance
     live = None
@@ -74,9 +65,7 @@ def on_pretrain_routine_start(trainer):
     try:
         global live
         live = dvclive.Live(save_dvc_exp=True, cache_images=True)
-        LOGGER.info(
-            f'DVCLive is detected and auto logging is enabled (can be disabled in the {SETTINGS.file} with `dvc: false`).'
-        )
+        LOGGER.info("DVCLive is detected and auto logging is enabled (run 'yolo settings dvc=False' to disable).")
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ DVCLive installed but not initialized correctly, not logging this run. {e}')
 

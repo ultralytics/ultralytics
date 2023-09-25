@@ -30,6 +30,17 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 - **Train** a new YOLOv8 model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
 - **Explore** YOLOv8 tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab.
+</p>
+
 ## YOLO: A Brief History
 
 [YOLO](https://arxiv.org/abs/1506.02640) (You Only Look Once), a popular object detection and image segmentation model, was developed by Joseph Redmon and Ali Farhadi at the University of Washington. Launched in 2015, YOLO quickly gained popularity for its high speed and accuracy.

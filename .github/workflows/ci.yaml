@@ -16,16 +16,20 @@ on:
         description: 'Run HUB'
         default: false
         type: boolean
-      tests:
-        description: 'Run Tests'
-        default: false
-        type: boolean
       benchmarks:
         description: 'Run Benchmarks'
         default: false
         type: boolean
+      tests:
+        description: 'Run Tests'
+        default: false
+        type: boolean
       gpu:
         description: 'Run GPU'
+        default: false
+        type: boolean
+      conda:
+        description: 'Run Conda'
         default: false
         type: boolean
 
@@ -180,9 +184,9 @@ jobs:
         run: |  # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest-cov "coremltools>=7.0.b1" --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -e . pytest-cov "coremltools>=7.0.b1" --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
           fi
       - name: Check environment
         run: |
@@ -237,7 +241,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -257,14 +261,13 @@ jobs:
           activate-environment: anaconda-client-env
       - name: Install Libmamba
         run: |
-          # conda install conda-libmamba-solver
           conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
         run: |
-          conda install -c conda-forge ultralytics
+          conda install -c pytorch -c conda-forge pytorch torchvision ultralytics
       - name: Install pip packages
         run: |
-          pip install pytest 'coremltools>=7.0.b1' # 'openvino-dev>=2023.0'
+          pip install pytest 'coremltools>=7.0' # 'openvino-dev>=2023.0'
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"

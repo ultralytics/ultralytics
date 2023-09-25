@@ -4,14 +4,13 @@ description: Learn about YOLOv8 Classify models for image classification. Get de
 keywords: Ultralytics, YOLOv8, Image Classification, Pretrained Models, YOLOv8n-cls, Training, Validation, Prediction, Model Export
 ---
 
-Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of
-predefined classes.
+# Image Classification
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/243418606-adf35c62-2e11-405d-84c6-b84e7d013804.png">
 
-The output of an image classifier is a single class label and a confidence score. Image
-classification is useful when you need to know only what class an image belongs to and don't need to know where objects
-of that class are located or what their exact shape is.
+Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of predefined classes.
+
+The output of an image classifier is a single class label and a confidence score. Image classification is useful when you need to know only what class an image belongs to and don't need to know where objects of that class are located or what their exact shape is.
 
 !!! tip "Tip"
 
@@ -19,13 +18,9 @@ of that class are located or what their exact shape is.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
-YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose models are pretrained on
-the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify
-models are pretrained on
-the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest
-Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 |----------------------------------------------------------------------------------------------|-----------------------|------------------|------------------|--------------------------------|-------------------------------------|--------------------|--------------------------|
@@ -43,8 +38,7 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
 
 ## Train
 
-Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments
-see the [Configuration](../usage/cfg.md) page.
+Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example ""
 
@@ -81,8 +75,7 @@ YOLO classification dataset format can be found in detail in the [Dataset Guide]
 
 ## Val
 
-Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains
-it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
 !!! example ""
 
@@ -159,8 +152,7 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
-Available YOLOv8-cls export formats are in the table below. You can predict or validate directly on exported models,
-i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your model after export completes.
+Available YOLOv8-cls export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                         | Metadata | Arguments                                           |
 |--------------------------------------------------------------------|-------------------|-------------------------------|----------|-----------------------------------------------------|

@@ -4,4 +4,5 @@ include LICENSE
 include setup.py
 include ultralytics/assets/bus.jpg
 include ultralytics/assets/zidane.jpg
+include tests/*.py
 recursive-include ultralytics *.yaml

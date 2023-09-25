@@ -322,8 +322,8 @@ def scale_image(masks, img0_shape, ratio_pad=None):
         return masks
     if ratio_pad is None:  # calculate from im0_shape
         gain = min(img1_shape[1] / img0_shape[1], img1_shape[0] / img0_shape[0])  # gain = old / new
-        pad = (img1_shape[1] - math.ceil(img0_shape[1] * gain)) // 2, (img1_shape[0] -
-                                                                       math.ceil(img0_shape[0] * gain)) // 2  # wh padding
+        pad = (img1_shape[1] - math.ceil(img0_shape[1] * gain)) // 2, (
+            img1_shape[0] - math.ceil(img0_shape[0] * gain)) // 2  # wh padding
     else:
         pad = ratio_pad[1]
     top, left = pad[1], pad[0]  # y, x

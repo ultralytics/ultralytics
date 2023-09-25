@@ -415,10 +415,10 @@ class v8PoseLoss(v8DetectionLoss):
 
         # Divide coordinates by stride
         selected_keypoints /= stride_tensor.view(1, -1, 1, 1)
-        
+
         kpts_loss = 0
         kpts_obj_loss = 0
-        
+
         if masks.any():
             gt_kpt = selected_keypoints[masks]
             area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
@@ -428,7 +428,6 @@ class v8PoseLoss(v8DetectionLoss):
 
             if pred_kpt.shape[-1] == 3:
                 kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
-
 
         return kpts_loss, kpts_obj_loss
 

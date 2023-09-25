@@ -291,8 +291,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""
-    pair = re.sub(r' *= *', '=', pair)  # remove spaces around equals sign
-    k, v = pair.split('=', 1)  # split on first '=' sign
+    k, v = re.sub(r' *= *', '=', pair).split('=', 1)  # remove spaces around equals sign and split on first '=' sign
     assert v, f"missing '{k}' value"
     return k, smart_value(v)
 

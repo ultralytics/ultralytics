@@ -18,13 +18,14 @@ model.tune(
     use_ray=False,
     iterations=2,
     # Fixed training parameters
-    device=[1,3],
+    device=[1],
     data='coco128.yaml',
     project=f'grid-search-cdv1/{datetime.now().strftime("%Y%m%d-%H%M%S")}',
     fraction=0.5,
     epochs=3,
     batch=4,
-    optimizer='SGD',
+    optimizer='SGD', # MUST BE FIXED, try also Adam
+    cos_lr=False, # MUST BE FIXED, try also True
     plots=False,
     save=False,
     val=False,

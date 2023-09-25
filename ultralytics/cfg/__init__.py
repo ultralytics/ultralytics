@@ -122,6 +122,10 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         cfg['name'] = cfg.get('model', '').split('.')[0]
         LOGGER.warning(f"WARNING ⚠️ 'name=model' automatically updated to 'name={cfg['name']}'.")
 
+    # Close Mosaic (used for mosaic augmentation) casted to int
+    if cfg.get('close_mosaic') is not None:
+        cfg['close_mosaic'] = int(cfg['close_mosaic'])
+
     # Type and Value checks
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args

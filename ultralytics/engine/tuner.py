@@ -86,11 +86,12 @@ class Tuner:
             'scale': (0.0, 0.95),  # image scale (+/- gain)
             'shear': (0.0, 10.0),  # image shear (+/- deg)
             'perspective': (0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
-            'flipud': (0.0, 1.0),  # image flip up-down (probability)
+            #'flipud': (0.0, 1.0),  # image flip up-down (probability)
             'fliplr': (0.0, 1.0),  # image flip left-right (probability)
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
-            'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
+            'copy_paste': (0.0, 1.0), # segment copy-paste (probability)
+            'close_mosaic': (0.0, args['epochs']/2)}  # disable mosaic augmentation for final epochs (0 to disable)
         self.tune_dir = get_save_dir(self.args, name='tune')
         self.tune_csv = self.tune_dir / 'tune_results.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

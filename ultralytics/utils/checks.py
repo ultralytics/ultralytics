@@ -69,9 +69,8 @@ def parse_version(version='0.0.0') -> tuple:
     try:
         return tuple(map(int, re.findall(r'\d+', version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
     except Exception as e:
-        LOGGER.warning(f'WARNING ⚠️ failure for parse_version({version}), reverting to deprecated pkg_resources: {e}')
-        import pkg_resources
-        return pkg_resources.parse_version(version).release
+        LOGGER.warning(f'WARNING ⚠️ failure for parse_version({version}), returning (0, 0, 0): {e}')
+        return 0, 0, 0
 
 
 def is_ascii(s) -> bool:
@@ -559,9 +558,8 @@ def check_amp(model):
     except ConnectionError:
         LOGGER.warning(f'{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}')
     except (AttributeError, ModuleNotFoundError):
-        LOGGER.warning(
-            f'{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}'
-        )
+        LOGGER.warning(f'{prefix}checks skipped ⚠️. '
+                       f'Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}')
     except AssertionError:
         LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
                        f'NaN losses or zero-mAP results, so AMP will be disabled during training.')

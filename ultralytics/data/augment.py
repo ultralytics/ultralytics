@@ -559,7 +559,7 @@ class LetterBox:
 
         # Compute padding
         ratio = r, r  # width, height ratios
-        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        new_unpad = math.ceil(shape[1] * r), math.ceil(shape[0] * r)
         dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
         if self.auto:  # minimum rectangle
             dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding
@@ -863,7 +863,7 @@ class ClassifyLetterBox:
     def __call__(self, im):  # im = np.array HWC
         imh, imw = im.shape[:2]
         r = min(self.h / imh, self.w / imw)  # ratio of new/old
-        h, w = round(imh * r), round(imw * r)  # resized image
+        h, w = math.ceil(imh * r), math.ceil(imw * r)  # resized image
         hs, ws = (math.ceil(x / self.stride) * self.stride for x in (h, w)) if self.auto else self.h, self.w
         top, left = round((hs - h) / 2 - 0.1), round((ws - w) / 2 - 0.1)
         im_out = np.full((self.h, self.w, 3), 114, dtype=im.dtype)

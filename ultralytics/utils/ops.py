@@ -98,8 +98,8 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
     """
     if ratio_pad is None:  # calculate from img0_shape
         min_gain = min(img1_shape[1] / img0_shape[1], img1_shape[0] / img0_shape[0])  # gain = old / new
-        discrete_width = round(img0_shape[1] * min_gain)
-        discrete_height = round(img0_shape[0] * min_gain)
+        discrete_width = math.ceil(img0_shape[1] * min_gain)
+        discrete_height = math.ceil(img0_shape[0] * min_gain)
         gain = discrete_width / img0_shape[1], discrete_height / img0_shape[0]
         pad = (img1_shape[1] - discrete_width) // 2, (img1_shape[0] - discrete_height) // 2  # wh padding
     else:
@@ -322,8 +322,8 @@ def scale_image(masks, img0_shape, ratio_pad=None):
         return masks
     if ratio_pad is None:  # calculate from im0_shape
         gain = min(img1_shape[1] / img0_shape[1], img1_shape[0] / img0_shape[0])  # gain = old / new
-        pad = (img1_shape[1] - round(img0_shape[1] * gain)) // 2, (img1_shape[0] -
-                                                                   round(img0_shape[0] * gain)) // 2  # wh padding
+        pad = (img1_shape[1] - math.ceil(img0_shape[1] * gain)) // 2, (img1_shape[0] -
+                                                                       math.ceil(img0_shape[0] * gain)) // 2  # wh padding
     else:
         pad = ratio_pad[1]
     top, left = pad[1], pad[0]  # y, x
@@ -732,8 +732,8 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
     """
     if ratio_pad is None:  # calculate from img0_shape
         min_gain = min(img1_shape[1] / img0_shape[1], img1_shape[0] / img0_shape[0])  # gain = old / new
-        discrete_width = round(img0_shape[1] * min_gain)
-        discrete_height = round(img0_shape[0] * min_gain)
+        discrete_width = math.ceil(img0_shape[1] * min_gain)
+        discrete_height = math.ceil(img0_shape[0] * min_gain)
         gain = discrete_width / img0_shape[1], discrete_height / img0_shape[0]
         pad = (img1_shape[1] - discrete_width) // 2, (img1_shape[0] - discrete_height) // 2  # wh padding
     else:

@@ -415,18 +415,20 @@ class v8PoseLoss(v8DetectionLoss):
 
         # Divide coordinates by stride
         selected_keypoints /= stride_tensor.view(1, -1, 1, 1)
+        
+        kpts_loss = 0
+        kpts_obj_loss = 0
+        
+        if masks.any():
+            gt_kpt = selected_keypoints[masks]
+            area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
+            pred_kpt = pred_kpts[masks]
+            kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
+            kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
 
-        gt_kpt = selected_keypoints[masks]
-        area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
-        pred_kpt = pred_kpts[masks]
-        kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
+            if pred_kpt.shape[-1] == 3:
+                kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
 
-        kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
-
-        if pred_kpt.shape[-1] == 3:
-            kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
-        else:
-            kpts_obj_loss = 0
 
         return kpts_loss, kpts_obj_loss
 

@@ -36,6 +36,13 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
 
     Returns:
         (List[Dict[str, str]]): List of parsed requirements as dictionaries with `name` and `specifier` keys.
+
+    Example:
+        ```python
+        from ultralytics.utils.checks import parse_requirements
+
+        parse_requirements(package='ultralytics')
+        ```
     """
 
     if package:

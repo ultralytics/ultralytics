@@ -49,20 +49,23 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt'):
     return requirements
 
 
-def parse_version(v='0.0.0') -> tuple:
+def parse_version(version='0.0.0') -> tuple:
     """
-    Convert a version string to a tuple of integers, also returning any extra non-numeric string attached to the version.
+    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
+    This function replaces deprecated 'pkg_resources.parse_version(v)'
 
     Args:
-        v (str): Version string, i.e. '2.0.1+cpu'
+        version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
         (tuple): Tuple of integers representing the numeric part of the version and the extra string, i.e. (2, 0, 1)
     """
-    correct = [True if x == '.' else x.isdigit() for x in v]  # first non-number index
-    if False in correct:
-        v = v[:correct.index(False)]
-    return tuple(map(int, v.split('.')))  # '2.0.1+cpu' -> (2, 0, 1)
+    try:
+        return tuple(map(int, re.findall(r'\d+', version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
+    except Exception as e:
+        LOGGER.warning(f'WARNING ⚠️ failure for parse_version({version}), reverting to deprecated pkg_resources: {e}')
+        import pkg_resources
+        return pkg_resources.parse_version(version).release
 
 
 def is_ascii(s) -> bool:
@@ -132,23 +135,24 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 def check_version(current: str = '0.0.0',
                   required: str = '0.0.0',
-                  name: str = 'version ',
+                  name: str = 'version',
                   hard: bool = False,
                   verbose: bool = False) -> bool:
     """
     Check current version against the required version or range.
 
     Args:
-        current (str): Current version.
+        current (str): Current version or package name to get version from.
         required (str): Required version or range (in pip-style format).
-        name (str): Name to be used in warning message.
-        hard (bool): If True, raise an AssertionError if the requirement is not met.
-        verbose (bool): If True, print warning message if requirement is not met.
+        name (str, optional): Name to be used in warning message.
+        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool, optional): If True, print warning message if requirement is not met.
 
     Returns:
         (bool): True if requirement is met, False otherwise.
 
     Example:
+        ```python
         # check if current version is exactly 22.04
         check_version(current='22.04', required='==22.04')
 
@@ -160,34 +164,40 @@ def check_version(current: str = '0.0.0',
 
         # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
+        ```
     """
-    if not required:
-        return True  # in case required is '' or None
+    if not current:  # if current is '' or None
+        LOGGER.warning(f'WARNING ⚠️ invalid check_version({current}, {required}) requested, please check values.')
+        return True
+    elif not current[0].isdigit():  # current is package name rather than version string, i.e. current='ultralytics'
+        try:
+            name = current  # assigned package name to 'name' arg
+            current = version(current)  # get version string from package name
+        except PackageNotFoundError:
+            if hard:
+                raise ModuleNotFoundError(emojis(f'WARNING ⚠️ {current} package is required but not installed'))
+            else:
+                return False
 
-    # import pkg_resources as pkg
-    # current = pkg.parse_version(current)
-    current = parse_version(current)  # '1.2.3' -> (1, 2, 3)
-
-    constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
+    if not required:  # if required is '' or None
+        return True
 
     result = True
-    for constraint in constraints:
-        op, v = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
-
-        # v = pkg.parse_version(v)
+    c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
+    for r in required.strip(',').split(','):
+        op, v = re.match(r'([^0-9]*)([\d.]+)', r).groups()  # split '>=22.04' -> ('>=', '22.04')
         v = parse_version(v)  # '1.2.3' -> (1, 2, 3)
-
-        if op == '==' and current != v:
+        if op == '==' and c != v:
             result = False
-        elif op == '!=' and current == v:
+        elif op == '!=' and c == v:
             result = False
-        elif op == '>=' and not (current >= v):
+        elif op in ('>=', '') and not (c >= v):  # if no constraint passed assume '>=required'
             result = False
-        elif op == '<=' and not (current <= v):
+        elif op == '<=' and not (c <= v):
             result = False
-        elif op == '>' and not (current > v):
+        elif op == '>' and not (c > v):
             result = False
-        elif op == '<' and not (current < v):
+        elif op == '<' and not (c < v):
             result = False
     if not result:
         warning_message = f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed'
@@ -493,9 +503,15 @@ def collect_system_info():
                 f"{'CPU':<20}{get_cpu_info()}\n"
                 f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n")
 
-    for r in parse_requirements():
+    if (ROOT.parent / 'requirements.txt').exists():  # git install
+        requirements = parse_requirements()
+    else:  # pip install
+        from pkg_resources import get_distribution
+        requirements = get_distribution('ultralytics').requires()
+
+    for r in requirements:
         current = version(r.name)
-        is_met = '✅ ' if check_version(current, r.specifier) else '❌ '
+        is_met = '✅ ' if check_version(current, str(r.specifier)) else '❌ '
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
 
 

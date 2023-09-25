@@ -39,7 +39,7 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
     """
 
     if package:
-        requires = [x for x in metadata.metadata(package).json['requires_dist'] if 'extra == ' not in x]
+        requires = [x for x in metadata.distribution(package).requires if 'extra == ' not in x]
     else:
         requires = Path(file_path).read_text().splitlines()
 

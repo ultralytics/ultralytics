@@ -310,7 +310,7 @@ def scale_image(masks, img0_shape, ratio_pad=None):
 
     Args:
         masks (np.ndarray): resized and padded masks/images, [h, w, num]/[h, w, 3].
-        im0_shape (tuple): the original image shape
+        img0_shape (tuple): the original image shape
         ratio_pad (tuple): the ratio of the padding to the original image.
 
     Returns:

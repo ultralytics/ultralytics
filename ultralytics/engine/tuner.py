@@ -20,6 +20,7 @@ import random
 import shutil
 import subprocess
 import time
+import os
 
 import numpy as np
 import torch
@@ -178,8 +179,10 @@ class Tuner:
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
                 weights_dir = save_dir / 'weights'
-                cmd = ['yolo', 'train', *(f'{k}={v}' for k, v in train_args.items())]
-                assert subprocess.run(cmd, check=True).returncode == 0, 'training failed'
+                train_str_args = [
+                    *(f'{k}={v}' if k != 'device' else f'{k}=' + ",".join(map(str, v)) for k, v in train_args.items())]
+                cmd = ['yolo', 'train', *train_str_args]
+                os.system('/home-net/ierregue/project/detector/small-fast-detector/ultralytics/utils/tuner_workaround.sh ' + " ".join(cmd))
                 ckpt_file = weights_dir / ('best.pt' if (weights_dir / 'best.pt').exists() else 'last.pt')
                 metrics = torch.load(ckpt_file)['train_metrics']
 

@@ -273,13 +273,9 @@ class AutoBackend(nn.Module):
             net.load_model(str(w.with_suffix('.bin')))
             metadata = w.parent / 'metadata.yaml'
         elif triton:  # NVIDIA Triton Inference Server
-            """TODO
             check_requirements('tritonclient[all]')
-            from utils.triton import TritonRemoteModel
-            model = TritonRemoteModel(url=w)
-            nhwc = model.runtime.startswith("tensorflow")
-            """
-            raise NotImplementedError('Triton Inference Server is not currently supported.')
+            from ultralytics.utils.triton import TritonRemoteModel
+            model = TritonRemoteModel(**weights)
         else:
             from ultralytics.engine.exporter import export_formats
             raise TypeError(f"model='{w}' is not a supported model format. "
@@ -389,6 +385,7 @@ class AutoBackend(nn.Module):
                 ex.extract(output_name, mat_out)
                 y.append(np.array(mat_out)[None])
         elif self.triton:  # NVIDIA Triton Inference Server
+            im = im.cpu().numpy()  # torch to numpy
             y = self.model(im)
         else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
             im = im.cpu().numpy()
@@ -489,9 +486,11 @@ class AutoBackend(nn.Module):
         types = [s in name for s in sf]
         types[5] |= name.endswith('.mlmodel')  # retain support for older Apple CoreML *.mlmodel formats
         types[8] &= not types[9]  # tflite &= not edgetpu
-        if any(types):
-            triton = False
-        else:
-            url = urlparse(p)  # if url may be Triton inference server
-            triton = all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
+        triton = False
+        if any(types) is False:
+            try:
+                triton_params = eval(p)
+                triton = isinstance(triton_params, dict) and 'url' in triton_params
+            except:
+                pass
         return types + [triton]

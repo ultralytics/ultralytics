@@ -33,15 +33,24 @@ def test_train():
 def test_predict_multiple_devices():
     model = YOLO('yolov8n.pt')
     model = model.cpu()
+    assert str(model.device) == 'cpu'
     _ = model()  # CPU inference
+    assert str(model.device) == 'cpu'
 
     model = model.to('cuda:0')
+    assert str(model.device) == 'cuda:0'
     _ = model()  # CUDA inference
     assert str(model.device) == 'cuda:0'
 
     model = model.cpu()
+    assert str(model.device) == 'cpu'
     _ = model()  # CPU inference
     assert str(model.device) == 'cpu'
+
+    model = model.cuda()
+    assert str(model.device) == 'cuda:0'
+    _ = model()  # CUDA inference
+    assert str(model.device) == 'cuda:0'
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')

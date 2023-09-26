@@ -10,6 +10,7 @@ from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, checks, emojis, yaml_load
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class Model(nn.Module):
@@ -197,6 +198,7 @@ class Model(nn.Module):
         self._check_is_pytorch_model()
         self.model.fuse()
 
+    @smart_inference_mode()
     def predict(self, source=None, stream=False, predictor=None, **kwargs):
         """
         Perform prediction using the YOLO model.

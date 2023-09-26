@@ -300,6 +300,7 @@ class BasePredictor:
 
         self.run_callbacks('on_predict_end')
 
+    @smart_inference_mode()
     def setup_model(self, model, verbose=True):
         """Initialize YOLO model with given parameters and set it to evaluation mode."""
         self.model = AutoBackend(model or self.args.model,

@@ -55,7 +55,7 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
         line = line.strip()
         if line and not line.startswith('#'):
             line = line.split('#')[0].strip()  # ignore inline comments
-            match = re.match(r'([a-zA-Z0-9-_]+)([<>!=~]+.*)?', line)
+            match = re.match(r'([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?', line)
             if match:
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ''))
 

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-__version__ = '8.0.187'
+__version__ = '8.0.188'
 
 import torch
 

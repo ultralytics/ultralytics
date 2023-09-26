@@ -166,6 +166,7 @@ class YOLODataset(BaseDataset):
         bbox_format = label.pop('bbox_format')
         normalized = label.pop('normalized')
         label['instances'] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+        breakpoint()
         return label
 
     @staticmethod

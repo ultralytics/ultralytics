@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import os
 import contextlib
 import shutil
 import sys
@@ -10,6 +11,7 @@ from typing import Dict, List, Union
 from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS,
                                SETTINGS_YAML, IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn,
                                yaml_load, yaml_print)
+
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
@@ -56,6 +58,7 @@ CLI_HELP_MSG = \
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo grpc grpc_config_path
 
     Docs: https://docs.ultralytics.com
     Community: https://community.ultralytics.com
@@ -339,6 +342,7 @@ def entrypoint(debug=''):
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'hub': lambda: handle_yolo_hub(args[1:]),
         'login': lambda: handle_yolo_hub(args),
+        "grpc": lambda: handle_grpc(args[1:]),
         'copy-cfg': copy_default_cfg}
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
@@ -455,6 +459,18 @@ def copy_default_cfg():
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
     LOGGER.info(f'{DEFAULT_CFG_PATH} copied to {new_file}\n'
                 f"Example YOLO command with this new custom cfg:\n    yolo cfg='{new_file}' imgsz=320 batch=8")
+
+def handle_grpc(args):
+    if not args:
+        LOGGER.error(f"ERROR ⚠️,grpc need a cfg file")
+        return
+    if os.path.exists(args[0]):
+        from ultralytics.grpc_server import run_grpc
+        run_grpc(args[0])
+    else:
+        LOGGER.error(f"ERROR ⚠️,grpc need a cfg file,{args[0]} not exists")
+        return
+
 
 
 if __name__ == '__main__':

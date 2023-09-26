@@ -1,8 +1,6 @@
-from ultralytics.utils import LOGGER
 import tritonclient.http as httpclient
 import tritonclient.grpc as grpcclient
 import numpy as np
-import time
 
 
 class TritonRemoteModel:

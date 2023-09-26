@@ -430,19 +430,12 @@ class Boxes(BaseTensor):
         xywh[..., [1, 3]] /= self.orig_shape[0]
         return xywh
 
-    @property
-    def boxes(self):
-        """Return the raw bboxes tensor (deprecated)."""
-        LOGGER.warning("WARNING ⚠️ 'Boxes.boxes' is deprecated. Use 'Boxes.data' instead.")
-        return self.data
-
 
 class Masks(BaseTensor):
     """
     A class for storing and manipulating detection masks.
 
     Attributes:
-        segments (list): Deprecated property for segments (normalized).
         xy (list): A list of segments in pixel coordinates.
         xyn (list): A list of normalized segments.
 
@@ -461,15 +454,6 @@ class Masks(BaseTensor):
 
     @property
     @lru_cache(maxsize=1)
-    def segments(self):
-        """Return segments (normalized). Deprecated; use xyn property instead."""
-        LOGGER.warning(
-            "WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and 'Masks.xy' for segments (pixels) instead."
-        )
-        return self.xyn
-
-    @property
-    @lru_cache(maxsize=1)
     def xyn(self):
         """Return normalized segments."""
         return [
@@ -483,12 +467,6 @@ class Masks(BaseTensor):
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]
-
-    @property
-    def masks(self):
-        """Return the raw masks tensor. Deprecated; use data attribute instead."""
-        LOGGER.warning("WARNING ⚠️ 'Masks.masks' is deprecated. Use 'Masks.data' instead.")
-        return self.data
 
 
 class Keypoints(BaseTensor):

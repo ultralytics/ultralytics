@@ -45,9 +45,10 @@ class TritonRemoteModel:
         self.input_names = [input['name'] for input in model_config['input']]
         self.input_shapes = [input['name'] for input in model_config['input']]
         self.output_names = [output['name'] for output in model_config['output']]
-        
+    
     def __call__(self, *inputs) -> dict:
         infer_inputs = []
+        input_format = inputs[0].dtype
         for i, input in enumerate(inputs):
             if input.dtype != self.np_input_formats[i]:
                 input = input.astype(self.np_input_formats[i])
@@ -68,4 +69,4 @@ class TritonRemoteModel:
             outputs=infer_outputs
         )
 
-        return [outputs.as_numpy(output_name) for output_name in self.output_names]
+        return [outputs.as_numpy(output_name).astype(input_format) for output_name in self.output_names]

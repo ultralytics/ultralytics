@@ -8,8 +8,7 @@ from typing import Union
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, emojis, yaml_load
-from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
+from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, checks, emojis, yaml_load
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 from ultralytics.utils.torch_utils import smart_inference_mode
 
@@ -140,7 +139,7 @@ class Model(nn.Module):
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
         else:
-            weights = check_file(weights)
+            weights = checks.check_file(weights)
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
@@ -321,9 +320,9 @@ class Model(nn.Module):
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
             kwargs = self.session.train_args
-        check_pip_update_available()
+        checks.check_pip_update_available()
 
-        overrides = yaml_load(check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
+        overrides = yaml_load(checks.check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
         custom = {'data': TASK2DATA[self.task]}  # method defaults
         args = {**overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
         if args.get('resume'):

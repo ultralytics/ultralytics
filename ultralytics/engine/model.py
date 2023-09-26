@@ -9,7 +9,7 @@ from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, emojis, yaml_load
-from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml, check_requirements
+from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_requirements, check_yaml
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
@@ -75,13 +75,13 @@ class Model(nn.Module):
         self.session = None  # HUB session
         self.task = task  # task type
         model = str(model).strip()  # strip spaces
-        
+
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
             from ultralytics.hub.session import HUBTrainingSession
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
-        
+
         else:
             # Check if model in Triton Server
             triton_params = self.is_triton_model(model)
@@ -90,7 +90,7 @@ class Model(nn.Module):
                 self.task = triton_params['task']
                 self.overrides['task'] = self.task
                 return
-        
+
         # Load or create new YOLO model
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
@@ -119,35 +119,29 @@ class Model(nn.Module):
         except Exception as e:
             LOGGER.warning(f'WARNING ⚠️ Triton model url format: <scheme>://<netloc>/<endpoint>/<task_name>. {e}')
             return None
-        
+
         check_requirements('tritonclient[all]')
-        import tritonclient.http as httpclient
         import tritonclient.grpc as grpcclient
-        
-        
+        import tritonclient.http as httpclient
+
         if splitted_url.scheme == 'http':
             InferenceServerClient = httpclient.InferenceServerClient
         else:
             InferenceServerClient = grpcclient.InferenceServerClient
-            
+
         triton_client = InferenceServerClient(
             url=splitted_url.netloc,
             verbose=False,
             ssl=False,
         )
-        
+
         if triton_client.is_model_ready(endpoint):
-            return {
-                'url': splitted_url.netloc,
-                'endpoint': endpoint,
-                'scheme': splitted_url.scheme,
-                'task': task_name
-            }
-            
+            return {'url': splitted_url.netloc, 'endpoint': endpoint, 'scheme': splitted_url.scheme, 'task': task_name}
+
         LOGGER.warning(f'WARNING ⚠️ Triton model by url {splitted_url.netloc} with endpoint {endpoint} not ready!')
-            
+
         return None
-        
+
     @staticmethod
     def is_hub_model(model):
         """Check if the provided model is a HUB model."""

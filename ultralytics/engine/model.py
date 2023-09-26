@@ -363,7 +363,7 @@ class Model(nn.Module):
         self._check_is_pytorch_model()
         self = super()._apply(fn)  # noqa
         self.predictor = None  # reset predictor as device may have changed
-        self.overrides['device'] = str(self.device)  # i.e. device(type='cuda', index=0) -> 'cuda:0'
+        self.overrides['device'] = self.device  # was str(self.device) i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
 
     @property

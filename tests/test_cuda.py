@@ -30,6 +30,21 @@ def test_train():
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+def test_predict_multiple_devices():
+    model = YOLO('yolov8n.pt')
+    model = model.cpu()
+    _ = model()  # CPU inference
+
+    model = model.to('cuda:0')
+    _ = model()  # CUDA inference
+    assert str(model.device) == 'cuda:0'
+
+    model = model.cpu()
+    _ = model()  # CPU inference
+    assert str(model.device) == 'cpu'
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_autobatch():
     from ultralytics.utils.autobatch import check_train_batch_size
 

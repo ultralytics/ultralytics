@@ -327,8 +327,9 @@ def yaml_save(file='data.yaml', data=None, header=''):
         file.parent.mkdir(parents=True, exist_ok=True)
 
     # Convert Path objects to strings
+    valid_types = int, float, str, bool, list, tuple, dict, type(None)
     for k, v in data.items():
-        if isinstance(v, Path):
+        if not isinstance(v, valid_types):
             data[k] = str(v)
 
     # Dump data to file in YAML format

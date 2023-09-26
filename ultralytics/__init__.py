@@ -2,6 +2,8 @@
 
 __version__ = '8.0.187'
 
+import torch
+
 from ultralytics.models import RTDETR, SAM, YOLO
 from ultralytics.models.fastsam import FastSAM
 from ultralytics.models.nas import NAS

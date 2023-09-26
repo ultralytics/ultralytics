@@ -309,6 +309,11 @@ class AutoBackend(nn.Module):
             names = self._apply_default_class_names(data)
         names = check_class_names(names)
 
+        # Disable gradients
+        if pt:
+            for p in model.parameters():
+                p.requires_grad = False
+
         self.__dict__.update(locals())  # assign all variables to self
 
     def forward(self, im, augment=False, visualize=False):

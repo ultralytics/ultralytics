@@ -44,11 +44,9 @@ def smart_inference_mode():
 
     def decorate(fn):
         """Applies appropriate torch decorator for inference mode based on torch version."""
-        if torch.is_inference_mode_enabled() or not torch.is_grad_enabled():
-            # Already in inference_mode or no_grad context, act as a pass-through
-            return fn
+        if torch.is_inference_mode_enabled():
+            return fn  # already in inference_mode, act as a pass-through
         else:
-            # Apply appropriate decorator based on torch version
             return (torch.inference_mode if TORCH_1_9 else torch.no_grad)()(fn)
 
     return decorate

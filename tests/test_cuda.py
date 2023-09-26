@@ -16,6 +16,7 @@ DATASETS_DIR = Path(SETTINGS['datasets_dir'])
 WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 DATA = 'coco8.yaml'
+BUS = ASSETS / 'bus.jpg'
 
 
 def test_checks():
@@ -34,22 +35,22 @@ def test_predict_multiple_devices():
     model = YOLO('yolov8n.pt')
     model = model.cpu()
     assert str(model.device) == 'cpu'
-    _ = model()  # CPU inference
+    _ = model(BUS)  # CPU inference
     assert str(model.device) == 'cpu'
 
     model = model.to('cuda:0')
     assert str(model.device) == 'cuda:0'
-    _ = model()  # CUDA inference
+    _ = model(BUS)  # CUDA inference
     assert str(model.device) == 'cuda:0'
 
     model = model.cpu()
     assert str(model.device) == 'cpu'
-    _ = model()  # CPU inference
+    _ = model(BUS)  # CPU inference
     assert str(model.device) == 'cpu'
 
     model = model.cuda()
     assert str(model.device) == 'cuda:0'
-    _ = model()  # CUDA inference
+    _ = model(BUS)  # CUDA inference
     assert str(model.device) == 'cuda:0'
 
 
@@ -81,10 +82,10 @@ def test_predict_sam():
     model.info()
 
     # Run inference
-    model(ASSETS / 'bus.jpg', device=0)
+    model(BUS, device=0)
 
     # Run inference with bboxes prompt
-    model(ASSETS / 'zidane.jpg', bboxes=[439, 437, 524, 709], device=0)
+    model(BUS, bboxes=[439, 437, 524, 709], device=0)
 
     # Run inference with points prompt
     model(ASSETS / 'zidane.jpg', points=[900, 370], labels=[1], device=0)

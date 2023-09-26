@@ -206,11 +206,11 @@ class Model(nn.Module):
 
         Args:
             source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
-                          Accepts all source types accepted by the YOLO model.
+                Accepts all source types accepted by the YOLO model.
             stream (bool): Whether to stream the predictions or not. Defaults to False.
             predictor (BasePredictor): Customized predictor.
             **kwargs : Additional keyword arguments passed to the predictor.
-                       Check the 'configuration' section in the documentation for all available options.
+                Check the 'configuration' section in the documentation for all available options.
 
         Returns:
             (List[ultralytics.engine.results.Results]): The prediction results.
@@ -253,8 +253,7 @@ class Model(nn.Module):
         if not hasattr(self.predictor, 'trackers'):
             from ultralytics.trackers import register_tracker
             register_tracker(self, persist)
-        # ByteTrack-based method needs low confidence predictions as input
-        kwargs['conf'] = kwargs.get('conf') or 0.1
+        kwargs['conf'] = kwargs.get('conf') or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs['mode'] = 'track'
         return self.predict(source=source, stream=stream, **kwargs)
 
@@ -268,7 +267,6 @@ class Model(nn.Module):
         """
         custom = {'rect': True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'val'}  # highest priority args on the right
-        args['imgsz'] = check_imgsz(args['imgsz'], max_dim=1)
 
         validator = (validator or self._smart_load('validator'))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)

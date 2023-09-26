@@ -17,7 +17,7 @@ from ultralytics.utils.ops import segment2box
 
 from .utils import polygons2masks, polygons2masks_overlap
 
-from ultralytics.data.chiebot_augment.origin_ag_ext import skip_class_perspective, skip_class_hsv, skip_class_flip
+from ultralytics.data.chiebot_augment.origin_ag_ext import skip_class_perspective, skip_class_hsv, skip_class_flip, skip_class_rot90
 
 
 
@@ -503,6 +503,50 @@ class RandomHSV:
 
             im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
             cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
+        return labels
+
+
+@skip_class_rot90
+class RandomRotate90:
+
+    def __init__(self, p=0.2) -> None:
+        assert 0 <= p <= 1.0
+
+        self.p = p
+
+    def __call__(self, labels):
+        """Resize image and padding for detection, instance segmentation, pose."""
+        if random.random() < self.p:
+            img = labels['img']
+            instances = labels.pop('instances')
+            h, w = img.shape[:2]
+            instances.denormalize(w, h)
+            assert instances.normalized == False
+            instances.convert_bbox(format='xyxy')
+            bboxes = instances.bboxes
+        
+            degree = random.choice([90, -90])
+            rot_boxes = bboxes.copy()
+            rot_img = img.copy()
+            if degree == -90:
+                rot_img = np.rot90(img)
+                rot_boxes[:,0] = bboxes[:,1]
+                rot_boxes[:,2] = bboxes[:,3]
+                rot_boxes[:,1] = w-1-bboxes[:,2]
+                rot_boxes[:,3] = w-1-bboxes[:,0]
+                
+            if degree == 90:
+                rot_img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+                rot_boxes[:,0] = h-1-bboxes[:,3]
+                rot_boxes[:,2] = h-1-bboxes[:,1]
+                rot_boxes[:,1] = bboxes[:, 0]
+                rot_boxes[:,3] = bboxes[:,2]
+            labels['img'] = rot_img
+            instances._bboxes.bboxes = rot_boxes
+            instances.convert_bbox(format='xywh')
+            instances.normalize(w, h)        
+            assert instances.normalized == True
+            labels['instances'] = instances
         return labels
 
 

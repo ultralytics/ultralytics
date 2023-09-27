@@ -21,12 +21,12 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 ## Supported Tasks
 
-| Model Type  | Pre-trained Weights                                                                                              | Task                  |
-|-------------|------------------------------------------------------------------------------------------------------------------|-----------------------|
-| YOLOv8      | `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt`                                             | Detection             |
-| YOLOv8-seg  | `yolov8n-seg.pt`, `yolov8s-seg.pt`, `yolov8m-seg.pt`, `yolov8l-seg.pt`, `yolov8x-seg.pt`                         | Instance Segmentation |
-| YOLOv8-pose | `yolov8n-pose.pt`, `yolov8s-pose.pt`, `yolov8m-pose.pt`, `yolov8l-pose.pt`, `yolov8x-pose.pt` ,`yolov8x-pose-p6` | Pose/Keypoints        |
-| YOLOv8-cls  | `yolov8n-cls.pt`, `yolov8s-cls.pt`, `yolov8m-cls.pt`, `yolov8l-cls.pt`, `yolov8x-cls.pt`                         | Classification        |
+| Model Type  | Pre-trained Weights                                                                                                 | Task                  |
+|-------------|---------------------------------------------------------------------------------------------------------------------|-----------------------|
+| YOLOv8      | `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt`                                                | Detection             |
+| YOLOv8-seg  | `yolov8n-seg.pt`, `yolov8s-seg.pt`, `yolov8m-seg.pt`, `yolov8l-seg.pt`, `yolov8x-seg.pt`                            | Instance Segmentation |
+| YOLOv8-pose | `yolov8n-pose.pt`, `yolov8s-pose.pt`, `yolov8m-pose.pt`, `yolov8l-pose.pt`, `yolov8x-pose.pt`, `yolov8x-pose-p6.pt` | Pose/Keypoints        |
+| YOLOv8-cls  | `yolov8n-cls.pt`, `yolov8s-cls.pt`, `yolov8m-cls.pt`, `yolov8l-cls.pt`, `yolov8x-cls.pt`                            | Classification        |
 
 ## Supported Modes
 
@@ -38,7 +38,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 !!! Performance
 
-    === "Detection"
+    === "Detection (COCO)"
 
         | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -48,7 +48,19 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
         | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640                   | 52.9                 | 375.2                          | 2.39                                | 43.7               | 165.2             |
         | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                   | 53.9                 | 479.1                          | 3.53                                | 68.2               | 257.8             |
 
-    === "Segmentation"
+    === "Detection (Open Images V7)"
+
+        See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models trained on [Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/), which include 600 pre-trained classes.
+        
+        | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+        | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+        | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
+        | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
+        | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
+        | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
+
+    === "Segmentation (COCO)"
 
         | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -58,7 +70,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
         | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640                   | 52.3                 | 42.6                  | 572.4                          | 2.79                                | 46.0               | 220.5             |
         | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | 712.1                          | 4.02                                | 71.8               | 344.1             |
 
-    === "Classification"
+    === "Classification (ImageNet)"
 
         | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
         | -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
@@ -68,7 +80,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
         | [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                   | 78.0             | 94.1             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
         | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
 
-    === "Pose"
+    === "Pose (COCO)"
 
         | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -83,33 +95,60 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 You can use YOLOv8 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv8 models for inference:
 
-```python
-from ultralytics import YOLO
+!!! example ""
 
-# Load the model
-model = YOLO('yolov8n.pt')  # load a pretrained model
+    This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv8 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
-# Perform inference
-results = model('image.jpg')
+    === "Python"
 
-# Print the results
-results.print()
-```
+        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
-## Citation
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+
+        # Run inference with the YOLOv8n model on the 'bus.jpg' image
+        results = model('path/to/bus.jpg')
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Load a COCO-pretrained YOLOv8n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+
+        # Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        ```
+
+## Citations and Acknowledgements
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 
-```bibtex
-@software{yolov8_ultralytics,
-  author       = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
-  title        = {Ultralytics YOLOv8},
-  version      = {8.0.0},
-  year         = {2023},
-  url          = {https://github.com/ultralytics/ultralytics},
-  orcid        = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
-  license      = {AGPL-3.0}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @software{yolov8_ultralytics,
+          author = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
+          title = {Ultralytics YOLOv8},
+          version = {8.0.0},
+          year = {2023},
+          url = {https://github.com/ultralytics/ultralytics},
+          orcid = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
+          license = {AGPL-3.0}
+        }
+        ```
 
 Please note that the DOI is pending and will be added to the citation once it is available. The usage of the software is in accordance with the AGPL-3.0 license.

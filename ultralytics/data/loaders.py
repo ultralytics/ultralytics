@@ -16,7 +16,7 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import LOGGER, ROOT, is_colab, is_kaggle, ops
+from ultralytics.utils import LOGGER, is_colab, is_kaggle, ops
 from ultralytics.utils.checks import check_requirements
 
 
@@ -31,41 +31,45 @@ class SourceTypes:
 class LoadStreams:
     """YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`."""
 
-    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1):
+    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
+        self.buffer = buffer  # buffer input streams
+        self.running = True  # running flag for Thread
         self.mode = 'stream'
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.imgs, self.fps, self.frames, self.threads, self.shape = [[]] * n, [0] * n, [0] * n, [None] * n, [None] * n
+        self.imgs, self.fps, self.frames, self.threads, self.shape = [[]] * n, [0] * n, [0] * n, [None] * n, [[]] * n
+        self.caps = [None] * n  # video capture objects
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
             if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
-                # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
+                # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/LNwODJXcvt4'
                 s = get_best_youtube_url(s)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
                                           "Try running 'source=0' in a local environment.")
-            cap = cv2.VideoCapture(s)
-            if not cap.isOpened():
+            self.caps[i] = cv2.VideoCapture(s)  # store video capture object
+            if not self.caps[i].isOpened():
                 raise ConnectionError(f'{st}Failed to open {s}')
-            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            fps = cap.get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
-            self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
+            w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
+            h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+            self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
+                'inf')  # infinite stream fallback
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            success, im = cap.read()  # guarantee first frame
+            success, im = self.caps[i].read()  # guarantee first frame
             if not success or im is None:
                 raise ConnectionError(f'{st}Failed to read images from {s}')
             self.imgs[i].append(im)
             self.shape[i] = im.shape
-            self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
+            self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)
             LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
             self.threads[i].start()
         LOGGER.info('')  # newline
@@ -76,21 +80,35 @@ class LoadStreams:
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
-        while cap.isOpened() and n < f:
-            # Only read a new frame if the buffer is empty
-            if not self.imgs[i]:
+        while self.running and cap.isOpened() and n < (f - 1):
+            if len(self.imgs[i]) < 30:  # keep a <=30-image buffer
                 n += 1
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
                     success, im = cap.retrieve()
-                    if success:
-                        self.imgs[i].append(im)  # add image to buffer
-                    else:
+                    if not success:
+                        im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-                        self.imgs[i].append(np.zeros(self.shape[i]))
                         cap.open(stream)  # re-open stream if signal was lost
+                    if self.buffer:
+                        self.imgs[i].append(im)
+                    else:
+                        self.imgs[i] = [im]
             else:
                 time.sleep(0.01)  # wait until the buffer is empty
+
+    def close(self):
+        """Close stream loader and release resources."""
+        self.running = False  # stop flag for Thread
+        for thread in self.threads:
+            if thread.is_alive():
+                thread.join(timeout=5)  # Add timeout
+        for cap in self.caps:  # Iterate through the stored VideoCapture objects
+            try:
+                cap.release()  # release video capture
+            except Exception as e:
+                LOGGER.warning(f'WARNING ⚠️ Could not release VideoCapture object: {e}')
+        cv2.destroyAllWindows()
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""
@@ -101,15 +119,29 @@ class LoadStreams:
         """Returns source paths, transformed and original images for processing."""
         self.count += 1
 
-        # Wait until a frame is available in each buffer
-        while not all(self.imgs):
-            if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
-                cv2.destroyAllWindows()
-                raise StopIteration
-            time.sleep(1 / min(self.fps))
+        images = []
+        for i, x in enumerate(self.imgs):
 
-        # Get and remove the next frame from imgs buffer
-        return self.sources, [x.pop(0) for x in self.imgs], None, ''
+            # Wait until a frame is available in each buffer
+            while not x:
+                if not self.threads[i].is_alive() or cv2.waitKey(1) == ord('q'):  # q to quit
+                    self.close()
+                    raise StopIteration
+                time.sleep(1 / min(self.fps))
+                x = self.imgs[i]
+                if not x:
+                    LOGGER.warning(f'WARNING ⚠️ Waiting for stream {i}')
+
+            # Get and remove the first frame from imgs buffer
+            if self.buffer:
+                images.append(x.pop(0))
+
+            # Get the last frame, and clear the rest from the imgs buffer
+            else:
+                images.append(x.pop(-1) if x else np.zeros(self.shape[i], dtype=np.uint8))
+                x.clear()
+
+        return self.sources, images, None, ''
 
     def __len__(self):
         """Return the length of the sources object."""
@@ -152,11 +184,11 @@ class LoadScreenshots:
 
     def __next__(self):
         """mss screen capture: get raw pixels from the screen as np array."""
-        im0 = np.array(self.sct.grab(self.monitor))[:, :, :3]  # [:, :, :3] BGRA to BGR
+        im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
         s = f'screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: '
 
         self.frame += 1
-        return str(self.screen), im0, None, s  # screen, img, original img, im0s, s
+        return [str(self.screen)], [im0], None, s  # screen, img, vid_cap, string
 
 
 class LoadImages:
@@ -167,7 +199,7 @@ class LoadImages:
         parent = None
         if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
             parent = Path(path).parent
-            path = Path(path).read_text().rsplit()
+            path = Path(path).read_text().splitlines()  # list of sources
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
@@ -194,7 +226,6 @@ class LoadImages:
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = 1
         if any(videos):
-            self.orientation = None  # rotation degrees
             self._new_video(videos[0])  # new video
         else:
             self.cap = None
@@ -247,20 +278,6 @@ class LoadImages:
         self.frame = 0
         self.cap = cv2.VideoCapture(path)
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
-        if hasattr(cv2, 'CAP_PROP_ORIENTATION_META'):  # cv2<4.6.0 compatibility
-            self.orientation = int(self.cap.get(cv2.CAP_PROP_ORIENTATION_META))  # rotation degrees
-            # Disable auto-orientation due to known issues in https://github.com/ultralytics/yolov5/issues/8493
-            # self.cap.set(cv2.CAP_PROP_ORIENTATION_AUTO, 0)
-
-    def _cv2_rotate(self, im):
-        """Rotate a cv2 video manually."""
-        if self.orientation == 0:
-            return cv2.rotate(im, cv2.ROTATE_90_CLOCKWISE)
-        elif self.orientation == 180:
-            return cv2.rotate(im, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        elif self.orientation == 90:
-            return cv2.rotate(im, cv2.ROTATE_180)
-        return im
 
     def __len__(self):
         """Returns the number of files in the object."""
@@ -369,10 +386,10 @@ def autocast_list(source):
     return files
 
 
-LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
+LOADERS = LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots  # tuple
 
 
-def get_best_youtube_url(url, use_pafy=True):
+def get_best_youtube_url(url, use_pafy=False):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
@@ -389,19 +406,14 @@ def get_best_youtube_url(url, use_pafy=True):
     if use_pafy:
         check_requirements(('pafy', 'youtube_dl==2020.12.2'))
         import pafy  # noqa
-        return pafy.new(url).getbest(preftype='mp4').url
+        return pafy.new(url).getbestvideo(preftype='mp4').url
     else:
         check_requirements('yt-dlp')
         import yt_dlp
         with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
             info_dict = ydl.extract_info(url, download=False)  # extract info
-        for f in info_dict.get('formats', None):
-            if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
-                return f.get('url', None)
-
-
-if __name__ == '__main__':
-    img = cv2.imread(str(ROOT / 'assets/bus.jpg'))
-    dataset = LoadPilAndNumpy(im0=img)
-    for d in dataset:
-        print(d[0])
+        for f in reversed(info_dict.get('formats', [])):  # reversed because best is usually last
+            # Find a format with video codec, no audio, *.mp4 extension at least 1920x1080 size
+            good_size = (f.get('width') or 0) >= 1920 or (f.get('height') or 0) >= 1080
+            if good_size and f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
+                return f.get('url')

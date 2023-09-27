@@ -32,11 +32,11 @@ jobs:
 
             If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/yolov5/tutorials/tips_for_best_training_results/).
 
-            Join the vibrant [Ultralytics Discord](https://discord.gg/YVsATxj6wr) 🎧 community for real-time conversations and collaborations. This platform offers a perfect space to inquire, showcase your work, and connect with fellow Ultralytics users.
+            Join the vibrant [Ultralytics Discord](https://ultralytics.com/discord) 🎧 community for real-time conversations and collaborations. This platform offers a perfect space to inquire, showcase your work, and connect with fellow Ultralytics users.
 
             ## Install
 
-            Pip install the `ultralytics` package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a [**Python>=3.7**](https://www.python.org/) environment with [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
+            Pip install the `ultralytics` package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
 
             ```bash
             pip install ultralytics

@@ -82,37 +82,38 @@ class DETRLoss(nn.Module):
         loss[name_giou] = 1.0 - bbox_iou(pred_bboxes, gt_bboxes, xywh=True, GIoU=True)
         loss[name_giou] = loss[name_giou].sum() / len(gt_bboxes)
         loss[name_giou] = self.loss_gain['giou'] * loss[name_giou]
-        loss = {k: v.squeeze() for k, v in loss.items()}
-        return loss
+        return {k: v.squeeze() for k, v in loss.items()}
 
-    def _get_loss_mask(self, masks, gt_mask, match_indices, postfix=''):
-        # masks: [b, query, h, w], gt_mask: list[[n, H, W]]
-        name_mask = f'loss_mask{postfix}'
-        name_dice = f'loss_dice{postfix}'
+    # This function is for future RT-DETR Segment models
+    # def _get_loss_mask(self, masks, gt_mask, match_indices, postfix=''):
+    #     # masks: [b, query, h, w], gt_mask: list[[n, H, W]]
+    #     name_mask = f'loss_mask{postfix}'
+    #     name_dice = f'loss_dice{postfix}'
+    #
+    #     loss = {}
+    #     if sum(len(a) for a in gt_mask) == 0:
+    #         loss[name_mask] = torch.tensor(0., device=self.device)
+    #         loss[name_dice] = torch.tensor(0., device=self.device)
+    #         return loss
+    #
+    #     num_gts = len(gt_mask)
+    #     src_masks, target_masks = self._get_assigned_bboxes(masks, gt_mask, match_indices)
+    #     src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
+    #     # TODO: torch does not have `sigmoid_focal_loss`, but it's not urgent since we don't use mask branch for now.
+    #     loss[name_mask] = self.loss_gain['mask'] * F.sigmoid_focal_loss(src_masks, target_masks,
+    #                                                                     torch.tensor([num_gts], dtype=torch.float32))
+    #     loss[name_dice] = self.loss_gain['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
+    #     return loss
 
-        loss = {}
-        if sum(len(a) for a in gt_mask) == 0:
-            loss[name_mask] = torch.tensor(0., device=self.device)
-            loss[name_dice] = torch.tensor(0., device=self.device)
-            return loss
-
-        num_gts = len(gt_mask)
-        src_masks, target_masks = self._get_assigned_bboxes(masks, gt_mask, match_indices)
-        src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
-        # TODO: torch does not have `sigmoid_focal_loss`, but it's not urgent since we don't use mask branch for now.
-        loss[name_mask] = self.loss_gain['mask'] * F.sigmoid_focal_loss(src_masks, target_masks,
-                                                                        torch.tensor([num_gts], dtype=torch.float32))
-        loss[name_dice] = self.loss_gain['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
-        return loss
-
-    def _dice_loss(self, inputs, targets, num_gts):
-        inputs = F.sigmoid(inputs)
-        inputs = inputs.flatten(1)
-        targets = targets.flatten(1)
-        numerator = 2 * (inputs * targets).sum(1)
-        denominator = inputs.sum(-1) + targets.sum(-1)
-        loss = 1 - (numerator + 1) / (denominator + 1)
-        return loss.sum() / num_gts
+    # This function is for future RT-DETR Segment models
+    # @staticmethod
+    # def _dice_loss(inputs, targets, num_gts):
+    #     inputs = F.sigmoid(inputs).flatten(1)
+    #     targets = targets.flatten(1)
+    #     numerator = 2 * (inputs * targets).sum(1)
+    #     denominator = inputs.sum(-1) + targets.sum(-1)
+    #     loss = 1 - (numerator + 1) / (denominator + 1)
+    #     return loss.sum() / num_gts
 
     def _get_loss_aux(self,
                       pred_bboxes,
@@ -163,7 +164,8 @@ class DETRLoss(nn.Module):
         #     loss[f'loss_dice_aux{postfix}'] = loss[4]
         return loss
 
-    def _get_index(self, match_indices):
+    @staticmethod
+    def _get_index(match_indices):
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src for (src, _) in match_indices])
         dst_idx = torch.cat([dst for (_, dst) in match_indices])
@@ -257,10 +259,10 @@ class RTDETRDetectionLoss(DETRLoss):
             dn_pos_idx, dn_num_group = dn_meta['dn_pos_idx'], dn_meta['dn_num_group']
             assert len(batch['gt_groups']) == len(dn_pos_idx)
 
-            # denoising match indices
+            # Denoising match indices
             match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch['gt_groups'])
 
-            # compute denoising training loss
+            # Compute denoising training loss
             dn_loss = super().forward(dn_bboxes, dn_scores, batch, postfix='_dn', match_indices=match_indices)
             total_loss.update(dn_loss)
         else:
@@ -270,7 +272,8 @@ class RTDETRDetectionLoss(DETRLoss):
 
     @staticmethod
     def get_dn_match_indices(dn_pos_idx, dn_num_group, gt_groups):
-        """Get the match indices for denoising.
+        """
+        Get the match indices for denoising.
 
         Args:
             dn_pos_idx (List[torch.Tensor]): A list includes positive indices of denoising.
@@ -279,7 +282,6 @@ class RTDETRDetectionLoss(DETRLoss):
 
         Returns:
             dn_match_indices (List(tuple)): Matched indices.
-
         """
         dn_match_indices = []
         idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)

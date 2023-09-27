@@ -6,10 +6,11 @@ keywords: Ultralytics, YOLOv8, object detection, image segmentation, machine lea
 
 <div align="center">
   <p>
-    <a href="https://github.com/ultralytics/ultralytics" target="_blank">
+    <a href="https://yolovision.ultralytics.com" target="_blank">
     <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
   </p>
   <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
+  <a href="https://codecov.io/github/ultralytics/ultralytics"><img src="https://codecov.io/github/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY" alt="Ultralytics Code Coverage"></a>
   <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLOv8 Citation"></a>
   <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
   <br>
@@ -29,6 +30,17 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 - **Train** a new YOLOv8 model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
 - **Explore** YOLOv8 tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab.
+</p>
+
 ## YOLO: A Brief History
 
 [YOLO](https://arxiv.org/abs/1506.02640) (You Only Look Once), a popular object detection and image segmentation model, was developed by Joseph Redmon and Ali Farhadi at the University of Washington. Launched in 2015, YOLO quickly gained popularity for its high speed and accuracy.
@@ -43,9 +55,9 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 
-Ultralytics YOLO repositories like YOLOv3, YOLOv5, or YOLOv8 are available under two different licenses:
+Ultralytics offers two licensing options to accommodate diverse use cases:
 
-- **AGPL-3.0 License**: See [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for details.
-- **Enterprise License**: Provides greater flexibility for commercial product development without the open-source requirements of AGPL-3.0. Typical use cases are embedding Ultralytics software and AI models in commercial products and applications. Request an Enterprise License at [Ultralytics Licensing](https://ultralytics.com/license).
+- **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/licenses/) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
+- **Enterprise License**: Designed for commercial use, this license permits seamless integration of Ultralytics software and AI models into commercial goods and services, bypassing the open-source requirements of AGPL-3.0. If your scenario involves embedding our solutions into a commercial offering, reach out through [Ultralytics Licensing](https://ultralytics.com/license).
 
-Please note our licensing approach ensures that any enhancements made to our open-source projects are shared back to the community. We firmly believe in the principles of open source, and we are committed to ensuring that our work can be used and improved upon in a manner that benefits everyone.
+Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We hold the principles of open source close to our hearts ❤️, and our mission is to guarantee that our contributions can be utilized and expanded upon in ways that are beneficial to all.

@@ -4,10 +4,26 @@ import torch
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import DEFAULT_CFG, ROOT
+from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class ClassificationPredictor(BasePredictor):
+    """
+    A class extending the BasePredictor class for prediction based on a classification model.
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+
+    Example:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.classify import ClassificationPredictor
+
+        args = dict(model='yolov8n-cls.pt', source=ASSETS)
+        predictor = ClassificationPredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
@@ -21,31 +37,13 @@ class ClassificationPredictor(BasePredictor):
         return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
 
     def postprocess(self, preds, img, orig_imgs):
-        """Postprocesses predictions to return Results objects."""
+        """Post-processes predictions to return Results objects."""
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
         results = []
         for i, pred in enumerate(preds):
-            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            path = self.batch[0]
-            img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred))
-
+            orig_img = orig_imgs[i]
+            img_path = self.batch[0][i]
+            results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
         return results
-
-
-def predict(cfg=DEFAULT_CFG, use_python=False):
-    """Run YOLO model predictions on input images/videos."""
-    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
-        else 'https://ultralytics.com/images/bus.jpg'
-
-    args = dict(model=model, source=source)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model)(**args)
-    else:
-        predictor = ClassificationPredictor(overrides=args)
-        predictor.predict_cli()
-
-
-if __name__ == '__main__':
-    predict()

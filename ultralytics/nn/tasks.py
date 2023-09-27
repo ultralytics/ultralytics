@@ -87,9 +87,8 @@ class BaseModel(nn.Module):
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
+        LOGGER.warning(f'WARNING ⚠️ {self.__class__.__name__} does not support augmented inference yet. '
+                       f'Reverting to single-scale inference instead.')
         return self._predict_once(x)
 
     def _profile_one_layer(self, m, x, dt):
@@ -105,15 +104,15 @@ class BaseModel(nn.Module):
         Returns:
             None
         """
-        c = m == self.model[-1]  # is final layer, copy input as inplace fix
-        o = thop.profile(m, inputs=[x.clone() if c else x], verbose=False)[0] / 1E9 * 2 if thop else 0  # FLOPs
+        c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
+        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1E9 * 2 if thop else 0  # FLOPs
         t = time_sync()
         for _ in range(10):
-            m(x.clone() if c else x)
+            m(x.copy() if c else x)
         dt.append((time_sync() - t) * 100)
         if m == self.model[0]:
             LOGGER.info(f"{'time (ms)':>10s} {'GFLOPs':>10s} {'params':>10s}  module")
-        LOGGER.info(f'{dt[-1]:10.2f} {o:10.2f} {m.np:10.0f}  {m.type}')
+        LOGGER.info(f'{dt[-1]:10.2f} {flops:10.2f} {m.np:10.0f}  {m.type}')
         if c:
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
@@ -162,6 +161,7 @@ class BaseModel(nn.Module):
         Prints model information
 
         Args:
+            detailed (bool): if True, prints out detailed information about the model. Defaults to False
             verbose (bool): if True, prints out the model information. Defaults to False
             imgsz (int): the size of the image that the model will be trained on. Defaults to 640
         """
@@ -169,11 +169,10 @@ class BaseModel(nn.Module):
 
     def _apply(self, fn):
         """
-        `_apply()` is a function that applies a function to all the tensors in the model that are not
-        parameters or registered buffers
+        Applies a function to all the tensors in the model that are not parameters or registered buffers.
 
         Args:
-            fn: the function to apply to the model
+            fn (function): the function to apply to the model
 
         Returns:
             A model that is a Detect() object.
@@ -187,7 +186,8 @@ class BaseModel(nn.Module):
         return self
 
     def load(self, weights, verbose=True):
-        """Load the weights into the model.
+        """
+        Load the weights into the model.
 
         Args:
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
@@ -229,7 +229,7 @@ class DetectionModel(BaseModel):
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
-            self.yaml['nc'] = nc  # override yaml value
+            self.yaml['nc'] = nc  # override YAML value
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.inplace = self.yaml.get('inplace', True)
@@ -261,7 +261,6 @@ class DetectionModel(BaseModel):
         for si, fi in zip(s, f):
             xi = scale_img(x.flip(fi) if fi else x, si, gs=int(self.stride.max()))
             yi = super().predict(xi)[0]  # forward
-            # cv2.imwrite(f'img_{si}.jpg', 255 * xi[0].cpu().numpy().transpose((1, 2, 0))[:, :, ::-1])  # save
             yi = self._descale_pred(yi, fi, si, img_size)
             y.append(yi)
         y = self._clip_augmented(y)  # clip augmented tails
@@ -303,13 +302,6 @@ class SegmentationModel(DetectionModel):
     def init_criterion(self):
         return v8SegmentationLoss(self)
 
-    def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
-        return self._predict_once(x)
-
 
 class PoseModel(DetectionModel):
     """YOLOv8 pose model."""
@@ -326,42 +318,14 @@ class PoseModel(DetectionModel):
     def init_criterion(self):
         return v8PoseLoss(self)
 
-    def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(
-            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
-        )
-        return self._predict_once(x)
-
 
 class ClassificationModel(BaseModel):
     """YOLOv8 classification model."""
 
-    def __init__(self,
-                 cfg=None,
-                 model=None,
-                 ch=3,
-                 nc=None,
-                 cutoff=10,
-                 verbose=True):  # yaml, model, channels, number of classes, cutoff index, verbose flag
+    def __init__(self, cfg='yolov8n-cls.yaml', ch=3, nc=None, verbose=True):
+        """Init ClassificationModel with YAML, channels, number of classes, verbose flag."""
         super().__init__()
-        self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg, ch, nc, verbose)
-
-    def _from_detection_model(self, model, nc=1000, cutoff=10):
-        """Create a YOLOv5 classification model from a YOLOv5 detection model."""
-        from ultralytics.nn.autobackend import AutoBackend
-        if isinstance(model, AutoBackend):
-            model = model.model  # unwrap DetectMultiBackend
-        model.model = model.model[:cutoff]  # backbone
-        m = model.model[-1]  # last layer
-        ch = m.conv.in_channels if hasattr(m, 'conv') else m.cv1.conv.in_channels  # ch into module
-        c = Classify(ch, nc)  # Classify()
-        c.i, c.f, c.type = m.i, m.f, 'models.common.Classify'  # index, from, type
-        model.model[-1] = c  # replace
-        self.model = model.model
-        self.stride = model.stride
-        self.save = []
-        self.nc = nc
+        self._from_yaml(cfg, ch, nc, verbose)
 
     def _from_yaml(self, cfg, ch, nc, verbose):
         """Set YOLOv8 model configurations and define the model architecture."""
@@ -371,7 +335,7 @@ class ClassificationModel(BaseModel):
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
-            self.yaml['nc'] = nc  # override yaml value
+            self.yaml['nc'] = nc  # override YAML value
         elif not nc and not self.yaml.get('nc', None):
             raise ValueError('nc not specified. Must specify nc in model.yaml or function arguments.')
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
@@ -511,8 +475,10 @@ def temporary_modules(modules=None):
         modules (dict, optional): A dictionary mapping old module paths to new module paths.
 
     Example:
+        ```python
         with temporary_modules({'old.module.path': 'new.module.path'}):
             import old.module.path  # this will now import new.module.path
+        ```
 
     Note:
         The changes are only in effect inside the context manager and are undone once the context manager exits.
@@ -596,11 +562,11 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         # Append
         ensemble.append(model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval())  # model in eval mode
 
-    # Module compatibility updates
+    # Module updates
     for m in ensemble.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
-            m.inplace = inplace  # torch 1.7.0 compatibility
+            m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
@@ -632,11 +598,11 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
 
     model = model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval()  # model in eval mode
 
-    # Module compatibility updates
+    # Module updates
     for m in model.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
-            m.inplace = inplace  # torch 1.7.0 compatibility
+            m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 

@@ -21,7 +21,7 @@ The COCO-Seg dataset is partitioned into three subsets:
 
 1. **Train2017**: This subset contains 118K images for training instance segmentation models.
 2. **Val2017**: This subset includes 5K images used for validation purposes during model training.
-3. **Test2017**: This subset encompasses 20K images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://competitions.codalab.org/competitions/5181) for performance evaluation.
+3. **Test2017**: This subset encompasses 20K images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7383) for performance evaluation.
 
 ## Applications
 
@@ -52,7 +52,7 @@ To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 epochs with an imag
         model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        model.train(data='coco-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco-seg.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -76,15 +76,19 @@ The example showcases the variety and complexity of the images in the COCO-Seg d
 
 If you use the COCO-Seg dataset in your research or development work, please cite the original COCO paper and acknowledge the extension to COCO-Seg:
 
-```bibtex
-@misc{lin2015microsoft,
-      title={Microsoft COCO: Common Objects in Context},
-      author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
-      year={2015},
-      eprint={1405.0312},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
+!!! note ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lin2015microsoft,
+              title={Microsoft COCO: Common Objects in Context},
+              author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
+              year={2015},
+              eprint={1405.0312},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 We extend our thanks to the COCO Consortium for creating and maintaining this invaluable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).

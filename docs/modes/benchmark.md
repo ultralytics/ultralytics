@@ -4,13 +4,33 @@ description: Learn how to profile speed and accuracy of YOLOv8 across various ex
 keywords: Ultralytics, YOLOv8, benchmarking, speed profiling, accuracy profiling, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO export formats
 ---
 
+# Model Benchmarking with Ultralytics YOLO
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-**Benchmark mode** is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks
-provide information on the size of the exported format, its `mAP50-95` metrics (for object detection, segmentation and pose)
-or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export
-formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for
-their specific use case based on their requirements for speed and accuracy.
+## Introduction
+
+Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLOv8 serves this purpose by providing a robust framework for assessing the speed and accuracy of your model across a range of export formats.
+
+## Why Is Benchmarking Crucial?
+
+- **Informed Decisions:** Gain insights into the trade-offs between speed and accuracy.
+- **Resource Allocation:** Understand how different export formats perform on different hardware.
+- **Optimization:** Learn which export format offers the best performance for your specific use case.
+- **Cost Efficiency:** Make more efficient use of hardware resources based on benchmark results.
+
+### Key Metrics in Benchmark Mode
+
+- **mAP50-95:** For object detection, segmentation, and pose estimation.
+- **accuracy_top5:** For image classification.
+- **Inference Time:** Time taken for each image in milliseconds.
+
+### Supported Export Formats
+
+- **ONNX:** For optimal CPU performance
+- **TensorRT:** For maximal GPU efficiency
+- **OpenVINO:** For Intel hardware optimization
+- **CoreML, TensorFlow SavedModel, and More:** For diverse deployment needs.
 
 !!! tip "Tip"
 
@@ -19,8 +39,7 @@ their specific use case based on their requirements for speed and accuracy.
 
 ## Usage Examples
 
-Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a
-full list of export arguments.
+Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a full list of export arguments.
 
 !!! example ""
 
@@ -40,13 +59,12 @@ full list of export arguments.
 
 ## Arguments
 
-Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune
-the benchmarks to their specific needs and compare the performance of different export formats with ease.
+Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
 | Key       | Value   | Description                                                           |
 |-----------|---------|-----------------------------------------------------------------------|
 | `model`   | `None`  | path to model file, i.e. yolov8n.pt, yolov8n.yaml                     |
-| `data`    | `None`  | path to yaml referencing the benchmarking dataset (under `val` label) |
+| `data`    | `None`  | path to YAML referencing the benchmarking dataset (under `val` label) |
 | `imgsz`   | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                  |
 | `half`    | `False` | FP16 quantization                                                     |
 | `int8`    | `False` | INT8 quantization                                                     |
@@ -57,20 +75,20 @@ the benchmarks to their specific needs and compare the performance of different 
 
 Benchmarks will attempt to run automatically on all possible export formats below.
 
-| Format                                                             | `format` Argument | Model                     | Metadata |
-|--------------------------------------------------------------------|-------------------|---------------------------|----------|
-| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        |
-| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n_openvino_model/` | ✅        |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlmodel`         | ✅        |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n_saved_model/`    | ✅        |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n.pb`              | ❌        |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n.tflite`          | ✅        |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        |
+| Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
+|--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
+| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n_openvino_model/` | ✅        | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n_saved_model/`    | ✅        | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n.pb`              | ❌        | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n.tflite`          | ✅        | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

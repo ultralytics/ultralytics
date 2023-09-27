@@ -8,17 +8,31 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import DEFAULT_CFG, LOGGER, NUM_THREADS, ops
+from ultralytics.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class SegmentationValidator(DetectionValidator):
+    """
+    A class extending the DetectionValidator class for validation based on a segmentation model.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.segment import SegmentationValidator
+
+        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml')
+        validator = SegmentationValidator(args=args)
+        validator()
+        ```
+    """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        self.plot_masks = None
+        self.process = None
         self.args.task = 'segment'
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
@@ -44,7 +58,7 @@ class SegmentationValidator(DetectionValidator):
                                          'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
-        """Postprocesses YOLO predictions and returns output detections with proto."""
+        """Post-processes YOLO predictions and returns output detections with proto."""
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,
@@ -131,9 +145,11 @@ class SegmentationValidator(DetectionValidator):
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
         Return correct prediction matrix
-        Arguments:
+
+        Args:
             detections (array[N, 6]), x1, y1, x2, y2, conf, class
             labels (array[M, 5]), class, x1, y1, x2, y2
+
         Returns:
             correct (array[N, 10]), for 10 IoU levels
         """
@@ -150,20 +166,7 @@ class SegmentationValidator(DetectionValidator):
         else:  # boxes
             iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        correct = np.zeros((detections.shape[0], self.iouv.shape[0])).astype(bool)
-        correct_class = labels[:, 0:1] == detections[:, 5]
-        for i in range(len(self.iouv)):
-            x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
-            if x[0].shape[0]:
-                matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
-                                    1).cpu().numpy()  # [label, detect, iou]
-                if x[0].shape[0] > 1:
-                    matches = matches[matches[:, 2].argsort()[::-1]]
-                    matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                    # matches = matches[matches[:, 2].argsort()[::-1]]
-                    matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-                correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=detections.device)
+        return self.match_predictions(detections[:, 5], labels[:, 0], iou)
 
     def plot_val_samples(self, batch, ni):
         """Plots validation samples with bounding box labels."""
@@ -242,21 +245,3 @@ class SegmentationValidator(DetectionValidator):
             except Exception as e:
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats
-
-
-def val(cfg=DEFAULT_CFG, use_python=False):
-    """Validate trained YOLO model on validation data."""
-    model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).val(**args)
-    else:
-        validator = SegmentationValidator(args=args)
-        validator(model=args['model'])
-
-
-if __name__ == '__main__':
-    val()

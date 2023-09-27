@@ -11,7 +11,7 @@ Usage - sources:
                                                 list.txt                        # list of images
                                                 list.streams                    # list of streams
                                                 'path/*.jpg'                    # glob
-                                                'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                                                'https://youtu.be/LNwODJXcvt4'  # YouTube
                                                 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 
 Usage - formats:
@@ -20,7 +20,7 @@ Usage - formats:
                               yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
                               yolov8n_openvino_model     # OpenVINO
                               yolov8n.engine             # TensorRT
-                              yolov8n.mlmodel            # CoreML (macOS-only)
+                              yolov8n.mlpackage          # CoreML (macOS-only)
                               yolov8n_saved_model        # TensorFlow SavedModel
                               yolov8n.pb                 # TensorFlow GraphDef
                               yolov8n.tflite             # TensorFlow Lite
@@ -34,25 +34,25 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.cfg import get_cfg
+from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox, classify_transforms
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, SETTINGS, WINDOWS, callbacks, colorstr, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 STREAM_WARNING = """
-    WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless `stream=True` is passed,
-    causing potential out-of-memory errors for large sources or long-running streams/videos.
+WARNING ⚠️ inference results will accumulate in RAM unless `stream=True` is passed, causing potential out-of-memory
+errors for large sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
 
-    Usage:
-        results = model(source=..., stream=True)  # generator of Results objects
-        for r in results:
-            boxes = r.boxes  # Boxes object for bbox outputs
-            masks = r.masks  # Masks object for segment masks outputs
-            probs = r.probs  # Class probabilities for classification outputs
+Example:
+    results = model(source=..., stream=True)  # generator of Results objects
+    for r in results:
+        boxes = r.boxes  # Boxes object for bbox outputs
+        masks = r.masks  # Masks object for segment masks outputs
+        probs = r.probs  # Class probabilities for classification outputs
 """
 
 
@@ -84,7 +84,7 @@ class BasePredictor:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.save_dir = self.get_save_dir()
+        self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
         self.done_warmup = False
@@ -105,12 +105,8 @@ class BasePredictor:
         self.results = None
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
+        self.txt_path = None
         callbacks.add_integration_callbacks(self)
-
-    def get_save_dir(self):
-        project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
-        name = self.args.name or f'{self.args.mode}'
-        return increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
 
     def preprocess(self, im):
         """Prepares input image before inference.
@@ -125,11 +121,11 @@ class BasePredictor:
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
 
-        img = im.to(self.device)
-        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
+        im = im.to(self.device)
+        im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
-            img /= 255  # 0 - 255 to 0.0 - 1.0
-        return img
+            im /= 255  # 0 - 255 to 0.0 - 1.0
+        return im
 
     def inference(self, im, *args, **kwargs):
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
@@ -137,16 +133,18 @@ class BasePredictor:
         return self.model(im, augment=self.args.augment, visualize=visualize)
 
     def pre_transform(self, im):
-        """Pre-transform input image before inference.
+        """
+        Pre-transform input image before inference.
 
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
 
-        Return: A list of transformed imgs.
+        Returns:
+            (list): A list of transformed images.
         """
         same_shapes = all(x.shape == im[0].shape for x in im)
-        auto = same_shapes and self.model.pt
-        return [LetterBox(self.imgsz, auto=auto, stride=self.model.stride)(image=x) for x in im]
+        letterbox = LetterBox(self.imgsz, auto=same_shapes and self.model.pt, stride=self.model.stride)
+        return [letterbox(image=x) for x in im]
 
     def write_results(self, idx, results, batch):
         """Write inference results to a file or directory."""
@@ -178,7 +176,8 @@ class BasePredictor:
         if self.args.save_txt:
             result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
         if self.args.save_crop:
-            result.save_crop(save_dir=self.save_dir / 'crops', file_name=self.data_path.stem)
+            result.save_crop(save_dir=self.save_dir / 'crops',
+                             file_name=self.data_path.stem + ('' if self.dataset.mode == 'image' else f'_{frame}'))
 
         return log_string
 
@@ -205,7 +204,10 @@ class BasePredictor:
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
         self.transforms = getattr(self.model.model, 'transforms', classify_transforms(
             self.imgsz[0])) if self.args.task == 'classify' else None
-        self.dataset = load_inference_source(source=source, imgsz=self.imgsz, vid_stride=self.args.vid_stride)
+        self.dataset = load_inference_source(source=source,
+                                             imgsz=self.imgsz,
+                                             vid_stride=self.args.vid_stride,
+                                             buffer=self.args.stream_buffer)
         self.source_type = self.dataset.source_type
         if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
                                                   len(self.dataset) > 1000 or  # images
@@ -339,8 +341,7 @@ class BasePredictor:
                     h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 else:  # stream
                     fps, w, h = 30, im0.shape[1], im0.shape[0]
-                suffix = '.mp4' if MACOS else '.avi' if WINDOWS else '.avi'
-                fourcc = 'avc1' if MACOS else 'WMV2' if WINDOWS else 'MJPG'
+                suffix, fourcc = ('.mp4', 'avc1') if MACOS else ('.avi', 'WMV2') if WINDOWS else ('.avi', 'MJPG')
                 save_path = str(Path(save_path).with_suffix(suffix))
                 self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
             self.vid_writer[idx].write(im0)

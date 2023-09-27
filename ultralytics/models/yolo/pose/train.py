@@ -4,12 +4,23 @@ from copy import copy
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, LOGGER
 from ultralytics.utils.plotting import plot_images, plot_results
 
 
-# BaseTrainer python usage
 class PoseTrainer(yolo.detect.DetectionTrainer):
+    """
+    A class extending the DetectionTrainer class for training based on a pose model.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.pose import PoseTrainer
+
+        args = dict(model='yolov8n-pose.pt', data='coco8-pose.yaml', epochs=3)
+        trainer = PoseTrainer(overrides=args)
+        trainer.train()
+        ```
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize a PoseTrainer object with specified configurations and overrides."""
@@ -17,6 +28,10 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
             overrides = {}
         overrides['task'] = 'pose'
         super().__init__(cfg, overrides, _callbacks)
+
+        if isinstance(self.args.device, str) and self.args.device.lower() == 'mps':
+            LOGGER.warning("WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
+                           'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get pose estimation model with specified configuration and weights."""
@@ -56,22 +71,3 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def plot_metrics(self):
         """Plots training/val metrics."""
         plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
-
-
-def train(cfg=DEFAULT_CFG, use_python=False):
-    """Train the YOLO model on the given data and device."""
-    model = cfg.model or 'yolov8n-pose.yaml'
-    data = cfg.data or 'coco8-pose.yaml'
-    device = cfg.device if cfg.device is not None else ''
-
-    args = dict(model=model, data=data, device=device)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).train(**args)
-    else:
-        trainer = PoseTrainer(overrides=args)
-        trainer.train()
-
-
-if __name__ == '__main__':
-    train()

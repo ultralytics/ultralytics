@@ -13,6 +13,21 @@ from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_di
 
 
 class ClassificationTrainer(BaseTrainer):
+    """
+    A class extending the BaseTrainer class for training based on a classification model.
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.classify import ClassificationTrainer
+
+        args = dict(model='yolov8n-cls.pt', data='imagenet10', epochs=3)
+        trainer = ClassificationTrainer(overrides=args)
+        trainer.train()
+        ```
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
@@ -43,21 +58,17 @@ class ClassificationTrainer(BaseTrainer):
         return model
 
     def setup_model(self):
-        """
-        load/create/download model for any task
-        """
-        # Classification models require special handling
-
+        """Load, create or download model for any task."""
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
-        model = str(self.model)
+        model, ckpt = str(self.model), None
         # Load a YOLO model locally, from torchvision, or from Ultralytics assets
         if model.endswith('.pt'):
-            self.model, _ = attempt_load_one_weight(model, device='cpu')
+            self.model, ckpt = attempt_load_one_weight(model, device='cpu')
             for p in self.model.parameters():
                 p.requires_grad = True  # for training
-        elif model.endswith('.yaml'):
+        elif model.split('.')[-1] in ('yaml', 'yml'):
             self.model = self.get_model(cfg=model)
         elif model in torchvision.models.__dict__:
             self.model = torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if self.args.pretrained else None)
@@ -65,10 +76,10 @@ class ClassificationTrainer(BaseTrainer):
             FileNotFoundError(f'ERROR: model={model} not found locally or online. Please check model name.')
         ClassificationModel.reshape_outputs(self.model, self.data['nc'])
 
-        return  # dont return ckpt. Classification doesn't support resume
+        return ckpt
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train')
+        return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train', prefix=mode)
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
@@ -102,18 +113,14 @@ class ClassificationTrainer(BaseTrainer):
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
-        Returns a loss dict with labelled training loss items tensor
+        Returns a loss dict with labelled training loss items tensor. Not needed for classification but necessary for
+        segmentation & detection
         """
-        # Not needed for classification but necessary for segmentation & detection
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is None:
             return keys
         loss_items = [round(float(loss_items), 5)]
         return dict(zip(keys, loss_items))
-
-    def resume_training(self, ckpt):
-        """Resumes training from a given checkpoint."""
-        pass
 
     def plot_metrics(self):
         """Plots metrics from a CSV file."""
@@ -124,38 +131,20 @@ class ClassificationTrainer(BaseTrainer):
         for f in self.last, self.best:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
-                # TODO: validate best.pt after training completes
-                # if f is self.best:
-                #     LOGGER.info(f'\nValidating {f}...')
-                #     self.validator.args.save_json = True
-                #     self.metrics = self.validator(model=f)
-                #     self.metrics.pop('fitness', None)
-                #     self.run_callbacks('on_fit_epoch_end')
+                if f is self.best:
+                    LOGGER.info(f'\nValidating {f}...')
+                    self.validator.args.data = self.args.data
+                    self.validator.args.plots = self.args.plots
+                    self.metrics = self.validator(model=f)
+                    self.metrics.pop('fitness', None)
+                    self.run_callbacks('on_fit_epoch_end')
         LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
 
     def plot_training_samples(self, batch, ni):
         """Plots training samples with their annotations."""
-        plot_images(images=batch['img'],
-                    batch_idx=torch.arange(len(batch['img'])),
-                    cls=batch['cls'].squeeze(-1),
-                    fname=self.save_dir / f'train_batch{ni}.jpg',
-                    on_plot=self.on_plot)
-
-
-def train(cfg=DEFAULT_CFG, use_python=False):
-    """Train the YOLO classification model."""
-    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
-    data = cfg.data or 'mnist160'  # or yolo.ClassificationDataset("mnist")
-    device = cfg.device if cfg.device is not None else ''
-
-    args = dict(model=model, data=data, device=device)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).train(**args)
-    else:
-        trainer = ClassificationTrainer(overrides=args)
-        trainer.train()
-
-
-if __name__ == '__main__':
-    train()
+        plot_images(
+            images=batch['img'],
+            batch_idx=torch.arange(len(batch['img'])),
+            cls=batch['cls'].view(-1),  # warning: use .view(), not .squeeze() for Classify models
+            fname=self.save_dir / f'train_batch{ni}.jpg',
+            on_plot=self.on_plot)

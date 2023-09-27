@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-__all__ = ('Conv', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
+__all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
            'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv')
 
 
@@ -54,6 +54,10 @@ class Conv2(Conv):
         """Apply convolution, batch normalization and activation to input tensor."""
         return self.act(self.bn(self.conv(x) + self.cv2(x)))
 
+    def forward_fuse(self, x):
+        """Apply fused convolution, batch normalization and activation to input tensor."""
+        return self.act(self.bn(self.conv(x)))
+
     def fuse_convs(self):
         """Fuse parallel convolutions."""
         w = torch.zeros_like(self.conv.weight.data)
@@ -61,6 +65,7 @@ class Conv2(Conv):
         w[:, :, i[0]:i[0] + 1, i[1]:i[1] + 1] = self.cv2.weight.data.clone()
         self.conv.weight.data += w
         self.__delattr__('cv2')
+        self.forward = self.forward_fuse
 
 
 class LightConv(nn.Module):
@@ -142,8 +147,9 @@ class GhostConv(nn.Module):
 
 
 class RepConv(nn.Module):
-    """RepConv is a basic rep-style block, including training and deploy status
-    This code is based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
+    """
+    RepConv is a basic rep-style block, including training and deploy status. This module is used in RT-DETR.
+    Based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
     """
     default_act = nn.SiLU()  # default activation
 
@@ -173,15 +179,6 @@ class RepConv(nn.Module):
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.conv2)
         kernelid, biasid = self._fuse_bn_tensor(self.bn)
         return kernel3x3 + self._pad_1x1_to_3x3_tensor(kernel1x1) + kernelid, bias3x3 + bias1x1 + biasid
-
-    def _avg_to_3x3_tensor(self, avgp):
-        channels = self.c1
-        groups = self.g
-        kernel_size = avgp.kernel_size
-        input_dim = channels // groups
-        k = torch.zeros((channels, input_dim, kernel_size, kernel_size))
-        k[np.arange(channels), np.tile(np.arange(input_dim), groups), :, :] = 1.0 / kernel_size ** 2
-        return k
 
     def _pad_1x1_to_3x3_tensor(self, kernel1x1):
         if kernel1x1 is None:

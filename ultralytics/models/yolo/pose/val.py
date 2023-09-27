@@ -10,6 +10,7 @@ from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
+from ultralytics.utils.postprocess_utils import decode_bbox, decode_kpts
 
 
 class PoseValidator(DetectionValidator):
@@ -48,16 +49,42 @@ class PoseValidator(DetectionValidator):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Pose(P',
                                          'R', 'mAP50', 'mAP50-95)')
 
-    def postprocess(self, preds):
-        """Apply non-maximum suppression and return detections with high confidence scores."""
-        return ops.non_max_suppression(preds,
-                                       self.args.conf,
-                                       self.args.iou,
-                                       labels=self.lb,
-                                       multi_label=True,
-                                       agnostic=self.args.single_cls,
-                                       max_det=self.args.max_det,
-                                       nc=self.nc)
+    def postprocess(self, preds, img_shape):
+        if self.separate_outputs:  # Quant friendly export with separated outputs
+            mcv = float('-inf')
+            lci = -1
+            for idx, s in enumerate(preds):
+                dim_1 = s.shape[1]
+                if dim_1 > mcv:
+                    mcv = dim_1
+                    lci = idx
+            pred_order = [item for index, item in enumerate(preds) if index not in [lci]]
+            pred_decoded = decode_bbox(pred_order, img_shape, self.device)
+            kpt_shape = (preds[lci].shape[-1] // 3, 3)
+            kpts_decoded = decode_kpts(pred_order,
+                                       img_shape,
+                                       torch.permute(preds[lci], (0, 2, 1)),
+                                       kpt_shape,
+                                       self.device,
+                                       bs=1)
+            pred_order = torch.cat([pred_decoded, kpts_decoded], 1)
+            return ops.non_max_suppression(pred_order,
+                                           self.args.conf,
+                                           self.args.iou,
+                                           labels=self.lb,
+                                           multi_label=True,
+                                           agnostic=self.args.single_cls,
+                                           max_det=self.args.max_det,
+                                           nc=self.nc)
+        else:
+            return ops.non_max_suppression(preds,
+                                           self.args.conf,
+                                           self.args.iou,
+                                           labels=self.lb,
+                                           multi_label=True,
+                                           agnostic=self.args.single_cls,
+                                           max_det=self.args.max_det,
+                                           nc=self.nc)
 
     def init_metrics(self, model):
         """Initiate pose estimation metrics for YOLO model."""

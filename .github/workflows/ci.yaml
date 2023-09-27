@@ -32,6 +32,10 @@ on:
         description: 'Run Conda'
         default: false
         type: boolean
+      gpu:
+        description: 'Run GPU'
+        default: false
+        type: boolean
 
 jobs:
   HUB:
@@ -132,9 +136,16 @@ jobs:
           python --version
           pip --version
           pip list
+<<<<<<< HEAD
+      # Benchmarks for default configuration
+      - name: Benchmark DetectionModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
+=======
       #      - name: Benchmark DetectionModel
       #        shell: bash
       #        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
+>>>>>>> main
       - name: Benchmark SegmentationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.286
@@ -144,6 +155,35 @@ jobs:
       - name: Benchmark PoseModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
+<<<<<<< HEAD
+      # Benchmarks for separate_outputs=True
+      - name: Benchmark DetectionModel with separate outputs
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 separate_outputs=True verbose=0.318
+      - name: Benchmark SegmentationModel with separate outputs
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 separate_outputs=True verbose=0.286
+      - name: Benchmark ClassificationModel with separate outputs
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 separate_outputs=True verbose=0.166
+      - name: Benchmark PoseModel with separate outputs
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 separate_outputs=True verbose=0.185
+      # Benchmarks for export_hw_optimized=True
+      - name: Benchmark DetectionModel with export_hw_optimized
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 export_hw_optimized=True verbose=0.318
+      - name: Benchmark SegmentationModel with export_hw_optimized
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 export_hw_optimized=True verbose=0.286
+      - name: Benchmark ClassificationModel with export_hw_optimized
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 export_hw_optimized=True verbose=0.166
+      - name: Benchmark PoseModel with export_hw_optimized
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 export_hw_optimized=True verbose=0.185
+=======
+>>>>>>> main
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
@@ -216,7 +256,11 @@ jobs:
     timeout-minutes: 60
     runs-on: gpu-latest
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v4
+=======
+      - uses: actions/checkout@v3
+>>>>>>> main
       - name: Install requirements
         run: pip install -e .
       - name: Check environment
@@ -261,6 +305,7 @@ jobs:
           activate-environment: anaconda-client-env
       - name: Install Libmamba
         run: |
+<<<<<<< HEAD
           conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
         run: |
@@ -268,6 +313,16 @@ jobs:
       - name: Install pip packages
         run: |
           pip install pytest 'coremltools>=7.0' # 'openvino-dev>=2023.0'
+=======
+          # conda install conda-libmamba-solver
+          conda config --set solver libmamba
+      - name: Install Ultralytics package from conda-forge
+        run: |
+          conda install -c conda-forge ultralytics
+      - name: Install pip packages
+        run: |
+          pip install pytest 'coremltools>=7.0.b1' # 'openvino-dev>=2023.0'
+>>>>>>> main
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"

@@ -1,0 +1,109 @@
+{
+  "format_version": 1,
+  "operations": [
+    {
+      "op_name": "Transpose_0",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,1,2,3]
+    },
+    {
+      "op_name": "Transpose_1",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,3,1,2]
+    },
+    {
+      "op_name": "/model.22/Transpose_3",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.22/Transpose",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.22/Transpose_1",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },{
+      "op_name": "/model.22/Transpose_2",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },{
+      "op_name": "/model.22/Transpose_3",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },{
+      "op_name": "/model.22/Transpose_4",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },{
+      "op_name": "/model.22/Transpose_5",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.22/Transpose_6",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.33/Transpose",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.33/Transpose_1",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.33/Transpose_2",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.33/Transpose_3",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.33/Transpose_4",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.33/Transpose_5",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.33/Transpose_6",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.33/Transpose_7",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
+    }
+  ]
+}

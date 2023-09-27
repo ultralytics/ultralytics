@@ -25,6 +25,11 @@ TASK2METRIC = {
     'segment': 'metrics/mAP50-95(M)',
     'classify': 'metrics/accuracy_top1',
     'pose': 'metrics/mAP50-95(P)'}
+TASK2YAML = {
+    'detect': 'yolov8.yaml',
+    'segment': 'yolov8-seg.yaml',
+    'classify': 'yolov8-cls.yaml',
+    'pose': 'yolov8-pose.yaml'}
 
 CLI_HELP_MSG = \
     f"""

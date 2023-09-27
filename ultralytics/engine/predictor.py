@@ -106,6 +106,7 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+        self.separate_outputs = self.args.separate_outputs
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):

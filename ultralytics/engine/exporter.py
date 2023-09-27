@@ -60,12 +60,13 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.nn as nn
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder, Conv
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
                                colorstr, get_default_args, yaml_save)
@@ -183,15 +184,22 @@ class Exporter:
             assert self.device.type == 'cpu', "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if edgetpu and not LINUX:
             raise SystemError('Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/')
-
+        if self.args.separate_outputs:
+            assert format not in (
+                '-', 'torchscript', 'saved_model', 'pb', 'ncnn'
+            ), 'separate_outputs=True is not compatible with formats: -, torchscript, saved_model, pb and nccn'
+        if self.args.export_hw_optimized:
+            assert format not in (
+                'coreml', 'paddle',
+                'ncnn'), 'export_hw_optimized =True is not compatible with formats: coreml, paddle, and nccn'
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
-        file = Path(
-            getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml.get('yaml_file', ''))
+        file = Path(getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml['yaml_file'])
         if file.suffix in ('.yaml', '.yml'):
             file = Path(file.name)
 
         # Update model
+        print(f'{colorstr("act:")} nn.{Conv.default_act}')
         model = deepcopy(model).to(self.device)
         for p in model.parameters():
             p.requires_grad = False
@@ -203,9 +211,14 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-            elif isinstance(m, C2f) and not any((saved_model, pb, tflite, edgetpu, tfjs)):
-                # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
-                m.forward = m.forward_split
+                m.separate_outputs = self.args.separate_outputs
+            elif isinstance(m, C2f):
+                if self.args.export_hw_optimized:
+                    # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
+                    m.forward = m.forward_hw_optimized
+                elif not any((saved_model, pb, tflite, edgetpu, tfjs)):
+                    # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
+                    m.forward = m.forward_split
 
         y = None
         for _ in range(2):
@@ -222,8 +235,7 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
-        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else \
-            tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
         data = model.args['data'] if hasattr(model, 'args') and isinstance(model.args, dict) else ''
         description = f'Ultralytics {self.pretty_name} model {f"trained on {data}" if data else ""}'
@@ -688,8 +700,12 @@ class Exporter:
         else:
             verbosity = '--non_verbose'
             int8 = ''
+        if self.model.task == 'pose':
+            replace_json = ROOT / 'utils/pose_replace.json'
+        else:
+            replace_json = ROOT / 'utils/replace.json'
 
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8}'.strip()
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf {replace_json}'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
@@ -704,8 +720,11 @@ class Exporter:
 
         # Add TFLite metadata
         for file in f.rglob('*.tflite'):
-            f.unlink() if 'quant_with_int16_act.tflite' in str(f) else self._add_tflite_metadata(file)
-
+            if 'quant_with_int16_act.tflite' in str(f):
+                f.unlink()
+            else:
+                if not self.args.separate_outputs:
+                    self._add_tflite_metadata(file)
         return str(f), tf.saved_model.load(f, tags=None, options=None)  # load saved_model as Keras model
 
     @try_export
@@ -763,7 +782,8 @@ class Exporter:
         cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
-        self._add_tflite_metadata(f)
+        if not self.args.separate_outputs:
+            self._add_tflite_metadata(f)
         return f, None
 
     @try_export

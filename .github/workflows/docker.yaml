@@ -62,7 +62,11 @@ jobs:
           #   platforms: "linux/amd64"
     steps:
       - name: Checkout repo
+<<<<<<< HEAD
         uses: actions/checkout@v4
+=======
+        uses: actions/checkout@v3
+>>>>>>> main
         with:
           fetch-depth: 0  # copy full .git directory to access full git history in Docker images
 

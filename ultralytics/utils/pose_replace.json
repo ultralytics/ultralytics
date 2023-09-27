@@ -1,0 +1,125 @@
+{
+  "format_version": 1,
+  "operations": [
+    {
+      "op_name": "Resize_0",
+      "param_target": "inputs",
+      "param_name": "Concat_0",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_1",
+      "param_target": "inputs",
+      "param_name": "Concat_1",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_2",
+      "param_target": "inputs",
+      "param_name": "Concat_2",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_3",
+      "param_target": "inputs",
+      "param_name": "Concat_3",
+      "values": [24,24]
+    },
+    {
+      "op_name": "Resize_4",
+      "param_target": "inputs",
+      "param_name": "Concat_4",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_5",
+      "param_target": "inputs",
+      "param_name": "Concat_5",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_6",
+      "param_target": "inputs",
+      "param_name": "Concat_6",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_7",
+      "param_target": "inputs",
+      "param_name": "Concat_7",
+      "values": [24,24]
+    },
+    {
+      "op_name": "Resize_8",
+      "param_target": "inputs",
+      "param_name": "Concat_8",
+      "values": [24,24]
+    },
+    {
+      "op_name": "Resize_9",
+      "param_target": "inputs",
+      "param_name": "Concat_9",
+      "values": [12,12]
+    },
+    {
+      "op_name": "Resize_10",
+      "param_target": "inputs",
+      "param_name": "Concat_10",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_11",
+      "param_target": "inputs",
+      "param_name": "Concat_11",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_12",
+      "param_target": "inputs",
+      "param_name": "Concat_12",
+      "values": [48,48]
+    },
+    {
+      "op_name": "Resize_13",
+      "param_target": "inputs",
+      "param_name": "Concat_14",
+      "values": [192,192]
+    },
+    {
+      "op_name": "Reshape_0",
+      "param_target": "outputs",
+      "param_name": "Reshape_0",
+      "post_process_transpose_perm": [0,2,3,1]
+    },
+    {
+      "op_name": "Reshape_1",
+      "param_target": "outputs",
+      "param_name": "Reshape_1",
+      "post_process_transpose_perm": [0,2,3,1]
+    },
+    {
+      "op_name": "Transpose_0",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,1,2,3]
+    },
+    {
+      "op_name": "Transpose_1",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,1,2,3]
+    },
+    {
+      "op_name": "Softmax_0",
+      "param_target": "attributes",
+      "param_name": "axis",
+      "values": 3
+    },
+    {
+      "op_name": "/model.22/Transpose_6",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,1]
+    }
+  ]
+}

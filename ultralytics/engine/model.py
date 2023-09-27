@@ -118,6 +118,8 @@ class Model(nn.Module):
         self.model = (model or self._smart_load('model'))(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
         self.overrides['task'] = self.task
+        if self.task == 'pose':
+            self.model.kpt_shape = cfg_dict['kpt_shape']
 
         # Below added to allow export from YAMLs
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine default and model args (prefer model args)
@@ -289,7 +291,9 @@ class Model(nn.Module):
             half=args['half'],
             int8=args['int8'],
             device=args['device'],
-            verbose=kwargs.get('verbose'))
+            verbose=kwargs.get('verbose'),
+            separate_outputs=args['separate_outputs'],
+            export_hw_optimized=args['export_hw_optimized'])
 
     def export(self, **kwargs):
         """

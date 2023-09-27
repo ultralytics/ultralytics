@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import ops
+from ultralytics.utils.postprocess_utils import decode_bbox
 
 
 class DetectionPredictor(BasePredictor):
@@ -22,12 +22,24 @@ class DetectionPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions and returns a list of Results objects."""
-        preds = ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        agnostic=self.args.agnostic_nms,
-                                        max_det=self.args.max_det,
-                                        classes=self.args.classes)
+        if self.separate_outputs:  # Quant friendly export with separated outputs
+            preds = decode_bbox(preds, img.shape, self.device)
+            preds = ops.non_max_suppression(preds,
+                                            self.args.conf,
+                                            self.args.iou,
+                                            agnostic=self.args.agnostic_nms,
+                                            max_det=self.args.max_det,
+                                            classes=self.args.classes)
+        else:
+            preds = ops.non_max_suppression(preds,
+                                            self.args.conf,
+                                            self.args.iou,
+                                            agnostic=self.args.agnostic_nms,
+                                            max_det=self.args.max_det,
+                                            classes=self.args.classes)
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)

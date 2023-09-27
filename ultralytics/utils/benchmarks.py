@@ -34,7 +34,7 @@ import numpy as np
 import torch.cuda
 
 from ultralytics import YOLO
-from ultralytics.cfg import TASK2DATA, TASK2METRIC
+from ultralytics.cfg import TASK2DATA, TASK2METRIC, TASK2YAML
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS, TQDM
 from ultralytics.utils.checks import check_requirements, check_yolo
@@ -48,7 +48,9 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
               half=False,
               int8=False,
               device='cpu',
-              verbose=False):
+              verbose=False,
+              separate_outputs=False,
+              export_hw_optimized=False):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
 
@@ -74,13 +76,17 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
         benchmark(model='yolov8n.pt', imgsz=640)
         ```
     """
-
     import pandas as pd
     pd.options.display.max_columns = 10
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
-    if isinstance(model, (str, Path)):
-        model = YOLO(model)
+    if export_hw_optimized:
+        name = Path(model.ckpt_path)
+        model_yaml = '/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/' + TASK2YAML[model.task]
+        model = YOLO(model_yaml).load(model.ckpt_path)
+    else:
+        if isinstance(model, (str, Path)):
+            model = YOLO(model)
 
     y = []
     t0 = time.time()
@@ -96,8 +102,10 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:
                 assert gpu, 'inference not supported on GPU'
-
-            # Export
+            if format in ('-', 'torchscript', 'saved_model', 'pb', 'ncnn') and separate_outputs:
+                continue
+            if format in ('coreml', 'paddle', 'ncnn') and export_hw_optimized:
+                continue
             if format == '-':
                 filename = model.ckpt_path or model.cfg
                 exported_model = model  # PyTorch format
@@ -136,7 +144,11 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     check_yolo(device=device)  # print system info
     df = pd.DataFrame(y, columns=['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)'])
 
-    name = Path(model.ckpt_path).name
+    if export_hw_optimized:
+        name = model.ckpt_path
+    else:
+        name = Path(model.ckpt_path).name
+
     s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n'
     LOGGER.info(s)
     with open('benchmarks.log', 'a', errors='ignore', encoding='utf-8') as f:

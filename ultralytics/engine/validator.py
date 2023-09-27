@@ -90,6 +90,7 @@ class BaseValidator:
         self.iouv = None
         self.jdict = None
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.separate_outputs = self.args.separate_outputs
 
         self.save_dir = save_dir or get_save_dir(self.args)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
@@ -175,7 +176,7 @@ class BaseValidator:
 
             # Postprocess
             with dt[3]:
-                preds = self.postprocess(preds)
+                preds = self.postprocess(preds, batch['img'][0].shape)
 
             self.update_metrics(preds, batch)
             if self.args.plots and batch_i < 3:
@@ -267,7 +268,7 @@ class BaseValidator:
         """Preprocesses an input batch."""
         return batch
 
-    def postprocess(self, preds):
+    def postprocess(self, preds, img_shape):
         """Describes and summarizes the purpose of 'postprocess()' but no details mentioned."""
         return preds
 

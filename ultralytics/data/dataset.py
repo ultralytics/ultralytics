@@ -326,12 +326,11 @@ class GenericDataset(torchvision.datasets.VisionDataset, Generic[T]):
         self.root = root
         self.prefix = colorstr(f'{prefix}: ') if prefix else ''
         self.samples = list(self.iterate_files(self.root))
+        if augment and args.fraction < 1.0:  # reduce training fraction
+            self.samples = self.samples[:round(len(self.samples) * args.fraction)]
         self.prefix = prefix
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-                
-        if augment and args.fraction < 1.0:  # reduce training fraction
-            self.samples = self.samples[:round(len(self.samples) * args.fraction)]
         
         self.cache_ram = cache is True or cache == 'ram'
         self.cache_disk = cache == 'disk'

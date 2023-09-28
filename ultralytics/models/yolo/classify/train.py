@@ -49,7 +49,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
         model = self._instantiate_model(cfg, verbose)
-        if weights and not self.args.pretrained:
+        if weights:
             model.load(weights)
 
         for m in model.modules():

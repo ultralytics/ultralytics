@@ -13,11 +13,3 @@
 | --------------------- | --------------------- | --------------------- | --------------------- |
 | ![Image 1](image_url_1) | ![Image 2](image_url_2) | ![Image 3](image_url_3) | ![Image 4](image_url_4) |
 | Description 1         | Description 2         | Description 3         | Description 4         |
-
->>>>>>> ffda7543e431182e69232d720b75ede467e0999a
->>>>>>>
->>>>>>
->>>>>
->>>>
->>>
->>

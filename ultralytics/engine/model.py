@@ -132,12 +132,8 @@ class Model(nn.Module):
         )
 
         if triton_client.is_model_ready(endpoint):
-            return {
-                'url': splitted_url.netloc,
-                'endpoint': endpoint,
-                'scheme': splitted_url.scheme
-            }
-            
+            return {'url': splitted_url.netloc, 'endpoint': endpoint, 'scheme': splitted_url.scheme}
+
         LOGGER.warning(f'WARNING ⚠️ Triton model by url {splitted_url.netloc} with endpoint {endpoint} not ready!')
 
         return None

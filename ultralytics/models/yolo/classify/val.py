@@ -2,7 +2,7 @@
 
 import torch
 
-from ultralytics.data import MultiClassificationDataset, ClassificationDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, MultiClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix, MultiClassifyMetrics

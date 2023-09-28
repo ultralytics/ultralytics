@@ -5,7 +5,7 @@ from pathlib import Path
 from ultralytics import SAM, YOLO
 
 
-def auto_annotate_segment(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='', output_dir=None):
+def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='', output_dir=None):
     """
     Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
 
@@ -19,9 +19,9 @@ def auto_annotate_segment(data, det_model='yolov8x.pt', sam_model='sam_b.pt', de
 
     Example:
         ```python
-        from ultralytics.data.annotator import auto_annotate_segment
+        from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate_segment(data='ultralytics/assets', det_model='yolov8n.pt', sam_model='mobile_sam.pt')
+        auto_annotate(data='ultralytics/assets', det_model='yolov8n.pt', sam_model='mobile_sam.pt')
         ```
     """
     det_model = YOLO(det_model)
@@ -41,7 +41,9 @@ def auto_annotate_segment(data, det_model='yolov8x.pt', sam_model='sam_b.pt', de
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
             segments = sam_results[0].masks.xyn  # noqa
 
-            with open(f'{str(Path(output_dir) / Path(result.path).stem)}.txt', 'w') as f:
+            segment_dir = output_dir / 'segment'
+            Path(segment_dir).mkdir(exist_ok=True, parents=True)
+            with open(f'{str(Path(segment_dir) / Path(result.path).stem)}.txt', 'w') as f:
                 for i in range(len(segments)):
                     s = segments[i]
                     if len(s) == 0:
@@ -49,38 +51,20 @@ def auto_annotate_segment(data, det_model='yolov8x.pt', sam_model='sam_b.pt', de
                     segment = map(str, segments[i].reshape(-1).tolist())
                     f.write(f'{class_ids[i]} ' + ' '.join(segment) + '\n')
 
-
-def auto_annotate_detect(data, det_model='yolov8x.pt', device='', output_dir=None):
-    """
-    Automatically annotates images using a YOLO object detection model.
-
-    Args:
-        data (str): Path to a folder containing images to be annotated.
-        det_model (str, optional): Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.
-        device (str, optional): Device to run the models on. Defaults to an empty string (CPU or GPU, if available).
-        output_dir (str | None | optional): Directory to save the annotated results.
-            Defaults to a 'labels' folder in the same directory as 'data'.
-
-    Example:
-        ```python
-        from ultralytics.data.annotator import auto_annotate_detect
-
-        auto_annotate_detect(data='ultralytics/assets', det_model='yolov8n.pt')
-        ```
-    """
-    det_model = YOLO(det_model)
-
-    data = Path(data)
-    if not output_dir:
-        output_dir = data.parent / f'{data.stem}_auto_annotate_labels'
-    Path(output_dir).mkdir(exist_ok=True, parents=True)
-
-    det_results = det_model(data, stream=True, device=device)
-    for result in det_results:
-        class_ids = result.boxes.cls.int().tolist()  # noqa
-        if len(class_ids):
-            boxes = result.boxes.xywhn
-            with open(f'{str(Path(output_dir) / Path(result.path).stem)}.txt', 'w') as f:
-                for i in range(len(boxes)):
-                    box = map(str, boxes[i].cpu().numpy())
+            det_bboxes = result.boxes.xywhn.cpu().numpy()
+            detection_dir = output_dir / 'detect'
+            Path(detection_dir).mkdir(exist_ok=True, parents=True)
+            with open(f'{str(Path(detection_dir) / Path(result.path).stem)}.txt', 'w') as f:
+                for i in range(len(det_bboxes)):
+                    box = map(str, det_bboxes[i])
                     f.write(f'{class_ids[i]} ' + ' '.join(box) + '\n')
+
+            if result.keypoints:
+                keypoints = result.keypoints.xyn.cpu().numpy()
+                pose_dir = output_dir / 'pose'
+                Path(pose_dir).mkdir(exist_ok=True, parents=True)
+                with open(f'{str(Path(pose_dir) / Path(result.path).stem)}.txt', 'w') as f:
+                    for i in range(len(det_bboxes)):
+                        box = map(str, det_bboxes[i])
+                        keypoint = map(str, keypoints[i].flatten())
+                        f.write(f'{class_ids[i]} ' + ' '.join(box) + ' ' + ' '.join(keypoint) + '\n')

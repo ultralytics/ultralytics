@@ -304,13 +304,9 @@ def test_data_converter():
 
 
 def test_data_annotator():
-    from ultralytics.data.annotator import auto_annotate_detect, auto_annotate_segment
+    from ultralytics.data.annotator import auto_annotate
 
-    auto_annotate_segment(ASSETS,
-                          det_model='yolov8n.pt',
-                          sam_model='mobile_sam.pt',
-                          output_dir=TMP / 'auto_annotate_labels')
-    auto_annotate_detect(ASSETS, det_model='yolov8n.pt', output_dir=TMP / 'auto_annotate_labels')
+    auto_annotate(ASSETS, det_model='yolov8n.pt', sam_model='mobile_sam.pt', output_dir=TMP / 'auto_annotate_labels')
 
 
 def test_events():

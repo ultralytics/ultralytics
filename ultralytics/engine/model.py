@@ -87,8 +87,6 @@ class Model(nn.Module):
             triton_params = self.is_triton_model(model)
             if triton_params is not None:
                 self.model = triton_params
-                self.task = triton_params['task']
-                self.overrides['task'] = self.task
                 return
         
         # Load or create new YOLO model
@@ -114,8 +112,7 @@ class Model(nn.Module):
         try:
             assert all([splitted_url.scheme, splitted_url.netloc, splitted_url.path])
             assert splitted_url.scheme in {'http', 'grfc'}
-            endpoint, task_name = splitted_url.path.strip('/').split('/')
-            assert task_name in {'classify', 'detect', 'segment', 'pose'}
+            endpoint = splitted_url.path.strip('/').split('/')[0]
         except Exception as e:
             LOGGER.warning(f'WARNING ⚠️ Triton model url format: <scheme>://<netloc>/<endpoint>/<task_name>. {e}')
             return None
@@ -140,8 +137,7 @@ class Model(nn.Module):
             return {
                 'url': splitted_url.netloc,
                 'endpoint': endpoint,
-                'scheme': splitted_url.scheme,
-                'task': task_name
+                'scheme': splitted_url.scheme
             }
             
         LOGGER.warning(f'WARNING ⚠️ Triton model by url {splitted_url.netloc} with endpoint {endpoint} not ready!')

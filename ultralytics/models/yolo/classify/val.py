@@ -2,7 +2,7 @@
 
 import torch
 
-from ultralytics.data import ClassificationDataset, build_dataloader
+from ultralytics.data import MultiClassificationDataset, ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix, MultiClassifyMetrics
@@ -196,7 +196,7 @@ class MultiClassificationValidator(BaseValidator):
             batch['img'],
             batch_idx=torch.arange(len(batch['img'])),
             cls=(preds > 0).to(torch.float).view(
-                -1, self.nc),  #preds>0, exp(preds)/exp(preds)+1>0.5, class is positively predicted
+                -1, self.nc),  # preds>0, exp(preds)/exp(preds)+1>0.5, class is positively predicted
             fname=self.save_dir / f'val_batch{ni}_pred.jpg',
             names=self.names,
             on_plot=self.on_plot)  # pred

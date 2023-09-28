@@ -297,14 +297,13 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         return samples
 
 
-from typing import Any, Callable, Generator, Generic, List, Optional, Tuple, TypeVar
+from typing import Callable, Generator, Generic, List, Optional, Tuple, TypeVar
 
 T = TypeVar('T')
 
-
-#reads something from a root, need to implement iterate_files (gives the list of image files) and get_image_data (gives Y the target data for a given image),
-#does the image verif, augmentation, memory caching and dataset caching
-#generic type T is the type of the training label Y for each image
+# reads something from a root, need to implement iterate_files (gives the list of image files) and get_image_data (gives Y the target data for a given image),
+# does the image verif, augmentation, memory caching and dataset caching
+# generic type T is the type of the training label Y for each image
 class GenericDataset(torchvision.datasets.VisionDataset, Generic[T]):
 
     def iterate_files(self, root: str) -> Generator[str, None, None]:
@@ -400,8 +399,10 @@ class GenericDataset(torchvision.datasets.VisionDataset, Generic[T]):
                 if nf_f:
                     filename = sample[0]
                     image_y = self.get_image_data(filename)
-                    if image_y is None: nc_f, nf_f = 1, 0
-                    else: verif_samples.append((filename, image_y))
+                    if image_y is None: 
+                        nc_f, nf_f = 1, 0
+                    else: 
+                        verif_samples.append((filename, image_y))
                 if msg:
                     msgs.append(msg)
                 nf += nf_f
@@ -423,7 +424,7 @@ class MultiClassificationDataset(GenericDataset[List[bool]]):
 
         config = data_config
 
-        #reads the labels Y from a file indicated in the dataset config
+        # reads the labels Y from a file indicated in the dataset config
         self.image_label_dict = {}
         with open(config['image_labels_file']) as f:
             for line in f:

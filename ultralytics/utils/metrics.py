@@ -999,9 +999,9 @@ class MultiClassifyMetrics(SimpleClass):
     def accumulate_stats(self, targets, pred):
         """Update averages and counts in the metric."""
         if self.accu is None:
-            self.accu = torch.zeros((pred.shape[-1], 3), device=pred.get_device())  #TP, FP, FN
+            self.accu = torch.zeros((pred.shape[-1], 3), device=pred.get_device())  # TP, FP, FN
 
-        pred_class = pred > 0.0  #softmax>0 means proba>0.5
+        pred_class = pred > 0.0  # softmax>0 means proba>0.5
         TP = pred_class * targets
         FP = pred_class * (~targets.to(torch.bool)).to(torch.float)
         FN = ~pred_class * targets

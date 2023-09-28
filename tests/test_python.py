@@ -214,6 +214,7 @@ def test_export_paddle(enabled=False):
         YOLO(MODEL).export(format='paddle')
 
 
+@pytest.mark.slow
 def test_export_ncnn():
     f = YOLO(MODEL).export(format='ncnn')
     YOLO(f)(SOURCE)  # exported model inference
@@ -338,8 +339,8 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    from ultralytics.utils.checks import (check_imgsz, check_imshow, check_requirements, check_yolov5u_filename,
-                                          git_describe, print_args)
+    from ultralytics.utils.checks import (check_imgsz, check_imshow, check_requirements, check_version,
+                                          check_yolov5u_filename, git_describe, print_args)
 
     check_yolov5u_filename('yolov5n.pt')
     # check_imshow(warn=True)
@@ -347,6 +348,7 @@ def test_utils_checks():
     check_requirements()  # check requirements.txt
     check_imgsz([600, 600], max_dim=1)
     check_imshow()
+    check_version('ultralytics', '8.0.0')
     print_args()
 
 

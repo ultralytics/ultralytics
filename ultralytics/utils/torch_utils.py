@@ -44,7 +44,10 @@ def smart_inference_mode():
 
     def decorate(fn):
         """Applies appropriate torch decorator for inference mode based on torch version."""
-        return (torch.inference_mode if TORCH_1_9 else torch.no_grad)()(fn)
+        if TORCH_1_9 and torch.is_inference_mode_enabled():
+            return fn  # already in inference_mode, act as a pass-through
+        else:
+            return (torch.inference_mode if TORCH_1_9 else torch.no_grad)()(fn)
 
     return decorate
 
@@ -132,7 +135,7 @@ def select_device(device='', batch=0, newline=False, verbose=True):
             p = torch.cuda.get_device_properties(i)
             s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
         arg = 'cuda:0'
-    elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available() and TORCH_2_0:
+    elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f'MPS ({get_cpu_info()})\n'
         arg = 'mps'

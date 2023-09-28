@@ -91,7 +91,8 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0), # segment copy-paste (probability)
-            'close_mosaic': (0.0, args['epochs']/2)}  # disable mosaic augmentation for final epochs (0 to disable)
+            'close_mosaic': (0.0, args['epochs']/2),  # disable mosaic augmentation for final epochs (0 to disable)
+            'cos_lr': (0.0, 1.0)}  # cosine learning rate scheduler
         self.tune_dir = get_save_dir(self.args, name='tune')
         self.tune_csv = self.tune_dir / 'tune_results.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

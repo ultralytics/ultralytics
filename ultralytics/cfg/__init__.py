@@ -126,6 +126,10 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     if cfg.get('close_mosaic') is not None:
         cfg['close_mosaic'] = int(cfg['close_mosaic'])
 
+    # Round cosine learning rate scheduler
+    if cfg.get('cos_lr') is not None:
+        cfg['cos_lr'] = bool(round(cfg['cos_lr']))
+
     # Type and Value checks
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args

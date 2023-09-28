@@ -394,13 +394,14 @@ class v8ClassificationLoss:
         loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='sum') / 64
         loss_items = loss.detach()
         return loss, loss_items
-        
+
+
 class v8MultiClassificationLoss:
     """Criterion class for computing training losses."""
 
     def __call__(self, preds, batch):
         """Compute the classification loss between predictions and true labels."""
-        
-        loss = F.binary_cross_entropy_with_logits(preds, batch['cls'], reduction='sum') / 64 
+
+        loss = F.binary_cross_entropy_with_logits(preds, batch['cls'], reduction='sum') / 64
         loss_items = loss.detach()
         return loss, loss_items

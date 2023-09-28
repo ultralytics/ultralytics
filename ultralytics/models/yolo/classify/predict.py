@@ -47,7 +47,8 @@ class ClassificationPredictor(BasePredictor):
             img_path = self.batch[0][i]
             results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
         return results
-        
+
+
 class MultiClassificationPredictor(ClassificationPredictor):
     """
     A class extending the ClassificationPredictor class for prediction based on a multi-label classification model.
@@ -61,7 +62,7 @@ class MultiClassificationPredictor(ClassificationPredictor):
         from ultralytics.models.yolo.classify import MultiClassificationPredictor
 
         #no fitted model yet, try yolov8n-cls.pt
-        args = dict(model='yolov8n-cls.pt', source=ASSETS) 
+        args = dict(model='yolov8n-cls.pt', source=ASSETS)
         predictor = MultiClassificationPredictor(overrides=args)
         predictor.predict_cli()
         ```

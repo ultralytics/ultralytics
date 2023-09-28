@@ -114,7 +114,7 @@ class BaseTrainer:
         try:
             if self.args.task == 'mclassify':
                 import yaml
-                with open(self.args.data, "r") as f:
+                with open(self.args.data) as f:
                     self.data = yaml.load(f, Loader=yaml.CBaseLoader)
             elif self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data)

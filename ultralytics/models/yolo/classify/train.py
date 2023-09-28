@@ -3,10 +3,10 @@
 import torch
 import torchvision
 
-from ultralytics.data import MultiClassificationDataset, ClassificationDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, MultiClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import MultiClassificationModel, ClassificationModel, attempt_load_one_weight
+from ultralytics.nn.tasks import ClassificationModel, MultiClassificationModel, attempt_load_one_weight
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.utils.plotting import plot_images, plot_results
 from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
@@ -42,7 +42,7 @@ class ClassificationTrainer(BaseTrainer):
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data['names']
-        
+
     def _instantiate_model(self, cfg=None, verbose=True):
         return ClassificationModel(cfg, nc=int(self.data['nc']), verbose=verbose and RANK == -1)
 
@@ -60,7 +60,7 @@ class ClassificationTrainer(BaseTrainer):
         for p in model.parameters():
             p.requires_grad = True  # for training
         return model
-        
+
     def _reshape_output(self):
         ClassificationModel.reshape_outputs(self.model, self.data['nc'])
 
@@ -155,7 +155,8 @@ class ClassificationTrainer(BaseTrainer):
             cls=batch['cls'].view(-1),  # warning: use .view(), not .squeeze() for Classify models
             fname=self.save_dir / f'train_batch{ni}.jpg',
             on_plot=self.on_plot)
-            
+
+
 class MultiClassificationTrainer(ClassificationTrainer):
     """
     A class extending the ClassificationTrainer class for training based on a multi classification model (one image can have several labels).
@@ -167,9 +168,9 @@ class MultiClassificationTrainer(ClassificationTrainer):
             overrides = {}
         if overrides.get('task') is None:
             overrides['task'] = 'mclassify'
-        
+
         super().__init__(cfg, overrides, _callbacks)
-        
+
     def _instantiate_model(self, cfg=None, verbose=True):
         # the classification model still works with multi classification,
         # but the output is different, it's not the relative logits of classes
@@ -180,7 +181,11 @@ class MultiClassificationTrainer(ClassificationTrainer):
         MultiClassificationModel.reshape_outputs(self.model, int(self.data['nc']))
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        return MultiClassificationDataset(root=img_path, args=self.args, augment=mode == 'train', prefix=mode, data_config=self.data)
+        return MultiClassificationDataset(root=img_path,
+                                          args=self.args,
+                                          augment=mode == 'train',
+                                          prefix=mode,
+                                          data_config=self.data)
 
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
@@ -196,7 +201,8 @@ class MultiClassificationTrainer(ClassificationTrainer):
         plot_images(
             images=batch['img'],
             batch_idx=torch.arange(len(batch['img'])),
-            cls=batch['cls'].view(-1, len(self.model.names)),  # warning: use .view(), not .squeeze() for Classify models
+            cls=batch['cls'].view(-1,
+                                  len(self.model.names)),  # warning: use .view(), not .squeeze() for Classify models
             fname=self.save_dir / f'train_batch{ni}.jpg',
             names=self.model.names,
             on_plot=self.on_plot)

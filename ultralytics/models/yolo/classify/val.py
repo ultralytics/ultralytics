@@ -5,7 +5,7 @@ import torch
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
-from ultralytics.utils.metrics import MultiClassifyMetrics, ClassifyMetrics, ConfusionMatrix
+from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix, MultiClassifyMetrics
 from ultralytics.utils.plotting import plot_images
 
 
@@ -109,6 +109,7 @@ class ClassificationValidator(BaseValidator):
                     names=self.names,
                     on_plot=self.on_plot)  # pred
 
+
 class MultiClassificationValidator(BaseValidator):
     """
     A class extending the BaseValidator class for validation based on a classification model.
@@ -191,9 +192,11 @@ class MultiClassificationValidator(BaseValidator):
 
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
-        plot_images(batch['img'],
-                    batch_idx=torch.arange(len(batch['img'])),
-                    cls=(preds>0).to(torch.float).view(-1, self.nc), #preds>0, exp(preds)/exp(preds)+1>0.5, class is positively predicted
-                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
-                    names=self.names,
-                    on_plot=self.on_plot)  # pred
+        plot_images(
+            batch['img'],
+            batch_idx=torch.arange(len(batch['img'])),
+            cls=(preds > 0).to(torch.float).view(
+                -1, self.nc),  #preds>0, exp(preds)/exp(preds)+1>0.5, class is positively predicted
+            fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+            names=self.names,
+            on_plot=self.on_plot)  # pred

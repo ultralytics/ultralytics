@@ -386,7 +386,8 @@ def check_cls_dataset(dataset, split=''):
                 LOGGER.info(f'{prefix} found {nf} images in {nd} classes ✅ ')
 
     return {'train': train_set, 'val': val_set, 'test': test_set, 'nc': nc, 'names': names}
-    
+
+
 class HUBDatasetStats:
     """
     A class for generating HUB dataset JSON and `-hub` dataset directory.

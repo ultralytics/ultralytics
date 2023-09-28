@@ -18,6 +18,9 @@ def copy_image(data, dest_folder):
     for img_info in tqdm(data):
         src = img_info['file_name']
 
+        src=src.replace('/run/user/1000/gvfs/afp-volume:host=IPL-NOAA.local,user=Jie%20Mei,volume=homes/Jie Mei/rail data/images',
+                    '/media/jiemei/FieldData-AukBay_201807/rail_data/images')
+
         # Ensure the destination folder exists; if not, create it
         if not os.path.exists(dest_folder):
             os.makedirs(dest_folder)
@@ -41,6 +44,10 @@ def copy_image(data, dest_folder):
 def transform_save_box(data, dest_folder):
     for img_info in tqdm(data):
         src = img_info['file_name']
+        src=src.replace(
+            '/run/user/1000/gvfs/afp-volume:host=IPL-NOAA.local,user=Jie%20Mei,volume=homes/Jie Mei/rail data/images',
+            '/media/jiemei/FieldData-AukBay_201807/rail_data/images')
+
         # Extract the filename from the source path
         filename = os.path.basename(src)
         filename = filename.replace('jpg', 'txt')
@@ -85,10 +92,15 @@ def multiprocess_task(data, dest_folder, task):
 
 def copy_worker(img_info, dest_folder):
     src = img_info['file_name']
+    src=src.replace(
+        '/run/user/1000/gvfs/afp-volume:host=IPL-NOAA.local,user=Jie%20Mei,volume=homes/Jie Mei/rail data/images',
+        '/media/jiemei/FieldData-AukBay_201807/rail_data/images')
     if not os.path.exists(dest_folder):
         # The directory will also not be overridden if it already exists.
         os.makedirs(dest_folder, exist_ok=True)
+    folder_name = os.path.basename(os.path.dirname(os.path.dirname(src)))
     filename = os.path.basename(src)
+    filename = 'folder_' + folder_name + '-file_' + filename
     dest = os.path.join(dest_folder, filename)
     assert not os.path.exists(dest), f"File '{filename}' already exists in destination folder"
 
@@ -105,7 +117,14 @@ def copy_worker(img_info, dest_folder):
 
 def transform_worker(img_info, dest_folder):
     src = img_info['file_name']
-    filename = os.path.basename(src).replace('jpg', 'txt')
+    src=src.replace(
+        '/run/user/1000/gvfs/afp-volume:host=IPL-NOAA.local,user=Jie%20Mei,volume=homes/Jie Mei/rail data/images',
+        '/media/jiemei/FieldData-AukBay_201807/rail_data/images')
+    filename = os.path.basename(src)
+    filename = filename.replace('jpg', 'txt')
+
+    folder_name = os.path.basename(os.path.dirname(os.path.dirname(src)))
+    filename = 'folder_' + folder_name + '-file_' + filename
     annotations = img_info['annotations']
     if not os.path.exists(dest_folder):
         # The directory will also not be overridden if it already exists.
@@ -117,8 +136,8 @@ def transform_worker(img_info, dest_folder):
             category_id = ann['category_id']
             bbox = ann['bbox']
             xmin, ymin, xmax, ymax = bbox
-            img_height = ann['height']
-            img_width = ann['width']
+            img_height = img_info['height']
+            img_width = img_info['width']
             x_center = (xmin+xmax)/(2* img_width)
             y_center = (ymin + ymax)/(2*img_height)
             box_w = (xmax - xmin)/img_width
@@ -126,7 +145,7 @@ def transform_worker(img_info, dest_folder):
             file.write(f"{category_id} {x_center} {y_center} {box_w} {box_h}\n")
 
 npz_file = '/home/jiemei/Documents/rail_detection/dataset_preprocess/rail_data_yolov8/dataset_dicts.npz'
-save_folder = '/run/user/1000/gvfs/afp-volume:host=IPL-NOAA.local,user=Jie%20Mei,volume=homes/Jie Mei/yolov8_rail_data/yolov8_rail_data_full'
+save_folder = '/media/jiemei/FieldData-AukBay_201807/rail_data/yolov8_rail_data/yolov8_rail_data_full_mltiprocess'
 
 # all data info
 dataset_dicts = list(np.load(npz_file, allow_pickle=True)['arr_0'])
@@ -141,16 +160,16 @@ train_data = dataset_dicts[:idx]
 val_data = dataset_dicts[idx:]
 
 # copy images to a new folder on FTP
-copy_image(train_data, save_folder+'/images/train')
-copy_image(val_data, save_folder+'/images/val')
+# copy_image(train_data, save_folder+'/images/train')
+# copy_image(val_data, save_folder+'/images/val')
 
 # create and save train val txt labels in a folder on FTP
 # class x_center y_center width height format. Box coordinates must be in normalized xywh format (from 0 to 1)
-transform_save_box(train_data, save_folder+'/labels/train')
-transform_save_box(val_data, save_folder+'/labels/val')
+# transform_save_box(train_data, save_folder+'/labels/train')
+# transform_save_box(val_data, save_folder+'/labels/val')
 
 # Replace your original function calls with multiprocessed versions:
-# multiprocess_task(train_data, save_folder+'/images/train', copy_worker)
-# multiprocess_task(val_data, save_folder+'/images/val', copy_worker)
-# multiprocess_task(train_data, save_folder+'/labels/train', transform_worker)
-# multiprocess_task(val_data, save_folder+'/labels/val', transform_worker)
+multiprocess_task(train_data, save_folder+'/images/train', copy_worker)
+multiprocess_task(val_data, save_folder+'/images/val', copy_worker)
+multiprocess_task(train_data, save_folder+'/labels/train', transform_worker)
+multiprocess_task(val_data, save_folder+'/labels/val', transform_worker)

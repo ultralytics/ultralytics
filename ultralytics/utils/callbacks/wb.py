@@ -54,6 +54,7 @@ def on_train_end(trainer):
     if trainer.best.exists():
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=['best'])
+    wb.run.finish()  # required or run continues on dashboard
 
 
 callbacks = {

@@ -1,7 +1,9 @@
 # Applications
 
 
-| Option 1              | Option 2              | Option 3              | Option 4              |
+| Fruits Detection Using Ultralytics YOLOv8             | Car's Detection Using Ultralytics YOLOv8              | Option 3              | Option 4              |
 | --------------------- | --------------------- | --------------------- | --------------------- |
-| ![Image 1](image_url_1) | ![Image 2](image_url_2) | ![Image 3](image_url_3) | ![Image 4](image_url_4) |
-| Fruits Detection      | Description 2         | Description 3         | Description 4         |
+| ![Fruits Detection Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/2feb3bcf-22f4-469d-a4b8-d3444617e852) | ![Cars Detection Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/16e7ea3b-ce02-44e8-88c2-3b465958de8d)  | ![Fruits Detection Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/2feb3bcf-22f4-469d-a4b8-d3444617e852) | ![Fruits Detection Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/2feb3bcf-22f4-469d-a4b8-d3444617e852) |
+| Fruits Detection Using Ultralytics YOLOv8     | Car's Detection Using Ultralytics YOLOv8        | Description 3         | Description 4         |
+
+

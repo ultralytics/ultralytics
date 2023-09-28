@@ -61,7 +61,7 @@ class ClassificationTrainer(BaseTrainer):
             p.requires_grad = True  # for training
         return model
 
-    def _reshape_output(self):
+    def _reshape_outputs(self):
         ClassificationModel.reshape_outputs(self.model, self.data['nc'])
 
     def setup_model(self):
@@ -177,7 +177,7 @@ class MultiClassificationTrainer(ClassificationTrainer):
         # but the logit proba of each class
         return MultiClassificationModel(cfg, nc=int(self.data['nc']), verbose=verbose and RANK == -1)
 
-    def _reshape_output(self):
+    def _reshape_outputs(self):
         MultiClassificationModel.reshape_outputs(self.model, int(self.data['nc']))
 
     def build_dataset(self, img_path, mode='train', batch=None):

@@ -54,16 +54,11 @@ def on_train_end(trainer):
     if trainer.best.exists():
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=['best'])
-
-
-def teardown(*args, **kwargs):
-    """Ends the W&B run."""
-    wb.run.finish()
+    wb.run.finish()  # required or run continues on dashboard
 
 
 callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_epoch_end': on_train_epoch_end,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_train_end': on_train_end,
-    'teardown': teardown} if wb else {}
+    'on_train_end': on_train_end} if wb else {}

@@ -154,19 +154,19 @@ class Exporter:
         """Returns list of exported files/dirs after running callbacks."""
         self.run_callbacks('on_export_start')
         t = time.time()
-        format = self.args.format.lower()  # to lowercase
-        if format in ('tensorrt', 'trt'):  # 'engine' aliases
-            format = 'engine'
-        if format in ('mlmodel', 'mlpackage', 'mlprogram', 'apple', 'ios', 'coreml'):  # 'coreml' aliases
-            format = 'coreml'
+        fmt = self.args.format.lower()  # to lowercase
+        if fmt in ('tensorrt', 'trt'):  # 'engine' aliases
+            fmt = 'engine'
+        if fmt in ('mlmodel', 'mlpackage', 'mlprogram', 'apple', 'ios', 'coreml'):  # 'coreml' aliases
+            fmt = 'coreml'
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
-        flags = [x == format for x in fmts]
+        flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
-            raise ValueError(f"Invalid export format='{format}'. Valid formats are {fmts}")
+            raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
 
         # Device
-        if format == 'engine' and self.args.device is None:
+        if fmt == 'engine' and self.args.device is None:
             LOGGER.warning('WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0')
             self.args.device = '0'
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
@@ -188,7 +188,7 @@ class Exporter:
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
         file = Path(
             getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml.get('yaml_file', ''))
-        if file.suffix in ('.yaml', '.yml'):
+        if file.suffix in {'.yaml', '.yml'}:
             file = Path(file.name)
 
         # Update model
@@ -222,8 +222,8 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
-        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else \
-            tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(
+            tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
         data = model.args['data'] if hasattr(model, 'args') and isinstance(model.args, dict) else ''
         description = f'Ultralytics {self.pretty_name} model {f"trained on {data}" if data else ""}'
@@ -280,7 +280,7 @@ class Exporter:
             s = '' if square else f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not " \
                                   f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
-            predict_data = f'data={data}' if model.task == 'segment' and format == 'pb' else ''
+            predict_data = f'data={data}' if model.task == 'segment' and fmt == 'pb' else ''
             q = 'int8' if self.args.int8 else 'half' if self.args.half else ''  # quantization
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
@@ -750,10 +750,10 @@ class Exporter:
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
-            for c in (
-                    'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
-                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                    'sudo apt-get update', 'sudo apt-get install edgetpu-compiler'):
+            for c in ('curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
+                      'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '
+                      'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list', 'sudo apt-get update',
+                      'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
@@ -788,7 +788,7 @@ class Exporter:
             LOGGER.info(f"{prefix} running '{cmd}'")
             subprocess.run(cmd, shell=True)
 
-        if ' ' in str(f):
+        if ' ' in f:
             LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
 
         # f_json = Path(f) / 'model.json'  # *.json path

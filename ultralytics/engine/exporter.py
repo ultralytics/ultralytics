@@ -627,6 +627,9 @@ class Exporter:
         if builder.platform_has_fast_fp16 and self.args.half:
             config.set_flag(trt.BuilderFlag.FP16)
 
+        del self.model
+        torch.cuda.empty_cache()
+
         # Write file
         with builder.build_engine(network, config) as engine, open(f, 'wb') as t:
             # Metadata

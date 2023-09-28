@@ -809,7 +809,6 @@ class Exporter:
         return f, None
 
     def _add_tflite_metadata(self, file):
-        return
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         from tflite_support import flatbuffers  # noqa
         from tflite_support import metadata as _metadata  # noqa

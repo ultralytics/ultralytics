@@ -112,7 +112,11 @@ class BaseTrainer:
         # Model and Dataset
         self.model = self.args.model
         try:
-            if self.args.task == 'classify':
+            if self.args.task == 'mclassify':
+                import yaml
+                with open(self.args.data, "r") as f:
+                    self.data = yaml.load(f, Loader=yaml.CBaseLoader)
+            elif self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data)
             elif self.args.data.split('.')[-1] in ('yaml', 'yml') or self.args.task in ('detect', 'segment', 'pose'):
                 self.data = check_det_dataset(self.args.data)

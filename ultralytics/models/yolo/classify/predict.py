@@ -47,3 +47,26 @@ class ClassificationPredictor(BasePredictor):
             img_path = self.batch[0][i]
             results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
         return results
+        
+class MultiClassificationPredictor(ClassificationPredictor):
+    """
+    A class extending the ClassificationPredictor class for prediction based on a multi-label classification model.
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+
+    Example:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.classify import MultiClassificationPredictor
+
+        #no fitted model yet, try yolov8n-cls.pt
+        args = dict(model='yolov8n-cls.pt', source=ASSETS) 
+        predictor = MultiClassificationPredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+    """
+
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        super().__init__(cfg, overrides, _callbacks)
+        self.args.task = 'mclassify'

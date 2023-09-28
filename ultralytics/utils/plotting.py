@@ -444,7 +444,7 @@ def plot_images(images,
                         label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
                         annotator.box_label(box, label, color=color)
             elif len(classes):
-                for c in classes:
+                for c in classes.squeeze():
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     annotator.text((x, y), f'{c}', txt_color=color, box_style=True)

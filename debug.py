@@ -1,5 +1,6 @@
 import os
 from ultralytics import YOLO
+from ultralytics.utils import SETTINGS
 
 # Only for tune method because it uses all GPUs by default
 #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -9,24 +10,26 @@ from ultralytics import YOLO
 #SETTINGS['comet'] = False  # set True to log using Comet.ml
 
 # Initialize model and load matching weights
-model = YOLO('yolov8n.pt')
-epochs = 2
-batch = 4
+model = YOLO('yolov8s.yaml', task='detect').load('./../models/yolov8s.pt')
+epochs = 4
+batch = 258
 
 #metrics = model.val(data='custom_dataset.yaml', verbose=True, plots=True, save_json=True, device=[1])
 
 model.train(
     resume=False,
-    data='coco8.yaml',
+    data='custom_dataset.yaml',
     epochs=epochs,
     batch=batch,
     save=True,
-    device=[4],
-    project='fine-tune-cdv1',
-    name=f'8n-{epochs}e-{batch}b',
+    lr0=0.001,
+    device=[0,1,2],
+    project='debug',
+    name=f'8s-{epochs}e-{batch}b',
     verbose=True,
-    save_period=1,
-    patience=25,
+    patience=100,
+    close_mosaic=20.7,
+    cos_lr=0.75
 
 )
 

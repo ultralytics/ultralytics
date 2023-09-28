@@ -11,25 +11,27 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 from datetime import datetime
 
 # Initialize the YOLO model
-model = YOLO('yolov8n.pt')
+model = YOLO('yolov8s.yaml', task='detect').load('./../models/yolov8s.pt')
 
 # Tune hyperparameters on COCO8 for 3 epochs with default Tuner
 model.tune(
     use_ray=False,
-    iterations=2,
+    iterations=50,
     # Fixed training parameters
-    device=[1],
-    data='coco128.yaml',
+    device=[0,1,2],
+    data='custom_dataset.yaml',
     project=f'grid-search-cdv1/{datetime.now().strftime("%Y%m%d-%H%M%S")}',
     fraction=0.5,
-    epochs=3,
-    batch=4,
+    epochs=50,
+    patience=10,
+    batch=258,
     optimizer='SGD', # MUST BE FIXED, try also Adam
-    cos_lr=False, # MUST BE FIXED, try also True
     plots=False,
     save=False,
     val=False,
 )
+
+
 """
 
 # Tune hyperparameters on COCO128 for 3 epochs with Ray Tune

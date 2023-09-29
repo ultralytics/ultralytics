@@ -15,8 +15,6 @@ class FastSAMPredictor(DetectionPredictor):
         self.args.task = 'segment'
 
     def postprocess(self, preds, img, orig_imgs):
-        print(preds)
-        print([p.shape for p in preds])
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,

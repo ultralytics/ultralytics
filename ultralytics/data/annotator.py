@@ -54,10 +54,7 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
             det_bboxes = result.boxes.xywhn.cpu().numpy()
             detection_dir = output_dir / 'detect'
             Path(detection_dir).mkdir(exist_ok=True, parents=True)
-            with open(f'{str(Path(detection_dir) / Path(result.path).stem)}.txt', 'w') as f:
-                for i in range(len(det_bboxes)):
-                    box = map(str, det_bboxes[i])
-                    f.write(f'{class_ids[i]} ' + ' '.join(box) + '\n')
+            result.save_txt(f'{str(Path(detection_dir) / Path(result.path).stem)}.txt')
 
             if result.keypoints:
                 keypoints = result.keypoints.xyn.cpu().numpy()

@@ -492,9 +492,9 @@ class AutoBackend(nn.Module):
         types[5] |= name.endswith('.mlmodel')  # retain support for older Apple CoreML *.mlmodel formats
         types[8] &= not types[9]  # tflite &= not edgetpu
         triton = False
-        
+
         if any(types) is False and is_valid_json(p):
             triton_params = eval(p)
             triton = isinstance(triton_params, dict) and 'url' in triton_params
-            
+
         return types + [triton]

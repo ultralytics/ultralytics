@@ -30,6 +30,13 @@ The output from Ultralytics trackers is consistent with standard object detectio
   <strong>Watch:</strong> Object Detection and Tracking with Ultralytics YOLOv8.
 </p>
 
+## Real-world Applications
+
+| Transportation | Retail | Aquaculture |
+|:-----------------------------------:|:-----------------------:|:-----------:|
+| ![Vehicle Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![People Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Fish Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
+| Vehicle Tracking | People Tracking | Fish Tracking |
+
 ## Features at a Glance
 
 Ultralytics YOLO extends its object detection features to provide robust and versatile object tracking:
@@ -138,7 +145,7 @@ For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/tr
 
 ### Persisting Tracks Loop
 
-Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker than the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
+Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
 !!! example "Streaming for-loop with tracking"
 

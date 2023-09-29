@@ -238,7 +238,6 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             hsv_s=args.hsv_s,
             hsv_v=args.hsv_v) if augment else classify_transforms_eval(
                 size=args.imgsz, mean=DEFAULT_MEAN, std=DEFAULT_STD, crop_percentage=args.crop_percentage)
-
         self.album_transforms = classify_albumentations(
             augment=augment,
             size=args.imgsz,

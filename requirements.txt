@@ -38,7 +38,7 @@ seaborn>=0.11.0
 # Extras --------------------------------------
 psutil  # system utilization
 py-cpuinfo  # display CPU info
-# thop>=0.1.1  # FLOPs computation
+thop>=0.1.1  # FLOPs computation
 # ipython  # interactive notebook
 # albumentations>=1.0.3  # training augmentations
 # pycocotools>=2.0.6  # COCO mAP

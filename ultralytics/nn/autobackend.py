@@ -7,7 +7,6 @@ import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
-from urllib.parse import urlparse
 
 import cv2
 import numpy as np
@@ -16,7 +15,7 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.utils import ARM64, LINUX, LOGGER, ROOT, yaml_load
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
+from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_valid_json
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
@@ -493,10 +492,9 @@ class AutoBackend(nn.Module):
         types[5] |= name.endswith('.mlmodel')  # retain support for older Apple CoreML *.mlmodel formats
         types[8] &= not types[9]  # tflite &= not edgetpu
         triton = False
-        if any(types) is False:
-            try:
-                triton_params = eval(p)
-                triton = isinstance(triton_params, dict) and 'url' in triton_params
-            except:
-                pass
+        
+        if any(types) is False and is_valid_json(p):
+            triton_params = eval(p)
+            triton = isinstance(triton_params, dict) and 'url' in triton_params
+            
         return types + [triton]

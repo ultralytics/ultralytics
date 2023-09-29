@@ -490,8 +490,8 @@ def test_triton():
     # wait model ready
     for _ in range(10):
         if triton_client.is_model_ready(model_name):
-            time.sleep(5)
             break
+        time.sleep(5)
 
     # check triton inference
     YOLO(f'http://localhost:8000/{model_name}', 'detect')(SOURCE)  # exported model inference

@@ -452,6 +452,15 @@ def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
     """Search/download YAML file (if necessary) and return path, checking suffix."""
     return check_file(file, suffix, hard=hard)
 
+def is_valid_json(s):
+    import json
+    try:
+        json.loads(s.replace("'", "\""))
+        print('loaded!')
+        return True
+    except json.JSONDecodeError:
+        print('json.JSONDecodeError')
+        return False
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""

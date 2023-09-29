@@ -23,6 +23,13 @@ In the world of machine learning and computer vision, the process of making sens
   <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects.
 </p>
 
+## Real-world Applications
+
+| Manufacturing | Sports | Safety |
+|:-----------------------------------:|:-----------------------:|:-----------:|
+| ![Vehicle Spare Parts Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Football Player Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442)| ![People Fall Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
+| Vehicle Spare Parts Detection | Football Player Detection | People Fall Detection |
+
 ## Why Use Ultralytics YOLO for Inference?
 
 Here's why you should consider YOLOv8's predict mode for your various inference needs:

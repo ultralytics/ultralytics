@@ -49,7 +49,7 @@ def auto_annotate(data, det_model='yolov8x.pt', device='', output_dir=None):
                 with open(f'{str(Path(detect_dir) / Path(result.path).stem)}.txt', 'w') as f:
                     for cls_, box in zip(classes, result.boxes.xywhn.cpu().numpy()):
                         f.write(f'{cls_} ' + ' '.join(list(map(str, box))) + '\n')
-            
+
             if result.masks:
                 segment_dir = output_dir / 'segment'
                 Path(segment_dir).mkdir(exist_ok=True, parents=True)
@@ -61,5 +61,8 @@ def auto_annotate(data, det_model='yolov8x.pt', device='', output_dir=None):
                 pose_dir = output_dir / 'pose'
                 Path(pose_dir).mkdir(exist_ok=True, parents=True)
                 with open(f'{str(Path(pose_dir) / Path(result.path).stem)}.txt', 'w') as f:
-                    for cls_, box, keypoint in zip(classes, result.boxes.xywhn.cpu().numpy(), result.keypoints.xyn.cpu().numpy()):
-                        f.write(f'{cls_} ' + ' '.join(list(map(str, box))) + ' ' + ' '.join(list(map(str, keypoint.flatten()))) + '\n')
+                    for cls_, box, keypoint in zip(classes,
+                                                   result.boxes.xywhn.cpu().numpy(),
+                                                   result.keypoints.xyn.cpu().numpy()):
+                        f.write(f'{cls_} ' + ' '.join(list(map(str, box))) + ' ' +
+                                ' '.join(list(map(str, keypoint.flatten()))) + '\n')

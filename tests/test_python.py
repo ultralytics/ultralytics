@@ -14,7 +14,8 @@ from torchvision.transforms import ToTensor
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, MACOS, ONLINE, ROOT, SETTINGS, WINDOWS, is_dir_writeable
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_PATH, LINUX, MACOS, ONLINE, ROOT, SETTINGS, WINDOWS,
+                               is_dir_writeable)
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
@@ -264,8 +265,8 @@ def test_results():
         for r in results:
             r = r.cpu().numpy()
             r = r.to(device='cpu', dtype=torch.float32)
-            r.save_txt(txt_file='runs/tests/label.txt', save_conf=True)
-            r.save_crop(save_dir='runs/tests/crops/')
+            r.save_txt(txt_file=TMP / 'runs/tests/label.txt', save_conf=True)
+            r.save_crop(save_dir=TMP / 'runs/tests/crops/')
             r.tojson(normalize=True)
             r.plot(pil=True)
             r.plot(conf=True, boxes=True)
@@ -299,7 +300,7 @@ def test_data_converter():
 
     file = 'instances_val2017.json'
     download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}', dir=TMP)
-    convert_coco(labels_dir=TMP, use_segments=True, use_keypoints=False, cls91to80=True)
+    convert_coco(labels_dir=TMP, save_dir=TMP / 'yolo_labels', use_segments=True, use_keypoints=False, cls91to80=True)
     coco80_to_coco91_class()
 
 
@@ -326,6 +327,7 @@ def test_cfg_init():
     with contextlib.suppress(SyntaxError):
         check_dict_alignment({'a': 1}, {'b': 2})
     copy_default_cfg()
+    (Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')).unlink(missing_ok=False)
     [smart_value(x) for x in ['none', 'true', 'false']]
 
 

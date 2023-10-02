@@ -71,7 +71,6 @@ class Yolov8TFLite:
         # Draw the label text on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
-
     def preprocess(self):
         """
         Preprocesses the input image before performing inference.
@@ -102,7 +101,7 @@ class Yolov8TFLite:
 
         # Return the preprocessed image data
         return image_data
-    
+
     def postprocess(self, input_image, output):
         """
         Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
@@ -173,7 +172,6 @@ class Yolov8TFLite:
         # Return the modified input image
         return input_image
 
-
     def main(self):
         """
         Performs inference using a TFLite model and returns the output image with drawn detections.
@@ -184,7 +182,6 @@ class Yolov8TFLite:
         # Create an interpreter for the TFLite model
         interpreter = tflite.Interpreter(model_path=self.tflite_model)
         interpreter.allocate_tensors()
-
 
         # Get the model inputs
         input_details = interpreter.get_input_details()
@@ -210,12 +207,12 @@ class Yolov8TFLite:
         # Perform post-processing on the outputs to obtain output image.
         return self.postprocess(self.img, output)  # output image
 
-        
+
 if __name__ == '__main__':
     # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='yolov8n_float32.tflite', help='Input your TFLite model.')
-    parser.add_argument('--img', type=str, default=str('bus.jpg'), help='Path to input image.')
+    parser.add_argument('--img', type=str, default='bus.jpg', help='Path to input image.')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='Confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
     args = parser.parse_args()

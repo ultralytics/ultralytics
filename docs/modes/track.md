@@ -307,7 +307,7 @@ Finally, after all threads have completed their task, the windows displaying the
             # Track objects in frames if available
             results = model.track(frame, persist=True)
             res_plotted = results[0].plot()
-            cv2.imshow("Tracking_Stream_" + str(file_index), res_plotted)
+            cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)
     
             key = cv2.waitKey(1)
             if key == ord('q'):

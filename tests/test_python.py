@@ -261,7 +261,7 @@ def test_predict_callback_and_setup():
 
 def test_results():
     for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
-        results = YOLO(m)([SOURCE, SOURCE], imgsz=160)
+        results = YOLO(WEIGHTS_DIR / m)([SOURCE, SOURCE], imgsz=160)
         for r in results:
             r = r.cpu().numpy()
             r = r.to(device='cpu', dtype=torch.float32)
@@ -307,7 +307,10 @@ def test_data_converter():
 def test_data_annotator():
     from ultralytics.data.annotator import auto_annotate
 
-    auto_annotate(ASSETS, det_model='yolov8n.pt', sam_model='mobile_sam.pt', output_dir=TMP / 'auto_annotate_labels')
+    auto_annotate(ASSETS,
+                  det_model=WEIGHTS_DIR / 'yolov8n.pt',
+                  sam_model=WEIGHTS_DIR / 'mobile_sam.pt',
+                  output_dir=TMP / 'auto_annotate_labels')
 
 
 def test_events():

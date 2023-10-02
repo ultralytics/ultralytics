@@ -5,13 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from ultralytics import settings
 from ultralytics.utils.torch_utils import init_seeds
 
 TMP = Path(__file__).resolve().parent / 'tmp'  # temp directory for test files
-
-# CURRENT_RUNS_DIR = settings['runs_dir']
-# settings['runs_dir'] = TMP / 'runs'
 
 
 def pytest_addoption(parser):
@@ -83,11 +79,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         config (pytest.config.Config): The pytest config object.
     """
     # Remove files
-    for file in ['bus.jpg', 'yolov8n.onnx']:
+    for file in ['bus.jpg', 'yolov8n.onnx', 'yolov8n.torchscript']:
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
     for directory in [TMP.parents[1] / '.pytest_cache', TMP]:
         shutil.rmtree(directory, ignore_errors=True)
-
-    # settings['runs_dir'] = CURRENT_RUNS_DIR

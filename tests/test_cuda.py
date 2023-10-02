@@ -91,7 +91,7 @@ def test_predict_sam():
     model(ASSETS / 'zidane.jpg', points=[900, 370], labels=[1], device=0)
 
     # Create SAMPredictor
-    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model='mobile_sam.pt')
+    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model=WEIGHTS_DIR / 'mobile_sam.pt')
     predictor = SAMPredictor(overrides=overrides)
 
     # Set image

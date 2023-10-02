@@ -32,10 +32,10 @@ The output from Ultralytics trackers is consistent with standard object detectio
 
 ## Real-world Applications
 
-| Transportation | Retail | Aquaculture |
-|:-----------------------------------:|:-----------------------:|:-----------:|
+|                                                     Transportation                                                     |                                                        Retail                                                         |                                                     Aquaculture                                                     |
+|:----------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------:|
 | ![Vehicle Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![People Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Fish Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
-| Vehicle Tracking | People Tracking | Fish Tracking |
+|                                                    Vehicle Tracking                                                    |                                                    People Tracking                                                    |                                                    Fish Tracking                                                    |
 
 ## Features at a Glance
 
@@ -282,33 +282,37 @@ Finally, after all threads have completed their task, the windows displaying the
 
     def run_tracker_in_thread(filename, model, file_index):
         """
-        This function is designed to run a video file or webcam stream
-        concurrently with the YOLOv8 model, utilizing threading.
-
-        - filename: The path to the video file or the webcam/external
-        camera source.
-        - model: The path to the YOLOv8 model.
-        - file_index: An argument to specify the index of the
-        file being processed.
+        Runs a video file or webcam stream concurrently with the YOLOv8 model using threading.
+    
+        This function captures video frames from a given file or camera source and utilizes the YOLOv8 model for object
+        tracking. The function runs in its own thread for concurrent processing.
+    
+        Args:
+            filename (str): The path to the video file or the identifier for the webcam/external camera source.
+            model (obj): The YOLOv8 model object.
+            file_index (int): An index to uniquely identify the file being processed, used for display purposes.
+    
+        Note:
+            Press 'q' to quit the video display window.
         """
         video = cv2.VideoCapture(filename)  # Read the video file
-
+    
         while True:
             ret, frame = video.read()  # Read the video frames
-
+    
             # Exit the loop if no more frames in either video
             if not ret:
                 break
-
+    
             # Track objects in frames if available
             results = model.track(frame, persist=True)
             res_plotted = results[0].plot()
-            cv2.imshow("Tracking_Stream_"+str(file_index), res_plotted)
-
+            cv2.imshow("Tracking_Stream_" + str(file_index), res_plotted)
+    
             key = cv2.waitKey(1)
             if key == ord('q'):
                 break
-
+    
         # Release video sources
         video.release()
 
@@ -322,10 +326,8 @@ Finally, after all threads have completed their task, the windows displaying the
     video_file2 = 0  # Path to video file, 0 for webcam, 1 for external camera
 
     # Create the tracker threads
-    tracker_thread1 = threading.Thread(target=run_tracker_in_thread,
-                                    args=(video_file1, model1, 1), daemon=True)
-    tracker_thread2 = threading.Thread(target=run_tracker_in_thread,
-                                    args=(video_file2, model2, 2), daemon=True)
+    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, 1), daemon=True)
+    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2, 2), daemon=True)
 
     # Start the tracker threads
     tracker_thread1.start()

@@ -14,11 +14,11 @@ from torchvision.transforms import ToTensor
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, MACOS, ONLINE, ROOT, SETTINGS, WINDOWS, is_dir_writeable
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_PATH, LINUX, MACOS, ONLINE, ROOT, WEIGHTS_DIR, WINDOWS,
+                               is_dir_writeable)
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
-WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
 SOURCE = ASSETS / 'bus.jpg'
@@ -260,12 +260,12 @@ def test_predict_callback_and_setup():
 
 def test_results():
     for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
-        results = YOLO(m)([SOURCE, SOURCE], imgsz=160)
+        results = YOLO(WEIGHTS_DIR / m)([SOURCE, SOURCE], imgsz=160)
         for r in results:
             r = r.cpu().numpy()
             r = r.to(device='cpu', dtype=torch.float32)
-            r.save_txt(txt_file='runs/tests/label.txt', save_conf=True)
-            r.save_crop(save_dir='runs/tests/crops/')
+            r.save_txt(txt_file=TMP / 'runs/tests/label.txt', save_conf=True)
+            r.save_crop(save_dir=TMP / 'runs/tests/crops/')
             r.tojson(normalize=True)
             r.plot(pil=True)
             r.plot(conf=True, boxes=True)
@@ -299,14 +299,17 @@ def test_data_converter():
 
     file = 'instances_val2017.json'
     download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}', dir=TMP)
-    convert_coco(labels_dir=TMP, use_segments=True, use_keypoints=False, cls91to80=True)
+    convert_coco(labels_dir=TMP, save_dir=TMP / 'yolo_labels', use_segments=True, use_keypoints=False, cls91to80=True)
     coco80_to_coco91_class()
 
 
 def test_data_annotator():
     from ultralytics.data.annotator import auto_annotate
 
-    auto_annotate(ASSETS, det_model='yolov8n.pt', sam_model='mobile_sam.pt', output_dir=TMP / 'auto_annotate_labels')
+    auto_annotate(ASSETS,
+                  det_model=WEIGHTS_DIR / 'yolov8n.pt',
+                  sam_model=WEIGHTS_DIR / 'mobile_sam.pt',
+                  output_dir=TMP / 'auto_annotate_labels')
 
 
 def test_events():
@@ -326,6 +329,7 @@ def test_cfg_init():
     with contextlib.suppress(SyntaxError):
         check_dict_alignment({'a': 1}, {'b': 2})
     copy_default_cfg()
+    (Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')).unlink(missing_ok=False)
     [smart_value(x) for x in ['none', 'true', 'false']]
 
 

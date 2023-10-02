@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv8, object detection, image segmentation, machine lea
 
 <div align="center">
   <p>
-    <a href="https://github.com/ultralytics/ultralytics" target="_blank">
+    <a href="https://yolovision.ultralytics.com" target="_blank">
     <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
   </p>
   <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
@@ -29,6 +29,17 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 - **Predict** new images and videos with YOLOv8 &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
 - **Train** a new YOLOv8 model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
 - **Explore** YOLOv8 tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
+
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab.
+</p>
 
 ## YOLO: A Brief History
 

@@ -14,15 +14,16 @@ from torchvision.transforms import ToTensor
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import ASSETS, DEFAULT_CFG, LINUX, MACOS, ONLINE, ROOT, SETTINGS, WINDOWS
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_PATH, LINUX, MACOS, ONLINE, ROOT, WEIGHTS_DIR, WINDOWS,
+                               is_dir_writeable)
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
-WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 CFG = 'yolov8n.yaml'
 SOURCE = ASSETS / 'bus.jpg'
 TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
+IS_TMP_WRITEABLE = is_dir_writeable(TMP)
 
 
 def test_model_forward():
@@ -40,7 +41,7 @@ def test_model_methods():
     model.to('cpu')
     model.fuse()
     model.clear_callback('on_train_start')
-    model._reset_callbacks()
+    model.reset_callbacks()
 
     # Model properties
     _ = model.names
@@ -58,6 +59,7 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
+@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason='directory is not writeable')
 def test_predict_txt():
     # Write a list of sources (file, dir, glob, recursive glob) to a txt file
     txt_file = TMP / 'sources.txt'
@@ -128,6 +130,7 @@ def test_predict_grey_and_4ch():
 
 
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
+@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason='directory is not writeable')
 def test_track_stream():
     # Test YouTube streaming inference (short 10 frame video) with non-default ByteTrack tracker
     # imgsz=160 required for tracking for higher confidence and better matches
@@ -211,6 +214,7 @@ def test_export_paddle(enabled=False):
         YOLO(MODEL).export(format='paddle')
 
 
+@pytest.mark.slow
 def test_export_ncnn():
     f = YOLO(MODEL).export(format='ncnn')
     YOLO(f)(SOURCE)  # exported model inference
@@ -256,12 +260,12 @@ def test_predict_callback_and_setup():
 
 def test_results():
     for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
-        results = YOLO(m)([SOURCE, SOURCE], imgsz=160)
+        results = YOLO(WEIGHTS_DIR / m)([SOURCE, SOURCE], imgsz=160)
         for r in results:
             r = r.cpu().numpy()
             r = r.to(device='cpu', dtype=torch.float32)
-            r.save_txt(txt_file='runs/tests/label.txt', save_conf=True)
-            r.save_crop(save_dir='runs/tests/crops/')
+            r.save_txt(txt_file=TMP / 'runs/tests/label.txt', save_conf=True)
+            r.save_crop(save_dir=TMP / 'runs/tests/crops/')
             r.tojson(normalize=True)
             r.plot(pil=True)
             r.plot(conf=True, boxes=True)
@@ -295,14 +299,17 @@ def test_data_converter():
 
     file = 'instances_val2017.json'
     download(f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}', dir=TMP)
-    convert_coco(labels_dir=TMP, use_segments=True, use_keypoints=False, cls91to80=True)
+    convert_coco(labels_dir=TMP, save_dir=TMP / 'yolo_labels', use_segments=True, use_keypoints=False, cls91to80=True)
     coco80_to_coco91_class()
 
 
 def test_data_annotator():
     from ultralytics.data.annotator import auto_annotate
 
-    auto_annotate(ASSETS, det_model='yolov8n.pt', sam_model='mobile_sam.pt', output_dir=TMP / 'auto_annotate_labels')
+    auto_annotate(ASSETS,
+                  det_model=WEIGHTS_DIR / 'yolov8n.pt',
+                  sam_model=WEIGHTS_DIR / 'mobile_sam.pt',
+                  output_dir=TMP / 'auto_annotate_labels')
 
 
 def test_events():
@@ -322,6 +329,7 @@ def test_cfg_init():
     with contextlib.suppress(SyntaxError):
         check_dict_alignment({'a': 1}, {'b': 2})
     copy_default_cfg()
+    (Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')).unlink(missing_ok=False)
     [smart_value(x) for x in ['none', 'true', 'false']]
 
 
@@ -335,8 +343,8 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    from ultralytics.utils.checks import (check_imgsz, check_imshow, check_requirements, check_yolov5u_filename,
-                                          git_describe, print_args)
+    from ultralytics.utils.checks import (check_imgsz, check_imshow, check_requirements, check_version,
+                                          check_yolov5u_filename, git_describe, print_args)
 
     check_yolov5u_filename('yolov5n.pt')
     # check_imshow(warn=True)
@@ -344,6 +352,7 @@ def test_utils_checks():
     check_requirements()  # check requirements.txt
     check_imgsz([600, 600], max_dim=1)
     check_imshow()
+    check_version('ultralytics', '8.0.0')
     print_args()
 
 

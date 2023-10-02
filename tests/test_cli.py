@@ -1,13 +1,14 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import subprocess
-from pathlib import Path
 
 import pytest
 
-from ultralytics.utils import ASSETS, SETTINGS
+from ultralytics.utils import ASSETS, WEIGHTS_DIR
+from ultralytics.utils.checks import cuda_device_count, cuda_is_available
 
-WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
+CUDA_IS_AVAILABLE = cuda_is_available()
+CUDA_DEVICE_COUNT = cuda_device_count()
 TASK_ARGS = [
     ('detect', 'yolov8n', 'coco8.yaml'),
     ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
@@ -114,9 +115,11 @@ def test_mobilesam():
     # model(source)
 
 
-# Slow Tests
+# Slow Tests -----------------------------------------------------------------------------------------------------------
 @pytest.mark.slow
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+@pytest.mark.skipif(CUDA_DEVICE_COUNT < 2, reason='DDP is not available')
 def test_train_gpu(task, model, data):
-    run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 device="0"')  # single GPU
-    run(f'yolo train {task} model={model}.pt data={data} imgsz=32 epochs=1 device="0,1"')  # multi GPU
+    run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 device=0')  # single GPU
+    run(f'yolo train {task} model={model}.pt data={data} imgsz=32 epochs=1 device=0,1')  # multi GPU

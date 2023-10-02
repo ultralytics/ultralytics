@@ -1,16 +1,15 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
-import re
 import shutil
 import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS,
-                               SETTINGS_YAML, IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn,
-                               yaml_load, yaml_print)
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, ROOT, SETTINGS,
+                               SETTINGS_YAML, TESTS_RUNNING, IterableSimpleNamespace, __version__, checks, colorstr,
+                               deprecation_warn, yaml_load, yaml_print)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
@@ -154,7 +153,8 @@ def get_save_dir(args, name=None):
     else:
         from ultralytics.utils.files import increment_path
 
-        project = args.project or Path(SETTINGS['runs_dir']) / args.task
+        project = args.project or (ROOT /
+                                   '../tests/tmp/runs' if TESTS_RUNNING else Path(SETTINGS['runs_dir'])) / args.task
         name = name or args.name or f'{args.mode}'
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in (-1, 0) else True)
 
@@ -291,19 +291,20 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""
-    re.sub(r' *= *', '=', pair)  # remove spaces around equals sign
     k, v = pair.split('=', 1)  # split on first '=' sign
+    k, v = k.strip(), v.strip()  # remove spaces
     assert v, f"missing '{k}' value"
     return k, smart_value(v)
 
 
 def smart_value(v):
     """Convert a string to an underlying type such as int, float, bool, etc."""
-    if v.lower() == 'none':
+    v_lower = v.lower()
+    if v_lower == 'none':
         return None
-    elif v.lower() == 'true':
+    elif v_lower == 'true':
         return True
-    elif v.lower() == 'false':
+    elif v_lower == 'false':
         return False
     else:
         with contextlib.suppress(Exception):
@@ -333,7 +334,7 @@ def entrypoint(debug=''):
 
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
-        'checks': checks.check_yolo,
+        'checks': checks.collect_system_info,
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: handle_yolo_settings(args[1:]),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
@@ -442,8 +443,10 @@ def entrypoint(debug=''):
             LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    # getattr(model, mode)(**vars(get_cfg(overrides=overrides)))  # default args using default.yaml
     getattr(model, mode)(**overrides)  # default args from model
+
+    # Show help
+    LOGGER.info(f'💡 Learn more at https://docs.ultralytics.com/modes/{mode}')
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

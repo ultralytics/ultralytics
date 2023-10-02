@@ -27,7 +27,7 @@ RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e ".[export]" thop --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
@@ -36,6 +36,9 @@ RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
 # Remove exported models
 RUN rm -rf tmp
+
+# Creates a symbolic link to make 'python' point to 'python3'
+RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

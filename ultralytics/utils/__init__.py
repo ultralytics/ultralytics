@@ -208,12 +208,16 @@ def plt_settings(rcparams=None, backend='Agg'):
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
-            plt.switch_backend(backend)
+            if backend != original_backend:
+                plt.close('all')  # auto-close()ing of figures upon backend switching is deprecated since 3.8
+                plt.switch_backend(backend)
 
             with plt.rc_context(rcparams):
                 result = func(*args, **kwargs)
 
-            plt.switch_backend(original_backend)
+            if backend != original_backend:
+                plt.close('all')
+                plt.switch_backend(original_backend)
             return result
 
         return wrapper
@@ -323,8 +327,9 @@ def yaml_save(file='data.yaml', data=None, header=''):
         file.parent.mkdir(parents=True, exist_ok=True)
 
     # Convert Path objects to strings
+    valid_types = int, float, str, bool, list, tuple, dict, type(None)
     for k, v in data.items():
-        if isinstance(v, Path):
+        if not isinstance(v, valid_types):
             data[k] = str(v)
 
     # Dump data to file in YAML format
@@ -912,6 +917,7 @@ def url2file(url):
 PREFIX = colorstr('Ultralytics: ')
 SETTINGS = SettingsManager()  # initialize settings
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
+WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
     'Docker' if is_docker() else platform.system()
 TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()

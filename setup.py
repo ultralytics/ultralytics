@@ -3,19 +3,37 @@
 import re
 from pathlib import Path
 
-import pkg_resources as pkg
-from setuptools import find_packages, setup
+from setuptools import setup
 
 # Settings
 FILE = Path(__file__).resolve()
 PARENT = FILE.parent  # root directory
 README = (PARENT / 'README.md').read_text(encoding='utf-8')
-REQUIREMENTS = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements((PARENT / 'requirements.txt').read_text())]
 
 
 def get_version():
     file = PARENT / 'ultralytics/__init__.py'
     return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(encoding='utf-8'), re.M)[1]
+
+
+def parse_requirements(file_path: Path):
+    """
+    Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
+
+    Args:
+        file_path (str | Path): Path to the requirements.txt file.
+
+    Returns:
+        List[str]: List of parsed requirements.
+    """
+
+    requirements = []
+    for line in Path(file_path).read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith('#'):
+            requirements.append(line.split('#')[0].strip())  # ignore inline comments
+
+    return requirements
 
 
 setup(
@@ -34,9 +52,12 @@ setup(
         'Source': 'https://github.com/ultralytics/ultralytics'},
     author='Ultralytics',
     author_email='hello@ultralytics.com',
-    packages=find_packages(),  # required
+    packages=['ultralytics'] + [str(x) for x in Path('ultralytics').rglob('*/') if x.is_dir() and '__' not in str(x)],
+    package_data={
+        '': ['*.yaml'],
+        'ultralytics.assets': ['*.jpg']},
     include_package_data=True,
-    install_requires=REQUIREMENTS,
+    install_requires=parse_requirements(PARENT / 'requirements.txt'),
     extras_require={
         'dev': [
             'ipython',
@@ -50,8 +71,9 @@ setup(
             'mkdocs-ultralytics-plugin>=0.0.27',  # for meta descriptions and images, dates and authors
         ],
         'export': [
-            'coremltools>=7.0.b1',
+            'coremltools>=7.0',
             'openvino-dev>=2023.0',
+            'tensorflow<=2.13.1',
             'tensorflowjs',  # automatically installs tensorflow
         ], },
     classifiers=[

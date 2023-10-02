@@ -571,8 +571,6 @@ class LetterBox:
         if self.center:
             dw /= 2  # divide padding into 2 sides
             dh /= 2
-        if labels.get('ratio_pad'):
-            labels['ratio_pad'] = (labels['ratio_pad'], (dw, dh))  # for evaluation
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
@@ -580,6 +578,8 @@ class LetterBox:
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
                                  value=(114, 114, 114))  # add border
+        if labels.get('ratio_pad'):
+            labels['ratio_pad'] = (labels['ratio_pad'], (left, top))  # for evaluation
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
@@ -791,14 +791,14 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
-    # Transforms to apply if albumentations not installed
+def classify_transforms(size=224, rect=False, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
+    """Transforms to apply if albumentations not installed."""
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
+    transforms = [ClassifyLetterBox(size, auto=True) if rect else CenterCrop(size), ToTensor()]
     if any(mean) or any(std):
-        return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(mean, std, inplace=True)])
-    else:
-        return T.Compose([CenterCrop(size), ToTensor()])
+        transforms.append(T.Normalize(mean, std, inplace=True))
+    return T.Compose(transforms)
 
 
 def hsv2colorjitter(h, s, v):
@@ -864,9 +864,9 @@ class ClassifyLetterBox:
         imh, imw = im.shape[:2]
         r = min(self.h / imh, self.w / imw)  # ratio of new/old
         h, w = round(imh * r), round(imw * r)  # resized image
-        hs, ws = (math.ceil(x / self.stride) * self.stride for x in (h, w)) if self.auto else self.h, self.w
+        hs, ws = (math.ceil(x / self.stride) * self.stride for x in (h, w)) if self.auto else (self.h, self.w)
         top, left = round((hs - h) / 2 - 0.1), round((ws - w) / 2 - 0.1)
-        im_out = np.full((self.h, self.w, 3), 114, dtype=im.dtype)
+        im_out = np.full((hs, ws, 3), 114, dtype=im.dtype)
         im_out[top:top + h, left:left + w] = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
         return im_out
 

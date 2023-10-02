@@ -4,11 +4,24 @@ description: Official documentation for YOLOv8 by Ultralytics. Learn how to trai
 keywords: YOLOv8, Ultralytics, object detection, pretrained models, training, validation, prediction, export models, COCO, ImageNet, PyTorch, ONNX, CoreML
 ---
 
-Object detection is a task that involves identifying the location and class of objects in an image or video stream.
+# Object Detection
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/243418624-5785cb93-74c9-4541-9179-d5c6782d491a.png">
 
+Object detection is a task that involves identifying the location and class of objects in an image or video stream.
+
 The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know exactly where the object is or its exact shape.
+
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/5ku7npMrW40?si=6HQO1dDXunV8gekh" 
+    title="YouTube video player" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLOv8 Model.
+</p>
 
 !!! tip "Tip"
 
@@ -68,7 +81,7 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a ful
 
 ### Dataset format
 
-YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats( like COCO etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
 
 ## Val
 

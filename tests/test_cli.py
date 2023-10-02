@@ -1,16 +1,14 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import subprocess
-from pathlib import Path
 
 import pytest
 
-from ultralytics.utils import ASSETS, SETTINGS
+from ultralytics.utils import ASSETS, WEIGHTS_DIR
 from ultralytics.utils.checks import cuda_device_count, cuda_is_available
 
 CUDA_IS_AVAILABLE = cuda_is_available()
 CUDA_DEVICE_COUNT = cuda_device_count()
-WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 TASK_ARGS = [
     ('detect', 'yolov8n', 'coco8.yaml'),
     ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),

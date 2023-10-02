@@ -73,7 +73,7 @@ setup(
         'export': [
             'coremltools>=7.0',
             'openvino-dev>=2023.0',
-            'tensorflow<=2.13.1',
+            'tensorflow<=2.14.0',
             'tensorflowjs',  # automatically installs tensorflow
         ], },
     classifiers=[

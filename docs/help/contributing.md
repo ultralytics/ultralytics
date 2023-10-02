@@ -52,22 +52,23 @@ When adding new functions or classes, please include a [Google-style docstring](
 Example Google-style docstring:
 
 ```python
-def example_function(arg1: int, arg2: str) -> bool:
-    """Example function that demonstrates Google-style docstrings.
+def example_function(arg1: int, arg2: int) -> bool:
+    """
+    Example function that demonstrates Google-style docstrings.
 
     Args:
         arg1 (int): The first argument.
-        arg2 (str): The second argument.
+        arg2 (int): The second argument.
 
     Returns:
-        bool: True if successful, False otherwise.
+        (bool): True if successful, False otherwise.
 
-    Raises:
-        ValueError: If `arg1` is negative or `arg2` is empty.
+    Examples:
+        >>> result = example_function(1, 2)  # returns False
     """
-    if arg1 < 0 or not arg2:
-        raise ValueError("Invalid input values")
-    return True
+    if arg1 == arg2:
+        return True
+    return False
 ```
 
 ### GitHub Actions CI Tests

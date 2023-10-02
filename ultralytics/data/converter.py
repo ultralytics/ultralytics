@@ -46,11 +46,16 @@ def coco80_to_coco91_class():  #
         64, 65, 67, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88, 89, 90]
 
 
-def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keypoints=False, cls91to80=True):
+def convert_coco(labels_dir='../coco/annotations/',
+                 save_dir='.',
+                 use_segments=False,
+                 use_keypoints=False,
+                 cls91to80=True):
     """Converts COCO dataset annotations to a format suitable for training YOLOv5 models.
 
     Args:
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
+        save_dir (str, optional): Path to directory to save results to.
         use_segments (bool, optional): Whether to include segmentation masks in the output.
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
@@ -67,7 +72,7 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
     """
 
     # Create dataset directory
-    save_dir = Path('yolo_labels')
+    save_dir = Path(save_dir)
     if save_dir.exists():
         shutil.rmtree(save_dir)  # delete dir
     for p in save_dir / 'labels', save_dir / 'images':

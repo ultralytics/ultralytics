@@ -516,8 +516,12 @@ def collect_system_info():
                 f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n")
 
     for r in parse_requirements(package='ultralytics'):
-        current = metadata.version(r.name)
-        is_met = '✅ ' if check_version(current, str(r.specifier)) else '❌ '
+        try:
+            current = metadata.version(r.name)
+            is_met = '✅ ' if check_version(current, str(r.specifier), hard=True) else '❌ '
+        except metadata.PackageNotFoundError:
+            current = '(not installed)'
+            is_met = '❌ '
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
 
 

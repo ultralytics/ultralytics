@@ -1,19 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import contextlib
-from pathlib import Path
 
 import pytest
 import torch
 
 from ultralytics import YOLO, download
-from ultralytics.utils import ASSETS, SETTINGS
+from ultralytics.utils import ASSETS, DATASETS_DIR, WEIGHTS_DIR
 from ultralytics.utils.checks import cuda_device_count, cuda_is_available
 
 CUDA_IS_AVAILABLE = cuda_is_available()
 CUDA_DEVICE_COUNT = cuda_device_count()
 
-DATASETS_DIR = Path(SETTINGS['datasets_dir'])
-WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 DATA = 'coco8.yaml'
 BUS = ASSETS / 'bus.jpg'

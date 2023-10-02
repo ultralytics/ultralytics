@@ -5,8 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from ultralytics.utils.torch_utils import init_seeds
-
 TMP = Path(__file__).resolve().parent / 'tmp'  # temp directory for test files
 
 
@@ -61,6 +59,8 @@ def pytest_sessionstart(session):
     Args:
         session (pytest.Session): The pytest session object.
     """
+    from ultralytics.utils.torch_utils import init_seeds
+
     init_seeds()
     shutil.rmtree(TMP, ignore_errors=True)  # delete any existing tests/tmp directory
     TMP.mkdir(parents=True, exist_ok=True)  # create a new empty directory
@@ -78,6 +78,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         exitstatus (int): The exit status of the test run.
         config (pytest.config.Config): The pytest config object.
     """
+    from ultralytics.utils import WEIGHTS_DIR
+
     # Remove files
     for file in ['bus.jpg', 'yolov8n.onnx', 'yolov8n.torchscript']:
         Path(file).unlink(missing_ok=True)
@@ -85,3 +87,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     # Remove directories
     for directory in [TMP.parents[1] / '.pytest_cache', TMP]:
         shutil.rmtree(directory, ignore_errors=True)
+
+    # Remove all *.onnx and *.torchscript files in WEIGHTS_DIR
+    for ext in ['*.onnx', '*.torchscript']:
+        for file in WEIGHTS_DIR.rglob(ext):
+            file.unlink(missing_ok=True)

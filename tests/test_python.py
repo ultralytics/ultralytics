@@ -457,45 +457,38 @@ def test_hub():
 def test_triton():
     from ultralytics.utils.checks import check_requirements
     check_requirements('tritonclient[all]')
-    import os
     import subprocess
     import time
 
-    from tritonclient.http import InferenceServerClient
+    from tritonclient.http import InferenceServerClient  # noqa
 
-    # create variables
-    curr_path = os.path.dirname(os.path.abspath(__file__))
+    # Create variables
     model_name = 'yolo'
-    triton_repo_path = f'{curr_path}/triton_repo'
-    triton_model_path = f'{triton_repo_path}/{model_name}'
+    triton_repo_path = TMP / 'triton_repo'
+    triton_model_path = triton_repo_path / model_name
 
-    # export model to onnx
+    # Export model to ONNX
     f = YOLO(MODEL).export(format='onnx', dynamic=True)
 
-    # prepare triton repo
-    os.makedirs(f'{triton_model_path}/1', exist_ok=True)
-    os.replace(f, f'{triton_model_path}/1/model.onnx')
-    open(f'{triton_model_path}/config.pdtxt', 'w+').close()
+    # Prepare Triton repo
+    (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
+    f.replace(triton_model_path / '1' / 'model.onnx')
+    (triton_model_path / 'config.pdtxt').touch()
 
-    # run tritonserver docker container
-    subprocess.call('docker pull nvcr.io/nvidia/tritonserver:22.12-py3', shell=True)
-    subprocess.call(f'docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 \
-                                nvcr.io/nvidia/tritonserver:22.12-py3 \
-                                tritonserver --model-repository=/models',
-                    shell=True)
-    # wait starting tritonserver
+    # Run tritonserver docker container
+    tag = 'nvcr.io/nvidia/tritonserver:22.12-py3'
+    subprocess.call(f'docker pull {tag} && docker run {tag} -d --rm -v {triton_repo_path}:/models -p 8000:8000 '
+                    f'tritonserver --model-repository=/models', shell=True)
+
+    # Wait starting tritonserver
     time.sleep(10)
-    triton_client = InferenceServerClient(
-        url='localhost:8000',
-        verbose=False,
-        ssl=False,
-    )
+    triton_client = InferenceServerClient(url='localhost:8000', verbose=False, ssl=False)
 
-    # wait model ready
+    # Wait model ready
     for _ in range(10):
         if triton_client.is_model_ready(model_name):
             break
-        time.sleep(5)
+        time.sleep(3)
 
-    # check triton inference
+    # Check triton inference
     YOLO(f'http://localhost:8000/{model_name}', 'detect')(SOURCE)  # exported model inference

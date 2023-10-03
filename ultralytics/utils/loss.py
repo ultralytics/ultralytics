@@ -379,11 +379,11 @@ class v8PoseLoss(v8DetectionLoss):
                                  pred_kpts):
         """
         Calculate the keypoints loss for the model.
-    
-        This function calculates the keypoints loss and keypoints object loss for a given batch. The keypoints loss is 
-        based on the difference between the predicted keypoints and ground truth keypoints. The keypoints object loss is 
+
+        This function calculates the keypoints loss and keypoints object loss for a given batch. The keypoints loss is
+        based on the difference between the predicted keypoints and ground truth keypoints. The keypoints object loss is
         a binary classification loss that classifies whether a keypoint is present or not.
-    
+
         Args:
             masks (torch.Tensor): Binary mask tensor indicating object presence, shape (BS, N_anchors).
             target_gt_idx (torch.Tensor): Index tensor mapping anchors to ground truth objects, shape (BS, N_anchors).
@@ -392,7 +392,7 @@ class v8PoseLoss(v8DetectionLoss):
             stride_tensor (torch.Tensor): Stride tensor for anchors, shape (N_anchors, 1).
             target_bboxes (torch.Tensor): Ground truth boxes in (x1, y1, x2, y2) format, shape (BS, N_anchors, 4).
             pred_kpts (torch.Tensor): Predicted keypoints, shape (BS, N_anchors, N_kpts_per_object, kpts_dim).
-    
+
         Returns:
             (tuple): Returns a tuple containing:
                 - kpts_loss (torch.Tensor): The keypoints loss.

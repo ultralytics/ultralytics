@@ -473,8 +473,10 @@ def test_triton():
 
     # Run tritonserver docker container
     tag = 'nvcr.io/nvidia/tritonserver:22.12-py3'
-    subprocess.call(f'docker pull {tag} && docker run {tag} -d --rm -v {triton_repo_path}:/models -p 8000:8000 '
-                    f'tritonserver --model-repository=/models', shell=True)
+    subprocess.call(
+        f'docker pull {tag} && docker run {tag} -d --rm -v {triton_repo_path}:/models -p 8000:8000 '
+        f'tritonserver --model-repository=/models',
+        shell=True)
 
     # Wait starting tritonserver
     time.sleep(10)

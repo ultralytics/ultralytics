@@ -489,6 +489,9 @@ class Keypoints(BaseTensor):
         """Initializes the Keypoints object with detection keypoints and original image size."""
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
+        if keypoints.shape[2] == 3:  # x, y, conf
+            mask = keypoints[..., 2] < 0.5  # points with conf < 0.5 (not visible)
+            keypoints[..., :2][mask] = 0
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
 

@@ -16,7 +16,7 @@ model = YOLO('yolov8s.yaml', task='detect').load('./../models/yolov8s.pt')
 # Tune hyperparameters on COCO8 for 3 epochs with default Tuner
 model.tune(
     use_ray=False,
-    iterations=50,
+    iterations=20,
     # Fixed training parameters
     device=[0,1,2],
     data='custom_dataset.yaml',
@@ -25,7 +25,7 @@ model.tune(
     epochs=50,
     patience=10,
     batch=258,
-    optimizer='SGD', # MUST BE FIXED, try also Adam
+    optimizer='AdamW', # MUST BE FIXED
     plots=False,
     save=False,
     val=False,

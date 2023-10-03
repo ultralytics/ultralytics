@@ -1,18 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from pathlib import Path
-
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
-from ultralytics.utils import ASSETS, DEFAULT_CFG, SETTINGS
+from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'yolov8n-cls.yaml'  # or 'squeezenet1_0'
 CFG = get_cfg(DEFAULT_CFG)
-MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
+MODEL = WEIGHTS_DIR / 'yolov8n'
 
 
 def test_func(*args):  # noqa

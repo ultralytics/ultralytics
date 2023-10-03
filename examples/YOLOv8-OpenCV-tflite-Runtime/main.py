@@ -5,7 +5,7 @@ import numpy as np
 from tflite_runtime import interpreter as tflite
 
 from ultralytics.utils import ASSETS, yaml_load
-from ultralytics.utils.checks import check_requirements, check_yaml
+from ultralytics.utils.checks import check_yaml
 
 
 class Yolov8TFLite:

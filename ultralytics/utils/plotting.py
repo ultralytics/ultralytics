@@ -375,7 +375,7 @@ def plot_images(images,
                 on_plot=None):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
-        images = images.cpu().float().numpy()
+        images = images.detach().cpu().float().numpy()
     if isinstance(cls, torch.Tensor):
         cls = cls.cpu().numpy()
     if isinstance(bboxes, torch.Tensor):
@@ -678,7 +678,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detec
         ax = ax.ravel()
         plt.subplots_adjust(wspace=0.05, hspace=0.05)
         for i in range(n):
-            ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
+            ax[i].imshow(blocks[i].squeeze().detach().numpy())  # cmap='gray'
             ax[i].axis('off')
 
         LOGGER.info(f'Saving {f}... ({n}/{channels})')

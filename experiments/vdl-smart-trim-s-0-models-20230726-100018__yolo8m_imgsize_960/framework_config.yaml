@@ -1,0 +1,98 @@
+#task: segment
+#mode: train
+#model:
+#data:
+#  /root/autodl/yolo-converted/891d8f72-f5c0-41ec-985d-8ab6f570e3eb/891d8f72-f5c0-41ec-985d-8ab6f570e3eb.yaml
+#epochs: 100
+#patience: 50
+#batch: 32
+#imgsz: 640
+#save: true
+#save_period: -1
+#cache: false
+#device: 0
+#workers: 8
+#project: vdl-smart-trim
+#name:
+#exist_ok: false
+#pretrained: false
+#optimizer: SGD
+#verbose: true
+#seed: 0
+#deterministic: true
+#single_cls: false
+#rect: false
+#cos_lr: false
+#close_mosaic: 0
+#resume: false
+#amp: true
+#fraction: 1.0
+#profile: false
+#overlap_mask: true
+#mask_ratio: 4
+#dropout: 0.0
+#val: true
+#split: val
+#save_json: false
+#save_hybrid: false
+#conf:
+#iou: 0.7
+#max_det: 300
+#half: false
+#dnn: false
+#plots: true
+#source:
+#show: false
+#save_txt: false
+#save_conf: false
+#save_crop: false
+#show_labels: true
+#show_conf: true
+#vid_stride: 1
+#line_width:
+#visualize: false
+#augment: false
+#agnostic_nms: false
+#classes:
+#retina_masks: false
+#boxes: true
+#format: torchscript
+#keras: false
+#optimize: false
+#int8: false
+#dynamic: false
+#simplify: false
+#opset:
+#workspace: 4
+#nms: false
+#lr0: 0.01
+#lrf: 0.01
+#momentum: 0.937
+#weight_decay: 0.0005
+#warmup_epochs: 3.0
+#warmup_momentum: 0.8
+#warmup_bias_lr: 0.1
+#box: 7.5
+#cls: 0.5
+#dfl: 1.5
+#pose: 12.0
+#kobj: 1.0
+#label_smoothing: 0.0
+#nbs: 64
+#hsv_h: 0.015
+#hsv_s: 0.7
+#hsv_v: 0.4
+#degrees: 0.0
+#translate: 0.1
+#scale: 0.5
+#shear: 0.0
+#perspective: 0.0
+#flipud: 0.0
+#fliplr: 0.5
+#mosaic: 1.0
+#mixup: 0.0
+#copy_paste: 0.0
+#cfg:
+#v5loader: false
+#save_dir: /root/autodl/jobs/vdl/smart-trim/train/20230726-100018__yolo8m_imgsize_960
+#ckpt_path: /root/autodl/jobs/vdl/smart-trim/train/20230726-100018__yolo8m_imgsize_960

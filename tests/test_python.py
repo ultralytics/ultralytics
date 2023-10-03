@@ -468,7 +468,7 @@ def test_triton():
 
     # Prepare Triton repo
     (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
-    f.replace(triton_model_path / '1' / 'model.onnx')
+    Path(f).rename(triton_model_path / '1' / 'model.onnx')
     (triton_model_path / 'config.pdtxt').touch()
 
     # Run tritonserver docker container

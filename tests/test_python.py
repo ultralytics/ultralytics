@@ -474,7 +474,7 @@ def test_triton():
     # Run tritonserver docker container
     tag = 'nvcr.io/nvidia/tritonserver:22.12-py3'
     subprocess.call(
-        f'docker pull {tag} && docker run {tag} -d --rm -v {triton_repo_path}:/models -p 8000:8000 '
+        f'docker pull {tag} && docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} '
         f'tritonserver --model-repository=/models',
         shell=True)
 

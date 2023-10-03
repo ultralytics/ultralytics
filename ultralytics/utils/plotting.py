@@ -449,21 +449,6 @@ def plot_images(images,
                     c = names.get(c, c) if names else c
                     annotator.text((x, y), f'{c}', txt_color=color, box_style=True)
 
-            # Plot keypoints
-            if len(kpts):
-                kpts_ = kpts[idx].copy()
-                if len(kpts_):
-                    if kpts_[..., 0].max() <= 1.01 or kpts_[..., 1].max() <= 1.01:  # if normalized with tolerance .01
-                        kpts_[..., 0] *= w  # scale to pixels
-                        kpts_[..., 1] *= h
-                    elif scale < 1:  # absolute coords need scale if image scales
-                        kpts_ *= scale
-                kpts_[..., 0] += x
-                kpts_[..., 1] += y
-                for j in range(len(kpts_)):
-                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
-                        annotator.kpts(kpts_[j])
-
             # Plot masks
             if len(masks):
                 if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
@@ -489,6 +474,22 @@ def plot_images(images,
                         with contextlib.suppress(Exception):
                             im[y:y + h, x:x + w, :][mask] = im[y:y + h, x:x + w, :][mask] * 0.4 + np.array(color) * 0.6
                 annotator.fromarray(im)
+                
+            # Plot keypoints
+            if len(kpts):
+                kpts_ = kpts[idx].copy()
+                if len(kpts_):
+                    if kpts_[..., 0].max() <= 1.01 or kpts_[..., 1].max() <= 1.01:  # if normalized with tolerance .01
+                        kpts_[..., 0] *= w  # scale to pixels
+                        kpts_[..., 1] *= h
+                    elif scale < 1:  # absolute coords need scale if image scales
+                        kpts_ *= scale
+                kpts_[..., 0] += x
+                kpts_[..., 1] += y
+                for j in range(len(kpts_)):
+                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                        annotator.kpts(kpts_[j])
+                        
     annotator.im.save(fname)  # save
     if on_plot:
         on_plot(fname)

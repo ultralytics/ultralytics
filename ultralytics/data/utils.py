@@ -83,7 +83,7 @@ def verify_image(args):
 
 def verify_image_label(args):
     """Verify one image-label pair."""
-    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+    im_file, lb_file, prefix, use_keypoints, use_segments, num_cls, nkpt, ndim = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, '', [], None
     try:
@@ -106,14 +106,20 @@ def verify_image_label(args):
             nf = 1  # label found
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
+                if use_segments and use_keypoints:
+                    segments = [np.array(x[5 + nkpt * ndim:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
+                    lb = [x[:5 + nkpt * ndim] for x in lb]
+                elif any(len(x) > 6 for x in lb) and use_segments:  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
             nl = len(lb)
             if nl:
-                if keypoint:
+                if use_keypoints and use_segments:
+                    # TODO: checks?
+                    pass
+                elif use_keypoints:
                     assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
                     assert (lb[:, 5::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
                     assert (lb[:, 6::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
@@ -135,12 +141,17 @@ def verify_image_label(args):
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros(
-                    (0, 5), dtype=np.float32)
+                if use_keypoints:
+                    lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32)
+                else:
+                    lb = np.zeros((0, 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
-        if keypoint:
+            if use_keypoints: 
+                lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32)
+            else:
+                lb = np.zeros((0, 5), dtype=np.float32)
+        if use_keypoints:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
                 kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)
@@ -505,8 +516,8 @@ class HUBDatasetStats:
 
                 dataset = YOLODataset(img_path=self.data[split],
                                       data=self.data,
-                                      use_segments=self.task == 'segment',
-                                      use_keypoints=self.task == 'pose')
+                                      use_segments=self.task in ['segment', 'multi-task'],
+                                      use_keypoints=self.task in ['pose', 'multi-task'])
                 x = np.array([
                     np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
                     for label in TQDM(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)

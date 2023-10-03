@@ -15,7 +15,7 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_PATH, LINUX, MACOS, ONLINE, ROOT, WEIGHTS_DIR, WINDOWS,
-                               is_dir_writeable)
+                               checks, is_dir_writeable)
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
@@ -343,17 +343,14 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    from ultralytics.utils.checks import (check_imgsz, check_imshow, check_requirements, check_version,
-                                          check_yolov5u_filename, git_describe, print_args)
-
-    check_yolov5u_filename('yolov5n.pt')
-    # check_imshow(warn=True)
-    git_describe(ROOT)
-    check_requirements()  # check requirements.txt
-    check_imgsz([600, 600], max_dim=1)
-    check_imshow()
-    check_version('ultralytics', '8.0.0')
-    print_args()
+    checks.check_yolov5u_filename('yolov5n.pt')
+    checks.git_describe(ROOT)
+    checks.check_requirements()  # check requirements.txt
+    checks.check_imgsz([600, 600], max_dim=1)
+    checks.check_imshow()
+    checks.check_version('ultralytics', '8.0.0')
+    checks.print_args()
+    # checks.check_imshow(warn=True)
 
 
 def test_utils_benchmarks():
@@ -455,8 +452,7 @@ def test_hub():
 
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_triton():
-    from ultralytics.utils.checks import check_requirements
-    check_requirements('tritonclient[all]')
+    checks.check_requirements('tritonclient[all]')
     import subprocess
     import time
 
@@ -477,10 +473,8 @@ def test_triton():
 
     # Run tritonserver docker container
     tag = 'nvcr.io/nvidia/tritonserver:22.12-py3'
-    subprocess.call(
-        f'docker pull {tag} && docker run {tag} -d --rm -v {triton_repo_path}:/models -p 8000:8000 '
-        f'tritonserver --model-repository=/models',
-        shell=True)
+    subprocess.call(f'docker pull {tag} && docker run {tag} -d --rm -v {triton_repo_path}:/models -p 8000:8000 '
+                    f'tritonserver --model-repository=/models', shell=True)
 
     # Wait starting tritonserver
     time.sleep(10)

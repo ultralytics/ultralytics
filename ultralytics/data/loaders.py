@@ -29,7 +29,7 @@ class SourceTypes:
 
 
 class LoadStreams:
-    """YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`."""
+    """Stream  Loader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP, TCP streams`."""
 
     def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""

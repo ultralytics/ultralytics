@@ -60,8 +60,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 `names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.
 
-(Optional) if the points are symmetric then need flip_idx, like left-right side of human or face.
-For example if we assume five keypoints of facial landmark: [left eye, right eye, nose, left mouth, right mouth], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3] (just exchange the left-right index, i.e 0-1 and 3-4, and do not modify others like nose in this example).
+(Optional) if the points are symmetric then need flip_idx, like left-right side of human or face. For example if we assume five keypoints of facial landmark: [left eye, right eye, nose, left mouth, right mouth], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3] (just exchange the left-right index, i.e 0-1 and 3-4, and do not modify others like nose in this example).
 
 ## Usage
 
@@ -108,6 +107,15 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Usage**: Suitable for testing and debugging object detection models, or for experimenting with new detection approaches.
 - **Additional Notes**: COCO8-Pose is ideal for sanity checks and CI checks.
 - [Read more about COCO8-Pose](./coco8-pose.md)
+
+### Tiger-Pose
+
+- **Description**: [Ultralytics](https://ultralytics.com) This animal pose dataset comprises 263 images sourced from a [YouTube Video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation.
+- **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visible dimension.
+- **Number of Classes**: 1 (Tiger).
+- **Keypoints**: 12 keypoints.
+- **Usage**: Great for animal pose or any other pose that is not human-based.
+- [Read more about Tiger-Pose](./tiger-pose.md)
 
 ### Adding your own dataset
 

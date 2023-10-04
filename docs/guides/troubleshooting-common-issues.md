@@ -22,7 +22,7 @@ Installation errors can arise due to various reasons, such as incompatible versi
 
  - Consider using virtual environments to avoid conflicts.
 
- - Follow the [official installation guide](https://docs.ultralytics.com/quickstart/#conda-docker-image) step by step.
+ - Follow the [official installation guide](https://docs.ultralytics.com/quickstart/) step by step.
 
 Additionally, here are some common installation issues users have encountered, along with their respective solutions:
 

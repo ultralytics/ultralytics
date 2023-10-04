@@ -9,7 +9,14 @@ keywords: Ultralytics, YOLO, Raspberry Pi, Pi Camera, libcamera, quick start gui
 This comprehensive guide aims to expedite your journey with YOLO object detection models on a [Raspberry Pi](https://www.raspberrypi.com/) using a [Pi Camera](https://www.raspberrypi.com/products/camera-module-v2/). Whether you're a student, hobbyist, or a professional, this guide is designed to get you up and running in less than 30 minutes. The instructions here are rigorously tested to minimize setup issues, allowing you to focus on utilizing YOLO for your specific projects.
 
 <p align="center">
-  <img width="640" src="https://user-images.githubusercontent.com/26833433/272650085-dc9d189c-8b70-40a2-b853-1a51f0a37ef3.jpg" alt="Raspberry Pi 5 Image">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/yul4gq_LrOI" 
+    title="Introducing Raspberry Pi 5" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Raspberry Pi 5 updates and improvements.
 </p>
 
 ## Prerequisites
@@ -65,18 +72,6 @@ Raspberry Pi 3 and Raspberry Pi 4 have distinct hardware specifications, and the
 - **Other Features**: High-speed microSD card interface with SDR104 mode, 2 × 4-lane MIPI camera/display transceivers, PCIe 2.0 x1 interface, standard 40-pin GPIO header, real-time clock, power button
 - **Power Requirement**: Specifics not yet available, expected to require a higher amperage supply
 - **Official Documentation**: [Raspberry Pi 5 Documentation](https://www.raspberrypi.com/news/introducing-raspberry-pi-5/)
-
-<p align="center">
-  <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/yul4gq_LrOI" 
-    title="Introducing Raspberry Pi 5" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Raspberry Pi 5 updates and improvements.
-</p>
-
 
 Please make sure to follow the instructions specific to your Raspberry Pi model to ensure a smooth setup process.
 

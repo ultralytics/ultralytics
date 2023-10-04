@@ -499,18 +499,32 @@ class MultiTaskLoss(v8DetectionLoss):
         loss[4] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
         if fg_mask.any():
-            target_bboxes /= stride_tensor
+            target_strided_bboxes = target_bboxes / stride_tensor
 
             # bbox regression loss
-            loss[0], loss[5] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
-                                              target_scores_sum, fg_mask)
+            loss[0], loss[5] = self.bbox_loss(
+                pred_distri,
+                pred_bboxes,
+                anchor_points,
+                target_strided_bboxes,
+                target_scores,
+                target_scores_sum,
+                fg_mask,
+            )
+
+            # keypoints loss
             keypoints = batch['keypoints'].to(self.device).float().clone()
             keypoints[..., 0] *= imgsz[1]
             keypoints[..., 1] *= imgsz[0]
-
-            # keypoints loss
-            loss[1], loss[2] = self.pose_loss.calculate_keypoints_loss(fg_mask, target_gt_idx, keypoints, batch_idx,
-                                                                       stride_tensor, target_bboxes, pred_kpts)
+            loss[1], loss[2] = self.pose_loss.calculate_keypoints_loss(
+                fg_mask,
+                target_gt_idx,
+                keypoints,
+                batch_idx,
+                stride_tensor,
+                target_strided_bboxes,
+                pred_kpts,
+            )
 
             # segmentation loss
             masks = batch['masks'].to(self.device).float()

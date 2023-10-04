@@ -36,13 +36,7 @@ class MultiTaskTrainer(yolo.detect.DetectionTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get pose estimation model with specified configuration and weights."""
-        model = MultiTaskModel(
-            cfg,
-            ch=3,
-            nc=self.data['nc'],
-            data_kpt_shape=self.data['kpt_shape'],
-            verbose=verbose,
-        )
+        model = MultiTaskModel(cfg, ch=3, nc=self.data['nc'], data_kpt_shape=self.data['kpt_shape'], verbose=verbose)
         if weights:
             model.load(weights)
 
@@ -55,14 +49,7 @@ class MultiTaskTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Returns an instance of the PoseValidator class for validation."""
-        self.loss_names = (
-            'box_loss',
-            'pose_loss',
-            'kobj_loss',
-            'seg_loss',
-            'cls_loss',
-            'dfl_loss',
-        )
+        self.loss_names = ('box_loss', 'pose_loss', 'kobj_loss', 'seg_loss', 'cls_loss', 'dfl_loss')
         return yolo.multi.MultiTaskValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def plot_training_samples(self, batch, batch_number):

@@ -961,6 +961,7 @@ class MultiTaskMetrics(PoseMetrics):
         self.names = names
         self.box = Metric()
         self.pose = Metric()
+        self.seg = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, tp_b, tp_p, tp_m, conf, pred_cls, target_cls):
@@ -970,6 +971,7 @@ class MultiTaskMetrics(PoseMetrics):
         Args:
             tp_b (list): List of True Positive boxes.
             tp_p (list): List of True Positive keypoints.
+            tp_m (list): List of True Positive masks.
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.

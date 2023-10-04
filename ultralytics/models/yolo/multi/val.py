@@ -49,23 +49,8 @@ class MultiTaskValidator(DetectionValidator):
 
     def get_desc(self):
         """Returns description of evaluation metrics in string format."""
-        return ('%22s' + '%11s' * 14) % (
-            'Class',
-            'Images',
-            'Instances',
-            'Box(P',
-            'R',
-            'mAP50',
-            'mAP50-95)',
-            'Pose(P',
-            'R',
-            'mAP50',
-            'mAP50-95)',
-            'Mask(P',
-            'R',
-            'mAP50',
-            'mAP50-95)',
-        )
+        return ('%22s' + '%11s' * 14) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Pose(P',
+                                         'R', 'mAP50', 'mAP50-95)', 'Mask(P', 'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
         """Apply non-maximum suppression and return detections with high confidence scores."""
@@ -79,8 +64,8 @@ class MultiTaskValidator(DetectionValidator):
             max_det=self.args.max_det,
             nc=self.nc,
         )
-        proto = (preds[1][-1] if len(preds[1]) == 4 else preds[1]
-                 )  # second output is len 4 if pt, but only 1 if exported
+        # second output is len 4 if pt, but only 1 if exported
+        proto = preds[1][-1] if len(preds[1]) == 4 else preds[1]
         return p, proto
 
     def init_metrics(self, model):
@@ -118,13 +103,8 @@ class MultiTaskValidator(DetectionValidator):
 
             if npr == 0:
                 if nl:
-                    self.stats.append((
-                        correct_bboxes,
-                        correct_kpts,
-                        correct_masks,
-                        *torch.zeros((2, 0), device=self.device),
-                        cls.squeeze(-1),
-                    ))
+                    self.stats.append((correct_bboxes, correct_kpts, correct_masks, *torch.zeros(
+                        (2, 0), device=self.device), cls.squeeze(-1)))
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
                 continue
@@ -150,41 +130,33 @@ class MultiTaskValidator(DetectionValidator):
                 height, width = batch['img'].shape[2:]
                 # target bboxes
                 tbox = ops.xywh2xyxy(bbox) * torch.tensor((width, height, width, height), device=self.device)
-                # predicted bboxes in native-space
+                # target bboxes in native-space
                 ops.scale_boxes(img_size, tbox, shape, ratio_pad=ratio_pad)
                 tkpts = kpts.clone()
                 tkpts[..., 0] *= width
                 tkpts[..., 1] *= height
+                # target keypoints in native-space
                 tkpts = ops.scale_coords(img_size, tkpts, shape, ratio_pad=ratio_pad)
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn[:, :6], labelsn)
                 correct_kpts = self._process_batch(predn[:, :6], labelsn, pred_kpts=pred_kpts, gt_kpts=tkpts)
-                correct_masks = self._process_batch(
-                    predn,
-                    labelsn,
-                    pred_masks=pred_masks,
-                    gt_masks=gt_masks,
-                    overlap=self.args.overlap_mask,
-                )
+                correct_masks = self._process_batch(predn[:, :6],
+                                                    labelsn,
+                                                    pred_masks=pred_masks,
+                                                    gt_masks=gt_masks,
+                                                    overlap=self.args.overlap_mask)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
 
-            self.stats.append((
-                correct_bboxes,
-                correct_kpts,
-                correct_masks,
-                pred[:, 4],
-                pred[:, 5],
-                cls.squeeze(-1),
-            ))
+            self.stats.append((correct_bboxes, correct_kpts, correct_masks, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
 
-            pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
+                pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
                 self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
 
             # Save
-            if self.args.save_json:
-                self.pred_to_json(predn, batch['im_file'][si])
+            # if self.args.save_json:
+            # self.pred_to_json(predn, batch['im_file'][si])
 
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
@@ -223,17 +195,9 @@ class MultiTaskValidator(DetectionValidator):
                 gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
                 gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
             if gt_masks.shape[1:] != pred_masks.shape[1:]:
-                gt_masks = F.interpolate(
-                    gt_masks[None],
-                    pred_masks.shape[1:],
-                    mode='bilinear',
-                    align_corners=False,
-                )[0]
+                gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode='bilinear', align_corners=False)[0]
                 gt_masks = gt_masks.gt_(0.5)
-            iou = mask_iou(
-                gt_masks.view(gt_masks.shape[0], -1),
-                pred_masks.view(pred_masks.shape[0], -1),
-            )
+            iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
         elif pred_kpts is not None and gt_kpts is not None:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(labels[:, 1:])[:, 2:].prod(1) * 0.53

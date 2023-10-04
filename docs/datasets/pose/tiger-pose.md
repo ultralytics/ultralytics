@@ -47,7 +47,7 @@ To train a YOLOv8n-pose model on the Tiger-Pose dataset for 100 epochs with an i
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=tiger-pose.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo task=pose mode=train data=tiger-pose.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -60,6 +60,29 @@ Here are some examples of images from the Tiger-Pose dataset, along with their c
 
 The example showcases the variety and complexity of the images in the Tiger-Pose dataset and the benefits of using mosaicing during the training process.
 
+## Inference Example
+
+!!! example "Inference Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO('path/to/best.pt')  # load a tiger-pose trained model
+
+        # Run Inference
+        results = model.predict(source="https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUYdGlnZXIgd2Fsa2luZyByZWZlcmVuY2Ug" show=True)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo task=pose mode=predict source="https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUYdGlnZXIgd2Fsa2luZyByZWZlcmVuY2Ug" show=True model="path/to/best.pt"
+        ```
+        
 ## Citations and Acknowledgments
 
 The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).

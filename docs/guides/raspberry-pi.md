@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Quick start guide to setting up YOLO on a Raspberry Pi with a Pi Camera using the libcamera stack. Detailed comparison between Raspberry Pi 3 and Raspberry Pi 4 hardware and their impact on YOLO performance.
-keywords: Ultralytics, YOLO, Raspberry Pi, Pi Camera, libcamera, quick start guide, Raspberry Pi 3 vs Raspberry Pi 4, YOLO on Raspberry Pi, hardware setup, machine learning, AI
+description: Quick start guide to setting up YOLO on a Raspberry Pi with a Pi Camera using the libcamera stack. Detailed comparison between Raspberry Pi 3, 4 and 5 models.
+keywords: Ultralytics, YOLO, Raspberry Pi, Pi Camera, libcamera, quick start guide, Raspberry Pi 4 vs Raspberry Pi 5, YOLO on Raspberry Pi, hardware setup, machine learning, AI
 ---
 
 # Quick Start Guide: Raspberry Pi and Pi Camera with YOLOv5 and YOLOv8

@@ -221,6 +221,7 @@ nav:
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Conda Quickstart: guides/conda-quickstart.md
       - Docker Quickstart: guides/docker-quickstart.md
+      - Raspberry Pi: guides/raspberry-pi.md
   - Integrations:
       - integrations/index.md
       - OpenVINO: integrations/openvino.md

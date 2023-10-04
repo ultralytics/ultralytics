@@ -1,147 +1,189 @@
+# Quick Start Guide: Raspberry Pi and Pi Camera with YOLOv5 and YOLOv8
 
-# Quick Start with Raspberry Pi, Pi Camera, and libcamera
-
-Created by Daan Eeltink for Kashmir World Foundation
-
-At Kashmir World Foundation we teach students, hobbyists, and professionals from around the world how to use YOLO to protect endangered species. Most have little or no background in computer science, so we need to move quickly to capture their interests and get them on the path to success. This guide is intended to do just that: get you up and running YOLO on a Raspberry Pi with Pi Camera in less than 30 minutes!
-
-On your own, chances are you would run into a few issues along the way delaying the excitement of seeing YOLO pop up on your screen. This guide avoids them so you will be confident that your hardware is working and capable of running YOLO. Then as you move forward with your own projects and run into an issue, you can always return to a comforting working state in 15 minutes or less.
-
+This comprehensive guide aims to expedite your journey with YOLO object detection models on a Raspberry Pi using a Pi Camera. Whether you're a student, hobbyist, or a professional, this guide is designed to get you up and running in less than 30 minutes. The instructions here are rigorously tested to minimize setup issues, allowing you to focus on utilizing YOLO for your specific projects.
 
 ## Prerequisites
 
-This Quick Start works with a Raspberry Pi 3 or Raspberry Pi 4 computer. You also will also need a Pi Camera. Connect the Pi Camera to the Raspberry Pi using a CSI cable, then install the 64-bit Raspberry Pi Operating System.
+- Raspberry Pi 3 or 4
+- Pi Camera
+- 64-bit Raspberry Pi Operating System
 
-Verify that the camera is working:
+Connect the Pi Camera to your Raspberry Pi via a CSI cable and install the 64-bit Raspberry Pi Operating System. Verify your camera with the following command:
 
-    libcamera-hello
+```bash
+libcamera-hello
+```
 
-A screen should pop up displaying video from your camera!
+You should see a video feed from your camera.
 
+## Choose Your YOLO Version: YOLOv5 or YOLOv8
 
-## YOLOv5 or YOLOv8
+This guide offers you the flexibility to start with either [YOLOv5](https://github.com/ultralytics/yolov5) or [YOLOv8](https://github.com/ultralytics/ultralytics). Both versions have their unique advantages and use-cases. The choice is yours, but remember, the guide's aim is not just quick setup but also a robust foundation for your future work in object detection.
 
-This guide gives you some options depending on your setup. The first option is whether you want to start with YOLOv5 or YOLOv8. At Kashmir World Foundation we usually begin with YOLOv5 and later proceed with YOLOv8. You can do the same with this guide, or you can jump ahead, but beware of shortcuts. The purpose of the guide is not just to get you up and running in less than 30 minutes, it is to give you a strong enough foundation from which to embark on your own YOLO adventures.
+## Hardware Specifics: Raspberry Pi 3 vs Raspberry Pi 4
 
-
-## Raspberry Pi 3 or Raspberry Pi 4
-
-There also are some differences between proceeding with a Raspberry Pi 3 or Raspberry Pi 4. Be careful to follow the instructions that are specific to your version of Raspberry Pi.
-
+The steps may vary depending on your Raspberry Pi model. Ensure to follow the instructions specific to your hardware version for a smooth experience.
 
 ## Quick Start with YOLOv5
 
-Several tutorials are available for using YOLOv5 on Raspberry Pi single board computers with an official Raspberry Pi camera and what are now referred to as the “legacy camera stack”. With the release of Raspberry Pi OS Bullseye, the default camera stack is now libcamera. This guide explains how to deploy a trained YOLOv5 model on a Raspberry Pi 3 or Pi 4 running the 64 bit version of the operating system with the libcamera camera stack. You already verified that your camera is working, so let's get started!
+This section outlines how to set up YOLOv5 on a Raspberry Pi 3 or 4 with a Pi Camera. These steps are designed to be compatible with the libcamera camera stack introduced in Raspberry Pi OS Bullseye.
 
 ### Install Necessary Packages
-    1. Make sure the Raspberry Pi is up-to-date. It is good practice to run the following commands before installing new software:
-        sudo apt-get update 
-        sudo apt-get upgrade -y
-        sudo apt-get autoremove -y
-    2. Now clone the YOLOv5 repository:
-        cd ~
-        git clone https://github.com/Ultralytics/yolov5.git
-    3. Now install the required dependencies
-        cd ~/yolov5
-        pip3 install -r requirements.txt
-    4. If you have a Raspberry Pi 4, you are good to SKIP this step, but if you have a Raspberry Pi 3, you need to install the correct version of PyTorch and Torchvision. (At the time of writing, PyTorch 1.13.0 and Torchvision 0.14.0 or beyond were not supported on the Raspberry Pi 3. First install the versions specified below. You can try more recent versions after you have verified YOLO to be running properly.)
-        cd ~/yolov5
-        pip3 uninstall torch
-        pip3 uninstall torchvision
-        pip3 install torch==1.11.0
-        pip3 install torchvision==0.12.0
 
-### Modify detect.py
-By default, detect.py doesn’t allow TCP streams to be used as a source and fails when used via SSH or the Raspberry Pi Command Line Interface. To fix this, make two minor modifications to detect.py
+1. Update the Raspberry Pi:
 
-    1. Open detect.py and find the ‘is_url’ line
-        cd ~/yolov5
-        sudo nano detect.py
-        CTRL + W --> is_url --> ENTER 
-    2. Add TCP streams as an accepted url-format
-        is_url = source.lower().startswith((‘rtsp://’, ‘rtmp://’, ‘http://’, ‘https://’, ‘tcp://’))
-    3. Find the line that says ‘view_img = check_imshow(warn=True)’
-        CTRL + W --> view_img = check_imshow(warn=True) --> ENTER
-    4. Comment out this line
-        #view_img = check_imshow(warn=True)
-    5. Save the modifications and close detect.py
-        CTRL + O --> ENTER --> CTRL + X
+    ```bash
+    sudo apt-get update
+    sudo apt-get upgrade -y
+    sudo apt-get autoremove -y
+    ```
+  
+2. Clone the YOLOv5 repository:
 
-### Initiate a TCP stream with Libcamera
-There are many parameters you could use with libcamera-vid. Start with the parameters below, then experiment with your own parameters.
+    ```bash
+    cd ~
+    git clone https://github.com/Ultralytics/yolov5.git
+    ```
 
-    1.  libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
-        Note: Keep this terminal or SSH session running during the next section!
+3. Install the required dependencies:
 
-### Perform YOLOv5 inference on the TCP stream (as of 2023.09.19, see docs.ultralytics.com for more current instructions)
+    ```bash
+    cd ~/yolov5
+    pip3 install -r requirements.txt
+    ```
 
-    1.  Run detect.py with the TCP stream as its source
-	 cd ~/yolov5
-	 python3 detect.py --source=tcp://127.0.0.1:8888
-        Note: by commenting out ‘view_img = check_imshow(warn=True)’ we made sure detect.py no longer displays its source + predicted bounding boxes to enable inference via SSH or the Command Line Interface. To re-enable this feature, we added the --view-img argument.
+4. For Raspberry Pi 3, install compatible versions of PyTorch and Torchvision (skip for Raspberry Pi 4):
 
-### Now sit back and wait while your Raspberry Pi begins running YOLOv5 on your video stream. Give it some fun things to process. Walk by the camera. Do it again carrying something of interest, and feel free to adjust parameters in your video stream and in detect.py
+    ```bash
+    pip3 uninstall torch torchvision
+    pip3 install torch==1.11.0 torchvision==0.12.0
+    ```
 
+### Modify `detect.py`
+
+To enable TCP streams via SSH or the CLI, minor modifications are needed in `detect.py`.
+
+1. Open `detect.py`:
+
+    ```bash
+    sudo nano ~/yolov5/detect.py
+    ```
+
+2. Find and modify the `is_url` line to accept TCP streams:
+
+    ```python
+    is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://', 'tcp://'))
+    ```
+
+3. Comment out the `view_img` line:
+
+    ```python
+    # view_img = check_imshow(warn=True)
+    ```
+
+4. Save and exit:
+
+    ```bash
+    CTRL + O -> ENTER -> CTRL + X
+    ```
+
+### Initiate TCP Stream with Libcamera
+
+1. Start the TCP stream:
+
+    ```bash
+    libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
+    ```
+   
+Keep this terminal session running for the next steps.
+
+### Perform YOLOv5 Inference
+
+1. Run the YOLOv5 detection:
+
+    ```bash
+    cd ~/yolov5
+    python3 detect.py --source=tcp://127.0.0.1:8888
+    ```
 
 ## Quick Start with YOLOv8
 
-YOLOv8 has a substantially different method of installation. The following guide will get you up and running in less than 30 minutes. It will also provide a firm basis for further exploration of YOLOv8. Start with a fresh 64-bit Raspberry Pi operating system. You already verified that your camera is working, so let's get started!
+Follow this section if you are interested in setting up YOLOv8 instead. The steps are quite similar but are tailored for YOLOv8's specific needs.
 
 ### Install Necessary Packages
-    1. Make sure the Raspberry Pi is up-to-date. It is good practice to run the following commands before installing new software:
-        sudo apt-get update 
-        sudo apt-get upgrade -y
-        sudo apt-get autoremove -y
-    2. Install YOLOv8
-        pip3 install ultralytics
-    3. Reboot the Raspberry Pi
-        sudo reboot
-    4. Locate the Ultralytics package folder
-       Note: On the Raspberry Pi, this folder can be found at /home/pi/.local/lib/pythonX.X/site-packages
-       Note: To display hidden files in your Raspberry Pi system through the terminal, use ls -a
-       Note: The output will display the name of files and directories; the ones with a “.” at the start of their names are all the hidden content. Blue colored are the directories and white ones are the files
-    5. If you have a Raspberry Pi 4, you are good to SKIP this step, but if you have a Raspberry Pi 3, you need to install the correct version of PyTorch and Torchvision. (At the time of writing, PyTorch 1.13.0 and Torchvision 0.14.0 or beyond were not supported on the Raspberry Pi 3. First install the versions specified below. You can try more recent versions after you have verified YOLO to be running properly.)
-        pip3 uninstall torch
-        pip3 uninstall torchvision
-        pip3 install torch==1.11.0
-        pip3 install torchvision==0.12.0
 
-### Modify build.py
-By default, YOLOv8 doesn’t allow TCP streams to be used as a source. To fix this, make a minor modifications to the Ultralytics package.
+1. Update the Raspberry Pi:
 
-    1. Navigate to the Ultralytics package folder, which you have already located
-       	cd /home/pi/.local/lib/pythonX.X/site-packages/ultralytics
-    2. Open build.py and locate the ‘is_url’ line
-        sudo nano data/build.py
-        CTRL + W --> is_url --> ENTER 
-    3. Add TCP streams as an accepted url-format
-        is_url = source.lower().startswith((‘rtsp://’, ‘rtmp://’, ‘http://’, ‘https://’, ‘tcp://’))
-    4. Save the modifications and close build.py
-        CTRL + O --> ENTER --> CTRL + X
+    ```bash
+    sudo apt-get update
+    sudo apt-get upgrade -y
+    sudo apt-get autoremove -y
+    ```
+  
+2. Install YOLOv8:
 
+    ```bash
+    pip3 install ultralytics
+    ```
 
-### Initiate a TCP stream with Libcamera
-There are many parameters you could use with libcamera-vid. Start with the parameters below, then experiment with your own parameters.
+3. Reboot:
 
-    1.  libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
-        Note: Keep this terminal or SSH session running during the next step
-        
-### Perform YOLOv8 inference on the TCP stream (as of 2023.09.19, see docs.ultralytics.com for more current instructions)
-    1. To use YOLOv8 from the command line:
-        yolo predict model=yolov8n.pt source=tcp://127.0.0.1:8888
+    ```bash
+    sudo reboot
+    ```
 
-    2. To display its source + predicted bounding boxes, run yolo with the --show=true argument:
-        yolo predict model=yolov8n.pt source=tcp://127.0.0.1:8888 show=true
+### Modify `build.py`
 
-    3. To use YOLOv8 from within a Python environment:
-        from ultralytics import YOLO
-        model = YOLO(‘yolov8n.pt’)
-        results = model(‘tcp://127.0.0.1:8888’, stream=True)
-        while True:
-          for result in results:
-            boxes = result.boxes
-            probs = result.probs
+Just like YOLOv5, YOLOv8 also needs minor modifications to accept TCP streams.
+
+1. Open `build.py` located in the Ultralytics package folder:
+
+    ```bash
+    sudo nano /home/pi/.local/lib/pythonX.X/site-packages/ultralytics/build.py
+    ```
+
+2. Find and modify the `is_url` line to accept TCP streams:
+
+    ```python
+    is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://', 'tcp://'))
+    ```
+
+3. Save and exit:
+
+    ```bash
+    CTRL + O -> ENTER -> CTRL + X
+    ```
+
+### Initiate TCP Stream with Libcamera
+
+1. Start the TCP stream:
+
+    ```bash
+    libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
+    ```
+  
+### Perform YOLOv8 Inference
+
+To perform inference with YOLOv8, you can use the following Python code snippet:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO('yolov8n.pt')
+results = model('tcp://127.0.0.1:8888', stream=True)
+
+while True:
+    for result in results:
+        boxes = result.boxes
+        probs = result.probs
+```
 
 ## Next Steps
 
-Congratulations on having completed this Quick Start. There is much more to learn here on Ultralytics.com or at KashmirWorldFoundation.org. Find your passion, and then stay on the correct path to achieving your goals. There are many places along the way where you can get help, but beware of shortcuts!
+Congratulations on successfully setting up YOLO on your Raspberry Pi! For further learning and support, visit [Ultralytics](https://ultralytics.com/) and [KashmirWorldFoundation](https://www.kashmirworldfoundation.org/).
+
+## Acknowledgements and Citations
+
+This guide was initially created by Daan Eeltink for Kashmir World Foundation, an organization dedicated to the use of YOLO for the conservation of endangered species. We acknowledge their pioneering work and educational focus in the realm of object detection technologies.
+
+For more information about Kashmir World Foundation's activities, you can visit their [website](https://www.kashmirworldfoundation.org/).

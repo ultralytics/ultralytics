@@ -36,7 +36,7 @@ Pose estimation is a technique used to determine the pose of the object relative
 
 - [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
 - [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
-- [Tiger-pose](pose/tiger-pose.md): A small 260 image dataset for animal pose with tigers, with 12 keypoints per tiger.
+- [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
 
 ## [Classification](classify/index.md)
 

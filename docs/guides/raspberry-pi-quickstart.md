@@ -1,6 +1,6 @@
 # Quick Start Guide: Raspberry Pi and Pi Camera with YOLOv5 and YOLOv8
 
-This comprehensive guide aims to expedite your journey with YOLO object detection models on a Raspberry Pi using a Pi Camera. Whether you're a student, hobbyist, or a professional, this guide is designed to get you up and running in less than 30 minutes. The instructions here are rigorously tested to minimize setup issues, allowing you to focus on utilizing YOLO for your specific projects.
+This comprehensive guide aims to expedite your journey with YOLO object detection models on a [Raspberry Pi](https://www.raspberrypi.com/) using a [Pi Camera](https://www.raspberrypi.com/products/camera-module-v2/). Whether you're a student, hobbyist, or a professional, this guide is designed to get you up and running in less than 30 minutes. The instructions here are rigorously tested to minimize setup issues, allowing you to focus on utilizing YOLO for your specific projects.
 
 ## Prerequisites
 
@@ -22,7 +22,29 @@ This guide offers you the flexibility to start with either [YOLOv5](https://gith
 
 ## Hardware Specifics: Raspberry Pi 3 vs Raspberry Pi 4
 
-The steps may vary depending on your Raspberry Pi model. Ensure to follow the instructions specific to your hardware version for a smooth experience.
+Raspberry Pi 3 and Raspberry Pi 4 have distinct hardware specifications, and the YOLO installation and configuration process can vary slightly depending on which model you're using.
+
+### Raspberry Pi 3
+
+- **CPU**: 1.2GHz Quad-Core ARM Cortex-A53
+- **RAM**: 1GB LPDDR2
+- **USB Ports**: 4 x USB 2.0
+- **Network**: Ethernet & Wi-Fi 802.11n
+- **Performance**: Generally slower, may require lighter YOLO models for real-time processing
+- **Power Requirement**: 2.5A power supply
+- **Official Documentation**: [Raspberry Pi 3 Documentation](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md)
+
+### Raspberry Pi 4
+
+- **CPU**: 1.5GHz Quad-core 64-bit ARM Cortex-A72 CPU
+- **RAM**: Options of 2GB, 4GB or 8GB LPDDR4
+- **USB Ports**: 2 x USB 2.0, 2 x USB 3.0
+- **Network**: Gigabit Ethernet & Wi-Fi 802.11ac
+- **Performance**: Faster, capable of running more complex YOLO models in real-time
+- **Power Requirement**: 3.0A USB-C power supply
+- **Official Documentation**: [Raspberry Pi 4 Documentation](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711/README.md)
+
+Please adhere to the instructions specific to your Raspberry Pi model to ensure a smooth setup process.
 
 ## Quick Start with YOLOv5
 
@@ -37,7 +59,7 @@ This section outlines how to set up YOLOv5 on a Raspberry Pi 3 or 4 with a Pi Ca
     sudo apt-get upgrade -y
     sudo apt-get autoremove -y
     ```
-  
+
 2. Clone the YOLOv5 repository:
 
     ```bash
@@ -94,7 +116,7 @@ To enable TCP streams via SSH or the CLI, minor modifications are needed in `det
     ```bash
     libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
     ```
-   
+
 Keep this terminal session running for the next steps.
 
 ### Perform YOLOv5 Inference
@@ -119,7 +141,7 @@ Follow this section if you are interested in setting up YOLOv8 instead. The step
     sudo apt-get upgrade -y
     sudo apt-get autoremove -y
     ```
-  
+
 2. Install YOLOv8:
 
     ```bash
@@ -161,7 +183,7 @@ Just like YOLOv5, YOLOv8 also needs minor modifications to accept TCP streams.
     ```bash
     libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
     ```
-  
+
 ### Perform YOLOv8 Inference
 
 To perform inference with YOLOv8, you can use the following Python code snippet:

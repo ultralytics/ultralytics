@@ -1,6 +1,16 @@
+---
+comments: true
+description: Quick start guide to setting up YOLO on a Raspberry Pi with a Pi Camera using the libcamera stack. Detailed comparison between Raspberry Pi 3 and Raspberry Pi 4 hardware and their impact on YOLO performance.
+keywords: Ultralytics, YOLO, Raspberry Pi, Pi Camera, libcamera, quick start guide, Raspberry Pi 3 vs Raspberry Pi 4, YOLO on Raspberry Pi, hardware setup, machine learning, AI
+---
+
 # Quick Start Guide: Raspberry Pi and Pi Camera with YOLOv5 and YOLOv8
 
 This comprehensive guide aims to expedite your journey with YOLO object detection models on a [Raspberry Pi](https://www.raspberrypi.com/) using a [Pi Camera](https://www.raspberrypi.com/products/camera-module-v2/). Whether you're a student, hobbyist, or a professional, this guide is designed to get you up and running in less than 30 minutes. The instructions here are rigorously tested to minimize setup issues, allowing you to focus on utilizing YOLO for your specific projects.
+
+<p align="center">
+  <img width="640" src="https://user-images.githubusercontent.com/26833433/272650085-dc9d189c-8b70-40a2-b853-1a51f0a37ef3.jpg" alt="Raspberry Pi 5 Image">
+</p>
 
 ## Prerequisites
 
@@ -44,7 +54,31 @@ Raspberry Pi 3 and Raspberry Pi 4 have distinct hardware specifications, and the
 - **Power Requirement**: 3.0A USB-C power supply
 - **Official Documentation**: [Raspberry Pi 4 Documentation](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711/README.md)
 
-Please adhere to the instructions specific to your Raspberry Pi model to ensure a smooth setup process.
+### Raspberry Pi 5
+
+- **CPU**: 2.4GHz Quad-core 64-bit Arm Cortex-A76 CPU
+- **GPU**: VideoCore VII, supporting OpenGL ES 3.1, Vulkan 1.2
+- **Display Output**: Dual 4Kp60 HDMI
+- **Decoder**: 4Kp60 HEVC
+- **Network**: Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi®, Bluetooth 5.0 / BLE
+- **USB Ports**: 2 x USB 3.0, 2 x USB 2.0
+- **Other Features**: High-speed microSD card interface with SDR104 mode, 2 × 4-lane MIPI camera/display transceivers, PCIe 2.0 x1 interface, standard 40-pin GPIO header, real-time clock, power button
+- **Power Requirement**: Specifics not yet available, expected to require a higher amperage supply
+- **Official Documentation**: [Raspberry Pi 5 Documentation](https://www.raspberrypi.com/news/introducing-raspberry-pi-5/)
+
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/yul4gq_LrOI" 
+    title="Introducing Raspberry Pi 5" frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Raspberry Pi 5 updates and improvements.
+</p>
+
+
+Please make sure to follow the instructions specific to your Raspberry Pi model to ensure a smooth setup process.
 
 ## Quick Start with YOLOv5
 

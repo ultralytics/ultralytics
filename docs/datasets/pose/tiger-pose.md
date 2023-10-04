@@ -72,14 +72,14 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
         # Load a model
         model = YOLO('path/to/best.pt')  # load a tiger-pose trained model
 
-        # Run Inference
+        # Run inference
         results = model.predict(source="https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUYdGlnZXIgd2Fsa2luZyByZWZlcmVuY2Ug" show=True)
         ```
 
     === "CLI"
 
         ```bash
-        # Start training from a pretrained *.pt model
+        # Run inference using a tiger-pose trained model
         yolo task=pose mode=predict source="https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUYdGlnZXIgd2Fsa2luZyByZWZlcmVuY2Ug" show=True model="path/to/best.pt"
         ```
 

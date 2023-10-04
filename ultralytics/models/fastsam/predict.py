@@ -20,7 +20,7 @@ class FastSAMPredictor(DetectionPredictor):
                                     self.args.iou,
                                     agnostic=self.args.agnostic_nms,
                                     max_det=self.args.max_det,
-                                    nc=1,
+                                    nc=1,  # set to 1 class since SAM has no class predictions
                                     classes=self.args.classes)
         full_box = torch.zeros(p[0].shape[1], device=p[0].device)
         full_box[2], full_box[3], full_box[4], full_box[6:] = img.shape[3], img.shape[2], 1.0, 1.0

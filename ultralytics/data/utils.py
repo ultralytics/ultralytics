@@ -115,15 +115,11 @@ def verify_image_label(args):
             if nl:
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
-                    assert (lb[:, 5::ndim]
-                            <= 1).all() and (lb[:, 5::ndim]
-                                             >= 0).all(), 'non-normalized or out of bounds coordinate labels'
-                    assert (lb[:, 6::ndim]
-                            <= 1).all() and (lb[:, 5::ndim]
-                                             >= 0).all(), 'non-normalized or out of bounds coordinate labels'
+                    assert (lb[:, 5::ndim] <= 1).all() and (lb[:, 5::ndim] >= 0).all(), 'non-normalized or out of bounds coordinate labels'
+                    assert (lb[:, 6::ndim] <= 1).all() and (lb[:, 6::ndim] >= 0).all(), 'non-normalized or out of bounds coordinate labels'
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
-                    assert (lb[:, 1:] <= 1).all() and (lb[:, 5::ndim] >= 0).all(), \
+                    assert (lb[:, 1:] <= 1).all() and (lb[:, 1:] >= 0).all(), \
                         f'non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}'
                     assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
                 # All labels

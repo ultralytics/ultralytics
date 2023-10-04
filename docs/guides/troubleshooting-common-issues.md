@@ -253,7 +253,7 @@ Engaging with a community of like-minded individuals can significantly enhance y
 
 **GitHub Issues:** The YOLOv8 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it’s a great place to get help with specific problems.
 
-**Ultralytics Discord Server:** Ultralytics has a [Discord server](https://discord.com/invite/n6cFeSPZdD) where you can interact with other users and the developers.
+**Ultralytics Discord Server:** Ultralytics has a [Discord server](https://ultralytics.com/discord/) where you can interact with other users and the developers.
 
 ### Official Documentation and Resources
 

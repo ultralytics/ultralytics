@@ -449,16 +449,18 @@ class v8ClassificationLoss:
         loss_items = loss.detach()
         return loss, loss_items
 
+
 class MultiTaskLoss(v8DetectionLoss):
+
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
         self.pose_loss = v8PoseLoss(model)
         self.seg_loss = v8SegmentationLoss(model)
-        
+
     def __call__(self, preds, batch):
         """Calculate the total loss and detach it."""
         # box_loss, pose_loss, kobj_loss, seg_loss, cls_loss, dfl_loss
-        loss = torch.zeros(6, device=self.device)  
+        loss = torch.zeros(6, device=self.device)
         feats, pred_kpts, pred_masks, proto = preds if len(preds) == 4 else preds[1]
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -483,7 +485,9 @@ class MultiTaskLoss(v8DetectionLoss):
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
-        pred_kpts = self.pose_loss.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.pose_loss.kpt_shape))  # (b, h*w, 17, 3)
+        pred_kpts = self.pose_loss.kpts_decode(anchor_points,
+                                               pred_kpts.view(batch_size, -1,
+                                                              *self.pose_loss.kpt_shape))  # (b, h*w, 17, 3)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
@@ -494,10 +498,9 @@ class MultiTaskLoss(v8DetectionLoss):
         # cls loss
         loss[4] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
-        
         if fg_mask.any():
             target_bboxes /= stride_tensor
-            
+
             # bbox regression loss
             loss[0], loss[5] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
                                               target_scores_sum, fg_mask)
@@ -506,11 +509,10 @@ class MultiTaskLoss(v8DetectionLoss):
             keypoints[..., 1] *= imgsz[0]
 
             # keypoints loss
-            loss[1], loss[2] = self.pose_loss.calculate_keypoints_loss(
-                fg_mask, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts
-            )
+            loss[1], loss[2] = self.pose_loss.calculate_keypoints_loss(fg_mask, target_gt_idx, keypoints, batch_idx,
+                                                                       stride_tensor, target_bboxes, pred_kpts)
 
-            # segmentation loss            
+            # segmentation loss
             masks = batch['masks'].to(self.device).float()
             if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
                 masks = F.interpolate(masks[None], (mask_h, mask_w), mode='nearest')[0]
@@ -525,7 +527,8 @@ class MultiTaskLoss(v8DetectionLoss):
                     xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
                     marea = xyxy2xywh(xyxyn)[:, 2:].prod(1)
                     mxyxy = xyxyn * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device)
-                    loss[3] += self.seg_loss.single_mask_loss(gt_mask, pred_masks[i][fg_mask[i]], proto[i], mxyxy, marea)  # seg
+                    loss[3] += self.seg_loss.single_mask_loss(gt_mask, pred_masks[i][fg_mask[i]], proto[i], mxyxy,
+                                                              marea)  # seg
 
                 # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
                 else:
@@ -534,8 +537,7 @@ class MultiTaskLoss(v8DetectionLoss):
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
             loss[3] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
-        
-        
+
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain

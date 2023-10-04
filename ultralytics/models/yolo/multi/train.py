@@ -26,23 +26,21 @@ class MultiTaskTrainer(yolo.detect.DetectionTrainer):
         """Initialize a PoseTrainer object with specified configurations and overrides."""
         if overrides is None:
             overrides = {}
-        overrides["task"] = "multi-task"
+        overrides['task'] = 'multi-task'
         super().__init__(cfg, overrides, _callbacks)
 
-        if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
+        if isinstance(self.args.device, str) and self.args.device.lower() == 'mps':
             # TODO: check if MultiTaskTrainer also has this bug
-            LOGGER.warning(
-                "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
-                "See https://github.com/ultralytics/ultralytics/issues/4031."
-            )
+            LOGGER.warning("WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
+                           'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get pose estimation model with specified configuration and weights."""
         model = MultiTaskModel(
             cfg,
             ch=3,
-            nc=self.data["nc"],
-            data_kpt_shape=self.data["kpt_shape"],
+            nc=self.data['nc'],
+            data_kpt_shape=self.data['kpt_shape'],
             verbose=verbose,
         )
         if weights:
@@ -53,33 +51,31 @@ class MultiTaskTrainer(yolo.detect.DetectionTrainer):
     def set_model_attributes(self):
         """Sets keypoints shape attribute of PoseModel."""
         super().set_model_attributes()
-        self.model.kpt_shape = self.data["kpt_shape"]
+        self.model.kpt_shape = self.data['kpt_shape']
 
     def get_validator(self):
         """Returns an instance of the PoseValidator class for validation."""
         self.loss_names = (
-            "box_loss",
-            "pose_loss",
-            "kobj_loss",
-            "seg_loss",
-            "cls_loss",
-            "dfl_loss",
+            'box_loss',
+            'pose_loss',
+            'kobj_loss',
+            'seg_loss',
+            'cls_loss',
+            'dfl_loss',
         )
-        return yolo.multi.MultiTaskValidator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args)
-        )
+        return yolo.multi.MultiTaskValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def plot_training_samples(self, batch, batch_number):
         """Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints."""
         plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
-            kpts=batch["keypoints"],
-            masks=batch["masks"],
-            paths=batch["im_file"],
-            fname=self.save_dir / f"train_batch{batch_number}.jpg",
+            batch['img'],
+            batch['batch_idx'],
+            batch['cls'].squeeze(-1),
+            batch['bboxes'],
+            kpts=batch['keypoints'],
+            masks=batch['masks'],
+            paths=batch['im_file'],
+            fname=self.save_dir / f'train_batch{batch_number}.jpg',
             on_plot=self.on_plot,
         )
 

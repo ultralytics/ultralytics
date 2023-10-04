@@ -9,13 +9,7 @@ import torch.nn.functional as F
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import (
-    OKS_SIGMA,
-    MultiTaskMetrics,
-    box_iou,
-    kpt_iou,
-    mask_iou,
-)
+from ultralytics.utils.metrics import OKS_SIGMA, MultiTaskMetrics, box_iou, kpt_iou, mask_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
 
 
@@ -33,48 +27,44 @@ class MultiTaskValidator(DetectionValidator):
         ```
     """
 
-    def __init__(
-        self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None
-    ):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize a 'PoseValidator' object with custom parameters and assigned attributes."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.sigma = None
         self.kpt_shape = None
-        self.args.task = "multi-task"
+        self.args.task = 'multi-task'
         self.metrics = MultiTaskMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
-        if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
-            LOGGER.warning(
-                "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
-                "See https://github.com/ultralytics/ultralytics/issues/4031."
-            )
+        if isinstance(self.args.device, str) and self.args.device.lower() == 'mps':
+            LOGGER.warning("WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
+                           'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
         self.plot_masks = None
 
     def preprocess(self, batch):
         """Preprocesses the batch by converting the 'keypoints' data into a float and moving it to the device."""
         batch = super().preprocess(batch)
-        batch["keypoints"] = batch["keypoints"].to(self.device).float()
-        batch["masks"] = batch["masks"].to(self.device).float()
+        batch['keypoints'] = batch['keypoints'].to(self.device).float()
+        batch['masks'] = batch['masks'].to(self.device).float()
         return batch
 
     def get_desc(self):
         """Returns description of evaluation metrics in string format."""
-        return ("%22s" + "%11s" * 14) % (
-            "Class",
-            "Images",
-            "Instances",
-            "Box(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-            "Pose(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-            "Mask(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
+        return ('%22s' + '%11s' * 14) % (
+            'Class',
+            'Images',
+            'Instances',
+            'Box(P',
+            'R',
+            'mAP50',
+            'mAP50-95)',
+            'Pose(P',
+            'R',
+            'mAP50',
+            'mAP50-95)',
+            'Mask(P',
+            'R',
+            'mAP50',
+            'mAP50-95)',
         )
 
     def postprocess(self, preds):
@@ -89,22 +79,21 @@ class MultiTaskValidator(DetectionValidator):
             max_det=self.args.max_det,
             nc=self.nc,
         )
-        proto = (
-            preds[1][-1] if len(preds[1]) == 4 else preds[1]
-        )  # second output is len 4 if pt, but only 1 if exported
+        proto = (preds[1][-1] if len(preds[1]) == 4 else preds[1]
+                 )  # second output is len 4 if pt, but only 1 if exported
         return p, proto
 
     def init_metrics(self, model):
         """Initiate pose estimation metrics for YOLO model."""
         super().init_metrics(model)
-        self.kpt_shape = self.data["kpt_shape"]
+        self.kpt_shape = self.data['kpt_shape']
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
         self.plot_masks = []
         if self.args.save_json:
-            check_requirements("pycocotools>=2.0.6")
+            check_requirements('pycocotools>=2.0.6')
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
@@ -112,50 +101,38 @@ class MultiTaskValidator(DetectionValidator):
     def update_metrics(self, preds, batch):
         """Metrics."""
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
-            idx = batch["batch_idx"] == si
-            cls = batch["cls"][idx]
-            bbox = batch["bboxes"][idx]
-            kpts = batch["keypoints"][idx]
-            img_size = batch["img"][si].shape[1:]
-            ratio_pad = batch["ratio_pad"][si]
+            idx = batch['batch_idx'] == si
+            cls = batch['cls'][idx]
+            bbox = batch['bboxes'][idx]
+            kpts = batch['keypoints'][idx]
+            img_size = batch['img'][si].shape[1:]
+            ratio_pad = batch['ratio_pad'][si]
             nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
             nk = kpts.shape[1]  # number of keypoints
             kpts_dim = kpts.shape[2]
-            shape = batch["ori_shape"][si]
-            correct_kpts = torch.zeros(
-                npr, self.niou, dtype=torch.bool, device=self.device
-            )
-            correct_bboxes = torch.zeros(
-                npr, self.niou, dtype=torch.bool, device=self.device
-            )
-            correct_masks = torch.zeros(
-                npr, self.niou, dtype=torch.bool, device=self.device
-            )
+            shape = batch['ori_shape'][si]
+            correct_kpts = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)
+            correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)
+            correct_masks = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)
             self.seen += 1
 
             if npr == 0:
                 if nl:
-                    self.stats.append(
-                        (
-                            correct_bboxes,
-                            correct_kpts,
-                            correct_masks,
-                            *torch.zeros((2, 0), device=self.device),
-                            cls.squeeze(-1),
-                        )
-                    )
+                    self.stats.append((
+                        correct_bboxes,
+                        correct_kpts,
+                        correct_masks,
+                        *torch.zeros((2, 0), device=self.device),
+                        cls.squeeze(-1),
+                    ))
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(
-                            detections=None, labels=cls.squeeze(-1)
-                        )
+                        self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
                 continue
 
             # Masks
             midx = [si] if self.args.overlap_mask else idx
-            gt_masks = batch["masks"][midx]
-            pred_masks = self.process(
-                proto, pred[:, 6 + nk * kpts_dim :], pred[:, :4], shape=img_size
-            )
+            gt_masks = batch['masks'][midx]
+            pred_masks = self.process(proto, pred[:, 6 + nk * kpts_dim:], pred[:, :4], shape=img_size)
 
             # Predictions
             if self.args.single_cls:
@@ -164,17 +141,15 @@ class MultiTaskValidator(DetectionValidator):
             # predicted bboxes in native-space
             ops.scale_boxes(img_size, predn[:, :4], shape, ratio_pad=ratio_pad)
             # parse keypoints
-            pred_kpts = predn[:, 6 : 6 + nk * kpts_dim].view(npr, nk, kpts_dim)
+            pred_kpts = predn[:, 6:6 + nk * kpts_dim].view(npr, nk, kpts_dim)
             # keypoints in native-space
             ops.scale_coords(img_size, pred_kpts, shape, ratio_pad=ratio_pad)
 
             # Evaluate
             if nl:
-                height, width = batch["img"].shape[2:]
+                height, width = batch['img'].shape[2:]
                 # target bboxes
-                tbox = ops.xywh2xyxy(bbox) * torch.tensor(
-                    (width, height, width, height), device=self.device
-                )
+                tbox = ops.xywh2xyxy(bbox) * torch.tensor((width, height, width, height), device=self.device)
                 # predicted bboxes in native-space
                 ops.scale_boxes(img_size, tbox, shape, ratio_pad=ratio_pad)
                 tkpts = kpts.clone()
@@ -183,9 +158,7 @@ class MultiTaskValidator(DetectionValidator):
                 tkpts = ops.scale_coords(img_size, tkpts, shape, ratio_pad=ratio_pad)
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn[:, :6], labelsn)
-                correct_kpts = self._process_batch(
-                    predn[:, :6], labelsn, pred_kpts=pred_kpts, gt_kpts=tkpts
-                )
+                correct_kpts = self._process_batch(predn[:, :6], labelsn, pred_kpts=pred_kpts, gt_kpts=tkpts)
                 correct_masks = self._process_batch(
                     predn,
                     labelsn,
@@ -196,16 +169,14 @@ class MultiTaskValidator(DetectionValidator):
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
 
-            self.stats.append(
-                (
-                    correct_bboxes,
-                    correct_kpts,
-                    correct_masks,
-                    pred[:, 4],
-                    pred[:, 5],
-                    cls.squeeze(-1),
-                )
-            )
+            self.stats.append((
+                correct_bboxes,
+                correct_kpts,
+                correct_masks,
+                pred[:, 4],
+                pred[:, 5],
+                cls.squeeze(-1),
+            ))
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
@@ -213,7 +184,7 @@ class MultiTaskValidator(DetectionValidator):
 
             # Save
             if self.args.save_json:
-                self.pred_to_json(predn, batch["im_file"][si])
+                self.pred_to_json(predn, batch['im_file'][si])
 
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
@@ -255,7 +226,7 @@ class MultiTaskValidator(DetectionValidator):
                 gt_masks = F.interpolate(
                     gt_masks[None],
                     pred_masks.shape[1:],
-                    mode="bilinear",
+                    mode='bilinear',
                     align_corners=False,
                 )[0]
                 gt_masks = gt_masks.gt_(0.5)
@@ -275,14 +246,14 @@ class MultiTaskValidator(DetectionValidator):
     def plot_val_samples(self, batch, batch_number):
         """Plots and saves validation set samples with predicted bounding boxes and keypoints."""
         plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
-            masks=batch["masks"],
-            kpts=batch["keypoints"],
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{batch_number}_labels.jpg",
+            batch['img'],
+            batch['batch_idx'],
+            batch['cls'].squeeze(-1),
+            batch['bboxes'],
+            masks=batch['masks'],
+            kpts=batch['keypoints'],
+            paths=batch['im_file'],
+            fname=self.save_dir / f'val_batch{batch_number}_labels.jpg',
             names=self.names,
             on_plot=self.on_plot,
         )
@@ -290,12 +261,9 @@ class MultiTaskValidator(DetectionValidator):
     def plot_predictions(self, batch, preds, ni):
         """Plots predictions for YOLO model."""
         max_det = 15
-        
+
         preds = preds[0]
-        pred_kpts = [
-            p[:max_det, 6 : 6 + np.prod(self.kpt_shape)].view(-1, *self.kpt_shape)
-            for p in preds
-        ]
+        pred_kpts = [p[:max_det, 6:6 + np.prod(self.kpt_shape)].view(-1, *self.kpt_shape) for p in preds]
         pred_kpts = torch.cat(pred_kpts, 0)
 
         if len(self.plot_masks):
@@ -307,12 +275,12 @@ class MultiTaskValidator(DetectionValidator):
         # not set to self.args.max_det due to slow plotting speed
 
         plot_images(
-            batch["img"],
+            batch['img'],
             *output_to_target(preds, max_det=max_det),
             masks=masks,
             kpts=pred_kpts,
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
+            paths=batch['im_file'],
+            fname=self.save_dir / f'val_batch{ni}_pred.jpg',
             names=self.names,
             on_plot=self.on_plot,
         )  # pred

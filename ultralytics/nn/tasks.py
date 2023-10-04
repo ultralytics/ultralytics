@@ -9,11 +9,11 @@ import torch.nn as nn
 
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
                                     Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d,
-                                    Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, RepC3, RepConv,
-                                    RTDETRDecoder, Segment, MultiTask)
+                                    Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, MultiTask, Pose, RepC3, RepConv,
+                                    RTDETRDecoder, Segment)
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss, MultiTaskLoss
+from ultralytics.utils.loss import MultiTaskLoss, v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights, intersect_dicts,
                                            make_divisible, model_info, scale_img, time_sync)
@@ -317,10 +317,10 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         return v8PoseLoss(self)
-    
+
 
 class MultiTaskModel(PoseModel):
-    
+
     def init_criterion(self):
         return MultiTaskLoss(self)
 

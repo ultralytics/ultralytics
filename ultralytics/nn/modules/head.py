@@ -137,7 +137,7 @@ class Pose(Detect):
             anchors = self.anchors
         if strides is None:
             strides = self.strides
-            
+
         ndim = self.kpt_shape[1]
         if self.export:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
             y = kpts.view(bs, *self.kpt_shape, -1)
@@ -155,36 +155,39 @@ class Pose(Detect):
 
 
 class MultiTask(Detect):
+
     def __init__(self, nc=80, kpt_shape=(17, 3), nm=32, npr=256, ch=()):
         super().__init__(nc, ch)
-        
+
         self.kpt_shape = kpt_shape
         self.nm = nm
         self.npr = npr
-        
+
         self.detect = Detect.forward
         self.pose_head = Pose(nc, kpt_shape, ch)
         self.segment_head = Segment(nc, nm, npr, ch)
-            
+
     def forward(self, x):
         """Perform forward pass through YOLO model and return predictions."""
         bs = x[0].shape[0]  # batch size
 
         protos = self.segment_head.proto(x[0])  # mask protos
-        mc = torch.cat([self.segment_head.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
-        kpt = torch.cat([self.pose_head.cv4[i](x[i]).view(bs, self.pose_head.nk, -1) for i in range(self.pose_head.nl)], -1)  # (bs, 17*3, h*w)
+        mc = torch.cat([self.segment_head.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)],
+                       2)  # mask coefficients
+        kpt = torch.cat([self.pose_head.cv4[i](x[i]).view(bs, self.pose_head.nk, -1) for i in range(self.pose_head.nl)],
+                        -1)  # (bs, 17*3, h*w)
         x = self.detect(self, x)
-        
+
         if self.training:
             return x, kpt, mc, protos
-        
+
         pred_kpt = self.pose_head.kpts_decode(bs, kpt, self.anchors, self.strides)
-        
+
         if self.export:
             return (torch.cat([x, pred_kpt, mc], 1), protos)
         else:
             return (torch.cat([x[0], pred_kpt, mc], 1), (x[1], kpt, mc, protos))
-        
+
 
 class Classify(nn.Module):
     """YOLOv8 classification head, i.e. x(b,c1,20,20) to x(b,c2)."""

@@ -997,16 +997,16 @@ class MultiTaskMetrics(PoseMetrics):
                                    prefix='Box')[2:]
         self.box.nc = len(self.names)
         self.box.update(results_box)
-        
+
         results_mask = ap_per_class(tp_m,
-                            conf,
-                            pred_cls,
-                            target_cls,
-                            plot=self.plot,
-                            on_plot=self.on_plot,
-                            save_dir=self.save_dir,
-                            names=self.names,
-                            prefix='Mask')[2:]
+                                    conf,
+                                    pred_cls,
+                                    target_cls,
+                                    plot=self.plot,
+                                    on_plot=self.on_plot,
+                                    save_dir=self.save_dir,
+                                    names=self.names,
+                                    prefix='Mask')[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
 
@@ -1016,8 +1016,7 @@ class MultiTaskMetrics(PoseMetrics):
         return [
             'metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)',
             'metrics/precision(P)', 'metrics/recall(P)', 'metrics/mAP50(P)', 'metrics/mAP50-95(P)',
-            'metrics/precision(M)', 'metrics/recall(M)', 'metrics/mAP50(M)', 'metrics/mAP50-95(M)'
-        ]
+            'metrics/precision(M)', 'metrics/recall(M)', 'metrics/mAP50(M)', 'metrics/mAP50-95(M)']
 
     def mean_results(self):
         """Return the mean results of box and pose."""
@@ -1036,6 +1035,7 @@ class MultiTaskMetrics(PoseMetrics):
     def fitness(self):
         """Computes classification metrics and speed using the `targets` and `pred` inputs."""
         return (self.pose.fitness() + self.box.fitness() + self.seg.fitness()) / 3
+
 
 class ClassifyMetrics(SimpleClass):
     """

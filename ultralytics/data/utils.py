@@ -107,7 +107,8 @@ def verify_image_label(args):
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
                 if use_segments and use_keypoints:
-                    segments = [np.array(x[5 + nkpt * ndim:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
+                    segments = [np.array(x[5 + nkpt * ndim:], dtype=np.float32).reshape(-1, 2)
+                                for x in lb]  # (cls, xy1...)
                     lb = [x[:5 + nkpt * ndim] for x in lb]
                 elif any(len(x) > 6 for x in lb) and use_segments:  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
@@ -147,7 +148,7 @@ def verify_image_label(args):
                     lb = np.zeros((0, 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            if use_keypoints: 
+            if use_keypoints:
                 lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32)
             else:
                 lb = np.zeros((0, 5), dtype=np.float32)

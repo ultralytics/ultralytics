@@ -474,7 +474,7 @@ def plot_images(images,
                         with contextlib.suppress(Exception):
                             im[y:y + h, x:x + w, :][mask] = im[y:y + h, x:x + w, :][mask] * 0.4 + np.array(color) * 0.6
                 annotator.fromarray(im)
-                
+
             # Plot keypoints
             if len(kpts):
                 kpts_ = kpts[idx].copy()
@@ -489,7 +489,7 @@ def plot_images(images,
                 for j in range(len(kpts_)):
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         annotator.kpts(kpts_[j])
-                        
+
     annotator.im.save(fname)  # save
     if on_plot:
         on_plot(fname)

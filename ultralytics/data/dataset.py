@@ -57,8 +57,8 @@ class YOLODataset(BaseDataset):
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
-                                             repeat(self.use_keypoints), repeat(self.use_segments), repeat(len(self.data['names'])), repeat(nkpt),
-                                             repeat(ndim)))
+                                             repeat(self.use_keypoints), repeat(self.use_segments),
+                                             repeat(len(self.data['names'])), repeat(nkpt), repeat(ndim)))
             pbar = TQDM(results, desc=desc, total=total)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f

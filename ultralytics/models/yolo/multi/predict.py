@@ -22,18 +22,16 @@ class MultiTaskPredictor(DetectionPredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
-        self.args.task = "multi-task"
-        if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
-            LOGGER.warning(
-                "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
-                "See https://github.com/ultralytics/ultralytics/issues/4031."
-            )
+        self.args.task = 'multi-task'
+        if isinstance(self.args.device, str) and self.args.device.lower() == 'mps':
+            LOGGER.warning("WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
+                           'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
     def postprocess(self, preds, img, orig_imgs):
         """Return detection results for a given input image or list of images."""
         # TODO: implement this
         raise NotImplementedError
-        
+
         preds = ops.non_max_suppression(
             preds,
             self.args.conf,
@@ -51,14 +49,8 @@ class MultiTaskPredictor(DetectionPredictor):
         results = []
         for i, pred in enumerate(preds):
             orig_img = orig_imgs[i]
-            pred[:, :4] = ops.scale_boxes(
-                img.shape[2:], pred[:, :4], orig_img.shape
-            ).round()
-            pred_kpts = (
-                pred[:, 6:].view(len(pred), *self.model.kpt_shape)
-                if len(pred)
-                else pred[:, 6:]
-            )
+            pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
+            pred_kpts = (pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:])
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
             img_path = self.batch[0][i]
             results.append(
@@ -68,6 +60,5 @@ class MultiTaskPredictor(DetectionPredictor):
                     names=self.model.names,
                     boxes=pred[:, :6],
                     keypoints=pred_kpts,
-                )
-            )
+                ))
         return results

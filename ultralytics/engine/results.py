@@ -15,6 +15,7 @@ import torch
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class BaseTensor(SimpleClass):
@@ -485,10 +486,14 @@ class Keypoints(BaseTensor):
         to(device, dtype): Returns a copy of the keypoints tensor with the specified device and dtype.
     """
 
+    @smart_inference_mode()  # avoid keypoints < conf in-place error
     def __init__(self, keypoints, orig_shape) -> None:
         """Initializes the Keypoints object with detection keypoints and original image size."""
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
+        if keypoints.shape[2] == 3:  # x, y, conf
+            mask = keypoints[..., 2] < 0.5  # points with conf < 0.5 (not visible)
+            keypoints[..., :2][mask] = 0
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
 

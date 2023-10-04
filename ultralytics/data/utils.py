@@ -117,10 +117,10 @@ def verify_image_label(args):
                     assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
                     assert (lb[:, 5::ndim] <= 1).all() and (lb[:, 5::ndim] >= 0
                                                             ).all(), \
-                    'non-normalized or out of bounds coordinate labels'
+                        'non-normalized or out of bounds coordinate labels'
                     assert (lb[:, 6::ndim] <= 1).all() and (lb[:, 6::ndim] >= 0
                                                             ).all(), \
-                    'non-normalized or out of bounds coordinate labels'
+                        'non-normalized or out of bounds coordinate labels'
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
                     assert (lb[:, 1:] <= 1).all() and (lb[:, 1:] >= 0).all(), \

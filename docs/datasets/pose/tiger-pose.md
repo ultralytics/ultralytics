@@ -7,18 +7,17 @@ keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, mode
 # Tiger-Pose Dataset
 
 ## Introduction
+[Ultralytics](https://ultralytics.com) introduces the Tiger-Pose dataset, a versatile collection designed for pose estimation tasks. This dataset comprises 250 images sourced from a [YouTube Video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation. It serves as an excellent resource for testing and troubleshooting pose estimation algorithm.
 
-[Ultralytics](https://ultralytics.com) Tiger-Pose is a small, but versatile pose detection dataset composed of 
-the 
-250 images collected from a [YouTube Video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), 210 for training and 53 for validation. This dataset is ideal for testing and debugging Tiger detection and pose estimation, or for experimenting with new detection approaches. With 210 images, it is small 
-to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+Despite its manageable size of 210 images, tiger-pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for pose estimation.
 
-This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com)
+This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.com)
 and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Tiger-Pose dataset, the `tiger-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Tiger-pose.yaml).
+A YAML (Yet Another Markup Language) file serves as the means to specify the configuration details of a dataset. It encompasses crucial data such as file paths, class definitions, and other pertinent information. Specifically, for the `tiger-pose.yaml` file, you can check [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
+
 
 !!! example "ultralytics/cfg/datasets/tiger-pose.yaml"
 
@@ -63,19 +62,4 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
 
 ## Citations and Acknowledgments
 
-If you use the Tiger-Pose dataset in your research or development work, please cite the following paper:
-
-!!! note ""
-
-    === "BibTeX"
-
-        ```bibtex
-        @misc{lin2015microsoft,
-              title={Microsoft COCO: Common Objects in Context},
-              author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
-              year={2015},
-              eprint={1405.0312},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).

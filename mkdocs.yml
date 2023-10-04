@@ -195,6 +195,7 @@ nav:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md
           - COCO8-pose: datasets/pose/coco8-pose.md
+          - Tiger-pose: datasets/pose/tiger-pose.md
       - Classification:
           - datasets/classify/index.md
           - Caltech 101: datasets/classify/caltech101.md

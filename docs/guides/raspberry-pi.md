@@ -21,7 +21,7 @@ This comprehensive guide aims to expedite your journey with YOLO object detectio
 
 ## Prerequisites
 
-- Raspberry Pi 3 or 4
+- Raspberry Pi 3, 4 or 5
 - Pi Camera
 - 64-bit Raspberry Pi Operating System
 

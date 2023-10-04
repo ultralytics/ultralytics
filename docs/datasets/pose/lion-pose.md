@@ -55,7 +55,7 @@ To train a YOLOv8n-pose model on the Lion-Pose dataset for 100 epochs with an im
 
 Here are some examples of images from the Lion-Pose dataset, along with their corresponding annotations:
 
-<img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/c963d2bf-505f-4a15-abd7-259de302cffa" alt="Dataset sample image" width="800">
+<img src="https://user-images.githubusercontent.com/62513924/272491921-c963d2bf-505f-4a15-abd7-259de302cffa.jpg" alt="Dataset sample image" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

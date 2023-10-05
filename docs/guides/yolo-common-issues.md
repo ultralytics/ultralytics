@@ -4,15 +4,15 @@ description: A comprehensive guide to troubleshooting common issues encountered 
 keywords: Troubleshooting, Ultralytics, YOLOv8, Installation Errors, Training Data, Model Performance, Hyperparameter Tuning, Deployment
 ---
 
-# Ultralytics Docs: Troubleshooting Common YOLOv8 Issues
-
-## Introduction
-
-This guide serves as a comprehensive aid for troubleshooting common issues encountered while working with YOLOv8 on your Ultralytics projects. Navigating through these issues can be a breeze with the right guidance, ensuring your projects remain on track without unnecessary delays.
+# Troubleshooting Common YOLO Issues
 
 <p align="center">
   <img width="800" src="https://user-images.githubusercontent.com/26833433/273067258-7c1b9aee-b4e8-43b5-befd-588d4f0bd361.png" alt="YOLO Common Issues Image">
 </p>
+
+## Introduction
+
+This guide serves as a comprehensive aid for troubleshooting common issues encountered while working with YOLOv8 on your Ultralytics projects. Navigating through these issues can be a breeze with the right guidance, ensuring your projects remain on track without unnecessary delays.
 
 ## Common Issues
 
@@ -60,9 +60,9 @@ This section will address common issues faced while training and their respectiv
 
 #### Verification of Configuration Settings
 
-**Issue**: You are unsure whether the configuration settings in the `.yml` file are being applied correctly during model training.
+**Issue**: You are unsure whether the configuration settings in the `.yaml` file are being applied correctly during model training.
 
-**Solution**: The configuration settings in the `.yml` file should be applied when using the `model.train()` function. To ensure that these settings are correctly applied, follow these steps:
+**Solution**: The configuration settings in the `.yaml` file should be applied when using the `model.train()` function. To ensure that these settings are correctly applied, follow these steps:
 
 - Confirm that the path to your `.yaml` configuration file is correct.
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
@@ -191,7 +191,7 @@ y2 = y2 / 640
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
 ```shell
-yolo task=detect mode=predict model=yolov8n-seg.pt source='input/car.mp4' show=True   classes=2
+yolo task=detect mode=segment model=yolov8n-seg.pt source='path/to/car.mp4' show=True classes=2
 ```
 
 #### Understanding Precision Metrics in YOLOv8
@@ -222,7 +222,7 @@ results = model.predict(source, save=True, imgsz=320, conf=0.5)
 boxes = results[0].boxes.xywh.cpu()
 for box in boxes:
     x, y, w, h = box
-    print("Width of Box: {}, Height of Box: {}".format(w, h))
+    print(f"Width of Box: {w}, Height of Box: {h}")
 ```
 
 ### Deployment Challenges

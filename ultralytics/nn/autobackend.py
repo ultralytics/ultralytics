@@ -39,6 +39,7 @@ def check_class_names(names):
 
 class AutoBackend(nn.Module):
 
+    @torch.no_grad()
     def __init__(self,
                  weights='yolov8n.pt',
                  device=torch.device('cpu'),
@@ -308,6 +309,11 @@ class AutoBackend(nn.Module):
         if 'names' not in locals():  # names missing
             names = self._apply_default_class_names(data)
         names = check_class_names(names)
+
+        # Disable gradients
+        if pt:
+            for p in model.parameters():
+                p.requires_grad = False
 
         self.__dict__.update(locals())  # assign all variables to self
 

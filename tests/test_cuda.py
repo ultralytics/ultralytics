@@ -1,21 +1,19 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import contextlib
-from pathlib import Path
 
 import pytest
 import torch
 
 from ultralytics import YOLO, download
-from ultralytics.utils import ASSETS, SETTINGS
+from ultralytics.utils import ASSETS, DATASETS_DIR, WEIGHTS_DIR
 from ultralytics.utils.checks import cuda_device_count, cuda_is_available
 
 CUDA_IS_AVAILABLE = cuda_is_available()
 CUDA_DEVICE_COUNT = cuda_device_count()
 
-DATASETS_DIR = Path(SETTINGS['datasets_dir'])
-WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
 MODEL = WEIGHTS_DIR / 'path with spaces' / 'yolov8n.pt'  # test spaces in path
 DATA = 'coco8.yaml'
+BUS = ASSETS / 'bus.jpg'
 
 
 def test_checks():
@@ -27,6 +25,30 @@ def test_checks():
 def test_train():
     device = 0 if CUDA_DEVICE_COUNT == 1 else [0, 1]
     YOLO(MODEL).train(data=DATA, imgsz=64, epochs=1, device=device)  # requires imgsz>=64
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
+def test_predict_multiple_devices():
+    model = YOLO('yolov8n.pt')
+    model = model.cpu()
+    assert str(model.device) == 'cpu'
+    _ = model(BUS)  # CPU inference
+    assert str(model.device) == 'cpu'
+
+    model = model.to('cuda:0')
+    assert str(model.device) == 'cuda:0'
+    _ = model(BUS)  # CUDA inference
+    assert str(model.device) == 'cuda:0'
+
+    model = model.cpu()
+    assert str(model.device) == 'cpu'
+    _ = model(BUS)  # CPU inference
+    assert str(model.device) == 'cpu'
+
+    model = model.cuda()
+    assert str(model.device) == 'cuda:0'
+    _ = model(BUS)  # CUDA inference
+    assert str(model.device) == 'cuda:0'
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
@@ -57,16 +79,16 @@ def test_predict_sam():
     model.info()
 
     # Run inference
-    model(ASSETS / 'bus.jpg', device=0)
+    model(BUS, device=0)
 
     # Run inference with bboxes prompt
-    model(ASSETS / 'zidane.jpg', bboxes=[439, 437, 524, 709], device=0)
+    model(BUS, bboxes=[439, 437, 524, 709], device=0)
 
     # Run inference with points prompt
     model(ASSETS / 'zidane.jpg', points=[900, 370], labels=[1], device=0)
 
     # Create SAMPredictor
-    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model='mobile_sam.pt')
+    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model=WEIGHTS_DIR / 'mobile_sam.pt')
     predictor = SAMPredictor(overrides=overrides)
 
     # Set image

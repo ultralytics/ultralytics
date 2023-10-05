@@ -68,11 +68,12 @@ setup(
             'mkdocs-material',
             'mkdocstrings[python]',
             'mkdocs-redirects',  # for 301 redirects
-            'mkdocs-ultralytics-plugin>=0.0.27',  # for meta descriptions and images, dates and authors
+            'mkdocs-ultralytics-plugin>=0.0.29',  # for meta descriptions and images, dates and authors
         ],
         'export': [
             'coremltools>=7.0',
             'openvino-dev>=2023.0',
+            'tensorflow<=2.13.1',
             'tensorflowjs',  # automatically installs tensorflow
         ], },
     classifiers=[

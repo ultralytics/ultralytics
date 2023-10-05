@@ -23,14 +23,13 @@ RUN apt upgrade --no-install-recommends -y openssl tar
 WORKDIR /usr/src/ultralytics
 
 # Copy contents
-COPY . /usr/src/ultralytics
 # COPY . /usr/src/ultralytics  # git permission issues inside container
-# RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
+RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e ".[export]" thop albumentations comet pycocotools pytest-cov
+RUN pip install --no-cache -e ".[export]" albumentations comet pycocotools pytest-cov
 
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32

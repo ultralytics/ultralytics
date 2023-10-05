@@ -121,6 +121,7 @@ You can choose the tool that best suits your needs and integrates well with your
 ```yaml
 device: 0
 ```
+
 This will explicitly assign the training process to the specified GPU. If you wish to train on the CPU, set 'device' to 'cpu'.
 
 Keep an eye on the 'runs' folder for logs and metrics to monitor training progress effectively.

@@ -10,6 +10,10 @@ keywords: Troubleshooting, Ultralytics, YOLOv8, Installation Errors, Training Da
 
 This guide serves as a comprehensive aid for troubleshooting common issues encountered while working with YOLOv8 on your Ultralytics projects. Navigating through these issues can be a breeze with the right guidance, ensuring your projects remain on track without unnecessary delays.
 
+<p align="center">
+  <img width="800" src="https://user-images.githubusercontent.com/26833433/273067258-7c1b9aee-b4e8-43b5-befd-588d4f0bd361.png" alt="YOLO Common Issues Image">
+</p>
+
 ## Common Issues
 
 ### Installation Errors

@@ -94,7 +94,7 @@ model.train(data='/path/to/your/data.yaml', batch=32, multi_scale=True)
 
 - Precision
 - Recall
-- Mean Average Precision (MAP)
+- Mean Average Precision (mAP)
 
 You can access these metrics from the training logs or by using tools like TensorBoard or wandb for visualization. Implementing early stopping based on these metrics can help you achieve better results.
 
@@ -104,13 +104,11 @@ You can access these metrics from the training logs or by using tools like Tenso
 
 **Solution**: To track and visualize training progress, you can consider using the following tools:
 
-- TensorBoard: TensorBoard is a popular choice for visualizing training metrics, including loss, accuracy, and more. You can integrate it with your YOLOv8 training process.
+- [TensorBoard](https://www.tensorflow.org/tensorboard): TensorBoard is a popular choice for visualizing training metrics, including loss, accuracy, and more. You can integrate it with your YOLOv8 training process.
+- [Comet](https://bit.ly/yolov8-readme-comet): Comet provides an extensive toolkit for experiment tracking and comparison. It allows you to track metrics, hyperparameters, and even model weights. Integration with YOLO models is also straightforward, providing you with a complete overview of your experiment cycle.
+- [Ultralytics HUB](https://hub.ultralytics.com): Ultralytics HUB offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
 
-- wandb (Weights and Biases): wandb is another tool that offers extensive tracking and visualization capabilities for machine learning experiments. You can use it to monitor your YOLOv8 training experiments.
-
-- clearml: clearml is a comprehensive MLOps platform that provides tools for tracking experiments, managing data, and monitoring training progress.
-
-You can choose the tool that best suits your needs and integrates well with your workflow.
+Each of these tools offers its own set of advantages, so you may want to consider the specific needs of your project when making a choice.
 
 #### How to Check if Training is Happening on the GPU
 
@@ -164,7 +162,7 @@ Here are some things to keep in mind, if you are facing issues related to model 
 
 This section will address common issues faced during model prediction.
 
-#### Getting Bounding Boxes When Inferencing Using Your YOLOv8 Custom Model
+#### Getting Bounding Box Predictions With Your YOLOv8 Custom Model
 
 **Issue**: When running predictions with a custom YOLOv8 model, there are challenges with the format and visualization of the bounding box coordinates.
 

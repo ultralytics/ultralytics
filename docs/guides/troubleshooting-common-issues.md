@@ -63,9 +63,9 @@ This section will address common issues faced while training and their respectiv
 - Confirm that the path to your `.yaml` configuration file is correct.
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
 
-   ```python
-   model.train(data='/path/to/your/data.yaml', batch=4)
-   ```
+```python
+model.train(data='/path/to/your/data.yaml', batch=4)
+```
 
 #### Accelerating Training with Multiple GPUs
 
@@ -81,10 +81,10 @@ This section will address common issues faced while training and their respectiv
 
 - Modify your training command to utilize multiple GPUs:
 
-  ```python
-  model.train(data='/path/to/your/data.yaml', batch=32, multi_scale=True)
-  #Adjust the batch size and other settings as needed to optimize training speed.
-   ```
+```python
+#Adjust the batch size and other settings as needed to optimize training speed
+model.train(data='/path/to/your/data.yaml', batch=32, multi_scale=True)
+```
 
 #### Continuous Monitoring Parameters
 
@@ -118,9 +118,9 @@ You can choose the tool that best suits your needs and integrates well with your
 
 **Solution**: The 'device' value being 'null' typically means that the training process is set to automatically use an available GPU, which is the default behavior. To ensure training occurs on a specific GPU, you can manually set the 'device' value to the GPU index (e.g., '0' for the first GPU) in your .yaml configuration file:
 
-  ```yaml
-  device: 0
-   ```
+```yaml
+device: 0
+```
 This will explicitly assign the training process to the specified GPU. If you wish to train on the CPU, set 'device' to 'cpu'.
 
 Keep an eye on the 'runs' folder for logs and metrics to monitor training progress effectively.
@@ -128,7 +128,6 @@ Keep an eye on the 'runs' folder for logs and metrics to monitor training progre
 #### Key Considerations for Effective Model Training
 
 Here are some things to keep in mind, if you are facing issues related to model training.
-
 
 **Dataset Format and Labels**
 - Importance: The foundation of any machine learning model lies in the quality and format of the data it is trained on.
@@ -155,6 +154,7 @@ Here are some things to keep in mind, if you are facing issues related to model 
 **Cross-Check with Pretrained Weights**
 
 - Importance: Leveraging pretrained weights can provide a solid starting point for model training, especially when data is limited.
+  
 - Recommendation: As a diagnostic step, consider training your model using the same data but initializing it with pretrained weights. If this approach yields a well-formed confusion matrix, it could suggest that the 'from scratch' model might require further training or adjustments.
 
 ### Issues Related to Model Predictions
@@ -169,13 +169,13 @@ This section will address common issues faced during model prediction.
 
 - Coordinate Format: YOLOv8 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let’s say your image size is 640x640. Then you would do the following:
 
-   ```python
-   # Convert absolute coordinates to relative coordinates
-   x1 = x1 / 640  # Divide x-coordinates by image width
-   x2 = x2 / 640
-   y1 = y1 / 640  # Divide y-coordinates by image height
-   y2 = y2 / 640
-   ```
+```python
+# Convert absolute coordinates to relative coordinates
+x1 = x1 / 640  # Divide x-coordinates by image width
+x2 = x2 / 640
+y1 = y1 / 640  # Divide y-coordinates by image height
+y2 = y2 / 640
+```
 
 - File Name: To obtain the file name of the image you're predicting on, access the image file path directly from the result object within your prediction loop.
 
@@ -185,9 +185,10 @@ This section will address common issues faced during model prediction.
 
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
-   ```shell
-   yolo task=detect mode=predict model=yolov8n-seg.pt source='input/car.mp4' show=True   classes=2
-   ```
+```shell
+yolo task=detect mode=predict model=yolov8n-seg.pt source='input/car.mp4' show=True   classes=2
+```
+
 #### Understanding Precision Metrics in YOLOv8
 
 **Issue**: Confusion regarding the difference between box precision, mask precision, and confusion matrix precision in YOLOv8.

@@ -471,22 +471,29 @@ def test_triton():
     Path(f).rename(triton_model_path / '1' / 'model.onnx')
     (triton_model_path / 'config.pdtxt').touch()
 
-    # Run tritonserver docker container
-    tag = 'nvcr.io/nvidia/tritonserver:22.12-py3'
-    subprocess.call(
-        f'docker pull {tag} && docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} '
-        f'tritonserver --model-repository=/models',
-        shell=True)
+    # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
+    tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'
 
-    # Wait starting tritonserver
-    time.sleep(10)
+    # Pull the image
+    subprocess.call(f'docker pull {tag}', shell=True)
+
+    # Run the Triton server and capture the container ID
+    container_id = subprocess.check_output(
+        f'docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models',
+        shell=True).decode('utf-8').strip()
+
+    # Wait for the Triton server to start
     triton_client = InferenceServerClient(url='localhost:8000', verbose=False, ssl=False)
 
-    # Wait model ready
+    # Wait until model is ready
     for _ in range(10):
-        if triton_client.is_model_ready(model_name):
+        with contextlib.suppress(Exception):
+            assert triton_client.is_model_ready(model_name)
             break
-        time.sleep(3)
+        time.sleep(1)
 
-    # Check triton inference
+    # Check Triton inference
     YOLO(f'http://localhost:8000/{model_name}', 'detect')(SOURCE)  # exported model inference
+
+    # Kill and remove the container at the end of the test
+    subprocess.call(f'docker kill {container_id}', shell=True)

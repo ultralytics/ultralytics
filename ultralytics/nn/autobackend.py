@@ -15,7 +15,7 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.utils import ARM64, LINUX, LOGGER, ROOT, yaml_load
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_valid_json
+from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
@@ -31,8 +31,8 @@ def check_class_names(names):
             raise KeyError(f'{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices '
                            f'{min(names.keys())}-{max(names.keys())} defined in your dataset YAML.')
         if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
-            map = yaml_load(ROOT / 'cfg/datasets/ImageNet.yaml')['map']  # human-readable names
-            names = {k: map[v] for k, v in names.items()}
+            names_map = yaml_load(ROOT / 'cfg/datasets/ImageNet.yaml')['map']  # human-readable names
+            names = {k: names_map[v] for k, v in names.items()}
     return names
 
 
@@ -491,10 +491,11 @@ class AutoBackend(nn.Module):
         types = [s in name for s in sf]
         types[5] |= name.endswith('.mlmodel')  # retain support for older Apple CoreML *.mlmodel formats
         types[8] &= not types[9]  # tflite &= not edgetpu
-        triton = False
-
-        if any(types) is False and is_valid_json(p):
-            triton_params = eval(p)
-            triton = isinstance(triton_params, dict) and 'url' in triton_params
+        if any(types):
+            triton = False
+        else:
+            from urllib.parse import urlsplit
+            url = urlsplit(p)
+            triton = url.netloc and url.path and url.scheme in {'http', 'grfc'}
 
         return types + [triton]

@@ -450,6 +450,7 @@ def test_hub():
     smart_request('GET', 'http://github.com', progress=True)
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_triton():
     checks.check_requirements('tritonclient[all]')
@@ -472,7 +473,7 @@ def test_triton():
     (triton_model_path / 'config.pdtxt').touch()
 
     # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-    tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'
+    tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'  # 6.4 GB
 
     # Pull the image
     subprocess.call(f'docker pull {tag}', shell=True)

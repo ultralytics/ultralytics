@@ -89,10 +89,10 @@ Run the Triton Inference Server using Docker:
 import subprocess
 import time
 
-from tritonclient.http import InferenceServerClient  # noqa
+from tritonclient.http import InferenceServerClient
 
 # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'
+tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'  # 6.4 GB
 
 # Pull the image
 subprocess.call(f'docker pull {tag}', shell=True)

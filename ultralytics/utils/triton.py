@@ -64,7 +64,7 @@ class TritonRemoteModel:
         self.np_input_formats = [type_map[x] for x in self.input_formats]
 
         self.input_names = [x['name'] for x in model_config['input']]
-        self.input_shapes = [x['shape'] for x in model_config['input']]
+        # self.input_shapes = [x['name'] for x in model_config['input']]  # commented as possibly incorrect
         self.output_names = [x['name'] for x in model_config['output']]
 
     def __call__(self, *inputs) -> List[np.ndarray]:

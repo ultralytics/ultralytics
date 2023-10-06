@@ -17,7 +17,6 @@ class TritonRemoteModel:
         input_formats (List[str]): The data types of the model inputs.
         np_input_formats (List[type]): The numpy data types of the model inputs.
         input_names (List[str]): The names of the model inputs.
-        input_shapes (List[str]): The shapes of the model inputs.
         output_names (List[str]): The names of the model outputs.
     """
 
@@ -64,7 +63,6 @@ class TritonRemoteModel:
         self.np_input_formats = [type_map[x] for x in self.input_formats]
 
         self.input_names = [x['name'] for x in model_config['input']]
-        # self.input_shapes = [x['name'] for x in model_config['input']]  # commented as possibly incorrect
         self.output_names = [x['name'] for x in model_config['output']]
 
     def __call__(self, *inputs) -> List[np.ndarray]:
@@ -72,7 +70,7 @@ class TritonRemoteModel:
         Call the model with the given inputs.
 
         Args:
-            *inputs: Input data to the model.
+            *inputs (List[np.ndarray]): Input data to the model.
 
         Returns:
             List[np.ndarray]: Model outputs.

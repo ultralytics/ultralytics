@@ -37,7 +37,7 @@ yolo export model=yolov8n-seg.pt format=ncnn
 
 Copy ***yolov8n-seg.param*** and ***yolov8n-seg.bin*** to **app/src/main/jni/assets**
 
-***optional*** Change the name of the model in ***yolov8ncnn.cpp*** line 184. Change the classes names in ***yolo.h***
+*For your own model :* Change the name of the model in ***yolov8ncnn.cpp*** line 184. Change the classes names in ***yolo.h***
 
 ### Step 2
 

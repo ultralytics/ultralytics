@@ -19,4 +19,3 @@ allprojects {
         google()
     }
 }
-

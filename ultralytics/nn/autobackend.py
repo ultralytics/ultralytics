@@ -275,7 +275,7 @@ class AutoBackend(nn.Module):
         elif triton:  # NVIDIA Triton Inference Server
             check_requirements('tritonclient[all]')
             from ultralytics.utils.triton import TritonRemoteModel
-            model = TritonRemoteModel(**weights)
+            model = TritonRemoteModel(w)
         else:
             from ultralytics.engine.exporter import export_formats
             raise TypeError(f"model='{w}' is not a supported model format. "

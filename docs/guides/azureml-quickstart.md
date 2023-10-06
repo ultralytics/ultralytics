@@ -77,7 +77,7 @@ Train a detection model for 10 epochs with an initial learning_rate of 0.01:
 yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
 
-You can find more [instructions to use the Ultralytics cli here](https://docs.ultralytics.com/quickstart/#use-ultralytics-with-cli).
+You can find more [instructions to use the Ultralytics CLI here](https://docs.ultralytics.com/quickstart/#use-ultralytics-with-cli).
 
 ## Quickstart from a Notebook
 

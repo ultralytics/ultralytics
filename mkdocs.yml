@@ -215,6 +215,7 @@ nav:
           - datasets/track/index.md
   - Guides:
       - guides/index.md
+      - YOLO Common Issues: guides/yolo-common-issues.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md

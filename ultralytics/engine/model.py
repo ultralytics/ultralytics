@@ -81,6 +81,13 @@ class Model(nn.Module):
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
 
+        else:
+            # Check if model in Triton Server
+            triton_params = self.is_triton_model(model)
+            if triton_params is not None:
+                self.model = triton_params
+                return
+
         # Load or create new YOLO model
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
@@ -93,6 +100,43 @@ class Model(nn.Module):
     def __call__(self, source=None, stream=False, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
+
+    @staticmethod
+    def is_triton_model(model):
+        """Check if model is url in format: <scheme>://<netloc>/<endpoint>/<task_name>. If True - return parsed url, else None"""
+        from urllib.parse import urlsplit
+        splitted_url = urlsplit(model)
+        if all([splitted_url.scheme, splitted_url.netloc, splitted_url.path]) is False:
+            return None
+        try:
+            assert all([splitted_url.scheme, splitted_url.netloc, splitted_url.path])
+            assert splitted_url.scheme in {'http', 'grfc'}
+            endpoint = splitted_url.path.strip('/').split('/')[0]
+        except Exception as e:
+            LOGGER.warning(f'WARNING ⚠️ Triton model url format: <scheme>://<netloc>/<endpoint>/<task_name>. {e}')
+            return None
+
+        checks.check_requirements('tritonclient[all]')
+        import tritonclient.grpc as grpcclient
+        import tritonclient.http as httpclient
+
+        if splitted_url.scheme == 'http':
+            InferenceServerClient = httpclient.InferenceServerClient
+        else:
+            InferenceServerClient = grpcclient.InferenceServerClient
+
+        triton_client = InferenceServerClient(
+            url=splitted_url.netloc,
+            verbose=False,
+            ssl=False,
+        )
+
+        if triton_client.is_model_ready(endpoint):
+            return {'url': splitted_url.netloc, 'endpoint': endpoint, 'scheme': splitted_url.scheme}
+
+        LOGGER.warning(f'WARNING ⚠️ Triton model by url {splitted_url.netloc} with endpoint {endpoint} not ready!')
+
+        return None
 
     @staticmethod
     def is_hub_model(model):

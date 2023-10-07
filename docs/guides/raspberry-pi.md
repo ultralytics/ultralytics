@@ -55,7 +55,7 @@ Please make sure to follow the instructions specific to your Raspberry Pi model 
 
 ## Quick Start with YOLOv5
 
-This section outlines how to set up YOLOv5 on a Raspberry Pi 3 or 4 with a Pi Camera. These steps are designed to be compatible with the libcamera camera stack introduced in Raspberry Pi OS Bullseye.
+This section outlines how to set up YOLOv5 on a Raspberry Pi with a Pi Camera. These steps are designed to be compatible with the libcamera camera stack introduced in Raspberry Pi OS Bullseye.
 
 ### Install Necessary Packages
 

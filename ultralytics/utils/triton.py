@@ -42,6 +42,7 @@ class TritonRemoteModel:
         self.endpoint = endpoint
         self.url = url
 
+        # Choose the Triton client based on the communication scheme
         if scheme == 'http':
             import tritonclient.http as client  # noqa
             self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=False)

@@ -491,7 +491,7 @@ def test_classify_transforms_train(image, auto_augment, re_prob, force_color_jit
     assert torch.is_tensor(transformed_image)
     assert transformed_image.dtype == torch.float32
 
-    
+
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_triton():

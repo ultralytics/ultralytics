@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from typing import List
+from urllib.parse import urlsplit
 
 import numpy as np
 
@@ -32,8 +33,7 @@ class TritonRemoteModel:
             endpoint (str): The name of the model on the Triton server.
             scheme (str): The communication scheme ('http' or 'grpc').
         """
-        if not endpoint and not scheme:  # then parse all args from URL string
-            from urllib.parse import urlsplit
+        if not endpoint and not scheme:  # Parse all args from URL string
             splits = urlsplit(url)
             endpoint = splits.path.strip('/').split('/')[0]
             scheme = splits.scheme
@@ -43,29 +43,24 @@ class TritonRemoteModel:
         self.url = url
 
         if scheme == 'http':
-            import tritonclient.http as httpclient  # noqa
-            self.triton_client: httpclient.InferenceServerClient = \
-                httpclient.InferenceServerClient(url=self.url, verbose=False, ssl=False)
-            self.InferInput = httpclient.InferInput
-            self.InferRequestedOutput = httpclient.InferRequestedOutput
-            model_config = self.triton_client.get_model_config(endpoint)
+            import tritonclient.http as client  # noqa
+            self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=False)
+            config = self.triton_client.get_model_config(endpoint)
         else:
-            import tritonclient.grpc as grpcclient  # noqa
-            self.triton_client: grpcclient.InferenceServerClient = \
-                grpcclient.InferenceServerClient(url=self.url, verbose=False, ssl=False)
-            self.InferInput = grpcclient.InferInput
-            self.InferRequestedOutput = grpcclient.InferRequestedOutput
-            model_config = self.triton_client.get_model_config(endpoint, as_json=True)['config']
+            import tritonclient.grpc as client  # noqa
+            self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=False)
+            config = self.triton_client.get_model_config(endpoint, as_json=True)['config']
 
-        # Convert string types to numpy types
+        self.InferRequestedOutput = client.InferRequestedOutput
+        self.InferInput = client.InferInput
+
         type_map = {'TYPE_FP32': np.float32, 'TYPE_FP16': np.float16, 'TYPE_UINT8': np.uint8}
-        self.input_formats = [x['data_type'] for x in model_config['input']]
+        self.input_formats = [x['data_type'] for x in config['input']]
         self.np_input_formats = [type_map[x] for x in self.input_formats]
+        self.input_names = [x['name'] for x in config['input']]
+        self.output_names = [x['name'] for x in config['output']]
 
-        self.input_names = [x['name'] for x in model_config['input']]
-        self.output_names = [x['name'] for x in model_config['output']]
-
-    def __call__(self, *inputs) -> List[np.ndarray]:
+    def __call__(self, *inputs: np.ndarray) -> List[np.ndarray]:
         """
         Call the model with the given inputs.
 
@@ -85,7 +80,6 @@ class TritonRemoteModel:
             infer_inputs.append(infer_input)
 
         infer_outputs = [self.InferRequestedOutput(output_name) for output_name in self.output_names]
-
         outputs = self.triton_client.infer(model_name=self.endpoint, inputs=infer_inputs, outputs=infer_outputs)
 
         return [outputs.as_numpy(output_name).astype(input_format) for output_name in self.output_names]

@@ -275,15 +275,32 @@ class v8SegmentationLoss(v8DetectionLoss):
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def single_mask_loss(self, gt_mask, pred, proto, xyxy, area):
+    def single_mask_loss(
+        self,
+        gt_mask: torch.Tensor,
+        pred: torch.Tensor,
+        proto: torch.Tensor,
+        xyxy: torch.Tensor,
+        area: torch.Tensor,
+    ) -> torch.Tensor:
         """Mask loss for one image."""
         # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
         pred_mask = torch.einsum('in,nhw->ihw', pred, proto)
         loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction='none')
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
 
-    def calculate_segmentation_loss(self, fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks,
-                                    imgsz, overlap):
+    def calculate_segmentation_loss(
+        self,
+        fg_mask: torch.Tensor,
+        masks: torch.Tensor,
+        target_gt_idx: torch.Tensor,
+        target_bboxes: torch.Tensor,
+        batch_idx: torch.Tensor,
+        proto: torch.Tensor,
+        pred_masks: torch.Tensor,
+        imgsz: torch.Tensor,
+        overlap: bool,
+    ) -> torch.Tensor:
         """
         fg_mask: (BS, N_anchors)
         masks: (BS, H, W) if overlap else (BS, ?, H, W)
@@ -314,7 +331,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                 mask_idx = target_gt_idx_i[fg_mask_i]
                 if overlap:
                     gt_mask = masks_i == (mask_idx + 1).view(-1, 1, 1)
-                    gt_mask = gt_mask.to(pred_masks_i.dtype)
+                    gt_mask = gt_mask.float()
                 else:
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
 

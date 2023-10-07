@@ -25,10 +25,10 @@ In the world of machine learning and computer vision, the process of making sens
 
 ## Real-world Applications
 
-| Manufacturing | Sports | Safety |
-|:-----------------------------------:|:-----------------------:|:-----------:|
-| ![Vehicle Spare Parts Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Football Player Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442)| ![People Fall Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
-| Vehicle Spare Parts Detection | Football Player Detection | People Fall Detection |
+|                                                            Manufacturing                                                            |                                                             Sports                                                              |                                                           Safety                                                            |
+|:-----------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------:|
+| ![Vehicle Spare Parts Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Football Player Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![People Fall Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
+|                                                    Vehicle Spare Parts Detection                                                    |                                                    Football Player Detection                                                    |                                                    People Fall Detection                                                    |
 
 ## Why Use Ultralytics YOLO for Inference?
 
@@ -110,7 +110,7 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 | directory ✅    | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
 | glob ✅         | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
 | YouTube ✅      | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL to a YouTube video.                                                                     |
-| stream ✅       | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, or an IP address.                           |
+| stream ✅       | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, TCP, or an IP address.                      |
 | multi-stream ✅ | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
 
 Below are code examples for using each source type:
@@ -306,7 +306,7 @@ Below are code examples for using each source type:
         ```
 
     === "Streams"
-        Run inference on remote streaming sources using RTSP, RTMP, and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
+        Run inference on remote streaming sources using RTSP, RTMP, TCP and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
         ```python
         from ultralytics import YOLO
 
@@ -314,7 +314,7 @@ Below are code examples for using each source type:
         model = YOLO('yolov8n.pt')
 
         # Single stream with batch-size 1 inference
-        source = 'rtsp://example.com/media.mp4'  # RTSP, RTMP or IP streaming address
+        source = 'rtsp://example.com/media.mp4'  # RTSP, RTMP, TCP or IP streaming address
 
         # Multiple streams with batched inference (i.e. batch-size 8 for 8 streams)
         source = 'path/to/list.streams'  # *.streams text file with one streaming address per row

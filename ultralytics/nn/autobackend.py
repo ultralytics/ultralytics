@@ -7,7 +7,6 @@ import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
-from urllib.parse import urlparse
 
 import cv2
 import numpy as np
@@ -32,8 +31,8 @@ def check_class_names(names):
             raise KeyError(f'{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices '
                            f'{min(names.keys())}-{max(names.keys())} defined in your dataset YAML.')
         if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
-            map = yaml_load(ROOT / 'cfg/datasets/ImageNet.yaml')['map']  # human-readable names
-            names = {k: map[v] for k, v in names.items()}
+            names_map = yaml_load(ROOT / 'cfg/datasets/ImageNet.yaml')['map']  # human-readable names
+            names = {k: names_map[v] for k, v in names.items()}
     return names
 
 
@@ -274,13 +273,9 @@ class AutoBackend(nn.Module):
             net.load_model(str(w.with_suffix('.bin')))
             metadata = w.parent / 'metadata.yaml'
         elif triton:  # NVIDIA Triton Inference Server
-            """TODO
             check_requirements('tritonclient[all]')
-            from utils.triton import TritonRemoteModel
-            model = TritonRemoteModel(url=w)
-            nhwc = model.runtime.startswith("tensorflow")
-            """
-            raise NotImplementedError('Triton Inference Server is not currently supported.')
+            from ultralytics.utils.triton import TritonRemoteModel
+            model = TritonRemoteModel(w)
         else:
             from ultralytics.engine.exporter import export_formats
             raise TypeError(f"model='{w}' is not a supported model format. "
@@ -395,6 +390,7 @@ class AutoBackend(nn.Module):
                 ex.extract(output_name, mat_out)
                 y.append(np.array(mat_out)[None])
         elif self.triton:  # NVIDIA Triton Inference Server
+            im = im.cpu().numpy()  # torch to numpy
             y = self.model(im)
         else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
             im = im.cpu().numpy()
@@ -498,6 +494,8 @@ class AutoBackend(nn.Module):
         if any(types):
             triton = False
         else:
-            url = urlparse(p)  # if url may be Triton inference server
-            triton = all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
+            from urllib.parse import urlsplit
+            url = urlsplit(p)
+            triton = url.netloc and url.path and url.scheme in {'http', 'grfc'}
+
         return types + [triton]

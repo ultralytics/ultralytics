@@ -37,47 +37,25 @@ You should see a video feed from your camera.
 
 This guide offers you the flexibility to start with either [YOLOv5](https://github.com/ultralytics/yolov5) or [YOLOv8](https://github.com/ultralytics/ultralytics). Both versions have their unique advantages and use-cases. The choice is yours, but remember, the guide's aim is not just quick setup but also a robust foundation for your future work in object detection.
 
-## Hardware Specifics: Raspberry Pi 3 vs Raspberry Pi 4
+## Hardware Specifics: At a Glance
 
-Raspberry Pi 3 and Raspberry Pi 4 have distinct hardware specifications, and the YOLO installation and configuration process can vary slightly depending on which model you're using.
+To assist you in making an informed hardware decision, we've summarized the key hardware specifics of Raspberry Pi 3, 4, and 5 in the table below:
 
-### Raspberry Pi 3
-
-- **CPU**: 1.2GHz Quad-Core ARM Cortex-A53
-- **RAM**: 1GB LPDDR2
-- **USB Ports**: 4 x USB 2.0
-- **Network**: Ethernet & Wi-Fi 802.11n
-- **Performance**: Generally slower, may require lighter YOLO models for real-time processing
-- **Power Requirement**: 2.5A power supply
-- **Official Documentation**: [Raspberry Pi 3 Documentation](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md)
-
-### Raspberry Pi 4
-
-- **CPU**: 1.5GHz Quad-core 64-bit ARM Cortex-A72 CPU
-- **RAM**: Options of 2GB, 4GB or 8GB LPDDR4
-- **USB Ports**: 2 x USB 2.0, 2 x USB 3.0
-- **Network**: Gigabit Ethernet & Wi-Fi 802.11ac
-- **Performance**: Faster, capable of running more complex YOLO models in real-time
-- **Power Requirement**: 3.0A USB-C power supply
-- **Official Documentation**: [Raspberry Pi 4 Documentation](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711/README.md)
-
-### Raspberry Pi 5
-
-- **CPU**: 2.4GHz Quad-core 64-bit Arm Cortex-A76 CPU
-- **GPU**: VideoCore VII, supporting OpenGL ES 3.1, Vulkan 1.2
-- **Display Output**: Dual 4Kp60 HDMI
-- **Decoder**: 4Kp60 HEVC
-- **Network**: Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi®, Bluetooth 5.0 / BLE
-- **USB Ports**: 2 x USB 3.0, 2 x USB 2.0
-- **Other Features**: High-speed microSD card interface with SDR104 mode, 2 × 4-lane MIPI camera/display transceivers, PCIe 2.0 x1 interface, standard 40-pin GPIO header, real-time clock, power button
-- **Power Requirement**: Specifics not yet available, expected to require a higher amperage supply
-- **Official Documentation**: [Raspberry Pi 5 Documentation](https://www.raspberrypi.com/news/introducing-raspberry-pi-5/)
+| Feature                    | Raspberry Pi 3                                                                           | Raspberry Pi 4                                                                           | Raspberry Pi 5                                                       |
+|----------------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+| **CPU**                    | 1.2GHz Quad-Core ARM Cortex-A53                                                          | 1.5GHz Quad-core 64-bit ARM Cortex-A72                                                   | 2.4GHz Quad-core 64-bit Arm Cortex-A76                               |
+| **RAM**                    | 1GB LPDDR2                                                                               | 2GB, 4GB or 8GB LPDDR4                                                                   | *Details not yet available*                                          |
+| **USB Ports**              | 4 x USB 2.0                                                                              | 2 x USB 2.0, 2 x USB 3.0                                                                 | 2 x USB 3.0, 2 x USB 2.0                                             |
+| **Network**                | Ethernet & Wi-Fi 802.11n                                                                 | Gigabit Ethernet & Wi-Fi 802.11ac                                                        | Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi®        |
+| **Performance**            | Slower, may require lighter YOLO models                                                  | Faster, can run complex YOLO models                                                      | *Details not yet available*                                          |
+| **Power Requirement**      | 2.5A power supply                                                                        | 3.0A USB-C power supply                                                                  | *Details not yet available*                                          |
+| **Official Documentation** | [Link](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md) | [Link](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711/README.md) | [Link](https://www.raspberrypi.com/news/introducing-raspberry-pi-5/) |
 
 Please make sure to follow the instructions specific to your Raspberry Pi model to ensure a smooth setup process.
 
 ## Quick Start with YOLOv5
 
-This section outlines how to set up YOLOv5 on a Raspberry Pi 3 or 4 with a Pi Camera. These steps are designed to be compatible with the libcamera camera stack introduced in Raspberry Pi OS Bullseye.
+This section outlines how to set up YOLOv5 on a Raspberry Pi with a Pi Camera. These steps are designed to be compatible with the libcamera camera stack introduced in Raspberry Pi OS Bullseye.
 
 ### Install Necessary Packages
 
@@ -171,7 +149,7 @@ Follow this section if you are interested in setting up YOLOv8 instead. The step
     sudo apt-get autoremove -y
     ```
 
-2. Install YOLOv8:
+2. Install the `ultralytics` Python package:
 
     ```bash
     pip3 install ultralytics
@@ -181,28 +159,6 @@ Follow this section if you are interested in setting up YOLOv8 instead. The step
 
     ```bash
     sudo reboot
-    ```
-
-### Modify `build.py`
-
-Just like YOLOv5, YOLOv8 also needs minor modifications to accept TCP streams.
-
-1. Open `build.py` located in the Ultralytics package folder:
-
-    ```bash
-    sudo nano /home/pi/.local/lib/pythonX.X/site-packages/ultralytics/build.py
-    ```
-
-2. Find and modify the `is_url` line to accept TCP streams:
-
-    ```python
-    is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://', 'tcp://'))
-    ```
-
-3. Save and exit:
-
-    ```bash
-    CTRL + O -> ENTER -> CTRL + X
     ```
 
 ### Initiate TCP Stream with Libcamera
@@ -231,7 +187,7 @@ while True:
 
 ## Next Steps
 
-Congratulations on successfully setting up YOLO on your Raspberry Pi! For further learning and support, visit [Ultralytics](https://ultralytics.com/) and [KashmirWorldFoundation](https://www.kashmirworldfoundation.org/).
+Congratulations on successfully setting up YOLO on your Raspberry Pi! For further learning and support, visit [Ultralytics](https://ultralytics.com/) and [Kashmir World Foundation](https://www.kashmirworldfoundation.org/).
 
 ## Acknowledgements and Citations
 

@@ -81,6 +81,12 @@ class Model(nn.Module):
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
 
+        # Check if Triton Server model
+        elif self.is_triton_model(model):
+            self.model = model
+            self.task = task
+            return
+
         # Load or create new YOLO model
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
@@ -93,6 +99,13 @@ class Model(nn.Module):
     def __call__(self, source=None, stream=False, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
+
+    @staticmethod
+    def is_triton_model(model):
+        """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
+        from urllib.parse import urlsplit
+        url = urlsplit(model)
+        return url.netloc and url.path and url.scheme in {'http', 'grfc'}
 
     @staticmethod
     def is_hub_model(model):

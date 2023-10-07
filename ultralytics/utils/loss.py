@@ -284,7 +284,20 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     def calculate_segmentation_loss(self, fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks,
                                     imgsz, overlap):
+        """
+        fg_mask: (BS, N_anchors)
+        masks: (BS, H, W) if overlap else (BS, ?, H, W)
+        target_gt_idx: (BS, N_anchors)
+        target_bboxes: (BS, N_anchors, 4)
+        batch_idx: (N_labels_in_batch, 1)
+        proto: (BS, 32, H, W)
+        pred_masks: (BS, N_anchors, 32)
+        imgsz: (2): (H, W)
+        overlap: bool
+        """
         _, _, mask_h, mask_w = proto.shape
+
+        loss = 0
 
         # normalize to 0-1
         target_bboxes_normalized = target_bboxes / imgsz[[1, 0, 1, 0]]
@@ -295,16 +308,18 @@ class v8SegmentationLoss(v8DetectionLoss):
         # normalize to mask size
         mxyxy = target_bboxes_normalized * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=proto.device)
 
-        loss = 0
-        for i, mask in enumerate(fg_mask):
-            if mask.any():
-                mask_idx = target_gt_idx[i][mask]
+        for i, single_i in enumerate(zip(fg_mask, target_gt_idx, pred_masks, proto, mxyxy, marea, masks)):
+            fg_mask_i, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i, masks_i = single_i
+            if fg_mask_i.any():
+                mask_idx = target_gt_idx_i[fg_mask_i]
                 if overlap:
-                    gt_mask = torch.where(masks[[i]] == (mask_idx + 1).view(-1, 1, 1), 1.0, 0.0)
+                    gt_mask = masks_i == (mask_idx + 1).view(-1, 1, 1)
+                    gt_mask = gt_mask.to(pred_masks_i.dtype)
                 else:
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
 
-                loss += self.single_mask_loss(gt_mask, pred_masks[i][mask], proto[i], mxyxy[i][mask], marea[i][mask])
+                loss += self.single_mask_loss(gt_mask, pred_masks_i[fg_mask_i], proto_i, mxyxy_i[fg_mask_i],
+                                              marea_i[fg_mask_i])
 
             # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
             else:

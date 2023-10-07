@@ -140,7 +140,7 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO('yolov8n-cls.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained
+        model = YOLO('path/to/best.pt')  # load a custom trained model
 
         # Export the model
         model.export(format='onnx')

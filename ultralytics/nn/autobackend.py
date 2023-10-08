@@ -54,7 +54,7 @@ class AutoBackend(nn.Module):
             | TorchScript           | *.torchscript    |
             | ONNX Runtime          | *.onnx           |
             | ONNX OpenCV DNN       | *.onnx (dnn=True)|
-            | OpenVINO              | *.xml            |
+            | OpenVINO              | *openvino_model/ |
             | CoreML                | *.mlpackage      |
             | TensorRT              | *.engine         |
             | TensorFlow SavedModel | *_saved_model    |

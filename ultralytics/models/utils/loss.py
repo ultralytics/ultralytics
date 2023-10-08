@@ -47,6 +47,7 @@ class DETRLoss(nn.Module):
         self.device = None
 
     def _get_loss_class(self, pred_scores, targets, gt_scores, num_gts, postfix=''):
+        """Computes the classification loss based on predictions, target values, and ground truth scores."""
         # logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f'loss_class{postfix}'
         bs, nq = pred_scores.shape[:2]
@@ -68,6 +69,9 @@ class DETRLoss(nn.Module):
         return {name_class: loss_cls.squeeze() * self.loss_gain['class']}
 
     def _get_loss_bbox(self, pred_bboxes, gt_bboxes, postfix=''):
+        """Calculates and returns the bounding box loss and GIoU loss for the predicted and ground truth bounding
+        boxes.
+        """
         # boxes: [b, query, 4], gt_bbox: list[[n, 4]]
         name_bbox = f'loss_bbox{postfix}'
         name_giou = f'loss_giou{postfix}'
@@ -125,7 +129,7 @@ class DETRLoss(nn.Module):
                       postfix='',
                       masks=None,
                       gt_mask=None):
-        """Get auxiliary losses"""
+        """Get auxiliary losses."""
         # NOTE: loss class, bbox, giou, mask, dice
         loss = torch.zeros(5 if masks is not None else 3, device=pred_bboxes.device)
         if match_indices is None and self.use_uni_match:
@@ -166,12 +170,14 @@ class DETRLoss(nn.Module):
 
     @staticmethod
     def _get_index(match_indices):
+        """Returns batch indices, source indices, and destination indices from provided match indices."""
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src for (src, _) in match_indices])
         dst_idx = torch.cat([dst for (_, dst) in match_indices])
         return (batch_idx, src_idx), dst_idx
 
     def _get_assigned_bboxes(self, pred_bboxes, gt_bboxes, match_indices):
+        """Assigns predicted bounding boxes to ground truth bounding boxes based on the match indices."""
         pred_assigned = torch.cat([
             t[I] if len(I) > 0 else torch.zeros(0, t.shape[-1], device=self.device)
             for t, (I, _) in zip(pred_bboxes, match_indices)])
@@ -190,7 +196,7 @@ class DETRLoss(nn.Module):
                   gt_mask=None,
                   postfix='',
                   match_indices=None):
-        """Get losses"""
+        """Get losses."""
         if match_indices is None:
             match_indices = self.matcher(pred_bboxes,
                                          pred_scores,
@@ -250,22 +256,43 @@ class DETRLoss(nn.Module):
 
 
 class RTDETRDetectionLoss(DETRLoss):
+    """
+    Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
+
+    This class computes the detection loss for the RT-DETR model, which includes the standard detection loss as well as
+    an additional denoising training loss when provided with denoising metadata.
+    """
 
     def forward(self, preds, batch, dn_bboxes=None, dn_scores=None, dn_meta=None):
+        """
+        Forward pass to compute the detection loss.
+
+        Args:
+            preds (tuple): Predicted bounding boxes and scores.
+            batch (dict): Batch data containing ground truth information.
+            dn_bboxes (torch.Tensor, optional): Denoising bounding boxes. Default is None.
+            dn_scores (torch.Tensor, optional): Denoising scores. Default is None.
+            dn_meta (dict, optional): Metadata for denoising. Default is None.
+
+        Returns:
+            (dict): Dictionary containing the total loss and, if applicable, the denoising loss.
+        """
         pred_bboxes, pred_scores = preds
         total_loss = super().forward(pred_bboxes, pred_scores, batch)
 
+        # Check for denoising metadata to compute denoising training loss
         if dn_meta is not None:
             dn_pos_idx, dn_num_group = dn_meta['dn_pos_idx'], dn_meta['dn_num_group']
             assert len(batch['gt_groups']) == len(dn_pos_idx)
 
-            # Denoising match indices
+            # Get the match indices for denoising
             match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch['gt_groups'])
 
-            # Compute denoising training loss
+            # Compute the denoising training loss
             dn_loss = super().forward(dn_bboxes, dn_scores, batch, postfix='_dn', match_indices=match_indices)
             total_loss.update(dn_loss)
         else:
+            # If no denoising metadata is provided, set denoising loss to zero
             total_loss.update({f'{k}_dn': torch.tensor(0., device=self.device) for k in total_loss.keys()})
 
         return total_loss
@@ -276,12 +303,12 @@ class RTDETRDetectionLoss(DETRLoss):
         Get the match indices for denoising.
 
         Args:
-            dn_pos_idx (List[torch.Tensor]): A list includes positive indices of denoising.
-            dn_num_group (int): The number of groups of denoising.
-            gt_groups (List(int)): a list of batch size length includes the number of gts of each image.
+            dn_pos_idx (List[torch.Tensor]): List of tensors containing positive indices for denoising.
+            dn_num_group (int): Number of denoising groups.
+            gt_groups (List[int]): List of integers representing the number of ground truths for each image.
 
         Returns:
-            dn_match_indices (List(tuple)): Matched indices.
+            (List[tuple]): List of tuples containing matched indices for denoising.
         """
         dn_match_indices = []
         idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)

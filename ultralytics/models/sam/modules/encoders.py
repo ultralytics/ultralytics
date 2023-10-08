@@ -157,8 +157,8 @@ class PromptEncoder(nn.Module):
 
     def get_dense_pe(self) -> torch.Tensor:
         """
-        Returns the positional encoding used to encode point prompts,
-        applied to a dense set of points the shape of the image encoding.
+        Returns the positional encoding used to encode point prompts, applied to a dense set of points the shape of the
+        image encoding.
 
         Returns:
           torch.Tensor: Positional encoding with shape 1x(embed_dim)x(embedding_h)x(embedding_w)
@@ -204,9 +204,7 @@ class PromptEncoder(nn.Module):
         boxes: Optional[torch.Tensor],
         masks: Optional[torch.Tensor],
     ) -> int:
-        """
-        Gets the batch size of the output given the batch size of the input prompts.
-        """
+        """Gets the batch size of the output given the batch size of the input prompts."""
         if points is not None:
             return points[0].shape[0]
         elif boxes is not None:
@@ -259,9 +257,7 @@ class PromptEncoder(nn.Module):
 
 
 class PositionEmbeddingRandom(nn.Module):
-    """
-    Positional encoding using random spatial frequencies.
-    """
+    """Positional encoding using random spatial frequencies."""
 
     def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
         super().__init__()
@@ -304,7 +300,7 @@ class PositionEmbeddingRandom(nn.Module):
 
 
 class Block(nn.Module):
-    """Transformer blocks with support of window attention and residual propagation blocks"""
+    """Transformer blocks with support of window attention and residual propagation blocks."""
 
     def __init__(
         self,
@@ -448,6 +444,7 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[in
                        hw: Tuple[int, int]) -> torch.Tensor:
     """
     Window unpartition into original sequences and removing padding.
+
     Args:
         windows (tensor): input tokens with [B * num_windows, window_size, window_size, C].
         window_size (int): window size.
@@ -540,9 +537,7 @@ def add_decomposed_rel_pos(
 
 
 class PatchEmbed(nn.Module):
-    """
-    Image to Patch Embedding.
-    """
+    """Image to Patch Embedding."""
 
     def __init__(
             self,

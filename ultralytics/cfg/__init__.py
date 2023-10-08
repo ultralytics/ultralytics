@@ -180,8 +180,8 @@ def _handle_deprecation(custom):
 
 def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
-    This function checks for any mismatched keys between a custom configuration list and a base configuration list.
-    If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
+    This function checks for any mismatched keys between a custom configuration list and a base configuration list. If
+    any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
 
     Args:
         custom (dict): a dictionary of custom configuration options
@@ -205,9 +205,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' args in a list of strings.
-    The function considers cases where the first argument ends with '=' or the second starts with '=',
-    as well as when the middle one is an equals sign.
+    Merges arguments around isolated '=' args in a list of strings. The function considers cases where the first
+    argument ends with '=' or the second starts with '=', as well as when the middle one is an equals sign.
 
     Args:
         args (List[str]): A list of strings where each element is an argument.

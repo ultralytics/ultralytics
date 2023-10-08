@@ -84,6 +84,7 @@ class HUBTrainingSession:
     def _handle_signal(self, signum, frame):
         """
         Handle kill signals and prevent heartbeats from being sent on Colab after termination.
+
         This method does not use frame, it is included as it is passed by signal.
         """
         if self.alive is True:

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Ultralytics Results, Boxes and Masks classes for handling inference results
+Ultralytics Results, Boxes and Masks classes for handling inference results.
 
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
@@ -19,12 +19,11 @@ from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class BaseTensor(SimpleClass):
-    """
-    Base tensor class with additional methods for easy manipulation and device handling.
-    """
+    """Base tensor class with additional methods for easy manipulation and device handling."""
 
     def __init__(self, data, orig_shape) -> None:
-        """Initialize BaseTensor with data and original shape.
+        """
+        Initialize BaseTensor with data and original shape.
 
         Args:
             data (torch.Tensor | np.ndarray): Predictions, such as bboxes, masks and keypoints.
@@ -126,6 +125,18 @@ class Results(SimpleClass):
             self.probs = probs
 
     def _apply(self, fn, *args, **kwargs):
+        """
+        Applies a function to all non-empty attributes and returns a new Results object with modified attributes. This
+        function is internally called by methods like .to(), .cuda(), .cpu(), etc.
+
+        Args:
+            fn (str): The name of the function to apply.
+            *args: Variable length argument list to pass to the function.
+            **kwargs: Arbitrary keyword arguments to pass to the function.
+
+        Returns:
+            Results: A new Results object with attributes modified by the applied function.
+        """
         r = self.new()
         for k in self._keys:
             v = getattr(self, k)
@@ -250,9 +261,7 @@ class Results(SimpleClass):
         return annotator.result()
 
     def verbose(self):
-        """
-        Return log string for each task.
-        """
+        """Return log string for each task."""
         log_string = ''
         probs = self.probs
         boxes = self.boxes
@@ -537,6 +546,7 @@ class Probs(BaseTensor):
     """
 
     def __init__(self, probs, orig_shape=None) -> None:
+        """Initialize the Probs class with classification probabilities and optional original shape of the image."""
         super().__init__(probs, orig_shape)
 
     @property

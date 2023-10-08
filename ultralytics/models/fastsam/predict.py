@@ -11,10 +11,12 @@ from ultralytics.utils import DEFAULT_CFG, ops
 class FastSAMPredictor(DetectionPredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initializes FastSAMPredictor class by inheriting from DetectionPredictor and setting task to 'segment'."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'segment'
 
     def postprocess(self, preds, img, orig_imgs):
+        """Postprocesses the predictions, applies non-max suppression, scales the boxes, and returns the results."""
         p = ops.non_max_suppression(
             preds[0],
             self.args.conf,

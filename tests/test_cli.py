@@ -22,11 +22,12 @@ EXPORT_ARGS = [
 
 
 def run(cmd):
-    # Run a subprocess command with check=True
+    """Execute a shell command using subprocess."""
     subprocess.run(cmd.split(), check=True)
 
 
 def test_special_modes():
+    """Test various special command modes of YOLO."""
     run('yolo help')
     run('yolo checks')
     run('yolo version')
@@ -36,31 +37,37 @@ def test_special_modes():
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_train(task, model, data):
+    """Test YOLO training for a given task, model, and data."""
     run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 cache=disk')
 
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_val(task, model, data):
+    """Test YOLO validation for a given task, model, and data."""
     run(f'yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32 save_txt save_json')
 
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict(task, model, data):
+    """Test YOLO prediction on sample assets for a given task and model."""
     run(f'yolo predict model={WEIGHTS_DIR / model}.pt source={ASSETS} imgsz=32 save save_crop save_txt')
 
 
 @pytest.mark.parametrize('model,format', EXPORT_ARGS)
 def test_export(model, format):
+    """Test exporting a YOLO model to different formats."""
     run(f'yolo export model={WEIGHTS_DIR / model}.pt format={format} imgsz=32')
 
 
 def test_rtdetr(task='detect', model='yolov8n-rtdetr.yaml', data='coco8.yaml'):
+    """Test the RTDETR functionality with the Ultralytics framework."""
     # Warning: MUST use imgsz=640
     run(f'yolo train {task} model={model} data={data} --imgsz= 640 epochs =1, cache = disk')  # add coma, spaces to args
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=640 save save_crop save_txt")
 
 
 def test_fastsam(task='segment', model=WEIGHTS_DIR / 'FastSAM-s.pt', data='coco8-seg.yaml'):
+    """Test FastSAM segmentation functionality within Ultralytics."""
     source = ASSETS / 'bus.jpg'
 
     run(f'yolo segment val {task} model={model} data={data} imgsz=32')
@@ -97,6 +104,7 @@ def test_fastsam(task='segment', model=WEIGHTS_DIR / 'FastSAM-s.pt', data='coco8
 
 
 def test_mobilesam():
+    """Test MobileSAM segmentation functionality using Ultralytics."""
     from ultralytics import SAM
 
     # Load the model
@@ -121,5 +129,6 @@ def test_mobilesam():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 @pytest.mark.skipif(CUDA_DEVICE_COUNT < 2, reason='DDP is not available')
 def test_train_gpu(task, model, data):
+    """Test YOLO training on GPU(s) for various tasks and models."""
     run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 device=0')  # single GPU
     run(f'yolo train {task} model={model}.pt data={data} imgsz=32 epochs=1 device=0,1')  # multi GPU

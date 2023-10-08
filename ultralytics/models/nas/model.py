@@ -30,7 +30,7 @@ class NAS(Model):
 
     @smart_inference_mode()
     def _load(self, weights: str, task: str):
-        # Load or create new NAS model
+        """Loads an existing NAS model weights or creates a new NAS model with pretrained weights if not provided."""
         import super_gradients
         suffix = Path(weights).suffix
         if suffix == '.pt':
@@ -58,4 +58,5 @@ class NAS(Model):
 
     @property
     def task_map(self):
+        """Returns a dictionary mapping tasks to respective predictor and validator classes."""
         return {'detect': {'predictor': NASPredictor, 'validator': NASValidator}}

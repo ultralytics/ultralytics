@@ -580,7 +580,7 @@ class MultiTaskLoss(v8DetectionLoss):
             if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
                 masks = F.interpolate(masks[None], (mask_h, mask_w), mode='nearest')[0]
 
-            loss[1] = self.seg_loss.calculate_segmentation_loss(fg_mask, masks, target_gt_idx, target_bboxes, batch_idx,
+            loss[3] = self.seg_loss.calculate_segmentation_loss(fg_mask, masks, target_gt_idx, target_bboxes, batch_idx,
                                                                 proto, pred_masks, imgsz, self.seg_loss.overlap)
 
         loss[0] *= self.hyp.box  # box gain

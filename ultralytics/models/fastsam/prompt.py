@@ -15,6 +15,7 @@ from ultralytics.utils import TQDM
 class FastSAMPrompt:
 
     def __init__(self, source, results, device='cuda') -> None:
+        """Initializes FastSAMPrompt with given source, results and device, and assigns clip for linear assignment."""
         self.device = device
         self.results = results
         self.source = source
@@ -202,6 +203,7 @@ class FastSAMPrompt:
 
     @torch.no_grad()
     def retrieve(self, model, preprocess, elements, search_text: str, device) -> int:
+        """Processes images and text with a model, calculates similarity, and returns softmax score."""
         preprocessed_images = [preprocess(image).to(device) for image in elements]
         tokenized_text = self.clip.tokenize([search_text]).to(device)
         stacked_images = torch.stack(preprocessed_images)

@@ -14,6 +14,7 @@ class SAM(Model):
     """SAM model interface."""
 
     def __init__(self, model='sam_b.pt') -> None:
+        """Initializes the SAM model instance with the specified pre-trained model file."""
         if model and Path(model).suffix not in ('.pt', '.pth'):
             raise NotImplementedError('SAM prediction requires pre-trained *.pt or *.pth model.')
         super().__init__(model=model, task='segment')

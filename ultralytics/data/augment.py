@@ -478,7 +478,7 @@ class RandomHSV:
         self.vgain = vgain
 
     def __call__(self, labels):
-        """Applies image HSV augmentation"""
+        """Applies image HSV augmentation."""
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
@@ -639,9 +639,13 @@ class CopyPaste:
 
 
 class Albumentations:
-    """Albumentations transformations. Optional, uninstall package to disable.
-    Applies Blur, Median Blur, convert to grayscale, Contrast Limited Adaptive Histogram Equalization,
-    random change of brightness and contrast, RandomGamma and lowering of image quality by compression."""
+    """
+    Albumentations transformations.
+
+    Optional, uninstall package to disable. Applies Blur, Median Blur, convert to grayscale, Contrast Limited Adaptive
+    Histogram Equalization, random change of brightness and contrast, RandomGamma and lowering of image quality by
+    compression.
+    """
 
     def __init__(self, p=1.0):
         """Initialize the transform object for YOLO bbox formatted params."""
@@ -746,7 +750,7 @@ class Format:
         return img
 
     def _format_segments(self, instances, cls, w, h):
-        """convert polygon points to bitmap."""
+        """Convert polygon points to bitmap."""
         segments = instances.segments
         if self.mask_overlap:
             masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)

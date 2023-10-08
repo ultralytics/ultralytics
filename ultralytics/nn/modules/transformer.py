@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Transformer modules
-"""
+"""Transformer modules."""
 
 import math
 
@@ -152,7 +150,7 @@ class MLPBlock(nn.Module):
 
 
 class MLP(nn.Module):
-    """ Very simple multi-layer perceptron (also called FFN)"""
+    """Very simple multi-layer perceptron (also called FFN)"""
 
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
         super().__init__()
@@ -188,6 +186,7 @@ class LayerNorm2d(nn.Module):
 class MSDeformAttn(nn.Module):
     """
     Original Multi-Scale Deformable Attention Module.
+
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
 

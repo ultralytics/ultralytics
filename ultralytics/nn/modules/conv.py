@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Convolution modules
-"""
+"""Convolution modules."""
 
 import math
 
@@ -69,7 +67,9 @@ class Conv2(Conv):
 
 
 class LightConv(nn.Module):
-    """Light convolution with args(ch_in, ch_out, kernel).
+    """
+    Light convolution with args(ch_in, ch_out, kernel).
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
@@ -148,7 +148,9 @@ class GhostConv(nn.Module):
 
 class RepConv(nn.Module):
     """
-    RepConv is a basic rep-style block, including training and deploy status. This module is used in RT-DETR.
+    RepConv is a basic rep-style block, including training and deploy status.
+
+    This module is used in RT-DETR.
     Based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
     """
     default_act = nn.SiLU()  # default activation
@@ -166,11 +168,11 @@ class RepConv(nn.Module):
         self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False)
 
     def forward_fuse(self, x):
-        """Forward process"""
+        """Forward process."""
         return self.act(self.conv(x))
 
     def forward(self, x):
-        """Forward process"""
+        """Forward process."""
         id_out = 0 if self.bn is None else self.bn(x)
         return self.act(self.conv1(x) + self.conv2(x) + id_out)
 

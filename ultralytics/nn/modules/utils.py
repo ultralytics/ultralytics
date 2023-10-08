@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Module utils
-"""
+"""Module utils."""
 
 import copy
 import math
@@ -20,7 +18,7 @@ def _get_clones(module, n):
 
 
 def bias_init_with_prob(prior_prob=0.01):
-    """initialize conv/fc bias value according to a given probability value."""
+    """Initialize conv/fc bias value according to a given probability value."""
     return float(-np.log((1 - prior_prob) / prior_prob))  # return bias_init
 
 
@@ -43,6 +41,7 @@ def multi_scale_deformable_attn_pytorch(value: torch.Tensor, value_spatial_shape
                                         attention_weights: torch.Tensor) -> torch.Tensor:
     """
     Multi-scale deformable attention.
+
     https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
     """
 

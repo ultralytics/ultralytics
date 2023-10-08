@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-RT-DETR model interface
-"""
+"""RT-DETR model interface."""
 from ultralytics.engine.model import Model
 from ultralytics.nn.tasks import RTDETRDetectionModel
 
@@ -11,9 +9,7 @@ from .val import RTDETRValidator
 
 
 class RTDETR(Model):
-    """
-    RTDETR model interface.
-    """
+    """RTDETR model interface."""
 
     def __init__(self, model='rtdetr-l.pt') -> None:
         if model and model.split('.')[-1] not in ('pt', 'yaml', 'yml'):

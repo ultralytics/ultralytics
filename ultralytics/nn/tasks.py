@@ -25,14 +25,11 @@ except ImportError:
 
 
 class BaseModel(nn.Module):
-    """
-    The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family.
-    """
+    """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
     def forward(self, x, *args, **kwargs):
         """
-        Forward pass of the model on a single scale.
-        Wrapper for `_forward_once` method.
+        Forward pass of the model on a single scale. Wrapper for `_forward_once` method.
 
         Args:
             x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
@@ -93,8 +90,8 @@ class BaseModel(nn.Module):
 
     def _profile_one_layer(self, m, x, dt):
         """
-        Profile the computation time and FLOPs of a single layer of the model on a given input.
-        Appends the results to the provided list.
+        Profile the computation time and FLOPs of a single layer of the model on a given input. Appends the results to
+        the provided list.
 
         Args:
             m (nn.Module): The layer to be profiled.
@@ -158,7 +155,7 @@ class BaseModel(nn.Module):
 
     def info(self, detailed=False, verbose=True, imgsz=640):
         """
-        Prints model information
+        Prints model information.
 
         Args:
             detailed (bool): if True, prints out detailed information about the model. Defaults to False
@@ -202,7 +199,7 @@ class BaseModel(nn.Module):
 
     def loss(self, batch, preds=None):
         """
-        Compute loss
+        Compute loss.
 
         Args:
             batch (dict): Batch to compute loss on
@@ -708,9 +705,9 @@ def yaml_model_load(path):
 
 def guess_model_scale(model_path):
     """
-    Takes a path to a YOLO model's YAML file as input and extracts the size character of the model's scale.
-    The function uses regular expression matching to find the pattern of the model scale in the YAML file name,
-    which is denoted by n, s, m, l, or x. The function returns the size character of the model scale as a string.
+    Takes a path to a YOLO model's YAML file as input and extracts the size character of the model's scale. The function
+    uses regular expression matching to find the pattern of the model scale in the YAML file name, which is denoted by
+    n, s, m, l, or x. The function returns the size character of the model scale as a string.
 
     Args:
         model_path (str | Path): The path to the YOLO model's YAML file.

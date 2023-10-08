@@ -30,9 +30,9 @@ class WorkingDirectory(contextlib.ContextDecorator):
 @contextmanager
 def spaces_in_path(path):
     """
-    Context manager to handle paths with spaces in their names.
-    If a path contains spaces, it replaces them with underscores, copies the file/directory to the new path,
-    executes the context code block, then copies the file/directory back to its original location.
+    Context manager to handle paths with spaces in their names. If a path contains spaces, it replaces them with
+    underscores, copies the file/directory to the new path, executes the context code block, then copies the
+    file/directory back to its original location.
 
     Args:
         path (str | Path): The original path.

@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-SAM model interface
-"""
+"""SAM model interface."""
 
 from pathlib import Path
 
@@ -13,9 +11,7 @@ from .predict import Predictor
 
 
 class SAM(Model):
-    """
-    SAM model interface.
-    """
+    """SAM model interface."""
 
     def __init__(self, model='sam_b.pt') -> None:
         if model and Path(model).suffix not in ('.pt', '.pth'):

@@ -12,7 +12,8 @@ from ultralytics.utils import TQDM
 
 
 def coco91_to_coco80_class():
-    """Converts 91-index COCO class IDs to 80-index COCO class IDs.
+    """
+    Converts 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
         (list): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
@@ -51,7 +52,8 @@ def convert_coco(labels_dir='../coco/annotations/',
                  use_segments=False,
                  use_keypoints=False,
                  cls91to80=True):
-    """Converts COCO dataset annotations to a format suitable for training YOLOv5 models.
+    """
+    Converts COCO dataset annotations to a format suitable for training YOLOv5 models.
 
     Args:
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.

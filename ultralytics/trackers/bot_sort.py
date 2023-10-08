@@ -59,9 +59,7 @@ class BOTrack(STrack):
 
     @property
     def tlwh(self):
-        """Get current position in bounding box format `(top left x, top left y,
-        width, height)`.
-        """
+        """Get current position in bounding box format `(top left x, top left y, width, height)`."""
         if self.mean is None:
             return self._tlwh.copy()
         ret = self.mean[:4].copy()
@@ -90,9 +88,7 @@ class BOTrack(STrack):
 
     @staticmethod
     def tlwh_to_xywh(tlwh):
-        """Convert bounding box to format `(center x, center y, width,
-        height)`.
-        """
+        """Convert bounding box to format `(center x, center y, width, height)`."""
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
         return ret

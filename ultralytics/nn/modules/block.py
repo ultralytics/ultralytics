@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Block modules
-"""
+"""Block modules."""
 
 import torch
 import torch.nn as nn
@@ -17,6 +15,7 @@ __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', '
 class DFL(nn.Module):
     """
     Integral module of Distribution Focal Loss (DFL).
+
     Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
     """
 
@@ -51,7 +50,9 @@ class Proto(nn.Module):
 
 
 class HGStem(nn.Module):
-    """StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
+    """
+    StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
@@ -79,7 +80,9 @@ class HGStem(nn.Module):
 
 
 class HGBlock(nn.Module):
-    """HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
+    """
+    HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Ultralytics Results, Boxes and Masks classes for handling inference results
+Ultralytics Results, Boxes and Masks classes for handling inference results.
 
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
@@ -19,12 +19,11 @@ from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class BaseTensor(SimpleClass):
-    """
-    Base tensor class with additional methods for easy manipulation and device handling.
-    """
+    """Base tensor class with additional methods for easy manipulation and device handling."""
 
     def __init__(self, data, orig_shape) -> None:
-        """Initialize BaseTensor with data and original shape.
+        """
+        Initialize BaseTensor with data and original shape.
 
         Args:
             data (torch.Tensor | np.ndarray): Predictions, such as bboxes, masks and keypoints.
@@ -250,9 +249,7 @@ class Results(SimpleClass):
         return annotator.result()
 
     def verbose(self):
-        """
-        Return log string for each task.
-        """
+        """Return log string for each task."""
         log_string = ''
         probs = self.probs
         boxes = self.boxes

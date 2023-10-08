@@ -125,7 +125,7 @@ class DETRLoss(nn.Module):
                       postfix='',
                       masks=None,
                       gt_mask=None):
-        """Get auxiliary losses"""
+        """Get auxiliary losses."""
         # NOTE: loss class, bbox, giou, mask, dice
         loss = torch.zeros(5 if masks is not None else 3, device=pred_bboxes.device)
         if match_indices is None and self.use_uni_match:
@@ -190,7 +190,7 @@ class DETRLoss(nn.Module):
                   gt_mask=None,
                   postfix='',
                   match_indices=None):
-        """Get losses"""
+        """Get losses."""
         if match_indices is None:
             match_indices = self.matcher(pred_bboxes,
                                          pred_scores,
@@ -253,8 +253,8 @@ class RTDETRDetectionLoss(DETRLoss):
     """
     Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
 
-    This class computes the detection loss for the RT-DETR model, which includes the standard
-    detection loss as well as an additional denoising training loss when provided with denoising metadata.
+    This class computes the detection loss for the RT-DETR model, which includes the standard detection loss as well as
+    an additional denoising training loss when provided with denoising metadata.
     """
 
     def forward(self, preds, batch, dn_bboxes=None, dn_scores=None, dn_meta=None):

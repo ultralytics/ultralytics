@@ -11,7 +11,7 @@ class STrack(BaseTrack):
     shared_kalman = KalmanFilterXYAH()
 
     def __init__(self, tlwh, score, cls):
-        """wait activate."""
+        """Initialize new STrack instance."""
         self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
@@ -92,10 +92,11 @@ class STrack(BaseTrack):
 
     def update(self, new_track, frame_id):
         """
-        Update a matched track
-        :type new_track: STrack
-        :type frame_id: int
-        :return:
+        Update the state of a matched track.
+
+        Args:
+            new_track (STrack): The new track containing updated information.
+            frame_id (int): The ID of the current frame.
         """
         self.frame_id = frame_id
         self.tracklet_len += 1
@@ -116,9 +117,7 @@ class STrack(BaseTrack):
 
     @property
     def tlwh(self):
-        """Get current position in bounding box format `(top left x, top left y,
-        width, height)`.
-        """
+        """Get current position in bounding box format (top left x, top left y, width, height)."""
         if self.mean is None:
             return self._tlwh.copy()
         ret = self.mean[:4].copy()
@@ -128,17 +127,15 @@ class STrack(BaseTrack):
 
     @property
     def tlbr(self):
-        """Convert bounding box to format `(min x, min y, max x, max y)`, i.e.,
-        `(top left, bottom right)`.
-        """
+        """Convert bounding box to format (min x, min y, max x, max y), i.e., (top left, bottom right)."""
         ret = self.tlwh.copy()
         ret[2:] += ret[:2]
         return ret
 
     @staticmethod
     def tlwh_to_xyah(tlwh):
-        """Convert bounding box to format `(center x, center y, aspect ratio,
-        height)`, where the aspect ratio is `width / height`.
+        """Convert bounding box to format (center x, center y, aspect ratio, height), where the aspect ratio is width /
+        height.
         """
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
@@ -234,8 +231,7 @@ class BYTETracker:
             else:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
-        # Step 3: Second association, with low score detection boxes
-        # association the untrack to the low score detections
+        # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
         detections_second = self.init_track(dets_second, scores_second, cls_second, img)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         # TODO

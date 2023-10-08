@@ -20,7 +20,11 @@ from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
 def check_class_names(names):
-    """Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts."""
+    """
+    Check class names.
+
+    Map imagenet class codes to human-readable names if required. Convert lists to dicts.
+    """
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
@@ -440,14 +444,14 @@ class AutoBackend(nn.Module):
 
     def from_numpy(self, x):
         """
-         Convert a numpy array to a tensor.
+        Convert a numpy array to a tensor.
 
-         Args:
-             x (np.ndarray): The array to be converted.
+        Args:
+            x (np.ndarray): The array to be converted.
 
-         Returns:
-             (torch.Tensor): The converted tensor
-         """
+        Returns:
+            (torch.Tensor): The converted tensor
+        """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):
@@ -476,7 +480,7 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p='path/to/model.pt'):
         """
-        This function takes a path to a model file and returns the model type
+        This function takes a path to a model file and returns the model type.
 
         Args:
             p: path to the model file. Defaults to path/to/model.pt

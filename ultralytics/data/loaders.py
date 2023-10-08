@@ -152,7 +152,7 @@ class LoadScreenshots:
     """YOLOv8 screenshot dataloader, i.e. `yolo predict source=screen`."""
 
     def __init__(self, source, imgsz=640):
-        """source = [screen_number left top width height] (pixels)."""
+        """Source = [screen_number left top width height] (pixels)."""
         check_requirements('mss')
         import mss  # noqa
 
@@ -370,9 +370,7 @@ class LoadTensor:
 
 
 def autocast_list(source):
-    """
-    Merges a list of source of different types into a list of numpy arrays or PIL images
-    """
+    """Merges a list of source of different types into a list of numpy arrays or PIL images."""
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri

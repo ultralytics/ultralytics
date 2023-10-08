@@ -54,7 +54,9 @@ class Auth:
 
     def request_api_key(self, max_attempts=3):
         """
-        Prompt the user to input their API key. Returns the model ID.
+        Prompt the user to input their API key.
+
+        Returns the model ID.
         """
         import getpass
         for attempts in range(max_attempts):
@@ -86,8 +88,8 @@ class Auth:
 
     def auth_with_cookies(self) -> bool:
         """
-        Attempt to fetch authentication via cookies and set id_token.
-        User must be logged in to HUB and running in a supported browser.
+        Attempt to fetch authentication via cookies and set id_token. User must be logged in to HUB and running in a
+        supported browser.
 
         Returns:
             bool: True if authentication is successful, False otherwise.

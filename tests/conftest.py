@@ -9,7 +9,8 @@ TMP = Path(__file__).resolve().parent / 'tmp'  # temp directory for test files
 
 
 def pytest_addoption(parser):
-    """Add custom command-line options to pytest.
+    """
+    Add custom command-line options to pytest.
 
     Args:
         parser (pytest.config.Parser): The pytest parser object.
@@ -18,7 +19,8 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    """Register custom markers to avoid pytest warnings.
+    """
+    Register custom markers to avoid pytest warnings.
 
     Args:
         config (pytest.config.Config): The pytest config object.
@@ -27,7 +29,8 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
-    """Setup hook to skip tests marked as slow if the --slow option is not provided.
+    """
+    Setup hook to skip tests marked as slow if the --slow option is not provided.
 
     Args:
         item (pytest.Item): The test item object.

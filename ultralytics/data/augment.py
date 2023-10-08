@@ -534,7 +534,7 @@ class RandomPerspective:
             eps (float, optional): A small epsilon value to prevent division by zero. Default is 1e-16.
 
         Returns:
-            numpy.ndarray: A boolean array indicating which boxes are candidates based on the given thresholds.
+            (numpy.ndarray): A boolean array indicating which boxes are candidates based on the given thresholds.
         """
         w1, h1 = box1[2] - box1[0], box1[3] - box1[1]
         w2, h2 = box2[2] - box2[0], box2[3] - box2[1]
@@ -618,7 +618,7 @@ class RandomFlip:
                            'instances' is an object containing bounding boxes and optionally keypoints.
 
         Returns:
-            dict: The same dictionary with the flipped image and updated instances under the 'img' and 'instances' keys.
+            (dict): The same dict with the flipped image and updated instances under the 'img' and 'instances' keys.
         """
         img = labels['img']
         instances = labels.pop('instances')
@@ -737,7 +737,7 @@ class CopyPaste:
                            - 'instances': Object containing bounding boxes, and optionally, keypoints and segments.
 
         Returns:
-            dict: The dictionary with augmented image and updated instances under the 'img', 'cls', and 'instances' keys.
+            (dict): Dict with augmented image and updated instances under the 'img', 'cls', and 'instances' keys.
 
         Notes:
             1. Instances are expected to have 'segments' as one of their attributes for this augmentation to work.
@@ -1040,7 +1040,7 @@ class ClassifyLetterBox:
             im (numpy.ndarray): The input image as a numpy array of shape HWC.
 
         Returns:
-            numpy.ndarray: The letterboxed and resized image as a numpy array.
+            (numpy.ndarray): The letterboxed and resized image as a numpy array.
         """
         imh, imw = im.shape[:2]
         r = min(self.h / imh, self.w / imw)  # ratio of new/old dimensions
@@ -1074,7 +1074,7 @@ class CenterCrop:
             im (numpy.ndarray): The input image as a numpy array of shape HWC.
 
         Returns:
-            numpy.ndarray: The center-cropped and resized image as a numpy array.
+            (numpy.ndarray): The center-cropped and resized image as a numpy array.
         """
         imh, imw = im.shape[:2]
         m = min(imh, imw)  # min dimension
@@ -1098,7 +1098,7 @@ class ToTensor:
             im (numpy.ndarray): Input image as a numpy array with shape (H, W, C) in BGR order.
 
         Returns:
-            torch.Tensor: The transformed image as a PyTorch tensor in float32 or float16 format, normalized to [0, 1].
+            (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized to [0, 1].
         """
         im = np.ascontiguousarray(im.transpose((2, 0, 1))[::-1])  # HWC to CHW -> BGR to RGB -> contiguous
         im = torch.from_numpy(im)  # to torch

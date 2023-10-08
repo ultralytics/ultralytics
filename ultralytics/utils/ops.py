@@ -50,6 +50,7 @@ class Profile(contextlib.ContextDecorator):
         self.t += self.dt  # accumulate dt
 
     def __str__(self):
+        """Returns a human-readable string representing the accumulated elapsed time in the profiler."""
         return f'Elapsed time is {self.t} s'
 
     def time(self):

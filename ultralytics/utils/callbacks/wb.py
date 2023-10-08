@@ -17,6 +17,7 @@ except (ImportError, AssertionError):
 
 
 def _log_plots(plots, step):
+    """Logs plots from the input dictionary if they haven't been logged already at the specified step."""
     for name, params in plots.items():
         timestamp = params['timestamp']
         if _processed_plots.get(name) != timestamp:

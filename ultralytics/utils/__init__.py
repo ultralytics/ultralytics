@@ -117,6 +117,7 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
+        """Initialize custom Ultralytics tqdm class with different default arguments."""
         # Set new default values (these can still be overridden when calling TQDM)
         kwargs['disable'] = not VERBOSE or kwargs.get('disable', False)  # logical 'and' with default value if passed
         kwargs.setdefault('bar_format', TQDM_BAR_FORMAT)  # override default value if passed
@@ -292,9 +293,11 @@ class ThreadingLocked:
     """
 
     def __init__(self):
+        """Initializes the decorator class for thread-safe execution of a function or method."""
         self.lock = threading.Lock()
 
     def __call__(self, f):
+        """Run thread-safe execution of function or method."""
         from functools import wraps
 
         @wraps(f)
@@ -830,6 +833,7 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version='0.0.4'):
+        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML file."""
         import copy
         import hashlib
 

@@ -833,7 +833,9 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version='0.0.4'):
-        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML file."""
+        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
+        file.
+        """
         import copy
         import hashlib
 

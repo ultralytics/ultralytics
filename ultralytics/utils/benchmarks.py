@@ -252,7 +252,9 @@ class ProfileModels:
         return [Path(file) for file in sorted(files)]
 
     def get_onnx_model_info(self, onnx_file: str):
-        """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model file."""
+        """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
+        file.
+        """
         # return (num_layers, num_params, num_gradients, num_flops)
         return 0.0, 0.0, 0.0, 0.0
 
@@ -297,7 +299,9 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
-        """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run times."""
+        """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run
+        times.
+        """
         check_requirements('onnxruntime')
         import onnxruntime as ort
 

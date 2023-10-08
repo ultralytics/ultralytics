@@ -9,11 +9,12 @@ from ultralytics.utils import ASSETS, yaml_load
 from ultralytics.utils.checks import check_requirements, check_yaml
 
 
-class Yolov8:
+class YOLOv8:
+    """YOLOv8 object detection model class for handling inference and visualization."""
 
     def __init__(self, onnx_model, input_image, confidence_thres, iou_thres):
         """
-        Initializes an instance of the Yolov8 class.
+        Initializes an instance of the YOLOv8 class.
 
         Args:
             onnx_model: Path to the ONNX model.
@@ -213,8 +214,8 @@ if __name__ == '__main__':
     # Check the requirements and select the appropriate backend (CPU or GPU)
     check_requirements('onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime')
 
-    # Create an instance of the Yolov8 class with the specified arguments
-    detection = Yolov8(args.model, args.img, args.conf_thres, args.iou_thres)
+    # Create an instance of the YOLOv8 class with the specified arguments
+    detection = YOLOv8(args.model, args.img, args.conf_thres, args.iou_thres)
 
     # Perform object detection and obtain the output image
     output_image = detection.main()

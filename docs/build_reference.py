@@ -124,6 +124,7 @@ def create_nav_menu_yaml(nav_items: list):
     nav_tree_sorted = sort_nested_dict(nav_tree)
 
     def _dict_to_yaml(d, level=0):
+        """Converts a nested dictionary to a YAML-formatted string with indentation."""
         yaml_str = ''
         indent = '  ' * level
         for k, v in d.items():

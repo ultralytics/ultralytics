@@ -19,6 +19,7 @@ class TransformerEncoderLayer(nn.Module):
     """Defines a single layer of the transformer encoder."""
 
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0.0, act=nn.GELU(), normalize_before=False):
+        """Initialize the TransformerEncoderLayer with specified parameters."""
         super().__init__()
         from ...utils.torch_utils import TORCH_1_9
         if not TORCH_1_9:
@@ -73,6 +74,7 @@ class AIFI(TransformerEncoderLayer):
     """Defines the AIFI transformer layer."""
 
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0, act=nn.GELU(), normalize_before=False):
+        """Initialize the AIFI instance with specified parameters."""
         super().__init__(c1, cm, num_heads, dropout, act, normalize_before)
 
     def forward(self, x):
@@ -146,6 +148,7 @@ class MLPBlock(nn.Module):
     """Implements a single block of a multi-layer perceptron."""
 
     def __init__(self, embedding_dim, mlp_dim, act=nn.GELU):
+        """Initialize the MLPBlock with specified embedding dimension, MLP dimension, and activation function."""
         super().__init__()
         self.lin1 = nn.Linear(embedding_dim, mlp_dim)
         self.lin2 = nn.Linear(mlp_dim, embedding_dim)
@@ -160,6 +163,7 @@ class MLP(nn.Module):
     """Implements a simple multi-layer perceptron (also called FFN)."""
 
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
+        """Initialize the MLP with specified input, hidden, output dimensions and number of layers."""
         super().__init__()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)

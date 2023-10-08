@@ -19,6 +19,7 @@ from .build import build_sam
 class Predictor(BasePredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initializes the Predictor class with default or provided configuration, overrides, and callbacks."""
         if overrides is None:
             overrides = {}
         overrides.update(dict(task='segment', mode='predict', imgsz=1024))
@@ -362,6 +363,7 @@ class Predictor(BasePredictor):
         self.prompts = prompts
 
     def reset_image(self):
+        """Resets the image and its features to None."""
         self.im = None
         self.features = None
 

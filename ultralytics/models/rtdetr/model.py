@@ -18,6 +18,7 @@ class RTDETR(Model):
 
     @property
     def task_map(self):
+        """Returns a dictionary mapping task names to corresponding Ultralytics task classes for RTDETR model."""
         return {
             'detect': {
                 'predictor': RTDETRPredictor,

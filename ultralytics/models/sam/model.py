@@ -19,6 +19,7 @@ class SAM(Model):
         super().__init__(model=model, task='segment')
 
     def _load(self, weights: str, task=None):
+        """Loads the provided weights into the SAM model."""
         self.model = build_sam(weights)
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, **kwargs):
@@ -44,4 +45,5 @@ class SAM(Model):
 
     @property
     def task_map(self):
+        """Returns a dictionary mapping the 'segment' task to its corresponding 'Predictor'."""
         return {'segment': {'predictor': Predictor}}

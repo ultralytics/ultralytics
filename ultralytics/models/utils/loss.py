@@ -47,6 +47,7 @@ class DETRLoss(nn.Module):
         self.device = None
 
     def _get_loss_class(self, pred_scores, targets, gt_scores, num_gts, postfix=''):
+        """Computes the classification loss based on predictions, target values, and ground truth scores."""
         # logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f'loss_class{postfix}'
         bs, nq = pred_scores.shape[:2]
@@ -68,6 +69,9 @@ class DETRLoss(nn.Module):
         return {name_class: loss_cls.squeeze() * self.loss_gain['class']}
 
     def _get_loss_bbox(self, pred_bboxes, gt_bboxes, postfix=''):
+        """Calculates and returns the bounding box loss and GIoU loss for the predicted and ground truth bounding
+        boxes.
+        """
         # boxes: [b, query, 4], gt_bbox: list[[n, 4]]
         name_bbox = f'loss_bbox{postfix}'
         name_giou = f'loss_giou{postfix}'
@@ -166,12 +170,14 @@ class DETRLoss(nn.Module):
 
     @staticmethod
     def _get_index(match_indices):
+        """Returns batch indices, source indices, and destination indices from provided match indices."""
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src for (src, _) in match_indices])
         dst_idx = torch.cat([dst for (_, dst) in match_indices])
         return (batch_idx, src_idx), dst_idx
 
     def _get_assigned_bboxes(self, pred_bboxes, gt_bboxes, match_indices):
+        """Assigns predicted bounding boxes to ground truth bounding boxes based on the match indices."""
         pred_assigned = torch.cat([
             t[I] if len(I) > 0 else torch.zeros(0, t.shape[-1], device=self.device)
             for t, (I, _) in zip(pred_bboxes, match_indices)])

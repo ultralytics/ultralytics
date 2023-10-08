@@ -33,6 +33,7 @@ class YOLODataset(BaseDataset):
     """
 
     def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, **kwargs):
+        """Initializes the YOLODataset with optional configurations for segments and keypoints."""
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.data = data
@@ -256,6 +257,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         return {'img': sample, 'cls': j}
 
     def __len__(self) -> int:
+        """Return the total number of samples in the dataset."""
         return len(self.samples)
 
     def verify_images(self):
@@ -322,6 +324,16 @@ def save_dataset_cache_file(prefix, path, x):
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
+    """
+    Semantic Segmentation Dataset.
+
+    This class is responsible for handling datasets used for semantic segmentation tasks. It inherits functionalities
+    from the BaseDataset class.
+
+    Note:
+        This class is currently a placeholder and needs to be populated with methods and attributes for supporting
+        semantic segmentation tasks.
+    """
 
     def __init__(self):
         """Initialize a SemanticDataset object."""

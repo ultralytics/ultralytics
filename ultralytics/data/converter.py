@@ -205,6 +205,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         'helipad': 17}
 
     def convert_label(image_name, image_width, image_height, orig_label_dir, save_dir):
+        """Converts a single image's DOTA annotation to YOLO OBB format and saves it to a specified directory."""
         orig_label_path = orig_label_dir / f'{image_name}.txt'
         save_path = save_dir / f'{image_name}.txt'
 

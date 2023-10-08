@@ -250,22 +250,43 @@ class DETRLoss(nn.Module):
 
 
 class RTDETRDetectionLoss(DETRLoss):
+    """
+    Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
+
+    This class computes the detection loss for the RT-DETR model, which includes the standard
+    detection loss as well as an additional denoising training loss when provided with denoising metadata.
+    """
 
     def forward(self, preds, batch, dn_bboxes=None, dn_scores=None, dn_meta=None):
+        """
+        Forward pass to compute the detection loss.
+
+        Args:
+            preds (tuple): Predicted bounding boxes and scores.
+            batch (dict): Batch data containing ground truth information.
+            dn_bboxes (torch.Tensor, optional): Denoising bounding boxes. Default is None.
+            dn_scores (torch.Tensor, optional): Denoising scores. Default is None.
+            dn_meta (dict, optional): Metadata for denoising. Default is None.
+
+        Returns:
+            (dict): Dictionary containing the total loss and, if applicable, the denoising loss.
+        """
         pred_bboxes, pred_scores = preds
         total_loss = super().forward(pred_bboxes, pred_scores, batch)
 
+        # Check for denoising metadata to compute denoising training loss
         if dn_meta is not None:
             dn_pos_idx, dn_num_group = dn_meta['dn_pos_idx'], dn_meta['dn_num_group']
             assert len(batch['gt_groups']) == len(dn_pos_idx)
 
-            # Denoising match indices
+            # Get the match indices for denoising
             match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch['gt_groups'])
 
-            # Compute denoising training loss
+            # Compute the denoising training loss
             dn_loss = super().forward(dn_bboxes, dn_scores, batch, postfix='_dn', match_indices=match_indices)
             total_loss.update(dn_loss)
         else:
+            # If no denoising metadata is provided, set denoising loss to zero
             total_loss.update({f'{k}_dn': torch.tensor(0., device=self.device) for k in total_loss.keys()})
 
         return total_loss
@@ -276,12 +297,12 @@ class RTDETRDetectionLoss(DETRLoss):
         Get the match indices for denoising.
 
         Args:
-            dn_pos_idx (List[torch.Tensor]): A list includes positive indices of denoising.
-            dn_num_group (int): The number of groups of denoising.
-            gt_groups (List(int)): a list of batch size length includes the number of gts of each image.
+            dn_pos_idx (List[torch.Tensor]): List of tensors containing positive indices for denoising.
+            dn_num_group (int): Number of denoising groups.
+            gt_groups (List[int]): List of integers representing the number of ground truths for each image.
 
         Returns:
-            dn_match_indices (List(tuple)): Matched indices.
+            (List[tuple]): List of tuples containing matched indices for denoising.
         """
         dn_match_indices = []
         idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
@@ -295,3 +316,4 @@ class RTDETRDetectionLoss(DETRLoss):
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.long), torch.zeros([0], dtype=torch.long)))
         return dn_match_indices
+

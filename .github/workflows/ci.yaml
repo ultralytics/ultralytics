@@ -186,7 +186,7 @@ jobs:
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               pip install -e . torch==1.8.0 torchvision==0.9.0 pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -e . pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
           fi
       - name: Check environment
         run: |

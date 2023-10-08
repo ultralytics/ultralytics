@@ -22,6 +22,7 @@ from ultralytics.utils.checks import check_requirements
 
 @dataclass
 class SourceTypes:
+    """Class to represent various types of input sources for predictions."""
     webcam: bool = False
     screenshot: bool = False
     from_img: bool = False

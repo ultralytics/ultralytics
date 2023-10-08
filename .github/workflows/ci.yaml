@@ -41,7 +41,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ['3.12']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
@@ -167,7 +167,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ['3.12']
         torch: [latest]
         include:
           - os: ubuntu-latest
@@ -204,7 +204,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: pytest --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v3
         with:
           flags: Tests
@@ -247,7 +247,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ['3.12']
     defaults:
       run:
         shell: bash -el {0}

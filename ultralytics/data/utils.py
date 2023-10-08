@@ -117,22 +117,20 @@ def verify_image_label(args):
                 lb = np.array(lb, dtype=np.float32)
             nl = len(lb)
             if nl:
-                if use_keypoints and use_segments:
-                    # TODO: checks?
-                    pass
-                elif use_keypoints:
+                # lb has shape (nl, 5) if detection or segmentation model or (nl, 5 + nkpt * ndim) if mult-task or keypoints model
+                if use_keypoints:  # mult-task or keypoints model
                     assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
                     points = lb[:, 5:].reshape(-1, ndim)[:, :2]
-                else:
+                else:  # detection or segmentation model
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
                     points = lb[:, 1:]
                 assert points.max() <= 1, f'non-normalized or out of bounds coordinates {points[points > 1]}'
                 assert lb.min() >= 0, f'negative label values {lb[lb < 0]}'
 
                 # All labels
-                max_cls = lb[:, 0].max()  # max label count
+                max_cls = int(lb[:, 0].max())  # max label count
                 assert max_cls <= num_cls, \
-                    f'Label class {int(max_cls)} exceeds dataset class count {num_cls}. ' \
+                    f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
                     f'Possible class labels are 0-{num_cls - 1}'
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
@@ -142,11 +140,11 @@ def verify_image_label(args):
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
+                lb = np.zeros((0, (5 + nkpt * ndim) if use_keypoints else 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim) if keypoints else 5), dtype=np.float32)
-        if keypoint:
+            lb = np.zeros((0, (5 + nkpt * ndim) if use_keypoints else 5), dtype=np.float32)
+        if use_keypoints:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
                 kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)

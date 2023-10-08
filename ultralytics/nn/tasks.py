@@ -172,7 +172,7 @@ class BaseModel(nn.Module):
             fn (function): the function to apply to the model
 
         Returns:
-            A model that is a Detect() object.
+            (BaseModel): An updated BaseModel object.
         """
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
@@ -212,6 +212,7 @@ class BaseModel(nn.Module):
         return self.criterion(preds, batch)
 
     def init_criterion(self):
+        """Initialize the loss criterion for the BaseModel."""
         raise NotImplementedError('compute_loss() needs to be implemented by task heads')
 
 
@@ -219,6 +220,7 @@ class DetectionModel(BaseModel):
     """YOLOv8 detection model."""
 
     def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
+        """Initialize the YOLOv8 detection model with the given config and parameters."""
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
@@ -286,6 +288,7 @@ class DetectionModel(BaseModel):
         return y
 
     def init_criterion(self):
+        """Initialize the loss criterion for the DetectionModel."""
         return v8DetectionLoss(self)
 
 
@@ -297,6 +300,7 @@ class SegmentationModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
+        """Initialize the loss criterion for the SegmentationModel."""
         return v8SegmentationLoss(self)
 
 
@@ -313,6 +317,7 @@ class PoseModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
+        """Initialize the loss criterion for the PoseModel."""
         return v8PoseLoss(self)
 
 
@@ -362,22 +367,59 @@ class ClassificationModel(BaseModel):
                     m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
 
     def init_criterion(self):
-        """Compute the classification loss between predictions and true labels."""
+        """Initialize the loss criterion for the ClassificationModel."""
         return v8ClassificationLoss()
 
 
 class RTDETRDetectionModel(DetectionModel):
+    """
+    RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
+
+    This class is responsible for constructing the RTDETR architecture, defining loss functions, and
+    facilitating both the training and inference processes. RTDETR is an object detection and tracking model
+    that extends from the DetectionModel base class.
+
+    Attributes:
+        cfg (str): The configuration file path or preset string. Default is 'rtdetr-l.yaml'.
+        ch (int): Number of input channels. Default is 3 (RGB).
+        nc (int, optional): Number of classes for object detection. Default is None.
+        verbose (bool): Specifies if summary statistics are shown during initialization. Default is True.
+
+    Methods:
+        init_criterion: Initializes the criterion used for loss calculation.
+        loss: Computes and returns the loss during training.
+        predict: Performs a forward pass through the network and returns the output.
+    """
 
     def __init__(self, cfg='rtdetr-l.yaml', ch=3, nc=None, verbose=True):
+        """
+        Initialize the RTDETRDetectionModel.
+
+        Args:
+            cfg (str): Configuration file name or path.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes. Defaults to None.
+            verbose (bool, optional): Print additional information during initialization. Defaults to True.
+        """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
-        """Compute the classification loss between predictions and true labels."""
+        """Initialize the loss criterion for the RTDETRDetectionModel."""
         from ultralytics.models.utils.loss import RTDETRDetectionLoss
 
         return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 
     def loss(self, batch, preds=None):
+        """
+        Compute the loss for the given batch of data.
+
+        Args:
+            batch (dict): Dictionary containing image and label data.
+            preds (torch.Tensor, optional): Precomputed model predictions. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the total loss and main three losses in a tensor.
+        """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
 
@@ -414,16 +456,17 @@ class RTDETRDetectionModel(DetectionModel):
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False):
         """
-        Perform a forward pass through the network.
+        Perform a forward pass through the model.
 
         Args:
-            x (torch.Tensor): The input tensor to the model
-            profile (bool):  Print the computation time of each layer if True, defaults to False.
-            visualize (bool): Save the feature maps of the model if True, defaults to False
-            batch (dict): A dict including gt boxes and labels from dataloader.
+            x (torch.Tensor): The input tensor.
+            profile (bool, optional): If True, profile the computation time for each layer. Defaults to False.
+            visualize (bool, optional): If True, save feature maps for visualization. Defaults to False.
+            batch (dict, optional): Ground truth data for evaluation. Defaults to None.
+            augment (bool, optional): If True, perform data augmentation during inference. Defaults to False.
 
         Returns:
-            (torch.Tensor): The last output of the model.
+            torch.Tensor: Model's output tensor.
         """
         y, dt = [], []  # outputs
         for m in self.model[:-1]:  # except the head part

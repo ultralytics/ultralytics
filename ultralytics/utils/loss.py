@@ -580,26 +580,8 @@ class MultiTaskLoss(v8DetectionLoss):
             if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
                 masks = F.interpolate(masks[None], (mask_h, mask_w), mode='nearest')[0]
 
-            for i in range(batch_size):
-                if fg_mask[i].any():
-                    mask_idx = target_gt_idx[i][fg_mask[i]]
-                    if self.seg_loss.overlap:
-                        gt_mask = torch.where(masks[[i]] == (mask_idx + 1).view(-1, 1, 1), 1.0, 0.0)
-                    else:
-                        gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
-                    xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
-                    marea = xyxy2xywh(xyxyn)[:, 2:].prod(1)
-                    mxyxy = xyxyn * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device)
-                    loss[3] += self.seg_loss.single_mask_loss(gt_mask, pred_masks[i][fg_mask[i]], proto[i], mxyxy,
-                                                              marea)  # seg
-
-                # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
-                else:
-                    loss[3] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
-
-        # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
-        else:
-            loss[3] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
+            loss[1] = self.seg_loss.calculate_segmentation_loss(fg_mask, masks, target_gt_idx, target_bboxes, batch_idx,
+                                                                proto, pred_masks, imgsz, self.seg_loss.overlap)
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.pose  # pose gain

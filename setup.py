@@ -12,6 +12,12 @@ README = (PARENT / 'README.md').read_text(encoding='utf-8')
 
 
 def get_version():
+    """
+    Retrieve the version number from the 'ultralytics/__init__.py' file.
+
+    Returns:
+        str: The version number extracted from the '__version__' attribute in the 'ultralytics/__init__.py' file.
+    """
     file = PARENT / 'ultralytics/__init__.py'
     return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(encoding='utf-8'), re.M)[1]
 

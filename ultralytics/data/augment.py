@@ -20,16 +20,30 @@ from .utils import polygons2masks, polygons2masks_overlap
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
+    """
+    Base class for image transformations.
+
+    This is a generic transformation class that can be extended for specific image processing needs.
+    The class is designed to be compatible with both classification and semantic segmentation tasks.
+
+    Methods:
+        __init__: Initializes the BaseTransform object.
+        apply_image: Applies image transformation to labels.
+        apply_instances: Applies transformations to object instances in labels.
+        apply_semantic: Applies semantic segmentation to an image.
+        __call__: Applies all label transformations to an image, instances, and semantic masks.
+    """
 
     def __init__(self) -> None:
+        """Initializes the BaseTransform object."""
         pass
 
     def apply_image(self, labels):
-        """Applies image transformation to labels."""
+        """Applies image transformations to labels."""
         pass
 
     def apply_instances(self, labels):
-        """Applies transformations to input 'labels' and returns object instances."""
+        """Applies transformations to object instances in labels."""
         pass
 
     def apply_semantic(self, labels):
@@ -37,13 +51,14 @@ class BaseTransform:
         pass
 
     def __call__(self, labels):
-        """Applies label transformations to an image, instances and semantic masks."""
+        """Applies all label transformations to an image, instances, and semantic masks."""
         self.apply_image(labels)
         self.apply_instances(labels)
         self.apply_semantic(labels)
 
 
 class Compose:
+    """Class for composing multiple image transformations."""
 
     def __init__(self, transforms):
         """Initializes the Compose object with a list of transforms."""
@@ -60,18 +75,23 @@ class Compose:
         self.transforms.append(transform)
 
     def tolist(self):
-        """Converts list of transforms to a standard Python list."""
+        """Converts the list of transforms to a standard Python list."""
         return self.transforms
 
     def __repr__(self):
-        """Return string representation of object."""
+        """Returns a string representation of the object."""
         return f"{self.__class__.__name__}({', '.join([f'{t}' for t in self.transforms])})"
 
 
 class BaseMixTransform:
-    """This implementation is from mmyolo."""
+    """
+    Class for base mix (MixUp/Mosaic) transformations.
+
+    This implementation is from mmyolo.
+    """
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
+        """Initializes the BaseMixTransform object with dataset, pre_transform, and probability."""
         self.dataset = dataset
         self.pre_transform = pre_transform
         self.p = p
@@ -262,8 +282,10 @@ class Mosaic(BaseMixTransform):
 
 
 class MixUp(BaseMixTransform):
+    """Class for applying MixUp augmentation to the dataset."""
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
+        """Initializes MixUp object with dataset, pre_transform, and probability of applying MixUp."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
     def get_indexes(self):
@@ -271,7 +293,7 @@ class MixUp(BaseMixTransform):
         return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
-        """Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf."""
+        """Applies MixUp augmentation as per https://arxiv.org/pdf/1710.09412.pdf."""
         r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
         labels2 = labels['mix_labels'][0]
         labels['img'] = (labels['img'] * r + labels2['img'] * (1 - r)).astype(np.uint8)
@@ -281,6 +303,28 @@ class MixUp(BaseMixTransform):
 
 
 class RandomPerspective:
+    """
+    Implements random perspective and affine transformations on images and corresponding bounding boxes, segments, and
+    keypoints. These transformations include rotation, translation, scaling, and shearing. The class also offers the
+    option to apply these transformations conditionally with a specified probability.
+
+    Attributes:
+        degrees (float): Degree range for random rotations.
+        translate (float): Fraction of total width and height for random translation.
+        scale (float): Scaling factor interval, e.g., a scale factor of 0.1 allows a resize between 90%-110%.
+        shear (float): Shear intensity (angle in degrees).
+        perspective (float): Perspective distortion factor.
+        border (tuple): Tuple specifying mosaic border.
+        pre_transform (callable): A function/transform to apply to the image before starting the random transformation.
+
+    Methods:
+        affine_transform(img, border): Applies a series of affine transformations to the image.
+        apply_bboxes(bboxes, M): Transforms bounding boxes using the calculated affine matrix.
+        apply_segments(segments, M): Transforms segments and generates new bounding boxes.
+        apply_keypoints(keypoints, M): Transforms keypoints.
+        __call__(labels): Main method to apply transformations to both images and their corresponding annotations.
+        box_candidates(box1, box2): Filters out bounding boxes that don't meet certain criteria post-transformation.
+    """
 
     def __init__(self,
                  degrees=0.0,
@@ -290,17 +334,31 @@ class RandomPerspective:
                  perspective=0.0,
                  border=(0, 0),
                  pre_transform=None):
+        """Initializes RandomPerspective object with transformation parameters."""
+
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
         self.shear = shear
         self.perspective = perspective
-        # Mosaic border
-        self.border = border
+        self.border = border  # mosaic border
         self.pre_transform = pre_transform
 
     def affine_transform(self, img, border):
-        """Center."""
+        """
+        Applies a sequence of affine transformations centered around the image center.
+
+        Args:
+            img (ndarray): Input image.
+            border (tuple): Border dimensions.
+
+        Returns:
+            img (ndarray): Transformed image.
+            M (ndarray): Transformation matrix.
+            s (float): Scale factor.
+        """
+
+        # Center
         C = np.eye(3, dtype=np.float32)
 
         C[0, 2] = -img.shape[1] / 2  # x translation (pixels)
@@ -462,8 +520,22 @@ class RandomPerspective:
         labels['resized_shape'] = img.shape[:2]
         return labels
 
-    def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)
-        # Compute box candidates: box1 before augment, box2 after augment, wh_thr (pixels), aspect_ratio_thr, area_ratio
+    def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
+        """
+        Compute box candidates based on a set of thresholds. This method compares the characteristics of the boxes
+        before and after augmentation to decide whether a box is a candidate for further processing.
+
+        Args:
+            box1 (numpy.ndarray): The 4,n bounding box before augmentation, represented as [x1, y1, x2, y2].
+            box2 (numpy.ndarray): The 4,n bounding box after augmentation, represented as [x1, y1, x2, y2].
+            wh_thr (float, optional): The width and height threshold in pixels. Default is 2.
+            ar_thr (float, optional): The aspect ratio threshold. Default is 100.
+            area_thr (float, optional): The area ratio threshold. Default is 0.1.
+            eps (float, optional): A small epsilon value to prevent division by zero. Default is 1e-16.
+
+        Returns:
+            (numpy.ndarray): A boolean array indicating which boxes are candidates based on the given thresholds.
+        """
         w1, h1 = box1[2] - box1[0], box1[3] - box1[1]
         w2, h2 = box2[2] - box2[0], box2[3] - box2[1]
         ar = np.maximum(w2 / (h2 + eps), h2 / (w2 + eps))  # aspect ratio
@@ -471,14 +543,32 @@ class RandomPerspective:
 
 
 class RandomHSV:
+    """
+    This class is responsible for performing random adjustments to the Hue, Saturation, and Value (HSV) channels of an
+    image.
+
+    The adjustments are random but within limits set by hgain, sgain, and vgain.
+    """
 
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
+        """
+        Initialize RandomHSV class with gains for each HSV channel.
+
+        Args:
+            hgain (float, optional): Maximum variation for hue. Default is 0.5.
+            sgain (float, optional): Maximum variation for saturation. Default is 0.5.
+            vgain (float, optional): Maximum variation for value. Default is 0.5.
+        """
         self.hgain = hgain
         self.sgain = sgain
         self.vgain = vgain
 
     def __call__(self, labels):
-        """Applies image HSV augmentation"""
+        """
+        Applies random HSV augmentation to an image within the predefined limits.
+
+        The modified image replaces the original image in the input 'labels' dict.
+        """
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
@@ -496,9 +586,22 @@ class RandomHSV:
 
 
 class RandomFlip:
-    """Applies random horizontal or vertical flip to an image with a given probability."""
+    """
+    Applies a random horizontal or vertical flip to an image with a given probability.
+
+    Also updates any instances (bounding boxes, keypoints, etc.) accordingly.
+    """
 
     def __init__(self, p=0.5, direction='horizontal', flip_idx=None) -> None:
+        """
+        Initializes the RandomFlip class with probability and direction.
+
+        Args:
+            p (float, optional): The probability of applying the flip. Must be between 0 and 1. Default is 0.5.
+            direction (str, optional): The direction to apply the flip. Must be 'horizontal' or 'vertical'.
+                Default is 'horizontal'.
+            flip_idx (array-like, optional): Index mapping for flipping keypoints, if any.
+        """
         assert direction in ['horizontal', 'vertical'], f'Support direction `horizontal` or `vertical`, got {direction}'
         assert 0 <= p <= 1.0
 
@@ -507,7 +610,16 @@ class RandomFlip:
         self.flip_idx = flip_idx
 
     def __call__(self, labels):
-        """Resize image and padding for detection, instance segmentation, pose."""
+        """
+        Applies random flip to an image and updates any instances like bounding boxes or keypoints accordingly.
+
+        Args:
+            labels (dict): A dictionary containing the keys 'img' and 'instances'. 'img' is the image to be flipped.
+                           'instances' is an object containing bounding boxes and optionally keypoints.
+
+        Returns:
+            (dict): The same dict with the flipped image and updated instances under the 'img' and 'instances' keys.
+        """
         img = labels['img']
         instances = labels.pop('instances')
         instances.convert_bbox(format='xywh')
@@ -599,12 +711,38 @@ class LetterBox:
 
 
 class CopyPaste:
+    """
+    Implements the Copy-Paste augmentation as described in the paper https://arxiv.org/abs/2012.07177. This class is
+    responsible for applying the Copy-Paste augmentation on images and their corresponding instances.
+    """
 
     def __init__(self, p=0.5) -> None:
+        """
+        Initializes the CopyPaste class with a given probability.
+
+        Args:
+            p (float, optional): The probability of applying the Copy-Paste augmentation. Must be between 0 and 1.
+                                 Default is 0.5.
+        """
         self.p = p
 
     def __call__(self, labels):
-        """Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)."""
+        """
+        Applies the Copy-Paste augmentation to the given image and instances.
+
+        Args:
+            labels (dict): A dictionary containing:
+                           - 'img': The image to augment.
+                           - 'cls': Class labels associated with the instances.
+                           - 'instances': Object containing bounding boxes, and optionally, keypoints and segments.
+
+        Returns:
+            (dict): Dict with augmented image and updated instances under the 'img', 'cls', and 'instances' keys.
+
+        Notes:
+            1. Instances are expected to have 'segments' as one of their attributes for this augmentation to work.
+            2. This method modifies the input dictionary 'labels' in place.
+        """
         im = labels['img']
         cls = labels['cls']
         h, w = im.shape[:2]
@@ -639,9 +777,13 @@ class CopyPaste:
 
 
 class Albumentations:
-    """Albumentations transformations. Optional, uninstall package to disable.
-    Applies Blur, Median Blur, convert to grayscale, Contrast Limited Adaptive Histogram Equalization,
-    random change of brightness and contrast, RandomGamma and lowering of image quality by compression."""
+    """
+    Albumentations transformations.
+
+    Optional, uninstall package to disable. Applies Blur, Median Blur, convert to grayscale, Contrast Limited Adaptive
+    Histogram Equalization, random change of brightness and contrast, RandomGamma and lowering of image quality by
+    compression.
+    """
 
     def __init__(self, p=1.0):
         """Initialize the transform object for YOLO bbox formatted params."""
@@ -690,6 +832,19 @@ class Albumentations:
 
 # TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
+    """
+    Formats image annotations for object detection, instance segmentation, and pose estimation tasks. The class
+    standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
+
+    Attributes:
+        bbox_format (str): Format for bounding boxes. Default is 'xywh'.
+        normalize (bool): Whether to normalize bounding boxes. Default is True.
+        return_mask (bool): Return instance masks for segmentation. Default is False.
+        return_keypoint (bool): Return keypoints for pose estimation. Default is False.
+        mask_ratio (int): Downsample ratio for masks. Default is 4.
+        mask_overlap (bool): Whether to overlap masks. Default is True.
+        batch_idx (bool): Keep batch indexes. Default is True.
+    """
 
     def __init__(self,
                  bbox_format='xywh',
@@ -699,6 +854,7 @@ class Format:
                  mask_ratio=4,
                  mask_overlap=True,
                  batch_idx=True):
+        """Initializes the Format class with given parameters."""
         self.bbox_format = bbox_format
         self.normalize = normalize
         self.return_mask = return_mask  # set False when training detection only
@@ -746,7 +902,7 @@ class Format:
         return img
 
     def _format_segments(self, instances, cls, w, h):
-        """convert polygon points to bitmap."""
+        """Convert polygon points to bitmap."""
         segments = instances.segments
         if self.mask_overlap:
             masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
@@ -851,35 +1007,75 @@ def classify_albumentations(
 
 
 class ClassifyLetterBox:
-    """YOLOv8 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])"""
+    """
+    YOLOv8 LetterBox class for image preprocessing, designed to be part of a transformation pipeline, e.g.,
+    T.Compose([LetterBox(size), ToTensor()]).
+
+    Attributes:
+        h (int): Target height of the image.
+        w (int): Target width of the image.
+        auto (bool): If True, automatically solves for short side using stride.
+        stride (int): The stride value, used when 'auto' is True.
+    """
 
     def __init__(self, size=(640, 640), auto=False, stride=32):
-        """Resizes image and crops it to center with max dimensions 'h' and 'w'."""
+        """
+        Initializes the ClassifyLetterBox class with a target size, auto-flag, and stride.
+
+        Args:
+            size (Union[int, Tuple[int, int]]): The target dimensions (height, width) for the letterbox.
+            auto (bool): If True, automatically calculates the short side based on stride.
+            stride (int): The stride value, used when 'auto' is True.
+        """
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
         self.auto = auto  # pass max size integer, automatically solve for short side using stride
         self.stride = stride  # used with auto
 
-    def __call__(self, im):  # im = np.array HWC
+    def __call__(self, im):
+        """
+        Resizes the image and pads it with a letterbox method.
+
+        Args:
+            im (numpy.ndarray): The input image as a numpy array of shape HWC.
+
+        Returns:
+            (numpy.ndarray): The letterboxed and resized image as a numpy array.
+        """
         imh, imw = im.shape[:2]
-        r = min(self.h / imh, self.w / imw)  # ratio of new/old
-        h, w = round(imh * r), round(imw * r)  # resized image
+        r = min(self.h / imh, self.w / imw)  # ratio of new/old dimensions
+        h, w = round(imh * r), round(imw * r)  # resized image dimensions
+
+        # Calculate padding dimensions
         hs, ws = (math.ceil(x / self.stride) * self.stride for x in (h, w)) if self.auto else (self.h, self.w)
         top, left = round((hs - h) / 2 - 0.1), round((ws - w) / 2 - 0.1)
+
+        # Create padded image
         im_out = np.full((hs, ws, 3), 114, dtype=im.dtype)
         im_out[top:top + h, left:left + w] = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
         return im_out
 
 
 class CenterCrop:
-    """YOLOv8 CenterCrop class for image preprocessing, i.e. T.Compose([CenterCrop(size), ToTensor()])"""
+    """YOLOv8 CenterCrop class for image preprocessing, designed to be part of a transformation pipeline, e.g.,
+    T.Compose([CenterCrop(size), ToTensor()]).
+    """
 
     def __init__(self, size=640):
         """Converts an image from numpy array to PyTorch tensor."""
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
 
-    def __call__(self, im):  # im = np.array HWC
+    def __call__(self, im):
+        """
+        Resizes and crops the center of the image using a letterbox method.
+
+        Args:
+            im (numpy.ndarray): The input image as a numpy array of shape HWC.
+
+        Returns:
+            (numpy.ndarray): The center-cropped and resized image as a numpy array.
+        """
         imh, imw = im.shape[:2]
         m = min(imh, imw)  # min dimension
         top, left = (imh - m) // 2, (imw - m) // 2
@@ -887,14 +1083,23 @@ class CenterCrop:
 
 
 class ToTensor:
-    """YOLOv8 ToTensor class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])."""
+    """YOLOv8 ToTensor class for image preprocessing, i.e., T.Compose([LetterBox(size), ToTensor()])."""
 
     def __init__(self, half=False):
         """Initialize YOLOv8 ToTensor object with optional half-precision support."""
         super().__init__()
         self.half = half
 
-    def __call__(self, im):  # im = np.array HWC in BGR order
+    def __call__(self, im):
+        """
+        Transforms an image from a numpy array to a PyTorch tensor, applying optional half-precision and normalization.
+
+        Args:
+            im (numpy.ndarray): Input image as a numpy array with shape (H, W, C) in BGR order.
+
+        Returns:
+            (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized to [0, 1].
+        """
         im = np.ascontiguousarray(im.transpose((2, 0, 1))[::-1])  # HWC to CHW -> BGR to RGB -> contiguous
         im = torch.from_numpy(im)  # to torch
         im = im.half() if self.half else im.float()  # uint8 to fp16/32

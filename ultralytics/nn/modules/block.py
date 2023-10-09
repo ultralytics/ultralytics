@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Block modules
-"""
+"""Block modules."""
 
 import torch
 import torch.nn as nn
@@ -17,6 +15,7 @@ __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', '
 class DFL(nn.Module):
     """
     Integral module of Distribution Focal Loss (DFL).
+
     Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
     """
 
@@ -51,11 +50,14 @@ class Proto(nn.Module):
 
 
 class HGStem(nn.Module):
-    """StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
+    """
+    StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
     def __init__(self, c1, cm, c2):
+        """Initialize the SPP layer with input/output channels and specified kernel sizes for max pooling."""
         super().__init__()
         self.stem1 = Conv(c1, cm, 3, 2, act=nn.ReLU())
         self.stem2a = Conv(cm, cm // 2, 2, 1, 0, act=nn.ReLU())
@@ -79,11 +81,14 @@ class HGStem(nn.Module):
 
 
 class HGBlock(nn.Module):
-    """HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
+    """
+    HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
     def __init__(self, c1, cm, c2, k=3, n=6, lightconv=False, shortcut=False, act=nn.ReLU()):
+        """Initializes a CSP Bottleneck with 1 convolution using specified input and output channels."""
         super().__init__()
         block = LightConv if lightconv else Conv
         self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k, act=act) for i in range(n))
@@ -218,6 +223,7 @@ class RepC3(nn.Module):
     """Rep C3."""
 
     def __init__(self, c1, c2, n=3, e=1.0):
+        """Initialize CSP Bottleneck with a single convolution using input channels, output channels, and number."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c2, 1, 1)

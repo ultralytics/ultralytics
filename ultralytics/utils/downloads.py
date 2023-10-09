@@ -69,8 +69,8 @@ def delete_dsstore(path, files_to_delete=('.DS_Store', '__MACOSX')):
 
 def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), progress=True):
     """
-    Zips the contents of a directory, excluding files containing strings in the exclude list.
-    The resulting zip file is named after the directory and placed alongside it.
+    Zips the contents of a directory, excluding files containing strings in the exclude list. The resulting zip file is
+    named after the directory and placed alongside it.
 
     Args:
         directory (str | Path): The path to the directory to be zipped.
@@ -341,7 +341,11 @@ def get_github_assets(repo='ultralytics/assets', version='latest', retry=False):
 
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
-    """Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc."""
+    """
+    Attempt file download from GitHub release assets if not found locally.
+
+    release = 'latest', 'v6.2', etc.
+    """
     from ultralytics.utils import SETTINGS  # scoped for circular import
 
     # YOLOv3/5u updates

@@ -936,8 +936,7 @@ class PoseMetrics(SegmentMetrics):
 
 class MultiTaskMetrics(PoseMetrics):
     """
-    # TODO: update docstring
-    Calculates and aggregates detection and pose metrics over a given set of classes.
+    # TODO: update docstring Calculates and aggregates detection and pose metrics over a given set of classes.
 
     Args:
         save_dir (Path): Path to the directory where the output plots should be saved. Default is the current directory.

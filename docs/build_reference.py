@@ -18,7 +18,15 @@ CODE_DIR = ROOT
 REFERENCE_DIR = ROOT.parent / 'docs/reference'
 
 
-def extract_classes_and_functions(filepath):
+def extract_classes_and_functions(filepath: Path):
+    """Extracts class and function names from a given Python file.
+
+    Args:
+        filepath (Path): The path to the Python file.
+
+    Returns:
+        (tuple): A tuple containing lists of class and function names.
+    """
     with open(filepath, 'r') as file:
         content = file.read()
 
@@ -31,7 +39,15 @@ def extract_classes_and_functions(filepath):
     return classes, functions
 
 
-def create_markdown(py_filepath, module_path, classes, functions):
+def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list):
+    """Creates a Markdown file containing the API reference for the given Python module.
+
+    Args:
+        py_filepath (Path): The path to the Python file.
+        module_path (str): The import path for the Python module.
+        classes (list): A list of class names within the module.
+        functions (list): A list of function names within the module.
+    """
     md_filepath = py_filepath.with_suffix('.md')
 
     # Read existing content and keep header content between first two ---
@@ -64,17 +80,35 @@ def create_markdown(py_filepath, module_path, classes, functions):
 
 
 def nested_dict():
+    """Creates and returns a nested defaultdict.
+
+    Returns:
+        (defaultdict): A nested defaultdict object.
+    """
     return defaultdict(nested_dict)
 
 
-def sort_nested_dict(d):
+def sort_nested_dict(d: dict):
+    """Sorts a nested dictionary recursively.
+
+    Args:
+        d (dict): The dictionary to sort.
+
+    Returns:
+        (dict): The sorted dictionary.
+    """
     return {
         key: sort_nested_dict(value) if isinstance(value, dict) else value
         for key, value in sorted(d.items())
     }
 
 
-def create_nav_menu_yaml(nav_items):
+def create_nav_menu_yaml(nav_items: list):
+    """Creates a YAML file for the navigation menu based on the provided list of items.
+
+    Args:
+        nav_items (list): A list of relative file paths to Markdown files for the navigation menu.
+    """
     nav_tree = nested_dict()
 
     for item_str in nav_items:
@@ -90,6 +124,7 @@ def create_nav_menu_yaml(nav_items):
     nav_tree_sorted = sort_nested_dict(nav_tree)
 
     def _dict_to_yaml(d, level=0):
+        """Converts a nested dictionary to a YAML-formatted string with indentation."""
         yaml_str = ''
         indent = '  ' * level
         for k, v in d.items():
@@ -105,6 +140,7 @@ def create_nav_menu_yaml(nav_items):
 
 
 def main():
+    """Main function to extract class and function names, create Markdown files, and generate a YAML navigation menu."""
     nav_items = []
     for root, _, files in os.walk(CODE_DIR):
         for file in files:

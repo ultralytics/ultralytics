@@ -22,6 +22,7 @@ from ultralytics.utils.checks import check_requirements
 
 @dataclass
 class SourceTypes:
+    """Class to represent various types of input sources for predictions."""
     webcam: bool = False
     screenshot: bool = False
     from_img: bool = False
@@ -29,7 +30,34 @@ class SourceTypes:
 
 
 class LoadStreams:
-    """Stream  Loader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP, TCP streams`."""
+    """
+    Stream Loader for various types of video streams.
+
+    Suitable for use with `yolo predict source='rtsp://example.com/media.mp4'`, supports RTSP, RTMP, HTTP, and TCP streams.
+
+    Attributes:
+        sources (str): The source input paths or URLs for the video streams.
+        imgsz (int): The image size for processing, defaults to 640.
+        vid_stride (int): Video frame-rate stride, defaults to 1.
+        buffer (bool): Whether to buffer input streams, defaults to False.
+        running (bool): Flag to indicate if the streaming thread is running.
+        mode (str): Set to 'stream' indicating real-time capture.
+        imgs (list): List of image frames for each stream.
+        fps (list): List of FPS for each stream.
+        frames (list): List of total frames for each stream.
+        threads (list): List of threads for each stream.
+        shape (list): List of shapes for each stream.
+        caps (list): List of cv2.VideoCapture objects for each stream.
+        bs (int): Batch size for processing.
+
+    Methods:
+        __init__: Initialize the stream loader.
+        update: Read stream frames in daemon thread.
+        close: Close stream loader and release resources.
+        __iter__: Returns an iterator object for the class.
+        __next__: Returns source paths, transformed, and original images for processing.
+        __len__: Return the length of the sources object.
+    """
 
     def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, buffer=False):
         """Initialize instance variables and check for consistent input stream shapes."""
@@ -149,10 +177,33 @@ class LoadStreams:
 
 
 class LoadScreenshots:
-    """YOLOv8 screenshot dataloader, i.e. `yolo predict source=screen`."""
+    """
+    YOLOv8 screenshot dataloader.
+
+    This class manages the loading of screenshot images for processing with YOLOv8.
+    Suitable for use with `yolo predict source=screen`.
+
+    Attributes:
+        source (str): The source input indicating which screen to capture.
+        imgsz (int): The image size for processing, defaults to 640.
+        screen (int): The screen number to capture.
+        left (int): The left coordinate for screen capture area.
+        top (int): The top coordinate for screen capture area.
+        width (int): The width of the screen capture area.
+        height (int): The height of the screen capture area.
+        mode (str): Set to 'stream' indicating real-time capture.
+        frame (int): Counter for captured frames.
+        sct (mss.mss): Screen capture object from `mss` library.
+        bs (int): Batch size, set to 1.
+        monitor (dict): Monitor configuration details.
+
+    Methods:
+        __iter__: Returns an iterator object.
+        __next__: Captures the next screenshot and returns it.
+    """
 
     def __init__(self, source, imgsz=640):
-        """source = [screen_number left top width height] (pixels)."""
+        """Source = [screen_number left top width height] (pixels)."""
         check_requirements('mss')
         import mss  # noqa
 
@@ -192,7 +243,28 @@ class LoadScreenshots:
 
 
 class LoadImages:
-    """YOLOv8 image/video dataloader, i.e. `yolo predict source=image.jpg/vid.mp4`."""
+    """
+    YOLOv8 image/video dataloader.
+
+    This class manages the loading and pre-processing of image and video data for YOLOv8. It supports loading from
+    various formats, including single image files, video files, and lists of image and video paths.
+
+    Attributes:
+        imgsz (int): Image size, defaults to 640.
+        files (list): List of image and video file paths.
+        nf (int): Total number of files (images and videos).
+        video_flag (list): Flags indicating whether a file is a video (True) or an image (False).
+        mode (str): Current mode, 'image' or 'video'.
+        vid_stride (int): Stride for video frame-rate, defaults to 1.
+        bs (int): Batch size, set to 1 for this class.
+        cap (cv2.VideoCapture): Video capture object for OpenCV.
+        frame (int): Frame counter for video.
+        frames (int): Total number of frames in the video.
+        count (int): Counter for iteration, initialized at 0 during `__iter__()`.
+
+    Methods:
+        _new_video(path): Create a new cv2.VideoCapture object for a given video path.
+    """
 
     def __init__(self, path, imgsz=640, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
@@ -285,6 +357,24 @@ class LoadImages:
 
 
 class LoadPilAndNumpy:
+    """
+    Load images from PIL and Numpy arrays for batch processing.
+
+    This class is designed to manage loading and pre-processing of image data from both PIL and Numpy formats.
+    It performs basic validation and format conversion to ensure that the images are in the required format for
+    downstream processing.
+
+    Attributes:
+        paths (list): List of image paths or autogenerated filenames.
+        im0 (list): List of images stored as Numpy arrays.
+        imgsz (int): Image size, defaults to 640.
+        mode (str): Type of data being processed, defaults to 'image'.
+        bs (int): Batch size, equivalent to the length of `im0`.
+        count (int): Counter for iteration, initialized at 0 during `__iter__()`.
+
+    Methods:
+        _single_check(im): Validate and format a single image to a Numpy array.
+    """
 
     def __init__(self, im0, imgsz=640):
         """Initialize PIL and Numpy Dataloader."""
@@ -326,8 +416,24 @@ class LoadPilAndNumpy:
 
 
 class LoadTensor:
+    """
+    Load images from torch.Tensor data.
+
+    This class manages the loading and pre-processing of image data from PyTorch tensors for further processing.
+
+    Attributes:
+        im0 (torch.Tensor): The input tensor containing the image(s).
+        bs (int): Batch size, inferred from the shape of `im0`.
+        mode (str): Current mode, set to 'image'.
+        paths (list): List of image paths or filenames.
+        count (int): Counter for iteration, initialized at 0 during `__iter__()`.
+
+    Methods:
+        _single_check(im, stride): Validate and possibly modify the input tensor.
+    """
 
     def __init__(self, im0) -> None:
+        """Initialize Tensor Dataloader."""
         self.im0 = self._single_check(im0)
         self.bs = self.im0.shape[0]
         self.mode = 'image'
@@ -370,9 +476,7 @@ class LoadTensor:
 
 
 def autocast_list(source):
-    """
-    Merges a list of source of different types into a list of numpy arrays or PIL images
-    """
+    """Merges a list of source of different types into a list of numpy arrays or PIL images."""
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri

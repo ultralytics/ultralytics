@@ -21,8 +21,7 @@ class TwoWayTransformer(nn.Module):
         attention_downsample_rate: int = 2,
     ) -> None:
         """
-        A transformer decoder that attends to an input image using
-        queries whose positional embedding is supplied.
+        A transformer decoder that attends to an input image using queries whose positional embedding is supplied.
 
         Args:
           depth (int): number of layers in the transformer
@@ -171,8 +170,7 @@ class TwoWayAttentionBlock(nn.Module):
 
 
 class Attention(nn.Module):
-    """
-    An attention layer that allows for downscaling the size of the embedding after projection to queries, keys, and
+    """An attention layer that allows for downscaling the size of the embedding after projection to queries, keys, and
     values.
     """
 

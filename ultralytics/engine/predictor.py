@@ -58,7 +58,7 @@ Example:
 
 class BasePredictor:
     """
-    BasePredictor
+    BasePredictor.
 
     A base class for creating predictors.
 
@@ -109,7 +109,8 @@ class BasePredictor:
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
-        """Prepares input image before inference.
+        """
+        Prepares input image before inference.
 
         Args:
             im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
@@ -128,6 +129,7 @@ class BasePredictor:
         return im
 
     def inference(self, im, *args, **kwargs):
+        """Runs inference on a given image using the specified model and arguments."""
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
         return self.model(im, augment=self.args.augment, visualize=visualize)
@@ -194,7 +196,11 @@ class BasePredictor:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
-        """Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode."""
+        """
+        Method used for CLI prediction.
+
+        It uses always generator as outputs as not required by CLI mode.
+        """
         gen = self.stream_inference(source, model)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
@@ -352,7 +358,5 @@ class BasePredictor:
             callback(self)
 
     def add_callback(self, event: str, func):
-        """
-        Add callback
-        """
+        """Add callback."""
         self.callbacks[event].append(func)

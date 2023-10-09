@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Benchmark a YOLO model formats for speed and accuracy
+Benchmark a YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
@@ -194,6 +194,7 @@ class ProfileModels:
         self.device = device or torch.device(0 if torch.cuda.is_available() else 'cpu')
 
     def profile(self):
+        """Logs the benchmarking results of a model, checks metrics against floor and returns the results."""
         files = self.get_files()
 
         if not files:
@@ -235,6 +236,7 @@ class ProfileModels:
         return output
 
     def get_files(self):
+        """Returns a list of paths for all relevant model files given by the user."""
         files = []
         for path in self.paths:
             path = Path(path)
@@ -250,10 +252,14 @@ class ProfileModels:
         return [Path(file) for file in sorted(files)]
 
     def get_onnx_model_info(self, onnx_file: str):
+        """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
+        file.
+        """
         # return (num_layers, num_params, num_gradients, num_flops)
         return 0.0, 0.0, 0.0, 0.0
 
     def iterative_sigma_clipping(self, data, sigma=2, max_iters=3):
+        """Applies an iterative sigma clipping algorithm to the given data times number of iterations."""
         data = np.array(data)
         for _ in range(max_iters):
             mean, std = np.mean(data), np.std(data)
@@ -264,6 +270,7 @@ class ProfileModels:
         return data
 
     def profile_tensorrt_model(self, engine_file: str, eps: float = 1e-3):
+        """Profiles the TensorRT model, measuring average run time and standard deviation among runs."""
         if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
 
@@ -292,6 +299,9 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
+        """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run
+        times.
+        """
         check_requirements('onnxruntime')
         import onnxruntime as ort
 
@@ -344,10 +354,12 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
+        """Generates a formatted string for a table row that includes model performance and metric details."""
         layers, params, gradients, flops = model_info
         return f'| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |'
 
     def generate_results_dict(self, model_name, t_onnx, t_engine, model_info):
+        """Generates a dictionary of model details including name, parameters, GFLOPS and speed metrics."""
         layers, params, gradients, flops = model_info
         return {
             'model/name': model_name,
@@ -357,6 +369,7 @@ class ProfileModels:
             'model/speed_TensorRT(ms)': round(t_engine[0], 3)}
 
     def print_table(self, table_rows):
+        """Formats and prints a comparison table for different models with given statistics and performance data."""
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'GPU'
         header = f'| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |'
         separator = '|-------------|---------------------|--------------------|------------------------------|-----------------------------------|------------------|-----------------|'

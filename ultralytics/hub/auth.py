@@ -9,6 +9,19 @@ API_KEY_URL = f'{HUB_WEB_ROOT}/settings?tab=api+keys'
 
 
 class Auth:
+    """
+    Manages authentication processes including API key handling, cookie-based authentication, and header generation.
+
+    The class supports different methods of authentication:
+    1. Directly using an API key.
+    2. Authenticating using browser cookies (specifically in Google Colab).
+    3. Prompting the user to enter an API key.
+
+    Attributes:
+        id_token (str or bool): Token used for identity verification, initialized as False.
+        api_key (str or bool): API key for authentication, initialized as False.
+        model_key (bool): Placeholder for model key, initialized as False.
+    """
     id_token = api_key = model_key = False
 
     def __init__(self, api_key='', verbose=False):
@@ -54,7 +67,9 @@ class Auth:
 
     def request_api_key(self, max_attempts=3):
         """
-        Prompt the user to input their API key. Returns the model ID.
+        Prompt the user to input their API key.
+
+        Returns the model ID.
         """
         import getpass
         for attempts in range(max_attempts):
@@ -86,8 +101,8 @@ class Auth:
 
     def auth_with_cookies(self) -> bool:
         """
-        Attempt to fetch authentication via cookies and set id_token.
-        User must be logged in to HUB and running in a supported browser.
+        Attempt to fetch authentication via cookies and set id_token. User must be logged in to HUB and running in a
+        supported browser.
 
         Returns:
             bool: True if authentication is successful, False otherwise.

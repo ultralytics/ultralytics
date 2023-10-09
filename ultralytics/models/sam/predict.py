@@ -19,6 +19,7 @@ from .build import build_sam
 class Predictor(BasePredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initializes the Predictor class with default or provided configuration, overrides, and callbacks."""
         if overrides is None:
             overrides = {}
         overrides.update(dict(task='segment', mode='predict', imgsz=1024))
@@ -34,7 +35,8 @@ class Predictor(BasePredictor):
         self.segment_all = False
 
     def preprocess(self, im):
-        """Prepares input image before inference.
+        """
+        Prepares input image before inference.
 
         Args:
             im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
@@ -189,7 +191,8 @@ class Predictor(BasePredictor):
                  stability_score_thresh=0.95,
                  stability_score_offset=0.95,
                  crop_nms_thresh=0.7):
-        """Segment the whole image.
+        """
+        Segment the whole image.
 
         Args:
             im (torch.Tensor): The preprocessed image, (N, C, H, W).
@@ -360,14 +363,15 @@ class Predictor(BasePredictor):
         self.prompts = prompts
 
     def reset_image(self):
+        """Resets the image and its features to None."""
         self.im = None
         self.features = None
 
     @staticmethod
     def remove_small_regions(masks, min_area=0, nms_thresh=0.7):
         """
-        Removes small disconnected regions and holes in masks, then reruns
-        box NMS to remove any new duplicates. Requires open-cv as a dependency.
+        Removes small disconnected regions and holes in masks, then reruns box NMS to remove any new duplicates.
+        Requires open-cv as a dependency.
 
         Args:
             masks (torch.Tensor): Masks, (N, H, W).

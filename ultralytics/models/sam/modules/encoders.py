@@ -100,6 +100,9 @@ class ImageEncoderViT(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Processes input through patch embedding, applies positional embedding if present, and passes through blocks
+        and neck.
+        """
         x = self.patch_embed(x)
         if self.pos_embed is not None:
             x = x + self.pos_embed
@@ -215,6 +218,7 @@ class PromptEncoder(nn.Module):
             return 1
 
     def _get_device(self) -> torch.device:
+        """Returns the device of the first point embedding's weight tensor."""
         return self.point_embeddings[0].weight.device
 
     def forward(
@@ -260,6 +264,7 @@ class PositionEmbeddingRandom(nn.Module):
     """Positional encoding using random spatial frequencies."""
 
     def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
+        """Initializes a position embedding using random spatial frequencies."""
         super().__init__()
         if scale is None or scale <= 0.0:
             scale = 1.0
@@ -347,6 +352,7 @@ class Block(nn.Module):
         self.window_size = window_size
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Executes a forward pass through the transformer block with window attention and non-overlapping windows."""
         shortcut = x
         x = self.norm1(x)
         # Window partition
@@ -400,6 +406,7 @@ class Attention(nn.Module):
             self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Applies the forward operation including attention, normalization, MLP, and indexing within window limits."""
         B, H, W, _ = x.shape
         # qkv with shape (3, B, nHead, H * W, C)
         qkv = self.qkv(x).reshape(B, H * W, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
@@ -560,4 +567,5 @@ class PatchEmbed(nn.Module):
         self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Computes patch embedding by applying convolution and transposing resulting tensor."""
         return self.proj(x).permute(0, 2, 3, 1)  # B C H W -> B H W C

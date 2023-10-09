@@ -359,6 +359,9 @@ class TinyViTBlock(nn.Module):
         return x + self.drop_path(self.mlp(x))
 
     def extra_repr(self) -> str:
+        """Returns a formatted string representing the TinyViTBlock's parameters: dimension, input resolution, number of
+        attentions heads, window size, and MLP ratio.
+        """
         return f'dim={self.dim}, input_resolution={self.input_resolution}, num_heads={self.num_heads}, ' \
                f'window_size={self.window_size}, mlp_ratio={self.mlp_ratio}'
 
@@ -430,18 +433,22 @@ class BasicLayer(nn.Module):
         return x if self.downsample is None else self.downsample(x)
 
     def extra_repr(self) -> str:
+        """Returns a string representation of the extra_repr function with the layer's parameters."""
         return f'dim={self.dim}, input_resolution={self.input_resolution}, depth={self.depth}'
 
 
 class LayerNorm2d(nn.Module):
+    """A PyTorch implementation of Layer Normalization in 2D."""
 
     def __init__(self, num_channels: int, eps: float = 1e-6) -> None:
+        """Initialize LayerNorm2d with the number of channels and an optional epsilon."""
         super().__init__()
         self.weight = nn.Parameter(torch.ones(num_channels))
         self.bias = nn.Parameter(torch.zeros(num_channels))
         self.eps = eps
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Perform a forward pass, normalizing the input tensor."""
         u = x.mean(1, keepdim=True)
         s = (x - u).pow(2).mean(1, keepdim=True)
         x = (x - u) / torch.sqrt(s + self.eps)

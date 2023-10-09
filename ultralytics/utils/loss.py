@@ -308,15 +308,23 @@ class v8SegmentationLoss(v8DetectionLoss):
         overlap: bool,
     ) -> torch.Tensor:
         """
-        fg_mask: (BS, N_anchors)
-        masks: (BS, H, W) if overlap else (BS, ?, H, W)
-        target_gt_idx: (BS, N_anchors)
-        target_bboxes: (BS, N_anchors, 4)
-        batch_idx: (N_labels_in_batch, 1)
-        proto: (BS, 32, H, W)
-        pred_masks: (BS, N_anchors, 32)
-        imgsz: (2): (H, W)
-        overlap: bool
+
+        Args:
+            fg_mask: (BS, N_anchors)
+            masks: (BS, H, W) if overlap else (BS, ?, H, W)
+            target_gt_idx: (BS, N_anchors)
+            target_bboxes: (BS, N_anchors, 4)
+            batch_idx: (N_labels_in_batch, 1)
+            proto: (BS, 32, H, W)
+            pred_masks: (BS, N_anchors, 32)
+            imgsz: (2): (H, W)
+            overlap: bool
+
+        Note that batch loss can be computed for improved speed at higher memory usage
+        ```python
+        # (i, 32) @ (32, 160, 160) -> (i, 160, 160)
+        pred_mask = torch.einsum('in,nhw->ihw', pred, proto)
+        ```
         """
         _, _, mask_h, mask_w = proto.shape
 

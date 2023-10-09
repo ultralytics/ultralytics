@@ -131,7 +131,7 @@ Ultralytics provides a convenient conversion tool to convert labels from the pop
 
         ```python
         from ultralytics.data.converter import convert_coco
-        
+
         convert_coco(labels_dir='path/to/coco/annotations/', use_keypoints=True)
         ```
 

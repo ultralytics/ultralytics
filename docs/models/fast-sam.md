@@ -55,7 +55,7 @@ To perform object detection on an image, use the `predict` method as shown below
 
         # Run inference on an image
         everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
-      
+
         # Prepare a Prompt Process object
         prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
 
@@ -74,7 +74,7 @@ To perform object detection on an image, use the `predict` method as shown below
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
         prompt_process.plot(annotations=ann, output='./')
         ```
-      
+
     === "CLI"
         ```bash
         # Load a FastSAM model and segment everything with it

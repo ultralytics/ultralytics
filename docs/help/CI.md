@@ -59,4 +59,3 @@ In the sunburst graphic below, the inner-most circle is the entire project, movi
 <a href="https://codecov.io/github/ultralytics/ultralytics">
     <img src="https://codecov.io/gh/ultralytics/ultralytics/branch/main/graphs/sunburst.svg?token=HHW7IIVFVY" alt="Ultralytics Codecov Image">
 </a>
-

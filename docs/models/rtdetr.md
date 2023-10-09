@@ -54,7 +54,7 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
 
     === "CLI"
 
-        ```bash        
+        ```bash
         # Load a COCO-pretrained RT-DETR-l model and train it on the COCO8 example dataset for 100 epochs
         yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
 

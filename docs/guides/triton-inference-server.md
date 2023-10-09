@@ -10,9 +10,9 @@ The [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inferen
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/NQDtfSi5QF4" 
-    title="Getting Started with NVIDIA Triton Inference Server" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/NQDtfSi5QF4"
+    title="Getting Started with NVIDIA Triton Inference Server" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
@@ -60,11 +60,11 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
     ```python
     from pathlib import Path
-    
+
     # Define paths
     triton_repo_path = Path('tmp') / 'triton_repo'
     triton_model_path = triton_repo_path / 'yolo'
-    
+
     # Create directories
     (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
     ```
@@ -73,10 +73,10 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
     ```python
     from pathlib import Path
-    
+
     # Move ONNX model to Triton Model path
     Path(onnx_file).rename(triton_model_path / '1' / 'model.onnx')
-    
+
     # Create config file
     (triton_model_path / 'config.pdtxt').touch()
     ```

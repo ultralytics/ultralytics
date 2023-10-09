@@ -275,25 +275,35 @@ class v8SegmentationLoss(v8DetectionLoss):
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.box / batch_size  # seg gain
+        loss[1] *= self.hyp.box  # seg gain
         loss[2] *= self.hyp.cls  # cls gain
         loss[3] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def single_mask_loss(
-        self,
-        gt_mask: torch.Tensor,
-        pred: torch.Tensor,
-        proto: torch.Tensor,
-        xyxy: torch.Tensor,
-        area: torch.Tensor,
-    ) -> torch.Tensor:
-        """Mask loss for one image."""
-        # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
-        pred_mask = torch.einsum('in,nhw->ihw', pred, proto)
+    @staticmethod
+    def single_mask_loss(gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor,
+                         area: torch.Tensor) -> torch.Tensor:
+        """
+        Compute the instance segmentation loss for a single image.
+
+        Args:
+            gt_mask (torch.Tensor): Ground truth mask of shape (n, H, W), where n is the number of objects.
+            pred (torch.Tensor): Predicted mask coefficients of shape (n, 32).
+            proto (torch.Tensor): Prototype masks of shape (32, H, W).
+            xyxy (torch.Tensor): Ground truth bounding boxes in xyxy format, normalized to [0, 1], of shape (n, 4).
+            area (torch.Tensor): Area of each ground truth bounding box of shape (n,).
+
+        Returns:
+            (torch.Tensor): The calculated mask loss for a single image.
+
+        Notes:
+            The function uses the equation pred_mask = torch.einsum('in,nhw->ihw', pred, proto) to produce the
+            predicted masks from the prototype masks and predicted mask coefficients.
+        """
+        pred_mask = torch.einsum('in,nhw->ihw', pred, proto)  # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
         loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction='none')
-        return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
+        return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).sum()
 
     def calculate_segmentation_loss(
         self,
@@ -348,7 +358,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             else:
                 loss += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
 
-        return loss
+        return loss / fg_mask.sum()
 
 
 class v8PoseLoss(v8DetectionLoss):
@@ -592,7 +602,7 @@ class MultiTaskLoss(v8DetectionLoss):
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain
-        loss[3] *= self.hyp.box / batch_size  # seg gain
+        loss[3] *= self.hyp.box  # seg gain
         loss[4] *= self.hyp.cls  # cls gain
         loss[5] *= self.hyp.dfl  # dfl gain
 

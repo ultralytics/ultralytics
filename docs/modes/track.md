@@ -21,9 +21,9 @@ The output from Ultralytics trackers is consistent with standard object detectio
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/hHyHmOtmEgs?si=VNZtXmm45Nb9s-N-" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/hHyHmOtmEgs?si=VNZtXmm45Nb9s-N-"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
@@ -86,7 +86,7 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Custom trained model
 
         # Track using ByteTrack tracker
-        yolo track model=path/to/best.pt tracker="bytetrack.yaml" 
+        yolo track model=path/to/best.pt tracker="bytetrack.yaml"
         ```
 
 As can be seen in the above usage, tracking is available for all Detect, Segment and Pose models run on videos or streaming sources.
@@ -199,38 +199,38 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
 
     ```python
     from collections import defaultdict
-    
+
     import cv2
     import numpy as np
-    
+
     from ultralytics import YOLO
-    
+
     # Load the YOLOv8 model
     model = YOLO('yolov8n.pt')
-    
+
     # Open the video file
     video_path = "path/to/video.mp4"
     cap = cv2.VideoCapture(video_path)
-    
+
     # Store the track history
     track_history = defaultdict(lambda: [])
-    
+
     # Loop through the video frames
     while cap.isOpened():
         # Read a frame from the video
         success, frame = cap.read()
-    
+
         if success:
             # Run YOLOv8 tracking on the frame, persisting tracks between frames
             results = model.track(frame, persist=True)
-    
+
             # Get the boxes and track IDs
             boxes = results[0].boxes.xywh.cpu()
             track_ids = results[0].boxes.id.int().cpu().tolist()
-    
+
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
-    
+
             # Plot the tracks
             for box, track_id in zip(boxes, track_ids):
                 x, y, w, h = box
@@ -238,21 +238,21 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
                 track.append((float(x), float(y)))  # x, y center point
                 if len(track) > 30:  # retain 90 tracks for 90 frames
                     track.pop(0)
-    
+
                 # Draw the tracking lines
                 points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                 cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
-    
+
             # Display the annotated frame
             cv2.imshow("YOLOv8 Tracking", annotated_frame)
-    
+
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:
             # Break the loop if the end of the video is reached
             break
-    
+
     # Release the video capture object and close the display window
     cap.release()
     cv2.destroyAllWindows()
@@ -283,36 +283,36 @@ Finally, after all threads have completed their task, the windows displaying the
     def run_tracker_in_thread(filename, model, file_index):
         """
         Runs a video file or webcam stream concurrently with the YOLOv8 model using threading.
-    
+
         This function captures video frames from a given file or camera source and utilizes the YOLOv8 model for object
         tracking. The function runs in its own thread for concurrent processing.
-    
+
         Args:
             filename (str): The path to the video file or the identifier for the webcam/external camera source.
             model (obj): The YOLOv8 model object.
             file_index (int): An index to uniquely identify the file being processed, used for display purposes.
-    
+
         Note:
             Press 'q' to quit the video display window.
         """
         video = cv2.VideoCapture(filename)  # Read the video file
-    
+
         while True:
             ret, frame = video.read()  # Read the video frames
-    
+
             # Exit the loop if no more frames in either video
             if not ret:
                 break
-    
+
             # Track objects in frames if available
             results = model.track(frame, persist=True)
             res_plotted = results[0].plot()
             cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)
-    
+
             key = cv2.waitKey(1)
             if key == ord('q'):
                 break
-    
+
         # Release video sources
         video.release()
 

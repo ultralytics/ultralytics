@@ -6,8 +6,7 @@ keywords: Ultralytics, YOLO, CLI, train, validation, prediction, command line in
 
 # Command Line Interface Usage
 
-The YOLO command line interface (CLI) allows for simple single-line commands without the need for a Python environment.
-CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command.
+The YOLO command line interface (CLI) allows for simple single-line commands without the need for a Python environment. CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command.
 
 !!! example
 
@@ -65,11 +64,9 @@ CLI requires no customization or Python code. You can simply run all tasks from 
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess
-  the `TASK` from the model type.
+- `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export, track]`
-- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
-  For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
+- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
   GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 !!! warning "Warning"
@@ -82,8 +79,7 @@ Where:
 
 ## Train
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see
-the [Configuration](cfg.md) page.
+Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](cfg.md) page.
 
 !!! example "Example"
 
@@ -103,8 +99,7 @@ the [Configuration](cfg.md) page.
 
 ## Val
 
-Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
-training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
 !!! example "Example"
 
@@ -162,8 +157,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx
         ```
 
-Available YOLOv8 export formats are in the table below. You can export to any format using the `format` argument,
-i.e. `format='onnx'` or `format='engine'`.
+Available YOLOv8 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`.
 
 | Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
 |--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
@@ -207,13 +201,11 @@ Default arguments can be overridden by simply passing them as arguments in the C
 
 ## Overriding default config file
 
-You can override the `default.yaml` config file entirely by passing a new file with the `cfg` arguments,
-i.e. `cfg=custom.yaml`.
+You can override the `default.yaml` config file entirely by passing a new file with the `cfg` arguments, i.e. `cfg=custom.yaml`.
 
 To do this first create a copy of `default.yaml` in your current working dir with the `yolo copy-cfg` command.
 
-This will create `default_copy.yaml`, which you can then pass as `cfg=default_copy.yaml` along with any additional args,
-like `imgsz=320` in this example:
+This will create `default_copy.yaml`, which you can then pass as `cfg=default_copy.yaml` along with any additional args, like `imgsz=320` in this example:
 
 !!! example ""
 

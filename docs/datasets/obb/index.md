@@ -75,7 +75,7 @@ Transitioning labels from the DOTA dataset format to the YOLO OBB format can be 
 
         ```python
         from ultralytics.data.converter import convert_dota_to_yolo_obb
-        
+
         convert_dota_to_yolo_obb('path/to/DOTA')
         ```
 

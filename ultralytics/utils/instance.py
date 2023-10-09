@@ -32,9 +32,14 @@ __all__ = 'Bboxes',  # tuple or list
 
 
 class Bboxes:
-    """Bounding Boxes class. Only numpy variables are supported."""
+    """
+    Bounding Boxes class.
+
+    Only numpy variables are supported.
+    """
 
     def __init__(self, bboxes, format='xyxy') -> None:
+        """Initializes the Bboxes class with bounding box data in a specified format."""
         assert format in _formats, f'Invalid bounding box format: {format}, format must be one of {_formats}'
         bboxes = bboxes[None, :] if bboxes.ndim == 1 else bboxes
         assert bboxes.ndim == 2
@@ -194,7 +199,7 @@ class Instances:
         return self._bboxes.areas()
 
     def scale(self, scale_w, scale_h, bbox_only=False):
-        """this might be similar with denormalize func but without normalized sign."""
+        """This might be similar with denormalize func but without normalized sign."""
         self._bboxes.mul(scale=(scale_w, scale_h, scale_w, scale_h))
         if bbox_only:
             return
@@ -307,7 +312,11 @@ class Instances:
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
 
     def remove_zero_area_boxes(self):
-        """Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height. This removes them."""
+        """
+        Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height.
+
+        This removes them.
+        """
         good = self.bbox_areas > 0
         if not all(good):
             self._bboxes = self._bboxes[good]

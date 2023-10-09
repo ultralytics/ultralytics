@@ -161,9 +161,7 @@ class Events:
     url = 'https://www.google-analytics.com/mp/collect?measurement_id=G-X8NCJYTQXM&api_secret=QLQrATrNSwGRFRLE-cbHJw'
 
     def __init__(self):
-        """
-        Initializes the Events object with default values for events, rate_limit, and metadata.
-        """
+        """Initializes the Events object with default values for events, rate_limit, and metadata."""
         self.events = []  # events list
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)

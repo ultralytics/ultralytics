@@ -4,8 +4,7 @@ description: Improve YOLOv5 model efficiency by pruning with Ultralytics. Unders
 keywords: YOLOv5, YOLO, Ultralytics, model pruning, PyTorch, machine learning, deep learning, computer vision, object detection
 ---
 
-📚 This guide explains how to apply **pruning** to YOLOv5 🚀 models.
-UPDATED 25 September 2022.
+📚 This guide explains how to apply **pruning** to YOLOv5 🚀 models. UPDATED 25 September 2022.
 
 ## Before You Start
 

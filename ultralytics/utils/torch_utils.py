@@ -205,7 +205,11 @@ def fuse_deconv_and_bn(deconv, bn):
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
-    """Model information. imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]."""
+    """
+    Model information.
+
+    imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320].
+    """
     if not verbose:
         return
     n_p = get_num_params(model)  # number of parameters
@@ -517,13 +521,11 @@ def profile(input, ops, n=10, device=None):
 
 
 class EarlyStopping:
-    """
-    Early stopping class that stops training when a specified number of epochs have passed without improvement.
-    """
+    """Early stopping class that stops training when a specified number of epochs have passed without improvement."""
 
     def __init__(self, patience=50):
         """
-        Initialize early stopping object
+        Initialize early stopping object.
 
         Args:
             patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
@@ -535,7 +537,7 @@ class EarlyStopping:
 
     def __call__(self, epoch, fitness):
         """
-        Check whether to stop training
+        Check whether to stop training.
 
         Args:
             epoch (int): Current epoch of training

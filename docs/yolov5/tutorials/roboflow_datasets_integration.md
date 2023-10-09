@@ -6,8 +6,7 @@ keywords: Ultralytics, YOLOv5, Roboflow, data organization, data labelling, data
 
 # Roboflow Datasets
 
-You can now use Roboflow to organize, label, prepare, version, and host your datasets for training YOLOv5 🚀 models. Roboflow is free to use with YOLOv5 if you make your workspace public.
-UPDATED 7 June 2023.
+You can now use Roboflow to organize, label, prepare, version, and host your datasets for training YOLOv5 🚀 models. Roboflow is free to use with YOLOv5 if you make your workspace public. UPDATED 7 June 2023.
 
 !!! warning
 

@@ -8,11 +8,7 @@ keywords: Ultralytics, COCO8 dataset, object detection, model testing, dataset c
 
 ## Introduction
 
-[Ultralytics](https://ultralytics.com) COCO8 is a small, but versatile object detection dataset composed of the first 8
-images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging
-object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be
-easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training
-larger datasets.
+[Ultralytics](https://ultralytics.com) COCO8 is a small, but versatile object detection dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com)
 and [YOLOv8](https://github.com/ultralytics/ultralytics).

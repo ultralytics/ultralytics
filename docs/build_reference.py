@@ -28,9 +28,7 @@ def extract_classes_and_functions(filepath: Path):
     Returns:
         (tuple): A tuple containing lists of class and function names.
     """
-    with open(filepath) as file:
-        content = file.read()
-
+    content = Path(filepath).read_text()
     class_pattern = r'(?:^|\n)class\s(\w+)(?:\(|:)'
     func_pattern = r'(?:^|\n)def\s(\w+)\('
 

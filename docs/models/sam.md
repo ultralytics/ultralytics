@@ -152,7 +152,6 @@ This comparison shows the order-of-magnitude differences in the model sizes and 
 
 Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
-
 !!! example ""
 
     === "Python"

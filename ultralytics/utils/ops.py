@@ -50,6 +50,7 @@ class Profile(contextlib.ContextDecorator):
         self.t += self.dt  # accumulate dt
 
     def __str__(self):
+        """Returns a human-readable string representing the accumulated elapsed time in the profiler."""
         return f'Elapsed time is {self.t} s'
 
     def time(self):
@@ -303,7 +304,7 @@ def clip_coords(coords, shape):
 
 def scale_image(masks, im0_shape, ratio_pad=None):
     """
-    Takes a mask, and resizes it to the original image size
+    Takes a mask, and resizes it to the original image size.
 
     Args:
         masks (np.ndarray): resized and padded masks/images, [h, w, num]/[h, w, 3].
@@ -403,8 +404,8 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
 
 def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     """
-    Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height, normalized) format.
-    x, y, width and height are normalized to image dimensions
+    Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height, normalized) format. x, y,
+    width and height are normalized to image dimensions.
 
     Args:
         x (np.ndarray | torch.Tensor): The input bounding box coordinates in (x1, y1, x2, y2) format.
@@ -445,7 +446,7 @@ def xywh2ltwh(x):
 
 def xyxy2ltwh(x):
     """
-    Convert nx4 bounding boxes from [x1, y1, x2, y2] to [x1, y1, w, h], where xy1=top-left, xy2=bottom-right
+    Convert nx4 bounding boxes from [x1, y1, x2, y2] to [x1, y1, w, h], where xy1=top-left, xy2=bottom-right.
 
     Args:
         x (np.ndarray | torch.Tensor): The input tensor with the bounding boxes coordinates in the xyxy format
@@ -461,7 +462,7 @@ def xyxy2ltwh(x):
 
 def ltwh2xywh(x):
     """
-    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
+    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center.
 
     Args:
         x (torch.Tensor): the input tensor
@@ -544,7 +545,7 @@ def xywhr2xyxyxyxy(center):
 
 def ltwh2xyxy(x):
     """
-    It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right.
 
     Args:
         x (np.ndarray | torch.Tensor): the input image
@@ -616,8 +617,8 @@ def crop_mask(masks, boxes):
 
 def process_mask_upsample(protos, masks_in, bboxes, shape):
     """
-    Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
-    quality but is slower.
+    Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher quality
+    but is slower.
 
     Args:
         protos (torch.Tensor): [mask_dim, mask_h, mask_w]
@@ -713,7 +714,7 @@ def scale_masks(masks, shape, padding=True):
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False, padding=True):
     """
-    Rescale segment coordinates (xy) from img1_shape to img0_shape
+    Rescale segment coordinates (xy) from img1_shape to img0_shape.
 
     Args:
         img1_shape (tuple): The shape of the image that the coords are from.

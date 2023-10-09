@@ -159,9 +159,7 @@ class Model(nn.Module):
         self.overrides['task'] = self.task
 
     def _check_is_pytorch_model(self):
-        """
-        Raises TypeError is model is not a PyTorch model
-        """
+        """Raises TypeError is model is not a PyTorch model."""
         pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == '.pt'
         pt_module = isinstance(self.model, nn.Module)
         if not (pt_module or pt_str):
@@ -173,9 +171,7 @@ class Model(nn.Module):
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'")
 
     def reset_weights(self):
-        """
-        Resets the model modules parameters to randomly initialized values, losing all training information.
-        """
+        """Resets the model modules parameters to randomly initialized values, losing all training information."""
         self._check_is_pytorch_model()
         for m in self.model.modules():
             if hasattr(m, 'reset_parameters'):
@@ -185,9 +181,7 @@ class Model(nn.Module):
         return self
 
     def load(self, weights='yolov8n.pt'):
-        """
-        Transfers parameters with matching names and shapes from 'weights' to model.
-        """
+        """Transfers parameters with matching names and shapes from 'weights' to model."""
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             weights, self.ckpt = attempt_load_one_weight(weights)

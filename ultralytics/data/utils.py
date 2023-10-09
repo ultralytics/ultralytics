@@ -547,9 +547,9 @@ class HUBDatasetStats:
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     """
-    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the
-    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will
-    not be resized.
+    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the Python
+    Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
+    resized.
 
     Args:
         f (str): The path to the input image file.

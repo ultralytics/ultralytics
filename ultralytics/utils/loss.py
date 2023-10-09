@@ -13,7 +13,11 @@ from .tal import bbox2dist
 
 
 class VarifocalLoss(nn.Module):
-    """Varifocal loss by Zhang et al. https://arxiv.org/abs/2008.13367."""
+    """
+    Varifocal loss by Zhang et al.
+
+    https://arxiv.org/abs/2008.13367.
+    """
 
     def __init__(self):
         """Initialize the VarifocalLoss class."""
@@ -33,6 +37,7 @@ class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 
     def __init__(self, ):
+        """Initializer for FocalLoss class with no parameters."""
         super().__init__()
 
     @staticmethod
@@ -93,6 +98,7 @@ class KeypointLoss(nn.Module):
     """Criterion class for computing training losses."""
 
     def __init__(self, sigmas) -> None:
+        """Initialize the KeypointLoss class."""
         super().__init__()
         self.sigmas = sigmas
 

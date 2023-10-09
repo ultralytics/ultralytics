@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Transformer modules
-"""
+"""Transformer modules."""
 
 import math
 
@@ -18,9 +16,10 @@ __all__ = ('TransformerEncoderLayer', 'TransformerLayer', 'TransformerBlock', 'M
 
 
 class TransformerEncoderLayer(nn.Module):
-    """Transformer Encoder."""
+    """Defines a single layer of the transformer encoder."""
 
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0.0, act=nn.GELU(), normalize_before=False):
+        """Initialize the TransformerEncoderLayer with specified parameters."""
         super().__init__()
         from ...utils.torch_utils import TORCH_1_9
         if not TORCH_1_9:
@@ -41,10 +40,11 @@ class TransformerEncoderLayer(nn.Module):
         self.normalize_before = normalize_before
 
     def with_pos_embed(self, tensor, pos=None):
-        """Add position embeddings if given."""
+        """Add position embeddings to the tensor if provided."""
         return tensor if pos is None else tensor + pos
 
     def forward_post(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
+        """Performs forward pass with post-normalization."""
         q = k = self.with_pos_embed(src, pos)
         src2 = self.ma(q, k, value=src, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
         src = src + self.dropout1(src2)
@@ -54,6 +54,7 @@ class TransformerEncoderLayer(nn.Module):
         return self.norm2(src)
 
     def forward_pre(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
+        """Performs forward pass with pre-normalization."""
         src2 = self.norm1(src)
         q = k = self.with_pos_embed(src2, pos)
         src2 = self.ma(q, k, value=src2, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
@@ -70,11 +71,14 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class AIFI(TransformerEncoderLayer):
+    """Defines the AIFI transformer layer."""
 
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0, act=nn.GELU(), normalize_before=False):
+        """Initialize the AIFI instance with specified parameters."""
         super().__init__(c1, cm, num_heads, dropout, act, normalize_before)
 
     def forward(self, x):
+        """Forward pass for the AIFI transformer layer."""
         c, h, w = x.shape[1:]
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
         # flatten [B, C, H, W] to [B, HxW, C]
@@ -82,7 +86,8 @@ class AIFI(TransformerEncoderLayer):
         return x.permute(0, 2, 1).view([-1, c, h, w]).contiguous()
 
     @staticmethod
-    def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000.):
+    def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000.0):
+        """Builds 2D sine-cosine position embedding."""
         grid_w = torch.arange(int(w), dtype=torch.float32)
         grid_h = torch.arange(int(h), dtype=torch.float32)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing='ij')
@@ -140,27 +145,32 @@ class TransformerBlock(nn.Module):
 
 
 class MLPBlock(nn.Module):
+    """Implements a single block of a multi-layer perceptron."""
 
     def __init__(self, embedding_dim, mlp_dim, act=nn.GELU):
+        """Initialize the MLPBlock with specified embedding dimension, MLP dimension, and activation function."""
         super().__init__()
         self.lin1 = nn.Linear(embedding_dim, mlp_dim)
         self.lin2 = nn.Linear(mlp_dim, embedding_dim)
         self.act = act()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass for the MLPBlock."""
         return self.lin2(self.act(self.lin1(x)))
 
 
 class MLP(nn.Module):
-    """ Very simple multi-layer perceptron (also called FFN)"""
+    """Implements a simple multi-layer perceptron (also called FFN)."""
 
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
+        """Initialize the MLP with specified input, hidden, output dimensions and number of layers."""
         super().__init__()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)
         self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
 
     def forward(self, x):
+        """Forward pass for the entire MLP."""
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
         return x
@@ -168,17 +178,22 @@ class MLP(nn.Module):
 
 class LayerNorm2d(nn.Module):
     """
-    LayerNorm2d module from https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
+    2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
+
+    Original implementation at
+    https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
     https://github.com/facebookresearch/ConvNeXt/blob/d1fa8f6fef0a165b27399986cc2bdacc92777e40/models/convnext.py#L119
     """
 
     def __init__(self, num_channels, eps=1e-6):
+        """Initialize LayerNorm2d with the given parameters."""
         super().__init__()
         self.weight = nn.Parameter(torch.ones(num_channels))
         self.bias = nn.Parameter(torch.zeros(num_channels))
         self.eps = eps
 
     def forward(self, x):
+        """Perform forward pass for 2D layer normalization."""
         u = x.mean(1, keepdim=True)
         s = (x - u).pow(2).mean(1, keepdim=True)
         x = (x - u) / torch.sqrt(s + self.eps)
@@ -187,11 +202,13 @@ class LayerNorm2d(nn.Module):
 
 class MSDeformAttn(nn.Module):
     """
-    Original Multi-Scale Deformable Attention Module.
+    Multi-Scale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
+
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
 
     def __init__(self, d_model=256, n_levels=4, n_heads=8, n_points=4):
+        """Initialize MSDeformAttn with the given parameters."""
         super().__init__()
         if d_model % n_heads != 0:
             raise ValueError(f'd_model must be divisible by n_heads, but got {d_model} and {n_heads}')
@@ -214,6 +231,7 @@ class MSDeformAttn(nn.Module):
         self._reset_parameters()
 
     def _reset_parameters(self):
+        """Reset module parameters."""
         constant_(self.sampling_offsets.weight.data, 0.)
         thetas = torch.arange(self.n_heads, dtype=torch.float32) * (2.0 * math.pi / self.n_heads)
         grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
@@ -232,7 +250,10 @@ class MSDeformAttn(nn.Module):
 
     def forward(self, query, refer_bbox, value, value_shapes, value_mask=None):
         """
+        Perform forward pass for multi-scale deformable attention.
+
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
+
         Args:
             query (torch.Tensor): [bs, query_length, C]
             refer_bbox (torch.Tensor): [bs, query_length, n_levels, 2], range in [0, 1], top-left (0,0),
@@ -272,24 +293,27 @@ class MSDeformAttn(nn.Module):
 
 class DeformableTransformerDecoderLayer(nn.Module):
     """
+    Deformable Transformer Decoder Layer inspired by PaddleDetection and Deformable-DETR implementations.
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
     """
 
     def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0., act=nn.ReLU(), n_levels=4, n_points=4):
+        """Initialize the DeformableTransformerDecoderLayer with the given parameters."""
         super().__init__()
 
-        # self attention
+        # Self attention
         self.self_attn = nn.MultiheadAttention(d_model, n_heads, dropout=dropout)
         self.dropout1 = nn.Dropout(dropout)
         self.norm1 = nn.LayerNorm(d_model)
 
-        # cross attention
+        # Cross attention
         self.cross_attn = MSDeformAttn(d_model, n_levels, n_heads, n_points)
         self.dropout2 = nn.Dropout(dropout)
         self.norm2 = nn.LayerNorm(d_model)
 
-        # ffn
+        # FFN
         self.linear1 = nn.Linear(d_model, d_ffn)
         self.act = act
         self.dropout3 = nn.Dropout(dropout)
@@ -299,37 +323,44 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
     @staticmethod
     def with_pos_embed(tensor, pos):
+        """Add positional embeddings to the input tensor, if provided."""
         return tensor if pos is None else tensor + pos
 
     def forward_ffn(self, tgt):
+        """Perform forward pass through the Feed-Forward Network part of the layer."""
         tgt2 = self.linear2(self.dropout3(self.act(self.linear1(tgt))))
         tgt = tgt + self.dropout4(tgt2)
         return self.norm3(tgt)
 
     def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
-        # self attention
+        """Perform the forward pass through the entire decoder layer."""
+
+        # Self attention
         q = k = self.with_pos_embed(embed, query_pos)
         tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1),
                              attn_mask=attn_mask)[0].transpose(0, 1)
         embed = embed + self.dropout1(tgt)
         embed = self.norm1(embed)
 
-        # cross attention
+        # Cross attention
         tgt = self.cross_attn(self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes,
                               padding_mask)
         embed = embed + self.dropout2(tgt)
         embed = self.norm2(embed)
 
-        # ffn
+        # FFN
         return self.forward_ffn(embed)
 
 
 class DeformableTransformerDecoder(nn.Module):
     """
+    Implementation of Deformable Transformer Decoder based on PaddleDetection.
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     """
 
     def __init__(self, hidden_dim, decoder_layer, num_layers, eval_idx=-1):
+        """Initialize the DeformableTransformerDecoder with the given parameters."""
         super().__init__()
         self.layers = _get_clones(decoder_layer, num_layers)
         self.num_layers = num_layers
@@ -347,6 +378,7 @@ class DeformableTransformerDecoder(nn.Module):
             pos_mlp,
             attn_mask=None,
             padding_mask=None):
+        """Perform the forward pass through the entire decoder."""
         output = embed
         dec_bboxes = []
         dec_cls = []

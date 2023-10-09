@@ -117,6 +117,7 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
+        """Initialize custom Ultralytics tqdm class with different default arguments."""
         # Set new default values (these can still be overridden when calling TQDM)
         kwargs['disable'] = not VERBOSE or kwargs.get('disable', False)  # logical 'and' with default value if passed
         kwargs.setdefault('bar_format', TQDM_BAR_FORMAT)  # override default value if passed
@@ -124,8 +125,7 @@ class TQDM(tqdm_original):
 
 
 class SimpleClass:
-    """
-    Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
+    """Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
     access methods for easier debugging and usage.
     """
 
@@ -154,8 +154,7 @@ class SimpleClass:
 
 
 class IterableSimpleNamespace(SimpleNamespace):
-    """
-    Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
+    """Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
     enables usage with dict() and for loops.
     """
 
@@ -256,8 +255,8 @@ class EmojiFilter(logging.Filter):
     """
     A custom logging filter class for removing emojis in log messages.
 
-    This filter is particularly useful for ensuring compatibility with Windows terminals
-    that may not support the display of emojis in log messages.
+    This filter is particularly useful for ensuring compatibility with Windows terminals that may not support the
+    display of emojis in log messages.
     """
 
     def filter(self, record):
@@ -275,9 +274,9 @@ if WINDOWS:  # emoji-safe logging
 
 class ThreadingLocked:
     """
-    A decorator class for ensuring thread-safe execution of a function or method.
-    This class can be used as a decorator to make sure that if the decorated function
-    is called from multiple threads, only one thread at a time will be able to execute the function.
+    A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator
+    to make sure that if the decorated function is called from multiple threads, only one thread at a time will be able
+    to execute the function.
 
     Attributes:
         lock (threading.Lock): A lock object used to manage access to the decorated function.
@@ -294,13 +293,16 @@ class ThreadingLocked:
     """
 
     def __init__(self):
+        """Initializes the decorator class for thread-safe execution of a function or method."""
         self.lock = threading.Lock()
 
     def __call__(self, f):
+        """Run thread-safe execution of function or method."""
         from functools import wraps
 
         @wraps(f)
         def decorated(*args, **kwargs):
+            """Applies thread-safety to the decorated function or method."""
             with self.lock:
                 return f(*args, **kwargs)
 
@@ -424,8 +426,7 @@ def is_kaggle():
 
 def is_jupyter():
     """
-    Check if the current script is running inside a Jupyter Notebook.
-    Verified on Colab, Jupyterlab, Kaggle, Paperspace.
+    Check if the current script is running inside a Jupyter Notebook. Verified on Colab, Jupyterlab, Kaggle, Paperspace.
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
@@ -529,8 +530,8 @@ def is_github_actions_ci() -> bool:
 
 def is_git_dir():
     """
-    Determines whether the current file is part of a git repository.
-    If the current file is not part of a git repository, returns None.
+    Determines whether the current file is part of a git repository. If the current file is not part of a git
+    repository, returns None.
 
     Returns:
         (bool): True if current file is part of a git repository.
@@ -540,8 +541,8 @@ def is_git_dir():
 
 def get_git_dir():
     """
-    Determines whether the current file is part of a git repository and if so, returns the repository root directory.
-    If the current file is not part of a git repository, returns None.
+    Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
+    the current file is not part of a git repository, returns None.
 
     Returns:
         (Path | None): Git root directory if found or None if not found.
@@ -578,7 +579,8 @@ def get_git_branch():
 
 
 def get_default_args(func):
-    """Returns a dictionary of default arguments for a function.
+    """
+    Returns a dictionary of default arguments for a function.
 
     Args:
         func (callable): The function to inspect.
@@ -710,7 +712,11 @@ def remove_colorstr(input_string):
 
 
 class TryExcept(contextlib.ContextDecorator):
-    """YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager."""
+    """
+    YOLOv8 TryExcept class.
+
+    Use as @TryExcept() decorator or 'with TryExcept():' context manager.
+    """
 
     def __init__(self, msg='', verbose=True):
         """Initialize TryExcept class with optional message and verbosity settings."""
@@ -729,7 +735,11 @@ class TryExcept(contextlib.ContextDecorator):
 
 
 def threaded(func):
-    """Multi-threads a target function and returns thread. Usage: @threaded decorator."""
+    """
+    Multi-threads a target function and returns thread.
+
+    Use as @threaded decorator.
+    """
 
     def wrapper(*args, **kwargs):
         """Multi-threads a given function and returns the thread."""
@@ -824,6 +834,9 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version='0.0.4'):
+        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
+        file.
+        """
         import copy
         import hashlib
 

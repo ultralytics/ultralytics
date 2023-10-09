@@ -37,7 +37,8 @@ class RTDETRTrainer(DetectionTrainer):
         return model
 
     def build_dataset(self, img_path, mode='val', batch=None):
-        """Build RTDETR Dataset
+        """
+        Build RTDETR Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.

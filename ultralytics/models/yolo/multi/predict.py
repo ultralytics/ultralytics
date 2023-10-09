@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import numpy as np
+
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
@@ -29,10 +31,8 @@ class MultiTaskPredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Return detection results for a given input image or list of images."""
-        # TODO: implement this
-        raise NotImplementedError
 
-        preds = ops.non_max_suppression(
+        preds_nmsed = ops.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,
@@ -46,13 +46,33 @@ class MultiTaskPredictor(DetectionPredictor):
         if not isinstance(orig_imgs, list):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
+        # second output is len 4 if pt, but only 1 if exported
+        proto = preds[1][-1] if len(preds[1]) == 4 else preds[1]
+
+        kpt_shape = self.model.kpt_shape
+
         results = []
-        for i, pred in enumerate(preds):
+        for i, pred in enumerate(preds_nmsed):
             orig_img = orig_imgs[i]
+            # scale boxes to original image size
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
-            pred_kpts = (pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:])
+
+            # scale keypoints to original image size
+            pred_kpts = pred[:, 6:6 + np.prod(kpt_shape)]
+            pred_kpts = pred_kpts.view(len(pred), *self.model.kpt_shape) if len(pred) else pred_kpts
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
+
             img_path = self.batch[0][i]
+
+            if not len(pred):  # save empty boxes
+                masks = None
+            else:
+                masks = pred[:, 6 + np.prod(kpt_shape):]
+                if self.args.retina_masks:
+                    masks = ops.process_mask_native(proto[i], masks, pred[:, :4], orig_img.shape[:2])  # HWC
+                else:
+                    masks = ops.process_mask(proto[i], masks, pred[:, :4], img.shape[2:], upsample=True)  # HWC
+
             results.append(
                 Results(
                     orig_img,
@@ -60,5 +80,6 @@ class MultiTaskPredictor(DetectionPredictor):
                     names=self.model.names,
                     boxes=pred[:, :6],
                     keypoints=pred_kpts,
+                    masks=masks,
                 ))
         return results

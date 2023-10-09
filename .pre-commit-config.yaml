@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Pre-commit hooks. For more information see https://github.com/pre-commit/pre-commit-hooks/blob/main/README.md
 
-exclude: 'docs/'
+# exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
@@ -47,6 +47,7 @@ repos:
         additional_dependencies:
           - mdformat-gfm
           - mdformat-black
+        exclude: 'docs/.*\.md'
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 
   - repo: https://github.com/PyCQA/flake8
@@ -60,7 +61,7 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=crate,nd,strack,dota,ane,segway,fo
+          - --ignore-words-list=crate,nd,strack,dota,ane,segway,fo,gool,winn
 
   - repo: https://github.com/PyCQA/docformatter
     rev: v1.7.5

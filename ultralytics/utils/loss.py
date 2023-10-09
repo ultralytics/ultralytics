@@ -281,17 +281,26 @@ class v8SegmentationLoss(v8DetectionLoss):
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def single_mask_loss(
-        self,
-        gt_mask: torch.Tensor,
-        pred: torch.Tensor,
-        proto: torch.Tensor,
-        xyxy: torch.Tensor,
-        area: torch.Tensor,
-    ) -> torch.Tensor:
-        """Mask loss for one image."""
-        # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
-        pred_mask = torch.einsum('in,nhw->ihw', pred, proto)
+    def single_mask_loss(self, gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor,
+                         area: torch.Tensor) -> torch.Tensor:
+        """
+        Compute the instance segmentation loss for a single image.
+
+        Args:
+            gt_mask (torch.Tensor): Ground truth mask of shape (n, H, W), where n is the number of objects.
+            pred (torch.Tensor): Predicted mask coefficients of shape (n, 32).
+            proto (torch.Tensor): Prototype masks of shape (32, H, W).
+            xyxy (torch.Tensor): Ground truth bounding boxes in xyxy format, normalized to [0, 1], of shape (n, 4).
+            area (torch.Tensor): Area of each ground truth bounding box of shape (n,).
+
+        Returns:
+            (torch.Tensor): The calculated mask loss for a single image.
+
+        Notes:
+            The function uses the equation pred_mask = torch.einsum('in,nhw->ihw', pred, proto) to produce the
+            predicted masks from the prototype masks and predicted mask coefficients.
+        """
+        pred_mask = torch.einsum('in,nhw->ihw', pred, proto)  # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
         loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction='none')
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
 
@@ -308,26 +317,28 @@ class v8SegmentationLoss(v8DetectionLoss):
         overlap: bool,
     ) -> torch.Tensor:
         """
+        Calculate the loss for instance segmentation.
 
         Args:
-            fg_mask: (BS, N_anchors)
-            masks: (BS, H, W) if overlap else (BS, ?, H, W)
-            target_gt_idx: (BS, N_anchors)
-            target_bboxes: (BS, N_anchors, 4)
-            batch_idx: (N_labels_in_batch, 1)
-            proto: (BS, 32, H, W)
-            pred_masks: (BS, N_anchors, 32)
-            imgsz: (2): (H, W)
-            overlap: bool
+            fg_mask (torch.Tensor): A binary tensor of shape (BS, N_anchors) indicating which anchors are positive.
+            masks (torch.Tensor): Ground truth masks of shape (BS, H, W) if `overlap` is False, otherwise (BS, ?, H, W).
+            target_gt_idx (torch.Tensor): Indexes of ground truth objects for each anchor of shape (BS, N_anchors).
+            target_bboxes (torch.Tensor): Ground truth bounding boxes for each anchor of shape (BS, N_anchors, 4).
+            batch_idx (torch.Tensor): Batch indices of shape (N_labels_in_batch, 1).
+            proto (torch.Tensor): Prototype masks of shape (BS, 32, H, W).
+            pred_masks (torch.Tensor): Predicted masks for each anchor of shape (BS, N_anchors, 32).
+            imgsz (torch.Tensor): Size of the input image as a tensor of shape (2), i.e., (H, W).
+            overlap (bool): Whether the masks in `masks` tensor overlap.
 
-        Note that batch loss can be computed for improved speed at higher memory usage
-        ```python
-        # (i, 32) @ (32, 160, 160) -> (i, 160, 160)
-        pred_mask = torch.einsum('in,nhw->ihw', pred, proto)
-        ```
+        Returns:
+            (torch.Tensor): The calculated loss for instance segmentation.
+
+        Notes:
+            The batch loss can be computed for improved speed at higher memory usage.
+            For example, pred_mask can be computed as follows:
+                pred_mask = torch.einsum('in,nhw->ihw', pred, proto)  # (i, 32) @ (32, 160, 160) -> (i, 160, 160)
         """
         _, _, mask_h, mask_w = proto.shape
-
         loss = 0
 
         # normalize to 0-1

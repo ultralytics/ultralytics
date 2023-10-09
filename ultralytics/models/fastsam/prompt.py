@@ -272,7 +272,8 @@ class FastSAMPrompt:
             self.results[0].masks.data = torch.tensor(np.array([masks[max_iou_index].cpu().numpy()]))
         return self.results
 
-    def point_prompt(self, points, pointlabel):  # numpy 处理
+    def point_prompt(self, points, pointlabel):  # numpy
+        """Adjusts points on detected masks based on user input and returns the modified results."""
         if self.results[0].masks is not None:
             if os.path.isdir(self.source):
                 raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")

@@ -155,12 +155,12 @@ class Annotator:
         masks = masks.unsqueeze(3)  # shape(n,h,w,1)
         masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
 
-        inv_alph_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
+        inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
         mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
 
         im_gpu = im_gpu.flip(dims=[0])  # flip channel
         im_gpu = im_gpu.permute(1, 2, 0).contiguous()  # shape(h,w,3)
-        im_gpu = im_gpu * inv_alph_masks[-1] + mcs
+        im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
         im_mask = (im_gpu * 255)
         im_mask_np = im_mask.byte().cpu().numpy()
         self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)

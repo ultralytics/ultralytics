@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-SAM model interface
-"""
+"""SAM model interface."""
 
 from pathlib import Path
 
@@ -13,16 +11,16 @@ from .predict import Predictor
 
 
 class SAM(Model):
-    """
-    SAM model interface.
-    """
+    """SAM model interface."""
 
     def __init__(self, model='sam_b.pt') -> None:
+        """Initializes the SAM model instance with the specified pre-trained model file."""
         if model and Path(model).suffix not in ('.pt', '.pth'):
             raise NotImplementedError('SAM prediction requires pre-trained *.pt or *.pth model.')
         super().__init__(model=model, task='segment')
 
     def _load(self, weights: str, task=None):
+        """Loads the provided weights into the SAM model."""
         self.model = build_sam(weights)
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, **kwargs):
@@ -48,4 +46,5 @@ class SAM(Model):
 
     @property
     def task_map(self):
+        """Returns a dictionary mapping the 'segment' task to its corresponding 'Predictor'."""
         return {'segment': {'predictor': Predictor}}

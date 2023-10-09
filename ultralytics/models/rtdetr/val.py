@@ -16,6 +16,7 @@ __all__ = 'RTDETRValidator',  # tuple or list
 class RTDETRDataset(YOLODataset):
 
     def __init__(self, *args, data=None, **kwargs):
+        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class."""
         super().__init__(*args, data=data, use_segments=False, use_keypoints=False, **kwargs)
 
     # NOTE: add stretch version load_image for rtdetr mosaic

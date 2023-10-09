@@ -7,7 +7,8 @@ import numpy as np
 
 
 class TritonRemoteModel:
-    """Client for interacting with a remote Triton Inference Server model.
+    """
+    Client for interacting with a remote Triton Inference Server model.
 
     Attributes:
         endpoint (str): The name of the model on the Triton server.

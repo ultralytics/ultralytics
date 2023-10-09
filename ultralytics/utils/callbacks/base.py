@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Base callbacks
-"""
+"""Base callbacks."""
 
 from collections import defaultdict
 from copy import deepcopy

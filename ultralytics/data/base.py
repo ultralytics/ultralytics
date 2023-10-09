@@ -62,6 +62,7 @@ class BaseDataset(Dataset):
                  classes=None,
                  fraction=1.0):
         super().__init__()
+        """Initialize BaseDataset with given configuration and options."""
         self.img_path = img_path
         self.imgsz = imgsz
         self.augment = augment
@@ -256,7 +257,7 @@ class BaseDataset(Dataset):
         return len(self.labels)
 
     def update_labels_info(self, label):
-        """custom your label format here."""
+        """Custom your label format here."""
         return label
 
     def build_transforms(self, hyp=None):

@@ -20,7 +20,11 @@ from .utils import PIN_MEMORY
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """Dataloader that reuses workers. Uses same syntax as vanilla DataLoader."""
+    """
+    Dataloader that reuses workers.
+
+    Uses same syntax as vanilla DataLoader.
+    """
 
     def __init__(self, *args, **kwargs):
         """Dataloader that infinitely recycles workers, inherits from DataLoader."""
@@ -38,7 +42,9 @@ class InfiniteDataLoader(dataloader.DataLoader):
             yield next(self.iterator)
 
     def reset(self):
-        """Reset iterator.
+        """
+        Reset iterator.
+
         This is useful when we want to modify settings of dataset while training.
         """
         self.iterator = self._get_iterator()
@@ -70,7 +76,7 @@ def seed_worker(worker_id):  # noqa
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode='train', rect=False, stride=32):
-    """Build YOLO Dataset"""
+    """Build YOLO Dataset."""
     return YOLODataset(
         img_path=img_path,
         imgsz=cfg.imgsz,

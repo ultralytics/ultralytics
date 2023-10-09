@@ -14,10 +14,12 @@ MODEL = WEIGHTS_DIR / 'yolov8n'
 
 
 def test_func(*args):  # noqa
+    """Test function callback."""
     print('callback test passed')
 
 
 def test_export():
+    """Test model exporting functionality."""
     exporter = Exporter()
     exporter.add_callback('on_export_start', test_func)
     assert test_func in exporter.callbacks['on_export_start'], 'callback test failed'
@@ -26,6 +28,7 @@ def test_export():
 
 
 def test_detect():
+    """Test object detection functionality."""
     overrides = {'data': 'coco8.yaml', 'model': CFG_DET, 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'coco8.yaml'
     CFG.imgsz = 32
@@ -61,6 +64,7 @@ def test_detect():
 
 
 def test_segment():
+    """Test image segmentation functionality."""
     overrides = {'data': 'coco8-seg.yaml', 'model': CFG_SEG, 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'coco8-seg.yaml'
     CFG.imgsz = 32
@@ -98,6 +102,7 @@ def test_segment():
 
 
 def test_classify():
+    """Test image classification functionality."""
     overrides = {'data': 'imagenet10', 'model': CFG_CLS, 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'imagenet10'
     CFG.imgsz = 32

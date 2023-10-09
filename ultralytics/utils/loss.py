@@ -98,6 +98,7 @@ class KeypointLoss(nn.Module):
     """Criterion class for computing training losses."""
 
     def __init__(self, sigmas) -> None:
+        """Initialize the KeypointLoss class."""
         super().__init__()
         self.sigmas = sigmas
 

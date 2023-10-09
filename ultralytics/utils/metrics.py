@@ -519,6 +519,7 @@ class Metric(SimpleClass):
     """
 
     def __init__(self) -> None:
+        """Initializes a Metric instance for computing evaluation metrics for the YOLOv8 model."""
         self.p = []  # (nc, )
         self.r = []  # (nc, )
         self.f1 = []  # (nc, )
@@ -667,6 +668,7 @@ class DetMetrics(SimpleClass):
     """
 
     def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+        """Initialize a DetMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
         self.on_plot = on_plot
@@ -751,6 +753,7 @@ class SegmentMetrics(SimpleClass):
     """
 
     def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+        """Initialize a SegmentMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
         self.on_plot = on_plot
@@ -860,6 +863,7 @@ class PoseMetrics(SegmentMetrics):
     """
 
     def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+        """Initialize the PoseMetrics class with directory path, class names, and plotting options."""
         super().__init__(save_dir, plot, names)
         self.save_dir = save_dir
         self.plot = plot
@@ -949,6 +953,7 @@ class ClassifyMetrics(SimpleClass):
     """
 
     def __init__(self) -> None:
+        """Initialize a ClassifyMetrics instance."""
         self.top1 = 0
         self.top5 = 0
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}

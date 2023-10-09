@@ -45,7 +45,7 @@ Clone YOLOv5 repository with its submodules:
 ```bash
 git clone https://github.com/ultralytics/yolov5
 cd yolov5
-git submodule update --init --recursive # Note that you might have a message asking you to add your folder as a safe.directory just copy the recommended command   
+git submodule update --init --recursive # Note that you might have a message asking you to add your folder as a safe.directory just copy the recommended command
 ```
 
 Install the required dependencies:

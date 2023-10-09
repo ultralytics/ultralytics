@@ -99,7 +99,7 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
 
         ```python
         from ultralytics.data.converter import convert_coco
-        
+
         convert_coco(labels_dir='path/to/coco/annotations/')
         ```
 

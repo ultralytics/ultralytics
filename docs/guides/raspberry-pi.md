@@ -10,9 +10,9 @@ This comprehensive guide aims to expedite your journey with YOLO object detectio
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/yul4gq_LrOI" 
-    title="Introducing Raspberry Pi 5" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/yul4gq_LrOI"
+    title="Introducing Raspberry Pi 5" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>

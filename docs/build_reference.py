@@ -19,7 +19,8 @@ REFERENCE_DIR = ROOT.parent / 'docs/reference'
 
 
 def extract_classes_and_functions(filepath: Path):
-    """Extracts class and function names from a given Python file.
+    """
+    Extracts class and function names from a given Python file.
 
     Args:
         filepath (Path): The path to the Python file.
@@ -27,9 +28,7 @@ def extract_classes_and_functions(filepath: Path):
     Returns:
         (tuple): A tuple containing lists of class and function names.
     """
-    with open(filepath, 'r') as file:
-        content = file.read()
-
+    content = Path(filepath).read_text()
     class_pattern = r'(?:^|\n)class\s(\w+)(?:\(|:)'
     func_pattern = r'(?:^|\n)def\s(\w+)\('
 
@@ -40,7 +39,8 @@ def extract_classes_and_functions(filepath: Path):
 
 
 def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list):
-    """Creates a Markdown file containing the API reference for the given Python module.
+    """
+    Creates a Markdown file containing the API reference for the given Python module.
 
     Args:
         py_filepath (Path): The path to the Python file.
@@ -53,7 +53,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     # Read existing content and keep header content between first two ---
     header_content = ''
     if md_filepath.exists():
-        with open(md_filepath, 'r') as file:
+        with open(md_filepath) as file:
             existing_content = file.read()
             header_parts = existing_content.split('---')
             for part in header_parts:
@@ -61,11 +61,13 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
                     header_content += f'---{part}---\n\n'
 
     module_name = module_path.replace('.__init__', '')
-    module_path = module_path.replace(".", "/")
+    module_path = module_path.replace('.', '/')
     url = f'https://github.com/ultralytics/ultralytics/blob/main/{module_path}.py'
-    title_content = (f'# Reference for `{module_path}.py`\n\n'
-                     f'!!! note\n\n'
-                     f'    Full source code for this file is available at [{url}]({url}). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!\n\n')
+    title_content = (
+        f'# Reference for `{module_path}.py`\n\n'
+        f'!!! note\n\n'
+        f'    Full source code for this file is available at [{url}]({url}). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!\n\n'
+    )
     md_content = [f'---\n## ::: {module_name}.{class_name}\n<br><br>\n' for class_name in classes]
     md_content.extend(f'---\n## ::: {module_name}.{func_name}\n<br><br>\n' for func_name in functions)
     md_content = header_content + title_content + '\n'.join(md_content)
@@ -80,7 +82,8 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
 
 
 def nested_dict():
-    """Creates and returns a nested defaultdict.
+    """
+    Creates and returns a nested defaultdict.
 
     Returns:
         (defaultdict): A nested defaultdict object.
@@ -89,7 +92,8 @@ def nested_dict():
 
 
 def sort_nested_dict(d: dict):
-    """Sorts a nested dictionary recursively.
+    """
+    Sorts a nested dictionary recursively.
 
     Args:
         d (dict): The dictionary to sort.
@@ -97,14 +101,12 @@ def sort_nested_dict(d: dict):
     Returns:
         (dict): The sorted dictionary.
     """
-    return {
-        key: sort_nested_dict(value) if isinstance(value, dict) else value
-        for key, value in sorted(d.items())
-    }
+    return {key: sort_nested_dict(value) if isinstance(value, dict) else value for key, value in sorted(d.items())}
 
 
 def create_nav_menu_yaml(nav_items: list):
-    """Creates a YAML file for the navigation menu based on the provided list of items.
+    """
+    Creates a YAML file for the navigation menu based on the provided list of items.
 
     Args:
         nav_items (list): A list of relative file paths to Markdown files for the navigation menu.

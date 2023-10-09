@@ -971,8 +971,7 @@ def classify_transforms_eval(
     crop_percentage: float = DEFAULT_CROP_PERCENTAGE,
 ):
     """
-    Classification transforms for evaluation/inference.
-    Inspired by timm/data/transforms_factory.py
+    Classification transforms for evaluation/inference. Inspired by timm/data/transforms_factory.py.
 
     Args:
         size (int): image size
@@ -1050,8 +1049,7 @@ def classify_transforms_train(
     interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
 ):
     """
-    Classification transforms with augmentation for training.
-    Inspired by timm/data/transforms_factory.py
+    Classification transforms with augmentation for training. Inspired by timm/data/transforms_factory.py.
 
     Args:
         size (int): image size

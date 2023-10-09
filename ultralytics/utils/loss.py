@@ -275,13 +275,14 @@ class v8SegmentationLoss(v8DetectionLoss):
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.box / batch_size  # seg gain
+        loss[1] *= self.hyp.box  # seg gain
         loss[2] *= self.hyp.cls  # cls gain
         loss[3] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def single_mask_loss(self, gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor,
+    @staticmethod
+    def single_mask_loss(gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor,
                          area: torch.Tensor) -> torch.Tensor:
         """
         Compute the instance segmentation loss for a single image.
@@ -302,7 +303,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         """
         pred_mask = torch.einsum('in,nhw->ihw', pred, proto)  # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
         loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction='none')
-        return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
+        return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).sum()
 
     def calculate_segmentation_loss(
         self,
@@ -367,7 +368,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             else:
                 loss += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
 
-        return loss
+        return loss / fg_mask.sum()
 
 
 class v8PoseLoss(v8DetectionLoss):

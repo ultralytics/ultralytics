@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Model head modules
-"""
+"""Model head modules."""
 
 import math
 
@@ -229,6 +227,7 @@ class RTDETRDecoder(nn.Module):
         self._reset_parameters()
 
     def forward(self, x, batch=None):
+        """Runs the forward pass of the module, returning bounding box and classification scores for the input."""
         from ultralytics.models.utils.ops import get_cdn_group
 
         # input projection and embedding
@@ -265,6 +264,7 @@ class RTDETRDecoder(nn.Module):
         return y if self.export else (y, x)
 
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
+        """Generates anchor bounding boxes for given shapes with specific grid size and validates them."""
         anchors = []
         for i, (h, w) in enumerate(shapes):
             sy = torch.arange(end=h, dtype=dtype, device=device)
@@ -284,6 +284,7 @@ class RTDETRDecoder(nn.Module):
         return anchors, valid_mask
 
     def _get_encoder_input(self, x):
+        """Processes and returns encoder inputs by getting projection features from input and concatenating them."""
         # get projection features
         x = [self.input_proj[i](feat) for i, feat in enumerate(x)]
         # get encoder inputs
@@ -301,6 +302,7 @@ class RTDETRDecoder(nn.Module):
         return feats, shapes
 
     def _get_decoder_input(self, feats, shapes, dn_embed=None, dn_bbox=None):
+        """Generates and prepares the input required for the decoder from the provided features and shapes."""
         bs = len(feats)
         # prepare input for decoder
         anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
@@ -339,6 +341,7 @@ class RTDETRDecoder(nn.Module):
 
     # TODO
     def _reset_parameters(self):
+        """Initializes or resets the parameters of the model's various components with predefined weights and biases."""
         # class and bbox head init
         bias_cls = bias_init_with_prob(0.01) / 80 * self.nc
         # NOTE: the weight initialization in `linear_init_` would cause NaN when training with custom datasets.

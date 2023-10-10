@@ -241,8 +241,9 @@ class Attention(torch.nn.Module):
         else:
             self.ab = self.attention_biases[:, self.attention_bias_idxs]
 
-    def forward(self, x):  # x (B,N,C)
-        B, N, _ = x.shape
+    def forward(self, x):  # x
+        """Performs forward pass over the input tensor 'x' by applying normalization and querying keys/values."""
+        B, N, _ = x.shape  # B, N, C
 
         # Normalization
         x = self.norm(x)

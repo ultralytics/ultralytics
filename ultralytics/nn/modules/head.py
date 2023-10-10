@@ -25,7 +25,8 @@ class Detect(nn.Module):
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
 
-    def __init__(self, nc=80, ch=()):  # detection layer
+    def __init__(self, nc=80, ch=()):
+        """Initializes the YOLOv8 detection layer with specified number of classes and channels."""
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
@@ -149,7 +150,8 @@ class Pose(Detect):
 class Classify(nn.Module):
     """YOLOv8 classification head, i.e. x(b,c1,20,20) to x(b,c2)."""
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1):  # ch_in, ch_out, kernel, stride, padding, groups
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 classification head with specified input and output channels, kernel size, stride, padding, and groups."""
         super().__init__()
         c_ = 1280  # efficientnet_b0 size
         self.conv = Conv(c1, c_, k, s, p, g)

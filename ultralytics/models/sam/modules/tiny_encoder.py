@@ -21,6 +21,7 @@ from ultralytics.utils.instance import to_2tuple
 
 
 class Conv2d_BN(torch.nn.Sequential):
+    """A sequential container that performs 2D convolution followed by batch normalization."""
 
     def __init__(self, a, b, ks=1, stride=1, pad=0, dilation=1, groups=1, bn_weight_init=1):
         """Initializes the MBConv model with given input channels, output channels, expansion ratio, activation, and
@@ -35,6 +36,7 @@ class Conv2d_BN(torch.nn.Sequential):
 
 
 class PatchEmbed(nn.Module):
+    """Embeds images into patches and projects them into a specified embedding dimension."""
 
     def __init__(self, in_chans, embed_dim, resolution, activation):
         """Initialize the PatchMerging class with specified input, output dimensions, resolution and activation
@@ -59,6 +61,7 @@ class PatchEmbed(nn.Module):
 
 
 class MBConv(nn.Module):
+    """Mobile Inverted Bottleneck Conv (MBConv) layer, part of the EfficientNet architecture."""
 
     def __init__(self, in_chans, out_chans, expand_ratio, activation, drop_path):
         """Initializes a convolutional layer with specified dimensions, input resolution, depth, and activation
@@ -96,6 +99,7 @@ class MBConv(nn.Module):
 
 
 class PatchMerging(nn.Module):
+    """Merges neighboring patches in the feature map and projects to a new dimension."""
 
     def __init__(self, input_resolution, dim, out_dim, activation):
         """Initializes the ConvLayer with specific dimension, input resolution, depth, activation, drop path, and other
@@ -190,6 +194,11 @@ class ConvLayer(nn.Module):
 
 
 class Mlp(nn.Module):
+    """
+    Multi-layer Perceptron (MLP) for transformer architectures.
+
+    This layer takes an input with in_features, applies layer normalization and two fully-connected layers.
+    """
 
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         """Initializes Attention module with the given parameters including dimension, key_dim, number of heads, etc."""

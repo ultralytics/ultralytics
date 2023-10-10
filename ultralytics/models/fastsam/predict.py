@@ -18,9 +18,9 @@ class FastSAMPredictor(DetectionPredictor):
     for single-class segmentation.
 
     Attributes:
-        cfg: The configuration parameters for prediction.
-        overrides: Parameter overrides for custom behavior.
-        _callbacks: A list of callbacks to be invoked during the prediction process.
+        cfg (dict): Configuration parameters for prediction.
+        overrides (dict, optional): Optional parameter overrides for custom behavior.
+        _callbacks (dict, optional): Optional list of callback functions to be invoked during prediction.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -28,9 +28,9 @@ class FastSAMPredictor(DetectionPredictor):
         Initializes the FastSAMPredictor class, inheriting from DetectionPredictor and setting the task to 'segment'.
 
         Args:
-            cfg: Configuration parameters for prediction.
-            overrides: Optional parameter overrides for custom behavior.
-            _callbacks: Optional list of callback functions to be invoked during prediction.
+            cfg (dict): Configuration parameters for prediction.
+            overrides (dict, optional): Optional parameter overrides for custom behavior.
+            _callbacks (dict, optional): Optional list of callback functions to be invoked during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'segment'

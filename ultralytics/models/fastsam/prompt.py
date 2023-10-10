@@ -188,7 +188,7 @@ class FastSAMPrompt:
 
         Args:
             annotation (array-like): Mask annotation.
-            ax: Matplotlib axis.
+            ax (matplotlib.axes.Axes): Matplotlib axis.
             random_color (bool, optional): Whether to use random color for masks. Defaults to False.
             bbox (list, optional): Bounding box coordinates [x1, y1, x2, y2]. Defaults to None.
             points (list, optional): Points to be plotted. Defaults to None.

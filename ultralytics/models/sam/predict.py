@@ -28,7 +28,7 @@ class Predictor(BasePredictor):
     Attributes:
         cfg (dict): Configuration dictionary.
         overrides (dict): Dictionary of overriding values.
-        _callbacks (list): List of callback functions.
+        _callbacks (dict): Dictionary of callback functions.
         args (namespace): Argument namespace.
         im (torch.Tensor): Preprocessed image for current prediction.
         features (torch.Tensor): Image features.

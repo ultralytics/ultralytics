@@ -136,7 +136,7 @@ class MaskDecoder(nn.Module):
 
 class MLP(nn.Module):
     """
-    Lightly adapted from
+    MLP (Multi-Layer Perceptron) model lightly adapted from
     https://github.com/facebookresearch/MaskFormer/blob/main/mask_former/modeling/transformer/transformer_predictor.py
     """
 
@@ -148,6 +148,16 @@ class MLP(nn.Module):
         num_layers: int,
         sigmoid_output: bool = False,
     ) -> None:
+        """
+        Initializes the MLP (Multi-Layer Perceptron) model.
+
+        Args:
+            input_dim (int): The dimensionality of the input features.
+            hidden_dim (int): The dimensionality of the hidden layers.
+            output_dim (int): The dimensionality of the output layer.
+            num_layers (int): The number of hidden layers.
+            sigmoid_output (bool, optional): Whether to apply a sigmoid activation to the output layer. Defaults to False.
+        """
         super().__init__()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)

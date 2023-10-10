@@ -130,7 +130,11 @@ class Focus(nn.Module):
         # self.contract = Contract(gain=2)
 
     def forward(self, x):
-        """Applies convolution to concatenated tensor and returns the output. Input shape is (b,c,w,h) and output shape is (b,4c,w/2,h/2)."""
+        """
+        Applies convolution to concatenated tensor and returns the output.
+
+        Input shape is (b,c,w,h) and output shape is (b,4c,w/2,h/2).
+        """
         return self.conv(torch.cat((x[..., ::2, ::2], x[..., 1::2, ::2], x[..., ::2, 1::2], x[..., 1::2, 1::2]), 1))
         # return self.conv(self.contract(x))
 
@@ -139,7 +143,9 @@ class GhostConv(nn.Module):
     """Ghost Convolution https://github.com/huawei-noah/ghostnet."""
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
-        """Initializes the GhostConv object with input channels, output channels, kernel size, stride, groups and activation."""
+        """Initializes the GhostConv object with input channels, output channels, kernel size, stride, groups and
+        activation.
+        """
         super().__init__()
         c_ = c2 // 2  # hidden channels
         self.cv1 = Conv(c1, c_, k, s, None, g, act=act)

@@ -184,6 +184,19 @@ class ProfileModels:
                  half=True,
                  trt=True,
                  device=None):
+        """
+        Initialize the ProfileModels class for profiling models.
+
+        Args:
+            paths (list): List of paths of the models to be profiled.
+            num_timed_runs (int, optional): Number of timed runs for the profiling. Default is 100.
+            num_warmup_runs (int, optional): Number of warmup runs before the actual profiling starts. Default is 10.
+            min_time (float, optional): Minimum time in seconds for profiling a model. Default is 60.
+            imgsz (int, optional): Size of the image used during profiling. Default is 640.
+            half (bool, optional): Flag to indicate whether to use half-precision floating point for profiling. Default is True.
+            trt (bool, optional): Flag to indicate whether to profile using TensorRT. Default is True.
+            device (torch.device, optional): Device used for profiling. If None, it is determined automatically. Default is None.
+        """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs

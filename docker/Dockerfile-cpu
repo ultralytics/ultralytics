@@ -3,7 +3,8 @@
 # Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLOv8 deployments
 
 # Start FROM Ubuntu image https://hub.docker.com/_/ubuntu
-FROM ubuntu:lunar-20230615
+# FROM ubuntu:lunar-20230615  https://security.snyk.io/vuln/SNYK-UBUNTU2304-GLIBC-5927364
+FROM ubuntu:mantic-20230926
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/

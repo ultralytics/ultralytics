@@ -25,7 +25,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
-from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, TQDM, __version__, callbacks, clean_url, colorstr, emojis,
+from ultralytics.utils import (DEFAULT_CFG, LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, TQDM, __version__, callbacks, clean_url, colorstr, emojis,
                                yaml_save)
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, print_args
@@ -33,6 +33,8 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
                                            strip_optimizer)
+from torch.distributed.elastic.multiprocessing.errors import record
+import socket
 
 
 class BaseTrainer:
@@ -155,9 +157,12 @@ class BaseTrainer:
         for callback in self.callbacks.get(event, []):
             callback(self)
 
+    @record
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
-        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
+        if WORLD_SIZE: # DDP torchrun
+            world_size = WORLD_SIZE
+        elif isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(','))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
@@ -190,17 +195,17 @@ class BaseTrainer:
         else:
             self._do_train(world_size)
 
+    @record
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device('cuda', RANK)
-        # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
-        os.environ['NCCL_BLOCKING_WAIT'] = '1'  # set to enforce timeout
-        dist.init_process_group(
-            'nccl' if dist.is_nccl_available() else 'gloo',
-            timeout=timedelta(seconds=10800),  # 3 hours
-            rank=RANK,
-            world_size=world_size)
+        hostname = socket.gethostname()
+        
+        torch.cuda.set_device(LOCAL_RANK)
+        self.device = torch.device('cuda', LOCAL_RANK)
+        dist.init_process_group(backend='nccl', init_method='env://', timeout=timedelta(seconds=1800), world_size=WORLD_SIZE, rank=RANK)
+        dist.barrier()
+        
+        LOGGER.info(f'DDP info (HEADNODE): HOSTNAME : {hostname}')
 
     def _setup_train(self, world_size):
         """Builds dataloaders and optimizer on correct rank process."""
@@ -237,7 +242,7 @@ class BaseTrainer:
         self.amp = bool(self.amp)  # as boolean
         self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
-            self.model = DDP(self.model, device_ids=[RANK])
+            self.model = DDP(self.model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)  # grid size (max stride)
@@ -249,7 +254,7 @@ class BaseTrainer:
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=LOCAL_RANK, mode='train')
         if RANK in (-1, 0):
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val')
             self.validator = self.get_validator()
@@ -282,7 +287,7 @@ class BaseTrainer:
 
     def _do_train(self, world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
-        if world_size > 1:
+        if world_size > 1 or WORLD_SIZE > 1:
             self._setup_ddp(world_size)
         self._setup_train(world_size)
 

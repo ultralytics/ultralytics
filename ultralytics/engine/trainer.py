@@ -34,6 +34,8 @@ from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
                                            strip_optimizer)
 
+from adabelief_pytorch import AdaBelief
+from sam.sam import SAM
 
 class BaseTrainer:
     """
@@ -664,6 +666,9 @@ class BaseTrainer:
             optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
         elif name == 'SGD':
             optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+        elif name == 'AdaBelief':
+            optimizer = AdaBelief(g[2], lr=lr, eps=1e-16, betas=(0.9,0.999), weight_decouple = False, rectify = False, weight_decay=1e-4)
+            optimizer = SAM(g[2], optimizer)
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers "

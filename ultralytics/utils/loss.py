@@ -115,7 +115,7 @@ class v8DetectionLoss:
     """Criterion class for computing training losses."""
 
     def __init__(self, model):  # model must be de-paralleled
-
+        """Initializes v8DetectionLoss with the model, defining model-related properties and BCE loss function."""
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
 
@@ -211,6 +211,7 @@ class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses."""
 
     def __init__(self, model):  # model must be de-paralleled
+        """Initializes the v8SegmentationLoss class, taking a de-paralleled model as argument."""
         super().__init__(model)
         self.overlap = model.args.overlap_mask
 
@@ -375,6 +376,7 @@ class v8PoseLoss(v8DetectionLoss):
     """Criterion class for computing training losses."""
 
     def __init__(self, model):  # model must be de-paralleled
+        """Initializes v8PoseLoss with model, sets keypoint variables and declares a keypoint loss instance."""
         super().__init__(model)
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()

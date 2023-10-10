@@ -17,6 +17,24 @@ from .build import build_sam
 
 
 class Predictor(BasePredictor):
+    """
+    A prediction class for segmentation tasks, extending the BasePredictor.
+
+    This class serves as an interface for model inference for segmentation tasks.
+    It can preprocess input images, perform inference, and postprocess the output.
+    It also supports handling various types of input prompts including bounding boxes,
+    points, and low-resolution masks for better prediction results.
+
+    Attributes:
+        cfg (dict): Configuration dictionary.
+        overrides (dict): Dictionary of overriding values.
+        _callbacks (dict): Dictionary of callback functions.
+        args (namespace): Argument namespace.
+        im (torch.Tensor): Preprocessed image for current prediction.
+        features (torch.Tensor): Image features.
+        prompts (dict): Dictionary of prompts like bboxes, points, masks.
+        segment_all (bool): Whether to perform segmentation on all objects or not.
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initializes the Predictor class with default or provided configuration, overrides, and callbacks."""

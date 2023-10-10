@@ -13,7 +13,8 @@ from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottlenec
                                     RTDETRDecoder, Segment)
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
+from ultralytics.utils.loss import (v8ClassificationLoss, v8DetectionLoss, v8MultiClassificationLoss, v8PoseLoss,
+                                    v8SegmentationLoss)
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights, intersect_dicts,
                                            make_divisible, model_info, scale_img, time_sync)
@@ -335,11 +336,13 @@ class ClassificationModel(BaseModel):
 
         # Define model
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
+        self.yaml['nc'] = int(self.yaml['nc'])
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override YAML value
         elif not nc and not self.yaml.get('nc', None):
             raise ValueError('nc not specified. Must specify nc in model.yaml or function arguments.')
+
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.stride = torch.Tensor([1])  # no stride constraints
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
@@ -369,6 +372,14 @@ class ClassificationModel(BaseModel):
     def init_criterion(self):
         """Initialize the loss criterion for the ClassificationModel."""
         return v8ClassificationLoss()
+
+
+class MultiClassificationModel(ClassificationModel):
+    """YOLOv8 multi-label classification model."""
+
+    def init_criterion(self):
+        """Compute the classification loss between predictions and true labels."""
+        return v8MultiClassificationLoss()
 
 
 class RTDETRDetectionModel(DetectionModel):

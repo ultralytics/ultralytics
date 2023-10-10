@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import contextlib
+import os
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -298,6 +299,166 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         x['msgs'] = msgs  # warnings
         save_dataset_cache_file(self.prefix, path, x)
         return samples
+
+
+from typing import Callable, Generator, Generic, List, Optional, Tuple, TypeVar
+
+T = TypeVar('T')
+
+
+# reads something from a root, need to implement iterate_files (gives the list of image files) and get_image_data (gives Y the target data for a given image),
+# does the image verif, augmentation, memory caching and dataset caching
+# generic type T is the type of the training label Y for each image
+class GenericDataset(torchvision.datasets.VisionDataset, Generic[T]):
+
+    def iterate_files(self, root: str) -> Generator[str, None, None]:
+        raise NotImplementedError(
+            'The function iterate_files, a generator of all image files given the root, is not implemented')
+
+    def get_image_data(self, image_path: str) -> T:
+        raise NotImplementedError(
+            'The function get_image_data, that gets the data (class, multi-label, segmentation, ...) from an image path, is not implemented'
+        )
+
+    def __init__(self,
+                 root: str,
+                 extensions: Optional[Tuple[str, ...]] = None,
+                 transform: Optional[Callable] = None,
+                 target_transform: Optional[Callable] = None,
+                 is_valid_file: Optional[Callable[[str], bool]] = None,
+                 augment=False,
+                 cache=False,
+                 prefix='',
+                 args=None) -> None:
+        super().__init__(root, transform=transform, target_transform=target_transform)
+
+        self.root = root
+        self.prefix = colorstr(f'{prefix}: ') if prefix else ''
+        self.samples = list(self.iterate_files(self.root))
+        if augment and args.fraction < 1.0:  # reduce training fraction
+            self.samples = self.samples[:round(len(self.samples) * args.fraction)]
+        self.prefix = prefix
+        self.samples = self.verify_images()  # filter out bad images
+        self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
+
+        self.cache_ram = cache is True or cache == 'ram'
+        self.cache_disk = cache == 'disk'
+
+        self.torch_transforms = classify_transforms(args.imgsz)
+        self.album_transforms = classify_albumentations(
+            augment=augment,
+            size=args.imgsz,
+            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
+            hflip=args.fliplr,
+            vflip=args.flipud,
+            hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
+            hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
+            hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
+            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
+            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
+            auto_aug=False) if augment else None
+
+    def __getitem__(self, i):
+        """Returns subset of data and targets corresponding to given indices."""
+        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        if self.cache_ram and im is None:
+            im = self.samples[i][3] = cv2.imread(f)
+        elif self.cache_disk:
+            if not fn.exists():  # load npy
+                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
+            im = np.load(fn)
+        else:  # read image
+            im = cv2.imread(f)  # BGR
+        if self.album_transforms:
+            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
+        else:
+            sample = self.torch_transforms(im)
+        return {'img': sample, 'cls': j}
+
+    def __len__(self) -> int:
+        return len(self.samples)
+
+    def verify_images(self):
+        """Verify all images in dataset."""
+        desc = f'{self.prefix}Scanning {self.root}...'
+        path = Path(self.cache_dir + self.prefix).with_suffix('.cache')  # *.cache file path
+
+        with contextlib.suppress(FileNotFoundError, AssertionError, AttributeError):
+            cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
+            assert cache['version'] == DATASET_CACHE_VERSION  # matches current version
+            assert cache['hash'] == get_hash([x[0] for x in self.samples])  # identical hash
+            nf, nc, n, samples = cache.pop('results')  # found, missing, empty, corrupt, total
+            if LOCAL_RANK in (-1, 0):
+                d = f'{desc} {nf} images, {nc} corrupt'
+                TQDM(None, desc=d, total=n, initial=n)
+                if cache['msgs']:
+                    LOGGER.info('\n'.join(cache['msgs']))  # display warnings
+            return samples
+
+        # Run scan if *.cache retrieval failed
+        nf, nc, msgs, verif_samples, x = 0, 0, [], [], {}
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(func=lambda path: verify_image(((path, None), self.prefix)), iterable=self.samples)
+            pbar = TQDM(results, desc=desc, total=len(self.samples))
+            for sample, nf_f, nc_f, msg in pbar:
+                if nf_f:
+                    filename = sample[0]
+                    image_y = self.get_image_data(filename)
+                    if image_y is None:
+                        nc_f, nf_f = 1, 0
+                    else:
+                        verif_samples.append((filename, image_y))
+                if msg:
+                    msgs.append(msg)
+                nf += nf_f
+                nc += nc_f
+                pbar.desc = f'{desc} {nf} images, {nc} corrupt'
+            pbar.close()
+        if msgs:
+            LOGGER.info('\n'.join(msgs))
+        x['hash'] = get_hash([x[0] for x in self.samples])
+        x['results'] = nf, nc, len(verif_samples), verif_samples
+        x['msgs'] = msgs  # warnings
+        save_dataset_cache_file(self.prefix, path, x)
+        return verif_samples
+
+
+class MultiClassificationDataset(GenericDataset[List[bool]]):
+
+    def __init__(self, root: str, augment=False, cache=False, prefix='', args=None, data_config=None) -> None:
+
+        config = data_config
+
+        # reads the labels Y from a file indicated in the dataset config
+        self.image_label_dict = {}
+        with open(config['image_labels_file']) as f:
+            for line in f:
+                parts = line.rstrip().split(',')
+                self.image_label_dict[parts[0]] = [int(v) for v in parts[1:]]
+        self.nc = int(config['nc'])
+        self.cache_dir = config['cache']
+
+        super().__init__(root, augment=augment, cache=cache, prefix=prefix, args=args)
+
+        self.classes_name = config['names']
+        self.classes_name = [(name, idx) for name, idx in self.classes_name.items()]
+        self.classes_name.sort(key=lambda ni: ni[1])
+        self.classes_name = [ni[0] for ni in self.classes_name]
+
+    def iterate_files(self, root: str) -> Generator[str, None, None]:
+        import glob
+        return list(glob.glob(self.root))
+
+    def get_image_data(self, image_path: str) -> T:
+        base_name = os.path.basename(image_path)
+        base_name = os.path.splitext(base_name)[0]
+        labels = self.image_label_dict.get(base_name, None)
+        if labels is None:
+            return None
+
+        labels_np = np.zeros((self.nc, ))
+        labels_np[labels] = 1
+        return labels_np
 
 
 def load_dataset_cache_file(path):

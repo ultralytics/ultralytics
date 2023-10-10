@@ -3,10 +3,10 @@
 import torch
 import torchvision
 
-from ultralytics.data import ClassificationDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, MultiClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
+from ultralytics.nn.tasks import ClassificationModel, MultiClassificationModel, attempt_load_one_weight
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.utils.plotting import plot_images, plot_results
 from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
@@ -33,7 +33,8 @@ class ClassificationTrainer(BaseTrainer):
         """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
         if overrides is None:
             overrides = {}
-        overrides['task'] = 'classify'
+        if overrides.get('task') is None:
+            overrides['task'] = 'classify'
         if overrides.get('imgsz') is None:
             overrides['imgsz'] = 224
         super().__init__(cfg, overrides, _callbacks)
@@ -42,9 +43,12 @@ class ClassificationTrainer(BaseTrainer):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data['names']
 
+    def _instantiate_model(self, cfg=None, verbose=True):
+        return ClassificationModel(cfg, nc=int(self.data['nc']), verbose=verbose and RANK == -1)
+
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
-        model = ClassificationModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
+        model = self._instantiate_model(cfg, verbose)
         if weights:
             model.load(weights)
 
@@ -56,6 +60,9 @@ class ClassificationTrainer(BaseTrainer):
         for p in model.parameters():
             p.requires_grad = True  # for training
         return model
+
+    def _reshape_outputs(self):
+        ClassificationModel.reshape_outputs(self.model, self.data['nc'])
 
     def setup_model(self):
         """Load, create or download model for any task."""
@@ -74,7 +81,7 @@ class ClassificationTrainer(BaseTrainer):
             self.model = torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if self.args.pretrained else None)
         else:
             FileNotFoundError(f'ERROR: model={model} not found locally or online. Please check model name.')
-        ClassificationModel.reshape_outputs(self.model, self.data['nc'])
+        self._reshape_outputs()
 
         return ckpt
 
@@ -149,4 +156,55 @@ class ClassificationTrainer(BaseTrainer):
             batch_idx=torch.arange(len(batch['img'])),
             cls=batch['cls'].view(-1),  # warning: use .view(), not .squeeze() for Classify models
             fname=self.save_dir / f'train_batch{ni}.jpg',
+            on_plot=self.on_plot)
+
+
+class MultiClassificationTrainer(ClassificationTrainer):
+    """
+    A class extending the ClassificationTrainer class for training based on a multi classification model (one image can have several labels).
+    """
+
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
+        if overrides is None:
+            overrides = {}
+        if overrides.get('task') is None:
+            overrides['task'] = 'mclassify'
+
+        super().__init__(cfg, overrides, _callbacks)
+
+    def _instantiate_model(self, cfg=None, verbose=True):
+        # the classification model still works with multi classification,
+        # but the output is different, it's not the relative logits of classes
+        # but the logit proba of each class
+        return MultiClassificationModel(cfg, nc=int(self.data['nc']), verbose=verbose and RANK == -1)
+
+    def _reshape_outputs(self):
+        MultiClassificationModel.reshape_outputs(self.model, int(self.data['nc']))
+
+    def build_dataset(self, img_path, mode='train', batch=None):
+        return MultiClassificationDataset(root=img_path,
+                                          args=self.args,
+                                          augment=mode == 'train',
+                                          prefix=mode,
+                                          data_config=self.data)
+
+    def get_validator(self):
+        """Returns an instance of ClassificationValidator for validation."""
+        self.loss_names = ['loss']
+        return yolo.classify.MultiClassificationValidator(self.test_loader, self.save_dir)
+
+    def plot_metrics(self):
+        """Plots metrics from a CSV file."""
+        plot_results(file=self.csv, classify=True, on_plot=self.on_plot)  # save results.png
+
+    def plot_training_samples(self, batch, ni):
+        """Plots training samples with their annotations."""
+        plot_images(
+            images=batch['img'],
+            batch_idx=torch.arange(len(batch['img'])),
+            cls=batch['cls'].view(-1,
+                                  len(self.model.names)),  # warning: use .view(), not .squeeze() for Classify models
+            fname=self.save_dir / f'train_batch{ni}.jpg',
+            names=self.model.names,
             on_plot=self.on_plot)

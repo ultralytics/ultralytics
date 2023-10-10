@@ -990,3 +990,74 @@ class ClassifyMetrics(SimpleClass):
     def keys(self):
         """Returns a list of keys for the results_dict property."""
         return ['metrics/accuracy_top1', 'metrics/accuracy_top5']
+
+
+class MultiClassifyMetrics(SimpleClass):
+    """
+    Class for computing classification metrics including top-1 and top-5 accuracy.
+
+    Attributes:
+        macrof1 (float): Macro F1 score (average of F1 per class)
+        microf1 (float): Micro F1 score (average of F1 sample weighted)
+        bceloss (float): Binary Cross Entropy loss for classification
+        speed (Dict[str, float]): A dictionary containing the time taken for each step in the pipeline.
+
+    Properties:
+        fitness (float): The fitness of the model, which is equal to Macro F1
+        results_dict (Dict[str, Union[float, str]]): A dictionary containing the classification metrics and fitness.
+        keys (List[str]): A list of keys for the results_dict.
+
+    Methods:
+        process(targets, pred): Processes the targets and predictions to compute classification metrics.
+    """
+
+    def __init__(self) -> None:
+        self.microf1 = 0
+        self.macrof1 = 0
+        self.bceloss = 0
+        self.nextbceloss = 0
+        self.accu = None
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+
+    def accumulate_stats(self, targets, pred):
+        """Update averages and counts in the metric."""
+        if self.accu is None:
+            self.accu = torch.zeros((pred.shape[-1], 3), device=pred.get_device())  # TP, FP, FN
+
+        pred_class = pred > 0.0  # softmax>0 means proba>0.5
+        TP = pred_class * targets
+        FP = pred_class * (~targets.to(torch.bool)).to(torch.float)
+        FN = ~pred_class * targets
+
+        self.nextbceloss += torch.nn.functional.binary_cross_entropy_with_logits(pred, targets, reduction='sum') / 64
+
+        self.accu[:, 0] += torch.sum(TP, dim=0)
+        self.accu[:, 1] += torch.sum(FP, dim=0)
+        self.accu[:, 2] += torch.sum(FN, dim=0)
+
+    def process(self, targets, pred):
+        """Target classes and predicted classes."""
+
+        TP, FP, FN = self.accu[:, 0], self.accu[:, 1], self.accu[:, 2]
+        F1 = TP / (TP + 0.5 * FP + 0.5 * FN + 1e-8)
+
+        self.macrof1 = torch.mean(F1)
+        self.microf1 = torch.sum(TP) / (torch.sum(TP) + 0.5 * torch.sum(FP) + 0.5 * torch.sum(FN))
+        self.bceloss = self.nextbceloss
+
+        self.accu, self.nextbceloss = None, 0
+
+    @property
+    def fitness(self):
+        """Returns the Macro F1 score."""
+        return self.macrof1
+
+    @property
+    def results_dict(self):
+        """Returns a dictionary with model's performance metrics and fitness score."""
+        return dict(zip(self.keys + ['fitness'], [self.microf1, self.macrof1, self.bceloss, self.fitness]))
+
+    @property
+    def keys(self):
+        """Returns a list of keys for the results_dict property."""
+        return ['metrics/microf1', 'metrics/macrof1', 'metrics/bceloss']

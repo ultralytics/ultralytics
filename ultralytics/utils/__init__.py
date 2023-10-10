@@ -6,6 +6,7 @@ import logging.config
 import os
 import platform
 import re
+import socket
 import subprocess
 import sys
 import threading
@@ -24,7 +25,6 @@ from tqdm import tqdm as tqdm_original
 
 from ultralytics import __version__
 
-import socket
 hostname = socket.gethostname()
 
 # PyTorch Multi-GPU DDP Constants

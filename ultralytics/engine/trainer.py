@@ -8,6 +8,7 @@ Usage:
 
 import math
 import os
+import socket
 import subprocess
 import time
 import warnings
@@ -20,21 +21,20 @@ import torch
 from torch import distributed as dist
 from torch import nn, optim
 from torch.cuda import amp
+from torch.distributed.elastic.multiprocessing.errors import record
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
-from ultralytics.utils import (DEFAULT_CFG, LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, TQDM, __version__, callbacks, clean_url, colorstr, emojis,
-                               yaml_save)
+from ultralytics.utils import (DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK, TQDM, WORLD_SIZE, __version__, callbacks,
+                               clean_url, colorstr, emojis, yaml_save)
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
                                            strip_optimizer)
-from torch.distributed.elastic.multiprocessing.errors import record
-import socket
 
 
 class BaseTrainer:
@@ -160,7 +160,7 @@ class BaseTrainer:
     @record
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
-        if WORLD_SIZE: # DDP torchrun
+        if WORLD_SIZE:  # DDP torchrun
             world_size = WORLD_SIZE
         elif isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(','))
@@ -199,12 +199,16 @@ class BaseTrainer:
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
         hostname = socket.gethostname()
-        
+
         torch.cuda.set_device(LOCAL_RANK)
         self.device = torch.device('cuda', LOCAL_RANK)
-        dist.init_process_group(backend='nccl', init_method='env://', timeout=timedelta(seconds=1800), world_size=WORLD_SIZE, rank=RANK)
+        dist.init_process_group(backend='nccl',
+                                init_method='env://',
+                                timeout=timedelta(seconds=1800),
+                                world_size=WORLD_SIZE,
+                                rank=RANK)
         dist.barrier()
-        
+
         LOGGER.info(f'DDP info (HEADNODE): HOSTNAME : {hostname}')
 
     def _setup_train(self, world_size):

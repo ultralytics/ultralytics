@@ -33,9 +33,17 @@ __all__ = 'Bboxes',  # tuple or list
 
 class Bboxes:
     """
-    Bounding Boxes class.
+    A class for handling bounding boxes.
 
-    Only numpy variables are supported.
+    The class supports various bounding box formats like 'xyxy', 'xywh', and 'ltwh'.
+    Bounding box data should be provided in numpy arrays.
+
+    Attributes:
+        bboxes (numpy.ndarray): The bounding boxes stored in a 2D numpy array.
+        format (str): The format of the bounding boxes ('xyxy', 'xywh', or 'ltwh').
+
+    Note:
+        This class does not handle normalization or denormalization of bounding boxes.
     """
 
     def __init__(self, bboxes, format='xyxy') -> None:
@@ -166,6 +174,36 @@ class Bboxes:
 
 
 class Instances:
+    """
+    Container for bounding boxes, segments, and keypoints of detected objects in an image.
+
+    Attributes:
+        _bboxes (Bboxes): Internal object for handling bounding box operations.
+        keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3]. Default is None.
+        normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
+        segments (ndarray): Segments array with shape [N, 1000, 2] after resampling.
+
+    Args:
+        bboxes (ndarray): An array of bounding boxes with shape [N, 4].
+        segments (list | ndarray, optional): A list or array of object segments. Default is None.
+        keypoints (ndarray, optional): An array of keypoints with shape [N, 17, 3]. Default is None.
+        bbox_format (str, optional): The format of bounding boxes ('xywh' or 'xyxy'). Default is 'xywh'.
+        normalized (bool, optional): Whether the bounding box coordinates are normalized. Default is True.
+
+    Examples:
+        ```python
+        # Create an Instances object
+        instances = Instances(
+            bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
+            segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
+            keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]])
+        )
+        ```
+
+    Note:
+        The bounding box format is either 'xywh' or 'xyxy', and is determined by the `bbox_format` argument.
+        This class does not perform input validation, and it assumes the inputs are well-formed.
+    """
 
     def __init__(self, bboxes, segments=None, keypoints=None, bbox_format='xywh', normalized=True) -> None:
         """

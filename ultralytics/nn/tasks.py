@@ -375,9 +375,9 @@ class RTDETRDetectionModel(DetectionModel):
     """
     RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
 
-    This class is responsible for constructing the RTDETR architecture, defining loss functions, and
-    facilitating both the training and inference processes. RTDETR is an object detection and tracking model
-    that extends from the DetectionModel base class.
+    This class is responsible for constructing the RTDETR architecture, defining loss functions, and facilitating both
+    the training and inference processes. RTDETR is an object detection and tracking model that extends from the
+    DetectionModel base class.
 
     Attributes:
         cfg (str): The configuration file path or preset string. Default is 'rtdetr-l.yaml'.
@@ -418,7 +418,7 @@ class RTDETRDetectionModel(DetectionModel):
             preds (torch.Tensor, optional): Precomputed model predictions. Defaults to None.
 
         Returns:
-            tuple: A tuple containing the total loss and main three losses in a tensor.
+            (tuple): A tuple containing the total loss and main three losses in a tensor.
         """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
@@ -466,7 +466,7 @@ class RTDETRDetectionModel(DetectionModel):
             augment (bool, optional): If True, perform data augmentation during inference. Defaults to False.
 
         Returns:
-            torch.Tensor: Model's output tensor.
+            (torch.Tensor): Model's output tensor.
         """
         y, dt = [], []  # outputs
         for m in self.model[:-1]:  # except the head part

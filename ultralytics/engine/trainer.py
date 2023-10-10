@@ -668,7 +668,7 @@ class BaseTrainer:
             optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
         elif name == 'AdaBelief':
             optimizer = AdaBelief(g[2], lr=lr, eps=1e-16, betas=(0.9,0.999), weight_decouple = False, rectify = False, weight_decay=1e-4)
-            optimizer = SAM(g[2], optimizer)
+            optimizer = SAM(g[2], optimizer = optimizer, lr=lr, momentum=momentum)
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers "

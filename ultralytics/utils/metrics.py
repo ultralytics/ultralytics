@@ -405,6 +405,38 @@ def compute_ap(recall, precision):
     return ap, mpre, mrec
 
 
+def voc_calculate_ap_by_tpfp(recalls, precisions, mode="area"):
+    no_scale = False
+    if recalls.ndim == 1:
+        no_scale = True
+        recalls = recalls[np.newaxis, :]
+        precisions = precisions[np.newaxis, :]
+    assert recalls.shape == precisions.shape and recalls.ndim == 2
+    num_scales = recalls.shape[0]
+    ap = np.zeros(num_scales, dtype=np.float32)
+    if mode == "area":
+        zeros = np.zeros((num_scales, 1), dtype=recalls.dtype)
+        ones = np.ones((num_scales, 1), dtype=recalls.dtype)
+        mrec = np.hstack((zeros, recalls, ones))
+        mpre = np.hstack((zeros, precisions, zeros))
+        for i in range(mpre.shape[1]-1, 0, -1):
+            mpre[:, i-1] = np.maximum(mpre[:, i-1], mpre[:, i])
+        for i in range(num_scales):
+            ind = np.where(mrec[i, 1:] != mrec[i, :-1])[0]
+            ap[i] = np.sum((mrec[i, ind+1] - mrec[i, ind]) * mpre[i, ind+1])
+    # elif mode == "11points":
+    #     for i in range(num_scales):
+    #         for thr in np.arange(0, 1+1e-3, 0.1):
+    #             precs = precisions[i, recalls[i, :] >= thr]
+    #             prec = precs.max() if precs.size > 0 else 0
+    #             ap[i] += prec
+    #         ap /= 11
+    if no_scale:
+        ap = ap[0]
+    return ap, mpre, mrec                
+
+
+
 def ap_per_class(tp,
                  conf,
                  pred_cls,
@@ -493,6 +525,94 @@ def ap_per_class(tp,
     tp = (r * nt).round()  # true positives
     fp = (tp / (p + eps) - tp).round()  # false positives
     return tp, fp, p, r, f1, ap, unique_classes.astype(int)
+
+def voc_ap_per_class(tp,
+                 conf,
+                 pred_cls,
+                 target_cls,
+                 plot=False,
+                 on_plot=None,
+                 save_dir=Path(),
+                 names=(),
+                 eps=1e-16,
+                 prefix=''):
+    """
+    Computes the average precision per class for object detection evaluation.
+
+    Args:
+        tp (np.ndarray): Binary array indicating whether the detection is correct (True) or not (False).
+        conf (np.ndarray): Array of confidence scores of the detections.
+        pred_cls (np.ndarray): Array of predicted classes of the detections.
+        target_cls (np.ndarray): Array of true classes of the detections.
+        plot (bool, optional): Whether to plot PR curves or not. Defaults to False.
+        on_plot (func, optional): A callback to pass plots path and data when they are rendered. Defaults to None.
+        save_dir (Path, optional): Directory to save the PR curves. Defaults to an empty path.
+        names (tuple, optional): Tuple of class names to plot PR curves. Defaults to an empty tuple.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-16.
+        prefix (str, optional): A prefix string for saving the plot files. Defaults to an empty string.
+
+    Returns:
+        (tuple): A tuple of six arrays and one array of unique classes, where:
+            tp (np.ndarray): True positive counts for each class.
+            fp (np.ndarray): False positive counts for each class.
+            p (np.ndarray): Precision values at each confidence threshold.
+            r (np.ndarray): Recall values at each confidence threshold.
+            f1 (np.ndarray): F1-score values at each confidence threshold.
+            ap (np.ndarray): Average precision for each class at different IoU thresholds.
+            unique_classes (np.ndarray): An array of unique classes that have data.
+
+    """
+    
+    # filter by a threshold, 0.2 by default
+    thr = 0.2
+    ind = np.where(conf > thr)[0]
+    tp, conf, pred_cls = tp[ind], conf[ind], pred_cls[ind]
+
+    # Sort by objectness
+    i = np.argsort(-conf)
+    tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
+
+    # Find unique classes
+    unique_classes, nt = np.unique(target_cls, return_counts=True)
+    nc = unique_classes.shape[0]  # number of classes, number of detections
+
+    # Create Precision-Recall curve and compute AP for each class
+    # px, py = np.linspace(0, 1, 1000), []  # for plotting
+    ap, p, r, f1 = np.zeros((nc, tp.shape[1])), np.zeros((nc,)), np.zeros((nc,)), np.zeros((nc,))
+    tp_r, fp_r = np.empty((nc,)), np.empty((nc,))
+    for ci, c in enumerate(unique_classes):
+        i = pred_cls == c
+        n_l = nt[ci]  # number of labels
+        n_p = i.sum()  # number of predictions
+        if n_p == 0 or n_l == 0:
+            continue
+
+        # Accumulate FPs and TPs
+        fpc = (1 - tp[i]).cumsum(0)
+        tpc = tp[i].cumsum(0)
+        # report tp fp
+        tp_r[ci] = tpc[-1, 0]
+        fp_r[ci] = fpc[-1, 0]
+
+        # Recall
+        recall = tpc / (n_l + eps)  # recall curve
+        # r[ci] = np.interp(-px, -conf[i], recall[:, 0], left=0)  # negative x, xp because xp decreases
+
+        # Precision
+        precision = tpc / (tpc + fpc)  # precision curve
+        # p[ci] = np.interp(-px, -conf[i], precision[:, 0], left=1)  # p at pr_score
+
+        # calculate p r
+        r[ci] = recall[-1, 0]
+        p[ci] = precision[-1, 0]
+
+        # calculate AP in voc metrics
+        for j in range(tp.shape[1]):
+            ap[ci, j], mpre, mrec = voc_calculate_ap_by_tpfp(recall[:, j], precision[:, j])
+            # if plot and j == 0:
+            #     py.append(np.interp(px, mrec, mpre))  # precision at mAP@0.5
+
+    return tp_r, fp_r, p, r, f1, ap, unique_classes.astype(int)
 
 
 class Metric(SimpleClass):
@@ -667,17 +787,29 @@ class DetMetrics(SimpleClass):
         self.names = names
         self.box = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.metrics = 'voc'
 
     def process(self, tp, conf, pred_cls, target_cls):
         """Process predicted results for object detection and update metrics."""
-        results = ap_per_class(tp,
-                               conf,
-                               pred_cls,
-                               target_cls,
-                               plot=self.plot,
-                               save_dir=self.save_dir,
-                               names=self.names,
-                               on_plot=self.on_plot)[2:]
+        assert self.metrics == 'yolov8' or 'voc', "metrics选择yolov8或voc"
+        if self.metrics == 'yolov8':
+            results = ap_per_class(tp,
+                                conf,
+                                pred_cls,
+                                target_cls,
+                                plot=self.plot,
+                                save_dir=self.save_dir,
+                                names=self.names,
+                                on_plot=self.on_plot)[2:]
+        elif self.metrics == 'voc':
+            results = voc_ap_per_class(tp,
+                                conf,
+                                pred_cls,
+                                target_cls,
+                                plot=self.plot,
+                                save_dir=self.save_dir,
+                                names=self.names,
+                                on_plot=self.on_plot)[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
 

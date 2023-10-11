@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils import SETTINGS, TESTS_RUNNING, TryExcept
+from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
@@ -19,85 +19,75 @@ except (ImportError, AssertionError):
     wb = None
 
 
-@TryExcept('create_custom_wandb_metric')
-def create_custom_wandb_metric(
-    xs: list,
-    ys: list,
-    classes: list,
-    title: str = 'Precision Recall Curve',
-    x_axis_title: str = 'Recall',
-    y_axis_title: str = 'Precision',
-):
+def create_custom_wandb_metric(xs,
+                               ys,
+                               classes,
+                               title='Precision Recall Curve',
+                               x_axis_title='Recall',
+                               y_axis_title='Precision'):
     """
     Creates a custom wandb metric similar to default wandb.plot.pr_curve.
 
     Args:
-        xs: list of N values to plot on the x-axis
-        ys: list of N values to plot on the y-axis
-        classes: class labels for each point (list of N values)
-        title: plot title
+        xs (List): list of N values to plot on the x-axis
+        ys (List): list of N values to plot on the y-axis
+        classes (List): class labels for each point (list of N values)
+        title (str, optional): plot title. Defaults to 'Precision Recall Curve'.
+        x_axis_title (str, optional): title for x-axis. Defaults to 'Recall'.
+        y_axis_title (str, optional): title for y-axis. Defaults to 'Precision'.
 
     Returns:
         wandb object to log
     """
-    df = pd.DataFrame({
-        'class': classes,
-        'y': ys,
-        'x': xs, }).round(3)
-
-    return wb.plot_table(
-        'wandb/area-under-curve/v0',
-        wb.Table(dataframe=df),
-        {
-            'x': 'x',
-            'y': 'y',
-            'class': 'class'},
-        {
-            'title': title,
-            'x-axis-title': x_axis_title,
-            'y-axis-title': y_axis_title, },
-    )
+    df = pd.DataFrame({'class': classes, 'y': ys, 'x': xs}).round(3)
+    fields = {'x': 'x', 'y': 'y', 'class': 'class'}
+    string_fields = {'title': title, 'x-axis-title': x_axis_title, 'y-axis-title': y_axis_title}
+    return wb.plot_table('wandb/area-under-curve/v0',
+                         wb.Table(dataframe=df),
+                         fields=fields,
+                         string_fields=string_fields)
 
 
-@TryExcept('plot_curve_wandb')
-def plot_curve_wandb(
-    xs: np.ndarray,
-    ys: np.ndarray,
-    names: list = [],
-    id: str = 'precision-recall',
-    title: str = 'Precision Recall Curve',
-    x_axis_title: str = 'Recall',
-    y_axis_title: str = 'Precision',
-    num_xs: int = 100,
-    only_mean: bool = True,
-):
+def plot_curve_wandb(xs,
+                     ys,
+                     names=None,
+                     id='precision-recall',
+                     title='Precision Recall Curve',
+                     x_axis_title='Recall',
+                     y_axis_title='Precision',
+                     num_xs=100,
+                     only_mean=True):
     """
     Adds a metric curve to wandb.
 
     Args:
-        xs: np.array of N values
-        ys: np.array of C by N values where C is the number of classes
-        names: list of class names (length C)
-        id: log id in wandb
-        title: plot title in wandb
-        num_xs: number of points to interpolate to
-        only_mean: if True, only the mean curve is plotted
+        xs (np.ndarray): np.array of N values.
+        ys (np.ndarray): np.array of C by N values where C is the number of classes.
+        names (list, optional): list of class names (length C). Defaults to [].
+        id (str, optional): log id in wandb. Defaults to 'precision-recall'.
+        title (str, optional): plot title in wandb. Defaults to 'Precision Recall Curve'.
+        x_axis_title (str, optional): title for x-axis. Defaults to 'Recall'.
+        y_axis_title (str, optional): title for y-axis. Defaults to 'Precision'.
+        num_xs (int, optional): number of points to interpolate to. Defaults to 100.
+        only_mean (bool, optional): if True, only the mean curve is plotted. Defaults to True.
     """
-    # create new xs
+    # Create new xs
+    if names is None:
+        names = []
     xs_new = np.linspace(xs[0], xs[-1], num_xs)
 
-    # create arrays for logging
+    # Create arrays for logging
     xs_log = xs_new.tolist()
     ys_log = np.interp(xs_new, xs, np.mean(ys, axis=0)).tolist()
     classes = ['mean'] * len(xs_log)
 
     if not only_mean:
         for i, y in enumerate(ys):
-            # add new xs
+            # Add new xs
             xs_log.extend(xs_new)
-            # interpolate y to new xs
+            # Interpolate y to new xs
             ys_log.extend(np.interp(xs_new, xs, y))
-            # add class names
+            # Add class names
             classes.extend([names[i]] * len(xs_new))
 
     wb.log(

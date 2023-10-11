@@ -9,7 +9,7 @@ try:
     import wandb as wb
 
     assert hasattr(wb, '__version__')  # verify package is not directory
-    
+
     import numpy as np
     import pandas as pd
 

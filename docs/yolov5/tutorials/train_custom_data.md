@@ -4,8 +4,7 @@ description: Learn how to train your data on custom datasets using YOLOv5. Simpl
 keywords: YOLOv5, train on custom dataset, image collection, model training, object detection, image labelling, Ultralytics, PyTorch, machine learning
 ---
 
-📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.
-UPDATED 7 June 2023.
+📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀. UPDATED 7 June 2023.
 
 ## Before You Start
 
@@ -49,35 +48,27 @@ Once you have collected images, you will need to annotate the objects of interes
 
 <p align="center"><a href="https://app.roboflow.com/?model=yolov5&ref=ultralytics" title="Create a Free Roboflow Account"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a275ad4b4ac20cd2e21a_roboflow-annotate.gif" /></a></p>
 
-[Roboflow Annotate](https://roboflow.com/annotate?ref=ultralytics) is a simple
-web-based tool for managing and labeling your images with your team and exporting
-them in [YOLOv5's annotation format](https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics).
+[Roboflow Annotate](https://roboflow.com/annotate?ref=ultralytics) is a simple web-based tool for managing and labeling your images with your team and exporting them in [YOLOv5's annotation format](https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics).
 
 ### 1.3 Prepare Dataset for YOLOv5
 
 Whether you [label your images with Roboflow](https://roboflow.com/annotate?ref=ultralytics) or not, you can use it to convert your dataset into YOLO format, create a YOLOv5 YAML configuration file, and host it for importing into your training script.
 
 [Create a free Roboflow account](https://app.roboflow.com/?model=yolov5&ref=ultralytics)
-and upload your dataset to a `Public` workspace, label any unannotated images,
-then generate and export a version of your dataset in `YOLOv5 Pytorch` format.
+and upload your dataset to a `Public` workspace, label any unannotated images, then generate and export a version of your dataset in `YOLOv5 Pytorch` format.
 
-Note: YOLOv5 does online augmentation during training, so we do not recommend
-applying any augmentation steps in Roboflow for training with YOLOv5. But we
-recommend applying the following preprocessing steps:
+Note: YOLOv5 does online augmentation during training, so we do not recommend applying any augmentation steps in Roboflow for training with YOLOv5. But we recommend applying the following preprocessing steps:
 
 <p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273477fccf42a0fd3d6_roboflow-preprocessing.png" title="Recommended Preprocessing Steps" /></p>
 
 * **Auto-Orient** - to strip EXIF orientation from your images.
 * **Resize (Stretch)** - to the square input size of your model (640x640 is the YOLOv5 default).
 
-Generating a version will give you a point in time snapshot of your dataset so
-you can always go back and compare your future model training runs against it,
-even if you add more images or change its configuration later.
+Generating a version will give you a point in time snapshot of your dataset so you can always go back and compare your future model training runs against it, even if you add more images or change its configuration later.
 
 <p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a2733fd1da943619934e_roboflow-export.png" title="Export in YOLOv5 Format" /></p>
 
-Export in `YOLOv5 Pytorch` format, then copy the snippet into your training
-script or notebook to download your dataset.
+Export in `YOLOv5 Pytorch` format, then copy the snippet into your training script or notebook to download your dataset.
 
 <p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273a92e4f5cb72594df_roboflow-snippet.png" title="Roboflow dataset download snippet" /></p>
 

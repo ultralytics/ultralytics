@@ -6,9 +6,7 @@ keywords: Ultralytics, YOLO, callbacks guide, training callback, validation call
 
 ## Callbacks
 
-Ultralytics framework supports callbacks as entry points in strategic stages of train, val, export, and predict modes.
-Each callback accepts a `Trainer`, `Validator`, or `Predictor` object depending on the operation type. All properties of
-these objects can be found in Reference section of the docs.
+Ultralytics framework supports callbacks as entry points in strategic stages of train, val, export, and predict modes. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object depending on the operation type. All properties of these objects can be found in Reference section of the docs.
 
 ## Examples
 

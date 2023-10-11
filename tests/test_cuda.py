@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import contextlib
 
 import pytest
@@ -17,18 +18,21 @@ BUS = ASSETS / 'bus.jpg'
 
 
 def test_checks():
+    """Validate CUDA settings against torch CUDA functions."""
     assert torch.cuda.is_available() == CUDA_IS_AVAILABLE
     assert torch.cuda.device_count() == CUDA_DEVICE_COUNT
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_train():
+    """Test model training on a minimal dataset."""
     device = 0 if CUDA_DEVICE_COUNT == 1 else [0, 1]
     YOLO(MODEL).train(data=DATA, imgsz=64, epochs=1, device=device)  # requires imgsz>=64
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_predict_multiple_devices():
+    """Validate model prediction on multiple devices."""
     model = YOLO('yolov8n.pt')
     model = model.cpu()
     assert str(model.device) == 'cpu'
@@ -53,6 +57,7 @@ def test_predict_multiple_devices():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_autobatch():
+    """Check batch size for YOLO model using autobatch."""
     from ultralytics.utils.autobatch import check_train_batch_size
 
     check_train_batch_size(YOLO(MODEL).model.cuda(), imgsz=128, amp=True)
@@ -60,6 +65,7 @@ def test_autobatch():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_utils_benchmarks():
+    """Profile YOLO models for performance benchmarks."""
     from ultralytics.utils.benchmarks import ProfileModels
 
     # Pre-export a dynamic engine model to use dynamic inference
@@ -69,6 +75,7 @@ def test_utils_benchmarks():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_predict_sam():
+    """Test SAM model prediction with various prompts."""
     from ultralytics import SAM
     from ultralytics.models.sam import Predictor as SAMPredictor
 
@@ -102,6 +109,7 @@ def test_predict_sam():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_model_ray_tune():
+    """Tune YOLO model with Ray optimization library."""
     with contextlib.suppress(RuntimeError):  # RuntimeError may be caused by out-of-memory
         YOLO('yolov8n-cls.yaml').tune(use_ray=True,
                                       data='imagenet10',
@@ -115,12 +123,14 @@ def test_model_ray_tune():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_model_tune():
+    """Tune YOLO model for performance."""
     YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
     YOLO('yolov8n-cls.pt').tune(data='imagenet10', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_pycocotools():
+    """Validate model predictions using pycocotools."""
     from ultralytics.models.yolo.detect import DetectionValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator

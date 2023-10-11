@@ -6,8 +6,7 @@ keywords: YOLOv5, Ultralytics, Test-Time Augmentation, TTA, mAP, Recall, model p
 
 # Test-Time Augmentation (TTA)
 
-📚 This guide explains how to use Test Time Augmentation (TTA) during testing and inference for improved mAP and Recall with YOLOv5 🚀.
-UPDATED 25 September 2022.
+📚 This guide explains how to use Test Time Augmentation (TTA) during testing and inference for improved mAP and Recall with YOLOv5 🚀. UPDATED 25 September 2022.
 
 ## Before You Start
 

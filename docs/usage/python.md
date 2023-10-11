@@ -6,14 +6,9 @@ keywords: YOLOv8, Ultralytics, Python, object detection, segmentation, classific
 
 # Python Usage
 
-Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help you seamlessly integrate YOLOv8 into
-your Python projects for object detection, segmentation, and classification. Here, you'll learn how to load and use
-pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable
-resource for anyone looking to incorporate YOLOv8 into their Python projects, allowing you to quickly implement advanced
-object detection capabilities. Let's get started!
+Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help you seamlessly integrate YOLOv8 into your Python projects for object detection, segmentation, and classification. Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLOv8 into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
 
-For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX
-format with just a few lines of code.
+For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code.
 
 !!! example "Python"
 
@@ -41,9 +36,7 @@ format with just a few lines of code.
 
 ## [Train](../modes/train.md)
 
-Train mode is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the
-specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can
-accurately predict the classes and locations of objects in an image.
+Train mode is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image.
 
 !!! example "Train"
 
@@ -73,9 +66,7 @@ accurately predict the classes and locations of objects in an image.
 
 ## [Val](../modes/val.md)
 
-Val mode is used for validating a YOLOv8 model after it has been trained. In this mode, the model is evaluated on a
-validation set to measure its accuracy and generalization performance. This mode can be used to tune the hyperparameters
-of the model to improve its performance.
+Val mode is used for validating a YOLOv8 model after it has been trained. In this mode, the model is evaluated on a validation set to measure its accuracy and generalization performance. This mode can be used to tune the hyperparameters of the model to improve its performance.
 
 !!! example "Val"
 
@@ -103,9 +94,7 @@ of the model to improve its performance.
 
 ## [Predict](../modes/predict.md)
 
-Predict mode is used for making predictions using a trained YOLOv8 model on new images or videos. In this mode, the
-model is loaded from a checkpoint file, and the user can provide images or videos to perform inference. The model
-predicts the classes and locations of objects in the input images or videos.
+Predict mode is used for making predictions using a trained YOLOv8 model on new images or videos. In this mode, the model is loaded from a checkpoint file, and the user can provide images or videos to perform inference. The model predicts the classes and locations of objects in the input images or videos.
 
 !!! example "Predict"
 
@@ -173,9 +162,7 @@ predicts the classes and locations of objects in the input images or videos.
 
 ## [Export](../modes/export.md)
 
-Export mode is used for exporting a YOLOv8 model to a format that can be used for deployment. In this mode, the model is
-converted to a format that can be used by other software applications or hardware devices. This mode is useful when
-deploying the model to production environments.
+Export mode is used for exporting a YOLOv8 model to a format that can be used for deployment. In this mode, the model is converted to a format that can be used by other software applications or hardware devices. This mode is useful when deploying the model to production environments.
 
 !!! example "Export"
 
@@ -203,9 +190,7 @@ deploying the model to production environments.
 
 ## [Track](../modes/track.md)
 
-Track mode is used for tracking objects in real-time using a YOLOv8 model. In this mode, the model is loaded from a
-checkpoint file, and the user can provide a live video stream to perform real-time object tracking. This mode is useful
-for applications such as surveillance systems or self-driving cars.
+Track mode is used for tracking objects in real-time using a YOLOv8 model. In this mode, the model is loaded from a checkpoint file, and the user can provide a live video stream to perform real-time object tracking. This mode is useful for applications such as surveillance systems or self-driving cars.
 
 !!! example "Track"
 
@@ -228,11 +213,8 @@ for applications such as surveillance systems or self-driving cars.
 
 ## [Benchmark](../modes/benchmark.md)
 
-Benchmark mode is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks provide
-information on the size of the exported format, its `mAP50-95` metrics (for object detection and segmentation)
-or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export
-formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for
-their specific use case based on their requirements for speed and accuracy.
+Benchmark mode is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection and segmentation)
+or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
 
 !!! example "Benchmark"
 
@@ -250,8 +232,7 @@ their specific use case based on their requirements for speed and accuracy.
 
 ## Using Trainers
 
-`YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits
-from `BaseTrainer`.
+`YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits from `BaseTrainer`.
 
 !!! tip "Detection Trainer Example"
 
@@ -276,8 +257,6 @@ from `BaseTrainer`.
         trainer = detect.DetectionTrainer(overrides=overrides)
         ```
 
-You can easily customize Trainers to support custom tasks or explore R&D ideas.
-Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization
-Section.
+You can easily customize Trainers to support custom tasks or explore R&D ideas. Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 
 [Customization tutorials](engine.md){ .md-button .md-button--primary}

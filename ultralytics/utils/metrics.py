@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Model validation metrics
-"""
+"""Model validation metrics."""
+
 import math
 import warnings
 from pathlib import Path
@@ -167,8 +166,19 @@ def kpt_iou(kpt1, kpt2, area, sigma, eps=1e-7):
     return (torch.exp(-e) * kpt_mask[:, None]).sum(-1) / (kpt_mask.sum(-1)[:, None] + eps)
 
 
-def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
-    # return positive, negative label smoothing BCE targets
+def smooth_BCE(eps=0.1):
+    """
+    Computes smoothed positive and negative Binary Cross-Entropy targets.
+
+    This function calculates positive and negative label smoothing BCE targets based on a given epsilon value.
+    For implementation details, refer to https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441.
+
+    Args:
+        eps (float, optional): The epsilon value for label smoothing. Defaults to 0.1.
+
+    Returns:
+        (tuple): A tuple containing the positive and negative label smoothing BCE targets.
+    """
     return 1.0 - 0.5 * eps, 0.5 * eps
 
 
@@ -194,7 +204,7 @@ class ConfusionMatrix:
 
     def process_cls_preds(self, preds, targets):
         """
-        Update confusion matrix for classification task
+        Update confusion matrix for classification task.
 
         Args:
             preds (Array[N, min(nc,5)]): Predicted class labels.
@@ -307,9 +317,7 @@ class ConfusionMatrix:
             on_plot(plot_fname)
 
     def print(self):
-        """
-        Print the confusion matrix to the console.
-        """
+        """Print the confusion matrix to the console."""
         for i in range(self.nc + 1):
             LOGGER.info(' '.join(map(str, self.matrix[i])))
 
@@ -439,7 +447,6 @@ def ap_per_class(tp,
             f1 (np.ndarray): F1-score values at each confidence threshold.
             ap (np.ndarray): Average precision for each class at different IoU thresholds.
             unique_classes (np.ndarray): An array of unique classes that have data.
-
     """
 
     # Sort by objectness
@@ -497,32 +504,33 @@ def ap_per_class(tp,
 
 class Metric(SimpleClass):
     """
-        Class for computing evaluation metrics for YOLOv8 model.
+    Class for computing evaluation metrics for YOLOv8 model.
 
-        Attributes:
-            p (list): Precision for each class. Shape: (nc,).
-            r (list): Recall for each class. Shape: (nc,).
-            f1 (list): F1 score for each class. Shape: (nc,).
-            all_ap (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
-            ap_class_index (list): Index of class for each AP score. Shape: (nc,).
-            nc (int): Number of classes.
+    Attributes:
+        p (list): Precision for each class. Shape: (nc,).
+        r (list): Recall for each class. Shape: (nc,).
+        f1 (list): F1 score for each class. Shape: (nc,).
+        all_ap (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
+        ap_class_index (list): Index of class for each AP score. Shape: (nc,).
+        nc (int): Number of classes.
 
-        Methods:
-            ap50(): AP at IoU threshold of 0.5 for all classes. Returns: List of AP scores. Shape: (nc,) or [].
-            ap(): AP at IoU thresholds from 0.5 to 0.95 for all classes. Returns: List of AP scores. Shape: (nc,) or [].
-            mp(): Mean precision of all classes. Returns: Float.
-            mr(): Mean recall of all classes. Returns: Float.
-            map50(): Mean AP at IoU threshold of 0.5 for all classes. Returns: Float.
-            map75(): Mean AP at IoU threshold of 0.75 for all classes. Returns: Float.
-            map(): Mean AP at IoU thresholds from 0.5 to 0.95 for all classes. Returns: Float.
-            mean_results(): Mean of results, returns mp, mr, map50, map.
-            class_result(i): Class-aware result, returns p[i], r[i], ap50[i], ap[i].
-            maps(): mAP of each class. Returns: Array of mAP scores, shape: (nc,).
-            fitness(): Model fitness as a weighted combination of metrics. Returns: Float.
-            update(results): Update metric attributes with new evaluation results.
-        """
+    Methods:
+        ap50(): AP at IoU threshold of 0.5 for all classes. Returns: List of AP scores. Shape: (nc,) or [].
+        ap(): AP at IoU thresholds from 0.5 to 0.95 for all classes. Returns: List of AP scores. Shape: (nc,) or [].
+        mp(): Mean precision of all classes. Returns: Float.
+        mr(): Mean recall of all classes. Returns: Float.
+        map50(): Mean AP at IoU threshold of 0.5 for all classes. Returns: Float.
+        map75(): Mean AP at IoU threshold of 0.75 for all classes. Returns: Float.
+        map(): Mean AP at IoU thresholds from 0.5 to 0.95 for all classes. Returns: Float.
+        mean_results(): Mean of results, returns mp, mr, map50, map.
+        class_result(i): Class-aware result, returns p[i], r[i], ap50[i], ap[i].
+        maps(): mAP of each class. Returns: Array of mAP scores, shape: (nc,).
+        fitness(): Model fitness as a weighted combination of metrics. Returns: Float.
+        update(results): Update metric attributes with new evaluation results.
+    """
 
     def __init__(self) -> None:
+        """Initializes a Metric instance for computing evaluation metrics for the YOLOv8 model."""
         self.p = []  # (nc, )
         self.r = []  # (nc, )
         self.f1 = []  # (nc, )
@@ -605,12 +613,12 @@ class Metric(SimpleClass):
         return [self.mp, self.mr, self.map50, self.map]
 
     def class_result(self, i):
-        """class-aware result, return p[i], r[i], ap50[i], ap[i]."""
+        """Class-aware result, return p[i], r[i], ap50[i], ap[i]."""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i]
 
     @property
     def maps(self):
-        """mAP of each class."""
+        """MAP of each class."""
         maps = np.zeros(self.nc) + self.map
         for i, c in enumerate(self.ap_class_index):
             maps[c] = self.ap[i]
@@ -623,8 +631,19 @@ class Metric(SimpleClass):
 
     def update(self, results):
         """
+        Updates the evaluation metrics of the model with a new set of results.
+
         Args:
-            results (tuple): A tuple of (p, r, ap, f1, ap_class)
+            results (tuple): A tuple containing the following evaluation metrics:
+                - p (list): Precision for each class. Shape: (nc,).
+                - r (list): Recall for each class. Shape: (nc,).
+                - f1 (list): F1 score for each class. Shape: (nc,).
+                - all_ap (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
+                - ap_class_index (list): Index of class for each AP score. Shape: (nc,).
+
+        Side Effects:
+            Updates the class attributes `self.p`, `self.r`, `self.f1`, `self.all_ap`, and `self.ap_class_index` based
+            on the values provided in the `results` tuple.
         """
         self.p, self.r, self.f1, self.all_ap, self.ap_class_index = results
 
@@ -660,6 +679,7 @@ class DetMetrics(SimpleClass):
     """
 
     def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+        """Initialize a DetMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
         self.on_plot = on_plot
@@ -744,6 +764,7 @@ class SegmentMetrics(SimpleClass):
     """
 
     def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+        """Initialize a SegmentMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
         self.on_plot = on_plot
@@ -853,6 +874,7 @@ class PoseMetrics(SegmentMetrics):
     """
 
     def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+        """Initialize the PoseMetrics class with directory path, class names, and plotting options."""
         super().__init__(save_dir, plot, names)
         self.save_dir = save_dir
         self.plot = plot
@@ -942,6 +964,7 @@ class ClassifyMetrics(SimpleClass):
     """
 
     def __init__(self) -> None:
+        """Initialize a ClassifyMetrics instance."""
         self.top1 = 0
         self.top5 = 0
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}

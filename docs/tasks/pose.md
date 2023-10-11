@@ -15,9 +15,9 @@ The output of a pose estimation model is a set of points that represent the keyp
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
@@ -156,7 +156,7 @@ Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO('yolov8n-pose.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained
+        model = YOLO('path/to/best.pt')  # load a custom trained model
 
         # Export the model
         model.export(format='onnx')

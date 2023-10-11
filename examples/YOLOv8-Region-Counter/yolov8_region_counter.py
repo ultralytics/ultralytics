@@ -33,10 +33,6 @@ counting_regions = [
     }, ]
 
 
-def is_inside_polygon(point, polygon):
-    return polygon.contains(Point(point))
-
-
 def mouse_callback(event, x, y, flags, param):
     """Mouse call back event."""
     global current_region
@@ -44,7 +40,7 @@ def mouse_callback(event, x, y, flags, param):
     # Mouse left button down event
     if event == cv2.EVENT_LBUTTONDOWN:
         for region in counting_regions:
-            if is_inside_polygon((x, y), region['polygon']):
+            if region['polygon'].contains(Point((x, y))):
                 current_region = region
                 current_region['dragging'] = True
                 current_region['offset_x'] = x
@@ -150,7 +146,7 @@ def run(
 
             # Check if detection inside region
             for region in counting_regions:
-                if is_inside_polygon((x, y), region['polygon']):
+                if region['polygon'].contains(Point((x, y))):
                     region['counts'] += 1
 
         # Draw regions (Polygons/Rectangles)

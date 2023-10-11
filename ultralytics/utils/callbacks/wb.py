@@ -1,8 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import numpy as np
-import pandas as pd
-
 from ultralytics.utils import SETTINGS, TESTS_RUNNING, TryExcept
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -11,7 +8,10 @@ try:
     assert SETTINGS['wandb'] is True  # verify integration is enabled
     import wandb as wb
 
-    assert hasattr(wb, '__version__')
+    assert hasattr(wb, '__version__')  # verify package is not directory
+    
+    import numpy as np
+    import pandas as pd
 
     _processed_plots = {}
 

@@ -42,6 +42,8 @@ class Detect(nn.Module):
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
+        if torch.onnx.is_in_onnx_export():
+            return self.forward_export(x)
         shape = x[0].shape  # BCHW
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
@@ -80,6 +82,14 @@ class Detect(nn.Module):
             a[-1].bias.data[:] = 1.0  # box
             b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
+    def forward_export(self, x):
+        results = []
+        for i in range(self.nl):
+            dfl = self.cv2[i](x[i]).contiguous()
+            cls = self.cv3[i](x[i]).contiguous()
+            results.append(torch.cat([cls, dfl], 1).permute(0, 2, 3, 1).unsqueeze(1))
+            # results.append(torch.cat([cls, dfl], 1))
+        return tuple(results)
 
 class Segment(Detect):
     """YOLOv8 Segment head for segmentation models."""

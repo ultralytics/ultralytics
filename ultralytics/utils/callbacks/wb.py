@@ -19,16 +19,17 @@ except (ImportError, AssertionError):
     wb = None
 
 
-@TryExcept("create_custom_wandb_metric")
+@TryExcept('create_custom_wandb_metric')
 def create_custom_wandb_metric(
     xs: list,
     ys: list,
     classes: list,
-    title: str = "Precision Recall Curve",
-    x_axis_title: str = "Recall",
-    y_axis_title: str = "Precision",
+    title: str = 'Precision Recall Curve',
+    x_axis_title: str = 'Recall',
+    y_axis_title: str = 'Precision',
 ):
-    """Creates a custom wandb metric similar to default wandb.plot.pr_curve
+    """
+    Creates a custom wandb metric similar to default wandb.plot.pr_curve.
 
     Args:
         xs: list of N values to plot on the x-axis
@@ -40,37 +41,38 @@ def create_custom_wandb_metric(
         wandb object to log
     """
     df = pd.DataFrame({
-        "class": classes,
-        "y": ys,
-        "x": xs, }).round(3)
+        'class': classes,
+        'y': ys,
+        'x': xs, }).round(3)
 
     return wb.plot_table(
-        "wandb/area-under-curve/v0",
+        'wandb/area-under-curve/v0',
         wb.Table(dataframe=df),
         {
-            "x": "x",
-            "y": "y",
-            "class": "class"},
+            'x': 'x',
+            'y': 'y',
+            'class': 'class'},
         {
-            "title": title,
-            "x-axis-title": x_axis_title,
-            "y-axis-title": y_axis_title, },
+            'title': title,
+            'x-axis-title': x_axis_title,
+            'y-axis-title': y_axis_title, },
     )
 
 
-@TryExcept("plot_curve_wandb")
+@TryExcept('plot_curve_wandb')
 def plot_curve_wandb(
     xs: np.ndarray,
     ys: np.ndarray,
     names: list = [],
-    id: str = "precision-recall",
-    title: str = "Precision Recall Curve",
-    x_axis_title: str = "Recall",
-    y_axis_title: str = "Precision",
+    id: str = 'precision-recall',
+    title: str = 'Precision Recall Curve',
+    x_axis_title: str = 'Recall',
+    y_axis_title: str = 'Precision',
     num_xs: int = 100,
     only_mean: bool = True,
 ):
-    """adds a metric curve to wandb
+    """
+    Adds a metric curve to wandb.
 
     Args:
         xs: np.array of N values
@@ -87,7 +89,7 @@ def plot_curve_wandb(
     # create arrays for logging
     xs_log = xs_new.tolist()
     ys_log = np.interp(xs_new, xs, np.mean(ys, axis=0)).tolist()
-    classes = ["mean"] * len(xs_log)
+    classes = ['mean'] * len(xs_log)
 
     if not only_mean:
         for i, y in enumerate(ys):
@@ -155,8 +157,8 @@ def on_train_end(trainer):
         plot_curve_wandb(
             xs,
             ys,
-            id=f"curves/{curve_name}",
-            title=f"{curve_name}",
+            id=f'curves/{curve_name}',
+            title=f'{curve_name}',
             x_axis_title=x_axis_title,
             y_axis_title=y_axis_title,
         )

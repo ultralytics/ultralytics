@@ -440,18 +440,18 @@ def ap_per_class(tp,
 
     Returns:
         (tuple): A tuple of six arrays and one array of unique classes, where:
-            tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.Shape: (nc,). 
-            fp (np.ndarray): False positive counts at threshold given by max F1 metric for each class. Shape: (nc,). 
-            p (np.ndarray): Precision values at threshold given by max F1 metric for each class. Shape: (nc,). 
-            r (np.ndarray): Recall values at threshold given by max F1 metric for each class. Shape: (nc,). 
-            f1 (np.ndarray): F1-score values at threshold given by max F1 metric for each class. Shape: (nc,). 
-            ap (np.ndarray): Average precision for each class at different IoU thresholds. Shape: (nc, 10). 
+            tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.Shape: (nc,).
+            fp (np.ndarray): False positive counts at threshold given by max F1 metric for each class. Shape: (nc,).
+            p (np.ndarray): Precision values at threshold given by max F1 metric for each class. Shape: (nc,).
+            r (np.ndarray): Recall values at threshold given by max F1 metric for each class. Shape: (nc,).
+            f1 (np.ndarray): F1-score values at threshold given by max F1 metric for each class. Shape: (nc,).
+            ap (np.ndarray): Average precision for each class at different IoU thresholds. Shape: (nc, 10).
             unique_classes (np.ndarray): An array of unique classes that have data. Shape: (nc,).
             p_curve (np.ndarray): Precision curves for each class. Shape: (nc, 1000).
             r_curve (np.ndarray): Recall curves for each class. Shape: (nc, 1000).
             f1_curve (np.ndarray): F1-score curves for each class. Shape: (nc, 1000).
             xs (np.ndarray): X-axis values for the curves. Shape: (1000,).
-            prec_values: Precision values at mAP@0.5 for each class. Shape: (nc, 1000). 
+            prec_values: Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
     """
 
     # Sort by objectness
@@ -664,8 +664,8 @@ class Metric(SimpleClass):
     @property
     def curves_results(self):
         """Returns a list of curves for accessing specific metrics curves."""
-        return [[self.px, self.prec_values, "Recall", "Precision"], [self.px, self.f1_curve, "Confidence", "F1"],
-                [self.px, self.p_curve, "Confidence", "Precision"], [self.px, self.r_curve, "Confidence", "Recall"]]
+        return [[self.px, self.prec_values, 'Recall', 'Precision'], [self.px, self.f1_curve, 'Confidence', 'F1'],
+                [self.px, self.p_curve, 'Confidence', 'Precision'], [self.px, self.r_curve, 'Confidence', 'Recall']]
 
 
 class DetMetrics(SimpleClass):
@@ -708,7 +708,7 @@ class DetMetrics(SimpleClass):
         self.names = names
         self.box = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.metric_name = "detection"
+        self.metric_name = 'detection'
 
     def process(self, tp, conf, pred_cls, target_cls):
         """Process predicted results for object detection and update metrics."""
@@ -805,7 +805,7 @@ class SegmentMetrics(SimpleClass):
         self.box = Metric()
         self.seg = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.metric_name = "segmentation"
+        self.metric_name = 'segmentation'
 
     def process(self, tp_b, tp_m, conf, pred_cls, target_cls):
         """
@@ -929,7 +929,7 @@ class PoseMetrics(SegmentMetrics):
         self.box = Metric()
         self.pose = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.metric_name = "pose"
+        self.metric_name = 'pose'
 
     def process(self, tp_b, tp_p, conf, pred_cls, target_cls):
         """
@@ -1049,12 +1049,12 @@ class ClassifyMetrics(SimpleClass):
     def keys(self):
         """Returns a list of keys for the results_dict property."""
         return ['metrics/accuracy_top1', 'metrics/accuracy_top5']
-    
+
     @property
     def curves(self):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
-    
+
     @property
     def curves_results(self):
         """Returns a list of curves for accessing specific metrics curves."""

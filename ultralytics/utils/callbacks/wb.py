@@ -28,7 +28,7 @@ def create_custom_wandb_metric(x,
     """
     Create and log a custom metric visualization to wandb.plot.pr_curve.
 
-    This function crafts a custom metric visualization that mimics the behavior of wandb's default precision-recall curve 
+    This function crafts a custom metric visualization that mimics the behavior of wandb's default precision-recall curve
     while allowing for enhanced customization. The visual metric is useful for monitoring model performance across different classes.
 
     Args:
@@ -63,7 +63,7 @@ def plot_curve_wandb(x,
     """
     Log a metric curve visualization.
 
-    This function generates a metric curve based on input data and logs the visualization to wandb. 
+    This function generates a metric curve based on input data and logs the visualization to wandb.
     The curve can represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
 
     Args:

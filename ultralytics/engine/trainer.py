@@ -23,8 +23,9 @@ from torch import nn, optim
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from PIL import Image
+from torchvision import datasets, transforms
 
-from experiments.utils import fgsm_attack
+from experiments.utils import fgsm_attack, denorm, show_image
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights, SegmentationModel
@@ -221,20 +222,21 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # # Freeze layers
-        # freeze_list = self.args.freeze if isinstance(
-        #     self.args.freeze, list) else range(self.args.freeze) if isinstance(self.args.freeze, int) else []
-        # always_freeze_names = ['.dfl']  # always freeze these layers
-        # freeze_layer_names = [f'model.{x}.' for x in freeze_list] + always_freeze_names
-        # for k, v in self.model.named_parameters():
-        #     # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
-        #     if any(x in k for x in freeze_layer_names):
-        #         LOGGER.info(f"Freezing layer '{k}'")
-        #         v.requires_grad = False
-        #     elif not v.requires_grad:
-        #         LOGGER.info(f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
-        #                     'See ultralytics.engine.trainer for customization of frozen layers.')
-        #         v.requires_grad = True
+        # These freeze layers no longer give an error
+        # Freeze layers
+        freeze_list = self.args.freeze if isinstance(
+            self.args.freeze, list) else range(self.args.freeze) if isinstance(self.args.freeze, int) else []
+        always_freeze_names = ['.dfl']  # always freeze these layers
+        freeze_layer_names = [f'model.{x}.' for x in freeze_list] + always_freeze_names
+        for k, v in self.model.named_parameters():
+            # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
+            if any(x in k for x in freeze_layer_names):
+                LOGGER.info(f"Freezing layer '{k}'")
+                v.requires_grad = False
+            elif not v.requires_grad:
+                LOGGER.info(f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
+                            'See ultralytics.engine.trainer for customization of frozen layers.')
+                v.requires_grad = True
 
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
@@ -290,7 +292,7 @@ class BaseTrainer:
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks('on_pretrain_routine_end')
 
-    def _do_train(self, model: "SegmentationModel", world_size=1, ):
+    def _do_train(self, model: "SegmentationModel", world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
             self._setup_ddp(world_size)
@@ -348,54 +350,59 @@ class BaseTrainer:
 
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
-
                     batch = self.preprocess_batch(batch)
-
-                    # --------------------------------------#
-                    self.plot_training_samples(batch, f"_{self.epoch}_{i}")
-                    # # Extra - Require grad
                     batch['img'].requires_grad = True
-                    # batch['img'].retain_graph = True
-                    # --------------------------------------#
 
-                    # Existing - Calculate Loss
                     self.loss, self.loss_items = self.model(batch)
 
-                    # results = self.model(batch)
-                    if RANK != -1:
-                        self.loss *= world_size
+                    model.zero_grad()
+                    self.model.zero_grad()
+                    # if RANK != -1:
+                    #     self.loss *= world_size
                     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
                         else self.loss_items
 
-                    # Extra - Zero all existing gradients
-                    # self.model.zero_grad()
-
-                    # Extra - Calculate gradients of model in backward pass
-                    # self.loss.backward()
-                    # Backward
-                    # self.scaler.scale(self.loss).backward()
-
                 # Backward
-                self.scaler.scale(self.loss).backward()
+                # self.scaler.scale(self.loss).backward()
+                # self.loss.backward()
+                #
+                # # Extra - Collect ``datagrad``
+                # data_grad = batch['img'].grad.data
+                #
+                # # Restore the data to its original scale
+                # # data_denorm = denorm(batch['img'], mean=[0.5], std=[0.5])
+                # data_grad_denorm = torch.clamp(batch['img'], min=0, max=1)
+                #
+                # epsilon = 0.001
+                # # Extra - Call FGSM Attack
+                # perturbed_data = fgsm_attack(data_grad_denorm, epsilon, data_grad)
+                #
+                # # Reapply normalization
+                # # perturbed_data_normalized = transforms.Normalize((0,), (0.5,))(perturbed_data)
+                # perturbed_data_normalized = torch.clamp(perturbed_data, min=0, max=1)
+                # prediction = model.predict(perturbed_data_normalized)
+                #
+                mean = -0.4
+                std = 0.02
 
-                # --------------------------------------#
-                # Extra - Collect ``datagrad``
-                data_grad = batch['img'].grad.data
+                data_denorm = torch.clamp(batch['img'], min=0, max=1)
 
-                # Extra - Restore the data to its original scale
-                # data_denorm = denorm(data_grad)
+                # Create a tensor of the same size as the original tensor with random noise
+                noise = torch.tensor(np.random.normal(mean, std, data_denorm.size()), dtype=torch.float)
 
-                # Extra - Call FGSM Attack
-                perturbed_data = fgsm_attack(batch['img'], 10, data_grad)
-                prediction = model.predict(perturbed_data)
+                # Add the noise to the original tensor
+                perturbed_data = data_denorm + noise
+                perturbed_data_normalized = torch.clamp(perturbed_data, min=0, max=1)
+
+                prediction = model.predict(perturbed_data_normalized)
 
                 for r in prediction:
-                    im_array = r.plot(labels=False, probs=False)  # plot a BGR numpy array of predictions
+                    im_array = r.plot(labels=False, probs=False, masks=True,
+                                      boxes=False)  # plot a BGR numpy array of predictions
                     im = Image.fromarray(im_array)  # RGB PIL image
-                    im.show()  # show image
-                    # im.save('results.jpg')  # save image
-
-                # --------------------------------------#
+                    # show_image(im, title=f"Adversarial-{epsilon}", path="/Users/thomas/Documents/School/TU:e/1. Master/Year 3/Graduation/Preparation Phase/Showcase/adv_3")
+                    show_image(im, title=f"Noise-{mean}-{std}",
+                               path="/Users/thomas/Documents/School/TU:e/1. Master/Year 3/Graduation/Preparation Phase/Showcase/noise_1")
 
                 # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:

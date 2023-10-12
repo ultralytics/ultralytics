@@ -4,7 +4,7 @@ model: yolov8m-seg.yaml
 data: custom_dataset.yaml
 epochs: 1
 patience: 50
-batch: 8
+batch: 1
 imgsz: 960
 save: true
 save_period: -1
@@ -20,9 +20,9 @@ verbose: true
 seed: 33
 deterministic: true
 single_cls: false
-rect: false
+rect: true
 cos_lr: false
-close_mosaic: 10
+close_mosaic: 1
 resume: false
 amp: true
 fraction: 1

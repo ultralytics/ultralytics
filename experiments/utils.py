@@ -1,5 +1,31 @@
+from pathlib import Path
+
+import numpy as np
 import torch
 import torch.nn.functional as F
+from matplotlib import pyplot as plt
+
+
+def show_image(data, title="Image", path: str = None, scale: float = 7, dpi=300, inline=True):
+    sizes = np.shape(data)
+    print(sizes)
+    fig = plt.figure()
+    fig.set_size_inches(scale * sizes[1] / sizes[0], scale)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(data)
+    plt.suptitle(title, fontweight='bold')
+
+    if inline:
+        plt.show(dpi=dpi)
+    else:
+        data.show()
+
+    if Path is not None:
+        print(f"saving to {Path(path)}")
+        title = title.replace(".", "_")
+        fig.savefig(Path(path).joinpath(f"{title}.png"))
 
 
 # FGSM attack code
@@ -9,7 +35,7 @@ def fgsm_attack(img, epsilon, data_grad):
     # Create the perturbed image by adjusting each pixel of the input image
     perturbed_image = img + epsilon * sign_data_grad
     # Adding clipping to maintain [0,1] range
-    # perturbed_image = torch.clamp(perturbed_image, 0, 1)
+    perturbed_image = torch.clamp(perturbed_image, 0, 1)
     # perturbed_image = torch.clamp(perturbed_image, 0, 255)
     # Return the perturbed image
     return perturbed_image

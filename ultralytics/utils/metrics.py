@@ -708,7 +708,7 @@ class DetMetrics(SimpleClass):
         self.names = names
         self.box = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.metric_name = 'detection'
+        self.task = 'detect'
 
     def process(self, tp, conf, pred_cls, target_cls):
         """Process predicted results for object detection and update metrics."""
@@ -805,7 +805,7 @@ class SegmentMetrics(SimpleClass):
         self.box = Metric()
         self.seg = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.metric_name = 'segmentation'
+        self.task = 'segment'
 
     def process(self, tp_b, tp_m, conf, pred_cls, target_cls):
         """
@@ -929,7 +929,7 @@ class PoseMetrics(SegmentMetrics):
         self.box = Metric()
         self.pose = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.metric_name = 'pose'
+        self.task = 'pose'
 
     def process(self, tp_b, tp_p, conf, pred_cls, target_cls):
         """
@@ -1027,6 +1027,7 @@ class ClassifyMetrics(SimpleClass):
         self.top1 = 0
         self.top5 = 0
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.task = 'classify'
 
     def process(self, targets, pred):
         """Target classes and predicted classes."""

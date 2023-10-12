@@ -271,26 +271,25 @@ def merge_multi_segment(segments):
     segments = [np.array(i).reshape(-1, 2) for i in segments]
     idx_list = [[] for _ in range(len(segments))]
 
-    # record the indexes with min distance between each segment
+    # Record the indexes with min distance between each segment
     for i in range(1, len(segments)):
         idx1, idx2 = min_index(segments[i - 1], segments[i])
         idx_list[i - 1].append(idx1)
         idx_list[i].append(idx2)
 
-    # use two round to connect all the segments
+    # Use two round to connect all the segments
     for k in range(2):
-        # forward connection
+        # Forward connection
         if k == 0:
             for i, idx in enumerate(idx_list):
-                # middle segments have two indexes
-                # reverse the index of middle segments
+                # Middle segments have two indexes, reverse the index of middle segments
                 if len(idx) == 2 and idx[0] > idx[1]:
                     idx = idx[::-1]
                     segments[i] = segments[i][::-1, :]
 
                 segments[i] = np.roll(segments[i], -idx[0], axis=0)
                 segments[i] = np.concatenate([segments[i], segments[i][:1]])
-                # deal with the first segment and the last one
+                # Deal with the first segment and the last one
                 if i in [0, len(idx_list) - 1]:
                     s.append(segments[i])
                 else:

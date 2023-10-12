@@ -491,7 +491,7 @@ class RandomPerspective:
         border = labels.pop('mosaic_border', self.border)
         self.size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
         # M is affine matrix
-        # scale for func:`box_candidates`
+        # Scale for func:`box_candidates`
         img, M, scale = self.affine_transform(img, border)
 
         bboxes = self.apply_bboxes(instances.bboxes, M)

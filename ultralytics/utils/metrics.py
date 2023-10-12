@@ -36,7 +36,7 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     inter_area = (np.minimum(b1_x2[:, None], b2_x2) - np.maximum(b1_x1[:, None], b2_x1)).clip(0) * \
                  (np.minimum(b1_y2[:, None], b2_y2) - np.maximum(b1_y1[:, None], b2_y1)).clip(0)
 
-    # box2 area
+    # Box2 area
     area = (b2_x2 - b2_x1) * (b2_y2 - b2_y1)
     if iou:
         box1_area = (b1_x2 - b1_x1) * (b1_y2 - b1_y1)

@@ -23,6 +23,26 @@ from .val import NASValidator
 
 
 class NAS(Model):
+    """
+    YOLO NAS model for object detection.
+
+    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine.
+    It is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
+
+    Example:
+        ```python
+        from ultralytics import NAS
+
+        model = NAS('yolo_nas_s')
+        results = model.predict('ultralytics/assets/bus.jpg')
+        ```
+
+    Attributes:
+        model (str): Path to the pre-trained model or model name. Defaults to 'yolo_nas_s.pt'.
+
+    Note:
+        YOLO-NAS models only support pre-trained models. Do not provide YAML configuration files.
+    """
 
     def __init__(self, model='yolo_nas_s.pt') -> None:
         """Initializes the NAS model with the provided or default 'yolo_nas_s.pt' model."""

@@ -11,6 +11,24 @@ from .ops import HungarianMatcher
 
 
 class DETRLoss(nn.Module):
+    """
+    DETR (DEtection TRansformer) Loss class. This class calculates and returns the different loss components for the
+    DETR object detection model. It computes classification loss, bounding box loss, GIoU loss, and optionally auxiliary
+    losses.
+
+    Attributes:
+        nc (int): The number of classes.
+        loss_gain (dict): Coefficients for different loss components.
+        aux_loss (bool): Whether to compute auxiliary losses.
+        use_fl (bool): Use FocalLoss or not.
+        use_vfl (bool): Use VarifocalLoss or not.
+        use_uni_match (bool): Whether to use a fixed layer to assign labels for the auxiliary branch.
+        uni_match_ind (int): The fixed indices of a layer to use if `use_uni_match` is True.
+        matcher (HungarianMatcher): Object to compute matching cost and indices.
+        fl (FocalLoss or None): Focal Loss object if `use_fl` is True, otherwise None.
+        vfl (VarifocalLoss or None): Varifocal Loss object if `use_vfl` is True, otherwise None.
+        device (torch.device): Device on which tensors are stored.
+    """
 
     def __init__(self,
                  nc=80,

@@ -26,18 +26,21 @@ def create_custom_wandb_metric(x,
                                x_axis_title='Recall',
                                y_axis_title='Precision'):
     """
-    Creates a custom wandb metric similar to default wandb.plot.pr_curve.
+    Create and log a custom metric visualization to wandb.plot.pr_curve.
+
+    This function crafts a custom metric visualization that mimics the behavior of wandb's default precision-recall curve 
+    while allowing for enhanced customization. The visual metric is useful for monitoring model performance across different classes.
 
     Args:
-        x (List): list of N values to plot on the x-axis
-        y (List): list of N values to plot on the y-axis
-        classes (List): class labels for each point (list of N values)
-        title (str, optional): plot title. Defaults to 'Precision Recall Curve'.
-        x_axis_title (str, optional): title for x-axis. Defaults to 'Recall'.
-        y_axis_title (str, optional): title for y-axis. Defaults to 'Precision'.
+        x (List): Values for the x-axis; expected to have length N.
+        y (List): Corresponding values for the y-axis; also expected to have length N.
+        classes (List): Labels identifying the class of each point; length N.
+        title (str, optional): Title for the plot; defaults to 'Precision Recall Curve'.
+        x_axis_title (str, optional): Label for the x-axis; defaults to 'Recall'.
+        y_axis_title (str, optional): Label for the y-axis; defaults to 'Precision'.
 
     Returns:
-        wandb object to log
+        (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
     """
     df = pd.DataFrame({'class': classes, 'y': y, 'x': x}).round(3)
     fields = {'x': 'x', 'y': 'y', 'class': 'class'}
@@ -58,18 +61,24 @@ def plot_curve_wandb(x,
                      num_x=100,
                      only_mean=True):
     """
-    Adds a metric curve to wandb.
+    Log a metric curve visualization.
+
+    This function generates a metric curve based on input data and logs the visualization to wandb. 
+    The curve can represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
 
     Args:
-        x (np.ndarray): X-axis of N values.
-        y (np.ndarray): Y-axis of C by N values where C is the number of classes.
-        names (list, optional): list of class names (length C). Defaults to [].
-        id (str, optional): log id in wandb. Defaults to 'precision-recall'.
-        title (str, optional): plot title in wandb. Defaults to 'Precision Recall Curve'.
-        x_axis_title (str, optional): title for x-axis. Defaults to 'Recall'.
-        y_axis_title (str, optional): title for y-axis. Defaults to 'Precision'.
-        num_x (int, optional): number of points to interpolate to. Defaults to 100.
-        only_mean (bool, optional): if True, only the mean curve is plotted. Defaults to True.
+        x (np.ndarray): Data points for the x-axis with length N.
+        y (np.ndarray): Corresponding data points for the y-axis with shape CxN, where C represents the number of classes.
+        names (list, optional): Names of the classes corresponding to the y-axis data; length C. Defaults to an empty list.
+        id (str, optional): Unique identifier for the logged data in wandb. Defaults to 'precision-recall'.
+        title (str, optional): Title for the visualization plot. Defaults to 'Precision Recall Curve'.
+        x_axis_title (str, optional): Label for the x-axis. Defaults to 'Recall'.
+        y_axis_title (str, optional): Label for the y-axis. Defaults to 'Precision'.
+        num_x (int, optional): Number of interpolated data points for visualization. Defaults to 100.
+        only_mean (bool, optional): Flag to indicate if only the mean curve should be plotted. Defaults to True.
+
+    Note:
+        The function leverages the 'create_custom_wandb_metric' function to generate the actual visualization.
     """
     # Create new x
     if names is None:
@@ -83,12 +92,9 @@ def plot_curve_wandb(x,
 
     if not only_mean:
         for i, yi in enumerate(y):
-            # Add new x
-            x_log.extend(x_new)
-            # Interpolate y to new x
-            y_log.extend(np.interp(x_new, x, yi))
-            # Add class names
-            classes.extend([names[i]] * len(x_new))
+            x_log.extend(x_new)  # add new x
+            y_log.extend(np.interp(x_new, x, yi))  # interpolate y to new x
+            classes.extend([names[i]] * len(x_new))  # add class names
 
     wb.log(
         {id: create_custom_wandb_metric(

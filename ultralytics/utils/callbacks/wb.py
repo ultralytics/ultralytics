@@ -19,8 +19,8 @@ except (ImportError, AssertionError):
     wb = None
 
 
-def create_custom_wandb_metric(xs,
-                               ys,
+def create_custom_wandb_metric(x,
+                               y,
                                classes,
                                title='Precision Recall Curve',
                                x_axis_title='Recall',
@@ -29,8 +29,8 @@ def create_custom_wandb_metric(xs,
     Creates a custom wandb metric similar to default wandb.plot.pr_curve.
 
     Args:
-        xs (List): list of N values to plot on the x-axis
-        ys (List): list of N values to plot on the y-axis
+        x (List): list of N values to plot on the x-axis
+        y (List): list of N values to plot on the y-axis
         classes (List): class labels for each point (list of N values)
         title (str, optional): plot title. Defaults to 'Precision Recall Curve'.
         x_axis_title (str, optional): title for x-axis. Defaults to 'Recall'.
@@ -39,7 +39,7 @@ def create_custom_wandb_metric(xs,
     Returns:
         wandb object to log
     """
-    df = pd.DataFrame({'class': classes, 'y': ys, 'x': xs}).round(3)
+    df = pd.DataFrame({'class': classes, 'y': y, 'x': x}).round(3)
     fields = {'x': 'x', 'y': 'y', 'class': 'class'}
     string_fields = {'title': title, 'x-axis-title': x_axis_title, 'y-axis-title': y_axis_title}
     return wb.plot_table('wandb/area-under-curve/v0',
@@ -48,52 +48,52 @@ def create_custom_wandb_metric(xs,
                          string_fields=string_fields)
 
 
-def plot_curve_wandb(xs,
-                     ys,
+def plot_curve_wandb(x,
+                     y,
                      names=None,
                      id='precision-recall',
                      title='Precision Recall Curve',
                      x_axis_title='Recall',
                      y_axis_title='Precision',
-                     num_xs=100,
+                     num_x=100,
                      only_mean=True):
     """
     Adds a metric curve to wandb.
 
     Args:
-        xs (np.ndarray): np.array of N values.
-        ys (np.ndarray): np.array of C by N values where C is the number of classes.
+        x (np.ndarray): X-axis of N values.
+        y (np.ndarray): Y-axis of C by N values where C is the number of classes.
         names (list, optional): list of class names (length C). Defaults to [].
         id (str, optional): log id in wandb. Defaults to 'precision-recall'.
         title (str, optional): plot title in wandb. Defaults to 'Precision Recall Curve'.
         x_axis_title (str, optional): title for x-axis. Defaults to 'Recall'.
         y_axis_title (str, optional): title for y-axis. Defaults to 'Precision'.
-        num_xs (int, optional): number of points to interpolate to. Defaults to 100.
+        num_x (int, optional): number of points to interpolate to. Defaults to 100.
         only_mean (bool, optional): if True, only the mean curve is plotted. Defaults to True.
     """
-    # Create new xs
+    # Create new x
     if names is None:
         names = []
-    xs_new = np.linspace(xs[0], xs[-1], num_xs)
+    x_new = np.linspace(x[0], x[-1], num_x)
 
     # Create arrays for logging
-    xs_log = xs_new.tolist()
-    ys_log = np.interp(xs_new, xs, np.mean(ys, axis=0)).tolist()
-    classes = ['mean'] * len(xs_log)
+    x_log = x_new.tolist()
+    y_log = np.interp(x_new, x, np.mean(y, axis=0)).tolist()
+    classes = ['mean'] * len(x_log)
 
     if not only_mean:
-        for i, y in enumerate(ys):
-            # Add new xs
-            xs_log.extend(xs_new)
-            # Interpolate y to new xs
-            ys_log.extend(np.interp(xs_new, xs, y))
+        for i, yi in enumerate(y):
+            # Add new x
+            x_log.extend(x_new)
+            # Interpolate y to new x
+            y_log.extend(np.interp(x_new, x, yi))
             # Add class names
-            classes.extend([names[i]] * len(xs_new))
+            classes.extend([names[i]] * len(x_new))
 
     wb.log(
         {id: create_custom_wandb_metric(
-            xs_log,
-            ys_log,
+            x_log,
+            y_log,
             classes,
             title,
             x_axis_title,
@@ -143,10 +143,10 @@ def on_train_end(trainer):
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=['best'])
     for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
-        xs, ys, x_axis_title, y_axis_title = curve_values
+        x, y, x_axis_title, y_axis_title = curve_values
         plot_curve_wandb(
-            xs,
-            ys,
+            x,
+            y,
             id=f'curves/{curve_name}',
             title=f'{curve_name}',
             x_axis_title=x_axis_title,

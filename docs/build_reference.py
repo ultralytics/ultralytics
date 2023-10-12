@@ -99,7 +99,11 @@ def create_nav_menu_yaml(nav_items: list):
                 yaml_str += f"{indent}- {k}: {str(v).replace('docs/', '')}\n"
         return yaml_str
 
-    (NEW_YAML_DIR / 'nav_menu_updated.yml').write_text(_dict_to_yaml(nav_tree_sorted))
+    # Print updated YAML reference section
+    print('Scan complete, new mkdocs.yaml reference section is:\n\n', _dict_to_yaml(nav_tree_sorted))
+
+    # Save new YAML reference section
+    # (NEW_YAML_DIR / 'nav_menu_updated.yml').write_text(_dict_to_yaml(nav_tree_sorted))
 
 
 def main():

@@ -85,7 +85,7 @@ def run_ray_tune(model,
 
     # put the model in ray store
     model_in_store = ray.put(model)
-                   
+
     def _tune(config):
         """
         Trains the YOLO model with the specified hyperparameters and additional arguments.

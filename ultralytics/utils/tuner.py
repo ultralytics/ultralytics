@@ -2,8 +2,6 @@
 
 import subprocess
 
-import ray
-
 from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 
@@ -47,6 +45,7 @@ def run_ray_tune(model,
     try:
         subprocess.run('pip install ray[tune]'.split(), check=True)
 
+        import ray
         from ray import tune
         from ray.air import RunConfig
         from ray.air.integrations.wandb import WandbLoggerCallback
@@ -85,7 +84,8 @@ def run_ray_tune(model,
         'mixup': tune.uniform(0.0, 1.0),  # image mixup (probability)
         'copy_paste': tune.uniform(0.0, 1.0)}  # segment copy-paste (probability)
 
-    # put the model in ray store
+    # Put the model in ray store
+    task = model.task
     model_in_store = ray.put(model)
 
     def _tune(config):
@@ -98,11 +98,10 @@ def run_ray_tune(model,
         Returns:
             None.
         """
-        # get the model from ray store
-        model = ray.get(model_in_store)
-        model.reset_callbacks()
+        model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
+        model_to_train.reset_callbacks()
         config.update(train_args)
-        results = model.train(**config)
+        results = model_to_train.train(**config)
         return results.results_dict
 
     # Get search space
@@ -111,7 +110,7 @@ def run_ray_tune(model,
         LOGGER.warning('WARNING ⚠️ search space not provided, using default search space.')
 
     # Get dataset
-    data = train_args.get('data', TASK2DATA[ray.get(model_in_store).task])
+    data = train_args.get('data', TASK2DATA[task])
     space['data'] = data
     if 'data' not in train_args:
         LOGGER.warning(f'WARNING ⚠️ data not provided, using default "data={data}".')
@@ -121,7 +120,7 @@ def run_ray_tune(model,
 
     # Define the ASHA scheduler for hyperparameter search
     asha_scheduler = ASHAScheduler(time_attr='epoch',
-                                   metric=TASK2METRIC[ray.get(model_in_store).task],
+                                   metric=TASK2METRIC[task],
                                    mode='max',
                                    max_t=train_args.get('epochs') or DEFAULT_CFG_DICT['epochs'] or 100,
                                    grace_period=grace_period,

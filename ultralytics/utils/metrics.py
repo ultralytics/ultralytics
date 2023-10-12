@@ -450,7 +450,7 @@ def ap_per_class(tp,
             p_curve (np.ndarray): Precision curves for each class. Shape: (nc, 1000).
             r_curve (np.ndarray): Recall curves for each class. Shape: (nc, 1000).
             f1_curve (np.ndarray): F1-score curves for each class. Shape: (nc, 1000).
-            xs (np.ndarray): X-axis values for the curves. Shape: (1000,).
+            x (np.ndarray): X-axis values for the curves. Shape: (1000,).
             prec_values: Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
     """
 
@@ -463,7 +463,7 @@ def ap_per_class(tp,
     nc = unique_classes.shape[0]  # number of classes, number of detections
 
     # Create Precision-Recall curve and compute AP for each class
-    xs, prec_values = np.linspace(0, 1, 1000), []
+    x, prec_values = np.linspace(0, 1, 1000), []
 
     # average precision, precision and recall curves
     ap, p_curve, r_curve = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
@@ -480,17 +480,17 @@ def ap_per_class(tp,
 
         # Recall
         recall = tpc / (n_l + eps)  # recall curve
-        r_curve[ci] = np.interp(-xs, -conf[i], recall[:, 0], left=0)  # negative x, xp because xp decreases
+        r_curve[ci] = np.interp(-x, -conf[i], recall[:, 0], left=0)  # negative x, xp because xp decreases
 
         # Precision
         precision = tpc / (tpc + fpc)  # precision curve
-        p_curve[ci] = np.interp(-xs, -conf[i], precision[:, 0], left=1)  # p at pr_score
+        p_curve[ci] = np.interp(-x, -conf[i], precision[:, 0], left=1)  # p at pr_score
 
         # AP from recall-precision curve
         for j in range(tp.shape[1]):
             ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j])
             if plot and j == 0:
-                prec_values.append(np.interp(xs, mrec, mpre))  # precision at mAP@0.5
+                prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
 
     prec_values = np.array(prec_values)  # (nc, 1000)
 
@@ -499,16 +499,16 @@ def ap_per_class(tp,
     names = [v for k, v in names.items() if k in unique_classes]  # list: only classes that have data
     names = dict(enumerate(names))  # to dict
     if plot:
-        plot_pr_curve(xs, prec_values, ap, save_dir / f'{prefix}PR_curve.png', names, on_plot=on_plot)
-        plot_mc_curve(xs, f1_curve, save_dir / f'{prefix}F1_curve.png', names, ylabel='F1', on_plot=on_plot)
-        plot_mc_curve(xs, p_curve, save_dir / f'{prefix}P_curve.png', names, ylabel='Precision', on_plot=on_plot)
-        plot_mc_curve(xs, r_curve, save_dir / f'{prefix}R_curve.png', names, ylabel='Recall', on_plot=on_plot)
+        plot_pr_curve(x, prec_values, ap, save_dir / f'{prefix}PR_curve.png', names, on_plot=on_plot)
+        plot_mc_curve(x, f1_curve, save_dir / f'{prefix}F1_curve.png', names, ylabel='F1', on_plot=on_plot)
+        plot_mc_curve(x, p_curve, save_dir / f'{prefix}P_curve.png', names, ylabel='Precision', on_plot=on_plot)
+        plot_mc_curve(x, r_curve, save_dir / f'{prefix}R_curve.png', names, ylabel='Recall', on_plot=on_plot)
 
     i = smooth(f1_curve.mean(0), 0.1).argmax()  # max F1 index
-    p, r, f1 = p_curve[:, i], r_curve[:, i], f1_curve[:, i]
+    p, r, f1 = p_curve[:, i], r_curve[:, i], f1_curve[:, i]  # max-F1 precision, recall, F1 values
     tp = (r * nt).round()  # true positives
     fp = (tp / (p + eps) - tp).round()  # false positives
-    return tp, fp, p, r, f1, ap, unique_classes.astype(int), p_curve, r_curve, f1_curve, xs, prec_values
+    return tp, fp, p, r, f1, ap, unique_classes.astype(int), p_curve, r_curve, f1_curve, x, prec_values
 
 
 class Metric(SimpleClass):

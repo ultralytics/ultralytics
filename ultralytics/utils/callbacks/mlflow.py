@@ -21,8 +21,6 @@ Commands:
         ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
 """
 
-from pathlib import Path
-
 from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
@@ -33,6 +31,7 @@ try:
     import mlflow
 
     assert hasattr(mlflow, '__version__')  # verify package is not directory
+    from pathlib import Path
     PREFIX = colorstr('MLflow: ')
 
 except (ImportError, AssertionError):

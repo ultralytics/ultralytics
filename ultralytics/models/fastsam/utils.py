@@ -42,23 +42,23 @@ def bbox_iou(box1, boxes, iou_thres=0.9, image_shape=(640, 640), raw_output=Fals
         high_iou_indices (torch.Tensor): Indices of boxes with IoU > thres
     """
     boxes = adjust_bboxes_to_image_border(boxes, image_shape)
-    # obtain coordinates for intersections
+    # Obtain coordinates for intersections
     x1 = torch.max(box1[0], boxes[:, 0])
     y1 = torch.max(box1[1], boxes[:, 1])
     x2 = torch.min(box1[2], boxes[:, 2])
     y2 = torch.min(box1[3], boxes[:, 3])
 
-    # compute the area of intersection
+    # Compute the area of intersection
     intersection = (x2 - x1).clamp(0) * (y2 - y1).clamp(0)
 
-    # compute the area of both individual boxes
+    # Compute the area of both individual boxes
     box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
     box2_area = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
 
-    # compute the area of union
+    # Compute the area of union
     union = box1_area + box2_area - intersection
 
-    # compute the IoU
+    # Compute the IoU
     iou = intersection / union  # Should be shape (n, )
     if raw_output:
         return 0 if iou.numel() == 0 else iou

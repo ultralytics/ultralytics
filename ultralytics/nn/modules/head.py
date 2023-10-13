@@ -192,7 +192,7 @@ class RTDETRDecoder(nn.Module):
             dropout=0.,
             act=nn.ReLU(),
             eval_idx=-1,
-            # training args
+            # Training args
             nd=100,  # num denoising
             label_noise_ratio=0.5,
             box_noise_scale=1.0,
@@ -225,7 +225,7 @@ class RTDETRDecoder(nn.Module):
         self.num_queries = nq
         self.num_decoder_layers = ndl
 
-        # backbone feature projection
+        # Backbone feature projection
         self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
         # NOTE: simplified version but it's not consistent with .pt weights.
         # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
@@ -234,24 +234,24 @@ class RTDETRDecoder(nn.Module):
         decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp)
         self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx)
 
-        # denoising part
+        # Denoising part
         self.denoising_class_embed = nn.Embedding(nc, hd)
         self.num_denoising = nd
         self.label_noise_ratio = label_noise_ratio
         self.box_noise_scale = box_noise_scale
 
-        # decoder embedding
+        # Decoder embedding
         self.learnt_init_query = learnt_init_query
         if learnt_init_query:
             self.tgt_embed = nn.Embedding(nq, hd)
         self.query_pos_head = MLP(4, 2 * hd, hd, num_layers=2)
 
-        # encoder head
+        # Encoder head
         self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
         self.enc_score_head = nn.Linear(hd, nc)
         self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3)
 
-        # decoder head
+        # Decoder head
         self.dec_score_head = nn.ModuleList([nn.Linear(hd, nc) for _ in range(ndl)])
         self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
 
@@ -261,10 +261,10 @@ class RTDETRDecoder(nn.Module):
         """Runs the forward pass of the module, returning bounding box and classification scores for the input."""
         from ultralytics.models.utils.ops import get_cdn_group
 
-        # input projection and embedding
+        # Input projection and embedding
         feats, shapes = self._get_encoder_input(x)
 
-        # prepare denoising training
+        # Prepare denoising training
         dn_embed, dn_bbox, attn_mask, dn_meta = \
             get_cdn_group(batch,
                           self.nc,
@@ -278,7 +278,7 @@ class RTDETRDecoder(nn.Module):
         embed, refer_bbox, enc_bboxes, enc_scores = \
             self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
 
-        # decoder
+        # Decoder
         dec_bboxes, dec_scores = self.decoder(embed,
                                               refer_bbox,
                                               feats,
@@ -316,9 +316,9 @@ class RTDETRDecoder(nn.Module):
 
     def _get_encoder_input(self, x):
         """Processes and returns encoder inputs by getting projection features from input and concatenating them."""
-        # get projection features
+        # Get projection features
         x = [self.input_proj[i](feat) for i, feat in enumerate(x)]
-        # get encoder inputs
+        # Get encoder inputs
         feats = []
         shapes = []
         for feat in x:
@@ -335,13 +335,13 @@ class RTDETRDecoder(nn.Module):
     def _get_decoder_input(self, feats, shapes, dn_embed=None, dn_bbox=None):
         """Generates and prepares the input required for the decoder from the provided features and shapes."""
         bs = len(feats)
-        # prepare input for decoder
+        # Prepare input for decoder
         anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
         features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
 
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
-        # query selection
+        # Query selection
         # (bs, num_queries)
         topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
         # (bs, num_queries)
@@ -352,7 +352,7 @@ class RTDETRDecoder(nn.Module):
         # (bs, num_queries, 4)
         top_k_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
 
-        # dynamic anchors + static content
+        # Dynamic anchors + static content
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
 
         enc_bboxes = refer_bbox.sigmoid()
@@ -373,7 +373,7 @@ class RTDETRDecoder(nn.Module):
     # TODO
     def _reset_parameters(self):
         """Initializes or resets the parameters of the model's various components with predefined weights and biases."""
-        # class and bbox head init
+        # Class and bbox head init
         bias_cls = bias_init_with_prob(0.01) / 80 * self.nc
         # NOTE: the weight initialization in `linear_init_` would cause NaN when training with custom datasets.
         # linear_init_(self.enc_score_head)

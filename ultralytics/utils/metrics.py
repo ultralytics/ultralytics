@@ -36,7 +36,7 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     inter_area = (np.minimum(b1_x2[:, None], b2_x2) - np.maximum(b1_x1[:, None], b2_x1)).clip(0) * \
                  (np.minimum(b1_y2[:, None], b2_y2) - np.maximum(b1_y1[:, None], b2_y1)).clip(0)
 
-    # box2 area
+    # Box2 area
     area = (b2_x2 - b2_x1) * (b2_y2 - b2_y1)
     if iou:
         box1_area = (b1_x2 - b1_x1) * (b1_y2 - b1_y1)
@@ -440,13 +440,18 @@ def ap_per_class(tp,
 
     Returns:
         (tuple): A tuple of six arrays and one array of unique classes, where:
-            tp (np.ndarray): True positive counts for each class.
-            fp (np.ndarray): False positive counts for each class.
-            p (np.ndarray): Precision values at each confidence threshold.
-            r (np.ndarray): Recall values at each confidence threshold.
-            f1 (np.ndarray): F1-score values at each confidence threshold.
-            ap (np.ndarray): Average precision for each class at different IoU thresholds.
-            unique_classes (np.ndarray): An array of unique classes that have data.
+            tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.Shape: (nc,).
+            fp (np.ndarray): False positive counts at threshold given by max F1 metric for each class. Shape: (nc,).
+            p (np.ndarray): Precision values at threshold given by max F1 metric for each class. Shape: (nc,).
+            r (np.ndarray): Recall values at threshold given by max F1 metric for each class. Shape: (nc,).
+            f1 (np.ndarray): F1-score values at threshold given by max F1 metric for each class. Shape: (nc,).
+            ap (np.ndarray): Average precision for each class at different IoU thresholds. Shape: (nc, 10).
+            unique_classes (np.ndarray): An array of unique classes that have data. Shape: (nc,).
+            p_curve (np.ndarray): Precision curves for each class. Shape: (nc, 1000).
+            r_curve (np.ndarray): Recall curves for each class. Shape: (nc, 1000).
+            f1_curve (np.ndarray): F1-score curves for each class. Shape: (nc, 1000).
+            x (np.ndarray): X-axis values for the curves. Shape: (1000,).
+            prec_values: Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
     """
 
     # Sort by objectness
@@ -458,8 +463,10 @@ def ap_per_class(tp,
     nc = unique_classes.shape[0]  # number of classes, number of detections
 
     # Create Precision-Recall curve and compute AP for each class
-    px, py = np.linspace(0, 1, 1000), []  # for plotting
-    ap, p, r = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
+    x, prec_values = np.linspace(0, 1, 1000), []
+
+    # Average precision, precision and recall curves
+    ap, p_curve, r_curve = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
     for ci, c in enumerate(unique_classes):
         i = pred_cls == c
         n_l = nt[ci]  # number of labels
@@ -473,33 +480,35 @@ def ap_per_class(tp,
 
         # Recall
         recall = tpc / (n_l + eps)  # recall curve
-        r[ci] = np.interp(-px, -conf[i], recall[:, 0], left=0)  # negative x, xp because xp decreases
+        r_curve[ci] = np.interp(-x, -conf[i], recall[:, 0], left=0)  # negative x, xp because xp decreases
 
         # Precision
         precision = tpc / (tpc + fpc)  # precision curve
-        p[ci] = np.interp(-px, -conf[i], precision[:, 0], left=1)  # p at pr_score
+        p_curve[ci] = np.interp(-x, -conf[i], precision[:, 0], left=1)  # p at pr_score
 
         # AP from recall-precision curve
         for j in range(tp.shape[1]):
             ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j])
             if plot and j == 0:
-                py.append(np.interp(px, mrec, mpre))  # precision at mAP@0.5
+                prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
+
+    prec_values = np.array(prec_values)  # (nc, 1000)
 
     # Compute F1 (harmonic mean of precision and recall)
-    f1 = 2 * p * r / (p + r + eps)
+    f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)
     names = [v for k, v in names.items() if k in unique_classes]  # list: only classes that have data
     names = dict(enumerate(names))  # to dict
     if plot:
-        plot_pr_curve(px, py, ap, save_dir / f'{prefix}PR_curve.png', names, on_plot=on_plot)
-        plot_mc_curve(px, f1, save_dir / f'{prefix}F1_curve.png', names, ylabel='F1', on_plot=on_plot)
-        plot_mc_curve(px, p, save_dir / f'{prefix}P_curve.png', names, ylabel='Precision', on_plot=on_plot)
-        plot_mc_curve(px, r, save_dir / f'{prefix}R_curve.png', names, ylabel='Recall', on_plot=on_plot)
+        plot_pr_curve(x, prec_values, ap, save_dir / f'{prefix}PR_curve.png', names, on_plot=on_plot)
+        plot_mc_curve(x, f1_curve, save_dir / f'{prefix}F1_curve.png', names, ylabel='F1', on_plot=on_plot)
+        plot_mc_curve(x, p_curve, save_dir / f'{prefix}P_curve.png', names, ylabel='Precision', on_plot=on_plot)
+        plot_mc_curve(x, r_curve, save_dir / f'{prefix}R_curve.png', names, ylabel='Recall', on_plot=on_plot)
 
-    i = smooth(f1.mean(0), 0.1).argmax()  # max F1 index
-    p, r, f1 = p[:, i], r[:, i], f1[:, i]
+    i = smooth(f1_curve.mean(0), 0.1).argmax()  # max F1 index
+    p, r, f1 = p_curve[:, i], r_curve[:, i], f1_curve[:, i]  # max-F1 precision, recall, F1 values
     tp = (r * nt).round()  # true positives
     fp = (tp / (p + eps) - tp).round()  # false positives
-    return tp, fp, p, r, f1, ap, unique_classes.astype(int)
+    return tp, fp, p, r, f1, ap, unique_classes.astype(int), p_curve, r_curve, f1_curve, x, prec_values
 
 
 class Metric(SimpleClass):
@@ -645,7 +654,19 @@ class Metric(SimpleClass):
             Updates the class attributes `self.p`, `self.r`, `self.f1`, `self.all_ap`, and `self.ap_class_index` based
             on the values provided in the `results` tuple.
         """
-        self.p, self.r, self.f1, self.all_ap, self.ap_class_index = results
+        (self.p, self.r, self.f1, self.all_ap, self.ap_class_index, self.p_curve, self.r_curve, self.f1_curve, self.px,
+         self.prec_values) = results
+
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+
+    @property
+    def curves_results(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return [[self.px, self.prec_values, 'Recall', 'Precision'], [self.px, self.f1_curve, 'Confidence', 'F1'],
+                [self.px, self.p_curve, 'Confidence', 'Precision'], [self.px, self.r_curve, 'Confidence', 'Recall']]
 
 
 class DetMetrics(SimpleClass):
@@ -676,6 +697,8 @@ class DetMetrics(SimpleClass):
         fitness: Computes the fitness score based on the computed detection metrics.
         ap_class_index: Returns a list of class indices sorted by their average precision (AP) values.
         results_dict: Returns a dictionary that maps detection metric keys to their computed values.
+        curves: TODO
+        curves_results: TODO
     """
 
     def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
@@ -686,6 +709,7 @@ class DetMetrics(SimpleClass):
         self.names = names
         self.box = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.task = 'detect'
 
     def process(self, tp, conf, pred_cls, target_cls):
         """Process predicted results for object detection and update metrics."""
@@ -733,6 +757,16 @@ class DetMetrics(SimpleClass):
         """Returns dictionary of computed performance metrics and statistics."""
         return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return ['Precision-Recall(B)', 'F1-Confidence(B)', 'Precision-Confidence(B)', 'Recall-Confidence(B)']
+
+    @property
+    def curves_results(self):
+        """Returns dictionary of computed performance metrics and statistics."""
+        return self.box.curves_results
+
 
 class SegmentMetrics(SimpleClass):
     """
@@ -772,6 +806,7 @@ class SegmentMetrics(SimpleClass):
         self.box = Metric()
         self.seg = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.task = 'segment'
 
     def process(self, tp_b, tp_m, conf, pred_cls, target_cls):
         """
@@ -843,6 +878,18 @@ class SegmentMetrics(SimpleClass):
         """Returns results of object detection model for evaluation."""
         return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return [
+            'Precision-Recall(B)', 'F1-Confidence(B)', 'Precision-Confidence(B)', 'Recall-Confidence(B)',
+            'Precision-Recall(M)', 'F1-Confidence(M)', 'Precision-Confidence(M)', 'Recall-Confidence(M)']
+
+    @property
+    def curves_results(self):
+        """Returns dictionary of computed performance metrics and statistics."""
+        return self.box.curves_results + self.seg.curves_results
+
 
 class PoseMetrics(SegmentMetrics):
     """
@@ -883,6 +930,7 @@ class PoseMetrics(SegmentMetrics):
         self.box = Metric()
         self.pose = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.task = 'pose'
 
     def process(self, tp_b, tp_p, conf, pred_cls, target_cls):
         """
@@ -944,6 +992,18 @@ class PoseMetrics(SegmentMetrics):
         """Computes classification metrics and speed using the `targets` and `pred` inputs."""
         return self.pose.fitness() + self.box.fitness()
 
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return [
+            'Precision-Recall(B)', 'F1-Confidence(B)', 'Precision-Confidence(B)', 'Recall-Confidence(B)',
+            'Precision-Recall(P)', 'F1-Confidence(P)', 'Precision-Confidence(P)', 'Recall-Confidence(P)']
+
+    @property
+    def curves_results(self):
+        """Returns dictionary of computed performance metrics and statistics."""
+        return self.box.curves_results + self.pose.curves_results
+
 
 class ClassifyMetrics(SimpleClass):
     """
@@ -968,6 +1028,7 @@ class ClassifyMetrics(SimpleClass):
         self.top1 = 0
         self.top5 = 0
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.task = 'classify'
 
     def process(self, targets, pred):
         """Target classes and predicted classes."""
@@ -990,3 +1051,13 @@ class ClassifyMetrics(SimpleClass):
     def keys(self):
         """Returns a list of keys for the results_dict property."""
         return ['metrics/accuracy_top1', 'metrics/accuracy_top5']
+
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+
+    @property
+    def curves_results(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []

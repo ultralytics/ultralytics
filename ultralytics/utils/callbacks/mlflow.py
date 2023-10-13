@@ -38,7 +38,7 @@ def on_pretrain_routine_end(trainer):
             if not active_run:
                 active_run = mlflow.start_run(experiment_id=experiment.experiment_id, run_name=run_name)
             LOGGER.info(f'{prefix}Using run_id({active_run.info.run_id}) at {mlflow_location}')
-            run.log_params(vars(trainer.model.args))
+            run.log_params(trainer.args)
         except Exception as err:
             LOGGER.error(f'{prefix}Failing init - {repr(err)}')
             LOGGER.warning(f'{prefix}Continuing without Mlflow')

@@ -10,25 +10,26 @@ try:
     assert hasattr(mlflow, '__version__')  # verify package is not directory
     PREFIX = colorstr('MLflow: ')
     import os
-    import re
 
 except (ImportError, AssertionError):
     mlflow = None
 
 
 def on_pretrain_routine_end(trainer):
-    """Logs training parameters to MLflow."""
-    global mlflow, run, experiment_name
+    """Log training parameters to MLflow."""
+    global mlflow, run
 
-    if os.environ.get('MLFLOW_TRACKING_URI') is None:
+    uri = os.environ.get('MLFLOW_TRACKING_URI')
+    if uri is None:
+        mlflow = None
         LOGGER.info(f'{PREFIX}installed but no tracking URI set, '
                     "i.e. run 'mlflow ui && MLFLOW_TRACKING_URI='http://127.0.0.1:5000'")
-        mlflow = None
 
-    if mlflow:
-        mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
-        LOGGER.debug(f'{PREFIX} tracking uri: {mlflow_location}')
-        mlflow.set_tracking_uri(mlflow_location)
+    else:
+        LOGGER.info(f'{PREFIX} tracking uri: {uri}')
+        mlflow.set_tracking_uri(uri)
+
+        # Set experiment and run names
         experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME') or trainer.args.project or '/Shared/YOLOv8'
         run_name = os.environ.get('MLFLOW_RUN') or trainer.args.name
         experiment = mlflow.set_experiment(experiment_name)  # change since mlflow does this now by default
@@ -38,22 +39,22 @@ def on_pretrain_routine_end(trainer):
             run, active_run = mlflow, mlflow.active_run()
             if not active_run:
                 active_run = mlflow.start_run(experiment_id=experiment.experiment_id, run_name=run_name)
-            LOGGER.info(f'{PREFIX}Using run_id({active_run.info.run_id}) at {mlflow_location}')
+            LOGGER.info(f'{PREFIX}Using run_id({active_run.info.run_id}) at {uri}')
             run.log_params(dict(trainer.args))
         except Exception as e:
-            LOGGER.error(f'{PREFIX}WARNING ⚠️ Failing init - {repr(e)}\n'
-                         'Continuing without MLflow')
+            LOGGER.warning(f'{PREFIX}WARNING ⚠️ Failed to initialize: {e}\n'
+                           f'{PREFIX}Continuing without MLflow')
 
 
 def on_fit_epoch_end(trainer):
-    """Logs training metrics to MLflow."""
+    """Log training metrics to MLflow."""
     if mlflow:
-        metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
-        run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
+        sanitized_metrics = {k.replace('(', '').replace(')', ''): float(v) for k, v in trainer.metrics.items()}
+        run.log_metrics(metrics=sanitized_metrics, step=trainer.epoch)
 
 
 def on_train_end(trainer):
-    """Called at end of train loop to log model artifact info."""
+    """Log model artifacts at the end of the training."""
     if mlflow:
         run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)

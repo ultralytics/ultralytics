@@ -8,7 +8,7 @@ try:
     import mlflow
 
     assert hasattr(mlflow, '__version__')  # verify package is not directory
-    PREFIX = colorstr('MLFlow:')
+    PREFIX = colorstr('MLflow: ')
     import os
     import re
 
@@ -21,6 +21,8 @@ def on_pretrain_routine_end(trainer):
     global mlflow, run, experiment_name
 
     if os.environ.get('MLFLOW_TRACKING_URI') is None:
+        LOGGER.info(f'{PREFIX}installed but no tracking URI set, '
+                    "i.e. run 'mlflow ui && MLFLOW_TRACKING_URI='http://127.0.0.1:5000'")
         mlflow = None
 
     if mlflow:
@@ -32,20 +34,19 @@ def on_pretrain_routine_end(trainer):
         experiment = mlflow.set_experiment(experiment_name)  # change since mlflow does this now by default
 
         mlflow.autolog()
-        prefix = colorstr('MLFlow: ')
         try:
             run, active_run = mlflow, mlflow.active_run()
             if not active_run:
                 active_run = mlflow.start_run(experiment_id=experiment.experiment_id, run_name=run_name)
-            LOGGER.info(f'{prefix}Using run_id({active_run.info.run_id}) at {mlflow_location}')
-            run.log_params(trainer.args)
-        except Exception as err:
-            LOGGER.error(f'{prefix}Failing init - {repr(err)}')
-            LOGGER.warning(f'{prefix}Continuing without Mlflow')
+            LOGGER.info(f'{PREFIX}Using run_id({active_run.info.run_id}) at {mlflow_location}')
+            run.log_params(dict(trainer.args))
+        except Exception as e:
+            LOGGER.error(f'{PREFIX}WARNING ⚠️ Failing init - {repr(e)}\n'
+                         'Continuing without MLflow')
 
 
 def on_fit_epoch_end(trainer):
-    """Logs training metrics to Mlflow."""
+    """Logs training metrics to MLflow."""
     if mlflow:
         metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
         run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
@@ -58,7 +59,7 @@ def on_train_end(trainer):
         run.log_artifact(trainer.best)
         run.log_artifact(trainer.save_dir)
         mlflow.end_run()
-        LOGGER.debug(f'{PREFIX} ending run')
+        LOGGER.info(f'{PREFIX} ending run')
 
 
 callbacks = {

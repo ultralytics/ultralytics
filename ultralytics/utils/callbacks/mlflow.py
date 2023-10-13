@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-MLflow Logging for Ultralytics YOLO
+MLflow Logging for Ultralytics YOLO.
 
 This module enables MLflow logging for Ultralytics YOLO. It logs metrics, parameters, and model artifacts.
 For setting up, a tracking URI should be specified. The logging can be customized using environment variables.

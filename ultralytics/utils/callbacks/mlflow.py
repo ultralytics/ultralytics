@@ -26,13 +26,14 @@ from pathlib import Path
 from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
-    assert not TESTS_RUNNING  # do not log pytest
+    import os
+
+    assert not TESTS_RUNNING or 'test_mlflow' in os.environ.get('PYTEST_CURRENT_TEST', '')  # do not log pytest
     assert SETTINGS['mlflow'] is True  # verify integration is enabled
     import mlflow
 
     assert hasattr(mlflow, '__version__')  # verify package is not directory
     PREFIX = colorstr('MLflow: ')
-    import os
 
 except (ImportError, AssertionError):
     mlflow = None

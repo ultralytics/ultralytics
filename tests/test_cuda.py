@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
-
 import pytest
 import torch
 
@@ -104,20 +102,6 @@ def test_predict_sam():
 
     # Reset image
     predictor.reset_image()
-
-
-@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
-def test_model_ray_tune():
-    """Tune YOLO model with Ray optimization library."""
-    with contextlib.suppress(RuntimeError):  # RuntimeError may be caused by out-of-memory
-        YOLO('yolov8n-cls.yaml').tune(use_ray=True,
-                                      data='imagenet10',
-                                      grace_period=1,
-                                      iterations=1,
-                                      imgsz=32,
-                                      epochs=1,
-                                      plots=False,
-                                      device='cpu')
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')

@@ -947,7 +947,11 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224, rect=False, letterbox=False, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
+def classify_transforms(size=224,
+                        rect=False,
+                        letterbox=False,
+                        mean=(0.0, 0.0, 0.0),
+                        std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
     """Transforms to apply if albumentations not installed."""
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')

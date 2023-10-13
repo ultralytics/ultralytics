@@ -195,7 +195,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `seed`            | `0`      | random seed for reproducibility                                                                |
 | `deterministic`   | `True`   | whether to enable deterministic mode                                                           |
 | `single_cls`      | `False`  | train multi-class data as single-class                                                         |
-| `rect`            | `False`  | rectangular training with each batch collated for minimum padding                              |
+| `rect`            | `False`  | rectangular training with each batch collated for minimum padding (classify train only)        |
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                                             |
 | `close_mosaic`    | `10`     | (int) disable mosaic augmentation for final epochs (0 to disable)                              |
 | `resume`          | `False`  | resume training from last checkpoint                                                           |
@@ -221,6 +221,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                                     |
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                                               |
 | `val`             | `True`   | validate/test during training                                                                  |
+| `letterbox`       | `False`  | letterbox preprocessing (classify train only)                                                  |
 
 ## Logging
 

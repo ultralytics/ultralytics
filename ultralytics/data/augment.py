@@ -947,11 +947,11 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224, rect=False, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
+def classify_transforms(size=224, rect=False, letterbox=False, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
     """Transforms to apply if albumentations not installed."""
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
-    transforms = [ClassifyLetterBox(size, auto=True) if rect else CenterCrop(size), ToTensor()]
+    transforms = [ClassifyLetterBox(size, auto=rect) if rect or letterbox else CenterCrop(size), ToTensor()]
     if any(mean) or any(std):
         transforms.append(T.Normalize(mean, std, inplace=True))
     return T.Compose(transforms)

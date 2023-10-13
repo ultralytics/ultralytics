@@ -17,7 +17,7 @@ except (ImportError, AssertionError):
 
 def on_pretrain_routine_end(trainer):
     """Log training parameters to MLflow."""
-    global mlflow, run
+    global mlflow, run, uri
 
     uri = os.environ.get('MLFLOW_TRACKING_URI')
     if uri is None:
@@ -26,7 +26,7 @@ def on_pretrain_routine_end(trainer):
                     "i.e. run 'mlflow ui && MLFLOW_TRACKING_URI='http://127.0.0.1:5000'")
 
     else:
-        LOGGER.info(f'{PREFIX} tracking uri: {uri}')
+        LOGGER.debug(f'{PREFIX} tracking uri: {uri}')
         mlflow.set_tracking_uri(uri)
 
         # Set experiment and run names
@@ -39,7 +39,7 @@ def on_pretrain_routine_end(trainer):
             run, active_run = mlflow, mlflow.active_run()
             if not active_run:
                 active_run = mlflow.start_run(experiment_id=experiment.experiment_id, run_name=run_name)
-            LOGGER.info(f'{PREFIX}Using run_id({active_run.info.run_id}) at {uri}')
+            LOGGER.info(f'{PREFIX}logging run_id({active_run.info.run_id}) to {uri}')
             run.log_params(dict(trainer.args))
         except Exception as e:
             LOGGER.warning(f'{PREFIX}WARNING ⚠️ Failed to initialize: {e}\n'
@@ -60,7 +60,7 @@ def on_train_end(trainer):
         run.log_artifact(trainer.best)
         run.log_artifact(trainer.save_dir)
         mlflow.end_run()
-        LOGGER.info(f'{PREFIX} ending run')
+        LOGGER.info(f'{PREFIX}results logged to {uri}')
 
 
 callbacks = {

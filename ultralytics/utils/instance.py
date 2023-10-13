@@ -219,7 +219,7 @@ class Instances:
         self.normalized = normalized
 
         if len(segments) > 0:
-            # list[np.array(1000, 2)] * num_samples
+            # List[np.array(1000, 2)] * num_samples
             segments = resample_segments(segments)
             # (N, 1000, 2)
             segments = np.stack(segments, axis=0)

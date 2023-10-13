@@ -81,7 +81,7 @@ class AIFI(TransformerEncoderLayer):
         """Forward pass for the AIFI transformer layer."""
         c, h, w = x.shape[1:]
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
-        # flatten [B, C, H, W] to [B, HxW, C]
+        # Flatten [B, C, H, W] to [B, HxW, C]
         x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(device=x.device, dtype=x.dtype))
         return x.permute(0, 2, 1).view([-1, c, h, w]).contiguous()
 
@@ -213,7 +213,7 @@ class MSDeformAttn(nn.Module):
         if d_model % n_heads != 0:
             raise ValueError(f'd_model must be divisible by n_heads, but got {d_model} and {n_heads}')
         _d_per_head = d_model // n_heads
-        # you'd better set _d_per_head to a power of 2 which is more efficient in our CUDA implementation
+        # Better to set _d_per_head to a power of 2 which is more efficient in a CUDA implementation
         assert _d_per_head * n_heads == d_model, '`d_model` must be divisible by `n_heads`'
 
         self.im2col_step = 64

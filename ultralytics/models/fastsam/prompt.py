@@ -120,7 +120,7 @@ class FastSAMPrompt:
             result_name = os.path.basename(ann.path)
             image = ann.orig_img[..., ::-1]  # BGR to RGB
             original_h, original_w = ann.orig_shape
-            # for macOS only
+            # For macOS only
             # plt.switch_backend('TkAgg')
             plt.figure(figsize=(original_w / 100, original_h / 100))
             # Add subplot with no margin.

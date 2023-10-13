@@ -32,7 +32,7 @@ Ensure MLflow is installed. If not, install it using pip:
 pip install mlflow
 ```
 
-Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` kaye. See the [settings](https://docs.ultralytics.com/quickstart/#ultralytics-settings) page for more info.
+Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` key. See the [settings](https://docs.ultralytics.com/quickstart/#ultralytics-settings) page for more info.
 
 !!! example "Update Ultralytics MLflow Settings"
 
@@ -109,4 +109,4 @@ yolo settings mlflow=False
 
 ## Conclusion
 
-MLflow logging integration with Ultralytics YOLO offers a streamlined way to keep track of your machine learning experiments. It empowers you to monitor performance metrics and manage artifacts effectively, thus aiding in robust model development and deployment. For further details please visit the MLflow [docs](https://mlflow.org/docs/latest/index.html site.
+MLflow logging integration with Ultralytics YOLO offers a streamlined way to keep track of your machine learning experiments. It empowers you to monitor performance metrics and manage artifacts effectively, thus aiding in robust model development and deployment. For further details please visit the MLflow [docs](https://mlflow.org/docs/latest/index.html) site.

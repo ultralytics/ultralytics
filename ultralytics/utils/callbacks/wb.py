@@ -19,7 +19,7 @@ except (ImportError, AssertionError):
     wb = None
 
 
-def _custom_table(x, y, classes, title='Precision Recall Curve', x_axis_title='Recall', y_axis_title='Precision'):
+def _custom_table(x, y, classes, title='Precision Recall Curve', x_title='Recall', y_title='Precision'):
     """
     Create and log a custom metric visualization to wandb.plot.pr_curve.
 
@@ -39,7 +39,7 @@ def _custom_table(x, y, classes, title='Precision Recall Curve', x_axis_title='R
     """
     df = pd.DataFrame({'class': classes, 'y': y, 'x': x}).round(3)
     fields = {'x': 'x', 'y': 'y', 'class': 'class'}
-    string_fields = {'title': title, 'x-axis-title': x_axis_title, 'y-axis-title': y_axis_title}
+    string_fields = {'title': title, 'x-axis-title': x_title, 'y-axis-title': y_title}
     return wb.plot_table('wandb/area-under-curve/v0',
                          wb.Table(dataframe=df),
                          fields=fields,

@@ -13,7 +13,7 @@ Commands:
         `export MLFLOW_RUN=<your_run_name>` or use the name=<name> argument
 
     3. To start a local MLflow server:
-        mlflow ui
+        mlflow server --backend-store-uri runs/mlflow
        It will by default start a local server at http://127.0.0.1:5000.
        To specify a different URI, set the MLFLOW_TRACKING_URI environment variable.
 
@@ -47,7 +47,7 @@ def on_pretrain_routine_end(trainer):
     from the trainer.
 
     Args:
-        trainer: The training object containing arguments and parameters to log.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The training object with arguments and parameters to log.
 
     Global:
         mlflow: The imported mlflow module to use for logging.

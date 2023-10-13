@@ -229,6 +229,7 @@ nav:
       - OpenVINO: integrations/openvino.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
+      - MLflow: integrations/mlflow.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md

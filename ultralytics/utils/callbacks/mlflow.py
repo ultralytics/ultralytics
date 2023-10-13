@@ -23,7 +23,7 @@ def on_pretrain_routine_end(trainer):
     if uri is None:
         mlflow = None
         LOGGER.info(f'{PREFIX}installed but no tracking URI set, '
-                    "i.e. run 'mlflow ui && MLFLOW_TRACKING_URI='http://127.0.0.1:5000'")
+                    "i.e. run 'mlflow ui && export MLFLOW_TRACKING_URI=http://127.0.0.1:5000'")
 
     else:
         LOGGER.debug(f'{PREFIX} tracking uri: {uri}')

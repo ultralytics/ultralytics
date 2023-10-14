@@ -1,7 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import pytest
+import numpy as np
+import torch
+
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
+from ultralytics.data.augment import classify_transforms
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
@@ -126,3 +131,20 @@ def test_classify():
     assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), 'predictor test failed'
+
+@pytest.mark.parametrize('image_size,imgsz', [((640, 480), 500), ((480, 640), 500), ((640, 480), 244),
+                                              ((640, 480), 1024), ((500, 500), 500)])
+def test_preprocessing_classify(image_size, imgsz):
+    STRIDE = 32
+    for rect in [False, True]:
+        for letterbox in [False, True]:
+            augment = classify_transforms(size=imgsz, rect=rect, letterbox=letterbox)
+            image = np.random.randint(0, 255, (image_size[0], image_size[1], 3), dtype=np.uint8)
+            preprocessed_image = augment(image)
+            assert preprocessed_image.shape[0] == 3, 'preprocessed channelno not as expected'
+            assert preprocessed_image.dtype == torch.float32, 'preprocessed type not as expected'
+            assert preprocessed_image.min() >= 0 and preprocessed_image.max() <= 1, 'normalization not as expected'
+            if rect:
+                assert preprocessed_image.shape[1] % STRIDE == 0 and preprocessed_image.shape[2] % STRIDE == 0, 'preprocessed size not as expected'
+            else:
+                assert preprocessed_image.shape[1] == imgsz and preprocessed_image.shape[2] == imgsz, 'preprocessed size not as expected'

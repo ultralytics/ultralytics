@@ -134,7 +134,7 @@ def test_classify():
 
 
 @pytest.mark.parametrize('image_size,transform_size', [((640, 480), 500), ((480, 640), 500), ((640, 480), 244),
-                                              ((640, 480), 1024), ((500, 500), 500)])
+                                                       ((640, 480), 1024), ((500, 500), 500)])
 def test_preprocessing_classify(image_size, transform_size):
     STRIDE = 32
     for rect in [False, True]:

@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import pytest
 import numpy as np
+import pytest
 import torch
 
 from ultralytics import YOLO
@@ -132,6 +132,7 @@ def test_classify():
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), 'predictor test failed'
 
+
 @pytest.mark.parametrize('image_size,imgsz', [((640, 480), 500), ((480, 640), 500), ((640, 480), 244),
                                               ((640, 480), 1024), ((500, 500), 500)])
 def test_preprocessing_classify(image_size, imgsz):
@@ -145,6 +146,8 @@ def test_preprocessing_classify(image_size, imgsz):
             assert preprocessed_image.dtype == torch.float32, 'preprocessed type not as expected'
             assert preprocessed_image.min() >= 0 and preprocessed_image.max() <= 1, 'normalization not as expected'
             if rect:
-                assert preprocessed_image.shape[1] % STRIDE == 0 and preprocessed_image.shape[2] % STRIDE == 0, 'preprocessed size not as expected'
+                assert preprocessed_image.shape[1] % STRIDE == 0 and preprocessed_image.shape[
+                    2] % STRIDE == 0, 'preprocessed size not as expected'
             else:
-                assert preprocessed_image.shape[1] == imgsz and preprocessed_image.shape[2] == imgsz, 'preprocessed size not as expected'
+                assert preprocessed_image.shape[1] == imgsz and preprocessed_image.shape[
+                    2] == imgsz, 'preprocessed size not as expected'

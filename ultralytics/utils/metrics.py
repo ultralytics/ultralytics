@@ -755,7 +755,13 @@ class DetMetrics(SimpleClass):
     @property
     def results_dict(self):
         """Returns dictionary of computed performance metrics and statistics."""
-        return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
+        results = dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
+        for i, c in enumerate(self.ap_class_index):
+            name = self.names[c]
+            for j, k in enumerate(self.keys):
+                key = 'metrics/' + name + '-' + k.split('/')[-1]
+                results[key] = self.class_result(i)[j]
+        return results
 
     @property
     def curves(self):

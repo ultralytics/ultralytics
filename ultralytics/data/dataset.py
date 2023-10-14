@@ -162,7 +162,7 @@ class YOLODataset(BaseDataset):
     def update_labels_info(self, label):
         """Custom your label format here."""
         # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
-        # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
+        # We can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop('bboxes')
         segments = label.pop('segments')
         keypoints = label.pop('keypoints', None)

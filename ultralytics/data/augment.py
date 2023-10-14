@@ -491,7 +491,7 @@ class RandomPerspective:
         border = labels.pop('mosaic_border', self.border)
         self.size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
         # M is affine matrix
-        # scale for func:`box_candidates`
+        # Scale for func:`box_candidates`
         img, M, scale = self.affine_transform(img, border)
 
         bboxes = self.apply_bboxes(instances.bboxes, M)
@@ -894,7 +894,7 @@ class Format:
         return labels
 
     def _format_img(self, img):
-        """Format the image for YOLOv5 from Numpy array to PyTorch tensor."""
+        """Format the image for YOLO from Numpy array to PyTorch tensor."""
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
         img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])

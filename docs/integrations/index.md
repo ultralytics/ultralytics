@@ -24,7 +24,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Ultralytics HUB](https://hub.ultralytics.com): Access and contribute to a community of pre-trained Ultralytics models.
 
-- [MLFlow](https://mlflow.org/): Streamline the entire ML lifecycle of Ultralytics models, from experimentation and reproducibility to deployment.
+- [MLFlow](mlflow.md): Streamline the entire ML lifecycle of Ultralytics models, from experimentation and reproducibility to deployment.
 
 - [Neptune](https://neptune.ai/): Maintain a comprehensive log of your ML experiments with Ultralytics in this metadata store designed for MLOps.
 

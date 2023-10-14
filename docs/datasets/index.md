@@ -36,6 +36,7 @@ Pose estimation is a technique used to determine the pose of the object relative
 
 - [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
 - [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
+- [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
 
 ## [Classification](classify/index.md)
 
@@ -64,3 +65,59 @@ Multi-object tracking is a computer vision technique that involves detecting and
 
 - [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations for multi-object tracking tasks.
 - [VisDrone](detect/visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
+
+## Contribute New Datasets
+
+Contributing a new dataset involves several steps to ensure that it aligns well with the existing infrastructure. Below are the necessary steps:
+
+### Steps to Contribute a New Dataset
+
+1. **Collect Images**: Gather the images that belong to the dataset. These could be collected from various sources, such as public databases or your own collection.
+
+2. **Annotate Images**: Annotate these images with bounding boxes, segments, or keypoints, depending on the task.
+
+3. **Export Annotations**: Convert these annotations into the YOLO *.txt file format which Ultralytics supports.
+
+4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `train/` and `val/` top-level directories, and within each, an `images/` and `labels/` sub-directory.
+
+    ```
+    dataset/
+    ├── train/
+    │   ├── images/
+    │   └── labels/
+    └── val/
+        ├── images/
+        └── labels/
+    ```
+
+5. **Create a `data.yaml` File**: In your dataset's root directory, create a `data.yaml` file that describes the dataset, classes, and other necessary information.
+
+6. **Optimize Images (Optional)**: If you want to reduce the size of the dataset for more efficient processing, you can optimize the images using the code below. This is not required, but recommended for smaller dataset sizes and faster download speeds.
+
+7. **Zip Dataset**: Compress the entire dataset folder into a zip file.
+
+8. **Document and PR**: Create a documentation page describing your dataset and how it fits into the existing framework. After that, submit a Pull Request (PR). Refer to [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing) for more details on how to submit a PR.
+
+### Example Code to Optimize and Zip a Dataset
+
+!!! example "Optimize and Zip a Dataset"
+
+    === "Python"
+
+    ```python
+    from pathlib import Path
+    from ultralytics.data.utils import compress_one_image
+    from ultralytics.utils.downloads import zip_directory
+
+    # Define dataset directory
+    path = Path('path/to/dataset')
+
+    # Optimize images in dataset (optional)
+    for f in path.rglob('*.jpg'):
+        compress_one_image(f)
+
+    # Zip dataset into 'path/to/dataset.zip'
+    zip_directory(path)
+    ```
+
+By following these steps, you can contribute a new dataset that integrates well with Ultralytics' existing structure.

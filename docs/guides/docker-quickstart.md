@@ -6,13 +6,13 @@ keywords: Ultralytics, YOLO, Docker, GPU, containerization, object detection, pa
 
 # Docker Quickstart Guide for Ultralytics
 
-This guide serves as a comprehensive introduction to setting up a Docker environment for your Ultralytics projects. Docker is a platform for developing, shipping, and running applications in containers. It is particularly beneficial for ensuring that the software will always run the same, regardless of where it's deployed. For more details, visit the Ultralytics Docker repository on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics).
-
-[![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
-
 <p align="center">
   <img width="800" src="https://user-images.githubusercontent.com/26833433/270173601-fc7011bd-e67c-452f-a31a-aa047dcd2771.png" alt="Ultralytics Docker Package Visual">
 </p>
+
+This guide serves as a comprehensive introduction to setting up a Docker environment for your Ultralytics projects. [Docker](https://docker.com/) is a platform for developing, shipping, and running applications in containers. It is particularly beneficial for ensuring that the software will always run the same, regardless of where it's deployed. For more details, visit the Ultralytics Docker repository on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics).
+
+[![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
 
 ## What You Will Learn
 
@@ -71,11 +71,11 @@ docker info | grep -i runtime
 Ultralytics offers several Docker images optimized for various platforms and use-cases:
 
 - **Dockerfile:** GPU image, ideal for training.
-- **Dockerfile-arm64:** For ARM64 architecture, suitable for devices like Raspberry Pi.
+- **Dockerfile-arm64:** For ARM64 architecture, suitable for devices like [Raspberry Pi](raspberry-pi.md).
 - **Dockerfile-cpu:** CPU-only version for inference and non-GPU environments.
 - **Dockerfile-jetson:** Optimized for NVIDIA Jetson devices.
 - **Dockerfile-python:** Minimal Python environment for lightweight applications.
-- **Dockerfile-conda:** Includes Miniconda3 and Ultralytics package installed via Conda.
+- **Dockerfile-conda:** Includes [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and Ultralytics package installed via Conda.
 
 To pull the latest image:
 

@@ -13,8 +13,18 @@ from ultralytics.utils import TQDM
 
 
 class FastSAMPrompt:
+    """
+    Fast Segment Anything Model class for image annotation and visualization.
+
+    Attributes:
+        device (str): Computing device ('cuda' or 'cpu').
+        results: Object detection or segmentation results.
+        source: Source image or image path.
+        clip: CLIP model for linear assignment.
+    """
 
     def __init__(self, source, results, device='cuda') -> None:
+        """Initializes FastSAMPrompt with given source, results and device, and assigns clip for linear assignment."""
         self.device = device
         self.results = results
         self.source = source
@@ -30,6 +40,7 @@ class FastSAMPrompt:
 
     @staticmethod
     def _segment_image(image, bbox):
+        """Segments the given image according to the provided bounding box coordinates."""
         image_array = np.array(image)
         segmented_image_array = np.zeros_like(image_array)
         x1, y1, x2, y2 = bbox
@@ -45,6 +56,9 @@ class FastSAMPrompt:
 
     @staticmethod
     def _format_results(result, filter=0):
+        """Formats detection results into list of annotations each containing ID, segmentation, bounding box, score and
+        area.
+        """
         annotations = []
         n = len(result.masks.data) if result.masks is not None else 0
         for i in range(n):
@@ -61,6 +75,9 @@ class FastSAMPrompt:
 
     @staticmethod
     def _get_bbox_from_mask(mask):
+        """Applies morphological transformations to the mask, displays it, and if with_contours is True, draws
+        contours.
+        """
         mask = mask.astype(np.uint8)
         contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         x1, y1, w, h = cv2.boundingRect(contours[0])
@@ -84,12 +101,26 @@ class FastSAMPrompt:
              better_quality=True,
              retina=False,
              with_contours=True):
+        """
+        Plots annotations, bounding boxes, and points on images and saves the output.
+
+        Args:
+            annotations (list): Annotations to be plotted.
+            output (str or Path): Output directory for saving the plots.
+            bbox (list, optional): Bounding box coordinates [x1, y1, x2, y2]. Defaults to None.
+            points (list, optional): Points to be plotted. Defaults to None.
+            point_label (list, optional): Labels for the points. Defaults to None.
+            mask_random_color (bool, optional): Whether to use random color for masks. Defaults to True.
+            better_quality (bool, optional): Whether to apply morphological transformations for better mask quality. Defaults to True.
+            retina (bool, optional): Whether to use retina mask. Defaults to False.
+            with_contours (bool, optional): Whether to plot contours. Defaults to True.
+        """
         pbar = TQDM(annotations, total=len(annotations))
         for ann in pbar:
             result_name = os.path.basename(ann.path)
-            image = ann.orig_img
+            image = ann.orig_img[..., ::-1]  # BGR to RGB
             original_h, original_w = ann.orig_shape
-            # for macOS only
+            # For macOS only
             # plt.switch_backend('TkAgg')
             plt.figure(figsize=(original_w / 100, original_h / 100))
             # Add subplot with no margin.
@@ -108,17 +139,15 @@ class FastSAMPrompt:
                         mask = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
                         masks[i] = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_OPEN, np.ones((8, 8), np.uint8))
 
-                self.fast_show_mask(
-                    masks,
-                    plt.gca(),
-                    random_color=mask_random_color,
-                    bbox=bbox,
-                    points=points,
-                    pointlabel=point_label,
-                    retinamask=retina,
-                    target_height=original_h,
-                    target_width=original_w,
-                )
+                self.fast_show_mask(masks,
+                                    plt.gca(),
+                                    random_color=mask_random_color,
+                                    bbox=bbox,
+                                    points=points,
+                                    pointlabel=point_label,
+                                    retinamask=retina,
+                                    target_height=original_h,
+                                    target_width=original_w)
 
                 if with_contours:
                     contour_all = []
@@ -134,17 +163,11 @@ class FastSAMPrompt:
                     contour_mask = temp / 255 * color.reshape(1, 1, -1)
                     plt.imshow(contour_mask)
 
-            plt.axis('off')
-            fig = plt.gcf()
-
-            # Check if the canvas has been drawn
-            if fig.canvas.get_renderer() is None:  # macOS requires this or tests fail
-                fig.canvas.draw()
-
+            # Save the figure
             save_path = Path(output) / result_name
             save_path.parent.mkdir(exist_ok=True, parents=True)
-            image = Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.tostring_rgb())
-            image.save(save_path)
+            plt.axis('off')
+            plt.savefig(save_path, bbox_inches='tight', pad_inches=0, transparent=True)
             plt.close()
             pbar.set_description(f'Saving {result_name} to {save_path}')
 
@@ -160,6 +183,20 @@ class FastSAMPrompt:
         target_height=960,
         target_width=960,
     ):
+        """
+        Quickly shows the mask annotations on the given matplotlib axis.
+
+        Args:
+            annotation (array-like): Mask annotation.
+            ax (matplotlib.axes.Axes): Matplotlib axis.
+            random_color (bool, optional): Whether to use random color for masks. Defaults to False.
+            bbox (list, optional): Bounding box coordinates [x1, y1, x2, y2]. Defaults to None.
+            points (list, optional): Points to be plotted. Defaults to None.
+            pointlabel (list, optional): Labels for the points. Defaults to None.
+            retinamask (bool, optional): Whether to use retina mask. Defaults to True.
+            target_height (int, optional): Target height for resizing. Defaults to 960.
+            target_width (int, optional): Target width for resizing. Defaults to 960.
+        """
         n, h, w = annotation.shape  # batch, height, width
 
         areas = np.sum(annotation, axis=(1, 2))
@@ -203,6 +240,7 @@ class FastSAMPrompt:
 
     @torch.no_grad()
     def retrieve(self, model, preprocess, elements, search_text: str, device) -> int:
+        """Processes images and text with a model, calculates similarity, and returns softmax score."""
         preprocessed_images = [preprocess(image).to(device) for image in elements]
         tokenized_text = self.clip.tokenize([search_text]).to(device)
         stacked_images = torch.stack(preprocessed_images)
@@ -214,6 +252,7 @@ class FastSAMPrompt:
         return probs[:, 0].softmax(dim=0)
 
     def _crop_image(self, format_results):
+        """Crops an image based on provided annotation format and returns cropped images and related data."""
         if os.path.isdir(self.source):
             raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
         image = Image.fromarray(cv2.cvtColor(self.results[0].orig_img, cv2.COLOR_BGR2RGB))
@@ -237,6 +276,7 @@ class FastSAMPrompt:
         return cropped_boxes, cropped_images, not_crop, filter_id, annotations
 
     def box_prompt(self, bbox):
+        """Modifies the bounding box properties and calculates IoU between masks and bounding box."""
         if self.results[0].masks is not None:
             assert (bbox[2] != 0 and bbox[3] != 0)
             if os.path.isdir(self.source):
@@ -263,13 +303,14 @@ class FastSAMPrompt:
             orig_masks_area = torch.sum(masks, dim=(1, 2))
 
             union = bbox_area + orig_masks_area - masks_area
-            IoUs = masks_area / union
-            max_iou_index = torch.argmax(IoUs)
+            iou = masks_area / union
+            max_iou_index = torch.argmax(iou)
 
             self.results[0].masks.data = torch.tensor(np.array([masks[max_iou_index].cpu().numpy()]))
         return self.results
 
-    def point_prompt(self, points, pointlabel):  # numpy 处理
+    def point_prompt(self, points, pointlabel):  # numpy
+        """Adjusts points on detected masks based on user input and returns the modified results."""
         if self.results[0].masks is not None:
             if os.path.isdir(self.source):
                 raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
@@ -292,6 +333,7 @@ class FastSAMPrompt:
         return self.results
 
     def text_prompt(self, text):
+        """Processes a text prompt, applies it to existing results and returns the updated results."""
         if self.results[0].masks is not None:
             format_results = self._format_results(self.results[0], 0)
             cropped_boxes, cropped_images, not_crop, filter_id, annotations = self._crop_image(format_results)
@@ -304,4 +346,5 @@ class FastSAMPrompt:
         return self.results
 
     def everything_prompt(self):
+        """Returns the processed results from the previous methods in the class."""
         return self.results

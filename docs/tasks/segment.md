@@ -14,9 +14,9 @@ The output of an instance segmentation model is a set of masks or contours that 
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/o4Zd-IeMlSY?si=37nusCzDTd74Obsp" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/o4Zd-IeMlSY?si=37nusCzDTd74Obsp"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
@@ -81,7 +81,7 @@ Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. F
 
 ### Dataset format
 
-YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats( like COCO etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
+YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
 
 ## Val
 
@@ -157,7 +157,7 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO('yolov8n-seg.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained
+        model = YOLO('path/to/best.pt')  # load a custom trained model
 
         # Export the model
         model.export(format='onnx')

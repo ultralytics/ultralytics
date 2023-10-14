@@ -14,9 +14,9 @@ Training a deep learning model involves feeding it data and adjusting its parame
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
@@ -240,7 +240,7 @@ To use Comet:
         ```python
         # pip install comet_ml
         import comet_ml
-        
+
         comet_ml.init()
         ```
 
@@ -258,7 +258,7 @@ To use ClearML:
         ```python
         # pip install clearml
         import clearml
-        
+
         clearml.browser_login()
         ```
 

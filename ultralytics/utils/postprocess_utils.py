@@ -3,7 +3,7 @@ import math
 import torch
 
 from ultralytics.nn.modules.block import DFL
-from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
+from ultralytics.utils.tal import dist2bbox, make_anchors
 
 
 def decode_bbox(preds, img_shape, device):

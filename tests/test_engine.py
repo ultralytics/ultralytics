@@ -133,13 +133,13 @@ def test_classify():
     assert len(result), 'predictor test failed'
 
 
-@pytest.mark.parametrize('image_size,imgsz', [((640, 480), 500), ((480, 640), 500), ((640, 480), 244),
+@pytest.mark.parametrize('image_size,transform_size', [((640, 480), 500), ((480, 640), 500), ((640, 480), 244),
                                               ((640, 480), 1024), ((500, 500), 500)])
-def test_preprocessing_classify(image_size, imgsz):
+def test_preprocessing_classify(image_size, transform_size):
     STRIDE = 32
     for rect in [False, True]:
         for letterbox in [False, True]:
-            augment = classify_transforms(size=imgsz, rect=rect, letterbox=letterbox)
+            augment = classify_transforms(size=transform_size, rect=rect, letterbox=letterbox)
             image = np.random.randint(0, 255, (image_size[0], image_size[1], 3), dtype=np.uint8)
             preprocessed_image = augment(image)
             assert preprocessed_image.shape[0] == 3, 'preprocessed channelno not as expected'
@@ -149,5 +149,5 @@ def test_preprocessing_classify(image_size, imgsz):
                 assert preprocessed_image.shape[1] % STRIDE == 0 and preprocessed_image.shape[
                     2] % STRIDE == 0, 'preprocessed size not as expected'
             else:
-                assert preprocessed_image.shape[1] == imgsz and preprocessed_image.shape[
-                    2] == imgsz, 'preprocessed size not as expected'
+                assert preprocessed_image.shape[1] == transform_size and preprocessed_image.shape[
+                    2] == transform_size, 'preprocessed size not as expected'

@@ -84,13 +84,12 @@ def test_triton():
     subprocess.call(f'docker kill {container_id}', shell=True)
 
 
-@pytest.mark.slow
+@pytest.mark.skipif(not check_requirements('pycocotools', install=False), reason='pycocotools not installed')
 def test_pycocotools():
     """Validate model predictions using pycocotools."""
     from ultralytics.models.yolo.detect import DetectionValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator
-    check_requirements('pycocotools>=2.0.6', install=False)
 
     # Download annotations after each dataset downloads first
     url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'

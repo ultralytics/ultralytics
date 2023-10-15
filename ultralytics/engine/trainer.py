@@ -92,6 +92,7 @@ class BaseTrainer:
 
         # Dirs
         self.save_dir = get_save_dir(self.args)
+        self.args.name = self.save_dir.name  # update name for loggers
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in (-1, 0):
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -527,7 +528,7 @@ class BaseTrainer:
 
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
-        """Plots training samples during YOLOv5 training."""
+        """Plots training samples during YOLO training."""
         pass
 
     def plot_training_labels(self):

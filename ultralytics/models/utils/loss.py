@@ -11,6 +11,24 @@ from .ops import HungarianMatcher
 
 
 class DETRLoss(nn.Module):
+    """
+    DETR (DEtection TRansformer) Loss class. This class calculates and returns the different loss components for the
+    DETR object detection model. It computes classification loss, bounding box loss, GIoU loss, and optionally auxiliary
+    losses.
+
+    Attributes:
+        nc (int): The number of classes.
+        loss_gain (dict): Coefficients for different loss components.
+        aux_loss (bool): Whether to compute auxiliary losses.
+        use_fl (bool): Use FocalLoss or not.
+        use_vfl (bool): Use VarifocalLoss or not.
+        use_uni_match (bool): Whether to use a fixed layer to assign labels for the auxiliary branch.
+        uni_match_ind (int): The fixed indices of a layer to use if `use_uni_match` is True.
+        matcher (HungarianMatcher): Object to compute matching cost and indices.
+        fl (FocalLoss or None): Focal Loss object if `use_fl` is True, otherwise None.
+        vfl (VarifocalLoss or None): Varifocal Loss object if `use_vfl` is True, otherwise None.
+        device (torch.device): Device on which tensors are stored.
+    """
 
     def __init__(self,
                  nc=80,
@@ -48,7 +66,7 @@ class DETRLoss(nn.Module):
 
     def _get_loss_class(self, pred_scores, targets, gt_scores, num_gts, postfix=''):
         """Computes the classification loss based on predictions, target values, and ground truth scores."""
-        # logits: [b, query, num_classes], gt_class: list[[n, 1]]
+        # Logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f'loss_class{postfix}'
         bs, nq = pred_scores.shape[:2]
         # one_hot = F.one_hot(targets, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
@@ -72,7 +90,7 @@ class DETRLoss(nn.Module):
         """Calculates and returns the bounding box loss and GIoU loss for the predicted and ground truth bounding
         boxes.
         """
-        # boxes: [b, query, 4], gt_bbox: list[[n, 4]]
+        # Boxes: [b, query, 4], gt_bbox: list[[n, 4]]
         name_bbox = f'loss_bbox{postfix}'
         name_giou = f'loss_giou{postfix}'
 

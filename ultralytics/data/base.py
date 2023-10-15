@@ -85,7 +85,7 @@ class BaseDataset(Dataset):
         self.buffer = []  # buffer size = batch size
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
-        # Cache stuff
+        # Cache images
         if cache == 'ram' and not self.check_cache_ram():
             cache = False
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
@@ -123,7 +123,7 @@ class BaseDataset(Dataset):
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
-        """include_class, filter labels to include only these classes (optional)."""
+        """Update labels to include only these classes (optional)."""
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
             if include_class is not None:
@@ -149,13 +149,11 @@ class BaseDataset(Dataset):
                 try:
                     im = np.load(fn)
                 except Exception as e:
-                    LOGGER.warning(
-                        f'{self.prefix}WARNING ⚠️ Detected corrupted npy file {fn}. Deleting it due to error: {e}')
-                    os.remove(fn)
+                    LOGGER.warning(f'{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}')
+                    Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
             else:  # read image
                 im = cv2.imread(f)  # BGR
-
             if im is None:
                 raise FileNotFoundError(f'Image Not Found {f}')
 

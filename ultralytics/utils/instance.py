@@ -4,6 +4,7 @@ from collections import abc
 from itertools import repeat
 from numbers import Number
 from typing import List
+
 import cv2
 import numpy as np
 
@@ -252,7 +253,7 @@ class Instances:
             seg = np.round(seg).astype(np.int32)
         else:
             mask = np.zeros((h + 2 * pad, w + 2 * pad), dtype=np.float32)
-            seg = np.round(seg).astype(np.float32)*np.array([w, h])
+            seg = np.round(seg).astype(np.float32) * np.array([w, h])
             seg = seg.astype(np.int32)
         cv2.fillPoly(mask, [seg], 1)
         return mask[pad:pad + h, pad:pad + w]

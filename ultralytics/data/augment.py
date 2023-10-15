@@ -813,11 +813,8 @@ class Albumentations:
                     intensity=(0.1, 0.5),
                     p=0.5,
                 ),
-                A.RandomGamma(gamma_limit=(80,20), p=0.5),
-                A.ImageCompression(quality_lower=70,
-                                   quality_upper=99,
-                                    p=0.5),
-                ]  # transforms
+                A.RandomGamma(gamma_limit=(80, 20), p=0.5),
+                A.ImageCompression(quality_lower=70, quality_upper=99, p=0.5), ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
             LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
         except ImportError:  # package not installed, skip
@@ -858,10 +855,11 @@ class Albumentations:
                             segment = np.concatenate((segment, segment[:1]), axis=0)
                         new_segments_array[i, :len(segment)] = segment.squeeze(axis=1)
                     segments = np.array(new_segments_array)
-            labels['instances'].update(segments = segments,
-                                        bboxes = bboxes,)
+            labels['instances'].update(
+                segments=segments,
+                bboxes=bboxes,
+            )
         return labels
-
 
 
 # TODO: technically this is not an augmentation, maybe we should put this to another files

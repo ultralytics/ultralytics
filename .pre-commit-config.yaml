@@ -63,10 +63,10 @@ repos:
         args:
           - --ignore-words-list=crate,nd,strack,dota,ane,segway,fo,gool,winn
 
-  - repo: https://github.com/PyCQA/docformatter
-    rev: v1.7.5
-    hooks:
-      - id: docformatter
+#  - repo: https://github.com/PyCQA/docformatter
+#    rev: v1.7.5
+#    hooks:
+#      - id: docformatter
 
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0

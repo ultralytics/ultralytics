@@ -493,7 +493,14 @@ def test_hub():
     smart_request('GET', 'http://github.com', progress=True)
 
 
-@pytest.mark.slow
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
+def test_model_tune():
+    """Tune YOLO model for performance."""
+    YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
+    YOLO('yolov8n-cls.pt').tune(data='imagenet10', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
+
+
+@pytest.mark.manual
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_triton():
     """Test NVIDIA Triton Server functionalities."""

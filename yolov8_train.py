@@ -12,7 +12,7 @@ from ultralytics import YOLO
 if __name__ == '__main__':
     # 直接使用预训练模型创建模型.
     model = YOLO('H:/MasterDegreeCourse/Yolo/yolov8/ultralytics/ultralytics/data/scripts/weights/yolov8n.pt')
-    model.train(**{'cfg':'H:/MasterDegreeCourse/Yolo/yolov8/ultralytics/ultralytics/cfg/default.yaml', 'data':'H:/MasterDegreeCourse/Yolo/yolov8/ultralytics/ultralytics/cfg/datasets/coco128.yaml'})
+    model.train(**{'cfg':'H:/MasterDegreeCourse/Yolo/yolov8/ultralytics/ultralytics/cfg/default.yaml', 'data':'H:/MasterDegreeCourse/Yolo/yolov8/ultralytics/ultralytics/cfg/datasets/soda10m.yaml'})
     
     # # 使用yaml配置文件来创建模型,并导入预训练权重.
     # model = YOLO('ultralytics/cfg/models/v8/yolov8.yaml')

@@ -819,7 +819,6 @@ class Albumentations:
                                     p=0.5),
                 ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
-
             LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
@@ -829,19 +828,38 @@ class Albumentations:
 
     def __call__(self, labels):
         im = labels['img']
+        h, w = im.shape[:2]
         cls = labels['cls']
         if len(cls):
+            masks = labels['instances'].get_masks(h, w)
+            segments = labels['instances'].segments
             labels['instances'].convert_bbox('xywh')
             labels['instances'].normalize(*im.shape[:2][::-1])
             bboxes = labels['instances'].bboxes
             # TODO: add supports of segments and keypoints
             if self.transform and random.random() < self.p:
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
+                new = self.transform(image=im, bboxes=bboxes, class_labels=cls, masks=masks)  # transformed
                 if len(new['class_labels']) > 0:  # skip update if no bbox in new im
                     labels['img'] = new['image']
                     labels['cls'] = np.array(new['class_labels'])
+                    # convert the masks back to segments
+                    new_masks = np.array(new['masks'])
+                    new_segments = []
+                    for mask in new_masks:
+                        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                        new_contour = contours[0].astype(np.float32) / np.array([w, h])
+                        new_segments.append(new_contour)
                     bboxes = np.array(new['bboxes'])
-            labels['instances'].update(bboxes=bboxes)
+                    # make new segments homogeneous np.array
+                    new_segments_array = np.zeros((len(new_segments), 1000, 2))
+                    for i, segment in enumerate(new_segments):
+                        if len(segment) > 1000:
+                            segment = segment[:999]
+                            segment = np.concatenate((segment, segment[:1]), axis=0)
+                        new_segments_array[i, :len(segment)] = segment.squeeze(axis=1)
+                    segments = np.array(new_segments_array)
+            labels['instances'].update(segments = segments,
+                                        bboxes = bboxes,)
         return labels
 
 

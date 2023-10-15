@@ -4,7 +4,7 @@ from collections import abc
 from itertools import repeat
 from numbers import Number
 from typing import List
-
+import cv2
 import numpy as np
 
 from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
@@ -192,6 +192,32 @@ class Instances:
     def convert_bbox(self, format):
         """Convert bounding box format."""
         self._bboxes.convert(format=format)
+
+    def get_masks(self, h, w, pad=0):
+        """Return masks."""
+        if len(self.segments) == 0:
+            return np.zeros((0, h, w), dtype=np.uint8)
+        if not self.normalized:
+            masks = np.zeros((len(self.segments), h, w), dtype=np.uint8)
+            for i, seg in enumerate(self.segments):
+                masks[i] = self.get_mask(seg, h, w, pad=pad)
+        else:
+            masks = np.zeros((len(self.segments), h, w), dtype=np.float32)
+            for i, seg in enumerate(self.segments):
+                masks[i] = self.get_mask(seg, h, w, pad=pad)
+        return masks
+
+    def get_mask(self, seg, h, w, pad=0):
+        """Return mask."""
+        if not self.normalized:
+            mask = np.zeros((h + 2 * pad, w + 2 * pad), dtype=np.uint8)
+            seg = np.round(seg).astype(np.int32)
+        else:
+            mask = np.zeros((h + 2 * pad, w + 2 * pad), dtype=np.float32)
+            seg = np.round(seg).astype(np.float32)*np.array([w, h])
+            seg = seg.astype(np.int32)
+        cv2.fillPoly(mask, [seg], 1)
+        return mask[pad:pad + h, pad:pad + w]
 
     @property
     def bbox_areas(self):

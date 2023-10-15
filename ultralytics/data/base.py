@@ -149,7 +149,8 @@ class BaseDataset(Dataset):
                 try:
                     im = np.load(fn)
                 except Exception as e:
-                    LOGGER.warning(f'{self.prefix}WARNING ⚠️ Detected corrupted npy file {fn}. Deleting it due to error: {e}')
+                    LOGGER.warning(
+                        f'{self.prefix}WARNING ⚠️ Detected corrupted npy file {fn}. Deleting it due to error: {e}')
                     os.remove(fn)
                     im = cv2.imread(f)  # BGR
             else:  # read image

@@ -493,6 +493,7 @@ def test_hub():
     smart_request('GET', 'http://github.com', progress=True)
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_model_tune():
     """Tune YOLO model for performance."""

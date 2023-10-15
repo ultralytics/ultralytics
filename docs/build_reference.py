@@ -6,7 +6,6 @@ reference section of *.md files composed of classes and functions, and also crea
 Note: Must be run from repository root directory. Do not run from docs directory.
 """
 
-import os
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -18,17 +17,9 @@ CODE_DIR = ROOT
 REFERENCE_DIR = ROOT.parent / 'docs/reference'
 
 
-def extract_classes_and_functions(filepath: Path):
-    """
-    Extracts class and function names from a given Python file.
-
-    Args:
-        filepath (Path): The path to the Python file.
-
-    Returns:
-        (tuple): A tuple containing lists of class and function names.
-    """
-    content = Path(filepath).read_text()
+def extract_classes_and_functions(filepath: Path) -> tuple:
+    """Extracts class and function names from a given Python file."""
+    content = filepath.read_text()
     class_pattern = r'(?:^|\n)class\s(\w+)(?:\(|:)'
     func_pattern = r'(?:^|\n)def\s(\w+)\('
 
@@ -39,26 +30,17 @@ def extract_classes_and_functions(filepath: Path):
 
 
 def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list):
-    """
-    Creates a Markdown file containing the API reference for the given Python module.
-
-    Args:
-        py_filepath (Path): The path to the Python file.
-        module_path (str): The import path for the Python module.
-        classes (list): A list of class names within the module.
-        functions (list): A list of function names within the module.
-    """
+    """Creates a Markdown file containing the API reference for the given Python module."""
     md_filepath = py_filepath.with_suffix('.md')
 
     # Read existing content and keep header content between first two ---
     header_content = ''
     if md_filepath.exists():
-        with open(md_filepath) as file:
-            existing_content = file.read()
-            header_parts = existing_content.split('---')
-            for part in header_parts:
-                if 'description:' in part or 'comments:' in part:
-                    header_content += f'---{part}---\n\n'
+        existing_content = md_filepath.read_text()
+        header_parts = existing_content.split('---')
+        for part in header_parts:
+            if 'description:' in part or 'comments:' in part:
+                header_content += f'---{part}---\n\n'
 
     module_name = module_path.replace('.__init__', '')
     module_path = module_path.replace('.', '/')
@@ -74,43 +56,24 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     if not md_content.endswith('\n'):
         md_content += '\n'
 
-    os.makedirs(os.path.dirname(md_filepath), exist_ok=True)
-    with open(md_filepath, 'w') as file:
-        file.write(md_content)
+    md_filepath.parent.mkdir(parents=True, exist_ok=True)
+    md_filepath.write_text(md_content)
 
     return md_filepath.relative_to(NEW_YAML_DIR)
 
 
-def nested_dict():
-    """
-    Creates and returns a nested defaultdict.
-
-    Returns:
-        (defaultdict): A nested defaultdict object.
-    """
+def nested_dict() -> defaultdict:
+    """Creates and returns a nested defaultdict."""
     return defaultdict(nested_dict)
 
 
-def sort_nested_dict(d: dict):
-    """
-    Sorts a nested dictionary recursively.
-
-    Args:
-        d (dict): The dictionary to sort.
-
-    Returns:
-        (dict): The sorted dictionary.
-    """
+def sort_nested_dict(d: dict) -> dict:
+    """Sorts a nested dictionary recursively."""
     return {key: sort_nested_dict(value) if isinstance(value, dict) else value for key, value in sorted(d.items())}
 
 
 def create_nav_menu_yaml(nav_items: list):
-    """
-    Creates a YAML file for the navigation menu based on the provided list of items.
-
-    Args:
-        nav_items (list): A list of relative file paths to Markdown files for the navigation menu.
-    """
+    """Creates a YAML file for the navigation menu based on the provided list of items."""
     nav_tree = nested_dict()
 
     for item_str in nav_items:
@@ -136,26 +99,26 @@ def create_nav_menu_yaml(nav_items: list):
                 yaml_str += f"{indent}- {k}: {str(v).replace('docs/', '')}\n"
         return yaml_str
 
-    with open(NEW_YAML_DIR / 'nav_menu_updated.yml', 'w') as file:
-        yaml_str = _dict_to_yaml(nav_tree_sorted)
-        file.write(yaml_str)
+    # Print updated YAML reference section
+    print('Scan complete, new mkdocs.yaml reference section is:\n\n', _dict_to_yaml(nav_tree_sorted))
+
+    # Save new YAML reference section
+    # (NEW_YAML_DIR / 'nav_menu_updated.yml').write_text(_dict_to_yaml(nav_tree_sorted))
 
 
 def main():
     """Main function to extract class and function names, create Markdown files, and generate a YAML navigation menu."""
     nav_items = []
-    for root, _, files in os.walk(CODE_DIR):
-        for file in files:
-            if file.endswith('.py'):
-                py_filepath = Path(root) / file
-                classes, functions = extract_classes_and_functions(py_filepath)
 
-                if classes or functions:
-                    py_filepath_rel = py_filepath.relative_to(CODE_DIR)
-                    md_filepath = REFERENCE_DIR / py_filepath_rel
-                    module_path = f"ultralytics.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"
-                    md_rel_filepath = create_markdown(md_filepath, module_path, classes, functions)
-                    nav_items.append(str(md_rel_filepath))
+    for py_filepath in CODE_DIR.rglob('*.py'):
+        classes, functions = extract_classes_and_functions(py_filepath)
+
+        if classes or functions:
+            py_filepath_rel = py_filepath.relative_to(CODE_DIR)
+            md_filepath = REFERENCE_DIR / py_filepath_rel
+            module_path = f"ultralytics.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"
+            md_rel_filepath = create_markdown(md_filepath, module_path, classes, functions)
+            nav_items.append(str(md_rel_filepath))
 
     create_nav_menu_yaml(nav_items)
 

@@ -930,7 +930,8 @@ def url2file(url):
 PREFIX = colorstr('Ultralytics: ')
 SETTINGS = SettingsManager()  # initialize settings
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
-WEIGHTS_DIR = Path(SETTINGS['weights_dir'])
+WEIGHTS_DIR = Path(SETTINGS['weights_dir'])  # global weights directory
+RUNS_DIR = Path(SETTINGS['runs_dir'])  # global runs directory
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
     'Docker' if is_docker() else platform.system()
 TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()

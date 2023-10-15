@@ -193,7 +193,7 @@ class TaskAlignedAssigner(nn.Module):
             # Expand topk_idxs for each value of k and add 1 at the specified positions
             count_tensor.scatter_add_(-1, topk_idxs[:, :, k:k + 1], ones)
         # count_tensor.scatter_add_(-1, topk_idxs, torch.ones_like(topk_idxs, dtype=torch.int8, device=topk_idxs.device))
-        # filter invalid bboxes
+        # Filter invalid bboxes
         count_tensor.masked_fill_(count_tensor > 1, 0)
 
         return count_tensor.to(metrics.dtype)

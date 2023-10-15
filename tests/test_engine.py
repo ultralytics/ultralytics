@@ -70,7 +70,7 @@ def test_segment():
     CFG.imgsz = 32
     # YOLO(CFG_SEG).train(**overrides)  # works
 
-    # trainer
+    # Trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
     trainer.add_callback('on_train_start', test_func)
     assert test_func in trainer.callbacks['on_train_start'], 'callback test failed'

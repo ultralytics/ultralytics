@@ -68,6 +68,7 @@ setup(
         'dev': [
             'ipython',
             'check-manifest',
+            'pre-commit',
             'pytest',
             'pytest-cov',
             'coverage',

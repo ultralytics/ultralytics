@@ -414,8 +414,7 @@ class Predictor(BasePredictor):
             unchanged = unchanged and not changed
 
             new_masks.append(torch.as_tensor(mask).unsqueeze(0))
-            # Give score=0 to changed masks and score=1 to unchanged masks
-            # so NMS will prefer ones that didn't need postprocessing
+            # Give score=0 to changed masks and 1 to unchanged masks so NMS prefers masks not needing postprocessing
             scores.append(float(unchanged))
 
         # Recalculate boxes and remove any new duplicates

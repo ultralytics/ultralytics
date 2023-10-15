@@ -172,7 +172,7 @@ class ConvLayer(nn.Module):
         self.depth = depth
         self.use_checkpoint = use_checkpoint
 
-        # build blocks
+        # Build blocks
         self.blocks = nn.ModuleList([
             MBConv(
                 dim,
@@ -182,7 +182,7 @@ class ConvLayer(nn.Module):
                 drop_path[i] if isinstance(drop_path, list) else drop_path,
             ) for i in range(depth)])
 
-        # patch merging layer
+        # Patch merging layer
         self.downsample = None if downsample is None else downsample(
             input_resolution, dim=dim, out_dim=out_dim, activation=activation)
 
@@ -393,11 +393,11 @@ class TinyViTBlock(nn.Module):
             pH, pW = H + pad_b, W + pad_r
             nH = pH // self.window_size
             nW = pW // self.window_size
-            # window partition
+            # Window partition
             x = x.view(B, nH, self.window_size, nW, self.window_size,
                        C).transpose(2, 3).reshape(B * nH * nW, self.window_size * self.window_size, C)
             x = self.attn(x)
-            # window reverse
+            # Window reverse
             x = x.view(B, nH, nW, self.window_size, self.window_size, C).transpose(2, 3).reshape(B, pH, pW, C)
 
             if padding:
@@ -467,7 +467,7 @@ class BasicLayer(nn.Module):
         self.depth = depth
         self.use_checkpoint = use_checkpoint
 
-        # build blocks
+        # Build blocks
         self.blocks = nn.ModuleList([
             TinyViTBlock(
                 dim=dim,
@@ -481,7 +481,7 @@ class BasicLayer(nn.Module):
                 activation=activation,
             ) for i in range(depth)])
 
-        # patch merging layer
+        # Patch merging layer
         self.downsample = None if downsample is None else downsample(
             input_resolution, dim=dim, out_dim=out_dim, activation=activation)
 
@@ -593,10 +593,10 @@ class TinyViT(nn.Module):
         patches_resolution = self.patch_embed.patches_resolution
         self.patches_resolution = patches_resolution
 
-        # stochastic depth
+        # Stochastic depth
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
 
-        # build layers
+        # Build layers
         self.layers = nn.ModuleList()
         for i_layer in range(self.num_layers):
             kwargs = dict(
@@ -628,7 +628,7 @@ class TinyViT(nn.Module):
         self.norm_head = nn.LayerNorm(embed_dims[-1])
         self.head = nn.Linear(embed_dims[-1], num_classes) if num_classes > 0 else torch.nn.Identity()
 
-        # init weights
+        # Init weights
         self.apply(self._init_weights)
         self.set_layer_lr_decay(layer_lr_decay)
         self.neck = nn.Sequential(
@@ -653,7 +653,7 @@ class TinyViT(nn.Module):
         """Sets the learning rate decay for each layer in the TinyViT model."""
         decay_rate = layer_lr_decay
 
-        # layers -> blocks (depth)
+        # Layers -> blocks (depth)
         depth = sum(self.depths)
         lr_scales = [decay_rate ** (depth - i - 1) for i in range(depth)]
 

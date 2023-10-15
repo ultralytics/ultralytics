@@ -18,8 +18,7 @@ from .val import RTDETRValidator
 class RTDETR(Model):
     """
     Interface for Baidu's RT-DETR model. This Vision Transformer-based object detector provides real-time performance
-    with high accuracy. It supports efficient hybrid encoding, IoU-aware query selection, and adaptable inference
-    speed.
+    with high accuracy. It supports efficient hybrid encoding, IoU-aware query selection, and adaptable inference speed.
 
     Attributes:
         model (str): Path to the pre-trained model. Defaults to 'rtdetr-l.pt'.
@@ -52,6 +51,4 @@ class RTDETR(Model):
                 'predictor': RTDETRPredictor,
                 'validator': RTDETRValidator,
                 'trainer': RTDETRTrainer,
-                'model': RTDETRDetectionModel
-            }
-        }
+                'model': RTDETRDetectionModel}}

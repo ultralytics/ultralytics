@@ -146,11 +146,19 @@ class BaseDataset(Dataset):
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
-                im = np.load(fn)
+                try:
+                    im = np.load(fn)
+                except Exception as e:
+                    LOGGER.warning(
+                        f'{self.prefix}WARNING ⚠️ Detected corrupted npy file {fn}. Deleting it due to error: {e}')
+                    os.remove(fn)
+                    im = cv2.imread(f)  # BGR
             else:  # read image
                 im = cv2.imread(f)  # BGR
-                if im is None:
-                    raise FileNotFoundError(f'Image Not Found {f}')
+
+            if im is None:
+                raise FileNotFoundError(f'Image Not Found {f}')
+
             h0, w0 = im.shape[:2]  # orig hw
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 r = self.imgsz / max(h0, w0)  # ratio

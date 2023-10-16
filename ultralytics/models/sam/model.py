@@ -61,15 +61,14 @@ class SAM(Model):
         Performs segmentation prediction on the given image or video source.
 
         Args:
-            source: Path to the image or video file, or a PIL.Image object, or a numpy.ndarray object.
+            source (str): Path to the image or video file, or a PIL.Image object, or a numpy.ndarray object.
             stream (bool, optional): If True, enables real-time streaming. Defaults to False.
             bboxes (list, optional): List of bounding box coordinates for prompted segmentation. Defaults to None.
             points (list, optional): List of points for prompted segmentation. Defaults to None.
             labels (list, optional): List of labels for prompted segmentation. Defaults to None.
-            **kwargs: Additional keyword arguments.
 
         Returns:
-            The segmentation masks.
+            (list): The model predictions.
         """
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024)
         kwargs.update(overrides)
@@ -81,15 +80,14 @@ class SAM(Model):
         Alias for the 'predict' method.
 
         Args:
-            source: Path to the image or video file, or a PIL.Image object, or a numpy.ndarray object.
+            source (str): Path to the image or video file, or a PIL.Image object, or a numpy.ndarray object.
             stream (bool, optional): If True, enables real-time streaming. Defaults to False.
             bboxes (list, optional): List of bounding box coordinates for prompted segmentation. Defaults to None.
             points (list, optional): List of points for prompted segmentation. Defaults to None.
             labels (list, optional): List of labels for prompted segmentation. Defaults to None.
-            **kwargs: Additional keyword arguments.
 
         Returns:
-            The segmentation masks.
+            (list): The model predictions.
         """
         return self.predict(source, stream, bboxes, points, labels, **kwargs)
 
@@ -112,6 +110,6 @@ class SAM(Model):
         Provides a mapping from the 'segment' task to its corresponding 'Predictor'.
 
         Returns:
-            dict: A dictionary mapping the 'segment' task to its corresponding 'Predictor'.
+            (dict): A dictionary mapping the 'segment' task to its corresponding 'Predictor'.
         """
         return {'segment': {'predictor': Predictor}}

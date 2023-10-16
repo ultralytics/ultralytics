@@ -1,5 +1,5 @@
 
-#COCO 格式的数据集转化为 YOLO 格式的数据集
+#SODA10M 格式的数据集转化为 YOLO 格式的数据集
 #--json_path 输入的json文件路径
 #--save_path 保存的文件夹名字，默认为当前目录下的labels。
  
@@ -30,14 +30,14 @@ def convert(size, box):
     return (x, y, w, h)
  
 if __name__ == '__main__':
-    json_file =   arg.json_path # COCO Object Instance 类型的标注
+    json_file =   arg.json_path # SODA10M Object Instance 类型的标注
     ana_txt_save_path = arg.save_path  # 保存的路径
  
     data = json.load(open(json_file, 'r'))
     if not os.path.exists(ana_txt_save_path):
         os.makedirs(ana_txt_save_path)
  
-    id_map = {} # coco数据集的id不连续！重新映射一下再输出！
+    id_map = {} # SODA10M 数据集的id不连续！重新映射一下再输出！
     with open(os.path.join(ana_txt_save_path, 'classes.txt'), 'w') as f:
         # 写入classes.txt
         for i, category in enumerate(data['categories']):
@@ -45,7 +45,7 @@ if __name__ == '__main__':
             id_map[category['id']] = i
     # print(id_map)
     #这里需要根据自己的需要，更改写入图像相对路径的文件位置。
-    # list_file = open(os.path.join(ana_txt_save_path, 'train2017.txt'), 'w')
+    # list_file = open(os.path.join(ana_txt_save_path, 'train_images_path.txt'), 'w')
     for img in tqdm(data['images']):
         filename = img["file_name"]
         img_width = img["width"]
@@ -59,6 +59,6 @@ if __name__ == '__main__':
                 box = convert((img_width, img_height), ann["bbox"])
                 f_txt.write("%s %s %s %s %s\n" % (id_map[ann["category_id"]], box[0], box[1], box[2], box[3]))
         f_txt.close()
-        #将图片的相对路径写入train2017或val2017的路径
-    #     list_file.write('E:/data/COCO2017/train2017/%s.jpg\n' %(head))
+        #将图片的相对路径写入train_images_path或val_images_path的路径
+    #     list_file.write('H:/MasterDegreeCourse/Yolo/yolov8/ultralytics/ultralytics/data/datasets/soda10m/val/images/%s.jpg\n' %(head))
     # list_file.close()

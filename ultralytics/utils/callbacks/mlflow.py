@@ -59,13 +59,20 @@ def on_pretrain_routine_end(trainer):
     """
     global mlflow
 
-    uri = os.environ.get('MLFLOW_TRACKING_URI') or str(RUNS_DIR / 'mlflow')
+    # The tracking uri need file: in front of it if logging to a local directory
+    uri = os.environ.get('MLFLOW_TRACKING_URI') or 'file:' + str(RUNS_DIR / 'mlflow')
     LOGGER.debug(f'{PREFIX} tracking uri: {uri}')
     mlflow.set_tracking_uri(uri)
 
     # Set experiment and run names
     experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME') or trainer.args.project or '/Shared/YOLOv8'
     run_name = os.environ.get('MLFLOW_RUN') or trainer.args.name
+    # Keep experiments in the Shared workspace folder on Databricks
+    if uri == "databricks":
+        workspace_path = os.sep + "Workspace"
+        exp_dir = os.sep + os.sep.join(["Shared", "mlflow"])
+        os.makedirs("".join([workspace_path, exp_dir]), exist_ok=True)
+        experiment_name = os.sep.join([exp_dir, experiment_name])
     mlflow.set_experiment(experiment_name)
 
     mlflow.autolog()
@@ -91,10 +98,37 @@ def on_fit_epoch_end(trainer):
 def on_train_end(trainer):
     """Log model artifacts at the end of the training."""
     if mlflow:
-        mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
-        for f in trainer.save_dir.glob('*'):  # log all other files in save_dir
-            if f.suffix in {'.png', '.jpg', '.csv', '.pt', '.yaml'}:
-                mlflow.log_artifact(str(f))
+
+        # The wrapper is required for pyfunc.log_model() to log data properly
+        # even if we would not use the wrapper for predictions
+        class YOLOWrapper(mlflow.pyfunc.PythonModel):
+            def load_context(self, context):
+                from ultralytics import YOLO
+                self.model = YOLO(os.path.join(context.artifacts["model_path"], "weights", "best.pt"))
+
+            def predict(self, context, model_input):
+                """
+                Args:
+                    context:
+                    model_input: The input to the model. The last element has to be a dictionary containing YOLO predict arguments
+
+                Returns:
+
+                """
+                return self.model.predict(model_input[:-1], **model_input[-1])
+
+        # log_model is preferred over log_artifacts as it also saves
+        # additional information required for making predictions using a
+        # logged model in the future. This information includes:
+        # - automatically generated conda.yaml and requirements.txt files.
+        # - the Databricks runtime version used.
+        # - a copy of the source code used when the model was serialized.
+        root_dir = Path(__file__).resolve().parents[2]
+        mlflow.pyfunc.log_model(artifact_path="model",
+                                code_path=[str(root_dir)],
+                                artifacts={'model_path': str(trainer.save_dir) + os.path.sep},
+                                python_model=YOLOWrapper()
+                                )
 
         mlflow.end_run()
         LOGGER.info(f'{PREFIX}results logged to {mlflow.get_tracking_uri()}\n'

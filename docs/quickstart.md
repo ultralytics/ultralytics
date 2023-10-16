@@ -4,9 +4,22 @@ description: Explore various methods to install Ultralytics using pip, conda, gi
 keywords: Ultralytics installation, pip install Ultralytics, Docker install Ultralytics, Ultralytics command line interface, Ultralytics Python interface
 ---
 
+https://www.youtube.com/watch?v=MWq1UxqTClU&ab_channel=Ultralytics
+
 ## Install Ultralytics
 
 Ultralytics provides various installation methods including pip, conda, and Docker. Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most up-to-date version. Docker can be used to execute the package in an isolated container, avoiding local installation.
+
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/MWq1UxqTClU?si=nHAW-lYDzrz68jR0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO for Object Detection: Quickstart Guide for Installation and Setup.
+</p>
 
 !!! example "Install"
 

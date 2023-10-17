@@ -200,7 +200,7 @@ class C2f(nn.Module):
     def _forward(self, x):
         x.extend(m(x[-1]) for m in self.m)
         return self.cv2(torch.cat(x, 1))
-    
+
     def forward(self, x):
         """Forward pass through C2f layer."""
         y = list(self.cv1(x).chunk(2, 1))

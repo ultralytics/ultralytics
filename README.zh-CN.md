@@ -54,6 +54,17 @@
 ## <div align="center">文档</div>
 
 请参阅下面的快速安装和使用示例，以及 [YOLOv8 文档](https://docs.ultralytics.com) 上有关培训、验证、预测和部署的完整文档。
+<details open>
+<summary>特别用法</summary>
+
+grpc 服务启动
+```shell
+yolo grpc your_server_config_file_path
+```
+
+`your_server_config_file_path` 写法参见[docs/chiebot](docs/chiebot.md)
+
+</details>
 
 <details open>
 <summary>安装</summary>

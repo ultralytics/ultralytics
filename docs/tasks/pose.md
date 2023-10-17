@@ -15,9 +15,9 @@ The output of a pose estimation model is a set of points that represent the keyp
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
@@ -84,7 +84,7 @@ Train a YOLOv8-pose model on the COCO128-pose dataset.
 
 ### Dataset format
 
-YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats( like COCO etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
+YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
 
 ## Val
 
@@ -156,7 +156,7 @@ Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO('yolov8n-pose.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained
+        model = YOLO('path/to/best.pt')  # load a custom trained model
 
         # Export the model
         model.export(format='onnx')

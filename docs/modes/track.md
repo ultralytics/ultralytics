@@ -21,14 +21,21 @@ The output from Ultralytics trackers is consistent with standard object detectio
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/hHyHmOtmEgs?si=VNZtXmm45Nb9s-N-" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/hHyHmOtmEgs?si=VNZtXmm45Nb9s-N-"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
   <strong>Watch:</strong> Object Detection and Tracking with Ultralytics YOLOv8.
 </p>
+
+## Real-world Applications
+
+|                                                     Transportation                                                     |                                                        Retail                                                         |                                                     Aquaculture                                                     |
+|:----------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------:|
+| ![Vehicle Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![People Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Fish Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
+|                                                    Vehicle Tracking                                                    |                                                    People Tracking                                                    |                                                    Fish Tracking                                                    |
 
 ## Features at a Glance
 
@@ -79,7 +86,7 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Custom trained model
 
         # Track using ByteTrack tracker
-        yolo track model=path/to/best.pt tracker="bytetrack.yaml" 
+        yolo track model=path/to/best.pt tracker="bytetrack.yaml"
         ```
 
 As can be seen in the above usage, tracking is available for all Detect, Segment and Pose models run on videos or streaming sources.
@@ -138,7 +145,7 @@ For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/tr
 
 ### Persisting Tracks Loop
 
-Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker than the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
+Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
 !!! example "Streaming for-loop with tracking"
 
@@ -192,38 +199,38 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
 
     ```python
     from collections import defaultdict
-    
+
     import cv2
     import numpy as np
-    
+
     from ultralytics import YOLO
-    
+
     # Load the YOLOv8 model
     model = YOLO('yolov8n.pt')
-    
+
     # Open the video file
     video_path = "path/to/video.mp4"
     cap = cv2.VideoCapture(video_path)
-    
+
     # Store the track history
     track_history = defaultdict(lambda: [])
-    
+
     # Loop through the video frames
     while cap.isOpened():
         # Read a frame from the video
         success, frame = cap.read()
-    
+
         if success:
             # Run YOLOv8 tracking on the frame, persisting tracks between frames
             results = model.track(frame, persist=True)
-    
+
             # Get the boxes and track IDs
             boxes = results[0].boxes.xywh.cpu()
             track_ids = results[0].boxes.id.int().cpu().tolist()
-    
+
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
-    
+
             # Plot the tracks
             for box, track_id in zip(boxes, track_ids):
                 x, y, w, h = box
@@ -231,21 +238,21 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
                 track.append((float(x), float(y)))  # x, y center point
                 if len(track) > 30:  # retain 90 tracks for 90 frames
                     track.pop(0)
-    
+
                 # Draw the tracking lines
                 points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                 cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
-    
+
             # Display the annotated frame
             cv2.imshow("YOLOv8 Tracking", annotated_frame)
-    
+
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:
             # Break the loop if the end of the video is reached
             break
-    
+
     # Release the video capture object and close the display window
     cap.release()
     cv2.destroyAllWindows()
@@ -257,7 +264,7 @@ Multithreaded tracking provides the capability to run object tracking on multipl
 
 In the provided Python script, we make use of Python's `threading` module to run multiple instances of the tracker concurrently. Each thread is responsible for running the tracker on one video file, and all the threads run simultaneously in the background.
 
-To ensure that each thread receives the correct parameters (the video file and the model to use), we define a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and displays the results.
+To ensure that each thread receives the correct parameters (the video file, the model to use and the file index), we define a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and displays the results.
 
 Two different models are used in this example: `yolov8n.pt` and `yolov8n-seg.pt`, each tracking objects in a different video file. The video files are specified in `video_file1` and `video_file2`.
 
@@ -269,44 +276,67 @@ Finally, after all threads have completed their task, the windows displaying the
 
     ```python
     import threading
-    
     import cv2
     from ultralytics import YOLO
-    
-    
-    def run_tracker_in_thread(filename, model):
-        video = cv2.VideoCapture(filename)
-        frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-        for _ in range(frames):
-            ret, frame = video.read()
-            if ret:
-                results = model.track(source=frame, persist=True)
-                res_plotted = results[0].plot()
-                cv2.imshow('p', res_plotted)
-                if cv2.waitKey(1) == ord('q'):
-                    break
-    
-    
+
+
+    def run_tracker_in_thread(filename, model, file_index):
+        """
+        Runs a video file or webcam stream concurrently with the YOLOv8 model using threading.
+
+        This function captures video frames from a given file or camera source and utilizes the YOLOv8 model for object
+        tracking. The function runs in its own thread for concurrent processing.
+
+        Args:
+            filename (str): The path to the video file or the identifier for the webcam/external camera source.
+            model (obj): The YOLOv8 model object.
+            file_index (int): An index to uniquely identify the file being processed, used for display purposes.
+
+        Note:
+            Press 'q' to quit the video display window.
+        """
+        video = cv2.VideoCapture(filename)  # Read the video file
+
+        while True:
+            ret, frame = video.read()  # Read the video frames
+
+            # Exit the loop if no more frames in either video
+            if not ret:
+                break
+
+            # Track objects in frames if available
+            results = model.track(frame, persist=True)
+            res_plotted = results[0].plot()
+            cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)
+
+            key = cv2.waitKey(1)
+            if key == ord('q'):
+                break
+
+        # Release video sources
+        video.release()
+
+
     # Load the models
     model1 = YOLO('yolov8n.pt')
     model2 = YOLO('yolov8n-seg.pt')
-    
+
     # Define the video files for the trackers
-    video_file1 = 'path/to/video1.mp4'
-    video_file2 = 'path/to/video2.mp4'
-    
+    video_file1 = "path/to/video1.mp4"  # Path to video file, 0 for webcam
+    video_file2 = 0  # Path to video file, 0 for webcam, 1 for external camera
+
     # Create the tracker threads
-    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1), daemon=True)
-    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2), daemon=True)
-    
+    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, 1), daemon=True)
+    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2, 2), daemon=True)
+
     # Start the tracker threads
     tracker_thread1.start()
     tracker_thread2.start()
-    
+
     # Wait for the tracker threads to finish
     tracker_thread1.join()
     tracker_thread2.join()
-    
+
     # Clean up and close windows
     cv2.destroyAllWindows()
     ```

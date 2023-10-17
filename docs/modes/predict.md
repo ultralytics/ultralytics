@@ -14,14 +14,21 @@ In the world of machine learning and computer vision, the process of making sens
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
   <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects.
 </p>
+
+## Real-world Applications
+
+|                                                            Manufacturing                                                            |                                                             Sports                                                              |                                                           Safety                                                            |
+|:-----------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------:|
+| ![Vehicle Spare Parts Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Football Player Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![People Fall Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
+|                                                    Vehicle Spare Parts Detection                                                    |                                                    Football Player Detection                                                    |                                                    People Fall Detection                                                    |
 
 ## Why Use Ultralytics YOLO for Inference?
 
@@ -103,7 +110,7 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 | directory ✅    | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
 | glob ✅         | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
 | YouTube ✅      | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL to a YouTube video.                                                                     |
-| stream ✅       | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, or an IP address.                           |
+| stream ✅       | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, TCP, or an IP address.                      |
 | multi-stream ✅ | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
 
 Below are code examples for using each source type:
@@ -299,7 +306,7 @@ Below are code examples for using each source type:
         ```
 
     === "Streams"
-        Run inference on remote streaming sources using RTSP, RTMP, and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
+        Run inference on remote streaming sources using RTSP, RTMP, TCP and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
         ```python
         from ultralytics import YOLO
 
@@ -307,7 +314,7 @@ Below are code examples for using each source type:
         model = YOLO('yolov8n.pt')
 
         # Single stream with batch-size 1 inference
-        source = 'rtsp://example.com/media.mp4'  # RTSP, RTMP or IP streaming address
+        source = 'rtsp://example.com/media.mp4'  # RTSP, RTMP, TCP or IP streaming address
 
         # Multiple streams with batched inference (i.e. batch-size 8 for 8 streams)
         source = 'path/to/list.streams'  # *.streams text file with one streaming address per row
@@ -408,10 +415,10 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n model
     model = YOLO('yolov8n.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # list of 1 Results object
     results = model(['bus.jpg', 'zidane.jpg'])  # list of 2 Results objects
@@ -460,13 +467,13 @@ For more details see the `Results` class [documentation](../reference/engine/res
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n model
     model = YOLO('yolov8n.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # results list
-    
+
     # View results
     for r in results:
         print(r.boxes)  # print the Boxes object containing the detection bounding boxes
@@ -498,13 +505,13 @@ For more details see the `Boxes` class [documentation](../reference/engine/resul
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n-seg Segment model
     model = YOLO('yolov8n-seg.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # results list
-    
+
     # View results
     for r in results:
         print(r.masks)  # print the Masks object containing the detected instance masks
@@ -531,13 +538,13 @@ For more details see the `Masks` class [documentation](../reference/engine/resul
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n-pose Pose model
     model = YOLO('yolov8n-pose.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # results list
-    
+
     # View results
     for r in results:
         print(r.keypoints)  # print the Keypoints object containing the detected keypoints
@@ -565,13 +572,13 @@ For more details see the `Keypoints` class [documentation](../reference/engine/r
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n-cls Classify model
     model = YOLO('yolov8n-cls.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # results list
-    
+
     # View results
     for r in results:
         print(r.probs)  # print the Probs object containing the detected class probabilities
@@ -615,9 +622,9 @@ You can use the `plot()` method of a `Result` objects to visualize predictions. 
         im.show()  # show image
         im.save('results.jpg')  # save image
     ```
-    
+
     The `plot()` method supports the following arguments:
-    
+
     | Argument     | Type            | Description                                                                    | Default       |
     |--------------|-----------------|--------------------------------------------------------------------------------|---------------|
     | `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |

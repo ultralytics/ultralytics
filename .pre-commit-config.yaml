@@ -1,7 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Pre-commit hooks. For more information see https://github.com/pre-commit/pre-commit-hooks/blob/main/README.md
+# Optionally remove from local hooks with 'rm .git/hooks/pre-commit'
 
-exclude: 'docs/'
+# exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
@@ -11,7 +12,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -22,7 +23,7 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.10.1
+    rev: v3.15.0
     hooks:
       - id: pyupgrade
         name: Upgrade code
@@ -34,7 +35,7 @@ repos:
         name: Sort imports
 
   - repo: https://github.com/google/yapf
-    rev: v0.40.0
+    rev: v0.40.2
     hooks:
       - id: yapf
         name: YAPF formatting
@@ -47,6 +48,7 @@ repos:
         additional_dependencies:
           - mdformat-gfm
           - mdformat-black
+        exclude: 'docs/.*\.md'
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 
   - repo: https://github.com/PyCQA/flake8
@@ -56,11 +58,16 @@ repos:
         name: PEP8
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.5
+    rev: v2.2.6
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=crate,nd,strack,dota,ane,segway,fo
+          - --ignore-words-list=crate,nd,strack,dota,ane,segway,fo,gool,winn
+
+  - repo: https://github.com/PyCQA/docformatter
+    rev: v1.7.5
+    hooks:
+      - id: docformatter
 
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0
@@ -71,3 +78,8 @@ repos:
 #    rev: v1.5.0
 #    hooks:
 #    -   id: dead
+
+#  - repo: https://github.com/ultralytics/pre-commit
+#    rev: bd60a414f80a53fb8f593d3bfed4701fc47e4b23
+#    hooks:
+#      - id: capitalize-comments

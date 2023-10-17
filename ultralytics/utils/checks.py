@@ -55,7 +55,7 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
         line = line.strip()
         if line and not line.startswith('#'):
             line = line.split('#')[0].strip()  # ignore inline comments
-            match = re.match(r'([a-zA-Z0-9-_]+)([<>!=~]+.*)?', line)
+            match = re.match(r'([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?', line)
             if match:
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ''))
 
@@ -64,8 +64,8 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
 
 def parse_version(version='0.0.0') -> tuple:
     """
-    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
-    This function replaces deprecated 'pkg_resources.parse_version(v)'
+    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version. This
+    function replaces deprecated 'pkg_resources.parse_version(v)'.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu'
@@ -165,16 +165,16 @@ def check_version(current: str = '0.0.0',
 
     Example:
         ```python
-        # check if current version is exactly 22.04
+        # Check if current version is exactly 22.04
         check_version(current='22.04', required='==22.04')
 
-        # check if current version is greater than or equal to 22.04
+        # Check if current version is greater than or equal to 22.04
         check_version(current='22.10', required='22.04')  # assumes '>=' inequality if none passed
 
-        # check if current version is less than or equal to 22.04
+        # Check if current version is less than or equal to 22.04
         check_version(current='22.04', required='<=22.04')
 
-        # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        # Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
         ```
     """
@@ -372,8 +372,10 @@ def check_torchvision():
     Checks the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the provided compatibility table based on https://github.com/pytorch/vision#installation. The
-    compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
+    to the provided compatibility table based on:
+    https://github.com/pytorch/vision#installation.
+
+    The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
     """
 
@@ -431,7 +433,7 @@ def check_file(file, suffix='', download=True, hard=True):
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
         return file
-    elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
+    elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://', 'tcp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).exists():
@@ -516,16 +518,20 @@ def collect_system_info():
                 f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n")
 
     for r in parse_requirements(package='ultralytics'):
-        current = metadata.version(r.name)
-        is_met = '✅ ' if check_version(current, str(r.specifier)) else '❌ '
+        try:
+            current = metadata.version(r.name)
+            is_met = '✅ ' if check_version(current, str(r.specifier), hard=True) else '❌ '
+        except metadata.PackageNotFoundError:
+            current = '(not installed)'
+            is_met = '❌ '
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
 
 
 def check_amp(model):
     """
-    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model.
-    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
-    results, so AMP will be disabled during training.
+    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks
+    fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will
+    be disabled during training.
 
     Args:
         model (nn.Module): A YOLOv8 model instance.
@@ -602,7 +608,8 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
 
 
 def cuda_device_count() -> int:
-    """Get the number of NVIDIA GPUs available in the environment.
+    """
+    Get the number of NVIDIA GPUs available in the environment.
 
     Returns:
         (int): The number of NVIDIA GPUs available.
@@ -622,7 +629,8 @@ def cuda_device_count() -> int:
 
 
 def cuda_is_available() -> bool:
-    """Check if CUDA is available in the environment.
+    """
+    Check if CUDA is available in the environment.
 
     Returns:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.

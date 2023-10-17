@@ -36,7 +36,7 @@ from ultralytics.utils.torch_utils import de_parallel, select_device, smart_infe
 
 class BaseValidator:
     """
-    BaseValidator
+    BaseValidator.
 
     A base class for creating validators.
 
@@ -95,14 +95,14 @@ class BaseValidator:
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
+        self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """
-        Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
+        """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
         gets priority).
         """
         self.training = trainer is not None
@@ -259,7 +259,7 @@ class BaseValidator:
         raise NotImplementedError('get_dataloader function not implemented for this validator')
 
     def build_dataset(self, img_path):
-        """Build dataset"""
+        """Build dataset."""
         raise NotImplementedError('build_dataset function not implemented in validator')
 
     def preprocess(self, batch):

@@ -75,10 +75,10 @@ Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyp
 
         ```python
         from ultralytics import YOLO
-        
+
         # Initialize the YOLO model
         model = YOLO('yolov8n.pt')
-        
+
         # Tune hyperparameters on COCO8 for 30 epochs
         model.tune(data='coco8.yaml', epochs=30, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
         ```
@@ -123,7 +123,7 @@ This YAML file contains the best-performing hyperparameters found during the tun
     # Best fitness metrics are {'metrics/precision(B)': 0.87247, 'metrics/recall(B)': 0.71387, 'metrics/mAP50(B)': 0.79106, 'metrics/mAP50-95(B)': 0.62651, 'val/box_loss': 2.79884, 'val/cls_loss': 2.72386, 'val/dfl_loss': 0.68503, 'fitness': 0.64297}
     # Best fitness model is /usr/src/ultralytics/runs/detect/train498
     # Best fitness hyperparameters are printed below.
-    
+
     lr0: 0.00269
     lrf: 0.00288
     momentum: 0.73375

@@ -8,8 +8,7 @@ from typing import Union
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, emojis, yaml_load
-from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
+from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, checks, emojis, yaml_load
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
@@ -82,6 +81,12 @@ class Model(nn.Module):
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
 
+        # Check if Triton Server model
+        elif self.is_triton_model(model):
+            self.model = model
+            self.task = task
+            return
+
         # Load or create new YOLO model
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
@@ -94,6 +99,13 @@ class Model(nn.Module):
     def __call__(self, source=None, stream=False, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
+
+    @staticmethod
+    def is_triton_model(model):
+        """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
+        from urllib.parse import urlsplit
+        url = urlsplit(model)
+        return url.netloc and url.path and url.scheme in {'http', 'grfc'}
 
     @staticmethod
     def is_hub_model(model):
@@ -139,7 +151,7 @@ class Model(nn.Module):
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
         else:
-            weights = check_file(weights)
+            weights = checks.check_file(weights)
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
@@ -147,9 +159,7 @@ class Model(nn.Module):
         self.overrides['task'] = self.task
 
     def _check_is_pytorch_model(self):
-        """
-        Raises TypeError is model is not a PyTorch model
-        """
+        """Raises TypeError is model is not a PyTorch model."""
         pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == '.pt'
         pt_module = isinstance(self.model, nn.Module)
         if not (pt_module or pt_str):
@@ -161,9 +171,7 @@ class Model(nn.Module):
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'")
 
     def reset_weights(self):
-        """
-        Resets the model modules parameters to randomly initialized values, losing all training information.
-        """
+        """Resets the model modules parameters to randomly initialized values, losing all training information."""
         self._check_is_pytorch_model()
         for m in self.model.modules():
             if hasattr(m, 'reset_parameters'):
@@ -173,9 +181,7 @@ class Model(nn.Module):
         return self
 
     def load(self, weights='yolov8n.pt'):
-        """
-        Transfers parameters with matching names and shapes from 'weights' to model.
-        """
+        """Transfers parameters with matching names and shapes from 'weights' to model."""
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             weights, self.ckpt = attempt_load_one_weight(weights)
@@ -204,11 +210,11 @@ class Model(nn.Module):
 
         Args:
             source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
-                          Accepts all source types accepted by the YOLO model.
+                Accepts all source types accepted by the YOLO model.
             stream (bool): Whether to stream the predictions or not. Defaults to False.
             predictor (BasePredictor): Customized predictor.
             **kwargs : Additional keyword arguments passed to the predictor.
-                       Check the 'configuration' section in the documentation for all available options.
+                Check the 'configuration' section in the documentation for all available options.
 
         Returns:
             (List[ultralytics.engine.results.Results]): The prediction results.
@@ -251,8 +257,7 @@ class Model(nn.Module):
         if not hasattr(self.predictor, 'trackers'):
             from ultralytics.trackers import register_tracker
             register_tracker(self, persist)
-        # ByteTrack-based method needs low confidence predictions as input
-        kwargs['conf'] = kwargs.get('conf') or 0.1
+        kwargs['conf'] = kwargs.get('conf') or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs['mode'] = 'track'
         return self.predict(source=source, stream=stream, **kwargs)
 
@@ -266,7 +271,6 @@ class Model(nn.Module):
         """
         custom = {'rect': True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'val'}  # highest priority args on the right
-        args['imgsz'] = check_imgsz(args['imgsz'], max_dim=1)
 
         validator = (validator or self._smart_load('validator'))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
@@ -321,9 +325,9 @@ class Model(nn.Module):
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
             kwargs = self.session.train_args
-        check_pip_update_available()
+        checks.check_pip_update_available()
 
-        overrides = yaml_load(check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
+        overrides = yaml_load(checks.check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
         custom = {'data': TASK2DATA[self.task]}  # method defaults
         args = {**overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
         if args.get('resume'):
@@ -366,7 +370,7 @@ class Model(nn.Module):
         self._check_is_pytorch_model()
         self = super()._apply(fn)  # noqa
         self.predictor = None  # reset predictor as device may have changed
-        self.overrides['device'] = str(self.device)  # i.e. device(type='cuda', index=0) -> 'cuda:0'
+        self.overrides['device'] = self.device  # was str(self.device) i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
 
     @property

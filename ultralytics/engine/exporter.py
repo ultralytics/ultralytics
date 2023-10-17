@@ -361,11 +361,12 @@ class Exporter:
         if self.args.half:
             try:
                 import onnxconverter_common
-                LOGGER.info(f'{prefix} converting to float16 with onnxconverter_common {onnxconverter_common.__version__}...')
+                LOGGER.info(
+                    f'{prefix} converting to float16 with onnxconverter_common {onnxconverter_common.__version__}...')
                 model_onnx = onnxconverter_common.float16.convert_float_to_float16(model_onnx)
             except Exception as e:
                 LOGGER.info(f'{prefix} convert to float16 failure: {e}')
-        
+
         # Metadata
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()

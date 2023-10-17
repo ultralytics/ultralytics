@@ -313,6 +313,8 @@ class Exporter:
         requirements = ['onnx>=1.12.0']
         if self.args.simplify:
             requirements += ['onnxsim>=0.4.33', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime']
+        if self.args.half:
+            requirements += ['onnxconverter_common']
         check_requirements(requirements)
         import onnx  # noqa
 

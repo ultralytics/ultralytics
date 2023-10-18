@@ -166,6 +166,6 @@ pnnx*
 /misc/data/
 /fine-tune-cdv1/
 /grid-search-cdv1/
-/inference_tools/ouputs/
+/inference_tools/outputs/
 /inference_tools/models/
 /inference_tools/data/

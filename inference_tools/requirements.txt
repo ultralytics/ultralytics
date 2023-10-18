@@ -1,0 +1,16 @@
+numpy==1.21.6
+onnx==1.8.0
+onnxruntime==1.6.0
+protobuf==3.19.0
+six==1.16.0
+torch==1.11.0
+torchvision==0.12.0
+typing_extensions==4.7.1
+opencv-python==4.8.1.78
+matplotlib==3.5.3
+PyYAML==6.0.1
+tqdm==4.66.1
+requests==2.31.0
+psutil==5.9.5
+py-cpuinfo==9.0.0
+pandas==2.0.3

@@ -2,7 +2,7 @@ from ultralytics import YOLO
 # For more info visit: # https://docs.ultralytics.com/modes/export/
 
 # Load model
-model = YOLO('./models/custom_best.pt', task='detect')
+model = YOLO('./models/detector_best.pt', task='detect')
 
 # Export to ONNX, the model is saved next to original with .onnx extension
 model.export(

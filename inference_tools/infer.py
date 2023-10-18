@@ -12,7 +12,7 @@ root = './outputs'
 experiment_name = time.strftime("%Y%m%d-%H%M%S")
 
 # Load model
-model = YOLO('./models/custom_best.onnx', task='detect')
+model = YOLO('./models/detector_best.onnx', task='detect')
 
 # Inference
 results = model(

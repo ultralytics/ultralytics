@@ -77,7 +77,7 @@ class Predictor(BasePredictor):
             im (torch.Tensor | List[np.ndarray]): BCHW tensor format or list of HWC numpy arrays.
 
         Returns:
-            torch.Tensor: The preprocessed image tensor.
+            (torch.Tensor): The preprocessed image tensor.
         """
         if self.im is not None:
             return self.im
@@ -105,7 +105,7 @@ class Predictor(BasePredictor):
             im (List[np.ndarray]): List containing images in HWC numpy array format.
 
         Returns:
-            List[np.ndarray]: List of transformed images.
+            (List[np.ndarray]): List of transformed images.
         """
         assert len(im) == 1, 'SAM model does not currently support batched inference'
         letterbox = LetterBox(self.args.imgsz, auto=False, center=False)
@@ -126,7 +126,7 @@ class Predictor(BasePredictor):
             multimask_output (bool, optional): Flag to return multiple masks. Helpful for ambiguous prompts. Defaults to False.
 
         Returns:
-            tuple: Contains the following three elements.
+            (tuple): Contains the following three elements.
                 - np.ndarray: The output masks in shape CxHxW, where C is the number of generated masks.
                 - np.ndarray: An array of length C containing quality scores predicted by the model for each mask.
                 - np.ndarray: Low-resolution logits of shape CxHxW for subsequent inference, where H=W=256.
@@ -155,7 +155,7 @@ class Predictor(BasePredictor):
             multimask_output (bool, optional): Flag to return multiple masks. Helpful for ambiguous prompts. Defaults to False.
 
         Returns:
-            tuple: Contains the following three elements.
+            (tuple): Contains the following three elements.
                 - np.ndarray: The output masks in shape CxHxW, where C is the number of generated masks.
                 - np.ndarray: An array of length C containing quality scores predicted by the model for each mask.
                 - np.ndarray: Low-resolution logits of shape CxHxW for subsequent inference, where H=W=256.
@@ -234,7 +234,7 @@ class Predictor(BasePredictor):
             crop_nms_thresh (float): IoU cutoff for Non-Maximum Suppression (NMS) to remove duplicate masks between crops.
 
         Returns:
-            tuple: A tuple containing segmented masks, confidence scores, and bounding boxes.
+            (tuple): A tuple containing segmented masks, confidence scores, and bounding boxes.
         """
         self.segment_all = True
         ih, iw = im.shape[2:]
@@ -434,9 +434,9 @@ class Predictor(BasePredictor):
             nms_thresh (float): The IoU threshold for the NMS algorithm. Defaults to 0.7.
 
         Returns:
-            T(uple[torch.Tensor, List[int]]):
-            - new_masks (torch.Tensor): The processed masks with small regions removed. Shape is (N, H, W).
-            - keep (List[int]): The indices of the remaining masks post-NMS, which can be used to filter the boxes.
+            (tuple([torch.Tensor, List[int]])):
+                - new_masks (torch.Tensor): The processed masks with small regions removed. Shape is (N, H, W).
+                - keep (List[int]): The indices of the remaining masks post-NMS, which can be used to filter the boxes.
         """
         if len(masks) == 0:
             return masks

@@ -81,9 +81,10 @@ def benchmark(model=WEIGHTS_DIR / 'yolov8n.pt',
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
     if export_hw_optimized:
-        name = Path(model.ckpt_path)
-        model_yaml = '/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/' + TASK2YAML[model.task]
-        model = YOLO(model_yaml).load(model.ckpt_path)
+        # name = Path(model.ckpt_path)
+        # model_yaml = '/home/runner/work/ultralytics/ultralytics/ultralytics/cfg/models/v8/' + TASK2YAML[model.task]
+        # model = YOLO(model_yaml).load(model.ckpt_path)
+        model = YOLO(model)
     else:
         if isinstance(model, (str, Path)):
             model = YOLO(model)

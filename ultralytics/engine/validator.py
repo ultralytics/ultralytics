@@ -119,7 +119,6 @@ class BaseValidator:
             model.eval()
         else:
             callbacks.add_integration_callbacks(self)
-            self.run_callbacks('on_val_start')
             model = AutoBackend(model or self.args.model,
                                 device=select_device(self.args.device, self.args.batch),
                                 dnn=self.args.dnn,
@@ -152,6 +151,7 @@ class BaseValidator:
             model.eval()
             model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
 
+        self.run_callbacks('on_val_start')
         dt = Profile(), Profile(), Profile(), Profile()
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(de_parallel(model))

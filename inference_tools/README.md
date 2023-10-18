@@ -28,7 +28,7 @@ directories in your system should be provided in the command.
 This command starts a new container from the onnx image and opens an interactive terminal session (-it option). 
 Automatically the started container runs the exportation script (export.py) and then the inference script (infer.py).
 
-Firstly exports the /inference_tools/models/custom_best.pt model to /inference_tools/models/custom_best.onnx.
+Firstly exports the /inference_tools/models/<model_name>.pth model to /inference_tools/models/<model_name>.onnx.
 For a proper inference, the model should have been exported to ONNX format using the same software version
 as the one used to run inference. This is because the ONNX format is not backward compatible.
 

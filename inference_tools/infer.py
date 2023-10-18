@@ -1,3 +1,5 @@
+import time
+
 from inference_utils import inference_time_csv_writer
 from ultralytics import YOLO
 # For more info visit: https://docs.ultralytics.com/modes/predict/
@@ -7,7 +9,7 @@ source = './data/test'
 
 # Output directory
 root = './outputs'
-experiment_name = 'experiment_'
+experiment_name = time.strftime("%Y%m%d-%H%M%S")
 
 # Load model
 model = YOLO('./models/custom_best.onnx', task='detect')

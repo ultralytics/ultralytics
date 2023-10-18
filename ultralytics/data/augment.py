@@ -17,7 +17,7 @@ from ultralytics.utils.ops import segment2box
 
 from .utils import polygons2masks, polygons2masks_overlap
 
-from ultralytics.data.chiebot_augment.origin_ag_ext import skip_class_perspective, skip_class_hsv, skip_class_flip, skip_class_rot90
+from ultralytics.data.chiebot_augment.origin_ag_ext import skip_class_perspective, skip_class_hsv, skip_class_flip, skip_class_rot90, skip_class_mosaic
 
 
 
@@ -117,6 +117,7 @@ class BaseMixTransform:
         raise NotImplementedError
 
 
+@skip_class_mosaic
 class Mosaic(BaseMixTransform):
     """
     Mosaic augmentation.

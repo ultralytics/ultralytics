@@ -27,7 +27,7 @@ deterministic: True  # (bool) whether to enable deterministic mode
 single_cls: False  # (bool) train multi-class data as single-class
 rect: False  # (bool) rectangular training if mode='train' or rectangular validation if mode='val'
 cos_lr: False  # (bool) use cosine learning rate scheduler
-close_mosaic: 10  # (int) disable mosaic augmentation for final epochs (0 to disable)
+close_mosaic: 10  # (int) disable mosaic augmentation for final epochs
 resume: False  # (bool) resume training from last checkpoint
 amp: True  # (bool) Automatic Mixed Precision (AMP) training, choices=[True, False], True runs AMP check
 fraction: 1.0  # (float) dataset fraction to train on (default is 1.0, all images in train set)
@@ -81,33 +81,33 @@ workspace: 4  # (int) TensorRT: workspace size (GB)
 nms: False  # (bool) CoreML: add NMS
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
-lr0: 0.001  # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
+lr0: 0.01  # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
 lrf: 0.01  # (float) final learning rate (lr0 * lrf)
-momentum: 0.937  # (float) SGD momentum/Adam beta1
+momentum: 0.9  # (float) SGD momentum/Adam beta1
 weight_decay: 0.0005  # (float) optimizer weight decay 5e-4
 warmup_epochs: 3.0  # (float) warmup epochs (fractions ok)
 warmup_momentum: 0.8  # (float) warmup initial momentum
 warmup_bias_lr: 0.1  # (float) warmup initial bias lr
-box: 9.66999  # (float) box loss gain
-cls: 0.50996  # (float) cls loss gain (scale with pixels)
-dfl: 1.02304  # (float) dfl loss gain
+box: 7.5  # (float) box loss gain
+cls: 0.5  # (float) cls loss gain (scale with pixels)
+dfl: 1.5  # (float) dfl loss gain
 pose: 12.0  # (float) pose loss gain
 kobj: 1.0  # (float) keypoint obj loss gain
 label_smoothing: 0.0  # (float) label smoothing (fraction)
 nbs: 64  # (int) nominal batch size
-hsv_h: 0.01781  # (float) image HSV-Hue augmentation (fraction)
-hsv_s: 0.80637  # (float) image HSV-Saturation augmentation (fraction)
-hsv_v: 0.59692  # (float) image HSV-Value augmentation (fraction)
-degrees: 0.82944  # (float) image rotation (+/- deg)
-translate: 0.12481  # (float) image translation (+/- fraction)
-scale: 0.29355  # (float) image scale (+/- gain)
-shear: 0.84038  # (float) image shear (+/- deg)
-perspective: 0.00013  # (float) image perspective (+/- fraction), range 0-0.001
+hsv_h: 0.015  # (float) image HSV-Hue augmentation (fraction)
+hsv_s: 0.7  # (float) image HSV-Saturation augmentation (fraction)
+hsv_v: 0.4  # (float) image HSV-Value augmentation (fraction)
+degrees: 0.01  # (float) image rotation (+/- deg)
+translate: 0.1  # (float) image translation (+/- fraction)
+scale: 0.5  # (float) image scale (+/- gain)
+shear: 0.01  # (float) image shear (+/- deg)
+perspective: 0.00001  # (float) image perspective (+/- fraction), range 0-0.001
 flipud: 0.0  # (float) image flip up-down (probability)
-fliplr: 0.69533  # (float) image flip left-right (probability)
-mosaic: 0.98421  # (float) image mosaic (probability)
-mixup: 0.11647  # (float) image mixup (probability)
-copy_paste: 0.09499  # (float) segment copy-paste (probability)
+fliplr: 0.5  # (float) image flip left-right (probability)
+mosaic: 1.0  # (float) image mosaic (probability)
+mixup: 0.01  # (float) image mixup (probability)
+copy_paste: 0.01  # (float) segment copy-paste (probability)
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg:  # (str, optional) for overriding defaults.yaml

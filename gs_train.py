@@ -16,16 +16,16 @@ model = YOLO('yolov8s.yaml', task='detect').load('./../models/yolov8s.pt')
 # Tune hyperparameters on COCO8 for 3 epochs with default Tuner
 model.tune(
     use_ray=False,
-    iterations=20,
+    iterations=50,
     # Fixed training parameters
-    device=[0,1,2],
+    device=[4,5,6,7,8,9],
     data='custom_dataset.yaml',
     project=f'grid-search-cdv1/{datetime.now().strftime("%Y%m%d-%H%M%S")}',
-    fraction=0.5,
-    epochs=50,
-    patience=10,
-    batch=258,
-    optimizer='AdamW', # MUST BE FIXED
+    #fraction=0.5,
+    epochs=100,
+    patience=20,
+    batch=126,
+    optimizer='SGD', # MUST BE FIXED
     plots=False,
     save=False,
     val=False,

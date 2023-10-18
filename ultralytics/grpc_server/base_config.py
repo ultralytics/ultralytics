@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-08-18 16:34:04
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-08-18 21:53:52
+@LastEditTime: 2023-10-17 15:02:12
 @FilePath: /ultralytics/ultralytics/grpc_server/base_config.py
 @Description:
 '''
@@ -14,14 +14,14 @@ grpc_param = dict(
 
 detector_params = dict(
     ckpt_path="/home/chiebotgpuhq/MyCode/python/pytorch/mmdet_grpc/test_weight/best.pth",
-    thr={'default':0.3},
+    thr={'default':0.3,"dog":0.5},
     change_label=dict(wcgz_dxdk="wcgz"),
     device="cuda:0",
     nms=0.5,
 ),
 
 grpc_args = dict(
-    host="127.0.0.1",
+    host="0.0.0.0",
     port="7999",
     max_workers=1,
     max_send_message_length=512 * 1024 * 1024,

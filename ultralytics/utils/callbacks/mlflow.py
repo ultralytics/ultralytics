@@ -59,8 +59,7 @@ def on_pretrain_routine_end(trainer):
     """
     global mlflow
 
-    # The tracking uri need file: in front of it if logging to a local directory
-    uri = os.environ.get('MLFLOW_TRACKING_URI') or 'file:' + str(RUNS_DIR / 'mlflow')
+    uri = os.environ.get('MLFLOW_TRACKING_URI') or str(RUNS_DIR / 'mlflow')
     LOGGER.debug(f'{PREFIX} tracking uri: {uri}')
     mlflow.set_tracking_uri(uri)
 

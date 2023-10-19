@@ -17,25 +17,20 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
 from torch import distributed as dist
 from torch import nn, optim
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
-from PIL import Image
-from torchvision import datasets, transforms
 
-from experiments.utils import fgsm_attack, denorm, show_image
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights, SegmentationModel
+from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, TQDM, __version__, callbacks, clean_url, colorstr, emojis,
                                yaml_save)
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
-from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
                                            strip_optimizer)
 
@@ -161,7 +156,7 @@ class BaseTrainer:
         for callback in self.callbacks.get(event, []):
             callback(self)
 
-    def train(self, model):
+    def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(','))
@@ -194,7 +189,7 @@ class BaseTrainer:
                 ddp_cleanup(self, str(file))
 
         else:
-            self._do_train(model, world_size)
+            self._do_train(world_size)
 
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
@@ -217,7 +212,6 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # These freeze layers no longer give an error
         # Freeze layers
         freeze_list = self.args.freeze if isinstance(
             self.args.freeze, list) else range(self.args.freeze) if isinstance(self.args.freeze, int) else []
@@ -287,7 +281,7 @@ class BaseTrainer:
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks('on_pretrain_routine_end')
 
-    def _do_train(self, model: "SegmentationModel", world_size=1):
+    def _do_train(self, world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
             self._setup_ddp(world_size)
@@ -346,58 +340,14 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    batch['img'].requires_grad = True
-
                     self.loss, self.loss_items = self.model(batch)
-
-                    model.zero_grad()
-                    self.model.zero_grad()
-                    # if RANK != -1:
-                    #     self.loss *= world_size
+                    if RANK != -1:
+                        self.loss *= world_size
                     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
                         else self.loss_items
 
                 # Backward
-                # self.scaler.scale(self.loss).backward()
-                # self.loss.backward()
-                #
-                # # Extra - Collect ``datagrad``
-                # data_grad = batch['img'].grad.data
-                #
-                # # Restore the data to its original scale
-                # # data_denorm = denorm(batch['img'], mean=[0.5], std=[0.5])
-                # data_grad_denorm = torch.clamp(batch['img'], min=0, max=1)
-                #
-                # epsilon = 0.001
-                # # Extra - Call FGSM Attack
-                # perturbed_data = fgsm_attack(data_grad_denorm, epsilon, data_grad)
-                #
-                # # Reapply normalization
-                # # perturbed_data_normalized = transforms.Normalize((0,), (0.5,))(perturbed_data)
-                # perturbed_data_normalized = torch.clamp(perturbed_data, min=0, max=1)
-                # prediction = model.predict(perturbed_data_normalized)
-                #
-                mean = -0.4
-                std = 0.02
-
-                data_denorm = torch.clamp(batch['img'], min=0, max=1)
-
-                # Create a tensor of the same size as the original tensor with random noise
-                noise = torch.tensor(np.random.normal(mean, std, data_denorm.size()), dtype=torch.float)
-
-                # Add the noise to the original tensor
-                perturbed_data = data_denorm + noise
-                perturbed_data_normalized = torch.clamp(perturbed_data, min=0, max=1)
-
-                prediction = model.predict(perturbed_data_normalized)
-
-                for r in prediction:
-                    im_array = r.plot(labels=False, probs=False, masks=True,
-                                      boxes=False)  # plot a BGR numpy array of predictions
-                    im = Image.fromarray(im_array)  # RGB PIL image
-                    # show_image(im, title=f"Adversarial-{epsilon}", path="/Users/thomas/Documents/School/TU:e/1. Master/Year 3/Graduation/Preparation Phase/Showcase/adv_3")
-                    show_image(im, title=f"Noise-{mean}-{std}",
-                               path="/Users/thomas/Documents/School/TU:e/1. Master/Year 3/Graduation/Preparation Phase/Showcase/noise_1")
+                self.scaler.scale(self.loss).backward()
 
                 # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:

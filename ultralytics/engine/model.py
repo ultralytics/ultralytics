@@ -226,6 +226,7 @@ class Model(nn.Module):
         is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
             x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
 
+        # Changed from 0.25 to 0.75
         custom = {'conf': 0.25, 'save': is_cli}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'predict'}  # highest priority args on the right
         prompts = args.pop('prompts', None)  # for SAM-type models
@@ -338,7 +339,8 @@ class Model(nn.Module):
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session
-        self.trainer.train()
+        # Added model=self to give the trainer access to a prediction model
+        self.trainer.train(model=self)
         # Update model and cfg after training
         if RANK in (-1, 0):
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last

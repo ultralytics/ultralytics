@@ -1,0 +1,152 @@
+task: segment
+mode: train
+model: yolov8m-seg.yaml
+data: /Users/thomas/Documents/VBTI/Python/ultralytics/experiments/custom_dataset.yaml
+epochs: 1
+patience: 50
+batch: 1
+imgsz: 960
+save: true
+save_period: -1
+cache: false
+device: cpu
+workers: 8
+project: vdl-smart-trim
+name: yolo_vdl_investigation
+exist_ok: false
+pretrained: true
+optimizer: auto
+verbose: true
+seed: 33
+deterministic: true
+single_cls: false
+rect: true
+cos_lr: false
+close_mosaic: 10
+resume: false
+amp: true
+fraction: 1
+profile: false
+overlap_mask: true
+mask_ratio: 4
+dropout: 0.0
+val: true
+split: val
+save_json: false
+save_hybrid: false
+conf: null
+iou: 0.7
+max_det: 300
+half: false
+dnn: false
+plots: true
+source: null
+show: false
+save_txt: false
+save_conf: false
+save_crop: false
+show_labels: true
+show_conf: true
+vid_stride: 1
+line_width: null
+visualize: false
+augment: false
+agnostic_nms: false
+classes: null
+retina_masks: false
+boxes: true
+format: torchscript
+keras: false
+optimize: false
+int8: false
+dynamic: false
+simplify: false
+opset: null
+workspace: 4
+nms: false
+lr0: 0.01
+lrf: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+warmup_epochs: 3.0
+warmup_momentum: 0.8
+warmup_bias_lr: 0.1
+box: 7.5
+cls: 0.5
+dfl: 1.5
+pose: 12.0
+kobj: 1.0
+label_smoothing: 0.0
+nbs: 64
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+perspective: 0.0
+flipud: 0.0
+fliplr: 0.5
+mosaic: 1.0
+mixup: 0.0
+copy_paste: 0.0
+cfg: null
+#v5loader: false
+save_dir: ./model
+#ckpt_path: ./model
+epochs: 1
+
+
+#nc: 7  # number of classes
+
+
+
+# Below is valid model config but not valid trainer config ????
+
+## Ultralytics YOLO 🚀, AGPL-3.0 license
+## YOLOv8-seg instance segmentation model. For Usage examples see https://docs.ultralytics.com/tasks/segment
+#
+## Parameters
+#nc: 80  # number of classes
+#scales: # model compound scaling constants, i.e. 'model=yolov8n-seg.yaml' will call yolov8-seg-test.yaml with scale 'n'
+#  # [depth, width, max_channels]
+#  n: [0.33, 0.25, 1024]
+#  s: [0.33, 0.50, 1024]
+#  m: [0.67, 0.75, 768]
+#  l: [1.00, 1.00, 512]
+#  x: [1.00, 1.25, 512]
+#
+## YOLOv8.0n backbone
+#backbone:
+#  # [from, repeats, module, args]
+#  - [-1, 1, Conv, [64, 3, 2]]  # 0-P1/2
+#  - [-1, 1, Conv, [128, 3, 2]]  # 1-P2/4
+#  - [-1, 3, C2f, [128, True]]
+#  - [-1, 1, Conv, [256, 3, 2]]  # 3-P3/8
+#  - [-1, 6, C2f, [256, True]]
+#  - [-1, 1, Conv, [512, 3, 2]]  # 5-P4/16
+#  - [-1, 6, C2f, [512, True]]
+#  - [-1, 1, Conv, [1024, 3, 2]]  # 7-P5/32
+#  - [-1, 3, C2f, [1024, True]]
+#  - [-1, 1, SPPF, [1024, 5]]  # 9
+#
+## YOLOv8.0n head
+#head:
+#  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+#  - [[-1, 6], 1, Concat, [1]]  # cat backbone P4
+#  - [-1, 3, C2f, [512]]  # 12
+#
+#  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+#  - [[-1, 4], 1, Concat, [1]]  # cat backbone P3
+#  - [-1, 3, C2f, [256]]  # 15 (P3/8-small)
+#
+#  - [-1, 1, Conv, [256, 3, 2]]
+#  - [[-1, 12], 1, Concat, [1]]  # cat head P4
+#  - [-1, 3, C2f, [512]]  # 18 (P4/16-medium)
+#
+#  - [-1, 1, Conv, [512, 3, 2]]
+#  - [[-1, 9], 1, Concat, [1]]  # cat head P5
+#  - [-1, 3, C2f, [1024]]  # 21 (P5/32-large)
+#
+#  - [[15, 18, 21], 1, Segment, [nc, 32, 256]]  # Segment(P3, P4, P5)

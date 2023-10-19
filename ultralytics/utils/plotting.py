@@ -16,6 +16,7 @@ from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
 
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
+import plotly.express as px
 
 
 class Colors:
@@ -33,9 +34,14 @@ class Colors:
 
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
-        hexs = ('FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
-                '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7')
-        self.palette = [self.hex2rgb(f'#{c}') for c in hexs]
+        # hexs = ('FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
+        #         '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7')
+
+        hexs = px.colors.qualitative.Plotly
+        hexs = [j for i, j in enumerate(hexs) if i not in [2, 7]]
+
+        # Removed # in f''
+        self.palette = [self.hex2rgb(f'{c}') for c in hexs]
         self.n = len(self.palette)
         self.pose_palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102], [230, 230, 0], [255, 153, 255],
                                       [153, 204, 255], [255, 102, 255], [255, 51, 255], [102, 178, 255], [51, 153, 255],
@@ -376,7 +382,8 @@ def plot_images(images,
                 on_plot=None):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
-        images = images.cpu().float().numpy()
+        # Added .detach()
+        images = images.detach().cpu().float().numpy()
     if isinstance(cls, torch.Tensor):
         cls = cls.cpu().numpy()
     if isinstance(bboxes, torch.Tensor):
@@ -679,7 +686,8 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detec
         ax = ax.ravel()
         plt.subplots_adjust(wspace=0.05, hspace=0.05)
         for i in range(n):
-            ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
+            # added .detach()
+            ax[i].imshow(blocks[i].squeeze().detach().numpy())  # cmap='gray'
             ax[i].axis('off')
 
         LOGGER.info(f'Saving {f}... ({n}/{channels})')

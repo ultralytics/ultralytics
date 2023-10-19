@@ -5,7 +5,7 @@ from ultralytics import YOLO
 # For more info visit: https://docs.ultralytics.com/modes/predict/
 
 # Source
-source = './data/test'
+source = './data'
 
 # Output directory
 root = './outputs'

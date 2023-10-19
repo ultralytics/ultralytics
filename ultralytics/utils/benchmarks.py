@@ -111,7 +111,15 @@ def benchmark(model=WEIGHTS_DIR / 'yolov8n.pt',
                 filename = model.ckpt_path or model.cfg
                 exported_model = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False,separate_outputs=separate_outputs,export_hw_optimized=export_hw_optimized)
+                filename = model.export(imgsz=imgsz, 
+                                        format=format, 
+                                        half=half, 
+                                        int8=int8, 
+                                        device=device, 
+                                        verbose=False,
+                                        separate_outputs=separate_outputs,
+                                        export_hw_optimized=export_hw_optimized
+                                        )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
@@ -120,7 +128,13 @@ def benchmark(model=WEIGHTS_DIR / 'yolov8n.pt',
             assert model.task != 'pose' or i != 7, 'GraphDef Pose inference is not supported'
             assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
-            exported_model.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half)
+            exported_model.predict(ASSETS / 'bus.jpg', 
+                                   imgsz=imgsz, 
+                                   device=device, 
+                                   half=half,
+                                   separate_outputs=separate_outputs,
+                                   export_hw_optimized=export_hw_optimized
+                                   )
 
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
@@ -132,7 +146,10 @@ def benchmark(model=WEIGHTS_DIR / 'yolov8n.pt',
                                          device=device,
                                          half=half,
                                          int8=int8,
-                                         verbose=False)
+                                         verbose=False,
+                                         separate_outputs=separate_outputs,
+                                         export_hw_optimized=export_hw_optimized
+                                         )
             metric, speed = results.results_dict[key], results.speed['inference']
             y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
         except Exception as e:

@@ -681,6 +681,7 @@ class Exporter:
         tmp_file = f / 'tmp_tflite_int8_calibration_images.npy'  # int8 calibration images file
         if self.args.int8:
             verbosity = '--verbosity info'
+            io_quant_dtype = 'uint8' if self.args.uint8_io_dtype else 'int8'
             if self.args.data:
                 # Generate calibration data for integer quantization
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
@@ -688,7 +689,7 @@ class Exporter:
                 dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
                 images = []
                 for i, batch in enumerate(dataset):
-                    if i >= 100:  # maximum number of calibration images
+                    if i >= self.args.max_ncalib_imgs:  # maximum number of calibration images
                         break
                     im = batch['img'].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC
                     images.append(im)
@@ -697,9 +698,9 @@ class Exporter:
                 # mean = images.view(-1, 3).mean(0)  # imagenet mean [123.675, 116.28, 103.53]
                 # std = images.view(-1, 3).std(0)  # imagenet std [58.395, 57.12, 57.375]
                 np.save(str(tmp_file), images.numpy())  # BHWC
-                int8 = f'-oiqt -qt per-tensor -cind images "{tmp_file}" "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
+                int8 = f'-oiqt -qt per-tensor -ioqd {io_quant_dtype} -cind images "{tmp_file}" "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
             else:
-                int8 = '-oiqt -qt per-tensor'
+                int8 = f'-oiqt -qt per-tensor -ioqd {io_quant_dtype}'
         else:
             verbosity = '--non_verbose'
             int8 = ''

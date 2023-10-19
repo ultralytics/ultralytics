@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-08-18 16:34:04
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-10-17 15:02:12
+@LastEditTime: 2023-10-19 19:08:14
 @FilePath: /ultralytics/ultralytics/grpc_server/base_config.py
 @Description:
 '''
@@ -14,8 +14,8 @@ grpc_param = dict(
 
 detector_params = dict(
     ckpt_path="/home/chiebotgpuhq/MyCode/python/pytorch/mmdet_grpc/test_weight/best.pth",
-    thr={'default':0.3,"dog":0.5},
-    change_label=dict(wcgz_dxdk="wcgz"),
+    thr={'default':0.3},
+    change_label={},
     device="cuda:0",
     nms=0.5,
 ),

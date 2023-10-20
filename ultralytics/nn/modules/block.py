@@ -189,8 +189,24 @@ class C2f(nn.Module):
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
 
+
     def forward_hw_optimized(self, x):
 
+        from ultralytics.utils.torch_utils import fuse_conv_and_bn
+        # creating cv1_1 and cv1_2 fused convs
+        if not hasattr(self, 'cv1_1') and not hasattr(self, 'cv1_2'):
+            self.cv1_1 = Conv(self.cv1.conv.in_channels, self.c, 1, 1).requires_grad_(False).to(self.cv1.conv.weight.device).eval()
+            self.cv1_2 = Conv(self.cv1.conv.in_channels, self.c, 1, 1).requires_grad_(False).to(self.cv1.conv.weight.device).eval()
+            if not hasattr(self.cv1, 'bn'):
+                self.cv1_1.conv = fuse_conv_and_bn(self.cv1_1.conv, self.cv1_1.bn)  # update conv
+                self.cv1_2.conv = fuse_conv_and_bn(self.cv1_2.conv, self.cv1_2.bn)  # update conv
+                delattr(self.cv1_1, 'bn')  # remove batchnorm
+                delattr(self.cv1_2, 'bn')  # remove batchnorm
+                self.cv1_1.forward = self.cv1_1.forward_fuse  # update forward
+                self.cv1_2.forward = self.cv1_2.forward_fuse  # update forward
+            else:
+                raise SystemError('forward_hw_optimized must only be called after the fusing')
+        # loading the weights
         cv1_1, cv1_2 = {}, {}
         state_dict = self.cv1.state_dict()
         weight = state_dict['conv.weight']
@@ -199,12 +215,9 @@ class C2f(nn.Module):
         cv1_2['conv.weight'] = weight[self.c:, :, :, :]
         cv1_1['conv.bias'] = bias[:self.c]
         cv1_2['conv.bias'] = bias[self.c:]
-        if not hasattr(self, 'cv1_1'):
-            self.cv1_1 = Conv(self.cv1.conv.in_channels, self.c, 1, 1)
-            self.cv1_2 = Conv(self.cv1.conv.in_channels, self.c, 1, 1)
-        self.cv1_1.load_state_dict(cv1_1, strict=False)
-        self.cv1_2.load_state_dict(cv1_2, strict=False)
-
+        self.cv1_1.load_state_dict(cv1_1, strict=True)
+        self.cv1_2.load_state_dict(cv1_2, strict=True)
+        # forward function: split replacement
         y = list((self.cv1_1(x), self.cv1_2(x)))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))

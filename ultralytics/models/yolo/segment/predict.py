@@ -30,8 +30,7 @@ class SegmentationPredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Applies non-max suppression and processes detections for each image in an input batch."""
-        # Quant friendly export with separated outputs
-        if self.separate_outputs:
+        if self.separate_outputs:  # Quant friendly export with separated outputs
             mcv = float('-inf')
             lci = -1
             for idx, s in enumerate(preds):
@@ -53,7 +52,7 @@ class SegmentationPredictor(DetectionPredictor):
                                         self.args.iou,
                                         agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det,
-                                        nc=len(self.model.names),
+                                        nc=nc,
                                         classes=self.args.classes)
         else:
             p = ops.non_max_suppression(preds[0],
@@ -63,12 +62,12 @@ class SegmentationPredictor(DetectionPredictor):
                                         max_det=self.args.max_det,
                                         nc=len(self.model.names),
                                         classes=self.args.classes)
-            
-            if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-                orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         for i, pred in enumerate(p):
             orig_img = orig_imgs[i]
             img_path = self.batch[0][i]

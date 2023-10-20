@@ -140,7 +140,7 @@ class Exporter:
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
-            _callbacks (list, optional): List of callback functions. Defaults to None.
+            _callbacks (dict, optional): Dictionary of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
         if self.args.format.lower() in ('coreml', 'mlmodel'):  # fix attempt for protobuf<3.20.x errors
@@ -1007,9 +1007,7 @@ class Exporter:
         return model
 
     def add_callback(self, event: str, callback):
-        """
-        Appends the given callback.
-        """
+        """Appends the given callback."""
         self.callbacks[event].append(callback)
 
     def run_callbacks(self, event: str):

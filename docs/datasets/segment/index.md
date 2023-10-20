@@ -107,7 +107,7 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
 
         ```python
         from ultralytics.data.converter import convert_coco
-        
+
         convert_coco(labels_dir='path/to/coco/annotations/', use_segments=True)
         ```
 
@@ -129,7 +129,7 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
 
         ```python
         from ultralytics.data.annotator import auto_annotate
-         
+
         auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
         ```
 

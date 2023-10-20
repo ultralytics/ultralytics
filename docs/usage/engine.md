@@ -4,18 +4,14 @@ description: Discover how to customize and extend base Ultralytics YOLO Trainer 
 keywords: Ultralytics, YOLO, trainer engines, BaseTrainer, DetectionTrainer, customizing trainers, extending trainers, custom model, custom dataloader
 ---
 
-Both the Ultralytics YOLO command-line and python interfaces are simply a high-level abstraction on the base engine
-executors. Let's take a look at the Trainer engine.
+Both the Ultralytics YOLO command-line and python interfaces are simply a high-level abstraction on the base engine executors. Let's take a look at the Trainer engine.
 
 ## BaseTrainer
 
-BaseTrainer contains the generic boilerplate training routine. It can be customized for any task based over overriding
-the required functions or operations as long the as correct formats are followed. For example, you can support your own
-custom model and dataloader by just overriding these functions:
+BaseTrainer contains the generic boilerplate training routine. It can be customized for any task based over overriding the required functions or operations as long the as correct formats are followed. For example, you can support your own custom model and dataloader by just overriding these functions:
 
 * `get_model(cfg, weights)` - The function that builds the model to be trained
-* `get_dataloader()` - The function that builds the dataloader
-  More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
+* `get_dataloader()` - The function that builds the dataloader More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
 
 ## DetectionTrainer
 
@@ -31,8 +27,7 @@ trained_model = trainer.best  # get best model
 
 ### Customizing the DetectionTrainer
 
-Let's customize the trainer **to train a custom detection model** that is not supported directly. You can do this by
-simply overloading the existing the `get_model` functionality:
+Let's customize the trainer **to train a custom detection model** that is not supported directly. You can do this by simply overloading the existing the `get_model` functionality:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer

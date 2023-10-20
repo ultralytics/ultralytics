@@ -24,11 +24,14 @@ class SegmentationPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initializes the SegmentationPredictor with the provided configuration, overrides, and callbacks."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'segment'
 
     def postprocess(self, preds, img, orig_imgs):
-        if self.separate_outputs:  # Quant friendly export with separated outputs
+        """Applies non-max suppression and processes detections for each image in an input batch."""
+        # Quant friendly export with separated outputs
+        if self.separate_outputs:
             mcv = float('-inf')
             lci = -1
             for idx, s in enumerate(preds):
@@ -50,21 +53,20 @@ class SegmentationPredictor(DetectionPredictor):
                                         self.args.iou,
                                         agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det,
-                                        nc=nc,
+                                        nc=len(self.model.names),
                                         classes=self.args.classes)
         else:
-            nc = preds[0].shape[1] - 4 - 32
             p = ops.non_max_suppression(preds[0],
                                         self.args.conf,
                                         self.args.iou,
                                         agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det,
-                                        nc=nc,
+                                        nc=len(self.model.names),
                                         classes=self.args.classes)
+            
             if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
                 orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
-            proto = preds[1][-1] if len(
-                preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+
         results = []
         for i, pred in enumerate(p):
             orig_img = orig_imgs[i]

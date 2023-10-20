@@ -10,6 +10,21 @@ from ultralytics.nn.modules import LayerNorm2d
 
 
 class MaskDecoder(nn.Module):
+    """
+    Decoder module for generating masks and their associated quality scores, using a transformer architecture to predict
+    masks given image and prompt embeddings.
+
+    Attributes:
+        transformer_dim (int): Channel dimension for the transformer module.
+        transformer (nn.Module): The transformer module used for mask prediction.
+        num_multimask_outputs (int): Number of masks to predict for disambiguating masks.
+        iou_token (nn.Embedding): Embedding for the IoU token.
+        num_mask_tokens (int): Number of mask tokens.
+        mask_tokens (nn.Embedding): Embedding for the mask tokens.
+        output_upscaling (nn.Sequential): Neural network sequence for upscaling the output.
+        output_hypernetworks_mlps (nn.ModuleList): Hypernetwork MLPs for generating masks.
+        iou_prediction_head (nn.Module): MLP for predicting mask quality.
+    """
 
     def __init__(
         self,
@@ -98,7 +113,11 @@ class MaskDecoder(nn.Module):
         sparse_prompt_embeddings: torch.Tensor,
         dense_prompt_embeddings: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Predicts masks. See 'forward' for more details."""
+        """
+        Predicts masks.
+
+        See 'forward' for more details.
+        """
         # Concatenate output tokens
         output_tokens = torch.cat([self.iou_token.weight, self.mask_tokens.weight], dim=0)
         output_tokens = output_tokens.unsqueeze(0).expand(sparse_prompt_embeddings.size(0), -1, -1)
@@ -132,7 +151,7 @@ class MaskDecoder(nn.Module):
 
 class MLP(nn.Module):
     """
-    Lightly adapted from
+    MLP (Multi-Layer Perceptron) model lightly adapted from
     https://github.com/facebookresearch/MaskFormer/blob/main/mask_former/modeling/transformer/transformer_predictor.py
     """
 
@@ -144,6 +163,16 @@ class MLP(nn.Module):
         num_layers: int,
         sigmoid_output: bool = False,
     ) -> None:
+        """
+        Initializes the MLP (Multi-Layer Perceptron) model.
+
+        Args:
+            input_dim (int): The dimensionality of the input features.
+            hidden_dim (int): The dimensionality of the hidden layers.
+            output_dim (int): The dimensionality of the output layer.
+            num_layers (int): The number of hidden layers.
+            sigmoid_output (bool, optional): Whether to apply a sigmoid activation to the output layer. Defaults to False.
+        """
         super().__init__()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)

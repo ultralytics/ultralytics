@@ -32,9 +32,10 @@ def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
 
 def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, threshold_offset: float) -> torch.Tensor:
     """
-    Computes the stability score for a batch of masks. The stability
-    score is the IoU between the binary masks obtained by thresholding
-    the predicted mask logits at high and low values.
+    Computes the stability score for a batch of masks.
+
+    The stability score is the IoU between the binary masks obtained by thresholding the predicted mask logits at high
+    and low values.
     """
     # One mask is always contained inside the other.
     # Save memory by preventing unnecessary cast to torch.int64
@@ -60,7 +61,11 @@ def build_all_layer_point_grids(n_per_side: int, n_layers: int, scale_per_layer:
 
 def generate_crop_boxes(im_size: Tuple[int, ...], n_layers: int,
                         overlap_ratio: float) -> Tuple[List[List[int]], List[int]]:
-    """Generates a list of crop boxes of different sizes. Each layer has (2**i)**2 boxes for the ith layer."""
+    """
+    Generates a list of crop boxes of different sizes.
+
+    Each layer has (2**i)**2 boxes for the ith layer.
+    """
     crop_boxes, layer_idxs = [], []
     im_h, im_w = im_size
     short_side = min(im_h, im_w)
@@ -145,8 +150,9 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
 
 def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
     """
-    Calculates boxes in XYXY format around masks. Return [0,0,0,0] for
-    an empty mask. For input shape C1xC2x...xHxW, the output shape is C1xC2x...x4.
+    Calculates boxes in XYXY format around masks.
+
+    Return [0,0,0,0] for an empty mask. For input shape C1xC2x...xHxW, the output shape is C1xC2x...x4.
     """
     # torch.max below raises an error on empty inputs, just skip in this case
     if torch.numel(masks) == 0:

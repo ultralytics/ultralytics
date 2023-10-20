@@ -14,9 +14,9 @@ In the world of machine learning and computer vision, the process of making sens
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
@@ -416,10 +416,10 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n model
     model = YOLO('yolov8n.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # list of 1 Results object
     results = model(['bus.jpg', 'zidane.jpg'])  # list of 2 Results objects
@@ -468,13 +468,13 @@ For more details see the `Results` class [documentation](../reference/engine/res
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n model
     model = YOLO('yolov8n.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # results list
-    
+
     # View results
     for r in results:
         print(r.boxes)  # print the Boxes object containing the detection bounding boxes
@@ -506,13 +506,13 @@ For more details see the `Boxes` class [documentation](../reference/engine/resul
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n-seg Segment model
     model = YOLO('yolov8n-seg.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # results list
-    
+
     # View results
     for r in results:
         print(r.masks)  # print the Masks object containing the detected instance masks
@@ -539,13 +539,13 @@ For more details see the `Masks` class [documentation](../reference/engine/resul
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n-pose Pose model
     model = YOLO('yolov8n-pose.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # results list
-    
+
     # View results
     for r in results:
         print(r.keypoints)  # print the Keypoints object containing the detected keypoints
@@ -573,13 +573,13 @@ For more details see the `Keypoints` class [documentation](../reference/engine/r
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8n-cls Classify model
     model = YOLO('yolov8n-cls.pt')
-    
+
     # Run inference on an image
     results = model('bus.jpg')  # results list
-    
+
     # View results
     for r in results:
         print(r.probs)  # print the Probs object containing the detected class probabilities
@@ -623,9 +623,9 @@ You can use the `plot()` method of a `Result` objects to visualize predictions. 
         im.show()  # show image
         im.save('results.jpg')  # save image
     ```
-    
+
     The `plot()` method supports the following arguments:
-    
+
     | Argument     | Type            | Description                                                                    | Default       |
     |--------------|-----------------|--------------------------------------------------------------------------------|---------------|
     | `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |

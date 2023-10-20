@@ -152,28 +152,27 @@ This comparison shows the order-of-magnitude differences in the model sizes and 
 
 Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
-
 !!! example ""
 
     === "Python"
         ```python
         from ultralytics import FastSAM, SAM, YOLO
-        
+
         # Profile SAM-b
         model = SAM('sam_b.pt')
         model.info()
         model('ultralytics/assets')
-        
+
         # Profile MobileSAM
         model = SAM('mobile_sam.pt')
         model.info()
         model('ultralytics/assets')
-        
+
         # Profile FastSAM-s
         model = FastSAM('FastSAM-s.pt')
         model.info()
         model('ultralytics/assets')
-        
+
         # Profile YOLOv8n-seg
         model = YOLO('yolov8n-seg.pt')
         model.info()
@@ -193,7 +192,7 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
     === "Python"
         ```python
         from ultralytics.data.annotator import auto_annotate
-        
+
         auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
         ```
 

@@ -205,7 +205,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers YAML files that have the samestem as the provided path. An AssertionError
+    performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
     is raised if no YAML file is found or if multiple YAML files are found.
 
     Args:
@@ -438,7 +438,8 @@ class HUBDatasetStats:
         self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary
         self.data = data
 
-    def _unzip(self, path):
+    @staticmethod
+    def _unzip(path):
         """Unzip data.zip."""
         if not str(path).endswith('.zip'):  # path is data.yaml
             return False, None, path

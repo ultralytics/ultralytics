@@ -411,6 +411,7 @@ class Attention(nn.Module):
     ) -> None:
         """
         Initialize Attention module.
+
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.

@@ -171,7 +171,7 @@ class MLP(nn.Module):
             hidden_dim (int): The dimensionality of the hidden layers.
             output_dim (int): The dimensionality of the output layer.
             num_layers (int): The number of hidden layers.
-            sigmoid_output (bool, optional): Whether to apply a sigmoid activation to the output layer. Defaults to False.
+            sigmoid_output (bool, optional): Apply a sigmoid activation to the output layer. Defaults to False.
         """
         super().__init__()
         self.num_layers = num_layers

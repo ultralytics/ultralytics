@@ -67,15 +67,13 @@ extra:
   analytics:
     provider: google
     property: G-2M5EHKC0BH
-  alternate:
+  alternate:  # language drop-down
     - name: English
       link: /
       lang: en
-    - name: Chinese
+    - name: 简体中文
       link: /zh/
       lang: zh
-
-
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics
@@ -143,6 +141,8 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
+      - Ultralytics 文档:
+          - zh/index.md
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md

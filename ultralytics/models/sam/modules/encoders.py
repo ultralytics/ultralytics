@@ -10,12 +10,14 @@ import torch.nn.functional as F
 from ultralytics.nn.modules import LayerNorm2d, MLPBlock
 
 
-# This class and its supporting functions below lightly adapted from the ViTDet backbone available at: https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py # noqa
 class ImageEncoderViT(nn.Module):
     """
     An image encoder using Vision Transformer (ViT) architecture for encoding an image into a compact latent space. The
     encoder takes an image, splits it into patches, and processes these patches through a series of transformer blocks.
     The encoded patches are then processed through a neck to generate the final encoded representation.
+
+    This class and its supporting functions below lightly adapted from the ViTDet backbone available at
+    https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py.
 
     Attributes:
         img_size (int): Dimension of input images, assumed to be square.
@@ -142,12 +144,12 @@ class PromptEncoder(nn.Module):
     """
 
     def __init__(
-        self,
-        embed_dim: int,
-        image_embedding_size: Tuple[int, int],
-        input_image_size: Tuple[int, int],
-        mask_in_chans: int,
-        activation: Type[nn.Module] = nn.GELU,
+            self,
+            embed_dim: int,
+            image_embedding_size: Tuple[int, int],
+            input_image_size: Tuple[int, int],
+            mask_in_chans: int,
+            activation: Type[nn.Module] = nn.GELU,
     ) -> None:
         """
         Encodes prompts for input to SAM's mask decoder.
@@ -197,10 +199,10 @@ class PromptEncoder(nn.Module):
         return self.pe_layer(self.image_embedding_size).unsqueeze(0)
 
     def _embed_points(
-        self,
-        points: torch.Tensor,
-        labels: torch.Tensor,
-        pad: bool,
+            self,
+            points: torch.Tensor,
+            labels: torch.Tensor,
+            pad: bool,
     ) -> torch.Tensor:
         """Embeds point prompts."""
         points = points + 0.5  # Shift to center of pixel
@@ -230,10 +232,10 @@ class PromptEncoder(nn.Module):
         return self.mask_downscaling(masks)
 
     def _get_batch_size(
-        self,
-        points: Optional[Tuple[torch.Tensor, torch.Tensor]],
-        boxes: Optional[torch.Tensor],
-        masks: Optional[torch.Tensor],
+            self,
+            points: Optional[Tuple[torch.Tensor, torch.Tensor]],
+            boxes: Optional[torch.Tensor],
+            masks: Optional[torch.Tensor],
     ) -> int:
         """Gets the batch size of the output given the batch size of the input prompts."""
         if points is not None:
@@ -250,10 +252,10 @@ class PromptEncoder(nn.Module):
         return self.point_embeddings[0].weight.device
 
     def forward(
-        self,
-        points: Optional[Tuple[torch.Tensor, torch.Tensor]],
-        boxes: Optional[torch.Tensor],
-        masks: Optional[torch.Tensor],
+            self,
+            points: Optional[Tuple[torch.Tensor, torch.Tensor]],
+            boxes: Optional[torch.Tensor],
+            masks: Optional[torch.Tensor],
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Embeds different types of prompts, returning both sparse and dense embeddings.
@@ -336,17 +338,17 @@ class Block(nn.Module):
     """Transformer blocks with support of window attention and residual propagation blocks."""
 
     def __init__(
-        self,
-        dim: int,
-        num_heads: int,
-        mlp_ratio: float = 4.0,
-        qkv_bias: bool = True,
-        norm_layer: Type[nn.Module] = nn.LayerNorm,
-        act_layer: Type[nn.Module] = nn.GELU,
-        use_rel_pos: bool = False,
-        rel_pos_zero_init: bool = True,
-        window_size: int = 0,
-        input_size: Optional[Tuple[int, int]] = None,
+            self,
+            dim: int,
+            num_heads: int,
+            mlp_ratio: float = 4.0,
+            qkv_bias: bool = True,
+            norm_layer: Type[nn.Module] = nn.LayerNorm,
+            act_layer: Type[nn.Module] = nn.GELU,
+            use_rel_pos: bool = False,
+            rel_pos_zero_init: bool = True,
+            window_size: int = 0,
+            input_size: Optional[Tuple[int, int]] = None,
     ) -> None:
         """
         Args:
@@ -401,13 +403,13 @@ class Attention(nn.Module):
     """Multi-head Attention block with relative position embeddings."""
 
     def __init__(
-        self,
-        dim: int,
-        num_heads: int = 8,
-        qkv_bias: bool = True,
-        use_rel_pos: bool = False,
-        rel_pos_zero_init: bool = True,
-        input_size: Optional[Tuple[int, int]] = None,
+            self,
+            dim: int,
+            num_heads: int = 8,
+            qkv_bias: bool = True,
+            use_rel_pos: bool = False,
+            rel_pos_zero_init: bool = True,
+            input_size: Optional[Tuple[int, int]] = None,
     ) -> None:
         """
         Initialize Attention module.
@@ -536,12 +538,12 @@ def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor
 
 
 def add_decomposed_rel_pos(
-    attn: torch.Tensor,
-    q: torch.Tensor,
-    rel_pos_h: torch.Tensor,
-    rel_pos_w: torch.Tensor,
-    q_size: Tuple[int, int],
-    k_size: Tuple[int, int],
+        attn: torch.Tensor,
+        q: torch.Tensor,
+        rel_pos_h: torch.Tensor,
+        rel_pos_w: torch.Tensor,
+        q_size: Tuple[int, int],
+        k_size: Tuple[int, int],
 ) -> torch.Tensor:
     """
     Calculate decomposed Relative Positional Embeddings from mvitv2 paper at

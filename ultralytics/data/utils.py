@@ -154,11 +154,17 @@ def verify_image_label(args):
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
+    Convert a list of polygons to a binary mask of the specified image size.
+
     Args:
-        imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
-        color (int): color
-        downsample_ratio (int): downsample ratio
+        imgsz (tuple): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        color (int, optional): The color value to fill in the polygons on the mask. Defaults to 1.
+        downsample_ratio (int, optional): Factor by which to downsample the mask. Defaults to 1.
+
+    Returns:
+        (np.ndarray): A binary mask of the specified image size with the polygons filled in.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons, dtype=np.int32)
@@ -171,11 +177,17 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
     """
+    Convert a list of polygons to a set of binary masks of the specified image size.
+
     Args:
-        imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): each polygon is [N, M], N is number of polygons, M is number of points (M % 2 = 0)
-        color (int): color
-        downsample_ratio (int): downsample ratio
+        imgsz (tuple): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        color (int): The color value to fill in the polygons on the masks.
+        downsample_ratio (int, optional): Factor by which to downsample each mask. Defaults to 1.
+
+    Returns:
+        (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
     """
     return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 

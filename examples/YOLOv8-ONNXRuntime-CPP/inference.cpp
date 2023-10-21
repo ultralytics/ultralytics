@@ -175,10 +175,18 @@ char *DCSP_CORE::TensorProcess(clock_t &starttime_1, cv::Mat &iImg, N &blob, std
             std::vector<int> class_ids;
             std::vector<float> confidences;
             std::vector<cv::Rect> boxes;
-            cv::Mat rowData(signalResultNum, strideNum, CV_32F, output);
-            rowData = rowData.t();
 
-            float *data = (float *) rowData.data;
+            cv::Mat rawData;
+            if (modelType == 1) {
+                // FP32
+                rawData = cv::Mat(signalResultNum, strideNum, CV_32F, output);
+            } else {
+                // FP16
+                rawData = cv::Mat(signalResultNum, strideNum, CV_16F, output);
+                rawData.convertTo(rawData, CV_32F);
+            }
+            rawData = rawData.t();
+            float *data = (float *) rawData.data;
 
             float x_factor = iImg.cols / 640.;
             float y_factor = iImg.rows / 640.;

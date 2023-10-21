@@ -11,6 +11,7 @@ remote_name: https://github.com/ultralytics/docs
 
 theme:
   name: material
+  language: en
   custom_dir: docs/overrides
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
@@ -25,14 +26,14 @@ theme:
     - scheme: default
       # primary: grey
       toggle:
-        icon: material/brightness-7
+        icon: material/toggle-switch
         name: Switch to dark mode
 
     # Palette toggle for dark mode
     - scheme: slate
       # primary: black
       toggle:
-        icon: material/brightness-4
+        icon: material/toggle-switch-off-outline
         name: Switch to light mode
   features:
     - announce.dismiss
@@ -44,15 +45,17 @@ theme:
     - search.share
     - search.suggest
     - toc.follow
-    - toc.integrate
+    # - toc.integrate
     - navigation.top
     - navigation.tabs
     - navigation.tabs.sticky
-    - navigation.expand
+    - navigation.prune
     - navigation.footer
     - navigation.tracking
     - navigation.instant
+    - navigation.instant.progress
     - navigation.indexes
+    - navigation.sections
     - content.tabs.link  # all code tabs change simultaneously
 
 # Customization
@@ -64,20 +67,13 @@ extra:
   analytics:
     provider: google
     property: G-2M5EHKC0BH
-  #    feedback:
-  #      title: Was this page helpful?
-  #      ratings:
-  #        - icon: material/heart
-  #          name: This page was helpful
-  #          data: 1
-  #          note: Thanks for your feedback!
-  #        - icon: material/heart-broken
-  #          name: This page could be improved
-  #          data: 0
-  #          note: >-
-  #            Thanks for your feedback!<br>
-  #            <a href="https://github.com/ultralytics/ultralytics/issues/new?title=Docs+Feedback+for+{title}+page+at+https://docs.ultralytics.com/{url}&labels=enhancement&template=feature-request.yml" target="_blank" rel="noopener">Tell us what we can improve.</a>
-
+  alternate:  # language drop-down
+    - name: English
+      link: /
+      lang: en
+    - name: 简体中文
+      link: /zh/
+      lang: zh
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics
@@ -145,6 +141,8 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
+      - Ultralytics 文档:
+          - zh/index.md
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md

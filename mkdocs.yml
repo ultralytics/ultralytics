@@ -141,7 +141,7 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
-      - Ultralytics 中文文档:
+      - Ultralytics 文档:
           - zh/index.md
   - Quickstart: quickstart.md
   - Modes:

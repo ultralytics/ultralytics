@@ -1,33 +1,32 @@
----
-description: Learn how to install Ultralytics in developer mode, build and serve it locally for testing, and deploy your documentation site on platforms like GitHub Pages, GitLab Pages, and Amazon S3.
-keywords: Ultralytics, documentation, mkdocs, installation, developer mode, building, deployment, local server, GitHub Pages, GitLab Pages, Amazon S3
----
-
 # Ultralytics Docs
 
 Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).
 
+[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)  [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg?branch=gh-pages)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
+
 ### Install Ultralytics package
+
+[![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
 To install the ultralytics package in developer mode, you will need to have Git and Python 3 installed on your system. Then, follow these steps:
 
 1. Clone the ultralytics repository to your local machine using Git:
 
-```bash
-git clone https://github.com/ultralytics/ultralytics.git
-```
+    ```bash
+    git clone https://github.com/ultralytics/ultralytics.git
+    ```
 
 2. Navigate to the root directory of the repository:
 
-```bash
-cd ultralytics
-```
+    ```bash
+    cd ultralytics
+    ```
 
 3. Install the package in developer mode using pip:
 
-```bash
-pip install -e ".[dev]"
-```
+    ```bash
+    pip install -e '.[dev]'
+    ```
 
 This will install the ultralytics package and its dependencies in developer mode, allowing you to make changes to the package code and have them reflected immediately in your Python environment.
 

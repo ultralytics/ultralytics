@@ -1,10 +1,10 @@
 ---
 comments: true
-description: 探索Ultralytics YOLOv8的完整指南，这是一个高速、高精度的对象检测和图像分割模型。包括安装、预测、训练教程等。
-keywords: Ultralytics, YOLOv8, 对象检测, 图像分割, 机器学习, 深度学习, 计算机视觉, YOLOv8安装, YOLOv8预测, YOLOv8训练, YOLO历史, YOLO许可
+description: 探索Ultralytics YOLOv8的完整指南，这是一个高速、高精度的目标检测和图像分割模型。包括安装、预测、训练教程等。
+keywords: Ultralytics, YOLOv8, 目标检测, 图像分割, 机器学习, 深度学习, 计算机视觉, YOLOv8安装, YOLOv8预测, YOLOv8训练, YOLO历史, YOLO许可
 ---
 
-# Ultralytics 文档
+# Ultralytics 中文文档
 
 <div align="center">
   <p>
@@ -21,7 +21,7 @@ keywords: Ultralytics, YOLOv8, 对象检测, 图像分割, 机器学习, 深度�
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 </div>
 
-介绍 [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics)，这是备受好评的实时对象检测和图像分割模型的最新版本。YOLOv8基于深度学习和计算机视觉的前沿进展，提供了无与伦比的速度和准确性表现。它的精简设计使其适用于各种应用，并且可以轻松适应不同的硬件平台，从边缘设备到云API。
+介绍 [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics)，这是备受好评的实时目标检测和图像分割模型的最新版本。YOLOv8基于深度学习和计算机视觉的前沿进展，提供了无与伦比的速度和准确性表现。它的精简设计使其适用于各种应用，并且可以轻松适应不同的硬件平台，从边缘设备到云API。
 
 探索YOLOv8文档，这是一个全面的资源，旨在帮助您理解并利用其功能和能力。无论您是经验丰富的机器学习从业者还是新入行者，该中心旨在最大化YOLOv8在您的项目中的潜力。
 
@@ -45,12 +45,12 @@ keywords: Ultralytics, YOLOv8, 对象检测, 图像分割, 机器学习, 深度�
 
 ## YOLO：简史
 
-[YOLO](https://arxiv.org/abs/1506.02640) (You Only Look Once)，由华盛顿大学的Joseph Redmon和Ali Farhadi开发的流行对象检测和图像分割模型，于2015年推出，由于其高速和准确性而迅速流行。
+[YOLO](https://arxiv.org/abs/1506.02640) (You Only Look Once)，由华盛顿大学的Joseph Redmon和Ali Farhadi开发的流行目标检测和图像分割模型，于2015年推出，由于其高速和准确性而迅速流行。
 
-- [YOLOv2](https://arxiv.org/abs/1612.08242) 在2016年发布，通过引入批量归一化、锚箱和维度聚类来改进了原始模型。
-- [YOLOv3](https://pjreddie.com/media/files/papers/YOLOv3.pdf) 在2018年推出，进一步增强了模型的性能，使用了更高效的主干网络、多个锚和空间金字塔池化。
+- [YOLOv2](https://arxiv.org/abs/1612.08242) 在2016年发布，通过引入批量归一化、锚框和维度聚类来改进了原始模型。
+- [YOLOv3](https://pjreddie.com/media/files/papers/YOLOv3.pdf) 在2018年推出，进一步增强了模型的性能，使用了更高效的主干网络、多个锚点和空间金字塔池化。
 - [YOLOv4](https://arxiv.org/abs/2004.10934) 在2020年发布，引入了Mosaic数据增强、新的无锚检测头和新的损失函数等创新功能。
-- [YOLOv5](https://github.com/ultralytics/yolov5) 进一步改进了模型的性能，并增加了新功能，如超参数优化、集成实验跟踪和自动导出到流行的导出格式。
+- [YOLOv5](https://github.com/ultralytics/yolov5) 进一步改进了模型的性能，并增加了新功能，如超参数优化、集成实验跟踪和自动导出到常用的导出格式。
 - [YOLOv6](https://github.com/meituan/YOLOv6) 在2022年由[美团](https://about.meituan.com/)开源，现在正在该公司的许多自动送货机器人中使用。
 - [YOLOv7](https://github.com/WongKinYiu/yolov7) 在COCO关键点数据集上添加了额外的任务，如姿态估计。
 - [YOLOv8](https://github.com/ultralytics/ultralytics) 是Ultralytics的YOLO的最新版本。作为一种前沿、最先进(SOTA)的模型，YOLOv8在之前版本的成功基础上引入了新功能和改进，以提高性能、灵活性和效率。YOLOv8支持全范围的视觉AI任务，包括[检测](https://docs.ultralytics.com/tasks/detect/), [分割](https://docs.ultralytics.com/tasks/segment/), [姿态估计](https://docs.ultralytics.com/tasks/pose/), [跟踪](https://docs.ultralytics.com/modes/track/), 和[分类](https://docs.ultralytics.com/tasks/classify/)。这种多功能性使用户能够利用YOLOv8的功能应对多种应用和领域的需求。

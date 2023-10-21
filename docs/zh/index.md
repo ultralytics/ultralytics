@@ -40,7 +40,7 @@ keywords: Ultralytics, YOLOv8, 目标检测, 图像分割, 机器学习, 深度�
     allowfullscreen>
   </iframe>
   <br>
-  <strong>观看：</strong> 在<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb">Google Colab</a>中如何训练您的自定义数据集上的YOLOv8模型。
+  <strong>观看：</strong> 在<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>中如何训练您的自定义数据集上的YOLOv8模型。
 </p>
 
 ## YOLO：简史

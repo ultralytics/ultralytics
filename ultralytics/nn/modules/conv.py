@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
-           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv')
+           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv')
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -18,6 +18,44 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
     if p is None:
         p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
     return p
+
+
+class SqueezeExcite(nn.Module):
+    """Squeeze-and-Excitation layer."""
+
+    def __init__(self, c1, reduction_ratio=0.25, act=True):
+        super(SqueezeExcite, self).__init__()
+        c2 = max(1, int(c1 * reduction_ratio))
+        # Using the Conv block with the format you provided
+        self.conv_reduce = Conv(c1, c2, k=1, act=act)
+        self.conv_expand = Conv(c2, c1, k=1, act=act)
+        self.gate_activation = nn.Sigmoid()
+
+    def forward(self, x):
+        # Spatially average the input tensor along the dimensions HxW
+        x_se = x.mean((2, 3), keepdim=True)
+        print(f'after mean {x_se.shape}')
+        x_se = self.conv_reduce(x_se)
+        print(f'conv reduce {x_se.shape}')
+        x_se = self.conv_expand(x_se)
+        print(f'conv expand {x_se.shape}')
+        
+        return x * self.gate_activation(x_se)
+
+class DepthwiseSeparableConv(nn.Module):
+    """ DepthwiseSeparable block
+    """
+    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True):
+        super(DepthwiseSeparableConv, self).__init__()
+        
+        # Using the Conv block for depthwise and pointwise convolutions
+        self.conv_dw = Conv(c1, c1, k=k, s=s, p=p, g=c1, d=d, act=act)
+        self.conv_pw = Conv(c1, c2, k=1, act=act)
+
+    def forward(self, x):
+        x = self.conv_dw(x)
+        x = self.conv_pw(x)
+        return x
 
 
 class Conv(nn.Module):

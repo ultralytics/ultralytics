@@ -17,9 +17,10 @@ theme:
   favicon: assets/favicon.ico
   icon:
     repo: fontawesome/brands/github
-  font:
-    text: Helvetica
-    code: Roboto Mono
+  # Fonts disabled for faster page load times
+  # font:
+  #  text: Helvetica
+  #  code: Roboto Mono
 
   palette:
     # Palette toggle for light mode

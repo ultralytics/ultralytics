@@ -71,4 +71,4 @@ python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5n.yaml  -
                                                                  yolov5x                    16
 ```
 
-<img width="800" src="https://user-images.githubusercontent.com/26833433/90222759-949d8800-ddc1-11ea-9fa1-1c97eed2b963.png">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/90222759-949d8800-ddc1-11ea-9fa1-1c97eed2b963.png" alt="YOLO training curves">

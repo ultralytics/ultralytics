@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLOv5, Deep Learning, Object detection, PyTorch, Tutoria
 <div align="center">
   <p>
     <a href="https://ultralytics.com/yolov5" target="_blank">
-    <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov5/v70/splash.png"></a>
+    <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov5/v70/splash.png" alt="Ultralytics YOLOv5 v7.0 banner"></a>
   </p>
 
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>

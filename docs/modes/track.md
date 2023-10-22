@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, object tracking, video streams, BoT-SORT, ByteTrack
 
 # Multi-Object Tracking with Ultralytics YOLO
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418637-1d6250fd-1515-4c10-a844-a32818ae6d46.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418637-1d6250fd-1515-4c10-a844-a32818ae6d46.png" alt="Multi-object tracking examples">
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
 

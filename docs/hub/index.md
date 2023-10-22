@@ -7,7 +7,7 @@ keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, model deployment, pre
 # Ultralytics HUB
 
 <a href="https://bit.ly/ultralytics_hub" target="_blank">
-<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
+  <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image"></a>
 <br>
 <br>
 <div align="center">

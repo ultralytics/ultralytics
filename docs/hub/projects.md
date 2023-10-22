@@ -110,7 +110,7 @@ Navigate to the Project page of the project you want to delete, open the project
 
 !!! warning "Warning"
 
-    When deleting a project, the the models inside the project will be deleted as well.
+    When deleting a project, the models inside the project will be deleted as well.
 
 ??? note "Note"
 

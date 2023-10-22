@@ -120,11 +120,11 @@ In this example, we demonstrate how to use a custom search space for hyperparame
 
 In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco128.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
 
-# Processing Ray Tune Results
+## Processing Ray Tune Results
 
 After running a hyperparameter tuning experiment with Ray Tune, you might want to perform various analyses on the obtained results. This guide will take you through common workflows for processing and analyzing these results.
 
-## Loading Tune Experiment Results from a Directory
+### Loading Tune Experiment Results from a Directory
 
 After running the tuning experiment with `tuner.fit()`, you can load the results from a directory. This is useful, especially if you're performing the analysis after the initial training script has exited.
 
@@ -136,7 +136,7 @@ restored_tuner = tune.Tuner.restore(experiment_path, trainable=train_mnist)
 result_grid = restored_tuner.get_results()
 ```
 
-## Basic Experiment-Level Analysis
+### Basic Experiment-Level Analysis
 
 Get an overview of how trials performed. You can quickly check if there were any errors during the trials.
 
@@ -147,7 +147,7 @@ else:
     print("No errors!")
 ```
 
-## Basic Trial-Level Analysis
+### Basic Trial-Level Analysis
 
 Access individual trial hyperparameter configurations and the last reported metrics.
 
@@ -156,7 +156,7 @@ for i, result in enumerate(result_grid):
     print(f"Trial #{i}: Configuration: {result.config}, Last Reported Metrics: {result.metrics}")
 ```
 
-## Plotting the Entire History of Reported Metrics for a Trial
+### Plotting the Entire History of Reported Metrics for a Trial
 
 You can plot the history of reported metrics for each trial to see how the metrics evolved over time.
 

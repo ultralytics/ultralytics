@@ -39,7 +39,8 @@ class TransformerEncoderLayer(nn.Module):
         self.act = act
         self.normalize_before = normalize_before
 
-    def with_pos_embed(self, tensor, pos=None):
+    @staticmethod
+    def with_pos_embed(tensor, pos=None):
         """Add position embeddings to the tensor if provided."""
         return tensor if pos is None else tensor + pos
 
@@ -81,7 +82,7 @@ class AIFI(TransformerEncoderLayer):
         """Forward pass for the AIFI transformer layer."""
         c, h, w = x.shape[1:]
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
-        # flatten [B, C, H, W] to [B, HxW, C]
+        # Flatten [B, C, H, W] to [B, HxW, C]
         x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(device=x.device, dtype=x.dtype))
         return x.permute(0, 2, 1).view([-1, c, h, w]).contiguous()
 
@@ -180,9 +181,10 @@ class LayerNorm2d(nn.Module):
     """
     2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
 
-    Original implementation at
+    Original implementations in
     https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
-    https://github.com/facebookresearch/ConvNeXt/blob/d1fa8f6fef0a165b27399986cc2bdacc92777e40/models/convnext.py#L119
+    and
+    https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py.
     """
 
     def __init__(self, num_channels, eps=1e-6):
@@ -213,7 +215,7 @@ class MSDeformAttn(nn.Module):
         if d_model % n_heads != 0:
             raise ValueError(f'd_model must be divisible by n_heads, but got {d_model} and {n_heads}')
         _d_per_head = d_model // n_heads
-        # you'd better set _d_per_head to a power of 2 which is more efficient in our CUDA implementation
+        # Better to set _d_per_head to a power of 2 which is more efficient in a CUDA implementation
         assert _d_per_head * n_heads == d_model, '`d_model` must be divisible by `n_heads`'
 
         self.im2col_step = 64
@@ -250,7 +252,7 @@ class MSDeformAttn(nn.Module):
 
     def forward(self, query, refer_bbox, value, value_shapes, value_mask=None):
         """
-        Perform forward pass for multi-scale deformable attention.
+        Perform forward pass for multiscale deformable attention.
 
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
 

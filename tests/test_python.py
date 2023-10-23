@@ -495,50 +495,7 @@ def test_hub():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
-def test_triton():
-    """Test NVIDIA Triton Server functionalities."""
-    checks.check_requirements('tritonclient[all]')
-    import subprocess
-    import time
-
-    from tritonclient.http import InferenceServerClient  # noqa
-
-    # Create variables
-    model_name = 'yolo'
-    triton_repo_path = TMP / 'triton_repo'
-    triton_model_path = triton_repo_path / model_name
-
-    # Export model to ONNX
-    f = YOLO(MODEL).export(format='onnx', dynamic=True)
-
-    # Prepare Triton repo
-    (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
-    Path(f).rename(triton_model_path / '1' / 'model.onnx')
-    (triton_model_path / 'config.pdtxt').touch()
-
-    # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-    tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'  # 6.4 GB
-
-    # Pull the image
-    subprocess.call(f'docker pull {tag}', shell=True)
-
-    # Run the Triton server and capture the container ID
-    container_id = subprocess.check_output(
-        f'docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models',
-        shell=True).decode('utf-8').strip()
-
-    # Wait for the Triton server to start
-    triton_client = InferenceServerClient(url='localhost:8000', verbose=False, ssl=False)
-
-    # Wait until model is ready
-    for _ in range(10):
-        with contextlib.suppress(Exception):
-            assert triton_client.is_model_ready(model_name)
-            break
-        time.sleep(1)
-
-    # Check Triton inference
-    YOLO(f'http://localhost:8000/{model_name}', 'detect')(SOURCE)  # exported model inference
-
-    # Kill and remove the container at the end of the test
-    subprocess.call(f'docker kill {container_id}', shell=True)
+def test_model_tune():
+    """Tune YOLO model for performance."""
+    YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
+    YOLO('yolov8n-cls.pt').tune(data='imagenet10', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')

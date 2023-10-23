@@ -12,12 +12,12 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'C2f3x')
+           ,'FusedMBConv','MBConv', 'C2fC3x')
 
 
-class C2f3x(nn.Module):
+class C2fC3x(nn.Module):
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
-        super(C2f3x, self).__init__()
+        super(C2fC3x, self).__init__()
         
         # Lapisan C2f
         self.c = int(c2 * e)  # saluran tersembunyi

@@ -451,7 +451,11 @@ class LoadTensor:
             im = im.unsqueeze(0)
         if im.shape[2] % stride or im.shape[3] % stride:
             raise ValueError(s)
-        if im.max() > 1.0:
+
+        # Calculate machine epsilon for this image
+        # e.g. torch.float32 epsilon is 1.1920928955078125e-07
+        epsilon = torch.finfo(im.dtype).eps      
+        if im.max() - 1.0 > epsilon:
             LOGGER.warning(f'WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. '
                            f'Dividing input by 255.')
             im = im.float() / 255.0

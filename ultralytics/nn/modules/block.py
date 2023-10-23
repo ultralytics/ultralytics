@@ -12,7 +12,36 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv')
+           ,'FusedMBConv','MBConv', 'C2f3x')
+
+
+class C2f3x(nn.Module):
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        super(C2f3x, self).__init__()
+        
+        # Lapisan C2f
+        self.c = int(c2 * e)  # saluran tersembunyi
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # aktifasi opsional=FReLU(c2)
+        self.m1 = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+        
+        # Lapisan C3x
+        self.c_ = int(c2 * e)
+        self.m2 = nn.Sequential(*(Bottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+
+    def forward(self, x):
+        # Proses maju untuk C2f
+        y1 = list(self.cv1(x).chunk(2, 1))
+        y1.extend(m(y1[-1]) for m in self.m1)
+        
+        # Proses maju untuk C3x
+        y2 = list(self.cv1(x).chunk(2, 1))
+        y2.extend(m(y2[-1]) for m in self.m2)
+        
+        # Gabungkan keluaran dari C2f dan C3x
+        y_combined = torch.cat([self.cv2(torch.cat(y1, 1)), self.cv2(torch.cat(y2, 1))], 1)
+        
+        return y_combined
 
 
 class FusedMBConv(nn.Module):

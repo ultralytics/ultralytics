@@ -67,7 +67,7 @@ extra:
   analytics:
     provider: google
     property: G-2M5EHKC0BH
-  alternate:  # language drop-down
+  alternate: # language drop-down
     - name: English
       link: /
       lang: en
@@ -110,8 +110,8 @@ markdown_extensions:
   - pymdownx.snippets:
       base_path: ./
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji  # noqa
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
 

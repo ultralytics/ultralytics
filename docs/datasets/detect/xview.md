@@ -69,7 +69,7 @@ To train a model on the xView dataset for 100 epochs with an image size of 640, 
 
 The xView dataset contains high-resolution satellite images with a diverse set of objects annotated using bounding boxes. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://github-production-user-asset-6210df.s3.amazonaws.com/26833433/238799379-bb3b02f0-dee4-4e67-80ae-4b2378b813ad.jpg)
+![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141257-ae6ba4de-5dcb-4c76-bc05-bc1e386361ba.jpg)
 
 - **Overhead Imagery**: This image demonstrates an example of object detection in overhead imagery, where objects are annotated with bounding boxes. The dataset provides high-resolution satellite images to facilitate the development of models for this task.
 

@@ -154,28 +154,40 @@ def verify_image_label(args):
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
+    Convert a list of polygons to a binary mask of the specified image size.
+
     Args:
-        imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
-        color (int): color
-        downsample_ratio (int): downsample ratio
+        imgsz (tuple): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        color (int, optional): The color value to fill in the polygons on the mask. Defaults to 1.
+        downsample_ratio (int, optional): Factor by which to downsample the mask. Defaults to 1.
+
+    Returns:
+        (np.ndarray): A binary mask of the specified image size with the polygons filled in.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons, dtype=np.int32)
     polygons = polygons.reshape((polygons.shape[0], -1, 2))
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
-    # NOTE: fillPoly first then resize is trying to keep the same way of loss calculation when mask-ratio=1.
+    # Note: fillPoly first then resize is trying to keep the same loss calculation method when mask-ratio=1
     return cv2.resize(mask, (nw, nh))
 
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
     """
+    Convert a list of polygons to a set of binary masks of the specified image size.
+
     Args:
-        imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): each polygon is [N, M], N is number of polygons, M is number of points (M % 2 = 0)
-        color (int): color
-        downsample_ratio (int): downsample ratio
+        imgsz (tuple): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        color (int): The color value to fill in the polygons on the masks.
+        downsample_ratio (int, optional): Factor by which to downsample each mask. Defaults to 1.
+
+    Returns:
+        (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
     """
     return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 
@@ -205,7 +217,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers YAML files that have the samestem as the provided path. An AssertionError
+    performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
     is raised if no YAML file is found or if multiple YAML files are found.
 
     Args:
@@ -438,7 +450,8 @@ class HUBDatasetStats:
         self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary
         self.data = data
 
-    def _unzip(self, path):
+    @staticmethod
+    def _unzip(path):
         """Unzip data.zip."""
         if not str(path).endswith('.zip'):  # path is data.yaml
             return False, None, path

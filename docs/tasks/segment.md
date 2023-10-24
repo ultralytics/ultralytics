@@ -6,7 +6,7 @@ keywords: yolov8, instance segmentation, Ultralytics, COCO dataset, image segmen
 
 # Instance Segmentation
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418644-7df320b8-098d-47f1-85c5-26604d761286.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418644-7df320b8-098d-47f1-85c5-26604d761286.png" alt="Instance segmentation examples">
 
 Instance segmentation goes a step further than object detection and involves identifying individual objects in an image and segmenting them from the rest of the image.
 

@@ -267,20 +267,28 @@ class BaseDataset(Dataset):
         return label
 
     def build_transforms(self, hyp=None):
-        """Users can custom augmentations here
-        like:
+        """
+        Users can customize augmentations here.
+
+        Example:
+            ```python
             if self.augment:
                 # Training transforms
                 return Compose([])
             else:
                 # Val transforms
                 return Compose([])
+            ```
         """
         raise NotImplementedError
 
     def get_labels(self):
-        """Users can custom their own format here.
-        Make sure your output is a list with each element like below:
+        """
+        Users can customize their own format here.
+
+        Note:
+            Ensure output is a dictionary with the following keys:
+            ```python
             dict(
                 im_file=im_file,
                 shape=shape,  # format: (height, width)
@@ -291,5 +299,6 @@ class BaseDataset(Dataset):
                 normalized=True, # or False
                 bbox_format="xyxy",  # or xywh, ltwh
             )
+            ```
         """
         raise NotImplementedError

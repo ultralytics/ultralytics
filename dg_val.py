@@ -24,6 +24,6 @@ if __name__ == '__main__':
     model = YOLO(args.weights)
 
     separate_outputs = False if args.weights.endswith('.pt') else True
-    success = model.val(data=args.data, imgsz=args.imgsz, rect=False, device=args.device, separate_outputs=separate_outputs, save_json=False)
+    success = model.val(data=args.data, imgsz=args.imgsz, rect=False, device=args.device, separate_outputs=separate_outputs, save_json=True)
 
     

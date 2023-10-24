@@ -13,18 +13,20 @@ from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CF
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
-TASKS = 'detect', 'segment', 'classify', 'pose'
-TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet10', 'pose': 'coco8-pose.yaml'}
+TASKS = 'detect', 'segment', 'classify', 'pose', 'decathlon'
+TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet10', 'pose': 'coco8-pose.yaml', 'decathlon': 'coco8.yaml'}
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
     'classify': 'yolov8n-cls.pt',
-    'pose': 'yolov8n-pose.pt'}
+    'pose': 'yolov8n-pose.pt',
+    'decathlon': 'yolov8n.pt'}
 TASK2METRIC = {
     'detect': 'metrics/mAP50-95(B)',
     'segment': 'metrics/mAP50-95(M)',
     'classify': 'metrics/accuracy_top1',
-    'pose': 'metrics/mAP50-95(P)'}
+    'pose': 'metrics/mAP50-95(P)',
+    'decathlon': 'metrics/loss'}
 
 CLI_HELP_MSG = \
     f"""
@@ -425,7 +427,10 @@ def entrypoint(debug=''):
         if task:
             LOGGER.warning(f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
                            f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model.")
-        task = model.task
+    # THIS IS ALWAYS A PROBLEMATIC LINE WHEN IMPLEMENTING A NEW TASK (there is always a default model, etc...)
+    # DON'T COMMIT THIS
+        #task = model.task
+    model.task = task
 
     # Mode
     if mode in ('predict', 'track') and 'source' not in overrides:

@@ -343,11 +343,20 @@ class BaseTrainer:
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
                         self.loss *= world_size
-                    self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
-                        else self.loss_items
+                    # DIFFERENT TASKS IMPLY DIFFERENT SHAPES OF TLOSS !
+                    # OBVIOUSLY, WE CANNOT HACK THE BaseTrainer, SO THIS WOULD
+                    # HAVE TO BE AN ABSTRACT FUNCTION
+                    self.tloss = (self.tloss * i + self.loss) / (i + 1) if self.tloss is not None \
+                        else self.loss
 
                 # Backward
                 self.scaler.scale(self.loss).backward()
+                
+                 # ignore nans by replacing them with 0 (a new 'feature')
+                for name, param in self.model.named_parameters():
+                    if param.grad is None: continue
+                    with torch.no_grad():
+                        param.grad = torch.nan_to_num(param.grad, nan=0.0, posinf=0.0, neginf=0.0)
 
                 # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
@@ -383,7 +392,8 @@ class BaseTrainer:
 
                 if self.args.val or final_epoch:
                     self.metrics, self.fitness = self.validate()
-                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
+                # SAME, TLOSS HAS BEEN REMOVED
+                self.save_metrics(metrics={**{}, **self.metrics, **self.lr})
                 self.stop = self.stopper(epoch + 1, self.fitness)
 
                 # Save model

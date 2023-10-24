@@ -31,4 +31,10 @@ class YOLO(Model):
                 'model': PoseModel,
                 'trainer': yolo.pose.PoseTrainer,
                 'validator': yolo.pose.PoseValidator,
-                'predictor': yolo.pose.PosePredictor, }, }
+                'predictor': yolo.pose.PosePredictor, }, 
+            'decathlon': {
+                'model': ClassificationModel,
+                'trainer': yolo.decathlon.DecathlonTrainer,
+                'validator': yolo.decathlon.DecathlonValidator,
+                'predictor': yolo.decathlon.DecathlonPredictor, }, 
+           }

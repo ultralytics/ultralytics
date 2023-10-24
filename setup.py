@@ -45,7 +45,7 @@ def parse_requirements(file_path: Path):
 setup(
     name='ultralytics',  # name of pypi package
     version=get_version(),  # version of pypi package
-    python_requires='>=3.8, !=3.12.*'
+    python_requires='>=3.8, !=3.12.*',
     license='AGPL-3.0',
     description=('Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, '
                  'pose estimation and image classification.'),

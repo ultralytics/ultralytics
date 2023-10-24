@@ -351,8 +351,8 @@ class BaseTrainer:
 
                 # Backward
                 self.scaler.scale(self.loss).backward()
-                
-                 # ignore nans by replacing them with 0 (a new 'feature')
+
+                # ignore nans by replacing them with 0 (a new 'feature')
                 for name, param in self.model.named_parameters():
                     if param.grad is None: continue
                     with torch.no_grad():

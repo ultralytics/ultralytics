@@ -12,17 +12,18 @@ from ultralytics.utils.plotting import plot_images
 class DecathlonValidator(BaseValidator):
     """
     A class extending the BaseValidator class for validation based on a decathlon model.
+
     This class is not used, decathlon validation relies on the validation of each sub task.
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initializes ClassificationValidator instance with args, dataloader, save_dir, and progress bar."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
-        self.metrics = ClassifyMetrics() # not used, any metric
+        self.metrics = ClassifyMetrics()  # not used, any metric
 
     def get_desc(self):
         """Returns a formatted string summarizing classification metrics."""
-        return "Unused"
+        return 'Unused'
 
     def init_metrics(self, model):
         """Initialize confusion matrix, class names, and top-1 and top-5 accuracy."""

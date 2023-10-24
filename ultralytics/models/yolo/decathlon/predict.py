@@ -10,8 +10,8 @@ from ultralytics.utils import DEFAULT_CFG, ops
 class DecathlonPredictor(BasePredictor):
     """
     A class extending the BasePredictor class.
-    This class is empty, as Decathlon is only for training (although the individual
-    prediction heads could be kept)
+
+    This class is empty, as Decathlon is only for training (although the individual prediction heads could be kept)
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

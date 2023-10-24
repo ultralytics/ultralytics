@@ -14,7 +14,12 @@ from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CF
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
 TASKS = 'detect', 'segment', 'classify', 'pose', 'decathlon'
-TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet10', 'pose': 'coco8-pose.yaml', 'decathlon': 'coco8.yaml'}
+TASK2DATA = {
+    'detect': 'coco8.yaml',
+    'segment': 'coco8-seg.yaml',
+    'classify': 'imagenet10',
+    'pose': 'coco8-pose.yaml',
+    'decathlon': 'coco8.yaml'}
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
@@ -429,7 +434,7 @@ def entrypoint(debug=''):
                            f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model.")
     # THIS IS ALWAYS A PROBLEMATIC LINE WHEN IMPLEMENTING A NEW TASK (there is always a default model, etc...)
     # DON'T COMMIT THIS
-        #task = model.task
+    #task = model.task
     model.task = task
 
     # Mode

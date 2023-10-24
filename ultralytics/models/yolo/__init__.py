@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.models.yolo import classify, detect, pose, segment, decathlon
+from ultralytics.models.yolo import classify, decathlon, detect, pose, segment
 
 from .model import YOLO
 

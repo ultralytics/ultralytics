@@ -68,13 +68,14 @@ setup(
         'dev': [
             'ipython',
             'check-manifest',
+            'pre-commit',
             'pytest',
             'pytest-cov',
             'coverage',
             'mkdocs-material',
             'mkdocstrings[python]',
             'mkdocs-redirects',  # for 301 redirects
-            'mkdocs-ultralytics-plugin>=0.0.29',  # for meta descriptions and images, dates and authors
+            'mkdocs-ultralytics-plugin>=0.0.30',  # for meta descriptions and images, dates and authors
         ],
         'export': [
             'coremltools>=7.0',

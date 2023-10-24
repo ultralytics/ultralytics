@@ -7,7 +7,7 @@ keywords: Ultralytics, HUB App, YOLOv5, YOLOv8, mobile AI, real-time object dete
 # Ultralytics HUB App
 
 <a href="https://bit.ly/ultralytics_hub" target="_blank">
-<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
+  <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image"></a>
 <br>
 <div align="center">
   <a href="https://github.com/ultralytics" style="text-decoration:none;">

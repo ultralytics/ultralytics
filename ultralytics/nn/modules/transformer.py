@@ -39,7 +39,8 @@ class TransformerEncoderLayer(nn.Module):
         self.act = act
         self.normalize_before = normalize_before
 
-    def with_pos_embed(self, tensor, pos=None):
+    @staticmethod
+    def with_pos_embed(tensor, pos=None):
         """Add position embeddings to the tensor if provided."""
         return tensor if pos is None else tensor + pos
 
@@ -180,9 +181,10 @@ class LayerNorm2d(nn.Module):
     """
     2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
 
-    Original implementation at
+    Original implementations in
     https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
-    https://github.com/facebookresearch/ConvNeXt/blob/d1fa8f6fef0a165b27399986cc2bdacc92777e40/models/convnext.py#L119
+    and
+    https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py.
     """
 
     def __init__(self, num_channels, eps=1e-6):
@@ -250,7 +252,7 @@ class MSDeformAttn(nn.Module):
 
     def forward(self, query, refer_bbox, value, value_shapes, value_mask=None):
         """
-        Perform forward pass for multi-scale deformable attention.
+        Perform forward pass for multiscale deformable attention.
 
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
 

@@ -250,9 +250,11 @@ class BasePredictor:
             path, im0s, vid_cap, s = batch
 
             # Preprocess
+            breakpoint()
             with profilers[0]:
                 im = self.preprocess(im0s)
 
+            breakpoint()
             # Inference
             with profilers[1]:
                 preds = self.inference(im, *args, **kwargs)

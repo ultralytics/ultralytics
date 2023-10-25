@@ -64,6 +64,8 @@ yolo grpc your_server_config_file_path
 
 `your_server_config_file_path` 写法参见[docs/chiebot](docs/chiebot.md)
 
+**yolo grpc 支持,嵌入运算啦!!!**
+
 </details>
 
 <details open>

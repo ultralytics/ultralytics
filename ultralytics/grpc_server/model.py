@@ -3,24 +3,26 @@
 @Author: captainfffsama
 @Date: 2023-08-18 16:35:03
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-08-18 21:53:32
+@LastEditTime: 2023-10-25 09:44:27
 @FilePath: /ultralytics/ultralytics/grpc_server/model.py
 @Description:
 '''
 import base64
 from collections import defaultdict
-from typing import Union
+from typing import Union,Tuple
 import torch
+from torch import nn
 
 from ..models import YOLO
 from ..engine.results import Results
+from ultralytics.nn.modules import SPPF,SPP
 import numpy as np
 import cv2
 
 from .proto import dldetection_pb2
 from .proto import dldetection_pb2_grpc as dld_pb2_grpc
 
-from .utils import restore_bbox_after_letterbox
+from .utils import restore_bbox_after_letterbox,np2tensor_proto
 
 
 class Detector(dld_pb2_grpc.AiServiceServicer):
@@ -47,6 +49,9 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
                     self.thr = defaultdict(lambda: default_value)
                     self.thr.update(thr)
         print("model init done!")
+
+        self.embedding_model=None
+
 
     def _standardized_result(self, result: Results) -> list:
         bboxes: torch.Tensor = result.boxes.data[:, :4].detach()
@@ -93,3 +98,47 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
             obj_pro.rect.h = int(obj[5] - obj[3])
         torch.cuda.empty_cache()
         return result_pro
+
+    def DlEmbeddingGet(self, request, context):
+        img_base64 = base64.b64decode(request.imdata)
+
+        img_array = np.fromstring(img_base64, np.uint8)
+        img = cv2.imdecode(img_array, cv2.COLOR_BGR2RGB | cv2.IMREAD_IGNORE_ORIENTATION)
+
+        im_size = tuple(request.imsize)
+
+        result: np.ndarray = self.extract_feat(self.model, img, img_size=im_size)
+        print("embedding size: ", result.shape)
+        torch.cuda.empty_cache()
+        return np2tensor_proto(result)
+
+    def extract_feat(self,model,img,img_size:Tuple[int,int]):
+        im:np.ndarray=cv2.resize(img,img_size)
+        im=np.expand_dims(im, axis=0)
+        im = im.transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
+        im = np.ascontiguousarray(im)  # contiguous
+        im = torch.from_numpy(im)
+
+        img = im.to(self.device)
+        # TODO: 这里可能有fp16问题
+        img = img.float()  # uint8 to fp16/32
+        img /= 255  # 0 - 255 to 0.0 - 1.0
+
+        if self.embedding_model is None:
+            self.embedding_model=nn.Sequential()
+            all_nn=next(model.model.children())
+            for i in all_nn:
+                self.embedding_model.append(i)
+                if isinstance(i,SPPF) or isinstance(i,SPP):
+                    break
+            self.embedding_model.append(nn.AdaptiveAvgPool2d((1,1)))
+            self.embedding_model.to(self.device)
+            self.embedding_model.eval()
+
+        with torch.no_grad():
+            result = self.embedding_model(img)
+            result =result.cpu().numpy()
+        return result
+
+
+

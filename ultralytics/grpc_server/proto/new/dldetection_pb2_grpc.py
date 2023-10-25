@@ -19,12 +19,23 @@ class AiServiceStub(object):
                 request_serializer=dldetection__pb2.DlRequest.SerializeToString,
                 response_deserializer=dldetection__pb2.DlResponse.FromString,
                 )
+        self.DlEmbeddingGet = channel.unary_unary(
+                '/aiservice.AiService/DlEmbeddingGet',
+                request_serializer=dldetection__pb2.DlEmbeddingRequest.SerializeToString,
+                response_deserializer=dldetection__pb2.Tensor.FromString,
+                )
 
 
 class AiServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def DlDetection(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DlEmbeddingGet(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -37,6 +48,11 @@ def add_AiServiceServicer_to_server(servicer, server):
                     servicer.DlDetection,
                     request_deserializer=dldetection__pb2.DlRequest.FromString,
                     response_serializer=dldetection__pb2.DlResponse.SerializeToString,
+            ),
+            'DlEmbeddingGet': grpc.unary_unary_rpc_method_handler(
+                    servicer.DlEmbeddingGet,
+                    request_deserializer=dldetection__pb2.DlEmbeddingRequest.FromString,
+                    response_serializer=dldetection__pb2.Tensor.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -62,5 +78,22 @@ class AiService(object):
         return grpc.experimental.unary_unary(request, target, '/aiservice.AiService/DlDetection',
             dldetection__pb2.DlRequest.SerializeToString,
             dldetection__pb2.DlResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DlEmbeddingGet(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/aiservice.AiService/DlEmbeddingGet',
+            dldetection__pb2.DlEmbeddingRequest.SerializeToString,
+            dldetection__pb2.Tensor.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

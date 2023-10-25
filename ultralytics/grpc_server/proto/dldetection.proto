@@ -4,7 +4,7 @@ package aiservice;
 
 service AiService {
   rpc DlDetection (DlRequest) returns (DlResponse) {} // 深度学习检测服务
-//   rpc DlEmbeddingGet (DlEmbeddingRequest) returns (Tensor) {} // 深度学习检测服务
+  rpc DlEmbeddingGet (DlEmbeddingRequest) returns (Tensor) {} // 深度学习检测服务
 }
 
 message DlRequest {

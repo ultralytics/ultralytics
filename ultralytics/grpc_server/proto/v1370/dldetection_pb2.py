@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x11\x64ldetection.proto\x12\taiservice\")\n\tDlRequest\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\"<\n\x0e\x44lBoundingRect\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\t\n\x01w\x18\x03 \x01(\x05\x12\t\n\x01h\x18\x04 \x01(\x05\"\x1f\n\x07\x44lPoint\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\",\n\x06\x44lMask\x12\"\n\x06points\x18\x01 \x03(\x0b\x32\x12.aiservice.DlPoint\"t\n\x08\x44lResult\x12\x0f\n\x07\x63lassid\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\'\n\x04rect\x18\x03 \x01(\x0b\x32\x19.aiservice.DlBoundingRect\x12\x1f\n\x04mask\x18\x04 \x01(\x0b\x32\x11.aiservice.DlMask\"2\n\nDlResponse\x12$\n\x07results\x18\x01 \x03(\x0b\x32\x13.aiservice.DlResult\"4\n\x12\x44lEmbeddingRequest\x12\x0e\n\x06imdata\x18\x01 \x01(\x0c\x12\x0e\n\x06imsize\x18\x02 \x03(\x05\"%\n\x06Tensor\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\x02\x12\r\n\x05shape\x18\x02 \x03(\x05\x32I\n\tAiService\x12<\n\x0b\x44lDetection\x12\x14.aiservice.DlRequest\x1a\x15.aiservice.DlResponse\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x11\x64ldetection.proto\x12\taiservice\")\n\tDlRequest\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\"<\n\x0e\x44lBoundingRect\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\t\n\x01w\x18\x03 \x01(\x05\x12\t\n\x01h\x18\x04 \x01(\x05\"\x1f\n\x07\x44lPoint\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\",\n\x06\x44lMask\x12\"\n\x06points\x18\x01 \x03(\x0b\x32\x12.aiservice.DlPoint\"t\n\x08\x44lResult\x12\x0f\n\x07\x63lassid\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\'\n\x04rect\x18\x03 \x01(\x0b\x32\x19.aiservice.DlBoundingRect\x12\x1f\n\x04mask\x18\x04 \x01(\x0b\x32\x11.aiservice.DlMask\"2\n\nDlResponse\x12$\n\x07results\x18\x01 \x03(\x0b\x32\x13.aiservice.DlResult\"4\n\x12\x44lEmbeddingRequest\x12\x0e\n\x06imdata\x18\x01 \x01(\x0c\x12\x0e\n\x06imsize\x18\x02 \x03(\x05\"%\n\x06Tensor\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\x02\x12\r\n\x05shape\x18\x02 \x03(\x05\x32\x8f\x01\n\tAiService\x12<\n\x0b\x44lDetection\x12\x14.aiservice.DlRequest\x1a\x15.aiservice.DlResponse\"\x00\x12\x44\n\x0e\x44lEmbeddingGet\x12\x1d.aiservice.DlEmbeddingRequest\x1a\x11.aiservice.Tensor\"\x00\x62\x06proto3'
 )
 
 
@@ -429,8 +429,8 @@ _AISERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=479,
-  serialized_end=552,
+  serialized_start=480,
+  serialized_end=623,
   methods=[
   _descriptor.MethodDescriptor(
     name='DlDetection',
@@ -439,6 +439,16 @@ _AISERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_DLREQUEST,
     output_type=_DLRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='DlEmbeddingGet',
+    full_name='aiservice.AiService.DlEmbeddingGet',
+    index=1,
+    containing_service=None,
+    input_type=_DLEMBEDDINGREQUEST,
+    output_type=_TENSOR,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),

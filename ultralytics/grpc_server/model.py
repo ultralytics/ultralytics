@@ -3,39 +3,46 @@
 @Author: captainfffsama
 @Date: 2023-08-18 16:35:03
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-10-25 09:44:27
+@LastEditTime: 2023-10-25 12:02:47
 @FilePath: /ultralytics/ultralytics/grpc_server/model.py
 @Description:
 '''
 import base64
 from collections import defaultdict
-from typing import Union,Tuple
+from typing import Union, Tuple
 import torch
 from torch import nn
+import datetime
 
 from ..models import YOLO
 from ..engine.results import Results
-from ultralytics.nn.modules import SPPF,SPP
+from ultralytics.nn.modules import SPPF, SPP
+from ultralytics.utils import LOGGER
 import numpy as np
 import cv2
 
 from .proto import dldetection_pb2
 from .proto import dldetection_pb2_grpc as dld_pb2_grpc
 
-from .utils import restore_bbox_after_letterbox,np2tensor_proto
+from .utils import restore_bbox_after_letterbox, np2tensor_proto
 
 
 class Detector(dld_pb2_grpc.AiServiceServicer):
 
-    def __init__(self, ckpt_path, thr: Union[float, dict], change_label: dict = {}, device: str = 'cuda:0',nms:float=0.5):
+    def __init__(self,
+                 ckpt_path,
+                 thr: Union[float, dict],
+                 change_label: dict = {},
+                 device: str = 'cuda:0',
+                 nms: float = 0.5):
         self.model = YOLO(ckpt_path)
-        self.label_dict:dict = self.model.model.names
+        self.label_dict: dict = self.model.model.names
         for k, v in self.label_dict.items():
             new_label_name = change_label.get(v, None)
             if new_label_name:
                 self.label_dict[k] = new_label_name
         self.device = device
-        self.nms=nms
+        self.nms = nms
         if isinstance(thr, float):
             self.thr = defaultdict(lambda: thr)
         else:
@@ -50,8 +57,7 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
                     self.thr.update(thr)
         print("model init done!")
 
-        self.embedding_model=None
-
+        self.embedding_model = None
 
     def _standardized_result(self, result: Results) -> list:
         bboxes: torch.Tensor = result.boxes.data[:, :4].detach()
@@ -65,18 +71,18 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
             scores = scores[keep_ind]
             labels = labels[keep_ind]
         thr_tensor = torch.tensor([self.thr[l] for l in labels], dtype=scores.dtype, device=labels.device)
-        remain_idx=scores>=thr_tensor
-        remain_bboxes=bboxes[remain_idx].cpu().numpy()
-        remain_scores=scores[remain_idx].cpu().numpy()
-        remain_labels=labels[remain_idx].cpu().numpy()
+        remain_idx = scores >= thr_tensor
+        remain_bboxes = bboxes[remain_idx].cpu().numpy()
+        remain_scores = scores[remain_idx].cpu().numpy()
+        remain_labels = labels[remain_idx].cpu().numpy()
 
-        final_result=[]
-        for box,s,l in zip(remain_bboxes,remain_scores,remain_labels):
-            final_result.append((self.label_dict[l],s,*box.tolist()))
+        final_result = []
+        for box, s, l in zip(remain_bboxes, remain_scores, remain_labels):
+            final_result.append((self.label_dict[l], s, *box.tolist()))
         return final_result
 
     def infer(self, img):
-        result: Results = self.model.predict(img, conf=0.05, device=self.device,iou=self.nms)[0]
+        result: Results = self.model.predict(img, conf=0.05, device=self.device, iou=self.nms)[0]
         new_result = self._standardized_result(result)
         return new_result
 
@@ -86,7 +92,8 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
         img_array = np.fromstring(img_base64, np.uint8)
         img = cv2.imdecode(img_array, cv2.COLOR_BGR2RGB | cv2.IMREAD_IGNORE_ORIENTATION)
         result = self.infer(img)
-        print(result)
+        current_time = datetime.datetime.now()
+        LOGGER.info("{} --- result:{}".format(current_time.strftime("%Y-%m-%d %H:%M:%S"), result))
         result_pro = dldetection_pb2.DlResponse()
         for obj in result:
             obj_pro = result_pro.results.add()
@@ -108,13 +115,14 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
         im_size = tuple(request.imsize)
 
         result: np.ndarray = self.extract_feat(self.model, img, img_size=im_size)
-        print("embedding size: ", result.shape)
+        current_time = datetime.datetime.now()
+        LOGGER.info("{} --- embedding size:{}".format(current_time.strftime("%Y-%m-%d %H:%M:%S"), result.shape))
         torch.cuda.empty_cache()
         return np2tensor_proto(result)
 
-    def extract_feat(self,model,img,img_size:Tuple[int,int]):
-        im:np.ndarray=cv2.resize(img,img_size)
-        im=np.expand_dims(im, axis=0)
+    def extract_feat(self, model, img, img_size: Tuple[int, int]):
+        im: np.ndarray = cv2.resize(img, img_size)
+        im = np.expand_dims(im, axis=0)
         im = im.transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
         im = np.ascontiguousarray(im)  # contiguous
         im = torch.from_numpy(im)
@@ -125,20 +133,17 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
         img /= 255  # 0 - 255 to 0.0 - 1.0
 
         if self.embedding_model is None:
-            self.embedding_model=nn.Sequential()
-            all_nn=next(model.model.children())
+            self.embedding_model = nn.Sequential()
+            all_nn = next(model.model.children())
             for i in all_nn:
                 self.embedding_model.append(i)
-                if isinstance(i,SPPF) or isinstance(i,SPP):
+                if isinstance(i, SPPF) or isinstance(i, SPP):
                     break
-            self.embedding_model.append(nn.AdaptiveAvgPool2d((1,1)))
+            self.embedding_model.append(nn.AdaptiveAvgPool2d((1, 1)))
             self.embedding_model.to(self.device)
             self.embedding_model.eval()
 
         with torch.no_grad():
             result = self.embedding_model(img)
-            result =result.cpu().numpy()
+            result = result.cpu().numpy()
         return result
-
-
-

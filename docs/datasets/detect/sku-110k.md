@@ -8,7 +8,7 @@ keywords: SKU-110k dataset, object detection, retail shelf images, Ultralytics, 
 
 The [SKU-110k](https://github.com/eg4000/SKU110K_CVPR19) dataset is a collection of densely packed retail shelf images, designed to support research in object detection tasks. Developed by Eran Goldman et al., the dataset contains over 110,000 unique store keeping unit (SKU) categories with densely packed objects, often looking similar or even identical, positioned in close proximity.
 
-![Dataset sample image](https://github.com/eg4000/SKU110K_CVPR19/raw/master/figures/benchmarks_comparison.jpg)
+![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141199-e7cdd803-237e-4b4a-9171-f95cba9388f9.jpg)
 
 ## Key Features
 
@@ -67,7 +67,7 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
 
 The SKU-110k dataset contains a diverse set of retail shelf images with densely packed objects, providing rich context for object detection tasks. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/238215979-1ab791c4-15d9-46f6-a5d6-0092c05dff7a.jpg)
+![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141197-b63e4aa5-12f6-4673-96a7-9a5207363c59.jpg)
 
 - **Densely packed retail shelf image**: This image demonstrates an example of densely packed objects in a retail shelf setting. Objects are annotated with bounding boxes and SKU category labels.
 

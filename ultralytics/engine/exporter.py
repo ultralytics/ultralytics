@@ -425,7 +425,10 @@ class Exporter:
             data = check_det_dataset(self.args.data)
             dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
-            ignored_scope = nncf.IgnoredScope(types=['Multiply', 'Subtract', 'Sigmoid'])  # ignore operation
+            if not self.args.separate_outputs:
+                ignored_scope = nncf.IgnoredScope(types=['Multiply', 'Subtract', 'Sigmoid'])  # ignore operation
+            else:
+                ignored_scope = None
             quantized_ov_model = nncf.quantize(ov_model,
                                                quantization_dataset,
                                                preset=nncf.QuantizationPreset.MIXED,

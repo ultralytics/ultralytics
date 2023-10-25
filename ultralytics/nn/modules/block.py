@@ -217,6 +217,7 @@ class C2f(nn.Module):
         from ultralytics.utils.torch_utils import fuse_conv_and_bn
         # creating cv1_1 and cv1_2 fused convs
         if not hasattr(self, 'cv1_1') and not hasattr(self, 'cv1_2'):
+            Conv.default_act = self.cv1.act
             self.cv1_1 = Conv(self.cv1.conv.in_channels, self.c, 1, 1).requires_grad_(False).to(self.cv1.conv.weight.device).eval()
             self.cv1_2 = Conv(self.cv1.conv.in_channels, self.c, 1, 1).requires_grad_(False).to(self.cv1.conv.weight.device).eval()
             if not hasattr(self.cv1, 'bn'):

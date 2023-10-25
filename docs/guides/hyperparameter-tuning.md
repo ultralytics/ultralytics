@@ -83,6 +83,30 @@ Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyp
         model.tune(data='coco8.yaml', epochs=30, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
         ```
 
+### Customizing Tuning ranges
+
+To modify hyperparameter tuning ranges, the following is a modified version of the above example. Note that tuning will not occur for any hyperparameter that has an initial value of `0.0` even when a tuning range is specified. For any hyperparameters to be adjusted, initiate with a starting value `> 0` for optimization to occur during tuning process.
+
+!!! example ""
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+        from ultralytics.engine.tuner import Tuner
+
+        # Initialize the YOLO model
+        model = YOLO('yolov8n.pt')
+        model.overrides.update(dict(data='coco8.yaml', epochs=30, optimizer='AdamW', plots=False, save=False, val=False, degrees=1.0, mixup=0.1))
+        
+        # Initialize Custom Tuning Ranges
+        tuning = Tuner()
+        tuning.space.update(dict(degrees=(10.0, 50.0), mixup=(0.1, 0.8)) # add more as needed
+
+        # Tune hyperparameters on COCO8 for 30 epochs
+        tuning(model=model, iterations=300)
+        ```
+
 ## Results
 
 After you've successfully completed the hyperparameter tuning process, you will obtain several files and directories that encapsulate the results of the tuning. The following describes each:

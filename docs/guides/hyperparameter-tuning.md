@@ -100,11 +100,11 @@ To modify hyperparameter tuning ranges, the following is a modified version of t
         model.overrides.update(dict(data='coco8.yaml', epochs=30, optimizer='AdamW', plots=False, save=False, val=False, degrees=1.0, mixup=0.1))
 
         # Initialize Custom Tuning Ranges
-        tuning = Tuner()
-        tuning.space.update(dict(degrees=(10.0, 50.0), mixup=(0.1, 0.8)) # add more as needed
+        tuner = Tuner()
+        tuner.space.update(dict(degrees=(10.0, 50.0), mixup=(0.1, 0.8)) # add more as needed
 
         # Tune hyperparameters on COCO8 for 30 epochs
-        tuning(model=model, iterations=300)
+        tuner(model=model, iterations=300)
         ```
 
 ## Results

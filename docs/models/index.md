@@ -25,17 +25,17 @@ Here are some of the key models supported:
 11. **[RT-DETR (Realtime Detection Transformers)](./rtdetr.md)**: By Baidu's PaddlePaddle, offering real-time detection.
 
 <p align="center">
+  <br>
   <iframe width="720" height="405" src="https://www.youtube.com/embed/MWq1UxqTClU?si=nHAW-lYDzrz68jR0"
     title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
+  <br>
   <strong>Watch:</strong> Run Ultralytics YOLO models in just a few lines of code.
 </p>
 
 ## Getting Started: Usage Examples
-
-This example provides simple inference code for YOLO, SAM and RTDETR models. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using models with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
 !!! example ""
 

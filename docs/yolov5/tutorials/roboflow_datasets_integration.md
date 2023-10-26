@@ -14,7 +14,7 @@ You can now use Roboflow to organize, label, prepare, version, and host your dat
 
 ## Upload
 
-You can upload your data to Roboflow via [web UI](https://docs.roboflow.com/adding-data), [rest API](https://docs.roboflow.com/adding-data/upload-api), or [python](https://docs.roboflow.com/python).
+You can upload your data to Roboflow via [web UI](https://docs.roboflow.com/adding-data), [REST API](https://docs.roboflow.com/adding-data/upload-api), or [Python](https://docs.roboflow.com/python).
 
 ## Labeling
 

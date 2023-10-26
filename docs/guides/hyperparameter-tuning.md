@@ -101,7 +101,7 @@ To modify hyperparameter tuning ranges, the following is a modified version of t
 
         # Initialize Custom Tuning Ranges
         tuner = Tuner()
-        tuner.space.update(dict(degrees=(10.0, 50.0), mixup=(0.1, 0.8)) # add more as needed
+        tuner.space.update(dict(degrees=(10.0, 50.0), mixup=(0.1, 0.8)))  # add more as needed
 
         # Tune hyperparameters on COCO8 for 30 epochs
         tuner(model=model, iterations=300)

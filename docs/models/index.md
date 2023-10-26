@@ -24,6 +24,17 @@ In this documentation, we provide information on four major models:
 
 You can use many of these models directly in the Command Line Interface (CLI) or in a Python environment. Below are examples of how to use the models with CLI and Python:
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/MWq1UxqTClU?si=nHAW-lYDzrz68jR0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO for Object Detection: Quickstart Guide for Installation and Setup.
+</p>
+
 ## Usage
 
 This example provides simple inference code for YOLO, SAM and RTDETR models. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using models with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).

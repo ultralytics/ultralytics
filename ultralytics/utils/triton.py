@@ -53,6 +53,9 @@ class TritonRemoteModel:
             self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=False)
             config = self.triton_client.get_model_config(endpoint, as_json=True)['config']
 
+        if 'output' in config:
+            config['output'] = sorted(config['output'], key=lambda x: x.get('name'))
+
         self.InferRequestedOutput = client.InferRequestedOutput
         self.InferInput = client.InferInput
 

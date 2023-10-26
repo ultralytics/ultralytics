@@ -41,7 +41,7 @@ Here are some of the key models supported:
 
     === "Python"
 
-        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()`, `SAM()`, `NAS()` and `RTDETR()` classes to create a model instance in python:
+        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()`, `SAM()`, `NAS()` and `RTDETR()` classes to create a model instance in Python:
 
         ```python
         from ultralytics import YOLO

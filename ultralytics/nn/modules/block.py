@@ -12,36 +12,49 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'C2fC3x')
+           ,'FusedMBConv','MBConv', 'SABottleneck')
 
 
-class C2fC3x(nn.Module):
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
-        super(C2fC3x, self).__init__()
+class SABottleneck(nn.Module):
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
+        super(SABottleneck, self).__init__()
+        self.expansion = 4
+        c_ = int(c2 * e)  # hidden channels
+
+        # Sesuaikan nama layer
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.bn1 = nn.BatchNorm2d(c_)
+        self.cv2 = Conv(c_, c_, k[1], 1, g=g)
+        self.bn2 = nn.BatchNorm2d(c_)
+        self.cv3 = Conv(c_, c2 * self.expansion, 1, 1)
+        self.bn3 = nn.BatchNorm2d(c2 * self.expansion)
+        self.sa = sa_layer(c2 * self.expansion)
         
-        # Lapisan C2f
-        self.c = int(c2 * e)  # saluran tersembunyi
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # aktifasi opsional=FReLU(c2)
-        self.m1 = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
-        
-        # Lapisan C3x
-        self.c_ = int(c2 * e)
-        self.m2 = nn.Sequential(*(Bottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+        self.relu = nn.ReLU(inplace=True)
+        self.add = shortcut and c1 == c2 * self.expansion
+        self.stride = 1  # atau sesuaikan dengan kebutuhan
 
     def forward(self, x):
-        # Proses maju untuk C2f
-        y1 = list(self.cv1(x).chunk(2, 1))
-        y1.extend(m(y1[-1]) for m in self.m1)
-        
-        # Proses maju untuk C3x
-        y2 = list(self.cv1(x).chunk(2, 1))
-        y2.extend(m(y2[-1]) for m in self.m2)
-        
-        # Gabungkan keluaran dari C2f dan C3x
-        y_combined = torch.cat([self.cv2(torch.cat(y1, 1)), self.cv2(torch.cat(y2, 1))], 1)
-        
-        return y_combined
+        identity = x
+
+        # Proses forward dengan penamaan yang disesuaikan
+        out = self.cv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.cv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.cv3(out)
+        out = self.bn3(out)
+        out = self.sa(out)
+
+        if self.add:
+            out += identity
+
+        out = self.relu(out)
+        return out
 
 
 class FusedMBConv(nn.Module):
@@ -520,3 +533,29 @@ class TripletAttention(nn.Module):
         else:
             x_out = (1 / 2) * (x_out11 + x_out21)
         return x_out
+
+
+class C2SA(nn.Module):
+    """Faster Implementation of SABottleneck with 2 convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        """Initialize SAbottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
+        expansion.
+        """
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(SABottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+
+    def forward(self, x):
+        """Forward pass through C2f layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x):
+        """Forward pass using split() instead of chunk()."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))

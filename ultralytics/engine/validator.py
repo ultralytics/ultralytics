@@ -37,7 +37,7 @@ from ultralytics.utils.torch_utils import de_parallel, select_device, smart_infe
 
 class BaseValidator:
     """
-    BaseValidator
+    BaseValidator.
 
     A base class for creating validators.
 
@@ -103,8 +103,7 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """
-        Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
+        """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
         gets priority).
         """
         self.training = trainer is not None
@@ -121,7 +120,6 @@ class BaseValidator:
             model.eval()
         else:
             callbacks.add_integration_callbacks(self)
-            self.run_callbacks('on_val_start')
             model = AutoBackend(model or self.args.model,
                                 device=select_device(self.args.device, self.args.batch),
                                 dnn=self.args.dnn,
@@ -154,6 +152,7 @@ class BaseValidator:
             model.eval()
             model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
 
+        self.run_callbacks('on_val_start')
         dt = Profile(), Profile(), Profile(), Profile()
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(de_parallel(model))
@@ -279,7 +278,7 @@ class BaseValidator:
         raise NotImplementedError('get_dataloader function not implemented for this validator')
 
     def build_dataset(self, img_path):
-        """Build dataset"""
+        """Build dataset."""
         raise NotImplementedError('build_dataset function not implemented in validator')
 
     def preprocess(self, batch):

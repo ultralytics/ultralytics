@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO Docs, YOLOv8, validation, model evaluation, hyperpar
 
 # Model Validation with Ultralytics YOLO
 
-<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
+<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Introduction
 

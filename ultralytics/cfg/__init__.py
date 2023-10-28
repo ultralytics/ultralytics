@@ -7,9 +7,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, ROOT, SETTINGS,
-                               SETTINGS_YAML, TESTS_RUNNING, IterableSimpleNamespace, __version__, checks, colorstr,
-                               deprecation_warn, yaml_load, yaml_print)
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, ROOT, RUNS_DIR,
+                               SETTINGS, SETTINGS_YAML, TESTS_RUNNING, IterableSimpleNamespace, __version__, checks,
+                               colorstr, deprecation_warn, yaml_load, yaml_print)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
@@ -153,8 +153,7 @@ def get_save_dir(args, name=None):
     else:
         from ultralytics.utils.files import increment_path
 
-        project = args.project or (ROOT /
-                                   '../tests/tmp/runs' if TESTS_RUNNING else Path(SETTINGS['runs_dir'])) / args.task
+        project = args.project or (ROOT.parent / 'tests/tmp/runs' if TESTS_RUNNING else RUNS_DIR) / args.task
         name = name or args.name or f'{args.mode}'
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in (-1, 0) else True)
 
@@ -180,8 +179,8 @@ def _handle_deprecation(custom):
 
 def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
-    This function checks for any mismatched keys between a custom configuration list and a base configuration list.
-    If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
+    This function checks for any mismatched keys between a custom configuration list and a base configuration list. If
+    any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
 
     Args:
         custom (dict): a dictionary of custom configuration options
@@ -205,9 +204,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' args in a list of strings.
-    The function considers cases where the first argument ends with '=' or the second starts with '=',
-    as well as when the middle one is an equals sign.
+    Merges arguments around isolated '=' args in a list of strings. The function considers cases where the first
+    argument ends with '=' or the second starts with '=', as well as when the middle one is an equals sign.
 
     Args:
         args (List[str]): A list of strings where each element is an argument.
@@ -343,7 +341,7 @@ def entrypoint(debug=''):
         'copy-cfg': copy_default_cfg}
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
-    # Define common mis-uses of special commands, i.e. -h, -help, --help
+    # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
     special.update({k[:-1]: v for k, v in special.items() if len(k) > 1 and k.endswith('s')})  # singular
     special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}

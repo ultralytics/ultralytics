@@ -8,8 +8,8 @@ class KalmanFilterXYAH:
     """
     For bytetrack. A simple Kalman filter for tracking bounding boxes in image space.
 
-    The 8-dimensional state space (x, y, a, h, vx, vy, va, vh) contains the bounding box center position (x, y),
-    aspect ratio a, height h, and their respective velocities.
+    The 8-dimensional state space (x, y, a, h, vx, vy, va, vh) contains the bounding box center position (x, y), aspect
+    ratio a, height h, and their respective velocities.
 
     Object motion follows a constant velocity model. The bounding box location (x, y, a, h) is taken as direct
     observation of the state space (linear observation model).
@@ -182,8 +182,8 @@ class KalmanFilterXYAH:
     def gating_distance(self, mean, covariance, measurements, only_position=False, metric='maha'):
         """
         Compute gating distance between state distribution and measurements. A suitable distance threshold can be
-        obtained from `chi2inv95`. If `only_position` is False, the chi-square distribution has 4 degrees of
-        freedom, otherwise 2.
+        obtained from `chi2inv95`. If `only_position` is False, the chi-square distribution has 4 degrees of freedom,
+        otherwise 2.
 
         Parameters
         ----------
@@ -223,8 +223,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
     """
     For BoT-SORT. A simple Kalman filter for tracking bounding boxes in image space.
 
-    The 8-dimensional state space (x, y, w, h, vx, vy, vw, vh) contains the bounding box center position (x, y),
-    width w, height h, and their respective velocities.
+    The 8-dimensional state space (x, y, w, h, vx, vy, vw, vh) contains the bounding box center position (x, y), width
+    w, height h, and their respective velocities.
 
     Object motion follows a constant velocity model. The bounding box location (x, y, w, h) is taken as direct
     observation of the state space (linear observation model).

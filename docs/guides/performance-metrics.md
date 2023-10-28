@@ -99,7 +99,7 @@ Chossing the right metrics to evaluate often depends on the specific application
 - **Recall:** Vital when it's important to detect every instance of an object.
 
 - **F1 Score:** Useful when a balance between precision and recall is needed.
-  
+
 For real-time applications, speed metrics like FPS (Frames Per Second) and latency are crucial to ensure timely results.
 
 ## Interpretation of Results

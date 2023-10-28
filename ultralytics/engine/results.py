@@ -9,12 +9,11 @@ from copy import deepcopy
 from functools import lru_cache
 from pathlib import Path
 
+import numpy as np
+import torch
 import torchvision
 from torchvision.transforms import Resize
 from torchvision.utils import draw_segmentation_masks
-
-import numpy as np
-import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
@@ -482,9 +481,9 @@ class Masks(BaseTensor):
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]
 
-
     def drawMask(self, orig_img, color='red', opacity=0.5, show=False, savePath=None):
-        """Draw the detection mask.
+        """
+        Draw the detection mask.
 
         Args:
             color (str): the color of the mask.
@@ -505,12 +504,11 @@ class Masks(BaseTensor):
         return masked
 
     def resize(self, mask):
-        """
-        Resizing the mask to match the original image dimension.
-        """
+        """Resizing the mask to match the original image dimension."""
         rs = Resize(self.orig_shape)
         resizedMask = rs(mask)
         return resizedMask
+
 
 class Keypoints(BaseTensor):
     """

@@ -197,4 +197,3 @@ class BOTSORT(BYTETracker):
         """Reset tracker."""
         super().reset()
         self.gmc.reset_params()
-

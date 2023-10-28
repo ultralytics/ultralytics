@@ -88,7 +88,7 @@ For future reference, the results are saved to a directory, typically named runs
 
 ## Choosing the Right Metrics
 
-Chossing the right metrics to evaluate often depends on the specific application.
+Choosing the right metrics to evaluate often depends on the specific application.
 
 - **mAP:** Suitable for a broad assessment of model performance.
 

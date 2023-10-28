@@ -261,8 +261,6 @@ class Results(SimpleClass):
 
         return annotator.result()
 
-    
-
     def verbose(self):
         """Return log string for each task."""
         log_string = ''
@@ -481,34 +479,33 @@ class Masks(BaseTensor):
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]
 
-    def drawMask(self,orig_img,color="red",opacity=0.5,show=False,savePath=None):
-        """ Draw the detection mask.
-        
-            Args :
-            color (str): the color of the mask.
-            orig_img (str): the path of the original image.
-            show (bool): Should the funtion show image.
-            savePath (str): a path to save de image.
+    def drawMask(self, orig_img, color='red', opacity=0.5, show=False, savePath=None):
+        """
+        Draw the detection mask.
+
+        Args :
+        color (str): the color of the mask.
+        orig_img (str): the path of the original image.
+        show (bool): Should the funtion show image.
+        savePath (str): a path to save de image.
         """
 
         booleanMask = self.data.bool()
         resized = resize(booleanMask)
         original_image = torchvision.io.read_image(orig_img)
-        img = torchvision.utils.draw_segmentation_masks(original_image,mask,alpha=opacity ,colors=color)
+        img = torchvision.utils.draw_segmentation_masks(original_image, mask, alpha=opacity, colors=color)
         convertor = torchvision.transforms.ToPILImage()
         masked = convertor(img)
-        if show == True :
+        if show == True:
             masked.show()
-        if savePath != None :
+        if savePath != None:
             masked.save(savePath)
         return masked
 
-    def resize(self,mask):
-        """
-            Resizing the mask to match original image dimension.
-        """
+    def resize(self, mask):
+        """Resizing the mask to match original image dimension."""
         rs = torchvision.transforms.Resize(self.orig_shape)
-        resizedMask = rs(mask,antialias=True)
+        resizedMask = rs(mask, antialias=True)
         return resizeMask
 
 

@@ -9,6 +9,10 @@ from copy import deepcopy
 from functools import lru_cache
 from pathlib import Path
 
+import torchvision
+from torchvision.transforms import Resize
+from torchvision.utils import draw_segmentation_masks
+
 import numpy as np
 import torch
 
@@ -477,8 +481,36 @@ class Masks(BaseTensor):
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]
-
-
+    
+    
+    def drawMask(self, orig_img, color='red', opacity=0.5, show=False, savePath=None):
+        """Draw the detection mask.
+        Args:
+            color (str): the color of the mask.
+            orig_img (str): the path of the original image.
+            show (bool): Should the function show the image.
+            savePath (str): a path to save the image.
+        """
+        booleanMask = self.data.bool()
+        resized = self.resize(booleanMask)
+        original_image = torchvision.io.read_image(orig_img)
+        img = draw_segmentation_masks(original_image, resized, alpha=opacity, colors=[color])
+        convertor = torchvision.transforms.ToPILImage()
+        masked = convertor(img)
+        if show:
+            masked.show()
+        if savePath:
+            masked.save(savePath)
+        return masked
+        
+    def resize(self, mask):
+        """
+        Resizing the mask to match the original image dimension.
+        """
+        rs = Resize(self.orig_shape,antialias=True)
+        resizedMask = rs(mask)
+        return resizedMask
+        
 class Keypoints(BaseTensor):
     """
     A class for storing and manipulating detection keypoints.

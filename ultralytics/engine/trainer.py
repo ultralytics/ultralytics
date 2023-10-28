@@ -179,7 +179,7 @@ class BaseTrainer:
                 self.args.batch = 16
 
             # Command
-            cmd, file = generate_ddp_command(world_size, self)
+            cmd, file = generate_ddp_command(world_size, self.args.distributed_args, self)
             try:
                 LOGGER.info(f'{colorstr("DDP:")} debug command {" ".join(cmd)}')
                 subprocess.run(cmd, check=True)

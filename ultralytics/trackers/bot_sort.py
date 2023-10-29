@@ -192,3 +192,8 @@ class BOTSORT(BYTETracker):
     def multi_predict(self, tracks):
         """Predict and track multiple objects with YOLOv8 model."""
         BOTrack.multi_predict(tracks)
+
+    def reset(self):
+        """Reset tracker."""
+        super().reset()
+        self.gmc.reset_params()

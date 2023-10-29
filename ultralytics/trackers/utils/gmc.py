@@ -300,3 +300,10 @@ class GMC:
         self.prevKeyPoints = copy.copy(keypoints)
 
         return H
+
+    def reset_params(self):
+        """Reset parameters."""
+        self.prevFrame = None
+        self.prevKeyPoints = None
+        self.prevDescriptors = None
+        self.initializedFirstFrame = False

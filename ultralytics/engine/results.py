@@ -9,11 +9,10 @@ from copy import deepcopy
 from functools import lru_cache
 from pathlib import Path
 
-import torchvision
-from torchvision.transforms import Resize
-
 import numpy as np
 import torch
+import torchvision
+from torchvision.transforms import Resize
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
@@ -480,12 +479,11 @@ class Masks(BaseTensor):
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]
-    
-    
+
     def drawMask(self, orig_img, color='red', opacity=0.5, show=False, savePath=None):
         """
         Draw the detection mask.
-        
+
         Args:
             color (str): the color of the mask.
             orig_img (str): the path of the original image.
@@ -503,14 +501,15 @@ class Masks(BaseTensor):
         if savePath:
             masked.save(savePath)
         return masked
-        
+
     def resize(self, mask):
         """Resizing the mask to match the original image dimension."""
-        
-        rs = Resize(self.orig_shape,antialias=True)
+
+        rs = Resize(self.orig_shape, antialias=True)
         resizedMask = rs(mask)
         return resizedMask
-        
+
+
 class Keypoints(BaseTensor):
     """
     A class for storing and manipulating detection keypoints.

@@ -234,7 +234,8 @@ model = YOLO('yolov8n.pt')  # load an official model
 results = model.predict(source='https://ultralytics.com/images/bus.jpg', classes=2)
 ```
 
-#### 12. What Pose structure follow Ultralytics YOLOv8 Pose?
+#### 12. What Pose structure Ultralytics YOLOv8 Pose follows?
+![204121854-ba14ce4c-d9fd-4244-92b7-038ef93199af](https://github.com/RizwanMunawar/ultralytics/assets/62513924/e3802057-fd8e-4826-a96e-2b49e6414549)
 
 #### 13. Ultralytics YOLOv8 License Information
 Any project that incorporates Ultralytics models, architecture, or code, whether modified or not, requires open-sourcing under the AGPL license. This means that if you're using a YOLO model from Ultralytics in your project and distributing it for commercial purposes, you are obligated to make the entire project open-source, even if you haven't made any changes to the original code or datasets.

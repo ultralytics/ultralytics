@@ -107,7 +107,7 @@ class Segment(Detect):
 
 
 class OBB(Detect):
-    """ YOLOv8 OBB detection head for detection with rotation models """
+    """YOLOv8 OBB detection head for detection with rotation models."""
 
     def __init__(self, nc=80, ne=1, ch=()):
         super().__init__(nc, ch)
@@ -128,7 +128,11 @@ class OBB(Detect):
 
     @staticmethod
     def logits2degrees(x):
-        """Convert 0-1 theta to -180 to +180 degrees. Overlap from -216 to +216 degrees to avoid edge effects."""
+        """
+        Convert 0-1 theta to -180 to +180 degrees.
+
+        Overlap from -216 to +216 degrees to avoid edge effects.
+        """
         return (x.sigmoid() * 1.2 - 0.6) * 360
 
 

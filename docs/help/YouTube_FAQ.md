@@ -4,7 +4,7 @@ description: Find solutions to your common Ultralytics YOLO related queries from
 keywords: Ultralytics, YOLO, FAQ, Object Detection, Image Classification, Object Tracking, Object Segmentation, YOLO accuracy
 ---
 
-# Ultralytics YOLO Frequently Asked Questions (FAQ) YouTube 
+# Ultralytics YOLO Frequently Asked Questions (FAQ) YouTube
 
 This FAQ section addresses some common questions and issues users might encounter while following Ultralytics YouTube Videos.
 
@@ -91,7 +91,7 @@ key_points = results.keypoints.data  # KeyPoints Data
 # Iterate over each keypoint
 for ind, kpt in enumerate(reversed(key_points)):
     print(kpt)  # k will include every keypoint of object
-    
+
     # ...later you can use this according to your needs
 ```
 
@@ -128,7 +128,7 @@ def send_email(to_email, from_email, people_detected=1):
     message.attach(MIMEText(f'ALERT - {people_detected} persons has been detected!!', 'plain'))
     server.sendmail(from_email, to_email, message.as_string())
 
-    
+
 class ObjectDetection:
     def __init__(self, capture_index):
         self.capture_index = capture_index

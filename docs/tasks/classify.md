@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv8, Image Classification, Pretrained Models, YOLOv8n-
 
 # Image Classification
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418606-adf35c62-2e11-405d-84c6-b84e7d013804.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418606-adf35c62-2e11-405d-84c6-b84e7d013804.png" alt="Image classification examples">
 
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of predefined classes.
 

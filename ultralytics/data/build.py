@@ -20,7 +20,11 @@ from .utils import PIN_MEMORY
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """Dataloader that reuses workers. Uses same syntax as vanilla DataLoader."""
+    """
+    Dataloader that reuses workers.
+
+    Uses same syntax as vanilla DataLoader.
+    """
 
     def __init__(self, *args, **kwargs):
         """Dataloader that infinitely recycles workers, inherits from DataLoader."""
@@ -38,7 +42,9 @@ class InfiniteDataLoader(dataloader.DataLoader):
             yield next(self.iterator)
 
     def reset(self):
-        """Reset iterator.
+        """
+        Reset iterator.
+
         This is useful when we want to modify settings of dataset while training.
         """
         self.iterator = self._get_iterator()
@@ -70,7 +76,7 @@ def seed_worker(worker_id):  # noqa
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode='train', rect=False, stride=32):
-    """Build YOLO Dataset"""
+    """Build YOLO Dataset."""
     return YOLODataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
@@ -115,7 +121,7 @@ def check_source(source):
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
-        is_url = source.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://'))
+        is_url = source.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://', 'tcp://'))
         webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
         screenshot = source.lower() == 'screen'
         if is_url and is_file:
@@ -135,7 +141,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=False):
+def load_inference_source(source=None, imgsz=640, vid_stride=1, buffer=False):
     """
     Loads an inference source for object detection and applies necessary transformations.
 
@@ -143,7 +149,7 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=Fa
         source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.
         imgsz (int, optional): The size of the image for inference. Default is 640.
         vid_stride (int, optional): The frame interval for video sources. Default is 1.
-        stream_buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
+        buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
 
     Returns:
         dataset (Dataset): A dataset object for the specified input source.
@@ -157,7 +163,7 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1, stream_buffer=Fa
     elif in_memory:
         dataset = source
     elif webcam:
-        dataset = LoadStreams(source, imgsz=imgsz, vid_stride=vid_stride, stream_buffer=stream_buffer)
+        dataset = LoadStreams(source, imgsz=imgsz, vid_stride=vid_stride, buffer=buffer)
     elif screenshot:
         dataset = LoadScreenshots(source, imgsz=imgsz)
     elif from_img:

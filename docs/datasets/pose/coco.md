@@ -8,7 +8,7 @@ keywords: Ultralytics YOLO, COCO-Pose Dataset, Deep Learning, Pose Estimation, T
 
 The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialized version of the COCO (Common Objects in Context) dataset, designed for pose estimation tasks. It leverages the COCO Keypoints 2017 images and labels to enable the training of models like YOLO for pose estimation tasks.
 
-![Pose sample image](https://user-images.githubusercontent.com/26833433/239691398-d62692dc-713e-4207-9908-2f6710050e5c.jpg)
+![Pose sample image](https://user-images.githubusercontent.com/26833433/277141128-cd62d09e-1eb0-4d20-9938-c55239a5cb76.jpg)
 
 ## Key Features
 

@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Base callbacks
-"""
+"""Base callbacks."""
 
 from collections import defaultdict
 from copy import deepcopy
@@ -212,11 +210,6 @@ def add_integration_callbacks(instance):
         from .tensorboard import callbacks as tb_cb
         from .wb import callbacks as wb_cb
         callbacks_list.extend([clear_cb, comet_cb, dvc_cb, mlflow_cb, neptune_cb, tune_cb, tb_cb, wb_cb])
-
-    # Load export callbacks (patch to avoid CoreML protobuf error)
-    if 'Exporter' in instance.__class__.__name__:
-        from .tensorboard import callbacks as tb_cb
-        callbacks_list.append(tb_cb)
 
     # Add the callbacks to the callbacks dictionary
     for callbacks in callbacks_list:

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Train a model on a dataset
+Train a model on a dataset.
 
 Usage:
     $ yolo mode=train model=yolov8n.pt data=coco128.yaml imgsz=640 epochs=100 batch=16
@@ -37,7 +37,7 @@ from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel,
 
 class BaseTrainer:
     """
-    BaseTrainer
+    BaseTrainer.
 
     A base class for creating trainers.
 
@@ -91,6 +91,7 @@ class BaseTrainer:
 
         # Dirs
         self.save_dir = get_save_dir(self.args)
+        self.args.name = self.save_dir.name  # update name for loggers
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in (-1, 0):
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -143,15 +144,11 @@ class BaseTrainer:
             callbacks.add_integration_callbacks(self)
 
     def add_callback(self, event: str, callback):
-        """
-        Appends the given callback.
-        """
+        """Appends the given callback."""
         self.callbacks[event].append(callback)
 
     def set_callback(self, event: str, callback):
-        """
-        Overrides the existing callbacks with the given callback.
-        """
+        """Overrides the existing callbacks with the given callback."""
         self.callbacks[event] = [callback]
 
     def run_callbacks(self, event: str):
@@ -207,9 +204,7 @@ class BaseTrainer:
             world_size=world_size)
 
     def _setup_train(self, world_size):
-        """
-        Builds dataloaders and optimizer on correct rank process.
-        """
+        """Builds dataloaders and optimizer on correct rank process."""
 
         # Model
         self.run_callbacks('on_pretrain_routine_start')
@@ -423,7 +418,10 @@ class BaseTrainer:
         self.run_callbacks('teardown')
 
     def save_model(self):
-        """Save model checkpoints based on various conditions."""
+        """Save model training checkpoints with additional metadata."""
+        import pandas as pd  # scope for faster startup
+        metrics = {**self.metrics, **{'fitness': self.fitness}}
+        results = {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient='list').items()}
         ckpt = {
             'epoch': self.epoch,
             'best_fitness': self.best_fitness,
@@ -432,34 +430,29 @@ class BaseTrainer:
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
             'train_args': vars(self.args),  # save as dict
+            'train_metrics': metrics,
+            'train_results': results,
             'date': datetime.now().isoformat(),
             'version': __version__}
 
-        # Use dill (if exists) to serialize the lambda functions where pickle does not do this
-        try:
-            import dill as pickle
-        except ImportError:
-            import pickle
-
-        # Save last, best and delete
-        torch.save(ckpt, self.last, pickle_module=pickle)
+        # Save last and best
+        torch.save(ckpt, self.last)
         if self.best_fitness == self.fitness:
-            torch.save(ckpt, self.best, pickle_module=pickle)
-        if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt', pickle_module=pickle)
-        del ckpt
+            torch.save(ckpt, self.best)
+        if (self.save_period > 0) and (self.epoch > 0) and (self.epoch % self.save_period == 0):
+            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
 
     @staticmethod
     def get_dataset(data):
         """
-        Get train, val path from data dict if it exists. Returns None if data format is not recognized.
+        Get train, val path from data dict if it exists.
+
+        Returns None if data format is not recognized.
         """
         return data['train'], data.get('val') or data.get('test')
 
     def setup_model(self):
-        """
-        load/create/download model for any task.
-        """
+        """Load/create/download model for any task."""
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
@@ -484,14 +477,14 @@ class BaseTrainer:
             self.ema.update(self.model)
 
     def preprocess_batch(self, batch):
-        """
-        Allows custom preprocessing model inputs and ground truths depending on task type.
-        """
+        """Allows custom preprocessing model inputs and ground truths depending on task type."""
         return batch
 
     def validate(self):
         """
-        Runs validation on test set using self.validator. The returned dict is expected to contain "fitness" key.
+        Runs validation on test set using self.validator.
+
+        The returned dict is expected to contain "fitness" key.
         """
         metrics = self.validator(self)
         fitness = metrics.pop('fitness', -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
@@ -508,26 +501,20 @@ class BaseTrainer:
         raise NotImplementedError('get_validator function not implemented in trainer')
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
-        """
-        Returns dataloader derived from torch.data.Dataloader.
-        """
+        """Returns dataloader derived from torch.data.Dataloader."""
         raise NotImplementedError('get_dataloader function not implemented in trainer')
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        """Build dataset"""
+        """Build dataset."""
         raise NotImplementedError('build_dataset function not implemented in trainer')
 
     def label_loss_items(self, loss_items=None, prefix='train'):
-        """
-        Returns a loss dict with labelled training loss items tensor
-        """
+        """Returns a loss dict with labelled training loss items tensor."""
         # Not needed for classification but necessary for segmentation & detection
         return {'loss': loss_items} if loss_items is not None else ['loss']
 
     def set_model_attributes(self):
-        """
-        To set or update model parameters before training.
-        """
+        """To set or update model parameters before training."""
         self.model.names = self.data['names']
 
     def build_targets(self, preds, targets):
@@ -540,7 +527,7 @@ class BaseTrainer:
 
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
-        """Plots training samples during YOLOv5 training."""
+        """Plots training samples during YOLO training."""
         pass
 
     def plot_training_labels(self):
@@ -634,8 +621,8 @@ class BaseTrainer:
 
     def build_optimizer(self, model, name='auto', lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """
-        Constructs an optimizer for the given model, based on the specified optimizer name, learning rate,
-        momentum, weight decay, and number of iterations.
+        Constructs an optimizer for the given model, based on the specified optimizer name, learning rate, momentum,
+        weight decay, and number of iterations.
 
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.
@@ -654,6 +641,9 @@ class BaseTrainer:
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         if name == 'auto':
+            LOGGER.info(f"{colorstr('optimizer:')} 'optimizer=auto' found, "
+                        f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
+                        f"determining best 'optimizer', 'lr0' and 'momentum' automatically... ")
             nc = getattr(model, 'nc', 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ('SGD', 0.01, 0.9) if iterations > 10000 else ('AdamW', lr_fit, 0.9)

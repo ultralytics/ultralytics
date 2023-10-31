@@ -1,6 +1,6 @@
 # YOLOv8-ONNXRuntime-Segmentation-Python Demo
 
-This project implements YOLOv8 segmentation using ONNX Runtime. No PyTorch code, just Numpy and OpenCV.
+This project implements YOLOv8 segmentation using ONNX Runtime. **No PyTorch code, just Numpy and OpenCV.**
 
 ## Installing Required Dependencies
 

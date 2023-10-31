@@ -42,7 +42,6 @@ class Model:
             x[..., :4] /= min(self.im_meta['ratio'])
             x[..., [0, 2]] = x[:, [0, 2]].clip(0, self.im_meta['im0'].shape[1])
             x[..., [1, 3]] = x[:, [1, 3]].clip(0, self.im_meta['im0'].shape[0])
-            y_segments, y_masks, y_boxes = list(), list(), list()
             masks = self.process_mask_hq(proto, x[:, 6:], x[:, :4], self.im_meta['im0'].shape)
             segments = self.mask2segs(masks)  # mask2segments
 

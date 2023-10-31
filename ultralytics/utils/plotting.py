@@ -168,7 +168,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
+    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True,thickness=2):
         """
         Plot keypoints on the image.
 
@@ -178,6 +178,7 @@ class Annotator:
             radius (int, optional): Radius of the drawn keypoints. Default is 5.
             kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
                                        for human pose. Default is True.
+            thickness (int, optional): Width of the connection line between the keypoints. Default is 2.
 
         Note: `kpt_line=True` currently only supports human pose plotting.
         """
@@ -211,7 +212,7 @@ class Annotator:
                     continue
                 if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
                     continue
-                cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[i]], thickness=2, lineType=cv2.LINE_AA)
+                cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[i]], thickness=thickness, lineType=cv2.LINE_AA)
         if self.pil:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)

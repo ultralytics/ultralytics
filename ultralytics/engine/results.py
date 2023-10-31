@@ -258,7 +258,7 @@ class Results(SimpleClass):
         # Plot Pose results
         if self.keypoints is not None:
             for k in reversed(self.keypoints.data):
-                annotator.kpts(k, self.orig_shape, radius=kpt_radius, kpt_line=kpt_line,thickness=kpt_thickness)
+                annotator.kpts(k, self.orig_shape, radius=kpt_radius, kpt_line=kpt_line, thickness=kpt_thickness)
 
         return annotator.result()
 

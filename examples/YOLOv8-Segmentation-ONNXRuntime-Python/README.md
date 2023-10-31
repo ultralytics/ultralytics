@@ -5,8 +5,8 @@ This project implements YOLOv8 segmentation using ONNX Runtime. **No PyTorch cod
 ## Installing Required Dependencies
 
 ```bash
-pip install untralytics 
-pip install onnxruntime-gpu   
+pip install untralytics
+pip install onnxruntime-gpu
 # pip install onnxruntime  # No NVIDIA GPU
 pip install numpy
 pip install opencv

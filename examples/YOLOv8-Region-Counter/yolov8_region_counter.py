@@ -120,34 +120,36 @@ def run(
 
         # Extract the results
         results = model.track(frame, persist=True)
-        boxes = results[0].boxes.xywh.cpu()
-        track_ids = results[0].boxes.id.int().cpu().tolist()
-        clss = results[0].boxes.cls.cpu().tolist()
-        names = results[0].names
 
-        annotator = Annotator(frame, line_width=line_thickness, example=str(names))
+        if results[0].boxes.id is not None:
+            boxes = results[0].boxes.xywh.cpu()
+            track_ids = results[0].boxes.id.int().cpu().tolist()
+            clss = results[0].boxes.cls.cpu().tolist()
+            names = results[0].names
 
-        for box, track_id, cls in zip(boxes, track_ids, clss):
-            x, y, w, h = box
-            label = str(names[cls])
-            xyxy = (x - w / 2), (y - h / 2), (x + w / 2), (y + h / 2)
+            annotator = Annotator(frame, line_width=line_thickness, example=str(names))
 
-            # Bounding box plot
-            bbox_color = colors(cls, True)
-            annotator.box_label(xyxy, label, color=bbox_color)
+            for box, track_id, cls in zip(boxes, track_ids, clss):
+                x, y, w, h = box
+                label = str(names[cls])
+                xyxy = (x - w / 2), (y - h / 2), (x + w / 2), (y + h / 2)
 
-            # Tracking Lines plot
-            track = track_history[track_id]
-            track.append((float(x), float(y)))
-            if len(track) > 30:
-                track.pop(0)
-            points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-            cv2.polylines(frame, [points], isClosed=False, color=bbox_color, thickness=track_thickness)
+                # Bounding box plot
+                bbox_color = colors(cls, True)
+                annotator.box_label(xyxy, label, color=bbox_color)
 
-            # Check if detection inside region
-            for region in counting_regions:
-                if region['polygon'].contains(Point((x, y))):
-                    region['counts'] += 1
+                # Tracking Lines plot
+                track = track_history[track_id]
+                track.append((float(x), float(y)))
+                if len(track) > 30:
+                    track.pop(0)
+                points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                cv2.polylines(frame, [points], isClosed=False, color=bbox_color, thickness=track_thickness)
+
+                # Check if detection inside region
+                for region in counting_regions:
+                    if region['polygon'].contains(Point((x, y))):
+                        region['counts'] += 1
 
         # Draw regions (Polygons/Rectangles)
         for region in counting_regions:

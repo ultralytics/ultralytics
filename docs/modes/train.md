@@ -47,7 +47,7 @@ The following are some notable features of YOLOv8's Train mode:
 
 ## Usage Examples
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Arguments section below for a full list of training arguments.
+Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device=cpu` will be used. See Arguments section below for a full list of training arguments.
 
 !!! example "Single-GPU and CPU Training Example"
 
@@ -82,9 +82,11 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Argum
 
 ### Multi-GPU Training
 
-The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device=cpu` will be used.
+Multi-GPU training allows for more efficient utilization of available hardware resources by distributing the training load across multiple GPUs. This feature is available through both the Python API and the command-line interface. To enable multi-GPU training, specify the GPU device IDs you wish to use.
 
 !!! example "Multi-GPU Training Example"
+
+    To train with 2 GPUs, CUDA devices 0 and 1 use the following commands. Expand to additional GPUs as required.
 
     === "Python"
 

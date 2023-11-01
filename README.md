@@ -1,3 +1,21 @@
+#### Python
+
+YOLOv8 DeGirum Export
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("relu6-yolov8n.yaml")  # build a new model from scratch
+model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+# Use the model
+model.train(data="coco128.yaml", epochs=3)  # train the model
+metrics = model.val(seperate_outputs=True)  # evaluate model performance on the validation set
+results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+path = model.export(format='onnx', export_hw_optimized=True, separate_outputs=True)
+```
+
 <div align="center">
   <p>
     <a href="https://yolovision.ultralytics.com/" target="_blank">
@@ -82,24 +100,6 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8 [CLI Docs](https://docs.ultralytics.com/usage/cli) for examples.
-
-#### Python
-
-YOLOv8 DeGirum Export
-
-```python
-from ultralytics import YOLO
-
-# Load a model
-model = YOLO("relu6-yolov8n.yaml")  # build a new model from scratch
-model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
-
-# Use the model
-model.train(data="coco128.yaml", epochs=3)  # train the model
-metrics = model.val(seperate_outputs=True)  # evaluate model performance on the validation set
-results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-path = model.export(format='onnx', export_hw_optimized=True, separate_outputs=True)
-```
 
 #### Python
 

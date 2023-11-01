@@ -2,6 +2,8 @@
 
 YOLOv8 DeGirum Export
 
+Our ultralytics_yolov8 fork contains implementations for exporting a YOLO model with 6 separate outputs, for improved performance in quantized models.
+
 ```python
 from ultralytics import YOLO
 

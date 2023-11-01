@@ -1,4 +1,10 @@
 #### Python
+YOLOv8 DeGirum Train
+
+DeGirum training uses ReLU6 activation to have improved model performance at edge
+```bash
+python dg_train.py --cfg relu6-yolov8.yaml --data coco128.yaml 
+```
 
 YOLOv8 DeGirum Export
 

@@ -85,6 +85,24 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 
 #### Python
 
+YOLOv8 DeGirum Export
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("relu6-yolov8n.yaml")  # build a new model from scratch
+model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+# Use the model
+model.train(data="coco128.yaml", epochs=3)  # train the model
+metrics = model.val(seperate_outputs=True)  # evaluate model performance on the validation set
+results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+path = model.export(format='onnx', export_hw_optimized=True, separate_outputs=True)
+```
+
+#### Python
+
 YOLOv8 may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
 
 ```python

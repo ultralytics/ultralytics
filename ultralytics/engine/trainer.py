@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Train a model on a dataset.
+Train a model on a dataset
 
 Usage:
     $ yolo mode=train model=yolov8n.pt data=coco128.yaml imgsz=640 epochs=100 batch=16
@@ -14,6 +14,7 @@ import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
+import re
 
 import numpy as np
 import torch
@@ -37,7 +38,7 @@ from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel,
 
 class BaseTrainer:
     """
-    BaseTrainer.
+    BaseTrainer
 
     A base class for creating trainers.
 
@@ -91,7 +92,6 @@ class BaseTrainer:
 
         # Dirs
         self.save_dir = get_save_dir(self.args)
-        self.args.name = self.save_dir.name  # update name for loggers
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in (-1, 0):
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -144,11 +144,15 @@ class BaseTrainer:
             callbacks.add_integration_callbacks(self)
 
     def add_callback(self, event: str, callback):
-        """Appends the given callback."""
+        """
+        Appends the given callback.
+        """
         self.callbacks[event].append(callback)
 
     def set_callback(self, event: str, callback):
-        """Overrides the existing callbacks with the given callback."""
+        """
+        Overrides the existing callbacks with the given callback.
+        """
         self.callbacks[event] = [callback]
 
     def run_callbacks(self, event: str):
@@ -203,8 +207,68 @@ class BaseTrainer:
             rank=RANK,
             world_size=world_size)
 
+    def _freezeLayerListWithRe(self, regex_pattern: str) -> list[str]:
+        freeze_matched = True
+
+        if regex_pattern.startswith("!"):
+            print("WARNING: freezeCfg starts with '!'. Assuming it is a regex pattern.")
+            freeze_matched = False
+            regex_pattern = regex_pattern[1:]
+        
+        compile_pattern = re.compile(regex_pattern)
+        layer_names = []
+
+        for name, _ in self.model.named_parameters():
+            if '.dfl' in name: 
+                layer_names.append(name)
+                continue
+
+            if freeze_matched and compile_pattern.match(name):
+                layer_names.append(name)
+            elif not freeze_matched and not compile_pattern.match(name):
+                layer_names.append(name)
+        return layer_names
+    
+    def _freezeLayerListWithLayerNumber(self, layer_num: int) -> list[str]:
+        return self._freezeLayerListWithLayerNumList(list(range(layer_num)))
+    
+    def _freezeLayerListWithLayerNumList(self, layers: list[int]) -> list[str]:
+        match_names = []
+        for layer_num in layers:
+            match_names.append(f"model.{layer_num}.")
+        layer_names = []
+        for name, _ in self.model.named_parameters():
+            if '.dfl' in name or any(match_name in name for match_name in match_names):
+                layer_names.append(name)
+        return layer_names
+
+    def _freezeLayers(self, freezeCfg: any) -> None:
+        freeze_layer_list = []
+        if isinstance(freezeCfg, str):
+            print("WARNING: freezeCfg is a string. Assuming it is a regex pattern.")
+            freeze_layer_list = self._freezeLayerListWithRe(freezeCfg)
+        elif isinstance(freezeCfg, int):
+            freeze_layer_list = self._freezeLayerListWithLayerNumber(freezeCfg)
+        elif isinstance(freezeCfg, list):
+            freeze_layer_list = self._freezeLayerListWithLayerNumList(freezeCfg)
+        else:
+            print(f"WARNING: freezeCfg is not a valid type: {type(freezeCfg)}")
+
+        for name, _ in self.model.named_parameters():
+            if name in freeze_layer_list:
+                LOGGER.info(f"Freezing layer '{name}'")
+                _.requires_grad = False
+            elif not _.requires_grad:
+                LOGGER.info(f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{name}'. "
+                            'See ultralytics.engine.trainer for customization of frozen layers.')
+                _.requires_grad = True
+            
+        return
+
     def _setup_train(self, world_size):
-        """Builds dataloaders and optimizer on correct rank process."""
+        """
+        Builds dataloaders and optimizer on correct rank process.
+        """
 
         # Model
         self.run_callbacks('on_pretrain_routine_start')
@@ -212,21 +276,8 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # Freeze layers
-        freeze_list = self.args.freeze if isinstance(
-            self.args.freeze, list) else range(self.args.freeze) if isinstance(self.args.freeze, int) else []
-        always_freeze_names = ['.dfl']  # always freeze these layers
-        freeze_layer_names = [f'model.{x}.' for x in freeze_list] + always_freeze_names
-        for k, v in self.model.named_parameters():
-            # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
-            if any(x in k for x in freeze_layer_names):
-                LOGGER.info(f"Freezing layer '{k}'")
-                v.requires_grad = False
-            elif not v.requires_grad:
-                LOGGER.info(f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
-                            'See ultralytics.engine.trainer for customization of frozen layers.')
-                v.requires_grad = True
-
+        self._freezeLayers(self.args.freeze)
+        
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
         if self.amp and RANK in (-1, 0):  # Single-GPU and DDP
@@ -445,14 +496,14 @@ class BaseTrainer:
     @staticmethod
     def get_dataset(data):
         """
-        Get train, val path from data dict if it exists.
-
-        Returns None if data format is not recognized.
+        Get train, val path from data dict if it exists. Returns None if data format is not recognized.
         """
         return data['train'], data.get('val') or data.get('test')
 
     def setup_model(self):
-        """Load/create/download model for any task."""
+        """
+        load/create/download model for any task.
+        """
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
@@ -477,14 +528,14 @@ class BaseTrainer:
             self.ema.update(self.model)
 
     def preprocess_batch(self, batch):
-        """Allows custom preprocessing model inputs and ground truths depending on task type."""
+        """
+        Allows custom preprocessing model inputs and ground truths depending on task type.
+        """
         return batch
 
     def validate(self):
         """
-        Runs validation on test set using self.validator.
-
-        The returned dict is expected to contain "fitness" key.
+        Runs validation on test set using self.validator. The returned dict is expected to contain "fitness" key.
         """
         metrics = self.validator(self)
         fitness = metrics.pop('fitness', -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
@@ -501,20 +552,26 @@ class BaseTrainer:
         raise NotImplementedError('get_validator function not implemented in trainer')
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
-        """Returns dataloader derived from torch.data.Dataloader."""
+        """
+        Returns dataloader derived from torch.data.Dataloader.
+        """
         raise NotImplementedError('get_dataloader function not implemented in trainer')
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        """Build dataset."""
+        """Build dataset"""
         raise NotImplementedError('build_dataset function not implemented in trainer')
 
     def label_loss_items(self, loss_items=None, prefix='train'):
-        """Returns a loss dict with labelled training loss items tensor."""
+        """
+        Returns a loss dict with labelled training loss items tensor
+        """
         # Not needed for classification but necessary for segmentation & detection
         return {'loss': loss_items} if loss_items is not None else ['loss']
 
     def set_model_attributes(self):
-        """To set or update model parameters before training."""
+        """
+        To set or update model parameters before training.
+        """
         self.model.names = self.data['names']
 
     def build_targets(self, preds, targets):
@@ -527,7 +584,7 @@ class BaseTrainer:
 
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
-        """Plots training samples during YOLO training."""
+        """Plots training samples during YOLOv5 training."""
         pass
 
     def plot_training_labels(self):
@@ -621,8 +678,8 @@ class BaseTrainer:
 
     def build_optimizer(self, model, name='auto', lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """
-        Constructs an optimizer for the given model, based on the specified optimizer name, learning rate, momentum,
-        weight decay, and number of iterations.
+        Constructs an optimizer for the given model, based on the specified optimizer name, learning rate,
+        momentum, weight decay, and number of iterations.
 
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.

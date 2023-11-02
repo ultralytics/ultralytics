@@ -244,7 +244,7 @@ class YOLOv8Seg:
         else:
             pad = ratio_pad[1]
 
-        # calculate tlbr of mask
+        # Calculate tlbr of mask
         top, left = int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))  # y, x
         bottom, right = int(round(im1_shape[0] - pad[1] + 0.1)), int(round(im1_shape[1] - pad[0] + 0.1))
         if len(masks.shape) < 2:
@@ -271,7 +271,7 @@ class YOLOv8Seg:
             None
         """
 
-        # draw rectangles and polygons
+        # Draw rectangles and polygons
         im_canvas = im.copy()
         for (*box, conf, cls_), segment in zip(bboxes, segments):
             # draw contour and fill mask
@@ -284,16 +284,16 @@ class YOLOv8Seg:
             cv2.putText(im, f'{self.classes[cls_]}: {conf:.3f}', (int(box[0]), int(box[1] - 9)),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, self.color_palette(int(cls_), bgr=True), 2, cv2.LINE_AA)
 
-        # mixup
+        # Mix image
         im = cv2.addWeighted(im_canvas, 0.3, im, 0.7, 0)
 
-        # imshow
+        # Show image
         if vis:
             cv2.imshow('demo', im)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
-        # save image
+        # Save image
         if save:
             cv2.imwrite('demo.jpg', im)
 

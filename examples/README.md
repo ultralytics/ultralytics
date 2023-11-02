@@ -20,13 +20,15 @@ This repository features a collection of real-world applications and walkthrough
 
 ### How to Contribute
 
-We welcome contributions from the community in the form of examples, applications, and guides. To contribute, please follow these steps:
+We greatly appreciate contributions from the community, including examples, applications, and guides. If you'd like to contribute, please follow these guidelines:
 
-1. Create a pull request (PR) with the `[Example]` prefix in the title, adding your project folder to the `examples/` directory in the repository.
-1. Ensure that your project meets the following criteria:
-   - Utilizes the `ultralytics` package.
-   - Includes a `README.md` file with instructions on how to run the project.
-   - Avoids adding large assets or dependencies unless absolutely necessary.
-   - The contributor is expected to provide support for issues related to their examples.
+1. Create a pull request (PR) with the title prefix `[Example]`, adding your new example folder to the `examples/` directory within the repository.
+1. Make sure your project adheres to the following standards:
+   - Makes use of the `ultralytics` package.
+   - Includes a `README.md` with clear instructions for setting up and running the example.
+   - Refrains from adding large files or dependencies unless they are absolutely necessary for the example.
+   - Contributors should be willing to provide support for their examples and address related issues.
 
-If you have any questions or concerns about these requirements, please submit a PR, and we will be more than happy to guide you.
+For more detailed information and guidance on contributing, please visit our [contribution documentation](https://docs.ultralytics.com/help/contributing).
+
+If you encounter any questions or concerns regarding these guidelines, feel free to open a PR or an issue in the repository, and we will assist you in the contribution process.

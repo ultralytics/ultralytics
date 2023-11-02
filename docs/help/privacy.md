@@ -78,8 +78,8 @@ To gain insight into the current configuration of your settings, you can view th
         # View all settings
         print(settings)
 
-        # Return a specific setting
-        value = settings['runs_dir']
+        # Return analytics and crash reporting setting
+        value = settings['sync']
         ```
 
     === "CLI"
@@ -109,14 +109,14 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
     === "CLI"
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
         ```bash
-        # Update a setting
-        yolo settings sync=false
+        # Disable analytics and crash reporting
+        yolo settings sync=False
 
         # Reset settings to default values
         yolo settings reset
         ```
 
-This will prevent any data from being sent to Google Analytics or Snyk. Your settings will be respected across all sessions using the Ultralytics package.
+The `sync=False` setting will prevent any data from being sent to Google Analytics or Snyk. Your settings will be respected across all sessions using the Ultralytics package and saved to disk for future sessions.
 
 ## Commitment to Privacy
 

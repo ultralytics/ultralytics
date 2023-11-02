@@ -278,7 +278,9 @@ def safe_download(url,
         url, file = get_google_drive_file_info(url)
 
     f = Path(dir or '.') / (file or url2file(url))  # URL converted to filename
-    if not f.is_file():  # URL and file do not exist
+    if '://' not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
+        f = Path(url)  # filename
+    elif not f.is_file():  # URL and file do not exist
         desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing

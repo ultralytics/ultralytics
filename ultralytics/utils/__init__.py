@@ -707,7 +707,7 @@ def remove_colorstr(input_string):
         >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
         >>> 'hello world'
     """
-    ansi_escape = re.compile(r'\x1B(?:[@-Z\\\-_]|\[[0-9]*[ -/]*[@-~])')
+    ansi_escape = re.compile(r'\x1B\[[0-9;]*[A-Za-z]')
     return ansi_escape.sub('', input_string)
 
 

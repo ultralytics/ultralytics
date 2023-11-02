@@ -10,7 +10,7 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 
 # Install linux packages
 RUN apt update \
-    && apt install --no-install-recommends -y libgl1-mesa-glx
+    && apt install --no-install-recommends -y libgl1
 
 # Copy contents
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt .

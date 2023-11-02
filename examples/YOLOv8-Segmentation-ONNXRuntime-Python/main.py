@@ -42,7 +42,7 @@ class YOLOv8Seg:
         The whole pipeline: pre-process -> inference -> post-process.
 
         Args:
-            im0 (Numpy.ndarray): orginal input image.
+            im0 (Numpy.ndarray): original input image.
             conf_threshold (float): confidence threshold for filtering predictions.
             iou_threshold (float): iou threshold for NMS.
             nm (int): the number of masks.
@@ -85,7 +85,7 @@ class YOLOv8Seg:
         """
 
         # Resize and pad input image using letterbox() (Borrowed from Ultralytics)
-        shape = img.shape[:2]  # orginal image shape
+        shape = img.shape[:2]  # original image shape
         new_shape = (self.model_height, self.model_width)
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
         ratio = r, r
@@ -97,7 +97,7 @@ class YOLOv8Seg:
         left, right = int(round(pad_w - 0.1)), int(round(pad_w + 0.1))
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
 
-        # Transfroms: HWC to CHW -> BGR to RGB -> div(255) -> contiguous -> add axis(optional)
+        # Transforms: HWC to CHW -> BGR to RGB -> div(255) -> contiguous -> add axis(optional)
         img = np.ascontiguousarray(np.einsum('HWC->CHW', img)[::-1], dtype=self.ndtype) / 255.0
         img_process = img[None] if len(img.shape) == 3 else img
         return img_process, ratio, (pad_w, pad_h)
@@ -108,7 +108,7 @@ class YOLOv8Seg:
 
         Args:
             preds (Numpy.ndarray): predictions come from ort.session.run().
-            im0 (Numpy.ndarray): [h, w, c] orginal input image.
+            im0 (Numpy.ndarray): [h, w, c] original input image.
             ratio (tuple): width, height ratios in letterbox.
             pad_w (float): width padding in letterbox.
             pad_h (float): height padding in letterbox.

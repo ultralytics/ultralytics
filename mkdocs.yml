@@ -405,6 +405,7 @@ nav:
       - Code of Conduct: help/code_of_conduct.md
       - Environmental, Health and Safety (EHS) Policy: help/environmental-health-safety.md
       - Security Policy: SECURITY.md
+      - Privacy Policy: help/privacy.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:

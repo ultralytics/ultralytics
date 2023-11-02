@@ -1,4 +1,5 @@
 import argparse
+
 import cv2
 import numpy as np
 import onnxruntime as ort
@@ -9,7 +10,7 @@ from ultralytics.utils.plotting import Colors
 
 
 class YOLOv8Seg:
-    """YOLOv8 segmentation model"""
+    """YOLOv8 segmentation model."""
 
     def __init__(self, onnx_model):
         """
@@ -36,8 +37,6 @@ class YOLOv8Seg:
         # Create color palette
         self.color_palette = Colors()
 
-
-
     def __call__(self, im0, conf_threshold=0.4, iou_threshold=0.45, nm=32):
         """
         The whole pipeline: pre-process -> inference -> post-process.
@@ -61,18 +60,15 @@ class YOLOv8Seg:
         preds = self.session.run(None, {self.session.get_inputs()[0].name: im})
 
         # Post-process
-        boxes, segments, masks = self.postprocess(
-            preds, 
-            im0=im0,
-            ratio=ratio, 
-            pad_w=pad_w, 
-            pad_h=pad_h, 
-            conf_threshold=conf_threshold, 
-            iou_threshold=iou_threshold, 
-            nm=nm
-        )
+        boxes, segments, masks = self.postprocess(preds,
+                                                  im0=im0,
+                                                  ratio=ratio,
+                                                  pad_w=pad_w,
+                                                  pad_h=pad_h,
+                                                  conf_threshold=conf_threshold,
+                                                  iou_threshold=iou_threshold,
+                                                  nm=nm)
         return boxes, segments, masks
-
 
     def preprocess(self, img):
         """
@@ -88,7 +84,7 @@ class YOLOv8Seg:
             pad_h (float): height padding in letterbox.
         """
 
-        # Resize and pad input image using letterbox() (Borrowed from Ultralytics) 
+        # Resize and pad input image using letterbox() (Borrowed from Ultralytics)
         shape = img.shape[:2]  # orginal image shape
         new_shape = (self.model_height, self.model_width)
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
@@ -105,7 +101,6 @@ class YOLOv8Seg:
         img = np.ascontiguousarray(np.einsum('HWC->CHW', img)[::-1], dtype=self.ndtype) / 255.0
         img_process = img[None] if len(img.shape) == 3 else img
         return img_process, ratio, (pad_w, pad_h)
-
 
     def postprocess(self, preds, im0, ratio, pad_w, pad_h, conf_threshold, iou_threshold, nm=32):
         """
@@ -158,19 +153,17 @@ class YOLOv8Seg:
 
             # Process masks
             masks = self.process_mask(protos[0], x[:, 6:], x[:, :4], im0.shape)
-            
+
             # Masks -> Segments(contours)
             segments = self.masks2segments(masks)
-            return x[..., :6], segments, masks   # boxes, segments, masks
+            return x[..., :6], segments, masks  # boxes, segments, masks
         else:
             return [], [], []
-
-
 
     @staticmethod
     def masks2segments(masks):
         """
-        It takes a list of masks(n,h,w) and returns a list of segments(n,xy) (Borrowed from 
+        It takes a list of masks(n,h,w) and returns a list of segments(n,xy) (Borrowed from
         https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/utils/ops.py#L750)
 
         Args:
@@ -181,7 +174,7 @@ class YOLOv8Seg:
         """
         segments = []
         for x in masks.astype('uint8'):
-            c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0]  # CHAIN_APPROX_SIMPLE 
+            c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0]  # CHAIN_APPROX_SIMPLE
             if c:
                 c = np.array(c[np.array([len(x) for x in c]).argmax()]).reshape(-1, 2)
             else:
@@ -189,11 +182,10 @@ class YOLOv8Seg:
             segments.append(c.astype('float32'))
         return segments
 
-
     @staticmethod
     def crop_mask(masks, boxes):
         """
-        It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box. (Borrowed from 
+        It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box. (Borrowed from
         https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/utils/ops.py#L599)
 
         Args:
@@ -208,7 +200,6 @@ class YOLOv8Seg:
         r = np.arange(w, dtype=x1.dtype)[None, None, :]
         c = np.arange(h, dtype=x1.dtype)[None, :, None]
         return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
-
 
     def process_mask(self, protos, masks_in, bboxes, im0_shape):
         """
@@ -232,11 +223,10 @@ class YOLOv8Seg:
         masks = self.crop_mask(masks, bboxes)
         return np.greater(masks, 0.5)
 
-
     @staticmethod
     def scale_mask(masks, im0_shape, ratio_pad=None):
         """
-        Takes a mask, and resizes it to the original image size. (Borrowed from  
+        Takes a mask, and resizes it to the original image size. (Borrowed from
         https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/utils/ops.py#L305)
 
         Args:
@@ -260,11 +250,11 @@ class YOLOv8Seg:
         if len(masks.shape) < 2:
             raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
         masks = masks[top:bottom, left:right]
-        masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]), interpolation=cv2.INTER_LINEAR)  # INTER_CUBIC would be better
+        masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]),
+                           interpolation=cv2.INTER_LINEAR)  # INTER_CUBIC would be better
         if len(masks.shape) == 2:
             masks = masks[:, :, None]
         return masks
-
 
     def draw_and_visualize(self, im, bboxes, segments, vis=False, save=True):
         """
@@ -289,23 +279,10 @@ class YOLOv8Seg:
             cv2.fillPoly(im_canvas, np.int32([segment]), self.color_palette(int(cls_), bgr=True))
 
             # draw bbox rectangle
-            cv2.rectangle(
-                im, 
-                (int(box[0]), int(box[1])), (int(box[2]), int(box[3])),
-                self.color_palette(int(cls_), bgr=True), 
-                1, 
-                cv2.LINE_AA
-            )
-            cv2.putText(
-                im, 
-                f'{self.classes[cls_]}: {conf:.3f}', 
-                (int(box[0]), int(box[1] - 9)),
-                cv2.FONT_HERSHEY_SIMPLEX, 
-                0.7, 
-                self.color_palette(int(cls_), bgr=True), 
-                2, 
-                cv2.LINE_AA
-            )
+            cv2.rectangle(im, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])),
+                          self.color_palette(int(cls_), bgr=True), 1, cv2.LINE_AA)
+            cv2.putText(im, f'{self.classes[cls_]}: {conf:.3f}', (int(box[0]), int(box[1] - 9)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, self.color_palette(int(cls_), bgr=True), 2, cv2.LINE_AA)
 
         # mixup
         im = cv2.addWeighted(im_canvas, 0.3, im, 0.7, 0)
@@ -319,7 +296,6 @@ class YOLOv8Seg:
         # save image
         if save:
             cv2.imwrite('demo.jpg', im)
-
 
 
 if __name__ == '__main__':

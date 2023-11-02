@@ -1,29 +1,26 @@
 # YOLOv8-Segmentation-ONNXRuntime-Python Demo
 
-This project implements YOLOv8 segmentation using ONNX Runtime. 
+This project implements YOLOv8 segmentation using ONNX Runtime.
 
- - No PyTorch imported! Just Numpy and OpenCV.
- - Support both FP32 and FP16 ONNX model.
+- No PyTorch imported! Just Numpy and OpenCV.
+- Support both FP32 and FP16 ONNX model.
 
-
-
-## Installation 
+## Installation
 
 ```bash
 pip install untralytics  # for exporting YOLOv8-seg ONNX model and using some basic functions
-pip install onnxruntime-gpu   
+pip install onnxruntime-gpu
 # pip install onnxruntime  # If has no NVIDIA GPU -> uncomment this line
 pip install numpy
 pip install opencv
 ```
 
-
 ## 1. Get ONNX model first
+
 ```bash
 yolo export model=yolov8s-seg.pt imgsz=640 format=onnx opset=12 simplify=true
 
 ```
-
 
 ## 2. Run
 

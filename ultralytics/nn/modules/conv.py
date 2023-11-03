@@ -262,7 +262,7 @@ class ChannelAttention(nn.Module):
 
     def __init__(self, f_input, r=16):
         """Initializes the class and sets the basic configurations and instance variables required."""
-        super(ChannelAttention, self).__init__()
+        super().__init__()
 
         # Apply the reduction ratio r to the input feature F
         f_reduced = f_input // r
@@ -272,21 +272,15 @@ class ChannelAttention(nn.Module):
         self.max_pool = nn.AdaptiveMaxPool2d(1)
 
         # Define the Shared MLP
-        self.shared_MLP = nn.Sequential(
-            nn.Linear(in_features=f_input, out_features=f_reduced),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.Linear(in_features=f_reduced, out_features=f_input)
-        )
+        self.shared_MLP = nn.Sequential(nn.Linear(in_features=f_input, out_features=f_reduced),
+                                        nn.LeakyReLU(0.1, inplace=True),
+                                        nn.Linear(in_features=f_reduced, out_features=f_input))
 
         # Define the sigmoid function σ()
         self.act = nn.Sigmoid()
 
     def forward(self, x):
-        """
-            Channel Attention
-            Mc(F) = σ(MLP(AvgPool(F)) + MLP(MaxPool(F)))
-                  = σ(W1(W0(Fc_avg)) + W1(W0(Fc_max)))
-        """
+        """Channel Attention Mc(F) = σ(MLP(AvgPool(F)) + MLP(MaxPool(F))) = σ(W1(W0(Fc_avg)) + W1(W0(Fc_max)))"""
         # MLP(AvgPool(F))
         mlp_avg_pool_f = self.shared_MLP(self.avg_pool(x).view(x.size(0), -1)).unsqueeze(2).unsqueeze(3)
 
@@ -298,10 +292,14 @@ class ChannelAttention(nn.Module):
 
 
 class SpatialAttention(nn.Module):
-    """Spatial-attention module. https://arxiv.org/abs/1807.06521"""
+    """
+    Spatial-attention module.
+
+    https://arxiv.org/abs/1807.06521
+    """
 
     def __init__(self):
-        super(SpatialAttention, self).__init__()
+        super().__init__()
         self.conv2d = nn.Conv2d(in_channels=2, out_channels=1, kernel_size=7, stride=1, padding=3)
         self.act = nn.Sigmoid()
 
@@ -316,8 +314,9 @@ class SpatialAttention(nn.Module):
 
 class CBAM(nn.Module):
     """CBAM: Convolutional Block Attention Module. https://arxiv.org/abs/1807.06521"""
+
     def __init__(self, f_input, c2):
-        super(CBAM, self).__init__()
+        super().__init__()
         self.channel_attention = ChannelAttention(f_input)
         self.spatial_attention = SpatialAttention()
 

@@ -450,7 +450,6 @@ class BaseTrainer:
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
-        print('\n\nSELF MODEL\n\n', self.model)
         model, weights = self.model, None
         ckpt = None
         if str(model).endswith('.pt'):

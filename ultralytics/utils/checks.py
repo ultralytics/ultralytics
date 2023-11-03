@@ -428,9 +428,12 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 
 def check_model_file_from_stem(model='yolov8n'):
     """Return a model filename from a valid model stem."""
-    suffix = Path(model).suffix
-    if not suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
-        return Path(model).with_suffix('.pt')  # add suffix, i.e. yolov8n -> yolov8n.pt
+    if isinstance(model, str):
+        model = Path(model)
+    if model and not model.suffix and model.stem in downloads.GITHUB_ASSETS_STEMS:
+        return model.with_suffix('.pt')  # add suffix, i.e. yolov8n -> yolov8n.pt
+    else:
+        return model
 
 
 def check_file(file, suffix='', download=True, hard=True):

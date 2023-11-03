@@ -10,12 +10,23 @@ from ultralytics.utils import SETTINGS
 #SETTINGS['comet'] = False  # set True to log using Comet.ml
 
 # Initialize model and load matching weights
-model = YOLO('yolov8s.yaml', task='detect').load('./../models/yolov8s.pt')
-epochs = 4
-batch = 258
+model = YOLO('yolov8s.yaml', task='detect').load('inference_tools/models/detector_best.pt')
+results = model.val(
+    data='client_data.yaml',
+    imgsz=640,
+    save_json=True,
+    device='mps',
+    plots=True,
+    max_det=150,
+)
+
+
+
+#epochs = 4
+#batch = 258
 
 #metrics = model.val(data='custom_dataset.yaml', verbose=True, plots=True, save_json=True, device=[1])
-
+"""
 model.train(
     resume=False,
     data='custom_dataset.yaml',
@@ -32,7 +43,7 @@ model.train(
     cos_lr=0.75
 
 )
-
+"""
 """
 # Resume training from 'training/weights/last.pt'
 model = YOLO('last.pt')

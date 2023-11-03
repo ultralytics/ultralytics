@@ -258,48 +258,72 @@ class RepConv(nn.Module):
 
 
 class ChannelAttention(nn.Module):
-    """Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet."""
+    """Channel-attention module https://arxiv.org/abs/1807.06521"""
 
-    def __init__(self, channels: int) -> None:
+    def __init__(self, f_input, r=16):
         """Initializes the class and sets the basic configurations and instance variables required."""
-        super().__init__()
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)
+        super(ChannelAttention, self).__init__()
+
+        # Apply the reduction ratio r to the input feature F
+        f_reduced = f_input // r
+
+        # Define the AvgPool and MaxPool functions
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+
+        # Define the Shared MLP
+        self.shared_MLP = nn.Sequential(
+            nn.Linear(in_features=f_input, out_features=f_reduced),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.Linear(in_features=f_reduced, out_features=f_input)
+        )
+
+        # Define the sigmoid function σ()
         self.act = nn.Sigmoid()
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Applies forward pass using activation on convolutions of the input, optionally using batch normalization."""
-        return x * self.act(self.fc(self.pool(x)))
+    def forward(self, x):
+        """
+            Channel Attention
+            Mc(F) = σ(MLP(AvgPool(F)) + MLP(MaxPool(F)))
+                  = σ(W1(W0(Fc_avg)) + W1(W0(Fc_max)))
+        """
+        # MLP(AvgPool(F))
+        mlp_avg_pool_f = self.shared_MLP(self.avg_pool(x).view(x.size(0), -1)).unsqueeze(2).unsqueeze(3)
+
+        # MLP(MaxPool(F))
+        mlp_max_pool_f = self.shared_MLP(self.max_pool(x).view(x.size(0), -1)).unsqueeze(2).unsqueeze(3)
+
+        # Mc(F)
+        return self.act(mlp_avg_pool_f + mlp_max_pool_f)
 
 
 class SpatialAttention(nn.Module):
-    """Spatial-attention module."""
+    """Spatial-attention module. https://arxiv.org/abs/1807.06521"""
 
-    def __init__(self, kernel_size=7):
-        """Initialize Spatial-attention module with kernel size argument."""
-        super().__init__()
-        assert kernel_size in (3, 7), 'kernel size must be 3 or 7'
-        padding = 3 if kernel_size == 7 else 1
-        self.cv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
+    def __init__(self):
+        super(SpatialAttention, self).__init__()
+        self.conv2d = nn.Conv2d(in_channels=2, out_channels=1, kernel_size=7, stride=1, padding=3)
         self.act = nn.Sigmoid()
 
     def forward(self, x):
-        """Apply channel and spatial attention on input for feature recalibration."""
-        return x * self.act(self.cv1(torch.cat([torch.mean(x, 1, keepdim=True), torch.max(x, 1, keepdim=True)[0]], 1)))
+        """
+           Channel Attention:
+           Ms(F) = σ(f7×7([AvgPool(F); MaxPool(F)]))
+                 = σ(f7×7([Fsavg; Fsmax]))
+        """
+        return self.act(self.conv2d(torch.cat([torch.mean(x, 1, keepdim=True), torch.max(x, 1, keepdim=True)[0]], 1)))
 
 
 class CBAM(nn.Module):
-    """Convolutional Block Attention Module."""
-
-    def __init__(self, c1, kernel_size=7):
-        """Initialize CBAM with given input channel (c1) and kernel size."""
-        super().__init__()
-        self.channel_attention = ChannelAttention(c1)
-        self.spatial_attention = SpatialAttention(kernel_size)
+    """CBAM: Convolutional Block Attention Module. https://arxiv.org/abs/1807.06521"""
+    def __init__(self, f_input, c2):
+        super(CBAM, self).__init__()
+        self.channel_attention = ChannelAttention(f_input)
+        self.spatial_attention = SpatialAttention()
 
     def forward(self, x):
-        """Applies the forward pass through C1 module."""
-        return self.spatial_attention(self.channel_attention(x))
+
+        return self.spatial_attention(self.channel_attention(x) * x) * self.channel_attention(x) * x
 
 
 class Concat(nn.Module):

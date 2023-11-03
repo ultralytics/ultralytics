@@ -611,10 +611,10 @@ class BaseTrainer:
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""
-        LOGGER.info('Closing dataloader mosaic')
         if hasattr(self.train_loader.dataset, 'mosaic'):
             self.train_loader.dataset.mosaic = False
         if hasattr(self.train_loader.dataset, 'close_mosaic'):
+            LOGGER.info('Closing dataloader mosaic')
             self.train_loader.dataset.close_mosaic(hyp=self.args)
 
     def build_optimizer(self, model, name='auto', lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):

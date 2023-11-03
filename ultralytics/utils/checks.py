@@ -21,8 +21,8 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, SimpleNamespace,
-                               ThreadingLocked, TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, SimpleNamespace, ThreadingLocked,
+                               TryExcept, USER_CONFIG_DIR, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
                                is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
 
 
@@ -401,7 +401,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
@@ -424,6 +424,13 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
                     f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
                     f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n')
     return file
+
+
+def check_model_file_from_stem(model='yolov8n'):
+    """Return a model filename from a valid model stem."""
+    suffix = Path(model).suffix
+    if not suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
+        return Path(model).with_suffix('.pt')  # add suffix, i.e. yolov8n -> yolov8n.pt
 
 
 def check_file(file, suffix='', download=True, hard=True):

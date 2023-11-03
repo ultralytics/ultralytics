@@ -44,7 +44,7 @@ We take several measures to ensure the privacy and security of the data you entr
 - **Crash Logs**: Detailed reports on the application's condition at the time of a crash, which are vital for our debugging efforts.
 - **Error Messages**: We record error messages generated during the operation of our package to understand and resolve potential issues quickly.
 
-To learn more about how Snyk handles data, please visit [Snyk's Privacy Policy](https://snyk.io/privacy/).
+To learn more about how Snyk handles data, please visit [Snyk's Privacy Policy](https://snyk.io/policies/privacy/).
 
 ### How We Use This Data
 

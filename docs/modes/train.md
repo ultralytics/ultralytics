@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom datase
 
 # Model Training with Ultralytics YOLO
 
-<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
+<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Introduction
 
@@ -14,9 +14,9 @@ Training a deep learning model involves feeding it data and adjusting its parame
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs" 
-    title="YouTube video player" frameborder="0" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
@@ -47,7 +47,7 @@ The following are some notable features of YOLOv8's Train mode:
 
 ## Usage Examples
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Arguments section below for a full list of training arguments.
+Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device=cpu` will be used. See Arguments section below for a full list of training arguments.
 
 !!! example "Single-GPU and CPU Training Example"
 
@@ -82,9 +82,11 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Argum
 
 ### Multi-GPU Training
 
-The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device=cpu` will be used.
+Multi-GPU training allows for more efficient utilization of available hardware resources by distributing the training load across multiple GPUs. This feature is available through both the Python API and the command-line interface. To enable multi-GPU training, specify the GPU device IDs you wish to use.
 
 !!! example "Multi-GPU Training Example"
+
+    To train with 2 GPUs, CUDA devices 0 and 1 use the following commands. Expand to additional GPUs as required.
 
     === "Python"
 
@@ -189,7 +191,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `project`         | `None`   | project name                                                                                   |
 | `name`            | `None`   | experiment name                                                                                |
 | `exist_ok`        | `False`  | whether to overwrite existing experiment                                                       |
-| `pretrained`      | `True`   | (bool | str) whether to use a pretrained model (bool) or a model to load weights from (str)    |
+| `pretrained`      | `True`   | (bool or str) whether to use a pretrained model (bool) or a model to load weights from (str)   |
 | `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]              |
 | `verbose`         | `False`  | whether to print verbose output                                                                |
 | `seed`            | `0`      | random seed for reproducibility                                                                |
@@ -240,7 +242,7 @@ To use Comet:
         ```python
         # pip install comet_ml
         import comet_ml
-        
+
         comet_ml.init()
         ```
 
@@ -258,7 +260,7 @@ To use ClearML:
         ```python
         # pip install clearml
         import clearml
-        
+
         clearml.browser_login()
         ```
 

@@ -38,3 +38,7 @@ div.highlight {
     overflow-y: auto; /* for adding a scrollbar when needed */
 }
 
+/* Set content width */
+.md-grid {
+  max-width: 1440px;
+}

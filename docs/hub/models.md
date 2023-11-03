@@ -174,7 +174,7 @@ Now, anyone who has the direct link to your model can view it.
 
 ??? tip "Tip"
 
-    You can easily click on the models's link shown in the **Share Model** dialog to copy it.
+    You can easily click on the model's link shown in the **Share Model** dialog to copy it.
 
     ![Ultralytics HUB screenshot of the Share Model dialog with an arrow pointing to the model's link](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_share_model_4.jpg)
 

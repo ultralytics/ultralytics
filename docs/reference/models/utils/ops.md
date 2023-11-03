@@ -16,7 +16,3 @@ keywords: Ultralytics, YOLO, HungarianMatcher, inverse_sigmoid, detection models
 ---
 ## ::: ultralytics.models.utils.ops.get_cdn_group
 <br><br>
-
----
-## ::: ultralytics.models.utils.ops.inverse_sigmoid
-<br><br>

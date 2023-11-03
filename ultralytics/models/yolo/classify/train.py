@@ -79,6 +79,7 @@ class ClassificationTrainer(BaseTrainer):
         return ckpt
 
     def build_dataset(self, img_path, mode='train', batch=None):
+        """Creates a ClassificationDataset instance given an image path, and mode (train/test etc.)."""
         return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train', prefix=mode)
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
@@ -113,8 +114,9 @@ class ClassificationTrainer(BaseTrainer):
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
-        Returns a loss dict with labelled training loss items tensor. Not needed for classification but necessary for
-        segmentation & detection
+        Returns a loss dict with labelled training loss items tensor.
+
+        Not needed for classification but necessary for segmentation & detection
         """
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is None:

@@ -7,7 +7,7 @@ keywords: Ultralytics, Data Collection, User Privacy, Google Analytics, Snyk, Cr
 
 ## Overview
 
-Ultralytics is dedicated to the continuous enhancement of the user experience and the capabilities of our Python package, including the advanced YOLO models we develop. Our approach involves the gathering of anonymized usage statistics and crash reports, helping us identify opportunities for improvement and ensuring the reliability of our software. This transparency document outlines what data we collect, its purpose, and the choice you have regarding this data collection.
+[Ultralytics](https://ultralytics.com) is dedicated to the continuous enhancement of the user experience and the capabilities of our Python package, including the advanced YOLO models we develop. Our approach involves the gathering of anonymized usage statistics and crash reports, helping us identify opportunities for improvement and ensuring the reliability of our software. This transparency document outlines what data we collect, its purpose, and the choice you have regarding this data collection.
 
 ## Anonymized Google Analytics
 

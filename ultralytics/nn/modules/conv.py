@@ -305,7 +305,7 @@ class SpatialAttention(nn.Module):
 
     def forward(self, x):
         """
-           Channel Attention:
+           Spatial Attention:
            Ms(F) = σ(f7×7([AvgPool(F); MaxPool(F)]))
                  = σ(f7×7([Fsavg; Fsmax]))
         """

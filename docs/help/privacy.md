@@ -7,7 +7,7 @@ keywords: Ultralytics, Data Collection, User Privacy, Google Analytics, Sentry, 
 
 ## Overview
 
-Ultralytics is dedicated to the continuous enhancement of the user experience and the capabilities of our Python package, including the advanced YOLO models we develop. Our approach involves the gathering of anonymized usage statistics and crash reports, helping us identify opportunities for improvement and ensuring the reliability of our software. This transparency document outlines what data we collect, its purpose, and the choice you have regarding this data collection.
+[Ultralytics](https://ultralytics.com) is dedicated to the continuous enhancement of the user experience and the capabilities of our Python package, including the advanced YOLO models we develop. Our approach involves the gathering of anonymized usage statistics and crash reports, helping us identify opportunities for improvement and ensuring the reliability of our software. This transparency document outlines what data we collect, its purpose, and the choice you have regarding this data collection.
 
 ## Anonymized Google Analytics
 
@@ -50,7 +50,7 @@ If the `sentry-sdk` Python package is pre-installed on your system a crash event
 - **Crash Logs**: Detailed reports on the application's condition at the time of a crash, which are vital for our debugging efforts.
 - **Error Messages**: We record error messages generated during the operation of our package to understand and resolve potential issues quickly.
 
-To learn more about how Sentry handles data, please visit [Sentry Privacy Policy](https://sentry.io/privacy/).
+To learn more about how Sentry handles data, please visit [Sentry's Privacy Policy](https://sentry.io/privacy/).
 
 ### How We Use This Data
 

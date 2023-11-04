@@ -1,6 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLO Continuous Integration (CI) GitHub Actions tests broken link checker
-# Accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
+# Continuous Integration (CI) GitHub Actions tests broken link checker using https://github.com/lycheeverse/lychee
+# Ignores the following status codes to reduce false positives:
+#   - 403(OpenVINO, 'forbidden')
+#   - 429(Instagram, 'too many requests')
+#   - 500(Zenodo, 'cached')
+#   - 502(Zenodo, 'bad gateway')
+#   - 999(LinkedIn, 'unknown status code')
 
 name: Check Broken links
 
@@ -28,7 +33,7 @@ jobs:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
-          command: lychee --accept 429,999 --exclude-loopback --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html'
+          command: lychee --accept 403,429,500,502,999 --exclude-loopback --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html'
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
@@ -37,4 +42,4 @@ jobs:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
-          command: lychee --accept 429,999 --exclude-loopback --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|url\.com|fonts\.gstatic\.com|url\.com)' --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
+          command: lychee --accept 429,999 --exclude-loopback --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'

@@ -161,7 +161,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         for f in TQDM(files, desc=f'Unzipping {file} to {Path(path).resolve()}...', unit='file', disable=not progress):
             # Ensure the file is within the extract_path to avoid path traversal security vulnerability
             if '..' in Path(f).parts:
-                LOGGER.warning(f"Potentially insecure file path: {f}, skipping extraction.")
+                LOGGER.warning(f'Potentially insecure file path: {f}, skipping extraction.')
                 continue
             zipObj.extract(f, extract_path)
 

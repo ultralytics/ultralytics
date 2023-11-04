@@ -198,7 +198,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         'small-vehicle': 10,
         'helicopter': 11,
         'roundabout': 12,
-        'soccer ball-field': 13,
+        'soccer-ball-field': 13,
         'swimming-pool': 14,
         'container-crane': 15,
         'airport': 16,

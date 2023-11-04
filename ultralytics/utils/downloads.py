@@ -262,6 +262,14 @@ def safe_download(url,
         min_bytes (float, optional): The minimum number of bytes that the downloaded file should have, to be considered
             a successful download. Default: 1E0.
         progress (bool, optional): Whether to display a progress bar during the download. Default: True.
+
+    Example:
+        ```python
+        from ultralytics.utils.downloads import safe_download
+
+        link = "https://ultralytics.com/assets/bus.jpg"
+        path = safe_download(link)
+        ```
     """
 
     # Check if the URL is a Google Drive link
@@ -269,11 +277,10 @@ def safe_download(url,
     if gdrive:
         url, file = get_google_drive_file_info(url)
 
-    f = dir / (file if gdrive else url2file(url)) if dir else Path(file)  # URL converted to filename
+    f = Path(dir or '.') / (file or url2file(url))  # URL converted to filename
     if '://' not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
-        assert dir or file, 'dir or file required for download'
         desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing

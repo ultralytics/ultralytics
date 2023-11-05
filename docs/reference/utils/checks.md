@@ -62,11 +62,19 @@ keywords: Ultralytics, utility checks, ASCII, check_version, pip_update, check_p
 <br><br>
 
 ---
+## ::: ultralytics.utils.checks.check_model_file_from_stem
+<br><br>
+
+---
 ## ::: ultralytics.utils.checks.check_file
 <br><br>
 
 ---
 ## ::: ultralytics.utils.checks.check_yaml
+<br><br>
+
+---
+## ::: ultralytics.utils.checks.check_is_path_safe
 <br><br>
 
 ---

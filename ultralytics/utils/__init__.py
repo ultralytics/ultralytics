@@ -270,6 +270,8 @@ set_logging(LOGGING_NAME, verbose=VERBOSE)  # run before defining LOGGER
 LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
 if WINDOWS:  # emoji-safe logging
     LOGGER.addFilter(EmojiFilter())
+for logger in 'sentry_sdk', 'urllib3.connectionpool':
+    logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
 class ThreadingLocked:
@@ -707,7 +709,7 @@ def remove_colorstr(input_string):
         >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
         >>> 'hello world'
     """
-    ansi_escape = re.compile(r'\x1B(?:[@-Z\\\-_]|\[[0-9]*[ -/]*[@-~])')
+    ansi_escape = re.compile(r'\x1B\[[0-9;]*[A-Za-z]')
     return ansi_escape.sub('', input_string)
 
 
@@ -818,10 +820,6 @@ def set_sentry():
             before_send=before_send,
             ignore_errors=[KeyboardInterrupt, FileNotFoundError])
         sentry_sdk.set_user({'id': SETTINGS['uuid']})  # SHA-256 anonymized UUID hash
-
-        # Disable all sentry logging
-        for logger in 'sentry_sdk', 'sentry_sdk.errors':
-            logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
 class SettingsManager(dict):

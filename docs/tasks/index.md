@@ -11,6 +11,17 @@ keywords: Ultralytics, YOLOv8, Detection, Segmentation, Classification, Pose Est
 
 YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/NAs-cfq9BDw"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Object Detection, Segmentation, Tracking, and Pose Estimation.
+</p>
+
 ## [Detection](detect.md)
 
 Detection is the primary task supported by YOLOv8. It involves detecting objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLOv8 can detect multiple objects in a single image or video frame with high accuracy and speed.

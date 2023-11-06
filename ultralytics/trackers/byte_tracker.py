@@ -374,6 +374,15 @@ class BYTETracker:
         """Resets the ID counter of STrack."""
         STrack.reset_id()
 
+    def reset(self):
+        """Reset tracker."""
+        self.tracked_stracks = []  # type: list[STrack]
+        self.lost_stracks = []  # type: list[STrack]
+        self.removed_stracks = []  # type: list[STrack]
+        self.frame_id = 0
+        self.kalman_filter = self.get_kalmanfilter()
+        self.reset_id()
+
     @staticmethod
     def joint_stracks(tlista, tlistb):
         """Combine two lists of stracks into a single one."""

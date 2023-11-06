@@ -2,14 +2,17 @@
 # Pre-commit hooks. For more information see https://github.com/pre-commit/pre-commit-hooks/blob/main/README.md
 # Optionally remove from local hooks with 'rm .git/hooks/pre-commit'
 
-# exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
   autoupdate_commit_msg: '[pre-commit.ci] pre-commit suggestions'
   autoupdate_schedule: monthly
-  # submodules: true
+  submodules: true
 
+# Exclude directories (optional)
+# exclude: 'docs/'
+
+# Define repos to run
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0

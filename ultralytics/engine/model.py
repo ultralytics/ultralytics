@@ -94,12 +94,6 @@ class Model(nn.Module):
             self.task = task
             return
 
-        # Check if Triton Server model
-        elif self.is_triton_model(model):
-            self.model = model
-            self.task = task
-            return
-
         # Load or create new YOLO model
         model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
         if Path(model).suffix in ('.yaml', '.yml'):

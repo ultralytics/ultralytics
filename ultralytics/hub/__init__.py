@@ -9,7 +9,8 @@ from ultralytics.utils import LOGGER, SETTINGS, emojis, is_colab
 
 
 def login(api_key: str = None, save=True) -> bool:
-    """Log in to the Ultralytics HUB API using the provided API key.
+    """
+    Log in to the Ultralytics HUB API using the provided API key.
 
     The session is not stored; a new session is created when needed using the saved SETTINGS or the HUB_API_KEY environment variable if successfully authenticated.
 

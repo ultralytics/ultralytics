@@ -113,7 +113,7 @@ class HUBTrainingSession:
     def _parse_identifier(self, identifier):
         """
         Parses the given identifier to determine the type of identifier and extract relevant components.
-        
+
         The method supports different identifier formats:
         - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
         - An identifier containing an API key and a model ID separated by an underscore
@@ -151,9 +151,10 @@ class HUBTrainingSession:
             elif identifier.endswith('.pt') or identifier.endswith('.yaml'):
                 filename = identifier
             else:
-                raise HUBModelError(f"model='{identifier}' could not be parsed. Check format is correct. "
-                                    f"Supported formats are Ultralytics HUB URL, apiKey_modelId, modelId, local pt or yaml file.")
-        
+                raise HUBModelError(
+                    f"model='{identifier}' could not be parsed. Check format is correct. "
+                    f'Supported formats are Ultralytics HUB URL, apiKey_modelId, modelId, local pt or yaml file.')
+
         return api_key, model_id, filename
 
     def _set_train_args(self, **kwargs):

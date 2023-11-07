@@ -117,7 +117,7 @@ print(pipeline_outputs)
 If you are running in the cloud, you may get an error that open-cv cannot find `libGL.so.1`. Running the following on Ubuntu installs it:
 
 ```
-apt-get install libgl1-mesa-glx
+apt-get install libgl1
 ```
 
 #### HTTP Server

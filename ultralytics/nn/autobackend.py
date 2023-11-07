@@ -7,7 +7,6 @@ import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
-from urllib.parse import urlparse
 
 import cv2
 import numpy as np
@@ -21,7 +20,11 @@ from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
 def check_class_names(names):
-    """Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts."""
+    """
+    Check class names.
+
+    Map imagenet class codes to human-readable names if required. Convert lists to dicts.
+    """
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
@@ -32,13 +35,40 @@ def check_class_names(names):
             raise KeyError(f'{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices '
                            f'{min(names.keys())}-{max(names.keys())} defined in your dataset YAML.')
         if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
-            map = yaml_load(ROOT / 'cfg/datasets/ImageNet.yaml')['map']  # human-readable names
-            names = {k: map[v] for k, v in names.items()}
+            names_map = yaml_load(ROOT / 'cfg/datasets/ImageNet.yaml')['map']  # human-readable names
+            names = {k: names_map[v] for k, v in names.items()}
     return names
 
 
 class AutoBackend(nn.Module):
+    """
+    Handles dynamic backend selection for running inference using Ultralytics YOLO models.
 
+    The AutoBackend class is designed to provide an abstraction layer for various inference engines. It supports a wide
+    range of formats, each with specific naming conventions as outlined below:
+
+        Supported Formats and Naming Conventions:
+            | Format                | File Suffix      |
+            |-----------------------|------------------|
+            | PyTorch               | *.pt             |
+            | TorchScript           | *.torchscript    |
+            | ONNX Runtime          | *.onnx           |
+            | ONNX OpenCV DNN       | *.onnx (dnn=True)|
+            | OpenVINO              | *openvino_model/ |
+            | CoreML                | *.mlpackage      |
+            | TensorRT              | *.engine         |
+            | TensorFlow SavedModel | *_saved_model    |
+            | TensorFlow GraphDef   | *.pb             |
+            | TensorFlow Lite       | *.tflite         |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite |
+            | PaddlePaddle          | *_paddle_model   |
+            | ncnn                  | *_ncnn_model     |
+
+    This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
+    models across various platforms.
+    """
+
+    @torch.no_grad()
     def __init__(self,
                  weights='yolov8n.pt',
                  device=torch.device('cpu'),
@@ -48,33 +78,16 @@ class AutoBackend(nn.Module):
                  fuse=True,
                  verbose=True):
         """
-        MultiBackend class for python inference on various platforms using Ultralytics YOLO.
+        Initialize the AutoBackend for inference.
 
         Args:
-            weights (str): The path to the weights file. Default: 'yolov8n.pt'
-            device (torch.device): The device to run the model on.
-            dnn (bool): Use OpenCV DNN module for inference if True, defaults to False.
-            data (str | Path | optional): Additional data.yaml file for class names.
-            fp16 (bool): If True, use half precision. Default: False
-            fuse (bool): Whether to fuse the model or not. Default: True
-            verbose (bool): Whether to run in verbose mode or not. Default: True
-
-        Supported formats and their naming conventions:
-            | Format                | Suffix           |
-            |-----------------------|------------------|
-            | PyTorch               | *.pt             |
-            | TorchScript           | *.torchscript    |
-            | ONNX Runtime          | *.onnx           |
-            | ONNX OpenCV DNN       | *.onnx dnn=True  |
-            | OpenVINO              | *.xml            |
-            | CoreML                | *.mlpackage      |
-            | TensorRT              | *.engine         |
-            | TensorFlow SavedModel | *_saved_model    |
-            | TensorFlow GraphDef   | *.pb             |
-            | TensorFlow Lite       | *.tflite         |
-            | TensorFlow Edge TPU   | *_edgetpu.tflite |
-            | PaddlePaddle          | *_paddle_model   |
-            | ncnn                  | *_ncnn_model     |
+            weights (str): Path to the model weights file. Defaults to 'yolov8n.pt'.
+            device (torch.device): Device to run the model on. Defaults to CPU.
+            dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
+            data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
+            fp16 (bool): Enable half-precision inference. Supported only on specific backends. Defaults to False.
+            fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
+            verbose (bool): Enable verbose logging. Defaults to True.
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -273,13 +286,9 @@ class AutoBackend(nn.Module):
             net.load_model(str(w.with_suffix('.bin')))
             metadata = w.parent / 'metadata.yaml'
         elif triton:  # NVIDIA Triton Inference Server
-            """TODO
             check_requirements('tritonclient[all]')
-            from utils.triton import TritonRemoteModel
-            model = TritonRemoteModel(url=w)
-            nhwc = model.runtime.startswith("tensorflow")
-            """
-            raise NotImplementedError('Triton Inference Server is not currently supported.')
+            from ultralytics.utils.triton import TritonRemoteModel
+            model = TritonRemoteModel(w)
         else:
             from ultralytics.engine.exporter import export_formats
             raise TypeError(f"model='{w}' is not a supported model format. "
@@ -308,6 +317,11 @@ class AutoBackend(nn.Module):
         if 'names' not in locals():  # names missing
             names = self._apply_default_class_names(data)
         names = check_class_names(names)
+
+        # Disable gradients
+        if pt:
+            for p in model.parameters():
+                p.requires_grad = False
 
         self.__dict__.update(locals())  # assign all variables to self
 
@@ -389,6 +403,7 @@ class AutoBackend(nn.Module):
                 ex.extract(output_name, mat_out)
                 y.append(np.array(mat_out)[None])
         elif self.triton:  # NVIDIA Triton Inference Server
+            im = im.cpu().numpy()  # torch to numpy
             y = self.model(im)
         else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
             im = im.cpu().numpy()
@@ -438,14 +453,14 @@ class AutoBackend(nn.Module):
 
     def from_numpy(self, x):
         """
-         Convert a numpy array to a tensor.
+        Convert a numpy array to a tensor.
 
-         Args:
-             x (np.ndarray): The array to be converted.
+        Args:
+            x (np.ndarray): The array to be converted.
 
-         Returns:
-             (torch.Tensor): The converted tensor
-         """
+        Returns:
+            (torch.Tensor): The converted tensor
+        """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):
@@ -474,7 +489,7 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p='path/to/model.pt'):
         """
-        This function takes a path to a model file and returns the model type
+        This function takes a path to a model file and returns the model type.
 
         Args:
             p: path to the model file. Defaults to path/to/model.pt
@@ -492,6 +507,8 @@ class AutoBackend(nn.Module):
         if any(types):
             triton = False
         else:
-            url = urlparse(p)  # if url may be Triton inference server
-            triton = all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
+            from urllib.parse import urlsplit
+            url = urlsplit(p)
+            triton = url.netloc and url.path and url.scheme in {'http', 'grfc'}
+
         return types + [triton]

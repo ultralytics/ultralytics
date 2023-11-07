@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Block modules
-"""
+"""Block modules."""
 
 import torch
 import torch.nn as nn
@@ -17,6 +15,7 @@ __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', '
 class DFL(nn.Module):
     """
     Integral module of Distribution Focal Loss (DFL).
+
     Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
     """
 
@@ -38,7 +37,12 @@ class DFL(nn.Module):
 class Proto(nn.Module):
     """YOLOv8 mask Proto module for segmentation models."""
 
-    def __init__(self, c1, c_=256, c2=32):  # ch_in, number of protos, number of masks
+    def __init__(self, c1, c_=256, c2=32):
+        """
+        Initializes the YOLOv8 mask Proto module with specified number of protos and masks.
+
+        Input arguments are ch_in, number of protos, number of masks.
+        """
         super().__init__()
         self.cv1 = Conv(c1, c_, k=3)
         self.upsample = nn.ConvTranspose2d(c_, c_, 2, 2, 0, bias=True)  # nn.Upsample(scale_factor=2, mode='nearest')
@@ -51,11 +55,14 @@ class Proto(nn.Module):
 
 
 class HGStem(nn.Module):
-    """StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
+    """
+    StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
     def __init__(self, c1, cm, c2):
+        """Initialize the SPP layer with input/output channels and specified kernel sizes for max pooling."""
         super().__init__()
         self.stem1 = Conv(c1, cm, 3, 2, act=nn.ReLU())
         self.stem2a = Conv(cm, cm // 2, 2, 1, 0, act=nn.ReLU())
@@ -79,11 +86,14 @@ class HGStem(nn.Module):
 
 
 class HGBlock(nn.Module):
-    """HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
+    """
+    HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
+
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
     def __init__(self, c1, cm, c2, k=3, n=6, lightconv=False, shortcut=False, act=nn.ReLU()):
+        """Initializes a CSP Bottleneck with 1 convolution using specified input and output channels."""
         super().__init__()
         block = LightConv if lightconv else Conv
         self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k, act=act) for i in range(n))
@@ -119,7 +129,12 @@ class SPP(nn.Module):
 class SPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 
-    def __init__(self, c1, c2, k=5):  # equivalent to SPP(k=(5, 9, 13))
+    def __init__(self, c1, c2, k=5):
+        """
+        Initializes the SPPF layer with given input/output channels and kernel size.
+
+        This module is equivalent to SPP(k=(5, 9, 13)).
+        """
         super().__init__()
         c_ = c1 // 2  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1)
@@ -137,7 +152,8 @@ class SPPF(nn.Module):
 class C1(nn.Module):
     """CSP Bottleneck with 1 convolution."""
 
-    def __init__(self, c1, c2, n=1):  # ch_in, ch_out, number
+    def __init__(self, c1, c2, n=1):
+        """Initializes the CSP Bottleneck with configurations for 1 convolution with arguments ch_in, ch_out, number."""
         super().__init__()
         self.cv1 = Conv(c1, c2, 1, 1)
         self.m = nn.Sequential(*(Conv(c2, c2, 3) for _ in range(n)))
@@ -151,7 +167,10 @@ class C1(nn.Module):
 class C2(nn.Module):
     """CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initializes the CSP Bottleneck with 2 convolutions module with arguments ch_in, ch_out, number, shortcut,
+        groups, expansion.
+        """
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -168,7 +187,10 @@ class C2(nn.Module):
 class C2f(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
+        expansion.
+        """
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -191,7 +213,8 @@ class C2f(nn.Module):
 class C3(nn.Module):
     """CSP Bottleneck with 3 convolutions."""
 
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize the CSP Bottleneck with given channels, number, shortcut, groups, and expansion values."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1)
@@ -218,6 +241,7 @@ class RepC3(nn.Module):
     """Rep C3."""
 
     def __init__(self, c1, c2, n=3, e=1.0):
+        """Initialize CSP Bottleneck with a single convolution using input channels, output channels, and number."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c2, 1, 1)
@@ -253,7 +277,8 @@ class C3Ghost(C3):
 class GhostBottleneck(nn.Module):
     """Ghost Bottleneck https://github.com/huawei-noah/ghostnet."""
 
-    def __init__(self, c1, c2, k=3, s=1):  # ch_in, ch_out, kernel, stride
+    def __init__(self, c1, c2, k=3, s=1):
+        """Initializes GhostBottleneck module with arguments ch_in, ch_out, kernel, stride."""
         super().__init__()
         c_ = c2 // 2
         self.conv = nn.Sequential(
@@ -271,7 +296,10 @@ class GhostBottleneck(nn.Module):
 class Bottleneck(nn.Module):
     """Standard bottleneck."""
 
-    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, groups, kernels, expand
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
+        """Initializes a bottleneck module with given input/output channels, shortcut option, group, kernels, and
+        expansion.
+        """
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, k[0], 1)
@@ -279,14 +307,15 @@ class Bottleneck(nn.Module):
         self.add = shortcut and c1 == c2
 
     def forward(self, x):
-        """'forward()' applies the YOLOv5 FPN to input data."""
+        """'forward()' applies the YOLO FPN to input data."""
         return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
 
 
 class BottleneckCSP(nn.Module):
     """CSP Bottleneck https://github.com/WongKinYiu/CrossStagePartialNetworks."""
 
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initializes the CSP Bottleneck given arguments for ch_in, ch_out, number, shortcut, groups, expansion."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1)

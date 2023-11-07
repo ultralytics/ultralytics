@@ -16,16 +16,20 @@ on:
         description: 'Run HUB'
         default: false
         type: boolean
-      tests:
-        description: 'Run Tests'
-        default: false
-        type: boolean
       benchmarks:
         description: 'Run Benchmarks'
         default: false
         type: boolean
+      tests:
+        description: 'Run Tests'
+        default: false
+        type: boolean
       gpu:
         description: 'Run GPU'
+        default: false
+        type: boolean
+      conda:
+        description: 'Run Conda'
         default: false
         type: boolean
 
@@ -39,7 +43,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ['3.11']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -102,7 +106,7 @@ jobs:
         python-version: ['3.10']
         model: [yolov8n]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -170,7 +174,7 @@ jobs:
             python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -179,11 +183,11 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |  # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
+          torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest-cov "coremltools>=7.0.b1" --extra-index-url https://download.pytorch.org/whl/cpu
-          else
-              pip install -e . pytest-cov "coremltools>=7.0.b1" --extra-index-url https://download.pytorch.org/whl/cpu
+              torch="torch==1.8.0 torchvision==0.9.0"
           fi
+          pip install -e . $torch pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
@@ -198,7 +202,13 @@ jobs:
           pip list
       - name: Pytest tests
         shell: bash  # for Windows compatibility
-        run: pytest --cov=ultralytics/ --cov-report xml tests/
+        run: |
+          slow=""
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              pip install mlflow pycocotools 'ray[tune]'
+              slow="--slow"
+          fi
+          pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
@@ -212,7 +222,7 @@ jobs:
     timeout-minutes: 60
     runs-on: gpu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install requirements
         run: pip install -e .
       - name: Check environment
@@ -237,7 +247,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule_disabled' || github.event.inputs.conda == 'true')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -257,14 +267,13 @@ jobs:
           activate-environment: anaconda-client-env
       - name: Install Libmamba
         run: |
-          # conda install conda-libmamba-solver
           conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
         run: |
-          conda install -c conda-forge ultralytics
+          conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
       - name: Install pip packages
         run: |
-          pip install pytest 'coremltools>=7.0.b1' # 'openvino-dev>=2023.0'
+          pip install pytest 'coremltools>=7.0'
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"
@@ -294,7 +303,7 @@ jobs:
       - name: PyTest
         run: |
           git clone https://github.com/ultralytics/ultralytics
-          pytest ultralytics/tests/test_cli.py  # full tests fail due to openvino export failure
+          pytest ultralytics/tests
 
   Summary:
     runs-on: ubuntu-latest

@@ -115,17 +115,17 @@ def verify_image_label(args):
             if nl:
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
-                    assert (lb[:, 5::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
-                    assert (lb[:, 6::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
+                    points = lb[:, 5:].reshape(-1, ndim)[:, :2]
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
-                    assert (lb[:, 1:] <= 1).all(), \
-                        f'non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}'
-                    assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
+                    points = lb[:, 1:]
+                assert points.max() <= 1, f'non-normalized or out of bounds coordinates {points[points > 1]}'
+                assert lb.min() >= 0, f'negative label values {lb[lb < 0]}'
+
                 # All labels
-                max_cls = int(lb[:, 0].max())  # max label count
+                max_cls = lb[:, 0].max()  # max label count
                 assert max_cls <= num_cls, \
-                    f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
+                    f'Label class {int(max_cls)} exceeds dataset class count {num_cls}. ' \
                     f'Possible class labels are 0-{num_cls - 1}'
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
@@ -135,11 +135,10 @@ def verify_image_label(args):
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros(
-                    (0, 5), dtype=np.float32)
+                lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+            lb = np.zeros((0, (5 + nkpt * ndim) if keypoints else 5), dtype=np.float32)
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
@@ -155,28 +154,40 @@ def verify_image_label(args):
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
+    Convert a list of polygons to a binary mask of the specified image size.
+
     Args:
-        imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
-        color (int): color
-        downsample_ratio (int): downsample ratio
+        imgsz (tuple): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        color (int, optional): The color value to fill in the polygons on the mask. Defaults to 1.
+        downsample_ratio (int, optional): Factor by which to downsample the mask. Defaults to 1.
+
+    Returns:
+        (np.ndarray): A binary mask of the specified image size with the polygons filled in.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons, dtype=np.int32)
     polygons = polygons.reshape((polygons.shape[0], -1, 2))
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
-    # NOTE: fillPoly first then resize is trying to keep the same way of loss calculation when mask-ratio=1.
+    # Note: fillPoly first then resize is trying to keep the same loss calculation method when mask-ratio=1
     return cv2.resize(mask, (nw, nh))
 
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
     """
+    Convert a list of polygons to a set of binary masks of the specified image size.
+
     Args:
-        imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): each polygon is [N, M], N is number of polygons, M is number of points (M % 2 = 0)
-        color (int): color
-        downsample_ratio (int): downsample ratio
+        imgsz (tuple): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        color (int): The color value to fill in the polygons on the masks.
+        downsample_ratio (int, optional): Factor by which to downsample each mask. Defaults to 1.
+
+    Returns:
+        (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
     """
     return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 
@@ -206,7 +217,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers YAML files that have the samestem as the provided path. An AssertionError
+    performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
     is raised if no YAML file is found or if multiple YAML files are found.
 
     Args:
@@ -439,7 +450,8 @@ class HUBDatasetStats:
         self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary
         self.data = data
 
-    def _unzip(self, path):
+    @staticmethod
+    def _unzip(path):
         """Unzip data.zip."""
         if not str(path).endswith('.zip'):  # path is data.yaml
             return False, None, path
@@ -548,9 +560,9 @@ class HUBDatasetStats:
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     """
-    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the
-    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will
-    not be resized.
+    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the Python
+    Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
+    resized.
 
     Args:
         f (str): The path to the input image file.

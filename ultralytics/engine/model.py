@@ -9,16 +9,12 @@ from ultralytics_hub_sdk.config import HUB_WEB_ROOT
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import (ASSETS, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, SETTINGS, callbacks, emojis,
-                               yaml_load)
-from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
-from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
-from ultralytics.utils.torch_utils import smart_inference_mode
+from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
 
 
-class Model:
+class Model(nn.Module):
     """
-    A base model class to unify apis for all the models.
+    A base class to unify APIs for all models.
 
     Args:
         model (str, Path): Path to the model file to load or create.
@@ -65,6 +61,7 @@ class Model:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
             task (Any, optional): Task type for the YOLO model. Defaults to None.
         """
+        super().__init__()
         self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor
         self.model = None  # model object
@@ -91,11 +88,21 @@ class Model:
 
             self.session = HUBTrainingSession(model)
 
+        # Check if Triton Server model
+        elif self.is_triton_model(model):
+            self.model = model
+            self.task = task
+            return
+
+        # Check if Triton Server model
+        elif self.is_triton_model(model):
+            self.model = model
+            self.task = task
+            return
+
         # Load or create new YOLO model
-        suffix = Path(model).suffix
-        if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
-            model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
-        if suffix in ('.yaml', '.yml'):
+        model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
+        if Path(model).suffix in ('.yaml', '.yml'):
             self._new(model, task)
         else:
             self._load(model, task)
@@ -103,6 +110,13 @@ class Model:
     def __call__(self, source=None, stream=False, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
+
+    @staticmethod
+    def is_triton_model(model):
+        """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
+        from urllib.parse import urlsplit
+        url = urlsplit(model)
+        return url.netloc and url.path and url.scheme in {'http', 'grfc'}
 
     @staticmethod
     def is_hub_model(model):
@@ -125,13 +139,12 @@ class Model:
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
-        self.model = (model or self.smart_load('model'))(cfg_dict, verbose=verbose and RANK == -1)  # build model
+        self.model = (model or self._smart_load('model'))(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
         self.overrides['task'] = self.task
 
         # Below added to allow export from YAMLs
-        args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine model and default args, preferring model args
-        self.model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
+        self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine default and model args (prefer model args)
         self.model.task = self.task
 
     def _load(self, weights: str, task=None):
@@ -149,7 +162,7 @@ class Model:
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
         else:
-            weights = check_file(weights)
+            weights = checks.check_file(weights)
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
@@ -157,22 +170,19 @@ class Model:
         self.overrides['task'] = self.task
 
     def _check_is_pytorch_model(self):
-        """
-        Raises TypeError is model is not a PyTorch model
-        """
+        """Raises TypeError is model is not a PyTorch model."""
         pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == '.pt'
         pt_module = isinstance(self.model, nn.Module)
         if not (pt_module or pt_str):
-            raise TypeError(f"model='{self.model}' must be a *.pt PyTorch model, but is a different type. "
-                            f'PyTorch models can be used to train, val, predict and export, i.e. '
-                            f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
-                            f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.")
+            raise TypeError(
+                f"model='{self.model}' should be a *.pt PyTorch model to run this method, but is a different format. "
+                f"PyTorch models can train, val, predict and export, i.e. 'model.train(data=...)', but exported "
+                f"formats like ONNX, TensorRT etc. only support 'predict' and 'val' modes, "
+                f"i.e. 'yolo predict model=yolov8n.onnx'.\nTo run CUDA or MPS inference please pass the device "
+                f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'")
 
-    @smart_inference_mode()
     def reset_weights(self):
-        """
-        Resets the model modules parameters to randomly initialized values, losing all training information.
-        """
+        """Resets the model modules parameters to randomly initialized values, losing all training information."""
         self._check_is_pytorch_model()
         for m in self.model.modules():
             if hasattr(m, 'reset_parameters'):
@@ -181,11 +191,8 @@ class Model:
             p.requires_grad = True
         return self
 
-    @smart_inference_mode()
     def load(self, weights='yolov8n.pt'):
-        """
-        Transfers parameters with matching names and shapes from 'weights' to model.
-        """
+        """Transfers parameters with matching names and shapes from 'weights' to model."""
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             weights, self.ckpt = attempt_load_one_weight(weights)
@@ -208,18 +215,17 @@ class Model:
         self._check_is_pytorch_model()
         self.model.fuse()
 
-    @smart_inference_mode()
     def predict(self, source=None, stream=False, predictor=None, **kwargs):
         """
         Perform prediction using the YOLO model.
 
         Args:
             source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
-                          Accepts all source types accepted by the YOLO model.
+                Accepts all source types accepted by the YOLO model.
             stream (bool): Whether to stream the predictions or not. Defaults to False.
             predictor (BasePredictor): Customized predictor.
             **kwargs : Additional keyword arguments passed to the predictor.
-                       Check the 'configuration' section in the documentation for all available options.
+                Check the 'configuration' section in the documentation for all available options.
 
         Returns:
             (List[ultralytics.engine.results.Results]): The prediction results.
@@ -236,7 +242,7 @@ class Model:
         prompts = args.pop('prompts', None)  # for SAM-type models
 
         if not self.predictor:
-            self.predictor = (predictor or self.smart_load('predictor'))(overrides=args, _callbacks=self.callbacks)
+            self.predictor = (predictor or self._smart_load('predictor'))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, args)
@@ -262,12 +268,10 @@ class Model:
         if not hasattr(self.predictor, 'trackers'):
             from ultralytics.trackers import register_tracker
             register_tracker(self, persist)
-        # ByteTrack-based method needs low confidence predictions as input
-        kwargs['conf'] = kwargs.get('conf') or 0.1
+        kwargs['conf'] = kwargs.get('conf') or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs['mode'] = 'track'
         return self.predict(source=source, stream=stream, **kwargs)
 
-    @smart_inference_mode()
     def val(self, validator=None, **kwargs):
         """
         Validate a model on a given dataset.
@@ -278,14 +282,12 @@ class Model:
         """
         custom = {'rect': True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, 'mode': 'val'}  # highest priority args on the right
-        args['imgsz'] = check_imgsz(args['imgsz'], max_dim=1)
 
-        validator = (validator or self.smart_load('validator'))(args=args, _callbacks=self.callbacks)
+        validator = (validator or self._smart_load('validator'))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
         return validator.metrics
 
-    @smart_inference_mode()
     def benchmark(self, **kwargs):
         """
         Benchmark a model on all export formats.
@@ -334,16 +336,16 @@ class Model:
             kwargs = self.session.train_args  # Overwrite kwargs
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
+            kwargs = self.session.train_args
+        checks.check_pip_update_available()
 
-        check_pip_update_available()
-
-        overrides = yaml_load(check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
+        overrides = yaml_load(checks.check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
         custom = {'data': TASK2DATA[self.task]}  # method defaults
         args = {**overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
         if args.get('resume'):
             args['resume'] = self.ckpt_path
 
-        self.trainer = (trainer or self.smart_load('trainer'))(overrides=args, _callbacks=self.callbacks)
+        self.trainer = (trainer or self._smart_load('trainer'))(overrides=args, _callbacks=self.callbacks)
         if not args.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
@@ -380,15 +382,12 @@ class Model:
             args = {**self.overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
 
-    def to(self, device):
-        """
-        Sends the model to the given device.
-
-        Args:
-            device (str): device
-        """
+    def _apply(self, fn):
+        """Apply to(), cpu(), cuda(), half(), float() to model tensors that are not parameters or registered buffers."""
         self._check_is_pytorch_model()
-        self.model.to(device)
+        self = super()._apply(fn)  # noqa
+        self.predictor = None  # reset predictor as device may have changed
+        self.overrides['device'] = self.device  # was str(self.device) i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
 
     @property
@@ -414,23 +413,23 @@ class Model:
         """Clear all event callbacks."""
         self.callbacks[event] = []
 
+    def reset_callbacks(self):
+        """Reset all registered callbacks."""
+        for event in callbacks.default_callbacks.keys():
+            self.callbacks[event] = [callbacks.default_callbacks[event][0]]
+
     @staticmethod
     def _reset_ckpt_args(args):
         """Reset arguments when loading a PyTorch model."""
         include = {'imgsz', 'data', 'task', 'single_cls'}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
 
-    def _reset_callbacks(self):
-        """Reset all registered callbacks."""
-        for event in callbacks.default_callbacks.keys():
-            self.callbacks[event] = [callbacks.default_callbacks[event][0]]
+    # def __getattr__(self, attr):
+    #    """Raises error if object has no requested attribute."""
+    #    name = self.__class__.__name__
+    #    raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def __getattr__(self, attr):
-        """Raises error if object has no requested attribute."""
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
-
-    def smart_load(self, key):
+    def _smart_load(self, key):
         """Load model/trainer/validator/predictor."""
         try:
             return self.task_map[self.task][key]

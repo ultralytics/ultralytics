@@ -23,7 +23,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
   <img width="640" src="https://user-images.githubusercontent.com/26833433/263858934-4f109a2f-82d9-4d08-8bd6-6fd1ff520bcd.png" alt="Hyperparameter Tuning Visual">
 </p>
 
-For a full list of augmentation hyperparameters used in YOLOv8 please refer to [https://docs.ultralytics.com/usage/cfg/#augmentation)(https://docs.ultralytics.com/usage/cfg/#augmentation).
+For a full list of augmentation hyperparameters used in YOLOv8 please refer to [https://docs.ultralytics.com/usage/cfg/#augmentation](https://docs.ultralytics.com/usage/cfg/#augmentation).
 
 ### Genetic Evolution and Mutation
 
@@ -75,10 +75,10 @@ Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyp
 
         ```python
         from ultralytics import YOLO
-        
+
         # Initialize the YOLO model
         model = YOLO('yolov8n.pt')
-        
+
         # Tune hyperparameters on COCO8 for 30 epochs
         model.tune(data='coco8.yaml', epochs=30, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
         ```
@@ -123,7 +123,7 @@ This YAML file contains the best-performing hyperparameters found during the tun
     # Best fitness metrics are {'metrics/precision(B)': 0.87247, 'metrics/recall(B)': 0.71387, 'metrics/mAP50(B)': 0.79106, 'metrics/mAP50-95(B)': 0.62651, 'val/box_loss': 2.79884, 'val/cls_loss': 2.72386, 'val/dfl_loss': 0.68503, 'fitness': 0.64297}
     # Best fitness model is /usr/src/ultralytics/runs/detect/train498
     # Best fitness hyperparameters are printed below.
-    
+
     lr0: 0.00269
     lrf: 0.00288
     momentum: 0.73375
@@ -203,4 +203,4 @@ The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful
 2. [YOLOv5 Hyperparameter Evolution Guide](https://docs.ultralytics.com/yolov5/tutorials/hyperparameter_evolution/)
 3. [Efficient Hyperparameter Tuning with Ray Tune and YOLOv8](https://docs.ultralytics.com/integrations/ray-tune/)
 
-For deeper insights, you can explore the `Tuner` class source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://ultralytics.com/discord)
+For deeper insights, you can explore the `Tuner` class source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://ultralytics.com/discord).

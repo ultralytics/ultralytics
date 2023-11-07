@@ -4,8 +4,7 @@ description: Detailed guide on loading YOLOv5 from PyTorch Hub. Includes example
 keywords: Ultralytics, YOLOv5, PyTorch, loading YOLOv5, PyTorch Hub, inference, multi-GPU inference, training
 ---
 
-📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5).
-UPDATED 26 March 2023.
+📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5). UPDATED 26 March 2023.
 
 ## Before You Start
 

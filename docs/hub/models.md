@@ -6,7 +6,7 @@ keywords: Ultralytics, HUB Models, AI model training, model creation, model trai
 
 # Ultralytics HUB Models
 
-Ultralytics HUB models provide a streamlined solution for training vision AI models on your custom datasets.
+[Ultralytics HUB](https://hub.ultralytics.com/) models provide a streamlined solution for training vision AI models on your custom datasets.
 
 The process is user-friendly and efficient, involving a simple three-step creation and accelerated training powered by Utralytics YOLOv8. During training, real-time updates on model metrics are available so that you can monitor each step of the progress. Once training is completed, you can preview your model and easily deploy it to real-world applications. Therefore, Ultralytics HUB offers a comprehensive yet straightforward system for model creation, training, evaluation, and deployment.
 
@@ -174,7 +174,7 @@ Now, anyone who has the direct link to your model can view it.
 
 ??? tip "Tip"
 
-    You can easily click on the models's link shown in the **Share Model** dialog to copy it.
+    You can easily click on the model's link shown in the **Share Model** dialog to copy it.
 
     ![Ultralytics HUB screenshot of the Share Model dialog with an arrow pointing to the model's link](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_share_model_4.jpg)
 

@@ -79,7 +79,7 @@ class Model(nn.Module):
             from ultralytics.hub.session import HUBTrainingSession
 
             session = HUBTrainingSession(model)
-            return session if sessions.client.authenticated else None
+            return session if session.client.authenticated else None
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):

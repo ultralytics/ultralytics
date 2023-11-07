@@ -75,19 +75,24 @@ class Model(nn.Module):
         self.task = task  # task type
         model = str(model).strip()  # strip spaces
 
+        def get_hub_session(model):
+            from ultralytics.hub.session import HUBTrainingSession
+
+            session = HUBTrainingSession(model)
+            return session if sessions.client.authenticated else None
+
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
             # Fetch model from HUB
-            from ultralytics.hub.session import HUBTrainingSession
-
-            self.session = HUBTrainingSession(model)
+            self.session = get_hub_session(model)
             model = self.session.model_file
         elif SETTINGS['hub'] is True:
             # Create a model in HUB
-            from ultralytics.hub.session import HUBTrainingSession
-
-            self.session = HUBTrainingSession(model)
-
+            try:
+                self.session = get_hub_session(model)
+            except PermissionError:
+                # Ignore permission error
+                pass
         # Check if Triton Server model
         elif self.is_triton_model(model):
             self.model = model

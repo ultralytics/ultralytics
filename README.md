@@ -22,7 +22,7 @@ model.train(data="coco128.yaml", epochs=3)  # train the model
 metrics = model.val()  # evaluate model performance on the validation set
 results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 path = model.export(format='onnx', export_hw_optimized=True, separate_outputs=True)
-metrics = model.val(path, seperate_outputs=True)  # evaluate model performance on exported models
+metrics = model.val(path, separate_outputs=True)  # evaluate model performance on exported models
 ```
 
 <div align="center">

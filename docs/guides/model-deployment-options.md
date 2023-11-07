@@ -20,7 +20,7 @@ The ideal format depends on your model's intended operational context, balancing
 
 ### YOLOv8’s Deployment Options
 
-Let’s walk through the different YOLOv8 deployment options.
+Let’s walk through the different YOLOv8 deployment options. For a detailed walkthrough of the export process, visit the [Ultralytics documentation page on exporting](https://docs.ultralytics.com/modes/export/).
 
 #### PyTorch
 
@@ -93,6 +93,8 @@ OpenVINO is an Intel toolkit designed to facilitate the deployment of deep learn
 - **Security Considerations**: Provides robust security features suitable for deployment in sensitive applications.
 
 - **Hardware Acceleration**: Tailored for acceleration on Intel hardware, leveraging dedicated instruction sets and hardware features.
+
+For more details on deployment using OpenVINO, refer to the Ultralytics Integration documentation: [Intel OpenVINO Export](https://docs.ultralytics.com/integrations/openvino/).
 
 #### TensorRT
 
@@ -258,7 +260,7 @@ ncnn is a high-performance neural network inference framework optimized for the 
 
 ## Comparative Analysis of YOLOv8 Deployment Options
 
-The following table provides a snapshot of the various deployment options available for YOLOv8 models, helping you to assess which may best fit your project needs based on several critical criteria.
+The following table provides a snapshot of the various deployment options available for YOLOv8 models, helping you to assess which may best fit your project needs based on several critical criteria. For an in-depth look at each deployment option's format, please see the [Ultralytics documentation page on export formats](https://docs.ultralytics.com/modes/export/#export-formats).
 
 | Deployment Option | Performance Benchmarks | Compatibility and Integration | Community Support and Ecosystem | Case Studies | Maintenance and Updates | Security Considerations | Hardware Acceleration |
 |--------------------|------------------------|-------------------------------|--------------------------------|--------------|------------------------|-------------------------|-----------------------|
@@ -276,7 +278,7 @@ The following table provides a snapshot of the various deployment options availa
 | PaddlePaddle       | Competitive, easy to use and scalable | Baidu ecosystem, wide application support | Rapidly growing, especially in China | Chinese market and language processing | Focus on Chinese AI applications | Emphasizes data privacy and security | Including Baidu's Kunlun chips |
 | ncnn               | Optimized for mobile ARM-based devices | Mobile and embedded ARM systems | Niche but active mobile/embedded ML community | Android and ARM systems efficiency | High performance maintenance on ARM | On-device security advantages | ARM CPUs and GPUs optimizations |
 
-This comparative analysis gives you a high-level overview. For deployment, it's essential to consider the specific requirements and constraints of your project, and consult the detailed documentation and resources available for each option.
+This comparative analysis gives you a high-level overview. For deployment, it's essential to consider the specific requirements and constraints of your project, and consult the detailed documentation and resources available for each option. 
 
 ## Community and Support
 

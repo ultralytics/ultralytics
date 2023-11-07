@@ -1,3 +1,30 @@
+#### Python
+YOLOv8 DeGirum Train
+
+DeGirum training uses ReLU6 activation to have improved model performance at edge
+```bash
+python dg_train.py --cfg relu6-yolov8.yaml --data coco128.yaml 
+```
+
+YOLOv8 DeGirum Export
+
+Our ultralytics_yolov8 fork contains implementations for exporting a YOLO model with 6 separate outputs, for improved performance in quantized models.
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("relu6-yolov8n.yaml")  # build a new model from scratch
+model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+# Use the model
+model.train(data="coco128.yaml", epochs=3)  # train the model
+metrics = model.val()  # evaluate model performance on the validation set
+results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+path = model.export(format='onnx', export_hw_optimized=True, separate_outputs=True)
+metrics = model.val(path, separate_outputs=True)  # evaluate model performance on exported models
+```
+
 <div align="center">
   <p>
     <a href="https://yolovision.ultralytics.com/" target="_blank">

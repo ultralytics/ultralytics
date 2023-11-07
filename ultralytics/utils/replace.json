@@ -104,6 +104,12 @@
       "param_target": "attributes",
       "param_name": "perm",
       "values": [0,2,3,1]
+    },
+    {
+      "op_name": "/model.24/Transpose_3",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
     }
   ]
 }

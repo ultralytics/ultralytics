@@ -111,26 +111,50 @@ class HUBTrainingSession:
         LOGGER.info(f'{PREFIX}View model at {self.model_url} 🚀')
 
     def _parse_identifier(self, identifier):
-        # Split the identifier based on the last occurrence of '/models/'
-        parts = identifier.split(f'{HUB_WEB_ROOT}/models/')[-1].split('_')
+        """
+        Parses the given identifier to determine the type of identifier and extract relevant components.
+        
+        The method supports different identifier formats:
+        - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
+        - An identifier containing an API key and a model ID separated by an underscore
+        - An identifier that is solely a model ID of a fixed length
+        - A local filename that ends with '.pt' or '.yaml'
 
+        Parameters:
+        - identifier (str): The identifier string to be parsed.
+
+        Returns:
+        - tuple: A tuple containing the API key, model ID, and filename as applicable.
+
+        Raises:
+        - HUBModelError: If the identifier format is not recognized.
+        """
+
+        # Initialize variables
         api_key, model_id, filename = None, None, None
 
-        # Check if the parts have the expected lengths
-        if len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
-            # Is old format 'key*42_id*20'
-            api_key, model_id = parts
-        elif len(parts) == 1 and len(parts[0]) == 20:
-            # Is new format 'id*20'
-            model_id = parts[0]
-        elif parts[0].endswith('.pt') or parts[0].endswith('.yaml'):
-            # Is local file or default
-            filename = parts[0]
+        # Check if identifier is a HUB URL
+        if identifier.startswith(f'{HUB_WEB_ROOT}/models/'):
+            # Extract the filename part after the HUB_WEB_ROOT URL
+            filename = identifier.split(f'{HUB_WEB_ROOT}/models/')[-1]
         else:
-            raise HUBModelError(f"model='{identifier}' not found. Check format is correct, i.e. "
-                                f"model='{HUB_WEB_ROOT}/models/MODEL_ID' and try again.")
+            # Split the identifier based on underscores only if it's not a HUB URL
+            parts = identifier.split('_')
 
-        return (api_key, model_id, filename)
+            # Check if identifier is in the format of API key and model ID
+            if len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
+                api_key, model_id = parts
+            # Check if identifier is a single model ID
+            elif len(parts) == 1 and len(parts[0]) == 20:
+                model_id = parts[0]
+            # Check if identifier is a local filename
+            elif identifier.endswith('.pt') or identifier.endswith('.yaml'):
+                filename = identifier
+            else:
+                raise HUBModelError(f"model='{identifier}' could not be parsed. Check format is correct. "
+                                    f"Supported formats are Ultralytics HUB URL, apiKey_modelId, modelId, local pt or yaml file.")
+        
+        return api_key, model_id, filename
 
     def _set_train_args(self, **kwargs):
         if self.model.is_trained():

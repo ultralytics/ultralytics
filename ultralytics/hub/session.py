@@ -6,7 +6,7 @@ from http import HTTPStatus
 from pathlib import Path
 
 import requests
-from ultralytics_hub_sdk import HUB_WEB_ROOT, HUBClient
+from hub_sdk import HUB_WEB_ROOT, HUBClient
 
 from ultralytics.hub.utils import HELP_MSG, PREFIX, TQDM
 from ultralytics.utils import LOGGER, SETTINGS, __version__, checks, emojis, is_colab
@@ -52,10 +52,6 @@ class HUBTrainingSession:
             'heartbeat': 300.0, }  # rate limits (seconds)
         self.metrics_queue = {}  # holds metrics for each epoch until upload
         self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
-        self.rate_limits = {
-            'metrics': 3.0,
-            'ckpt': 5.0,
-            'heartbeat': 5.0, }  # rate limits (seconds)
 
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)

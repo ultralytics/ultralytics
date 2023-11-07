@@ -45,4 +45,4 @@ thop>=0.1.1  # FLOPs computation
 # roboflow
 
 # Install HUB SDK
-ultralytics-hub-sdk
+hub-sdk @ git+https://github.com/ultralytics/hub-sdk@main

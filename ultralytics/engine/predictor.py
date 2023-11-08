@@ -28,6 +28,7 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
+import threading
 from pathlib import Path
 
 import cv2
@@ -106,6 +107,7 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+        self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
@@ -231,64 +233,66 @@ class BasePredictor:
         if not self.model:
             self.setup_model(model)
 
-        # Setup source every time predict is called
-        self.setup_source(source if source is not None else self.args.source)
+        with self._lock:  # for thread-safe inference
+            # Setup source every time predict is called
+            self.setup_source(source if source is not None else self.args.source)
 
-        # Check if save_dir/ label file exists
-        if self.args.save or self.args.save_txt:
-            (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
+            # Check if save_dir/ label file exists
+            if self.args.save or self.args.save_txt:
+                (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-        # Warmup model
-        if not self.done_warmup:
-            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
-            self.done_warmup = True
+            # Warmup model
+            if not self.done_warmup:
+                self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
+                self.done_warmup = True
 
-        self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
-        self.run_callbacks('on_predict_start')
-        for batch in self.dataset:
-            self.run_callbacks('on_predict_batch_start')
-            self.batch = batch
-            path, im0s, vid_cap, s = batch
+            self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
+            self.run_callbacks('on_predict_start')
 
-            # Preprocess
-            with profilers[0]:
-                im = self.preprocess(im0s)
+            for batch in self.dataset:
+                self.run_callbacks('on_predict_batch_start')
+                self.batch = batch
+                path, im0s, vid_cap, s = batch
 
-            # Inference
-            with profilers[1]:
-                preds = self.inference(im, *args, **kwargs)
+                # Preprocess
+                with profilers[0]:
+                    im = self.preprocess(im0s)
 
-            # Postprocess
-            with profilers[2]:
-                self.results = self.postprocess(preds, im, im0s)
-            self.run_callbacks('on_predict_postprocess_end')
+                # Inference
+                with profilers[1]:
+                    preds = self.inference(im, *args, **kwargs)
 
-            # Visualize, save, write results
-            n = len(im0s)
-            for i in range(n):
-                self.seen += 1
-                self.results[i].speed = {
-                    'preprocess': profilers[0].dt * 1E3 / n,
-                    'inference': profilers[1].dt * 1E3 / n,
-                    'postprocess': profilers[2].dt * 1E3 / n}
-                p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
-                p = Path(p)
+                # Postprocess
+                with profilers[2]:
+                    self.results = self.postprocess(preds, im, im0s)
 
-                if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                    s += self.write_results(i, self.results, (p, im, im0))
-                if self.args.save or self.args.save_txt:
-                    self.results[i].save_dir = self.save_dir.__str__()
-                if self.args.show and self.plotted_img is not None:
-                    self.show(p)
-                if self.args.save and self.plotted_img is not None:
-                    self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+                self.run_callbacks('on_predict_postprocess_end')
+                # Visualize, save, write results
+                n = len(im0s)
+                for i in range(n):
+                    self.seen += 1
+                    self.results[i].speed = {
+                        'preprocess': profilers[0].dt * 1E3 / n,
+                        'inference': profilers[1].dt * 1E3 / n,
+                        'postprocess': profilers[2].dt * 1E3 / n}
+                    p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
+                    p = Path(p)
 
-            self.run_callbacks('on_predict_batch_end')
-            yield from self.results
+                    if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
+                        s += self.write_results(i, self.results, (p, im, im0))
+                    if self.args.save or self.args.save_txt:
+                        self.results[i].save_dir = self.save_dir.__str__()
+                    if self.args.show and self.plotted_img is not None:
+                        self.show(p)
+                    if self.args.save and self.plotted_img is not None:
+                        self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-            # Print time (inference-only)
-            if self.args.verbose:
-                LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
+                self.run_callbacks('on_predict_batch_end')
+                yield from self.results
+
+                # Print time (inference-only)
+                if self.args.verbose:
+                    LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):

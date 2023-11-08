@@ -28,13 +28,13 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
+import queue
+import threading
 from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
-import queue
-import threading
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -238,7 +238,7 @@ class BasePredictor:
         # Setup model
         if not self.model:
             self.setup_model(model)
-            
+
         with self.queue_lock:
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
@@ -254,7 +254,7 @@ class BasePredictor:
 
             self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
             self.run_callbacks('on_predict_start')
-            
+
             for batch in self.dataset:
                 self.run_callbacks('on_predict_batch_start')
                 self.batch = batch
@@ -267,11 +267,11 @@ class BasePredictor:
                 # Inference
                 with profilers[1]:
                     preds = self.inference(im, *args, **kwargs)
-                    
+
                 # Postprocess
                 with profilers[2]:
                     self.results = self.postprocess(preds, im, im0s)
-                    
+
                 self.run_callbacks('on_predict_postprocess_end')
                 # Visualize, save, write results
                 n = len(im0s)
@@ -293,7 +293,7 @@ class BasePredictor:
                     if self.args.save and self.plotted_img is not None:
                         self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-                self.run_callbacks('on_predict_batch_end')      
+                self.run_callbacks('on_predict_batch_end')
                 yield from self.results
 
                 # Print time (inference-only)
@@ -372,5 +372,5 @@ class BasePredictor:
         self.callbacks[event].append(func)
 
     def add_queue(self, source=None, model=None):
-        """Add Inference request in queue"""
+        """Add Inference request in queue."""
         self.queue.put_nowait((source, model))

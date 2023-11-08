@@ -9,6 +9,7 @@ from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, checks, emojis, yaml_load
+from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
 class Model(nn.Module):
@@ -87,8 +88,10 @@ class Model(nn.Module):
             return
 
         # Load or create new YOLO model
-        model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
-        if Path(model).suffix in ('.yaml', '.yml'):
+        suffix = Path(model).suffix
+        if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
+            model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
+        if suffix in ('.yaml', '.yml'):
             self._new(model, task)
         else:
             self._load(model, task)
@@ -236,8 +239,7 @@ class Model(nn.Module):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
         if prompts and hasattr(self.predictor, 'set_prompts'):  # for SAM-type models
             self.predictor.set_prompts(prompts)
-        self.predictor.add_queue(source=source)
-        return self.predictor.predict_cli() if is_cli else self.predictor(stream=stream)
+        return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):
         """

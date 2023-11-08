@@ -28,13 +28,12 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
-import queue
-import threading
 from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
+import threading
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -111,7 +110,6 @@ class BasePredictor:
 
         # Variables for use in a multithreading environment
         self.queue_lock = threading.Lock()
-        self.queue = queue.Queue()  # Add Queue
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
@@ -193,22 +191,20 @@ class BasePredictor:
         """Post-processes predictions for an image and returns them."""
         return preds
 
-    def __call__(self, stream, *args, **kwargs):
+    def __call__(self, source=None, model=None, stream=False, *args, **kwargs):
         """Performs inference on an image or stream."""
-        source, model = self.queue.get()
         self.stream = stream
         if stream:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
-    def predict_cli(self):
+    def predict_cli(self, source=None, model=None):
         """
         Method used for CLI prediction.
 
         It uses always generator as outputs as not required by CLI mode.
         """
-        source, model = self.queue.get()
         gen = self.stream_inference(source, model)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
@@ -370,7 +366,3 @@ class BasePredictor:
     def add_callback(self, event: str, func):
         """Add callback."""
         self.callbacks[event].append(func)
-
-    def add_queue(self, source=None, model=None):
-        """Add Inference request in queue."""
-        self.queue.put_nowait((source, model))

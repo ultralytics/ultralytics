@@ -651,7 +651,7 @@ When using YOLO models in a multi-threaded application, it's important to instan
 
     Instantiate a single model inside each thread for thread-safe inference:
     ```python
-    from ultralytics import YOLO 
+    from ultralytics import YOLO
     from threading import Thread
 
     def thread_safe_predict(image_path):

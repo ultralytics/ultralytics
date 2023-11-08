@@ -75,6 +75,7 @@ class BasePredictor:
         vid_writer (cv2.VideoWriter): Video writer for saving video output.
         data_path (str): Path to data.
     """
+    queue_lock = threading.Lock()  # for automatic thread-safe inference
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
@@ -108,8 +109,6 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
 
-        # Variables for use in a multithreading environment
-        self.queue_lock = threading.Lock()
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):

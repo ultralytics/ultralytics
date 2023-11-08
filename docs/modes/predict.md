@@ -649,17 +649,16 @@ When using YOLO models in a multi-threaded application, it's important to instan
 
 !!! example "Thread-Safe Inference"
 
+    Instantiate a single model inside each thread for thread-safe inference:
     ```python
-    # Safe: Instantiating a single model inside each thread
-    from ultralytics import YOLO
+    from ultralytics import YOLO 
     from threading import Thread
-
 
     def thread_safe_predict(image_path):
         # Instantiate a new model inside the thread
         local_model = YOLO("yolov8n.pt")
-        result = local_model.predict(image_path)
-        # Process result
+        results = local_model.predict(image_path)
+        # Process results
 
 
     # Starting threads that each have their own model instance

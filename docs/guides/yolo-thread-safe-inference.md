@@ -36,8 +36,8 @@ shared_model = YOLO("yolov8n.pt")
 
 
 def predict(image_path):
-    result = shared_model.predict(image_path)
-    # Process result
+    results = shared_model.predict(image_path)
+    # Process results
 
 
 # Starting threads that share the same model instance
@@ -62,8 +62,8 @@ shared_model_2 = YOLO("yolov8n_2.pt")
 
 
 def predict(model, image_path):
-    result = model.predict(image_path)
-    # Process result
+    results = model.predict(image_path)
+    # Process results
 
 
 # Starting threads with individual model instances
@@ -90,8 +90,8 @@ from threading import Thread
 def thread_safe_predict(image_path):
     # Instantiate a new model inside the thread
     local_model = YOLO("yolov8n.pt")
-    result = local_model.predict(image_path)
-    # Process result
+    results = local_model.predict(image_path)
+    # Process results
 
 
 # Starting threads that each have their own model instance

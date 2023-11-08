@@ -28,12 +28,12 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
+import threading
 from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
-import threading
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source

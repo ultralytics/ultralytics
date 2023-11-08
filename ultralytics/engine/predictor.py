@@ -75,7 +75,7 @@ class BasePredictor:
         vid_writer (cv2.VideoWriter): Video writer for saving video output.
         data_path (str): Path to data.
     """
-    queue_lock = threading.Lock()  # for automatic thread-safe inference
+    _lock = threading.Lock()  # for automatic thread-safe inference
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
@@ -233,7 +233,7 @@ class BasePredictor:
         if not self.model:
             self.setup_model(model)
 
-        with self.queue_lock:
+        with self._lock:  # for thread-safe inference
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 

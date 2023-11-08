@@ -216,6 +216,7 @@ nav:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
       - YOLO Performance Metrics: guides/yolo-performance-metrics.md
+      - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
       - Model Deployment Options: guides/model-deployment-options.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md

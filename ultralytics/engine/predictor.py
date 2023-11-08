@@ -33,6 +33,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
+import queue
+import threading
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -102,9 +104,14 @@ class BasePredictor:
         self.data_path = None
         self.source_type = None
         self.batch = None
+        self.results = None
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+
+        # Variables for use in a multithreading environment
+        self.queue_lock = threading.Lock()
+        self.queue = queue.Queue()  # Add Queue
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
@@ -186,20 +193,22 @@ class BasePredictor:
         """Post-processes predictions for an image and returns them."""
         return preds
 
-    def __call__(self, source=None, model=None, stream=False, *args, **kwargs):
+    def __call__(self, stream, *args, **kwargs):
         """Performs inference on an image or stream."""
+        source, model = self.queue.get()
         self.stream = stream
         if stream:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
-    def predict_cli(self, source=None, model=None):
+    def predict_cli(self):
         """
         Method used for CLI prediction.
 
         It uses always generator as outputs as not required by CLI mode.
         """
+        source, model = self.queue.get()
         gen = self.stream_inference(source, model)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
@@ -229,65 +238,67 @@ class BasePredictor:
         # Setup model
         if not self.model:
             self.setup_model(model)
+            
+        with self.queue_lock:
+            # Setup source every time predict is called
+            self.setup_source(source if source is not None else self.args.source)
 
-        # Setup source every time predict is called
-        self.setup_source(source if source is not None else self.args.source)
+            # Check if save_dir/ label file exists
+            if self.args.save or self.args.save_txt:
+                (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-        # Check if save_dir/ label file exists
-        if self.args.save or self.args.save_txt:
-            (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
+            # Warmup model
+            if not self.done_warmup:
+                self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
+                self.done_warmup = True
 
-        # Warmup model
-        if not self.done_warmup:
-            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
-            self.done_warmup = True
+            self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
+            self.run_callbacks('on_predict_start')
+            
+            for batch in self.dataset:
+                self.run_callbacks('on_predict_batch_start')
+                self.batch = batch
+                path, im0s, vid_cap, s = batch
 
-        self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
-        self.run_callbacks('on_predict_start')
-        for batch in self.dataset:
-            self.run_callbacks('on_predict_batch_start')
-            self.batch = batch
-            path, im0s, vid_cap, s = batch
+                # Preprocess
+                with profilers[0]:
+                    im = self.preprocess(im0s)
 
-            # Preprocess
-            with profilers[0]:
-                im = self.preprocess(im0s)
+                # Inference
+                with profilers[1]:
+                    preds = self.inference(im, *args, **kwargs)
+                    
+                # Postprocess
+                with profilers[2]:
+                    self.results = self.postprocess(preds, im, im0s)
+                    
+                self.run_callbacks('on_predict_postprocess_end')
+                # Visualize, save, write results
+                n = len(im0s)
+                for i in range(n):
+                    self.seen += 1
+                    self.results[i].speed = {
+                        'preprocess': profilers[0].dt * 1E3 / n,
+                        'inference': profilers[1].dt * 1E3 / n,
+                        'postprocess': profilers[2].dt * 1E3 / n}
+                    p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
+                    p = Path(p)
 
-            # Inference
-            with profilers[1]:
-                preds = self.inference(im, *args, **kwargs)
+                    if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
+                        s += self.write_results(i, self.results, (p, im, im0))
+                    if self.args.save or self.args.save_txt:
+                        self.results[i].save_dir = self.save_dir.__str__()
+                    if self.args.show and self.plotted_img is not None:
+                        self.show(p)
+                    if self.args.save and self.plotted_img is not None:
+                        self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-            # Postprocess
-            with profilers[2]:
-                results = self.postprocess(preds, im, im0s)
-            self.run_callbacks('on_predict_postprocess_end')
+                self.run_callbacks('on_predict_batch_end')      
+                yield from self.results
 
-            # Visualize, save, write results
-            n = len(im0s)
-            for i in range(n):
-                self.seen += 1
-                results[i].speed = {
-                    'preprocess': profilers[0].dt * 1E3 / n,
-                    'inference': profilers[1].dt * 1E3 / n,
-                    'postprocess': profilers[2].dt * 1E3 / n}
-                p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
-                p = Path(p)
-
-                if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                    s += self.write_results(i, results, (p, im, im0))
-                if self.args.save or self.args.save_txt:
-                    results[i].save_dir = self.save_dir.__str__()
-                if self.args.show and self.plotted_img is not None:
-                    self.show(p)
-                if self.args.save and self.plotted_img is not None:
-                    self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-
-            self.run_callbacks('on_predict_batch_end')
-            yield from results
-
-            # Print time (inference-only)
-            if self.args.verbose:
-                LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
+                # Print time (inference-only)
+                if self.args.verbose:
+                    LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
@@ -359,3 +370,7 @@ class BasePredictor:
     def add_callback(self, event: str, func):
         """Add callback."""
         self.callbacks[event].append(func)
+
+    def add_queue(self, source=None, model=None):
+        """Add Inference request in queue"""
+        self.queue.put_nowait((source, model))

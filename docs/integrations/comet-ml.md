@@ -1,12 +1,12 @@
 ---
 comments: true
 description: Discover how to track and enhance YOLOv8 model training with Comet ML's logging tools, from setup to monitoring key metrics and managing experiments for in-depth analysis.
-keywords: Ultralytics, YOLOv8, Object Detection, Comet ML, Model Training, Model Metrics Logging, Experiment Tracking, Offline Experiment Management 
+keywords: Ultralytics, YOLOv8, Object Detection, Comet ML, Model Training, Model Metrics Logging, Experiment Tracking, Offline Experiment Management
 ---
 
 # Elevating YOLOv8 Training: Simplify Your Logging Process with Comet ML
 
-Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in machine learning—it keeps your project transparent, your progress measurable, and your results repeatable. 
+Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in machine learning—it keeps your project transparent, your progress measurable, and your results repeatable.
 
 [Ultralytics YOLOv8](https://ultralytics.com) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLOv8 object detection model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLOv8 training is thoroughly documented and fine-tuned for outstanding results.
 
@@ -69,7 +69,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt") 
+        model = YOLO("yolov8n.pt")
 
         # train the model
         results = model.train(
@@ -164,7 +164,7 @@ os.environ["COMET_MODE"] = "offline"
 
 ## Summary
 
-This guide has walked you through integrating Comet ML with Ultralytics' YOLOv8. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs. 
+This guide has walked you through integrating Comet ML with Ultralytics' YOLOv8. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs.
 
 Explore [Comet ML's official documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/) for more insights on integrating with YOLOv8.
 

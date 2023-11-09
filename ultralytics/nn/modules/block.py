@@ -70,15 +70,18 @@ class sa_layer(nn.Module):
         return out
 
 
-def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
-    """3x3 convolution with padding"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=dilation, groups=groups, bias=False, dilation=dilation)
+class Conv3x3(Conv):
+    # 3x3 convolution with padding
+    def __init__(self, c1, c2, s=1, g=1, dilation=1):
+        super(Conv3x3, self).__init__(c1, c2, k=3, s=s, g=g, act=True)
+        self.conv.dilation = (dilation, dilation)
+        self.conv.padding = (dilation, dilation)  # Update padding based on dilation
 
 
-def conv1x1(in_planes, out_planes, stride=1):
-    """1x1 convolution"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+class Conv1x1(Conv):
+    # 1x1 convolution
+    def __init__(self, c1, c2, s=1):
+        super(Conv1x1, self).__init__(c1, c2, k=1, s=s, act=True)
 
 class SABottleneck(nn.Module):
     def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):

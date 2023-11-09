@@ -47,4 +47,4 @@ head:
   - [[-1, 9], 1, Concat, [1]]  # cat head P5
   - [-1, 3, C3x, [512]]  # 21 -> 12 (P5/32-large)
 
-  - [[12], 1, Segment, [nc]]  # Detect(P3, P4, P5)
+  - [[12], 1, Detect, [nc]]  # Detect(P3, P4, P5)

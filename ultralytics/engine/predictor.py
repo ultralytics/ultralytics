@@ -288,7 +288,8 @@ class BasePredictor:
                         self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
                 self.run_callbacks('on_predict_batch_end')
-                yield from self.results
+                if source != "screen":
+                    yield from self.results
 
                 # Print time (inference-only)
                 if self.args.verbose:

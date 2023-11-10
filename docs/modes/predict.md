@@ -641,6 +641,33 @@ You can use the `plot()` method of a `Result` objects to visualize predictions. 
     | `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
     | `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
 
+## Thread-Safe Inference
+
+Ensuring thread safety during inference is crucial when you are running multiple YOLO models in parallel across different threads. Thread-safe inference guarantees that each thread's predictions are isolated and do not interfere with one another, avoiding race conditions and ensuring consistent and reliable outputs.
+
+When using YOLO models in a multi-threaded application, it's important to instantiate separate model objects for each thread or employ thread-local storage to prevent conflicts:
+
+!!! example "Thread-Safe Inference"
+
+    Instantiate a single model inside each thread for thread-safe inference:
+    ```python
+    from ultralytics import YOLO
+    from threading import Thread
+
+    def thread_safe_predict(image_path):
+        # Instantiate a new model inside the thread
+        local_model = YOLO("yolov8n.pt")
+        results = local_model.predict(image_path)
+        # Process results
+
+
+    # Starting threads that each have their own model instance
+    Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
+    Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
+    ```
+
+For an in-depth look at thread-safe inference with YOLO models and step-by-step instructions, please refer to our [YOLO Thread-Safe Inference Guide](../guides/yolo-thread-safe-inference.md). This guide will provide you with all the necessary information to avoid common pitfalls and ensure that your multi-threaded inference runs smoothly.
+
 ## Streaming Source `for`-loop
 
 Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video frames. This script assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`).

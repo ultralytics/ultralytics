@@ -407,7 +407,7 @@ nav:
       - Minimum Reproducible Example (MRE) Guide: help/minimum_reproducible_example.md
       - Code of Conduct: help/code_of_conduct.md
       - Environmental, Health and Safety (EHS) Policy: help/environmental-health-safety.md
-      - Security Policy: SECURITY.md
+      - Security Policy: help/security.md
       - Privacy Policy: help/privacy.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
@@ -460,6 +460,7 @@ plugins:
         tasks/segmentation.md: tasks/segment.md
         tasks/keypoints.md: tasks/pose.md
         tasks/tracking.md: modes/track.md
+        SECURITY.md: help/security.md
         tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md
         tutorials/clearml-logging.md: yolov5/tutorials/clearml_logging_integration.md
         tutorials/comet-logging.md: yolov5/tutorials/comet_logging_integration.md

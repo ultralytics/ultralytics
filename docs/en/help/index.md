@@ -13,7 +13,7 @@ Welcome to the Ultralytics Help page! We are dedicated to providing you with det
 - [Minimum Reproducible Example (MRE) Guide](minimum_reproducible_example.md): Learn the process for creating an MRE, which is crucial for the timely and effective resolution of bug reports.
 - [Code of Conduct](code_of_conduct.md): Our community guidelines support a respectful and open atmosphere for all collaborators.
 - [Environmental, Health and Safety (EHS) Policy](environmental-health-safety.md): Delve into our commitment to sustainability and the well-being of all our stakeholders.
-- [Security Policy](../SECURITY.md): Familiarize yourself with our security protocols and the procedure for reporting vulnerabilities.
+- [Security Policy](security.md): Familiarize yourself with our security protocols and the procedure for reporting vulnerabilities.
 - [Privacy Policy](privacy.md): Read our privacy policy to understand how we protect your data and respect your privacy in all our services and operations.
 
 We encourage you to review these resources for a seamless and productive experience. Our aim is to foster a helpful and friendly environment for everyone in the Ultralytics community. Should you require additional support, please feel free to reach out via GitHub Issues or our official discussion forums. Happy coding!

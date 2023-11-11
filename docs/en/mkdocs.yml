@@ -8,7 +8,7 @@ repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/en/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
-docs_dir: 'docs/en'  # where to find the markdown files
+docs_dir: './'  # where to find the markdown files
 site_dir: 'site/'  # where to publish to
 
 theme:
@@ -19,21 +19,16 @@ theme:
   favicon: assets/favicon.ico
   icon:
     repo: fontawesome/brands/github
-  # Fonts disabled for faster page load times
-  # font:
+  # font:  # disabled for faster page load times
   #  text: Helvetica
   #  code: Roboto Mono
-
   palette:
-    # Palette toggle for light mode
-    - scheme: default
+    - scheme: default  # light mode
       # primary: grey
       toggle:
         icon: material/toggle-switch
         name: Switch to dark mode
-
-    # Palette toggle for dark mode
-    - scheme: slate
+    - scheme: slate  # dark mode
       # primary: black
       toggle:
         icon: material/toggle-switch-off-outline
@@ -48,7 +43,6 @@ theme:
     - search.share
     - search.suggest
     - toc.follow
-    # - toc.integrate
     - navigation.top
     - navigation.tabs
     - navigation.tabs.sticky
@@ -95,21 +89,23 @@ extra:
 
 extra_css:
   - stylesheets/style.css
-  - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css
 
 markdown_extensions:
-  # Div text decorators
   - admonition
   - md_in_html
-  - pymdownx.details
-  - pymdownx.superfences
   - tables
   - attr_list
   - def_list
-  # Syntax highlight
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.inlinehilite
   - pymdownx.snippets:
       base_path: ./
   - pymdownx.emoji:
@@ -117,13 +113,6 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
-
-  # Highlight
-  - pymdownx.critic
-  - pymdownx.caret
-  - pymdownx.keys
-  - pymdownx.mark
-  - pymdownx.tilde
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:

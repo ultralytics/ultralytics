@@ -9,12 +9,12 @@ edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/en/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
 docs_dir: './'  # where to find the markdown files
-site_dir: 'site/'  # where to publish to
+site_dir: '../../site/'  # where to publish to
 
 theme:
   name: material
   language: en
-  custom_dir: docs/overrides
+  custom_dir: ../overrides
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
   icon:

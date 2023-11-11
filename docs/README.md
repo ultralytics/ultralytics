@@ -52,6 +52,30 @@ While the site is being served, you can make changes to the documentation files 
 
 To stop the serve command and terminate the local server, you can use the `CTRL+C` keyboard shortcut.
 
+### Building and Serving Multi-Language
+
+For multi-language MkDocs sites:
+
+1. Add all new language *.md files to git commit: `git add docs/**/*.md -f`
+2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
+
+    ```bash
+    rm -rf site
+    mkdocs build -f docs/mkdocs.yml
+    mkdocs build -f docs/mkdocs-zh.yml
+    # rest of languages...
+    ```
+
+3. Preview in web browser with:
+
+    ```bash
+    cd site
+    python -m http:server
+    open http://localhost:8000  # on macOS
+    ```
+
+git add docs/zh/**/*.md -f
+
 ### Deploying Your Documentation Site
 
 To deploy your MkDocs documentation site, you will need to choose a hosting provider and a deployment method. Some popular options include GitHub Pages, GitLab Pages, and Amazon S3.

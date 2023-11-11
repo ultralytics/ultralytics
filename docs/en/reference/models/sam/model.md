@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, SAM Model, Documentations, Machine Learning, AI, Co
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/model.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/model.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/model.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/model.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.sam.model.SAM

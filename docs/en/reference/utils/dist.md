@@ -7,7 +7,7 @@ keywords: Ultralytics, DDP, DDP utility functions, Distributed Data Processing, 
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/dist.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/dist.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.dist.find_free_network_port

@@ -7,7 +7,7 @@ keywords: Ultralytics, FastSAMPrompt, machine learning, model, guide, documentat
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/prompt.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/prompt.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/fastsam/prompt.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/prompt.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/prompt.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/fastsam/prompt.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.fastsam.prompt.FastSAMPrompt

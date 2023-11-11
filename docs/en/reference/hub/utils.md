@@ -7,7 +7,7 @@ keywords: Ultralytics, Events, request_with_credentials, smart_request, Ultralyt
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/hub/utils.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/hub/utils.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.hub.utils.Events

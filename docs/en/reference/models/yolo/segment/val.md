@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, SegmentationValidator, model segmentation, image cl
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/val.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/segment/val.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/val.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/segment/val.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.yolo.segment.val.SegmentationValidator

@@ -7,7 +7,7 @@ keywords: Ultralytics, BaseTrainer, Machine Learning, Training Control, Python l
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/trainer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/trainer.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/engine/trainer.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/trainer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/trainer.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/engine/trainer.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.engine.trainer.BaseTrainer

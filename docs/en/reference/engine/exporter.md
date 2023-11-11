@@ -7,7 +7,7 @@ keywords: Ultralytics, Exporter, IOSDetectModel, Export Formats, Try export
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/engine/exporter.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/engine/exporter.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.engine.exporter.Exporter

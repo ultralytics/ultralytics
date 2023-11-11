@@ -7,7 +7,7 @@ keywords: Ultralytics, run_ray_tune, machine learning tuning, machine learning e
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tuner.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tuner.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/tuner.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tuner.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tuner.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/tuner.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.tuner.run_ray_tune

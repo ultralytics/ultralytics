@@ -7,7 +7,7 @@ keywords: Ultralytics, data loaders, LoadStreams, LoadImages, LoadTensor, YOLO, 
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/loaders.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/loaders.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.data.loaders.SourceTypes

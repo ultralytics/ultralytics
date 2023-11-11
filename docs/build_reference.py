@@ -49,7 +49,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     title_content = (
         f'# Reference for `{module_path}.py`\n\n'
         f'!!! note\n\n'
-        f'    Full source code for this file is available at [{url}]({url}). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n'
+        f'    This file is available at [{url}]({url}). If you spot a problem help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n'
     )
     md_content = [f'---\n## ::: {module_name}.{class_name}\n<br><br>\n' for class_name in classes]
     md_content.extend(f'---\n## ::: {module_name}.{func_name}\n<br><br>\n' for func_name in functions)

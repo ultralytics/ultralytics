@@ -7,7 +7,7 @@ keywords: Ultralytics, KalmanFilterXYAH, tracker, documentation, guide
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/trackers/utils/kalman_filter.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/trackers/utils/kalman_filter.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.trackers.utils.kalman_filter.KalmanFilterXYAH

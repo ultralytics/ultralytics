@@ -7,7 +7,7 @@ keywords: Ultralytics, Ultralytics documentation, TransformerEncoderLayer, Trans
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/transformer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/transformer.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/transformer.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/transformer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/transformer.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/transformer.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.nn.modules.transformer.TransformerEncoderLayer

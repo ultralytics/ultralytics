@@ -7,7 +7,7 @@ keywords: Ultralytics, FastSAMValidator, model, synthetic, AI, machine learning,
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/val.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/fastsam/val.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/val.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/fastsam/val.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.fastsam.val.FastSAMValidator

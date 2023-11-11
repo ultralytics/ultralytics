@@ -7,7 +7,7 @@ keywords: Ultralytics, clearML, callbacks, pretrain routine start, validation en
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/clearml.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/clearml.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.callbacks.clearml._log_debug_samples

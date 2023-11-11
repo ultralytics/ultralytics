@@ -7,7 +7,7 @@ keywords: Ultralytics, AutoBackend, check_class_names, YOLO, YOLO models, optimi
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/autobackend.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/autobackend.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.nn.autobackend.AutoBackend

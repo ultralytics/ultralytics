@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_g
 
 !!! note
 
-    Full source code for this file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). Help us fix any issues you see by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/downloads.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/downloads.py) 🛠️ to fix it. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.downloads.is_url

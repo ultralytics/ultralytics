@@ -149,7 +149,10 @@ nav:
       - 分割: tasks/segment.md
       - 分类: tasks/classify.md
       - 姿态: tasks/pose.md
-
+  - 模型:
+      - models/index.md
+  - 数据集:
+      - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:

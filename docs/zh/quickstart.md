@@ -49,11 +49,11 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
         ### Conda Docker映像
 
-        Ultralytics Conda Docker映像也可从[DockerHub](https://hub.docker.com/r/ultralytics/yolov5)获得。这些映像基于[Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/)，是开始在Conda环境中使用`ultralytics`的简单方式。
+        Ultralytics Conda Docker映像也可从[DockerHub](https://hub.docker.com/r/ultralytics/ultralytics)获得。这些映像基于[Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/)，是开始在Conda环境中使用`ultralytics`的简单方式。
 
         ```bash
         # 将映像名称设置为变量
-        t=ultralytics/yolov5:latest-conda
+        t=ultralytics/ultralytics:latest-conda
 
         # 从Docker Hub拉取最新的ultralytics映像
         sudo docker pull $t
@@ -78,9 +78,9 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
     === "Docker"
 
-        利用Docker轻松地在隔离的容器中执行`ultralytics`包，确保跨不同环境的一致性和流畅性能。通过选择一款官方`ultralytics`映像，从[Docker Hub](https://hub.docker.com/r/ultralytics/yolov5)中不仅避免了本地安装的复杂性，还获得了对验证工作环境的访问。Ultralytics提供5种主要支持的Docker映像，每一种都为不同的平台和使用案例设计，以提供高兼容性和效率：
+        利用Docker轻松地在隔离的容器中执行`ultralytics`包，确保跨不同环境的一致性和流畅性能。通过选择一款官方`ultralytics`映像，从[Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics)中不仅避免了本地安装的复杂性，还获得了对验证工作环境的访问。Ultralytics提供5种主要支持的Docker映像，每一种都为不同的平台和使用案例设计，以提供高兼容性和效率：
 
-        <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker拉取次数"></a>
+        <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker拉取次数"></a>
 
         - **Dockerfile：** 推荐用于训练的GPU映像。
         - **Dockerfile-arm64：** 为ARM64架构优化，允许在树莓派和其他基于ARM64的平台上部署。
@@ -93,7 +93,7 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
         ```bash
         # 将映像名称设置为变量
-        t=ultralytics/yolov5:latest
+        t=ultralytics/ultralytics:latest
 
         # 从Docker Hub拉取最新的ultralytics映像
         sudo docker pull $t

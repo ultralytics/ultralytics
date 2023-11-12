@@ -1,19 +1,19 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-site_name: Ultralytics YOLOv8 文档
-site_url: https://docs.ultralytics.com/zh/
-site_description: 探索Ultralytics YOLOv8，这是一款尖端的实时对象检测和图像分割模型，适用于各种应用和硬件平台。
+site_name: Ultralytics YOLOv8 Dokumentation
+site_url: https://docs.ultralytics.com/de/
+site_description: Entdecken Sie Ultralytics YOLOv8, ein hochmodernes Echtzeit-Objekterkennungs- und Bildsegmentierungsmodell für verschiedene Anwendungen und Hardware-Plattformen.
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
-edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/zh/
+edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/de/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
-docs_dir: 'zh/'  # where to find the markdown files
-site_dir: '../site/zh'  # where to publish to
+docs_dir: 'de/'  # where to find the markdown files
+site_dir: '../site/de'  # where to publish to
 
 theme:
   name: material
-  language: zh
+  language: de
   custom_dir: overrides/
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
@@ -129,47 +129,47 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - 主页:
-      - 主页: index.md
-      - 快速开始: quickstart.md
-      - 模式:
+  - Startseite:
+      - Startseite: index.md
+      - Schnellstart: quickstart.md
+      - Modi:
           - modes/index.md
-          - 训练: modes/train.md
-          - 验证: modes/val.md
-          - 预测: modes/predict.md
-          - 导出: modes/export.md
-          - 跟踪: modes/track.md
-          - 基准测试: modes/benchmark.md
-      - 任务:
+          - Training: modes/train.md
+          - Validierung: modes/val.md
+          - Vorhersage: modes/predict.md
+          - Exportieren: modes/export.md
+          - Verfolgen: modes/track.md
+          - Benchmarking: modes/benchmark.md
+      - Aufgaben:
           - tasks/index.md
-          - 检测: tasks/detect.md
-          - 分割: tasks/segment.md
-          - 分类: tasks/classify.md
-          - 姿态: tasks/pose.md
-  - 快速开始: quickstart.md
-  - 模式:
+          - Erkennung: tasks/detect.md
+          - Segmentierung: tasks/segment.md
+          - Klassifizierung: tasks/classify.md
+          - Pose: tasks/pose.md
+  - Schnellstart: quickstart.md
+  - Modi:
       - modes/index.md
-      - 训练: modes/train.md
-      - 验证: modes/val.md
-      - 预测: modes/predict.md
-      - 导出: modes/export.md
-      - 跟踪: modes/track.md
-      - 基准测试: modes/benchmark.md
-  - 任务:
+      - Training: modes/train.md
+      - Validierung: modes/val.md
+      - Vorhersage: modes/predict.md
+      - Exportieren: modes/export.md
+      - Verfolgen: modes/track.md
+      - Benchmarking: modes/benchmark.md
+  - Aufgaben:
       - tasks/index.md
-      - 检测: tasks/detect.md
-      - 分割: tasks/segment.md
-      - 分类: tasks/classify.md
-      - 姿态: tasks/pose.md
-  - 模型:
+      - Erkennung: tasks/detect.md
+      - Segmentierung: tasks/segment.md
+      - Klassifizierung: tasks/classify.md
+      - Pose: tasks/pose.md
+  - Modelle:
       - models/index.md
-  - 数据集:
+  - Datensätze:
       - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
   - search:
-      lang: zh
+      lang: de
   - ultralytics:
       add_desc: False
       add_image: True

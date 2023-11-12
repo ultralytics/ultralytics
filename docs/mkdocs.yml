@@ -65,12 +65,24 @@ extra:
     provider: google
     property: G-2M5EHKC0BH
   alternate: # language drop-down
-    - name: English
+    - name: 🇬🇧 English
       link: /
       lang: en
-    - name: 简体中文
+    - name: 🇨🇳 简体中文
       link: /zh/
       lang: zh
+    - name: 🇰🇷 한국어
+      link: /ko/
+      lang: ko
+    - name: 🇯🇵 日本語
+      link: /ja/
+      lang: ja
+    - name: 🇷🇺 Русский
+      link: /ru/
+      lang: ru
+    - name: 🇩🇪 Deutsch
+      link: /de/
+      lang: de
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics

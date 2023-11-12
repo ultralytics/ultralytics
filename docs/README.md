@@ -62,7 +62,7 @@ For multi-language MkDocs sites:
     ```bash
     # Remove existing /site directory
     rm -rf site
-    
+
     # Loop through all *.yml files in the docs directory
     for file in docs/*.yml; do
       echo "Building MkDocs site with configuration file: $file"

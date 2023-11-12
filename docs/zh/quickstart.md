@@ -6,7 +6,7 @@
 
 ## 安装Ultralytics
 
-Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ultralytics`pip包安装最新稳定版的YOLOv8，或者克隆[Ultralytics GitHub仓库](https://github.com/ultralytics/yolov5)以获取最新版本。Docker可用于在隔离容器中执行包，避免本地安装。
+Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ultralytics`pip包安装最新稳定版的YOLOv8，或者克隆[Ultralytics GitHub仓库](https://github.com/ultralytics/ultralytics)以获取最新版本。Docker可用于在隔离容器中执行包，避免本地安装。
 
 !!! 示例 "安装"
 
@@ -116,7 +116,7 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
         欲了解进阶Docker使用方法，请探索[Ultralytics Docker指南](https://docs.ultralytics.com/guides/docker-quickstart/)。
 
-有关依赖项列表，请参见`ultralytics`的[requirements.txt](https://github.com/ultralytics/yolov5/blob/main/requirements.txt)文件。请注意，上述所有示例均安装了所有必需的依赖项。
+有关依赖项列表，请参见`ultralytics`的[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)文件。请注意，上述所有示例均安装了所有必需的依赖项。
 
 !!! 提示 "提示"
 
@@ -128,7 +128,7 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
 ## 通过CLI使用Ultralytics
 
-Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，无需Python环境。CLI不需要自定义或Python代码。您可以直接从终端使用`yolo`命令运行所有任务。查看[CLI指南](usage/cli.md)，了解更多关于从命令行使用YOLOv8的信息。
+Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，无需Python环境。CLI不需要自定义或Python代码。您可以直接从终端使用`yolo`命令运行所有任务。查看[CLI指南](/../usage/cli.md)，了解更多关于从命令行使用YOLOv8的信息。
 
 !!! 示例
 
@@ -142,7 +142,7 @@ Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，
                 模式（必需）是[train, val, predict, export, track]中的一个
                 参数（可选）是任意数量的自定义“arg=value”对，如“imgsz=320”，可覆盖默认值。
         ```
-        在完整的[配置指南](usage/cfg.md)中查看所有参数，或者用`yolo cfg`查看
+        在完整的[配置指南](/../usage/cfg.md)中查看所有参数，或者用`yolo cfg`查看
 
     === "训练"
 
@@ -192,13 +192,13 @@ Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI指南](usage/cli.md){ .md-button .md-button--primary}
+[CLI指南](/../usage/cli.md){ .md-button .md-button--primary}
 
 ## 通过Python使用Ultralytics
 
 YOLOv8的Python接口允许无缝集成进您的Python项目，轻松加载、运行模型及处理输出。Python接口设计简洁易用，使用户能快速实现他们项目中的目标检测、分割和分类功能。这使YOLOv8的Python接口成为任何希望在其Python项目中纳入这些功能的人的宝贵工具。
 
-例如，用户可以加载一个模型，训练它，在验证集上评估性能，甚至只需几行代码就可以将其导出到ONNX格式。查看[Python指南](usage/python.md)，了解更多关于在Python项目中使用YOLOv8的信息。
+例如，用户可以加载一个模型，训练它，在验证集上评估性能，甚至只需几行代码就可以将其导出到ONNX格式。查看[Python指南](/../usage/python.md)，了解更多关于在Python项目中使用YOLOv8的信息。
 
 !!! 示例
 
@@ -224,7 +224,7 @@ YOLOv8的Python接口允许无缝集成进您的Python项目，轻松加载、�
     success = model.export(format='onnx')
     ```
 
-[Python指南](usage/python.md){.md-button .md-button--primary}
+[Python指南](/../usage/python.md){.md-button .md-button--primary}
 
 ## Ultralytics设置
 

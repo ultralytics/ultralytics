@@ -42,10 +42,10 @@ keywords: Ultralytics, YOLOv8, 目标检测, 图像分割, 机器学习, 深度�
 
 ## 从哪里开始
 
-- **安装** `ultralytics` 并通过 pip 在几分钟内开始运行 &nbsp; [:material-clock-fast: 开始使用](https://docs.ultralytics.com/quickstart/){ .md-button }
-- **预测** 使用YOLOv8预测新的图像和视频 &nbsp; [:octicons-image-16: 在图像上预测](https://docs.ultralytics.com/predict/){ .md-button }
-- **训练** 在您自己的自定义数据集上训练新的YOLOv8模型 &nbsp; [:fontawesome-solid-brain: 训练模型](https://docs.ultralytics.com/modes/train/){ .md-button }
-- **探索** YOLOv8的任务，如分割、分类、姿态和跟踪 &nbsp; [:material-magnify-expand: 探索任务](https://docs.ultralytics.com/tasks/){ .md-button }
+- **安装** `ultralytics` 并通过 pip 在几分钟内开始运行 &nbsp; [:material-clock-fast: 开始使用](quickstart.md){ .md-button }
+- **预测** 使用YOLOv8预测新的图像和视频 &nbsp; [:octicons-image-16: 在图像上预测](modes/predict.md){ .md-button }
+- **训练** 在您自己的自定义数据集上训练新的YOLOv8模型 &nbsp; [:fontawesome-solid-brain: 训练模型](modes/train.md){ .md-button }
+- **探索** YOLOv8的任务，如分割、分类、姿态和跟踪 &nbsp; [:material-magnify-expand: 探索任务](tasks/index.md){ .md-button }
 
 <p align="center">
   <br>

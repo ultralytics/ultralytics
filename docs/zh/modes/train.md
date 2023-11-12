@@ -175,48 +175,48 @@
 
 YOLO模型的训练设置指的是用于在数据集上训练模型的各种超参数和配置。这些设置可能会影响模型的表现、速度和准确度。一些常见的YOLO训练设置包括批量大小、学习率、动量和权重衰减。可能影响训练过程的其他因素包括优化器的选择、损失函数的选择以及训练数据集的大小和组成。仔细调整和试验这些设置对于实现给定任务的最佳性能非常重要。
 
-| 键                | 值      | 描述                                                                                          |
-|-------------------|----------|-----------------------------------------------------------------------------------------------|
-| `model`           | `None`   | 模型文件路径, 如yolov8n.pt, yolov8n.yaml                                                     |
-| `data`            | `None`   | 数据文件路径, 如coco128.yaml                                                                 |
-| `epochs`          | `100`    | 训练的时期数                                                                                  |
-| `patience`        | `50`     | 没有可观察改善时等待的时期数以便早期停止训练                                                 |
-| `batch`           | `16`     | 每个批次的图片数(-1为自动批次)                                                                |
-| `imgsz`           | `640`    | 输入图片的大小                                                                                |
-| `save`            | `True`   | 保存训练检查点和预测结果                                                                      |
-| `save_period`     | `-1`     | 每x个时期保存一次检查点 (如果< 1则禁用)                                                       |
-| `cache`           | `False`  | 真/随机存取内存, 磁盘 或 假. 使用缓存加载数据                                                 |
-| `device`          | `None`   | 运行设备, 如cuda device=0 或 device=0,1,2,3 或 device=cpu                                     |
-| `workers`         | `8`      | 数据加载的工作线程数 (如果 DDP 每个RANK)                                                      |
-| `project`         | `None`   | 项目名称                                                                                      |
-| `name`            | `None`   | 实验名称                                                                                      |
-| `exist_ok`        | `False`  | 是否覆盖现有实验                                                                              |
-| `pretrained`      | `True`   | (布尔或字符串) 是否使用预训练模型（布尔）或要从中加载权重的模型（字符串）                      |
-| `optimizer`       | `'auto'` | 使用的优化器，选择包括[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]                |
-| `verbose`         | `False`  | 是否打印详细输出                                                                              |
-| `seed`            | `0`      | 随机种子以提供可重现性                                                                        |
-| `deterministic`   | `True`   | 是否启用确定性模式                                                                            |
-| `single_cls`      | `False`  | 将多类数据作为单类训练                                                                        |
-| `rect`            | `False`  | 矩形训练，每个批次为最小填充校对                                                              |
-| `cos_lr`          | `False`  | 使用余弦学习率调度器                                                                          |
-| `close_mosaic`    | `10`     | (整数) 在最后几个时期禁用马赛克增强 (0为禁用)                                                 |
-| `resume`          | `False`  | 从最后一个检查点恢复训练                                                                      |
-| `amp`             | `True`   | 自动混合精度（AMP）训练, 选择包括[真, 假]                                                     |
-| `fraction`        | `1.0`    | 训练集的数据集比例(默认为1.0，所有图片)                                                        |
-| `profile`         | `False`  | 在训练过程中为记录器分析ONNX和TensorRT速度                                                     |
-| `freeze`          | `None`   | (整数或列表，可选) 在训练期间冻结前n层，或冻结层索引列表                                      |
-| `lr0`             | `0.01`   | 初始学习率（例如 SGD=1E-2, Adam=1E-3）                                                        |
-| `lrf`             | `0.01`   | 最终学习率（lr0 * lrf）                                                                       |
-| `momentum`        | `0.937`  | SGD动量/Adam beta1                                                                            |
-| `weight_decay`    | `0.0005` | 优化器权重衰减 5e-4                                                                           |
-| `warmup_epochs`   | `3.0`    | 热身时期（分数良好）                                                                          |
-| `warmup_momentum` | `0.8`    | 热身初始动量                                                                                  |
-| `warmup_bias_lr`  | `0.1`    | 热身初始偏置lr                                                                                |
-| `box`             | `7.5`    | 箱体损失增益                                                                                  |
-| `cls`             | `0.5`    | 类别损失增益（按像素比例）                                                                    |
-| `dfl`             | `1.5`    | dfl损失增益                                                                                   |
-| `pose`            | `12.0`   | 姿态损失增益（仅限姿态）                                                                      |
-| `kobj`            | `2.0`    | 关键点obj损失增益（仅限姿态）                                                                 |
-| `label_smoothing` | `0.0`    | 标签平滑（分数）                                                                              |
-| `nbs`             | `64`     | 名义批次大小                                                                                  |
-| `overlap_mask`    | `True`   | 在训练
+| 键                 | 值        | 描述                                                                 |
+|-------------------|----------|--------------------------------------------------------------------|
+| `model`           | `None`   | 模型文件路径, 如yolov8n.pt, yolov8n.yaml                                  |
+| `data`            | `None`   | 数据文件路径, 如coco128.yaml                                              |
+| `epochs`          | `100`    | 训练的时期数                                                             |
+| `patience`        | `50`     | 没有可观察改善时等待的时期数以便早期停止训练                                             |
+| `batch`           | `16`     | 每个批次的图片数(-1为自动批次)                                                  |
+| `imgsz`           | `640`    | 输入图片的大小                                                            |
+| `save`            | `True`   | 保存训练检查点和预测结果                                                       |
+| `save_period`     | `-1`     | 每x个时期保存一次检查点 (如果< 1则禁用)                                            |
+| `cache`           | `False`  | 真/随机存取内存, 磁盘 或 假. 使用缓存加载数据                                         |
+| `device`          | `None`   | 运行设备, 如cuda device=0 或 device=0,1,2,3 或 device=cpu                 |
+| `workers`         | `8`      | 数据加载的工作线程数 (如果 DDP 每个RANK)                                         |
+| `project`         | `None`   | 项目名称                                                               |
+| `name`            | `None`   | 实验名称                                                               |
+| `exist_ok`        | `False`  | 是否覆盖现有实验                                                           |
+| `pretrained`      | `True`   | (布尔或字符串) 是否使用预训练模型（布尔）或要从中加载权重的模型（字符串）                             |
+| `optimizer`       | `'auto'` | 使用的优化器，选择包括[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
+| `verbose`         | `False`  | 是否打印详细输出                                                           |
+| `seed`            | `0`      | 随机种子以提供可重现性                                                        |
+| `deterministic`   | `True`   | 是否启用确定性模式                                                          |
+| `single_cls`      | `False`  | 将多类数据作为单类训练                                                        |
+| `rect`            | `False`  | 矩形训练，每个批次为最小填充校对                                                   |
+| `cos_lr`          | `False`  | 使用余弦学习率调度器                                                         |
+| `close_mosaic`    | `10`     | (整数) 在最后几个时期禁用马赛克增强 (0为禁用)                                         |
+| `resume`          | `False`  | 从最后一个检查点恢复训练                                                       |
+| `amp`             | `True`   | 自动混合精度（AMP）训练, 选择包括[真, 假]                                          |
+| `fraction`        | `1.0`    | 训练集的数据集比例(默认为1.0，所有图片)                                             |
+| `profile`         | `False`  | 在训练过程中为记录器分析ONNX和TensorRT速度                                        |
+| `freeze`          | `None`   | (整数或列表，可选) 在训练期间冻结前n层，或冻结层索引列表                                     |
+| `lr0`             | `0.01`   | 初始学习率（例如 SGD=1E-2, Adam=1E-3）                                      |
+| `lrf`             | `0.01`   | 最终学习率（lr0 * lrf）                                                   |
+| `momentum`        | `0.937`  | SGD动量/Adam beta1                                                   |
+| `weight_decay`    | `0.0005` | 优化器权重衰减 5e-4                                                       |
+| `warmup_epochs`   | `3.0`    | 热身时期（分数良好）                                                         |
+| `warmup_momentum` | `0.8`    | 热身初始动量                                                             |
+| `warmup_bias_lr`  | `0.1`    | 热身初始偏置lr                                                           |
+| `box`             | `7.5`    | 箱体损失增益                                                             |
+| `cls`             | `0.5`    | 类别损失增益（按像素比例）                                                      |
+| `dfl`             | `1.5`    | dfl损失增益                                                            |
+| `pose`            | `12.0`   | 姿态损失增益（仅限姿态）                                                       |
+| `kobj`            | `2.0`    | 关键点obj损失增益（仅限姿态）                                                   |
+| `label_smoothing` | `0.0`    | 标签平滑（分数）                                                           |
+| `nbs`             | `64`     | 名义批次大小                                                             |
+| `overlap_mask`    | `True`   | 在训练                                                                |

@@ -60,10 +60,14 @@ For multi-language MkDocs sites:
 2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
 
     ```bash
+    # Remove existing /site directory
     rm -rf site
-    mkdocs build -f docs/mkdocs.yml
-    mkdocs build -f docs/mkdocs-zh.yml
-    # rest of languages...
+    
+    # Loop through all *.yml files in the docs directory
+    for file in docs/*.yml; do
+      echo "Building MkDocs site with configuration file: $file"
+      mkdocs build -f "$file"
+    done
     ```
 
 3. Preview in web browser with:

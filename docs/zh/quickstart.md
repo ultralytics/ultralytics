@@ -273,4 +273,3 @@ Ultralytics允许用户轻松修改他们的设置。更改可以以下列方式
 
         # 将设置重置为默认值
         settings.reset()
-

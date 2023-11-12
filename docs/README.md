@@ -74,7 +74,7 @@ For multi-language MkDocs sites:
 
     ```bash
     cd site
-    python -m http:server
+    python -m http.server
     open http://localhost:8000  # on macOS
     ```
 

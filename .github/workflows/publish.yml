@@ -66,10 +66,10 @@ jobs:
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          rm -rf site
-          for file in docs/*.yml; do
+          mkdocs build -f docs/mkdocs.yml
+          for file in docs/*_.yml; do
             echo "Building MkDocs site with configuration file: $file"
-            mkdocs build -f "$file" --dirty
+            mkdocs build -f "$file"
           done
           git config --global user.name "Glenn Jocher"
           git config --global user.email "glenn.jocher@ultralytics.com"

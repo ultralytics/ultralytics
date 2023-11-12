@@ -66,8 +66,11 @@ jobs:
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          mkdocs build -f docs/en/mkdocs.yml
-          mkdocs build -f docs/zh/mkdocs.yml
+          rm -rf site
+          for file in docs/*.yml; do
+            echo "Building MkDocs site with configuration file: $file"
+            mkdocs build -f "$file" --dirty
+          done
           git config --global user.name "Glenn Jocher"
           git config --global user.email "glenn.jocher@ultralytics.com"
           git clone https://github.com/ultralytics/docs.git docs-repo

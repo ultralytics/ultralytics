@@ -173,50 +173,122 @@
 
 ## 参数
 
-YOLO模型的训练设置指的是用于在数据集上训练模型的各种超参数和配置。这些设置可能会影响模型的表现、速度和准确度。一些常见的YOLO训练设置包括批量大小、学习率、动量和权重衰减。可能影响训练过程的其他因素包括优化器的选择、损失函数的选择以及训练数据集的大小和组成。仔细调整和试验这些设置对于实现给定任务的最佳性能非常重要。
+YOLO模型的训练设置是指用于对数据集进行模型训练的各种超参数和配置。这些设置会影响模型的性能、速度和准确性。一些常见的YOLO训练设置包括批大小、学习率、动量和权重衰减。其他可能影响训练过程的因素包括优化器的选择、损失函数的选择以及训练数据集的大小和组成。仔细调整和实验这些设置以实现给定任务的最佳性能是非常重要的。
 
-| 键                 | 值        | 描述                                                                 |
-|-------------------|----------|--------------------------------------------------------------------|
-| `model`           | `None`   | 模型文件路径, 如yolov8n.pt, yolov8n.yaml                                  |
-| `data`            | `None`   | 数据文件路径, 如coco128.yaml                                              |
-| `epochs`          | `100`    | 训练的时期数                                                             |
-| `patience`        | `50`     | 没有可观察改善时等待的时期数以便早期停止训练                                             |
-| `batch`           | `16`     | 每个批次的图片数(-1为自动批次)                                                  |
-| `imgsz`           | `640`    | 输入图片的大小                                                            |
-| `save`            | `True`   | 保存训练检查点和预测结果                                                       |
-| `save_period`     | `-1`     | 每x个时期保存一次检查点 (如果< 1则禁用)                                            |
-| `cache`           | `False`  | 真/随机存取内存, 磁盘 或 假. 使用缓存加载数据                                         |
-| `device`          | `None`   | 运行设备, 如cuda device=0 或 device=0,1,2,3 或 device=cpu                 |
-| `workers`         | `8`      | 数据加载的工作线程数 (如果 DDP 每个RANK)                                         |
-| `project`         | `None`   | 项目名称                                                               |
-| `name`            | `None`   | 实验名称                                                               |
-| `exist_ok`        | `False`  | 是否覆盖现有实验                                                           |
-| `pretrained`      | `True`   | (布尔或字符串) 是否使用预训练模型（布尔）或要从中加载权重的模型（字符串）                             |
-| `optimizer`       | `'auto'` | 使用的优化器，选择包括[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
-| `verbose`         | `False`  | 是否打印详细输出                                                           |
-| `seed`            | `0`      | 随机种子以提供可重现性                                                        |
-| `deterministic`   | `True`   | 是否启用确定性模式                                                          |
-| `single_cls`      | `False`  | 将多类数据作为单类训练                                                        |
-| `rect`            | `False`  | 矩形训练，每个批次为最小填充校对                                                   |
-| `cos_lr`          | `False`  | 使用余弦学习率调度器                                                         |
-| `close_mosaic`    | `10`     | (整数) 在最后几个时期禁用马赛克增强 (0为禁用)                                         |
-| `resume`          | `False`  | 从最后一个检查点恢复训练                                                       |
-| `amp`             | `True`   | 自动混合精度（AMP）训练, 选择包括[真, 假]                                          |
-| `fraction`        | `1.0`    | 训练集的数据集比例(默认为1.0，所有图片)                                             |
-| `profile`         | `False`  | 在训练过程中为记录器分析ONNX和TensorRT速度                                        |
-| `freeze`          | `None`   | (整数或列表，可选) 在训练期间冻结前n层，或冻结层索引列表                                     |
-| `lr0`             | `0.01`   | 初始学习率（例如 SGD=1E-2, Adam=1E-3）                                      |
-| `lrf`             | `0.01`   | 最终学习率（lr0 * lrf）                                                   |
-| `momentum`        | `0.937`  | SGD动量/Adam beta1                                                   |
-| `weight_decay`    | `0.0005` | 优化器权重衰减 5e-4                                                       |
-| `warmup_epochs`   | `3.0`    | 热身时期（分数良好）                                                         |
-| `warmup_momentum` | `0.8`    | 热身初始动量                                                             |
-| `warmup_bias_lr`  | `0.1`    | 热身初始偏置lr                                                           |
-| `box`             | `7.5`    | 箱体损失增益                                                             |
-| `cls`             | `0.5`    | 类别损失增益（按像素比例）                                                      |
-| `dfl`             | `1.5`    | dfl损失增益                                                            |
-| `pose`            | `12.0`   | 姿态损失增益（仅限姿态）                                                       |
-| `kobj`            | `2.0`    | 关键点obj损失增益（仅限姿态）                                                   |
-| `label_smoothing` | `0.0`    | 标签平滑（分数）                                                           |
-| `nbs`             | `64`     | 名义批次大小                                                             |
-| `overlap_mask`    | `True`   | 在训练                                                                |
+| 键                 | 值        | 描述                                                                  |
+|-------------------|----------|---------------------------------------------------------------------|
+| `model`           | `None`   | 模型文件路径，例如 yolov8n.pt, yolov8n.yaml                                  |
+| `data`            | `None`   | 数据文件路径，例如 coco128.yaml                                              |
+| `epochs`          | `100`    | 训练的轮次数量                                                             |
+| `patience`        | `50`     | 早停训练的等待轮次                                                           |
+| `batch`           | `16`     | 每批图像数量（-1为自动批大小）                                                    |
+| `imgsz`           | `640`    | 输入图像的大小，以整数表示                                                       |
+| `save`            | `True`   | 保存训练检查点和预测结果                                                        |
+| `save_period`     | `-1`     | 每x轮次保存检查点（如果<1则禁用）                                                  |
+| `cache`           | `False`  | True/ram, disk 或 False。使用缓存加载数据                                     |
+| `device`          | `None`   | 运行设备，例如 cuda device=0 或 device=0,1,2,3 或 device=cpu                 |
+| `workers`         | `8`      | 数据加载的工作线程数（如果DDP则为每个RANK）                                           |
+| `project`         | `None`   | 项目名称                                                                |
+| `name`            | `None`   | 实验名称                                                                |
+| `exist_ok`        | `False`  | 是否覆盖现有实验                                                            |
+| `pretrained`      | `True`   | (bool 或 str) 是否使用预训练模型（bool）或从中加载权重的模型（str）                         |
+| `optimizer`       | `'auto'` | 使用的优化器，选择范围=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
+| `verbose`         | `False`  | 是否打印详细输出                                                            |
+| `seed`            | `0`      | 随机种子，用于可重复性                                                         |
+| `deterministic`   | `True`   | 是否启用确定性模式                                                           |
+| `single_cls`      | `False`  | 将多类数据作为单类训练                                                         |
+| `rect`            | `False`  | 矩形训练，每批为最小填充整合                                                      |
+| `cos_lr`          | `False`  | 使用余弦学习率调度器                                                          |
+| `close_mosaic`    | `10`     | (int) 最后轮次禁用马赛克增强（0为禁用）                                             |
+| `resume`          | `False`  | 从最后检查点恢复训练                                                          |
+| `amp`             | `True`   | 自动混合精度（AMP）训练，选择范围=[True, False]                                    |
+| `fraction`        | `1.0`    | 训练的数据集比例（默认为1.0，即训练集中的所有图像）                                         |
+| `profile`         | `False`  | 在训练期间为记录器分析ONNX和TensorRT速度                                          |
+| `freeze`          | `None`   | (int 或 list, 可选) 在训练期间冻结前n层，或冻结层索引列表                                |
+| `lr0`             | `0.01`   | 初始学习率（例如 SGD=1E-2, Adam=1E-3）                                       |
+| `lrf`             | `0.01`   | 最终学习率 (lr0 * lrf)                                                   |
+| `momentum`        | `0.937`  | SGD动量/Adam beta1                                                    |
+| `weight_decay`    | `0.0005` | 优化器权重衰减5e-4                                                         |
+| `warmup_epochs`   | `3.0`    | 热身轮次（小数ok）                                                          |
+| `warmup_momentum` | `0.8`    | 热身初始动量                                                              |
+| `warmup_bias_lr`  | `0.1`    | 热身初始偏差lr                                                            |
+| `box`             | `7.5`    | 框损失增益                                                               |
+| `cls`             | `0.5`    | cls损失增益（根据像素缩放）                                                     |
+| `dfl`             | `1.5`    | dfl损失增益                                                             |
+| `pose`            | `12.0`   | 姿态损失增益（仅限姿态）                                                        |
+| `kobj`            | `2.0`    | 关键点obj损失增益（仅限姿态）                                                    |
+| `label_smoothing` | `0.0`    | 标签平滑（小数）                                                            |
+| `nbs`             | `64`     | 标称批大小                                                               |
+| `overlap_mask`    | `True`   | 训练期间掩码应重叠（仅限分割训练）                                                   |
+| `mask_ratio`      | `4`      | 掩码降采样比率（仅限分割训练）                                                     |
+| `dropout`         | `0.0`    | 使用dropout正则化（仅限分类训练）                                                |
+| `val`             | `True`   | 训练期间验证/测试                                                           |
+
+## 记录
+
+在训练YOLOv8模型时，跟踪模型随时间的性能变化可能非常有价值。这就是记录发挥作用的地方。Ultralytics的YOLO提供对三种类型记录器的支持 - Comet、ClearML和TensorBoard。
+
+要使用记录器，请在上面的代码片段中的下拉菜单中选择它并运行。所选的记录器将被安装和初始化。
+
+### Comet
+
+[Comet](https://www.comet.ml/site/)是一个平台，允许数据科学家和开发人员跟踪、比较、解释和优化实验和模型。它提供了实时指标、代码差异和超参数跟踪等功能。
+
+使用Comet：
+
+!!! 示例 ""
+
+    === "Python"
+        ```python
+        # pip install comet_ml
+        import comet_ml
+
+        comet_ml.init()
+        ```
+
+记得在他们的网站上登录您的Comet账户并获取您的API密钥。您需要将此添加到您的环境变量或脚本中，以记录您的实验。
+
+### ClearML
+
+[ClearML](https://www.clear.ml/) 是一个开源平台，自动跟踪实验并帮助有效共享资源。它旨在帮助团队更有效地管理、执行和复现他们的ML工作。
+
+使用ClearML：
+
+!!! 示例 ""
+
+    === "Python"
+        ```python
+        # pip install clearml
+        import clearml
+
+        clearml.browser_login()
+        ```
+
+运行此脚本后，您需要在浏览器中登录您的ClearML账户并认证您的会话。
+
+### TensorBoard
+
+[TensorBoard](https://www.tensorflow.org/tensorboard) 是TensorFlow的可视化工具包。它允许您可视化TensorFlow图表，绘制有关图表执行的定量指标，并展示通过它的附加数据，如图像。
+
+在[Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)中使用TensorBoard：
+
+!!! 示例 ""
+
+    === "CLI"
+        ```bash
+        load_ext tensorboard
+        tensorboard --logdir ultralytics/runs  # 替换为'runs'目录
+        ```
+
+在本地使用TensorBoard，运行下面的命令并在 http://localhost:6006/ 查看结果。
+
+!!! 示例 ""
+
+    === "CLI"
+        ```bash
+        tensorboard --logdir ultralytics/runs  # 替换为'runs'目录
+        ```
+
+这将加载TensorBoard并将其定向到保存训练日志的目录。
+
+在设置好日志记录器后，您可以继续进行模型训练。所有训练指标将自动记录在您选择的平台中，您可以访问这些日志以监控模型随时间的表现，比较不同模型，并识别改进的领域。

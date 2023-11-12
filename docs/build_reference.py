@@ -14,7 +14,7 @@ from ultralytics.utils import ROOT
 
 NEW_YAML_DIR = ROOT.parent
 CODE_DIR = ROOT
-REFERENCE_DIR = ROOT.parent / 'docs/reference'
+REFERENCE_DIR = ROOT.parent / 'docs/en/reference'
 
 
 def extract_classes_and_functions(filepath: Path) -> tuple:
@@ -45,10 +45,11 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     module_name = module_path.replace('.__init__', '')
     module_path = module_path.replace('.', '/')
     url = f'https://github.com/ultralytics/ultralytics/blob/main/{module_path}.py'
+    edit = f'https://github.com/ultralytics/ultralytics/edit/main/{module_path}.py'
     title_content = (
         f'# Reference for `{module_path}.py`\n\n'
         f'!!! note\n\n'
-        f'    Full source code for this file is available at [{url}]({url}). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!\n\n'
+        f'    This file is available at [{url}]({url}). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n'
     )
     md_content = [f'---\n## ::: {module_name}.{class_name}\n<br><br>\n' for class_name in classes]
     md_content.extend(f'---\n## ::: {module_name}.{func_name}\n<br><br>\n' for func_name in functions)
@@ -96,7 +97,7 @@ def create_nav_menu_yaml(nav_items: list):
             if isinstance(v, dict):
                 yaml_str += f'{indent}- {k}:\n{_dict_to_yaml(v, level + 1)}'
             else:
-                yaml_str += f"{indent}- {k}: {str(v).replace('docs/', '')}\n"
+                yaml_str += f"{indent}- {k}: {str(v).replace('docs/en/', '')}\n"
         return yaml_str
 
     # Print updated YAML reference section

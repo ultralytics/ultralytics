@@ -54,7 +54,7 @@ To stop the serve command and terminate the local server, you can use the `CTRL+
 
 ### Building and Serving Multi-Language
 
-For multi-language MkDocs sites:
+For multi-language MkDocs sites use the following additional steps:
 
 1. Add all new language *.md files to git commit: `git add docs/**/*.md -f`
 2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
@@ -77,8 +77,6 @@ For multi-language MkDocs sites:
     python -m http.server
     open http://localhost:8000  # on macOS
     ```
-
-git add docs/zh/**/*.md -f
 
 ### Deploying Your Documentation Site
 

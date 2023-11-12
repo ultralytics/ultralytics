@@ -653,7 +653,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
         results = local_model.predict(image_path)
         # 处理结果
 
-    # 启动拥有各自模型实例的线程 
+    # 启动拥有各自模型实例的线程
     Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
     Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
     ```

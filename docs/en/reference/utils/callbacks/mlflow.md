@@ -7,7 +7,7 @@ keywords: Ultralytics, MLflow, Callbacks, on_pretrain_routine_end, on_train_end,
 
 !!! note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/mlflow.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/mlflow.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/mlflow.py) 🛠️ to fix it. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/mlflow.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/mlflow.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/mlflow.py) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.utils.callbacks.mlflow.on_pretrain_routine_end

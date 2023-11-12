@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, Classification Trainer, deep learning, training pro
 
 !!! note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/classify/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/classify/train.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/classify/train.py) 🛠️ to fix it. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/classify/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/classify/train.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/classify/train.py) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.models.yolo.classify.train.ClassificationTrainer

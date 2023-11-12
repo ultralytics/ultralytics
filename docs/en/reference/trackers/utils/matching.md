@@ -7,7 +7,7 @@ keywords: Ultralytics, Trackers Utils, Matching, merge_matches, linear_assignmen
 
 !!! note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py). If you spot a problem please help us by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/trackers/utils/matching.py) 🛠️ to fix it. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/trackers/utils/matching.py) 🛠️. Thank you 🙏!
 
 ---
 ## ::: ultralytics.trackers.utils.matching.linear_assignment

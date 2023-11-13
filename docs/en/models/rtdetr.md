@@ -78,7 +78,7 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
         | ------------------------------------------------------------------------------------------------ | :-------------------: | :------------: | :-------------------------------------: | :----------------: | :--------: |
         | [RT-DETR-Large]((https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-l.pt)     | 640                   | 53.0           | 114                                     | 32                 | 110        |
         | [RT-DETR-Xtra-Large](https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-x.pt) | 640                   | 54.8           | 74                                      | 67                 | 234        |
-        
+
 
 ## Citations and Acknowledgements
 

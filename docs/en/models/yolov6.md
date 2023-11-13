@@ -63,8 +63,8 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
 
 ### Supported Tasks
 
-| Model Type | Pre-trained Weights                                                           | Tasks Supported  |
-|------------|-------------------------------------------------------------------------------|------------------|
+| Model Type | Pre-trained Weights                                                           | Tasks            |
+|------------|-------------------------------------------------------------------------------|:----------------:|
 | YOLOv6     | `yolov6-n.pt`, `yolov6-s.pt`, `yolov6-m.pt`, `yolov6-l.pt`, `yolov6-l6.pt`    | Object Detection |
 
 ## Supported Modes
@@ -83,17 +83,17 @@ YOLOv6 provides various pre-trained models with different scales (table retrieve
 
     === "Detection "
 
-        | Model                                                                              | Size | mAP<sup>val<br/>0.5:0.95 | Speed<sup>T4<br/>trt fp16 b1 <br/>(fps) | Speed<sup>T4<br/>trt fp16 b32 <br/>(fps) | Params<br/><sup> (M) | FLOPs<br/><sup> (G) |
-        | :--------------------------------------------------------------------------------- | ---- | :----------------------- | --------------------------------------- | ---------------------------------------- | -------------------- | ------------------- |
-        | [YOLOv6-N](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6n.pt)   | 640  | 37.5                     | 779                                     | 1187                                     | 4.7                  | 11.4                |
-        | [YOLOv6-S](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s.pt)   | 640  | 45.0                     | 339                                     | 484                                      | 18.5                 | 45.3                |
-        | [YOLOv6-M](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6m.pt)   | 640  | 50.0                     | 175                                     | 226                                      | 34.9                 | 85.8                |
-        | [YOLOv6-L](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6l.pt)   | 640  | 52.8                     | 98                                      | 116                                      | 59.6                 | 150.7               |
-        |                                                                                    |      |                          |                                         |                                          |                      |                     |
-        | [YOLOv6-N6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6n6.pt) | 1280 | 44.9                     | 228                                     | 281                                      | 10.4                 | 49.8                |
-        | [YOLOv6-S6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s6.pt) | 1280 | 50.3                     | 98                                      | 108                                      | 41.4                 | 198.0               |
-        | [YOLOv6-M6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6m6.pt) | 1280 | 55.2                     | 47                                      | 55                                       | 79.6                 | 379.5               |
-        | [YOLOv6-L6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6l6.pt) | 1280 | 57.2                     | 26                                      | 29                                       | 140.4                | 673.4               |
+        | Model                                                                              | Size<sup>(pixels) | mAP<sup>val<br>0.5:0.95<br> | Speed<sup>T4 TensorRT-FP16<br>batch=1<br>(FPS) | Speed<sup>T4 TensorRT-FP16<br>batch=32<br>(FPS) | Params<sup>(M)<br> | FLOPs<sup>(G)<br> |
+        | ---------------------------------------------------------------------------------- | :---------------: | :-------------------------: | :--------------------------------------------: | :---------------------------------------------: | :----------------: | :---------------: |
+        | [YOLOv6-N](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6n.pt)   | 640               | 37.5                        | 779                                            | 1187                                            | 4.7                | 11.4              |
+        | [YOLOv6-S](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s.pt)   | 640               | 45.0                        | 339                                            | 484                                             | 18.5               | 45.3              |
+        | [YOLOv6-M](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6m.pt)   | 640               | 50.0                        | 175                                            | 226                                             | 34.9               | 85.8              |
+        | [YOLOv6-L](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6l.pt)   | 640               | 52.8                        | 98                                             | 116                                             | 59.6               | 150.7             |
+        |                                                                                    |                   |                             |                                                |                                                 |                    |                   |
+        | [YOLOv6-N6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6n6.pt) | 1280              | 44.9                        | 228                                            | 281                                             | 10.4               | 49.8              |
+        | [YOLOv6-S6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s6.pt) | 1280              | 50.3                        | 98                                             | 108                                             | 41.4               | 198.0             |
+        | [YOLOv6-M6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6m6.pt) | 1280              | 55.2                        | 47                                             | 55                                              | 79.6               | 379.5             |
+        | [YOLOv6-L6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6l6.pt) | 1280              | 57.2                        | 26                                             | 29                                              | 140.4              | 673.4             |
 
 YOLOv6 also provides quantized models for different precisions and models optimized for mobile platforms. Check the [meituan/YOLOv6 repository Releases](https://github.com/meituan/YOLOv6/releases) for the latest pretrained model weights.
 

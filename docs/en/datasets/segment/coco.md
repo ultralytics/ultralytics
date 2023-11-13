@@ -43,7 +43,7 @@ Models pretrained using COCO dataset are available for download to use as starti
 
 | Model   | Task    | Model Performance and Weights                                                                    |
 |---------|:-------:|:------------------------------------------------------------------------------------------------:|
-| YOLOv8  | Segment | [See Performance Table - Segmentation Tab](https://docs.ultralytics.com/models/yolov8/#performance) |
+| YOLOv8  | Segment | [See Performance Table - Segmentation Tab](../../models/yolov8.md#performance) |
 
 ## Usage
 

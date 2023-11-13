@@ -124,15 +124,15 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 ## Available Models and Supported Tasks
 
-| Model Type | Pre-trained Weights | Tasks Supported       |
-|------------|---------------------|-----------------------|
-| SAM base   | `sam_b.pt`          | Instance Segmentation |
-| SAM large  | `sam_l.pt`          | Instance Segmentation |
+| Model Type | Pre-trained Weights                                                                  | Tasks Supported       |
+|------------|:------------------------------------------------------------------------------------:|-----------------------|
+| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam_b.pt)  | Instance Segmentation |
+| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam_l.pt)  | Instance Segmentation |
 
 ## Operating Modes
 
 | Mode       | Supported          |
-|------------|--------------------|
+|------------|:------------------:|
 | Inference  | :heavy_check_mark: |
 | Validation | :x:                |
 | Training   | :x:                |

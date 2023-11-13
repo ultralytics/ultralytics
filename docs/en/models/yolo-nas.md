@@ -19,21 +19,6 @@ Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational
 - **Sophisticated Training and Quantization:** YOLO-NAS leverages advanced training schemes and post-training quantization to enhance performance.
 - **AutoNAC Optimization and Pre-training:** YOLO-NAS utilizes AutoNAC optimization and is pre-trained on prominent datasets such as COCO, Objects365, and Roboflow 100. This pre-training makes it extremely suitable for downstream object detection tasks in production environments.
 
-## Pre-trained Models
-
-Experience the power of next-generation object detection with the pre-trained YOLO-NAS models provided by Ultralytics. These models are designed to deliver top-notch performance in terms of both speed and accuracy. Choose from a variety of options tailored to your specific needs:
-
-| Model            | mAP   | Latency (ms) |
-|------------------|-------|--------------|
-| YOLO-NAS S       | 47.5  | 3.21         |
-| YOLO-NAS M       | 51.55 | 5.85         |
-| YOLO-NAS L       | 52.22 | 7.87         |
-| YOLO-NAS S INT-8 | 47.03 | 2.36         |
-| YOLO-NAS M INT-8 | 51.0  | 3.78         |
-| YOLO-NAS L INT-8 | 52.1  | 4.78         |
-
-Each model variant is designed to offer a balance between Mean Average Precision (mAP) and latency, helping you optimize your object detection tasks for both performance and speed.
-
 ## Usage
 
 Ultralytics has made YOLO-NAS models easy to integrate into your Python applications via our `ultralytics` python package. The package provides a user-friendly Python API to streamline the process.
@@ -82,25 +67,32 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
 ### Supported Tasks
 
-The YOLO-NAS models are primarily designed for object detection tasks. You can download the pre-trained weights for each variant of the model as follows:
+The YOLO-NAS models are primarily designed for object detection tasks. Additional tasks may be supported by the official repo, the ones supported in the Ultralytics library are shown here.
 
-| Model Type | Pre-trained Weights                                                                           | Tasks Supported  |
-|------------|-----------------------------------------------------------------------------------------------|------------------|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | Object Detection |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | Object Detection |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | Object Detection |
+| Model Type | Pre-trained Weights                               | Tasks Supported  |
+|------------|---------------------------------------------------|------------------|
+| YOLO-NAS   | `yolo_nas_s.pt`, `yolo_nas_m.pt`, `yolo_nas_l.pt` | Object Detection |
 
 ### Supported Modes
 
 The YOLO-NAS models support both inference and validation modes, allowing you to predict and validate results with ease. Training mode, however, is currently not supported.
 
 | Mode       | Supported          |
-|------------|--------------------|
+|------------|:------------------:|
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :x:                |
 
-Harness the power of the YOLO-NAS models to drive your object detection tasks to new heights of performance and speed.
+# Performance
+
+=== "Detection (COCO)"
+
+        | Model                                                                                      | size<br><sup>(pixels) | mAP<sup>val<br>50 | Speed<br><sup>T4 FP16<br>(ms) |
+        | ------------------------------------------------------------------------------------------ | :-------------------: | :---------------: | :---------------------------: |
+        | [YOLO-NAS S](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | 640                   | 47.5              | 3.21                          |
+        | [YOLO-NAS M](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | 640                   | 55.6              | 5.85                          |
+        | [YOLO-NAS L](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | 640                   | 52.2              | 7.87                          |
+        
 
 ## Citations and Acknowledgements
 

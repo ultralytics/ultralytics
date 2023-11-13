@@ -46,6 +46,14 @@ Typically, datasets come with a YAML (Yet Another Markup Language) file that del
     --8<-- "ultralytics/cfg/datasets/open-images-v7.yaml"
     ```
 
+## Pretrained Model Weights
+
+Models pretrained using COCO dataset are available for download to use as starting weights for training or object detection.
+
+| Model   | Task   | Model Performance and Weights                                                                                     |
+|---------|:------:|:-----------------------------------------------------------------------------------------------------------------:|
+| YOLOv8  | Detect | [See Performance Table - Detection (Open Images v7) Tab](https://docs.ultralytics.com/models/yolov8/#performance) |
+
 ## Usage
 
 To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.

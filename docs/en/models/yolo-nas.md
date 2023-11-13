@@ -92,7 +92,7 @@ The YOLO-NAS models support both inference and validation modes, allowing you to
         | [YOLO-NAS S](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | 640                   | 47.5              | 3.21                          |
         | [YOLO-NAS M](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | 640                   | 55.6              | 5.85                          |
         | [YOLO-NAS L](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | 640                   | 52.2              | 7.87                          |
-        
+
 
 ## Citations and Acknowledgements
 

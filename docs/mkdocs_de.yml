@@ -148,43 +148,42 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - Página Inicial:
-      - Página Inicial: index.md
-      - Início Rápido: quickstart.md
-      - Modos:
+  - Startseite:
+      - Startseite: index.md
+      - Schnellstart: quickstart.md
+      - Modi:
           - modes/index.md
-          - Treinamento: modes/train.md
-          - Validação: modes/val.md
-          - Previsão: modes/predict.md
-          - Exportação: modes/export.md
-          - Rastreamento: modes/track.md
+          - Training: modes/train.md
+          - Validierung: modes/val.md
+          - Vorhersage: modes/predict.md
+          - Exportieren: modes/export.md
+          - Verfolgen: modes/track.md
           - Benchmarking: modes/benchmark.md
-      - Tarefas:
+      - Aufgaben:
           - tasks/index.md
-          - Detecção: tasks/detect.md
-          - Segmentação: tasks/segment.md
-          - Classificação: tasks/classify.md
+          - Erkennung: tasks/detect.md
+          - Segmentierung: tasks/segment.md
+          - Klassifizierung: tasks/classify.md
           - Pose: tasks/pose.md
-  - Início Rápido: quickstart.md
-  - Modos:
-      - modes/index.md
-      - Treinamento: modes/train.md
-      - Validação: modes/val.md
-      - Previsão: modes/predict.md
-      - Exportação: modes/export.md
-      - Rastreamento: modes/track.md
-      - Benchmarking: modes/benchmark.md
-  - Tarefas:
-      - tasks/index.md
-      - Detecção: tasks/detect.md
-      - Segmentação: tasks/segment.md
-      - Classificação: tasks/classify.md
-      - Pose: tasks/pose.md
-  - Modelos:
-      - models/index.md
-  - Conjuntos de Dados:
-      - datasets/index.md
-
+      - Schnellstart: quickstart.md
+      - Modi:
+          - modes/index.md
+          - Training: modes/train.md
+          - Validierung: modes/val.md
+          - Vorhersage: modes/predict.md
+          - Exportieren: modes/export.md
+          - Verfolgen: modes/track.md
+          - Benchmarking: modes/benchmark.md
+      - Aufgaben:
+          - tasks/index.md
+          - Erkennung: tasks/detect.md
+          - Segmentierung: tasks/segment.md
+          - Klassifizierung: tasks/classify.md
+          - Pose: tasks/pose.md
+      - Modelle:
+          - models/index.md
+      - Datensätze:
+          - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:

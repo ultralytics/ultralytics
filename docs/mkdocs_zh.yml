@@ -23,13 +23,15 @@ theme:
   #  text: Helvetica
   #  code: Roboto Mono
   palette:
-    - scheme: default
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: black
       accent: indigo
       toggle:
@@ -91,8 +93,6 @@ extra:
 
 extra_css:
   - 'stylesheets/style.css'
-extra_javascript:
-  - 'javascripts/extra.js'
 
 markdown_extensions:
   - admonition

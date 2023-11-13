@@ -80,7 +80,7 @@ YOLOv8nを画像サイズ640でCOCO128データセットに対して100エポッ
 
 ### データセットの形式
 
-YOLO検出データセットの形式の詳細は、[データセットガイド](../../datasets/detect/index.md)に記載されています。他の形式（COCO等）からYOLO形式に既存のデータセットを変換するには、Ultralyticsの[JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)ツールをご利用ください。
+YOLO検出データセットの形式の詳細は、[データセットガイド](../../../datasets/detect/index.md)に記載されています。他の形式（COCO等）からYOLO形式に既存のデータセットを変換するには、Ultralyticsの[JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)ツールをご利用ください。
 
 ## 検証
 

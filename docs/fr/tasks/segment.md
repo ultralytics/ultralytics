@@ -80,7 +80,7 @@ Entraînez YOLOv8n-seg sur le jeu de données COCO128-seg pendant 100 époques �
 
 ### Format des données
 
-Le format des données de segmentation YOLO peut être trouvé en détail dans le [Guide du Jeu de Données](../../datasets/segment/index.md). Pour convertir votre jeu de données existant à partir d'autres formats (comme COCO, etc.) au format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) par Ultralytics.
+Le format des données de segmentation YOLO peut être trouvé en détail dans le [Guide du Jeu de Données](../../../datasets/segment/index.md). Pour convertir votre jeu de données existant à partir d'autres formats (comme COCO, etc.) au format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) par Ultralytics.
 
 ## Validation
 

@@ -81,7 +81,7 @@ Treine o YOLOv8n no dataset COCO128 por 100 épocas com tamanho de imagem 640. P
 
 ### Formato do Dataset
 
-O formato do dataset de detecção do YOLO pode ser encontrado em detalhes no [Guia de Datasets](../../datasets/detect/index.md). Para converter seu dataset existente de outros formatos (como COCO, etc.) para o formato YOLO, por favor utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
+O formato do dataset de detecção do YOLO pode ser encontrado em detalhes no [Guia de Datasets](../../../datasets/detect/index.md). Para converter seu dataset existente de outros formatos (como COCO, etc.) para o formato YOLO, por favor utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
 
 ## Validar
 

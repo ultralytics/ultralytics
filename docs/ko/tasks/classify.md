@@ -70,7 +70,7 @@ YOLOv8n-cls 모델을 MNIST160 데이터셋에서 100 에포크 동안 학습시
 
 ### 데이터셋 형식
 
-YOLO 분류 데이터셋 형식은 [데이터셋 가이드](../../datasets/classify/index.md)에서 자세히 확인할 수 있습니다.
+YOLO 분류 데이터셋 형식은 [데이터셋 가이드](../../../datasets/classify/index.md)에서 자세히 확인할 수 있습니다.
 
 ## 검증
 

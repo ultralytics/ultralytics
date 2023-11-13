@@ -70,7 +70,7 @@ Treine o modelo YOLOv8n-cls no dataset MNIST160 por 100 épocas com tamanho de i
 
 ### Formato do dataset
 
-O formato do dataset de classificação YOLO pode ser encontrado em detalhes no [Guia de Datasets](../../datasets/classify/index.md).
+O formato do dataset de classificação YOLO pode ser encontrado em detalhes no [Guia de Datasets](../../../datasets/classify/index.md).
 
 ## Val
 

@@ -70,7 +70,7 @@ Trainieren Sie das YOLOv8n-cls-Modell auf dem MNIST160-Datensatz für 100 Epoche
 
 ### Datenformat
 
-Das Datenformat für YOLO-Klassifizierungsdatensätze finden Sie im Detail im [Datenleitfaden](../../datasets/classify/index.md).
+Das Datenformat für YOLO-Klassifizierungsdatensätze finden Sie im Detail im [Datenleitfaden](../../../datasets/classify/index.md).
 
 ## Validieren
 

@@ -117,9 +117,9 @@ extra:
       link: https://ultralytics.com/discord
 
 extra_css:
-  - 'stylesheets/style.css'
+  - stylesheets/style.css
 extra_javascript:
-  - 'javascript/extra.js'
+  - javascript/extra.js
 
 markdown_extensions:
   - admonition
@@ -165,25 +165,25 @@ nav:
           - Segmentierung: tasks/segment.md
           - Klassifizierung: tasks/classify.md
           - Pose: tasks/pose.md
-      - Schnellstart: quickstart.md
-      - Modi:
-          - modes/index.md
-          - Training: modes/train.md
-          - Validierung: modes/val.md
-          - Vorhersage: modes/predict.md
-          - Exportieren: modes/export.md
-          - Verfolgen: modes/track.md
-          - Benchmarking: modes/benchmark.md
-      - Aufgaben:
-          - tasks/index.md
-          - Erkennung: tasks/detect.md
-          - Segmentierung: tasks/segment.md
-          - Klassifizierung: tasks/classify.md
-          - Pose: tasks/pose.md
-      - Modelle:
-          - models/index.md
-      - Datensätze:
-          - datasets/index.md
+  - Schnellstart: quickstart.md
+  - Modi:
+      - modes/index.md
+      - Training: modes/train.md
+      - Validierung: modes/val.md
+      - Vorhersage: modes/predict.md
+      - Exportieren: modes/export.md
+      - Verfolgen: modes/track.md
+      - Benchmarking: modes/benchmark.md
+  - Aufgaben:
+      - tasks/index.md
+      - Erkennung: tasks/detect.md
+      - Segmentierung: tasks/segment.md
+      - Klassifizierung: tasks/classify.md
+      - Pose: tasks/pose.md
+  - Modelle:
+      - models/index.md
+  - Datensätze:
+      - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:

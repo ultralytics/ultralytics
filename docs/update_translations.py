@@ -56,7 +56,7 @@ class MarkdownLinkFixer:
         pattern = re.compile(f'allow="(?!{re.escape(english_permissions)}).+?"')
         return pattern.sub(f'allow="{english_permissions}"', content)
 
-    def link_replacer(self, match, parent_dir, lang_dir):
+    def link_replacer(self, match, parent_dir, lang_dir, use_abs_link=False):
         """Replace broken links with corresponding links in the /en/ directory."""
         text, path = match.groups()
         linked_path = (parent_dir / path).resolve().with_suffix('.md')
@@ -64,13 +64,21 @@ class MarkdownLinkFixer:
         if not linked_path.exists():
             en_linked_path = Path(str(linked_path).replace(str(lang_dir), str(lang_dir.parent / 'en')))
             if en_linked_path.exists():
-                steps_up = len(parent_dir.relative_to(self.base_dir).parts)
-                relative_path = Path('../' * steps_up) / en_linked_path.relative_to(self.base_dir)
-                relative_path = str(relative_path).replace('/en/', '/')
-                print(f"Redirecting link '[{text}]({path})' from {parent_dir} to {relative_path}")
-                return f'[{text}]({relative_path})'
+                if use_abs_link:
+                    # Use absolute links WARNING: BUGS, DO NOT USE
+                    docs_root_relative_path = en_linked_path.relative_to(lang_dir.parent)
+                    updated_path = str(docs_root_relative_path).replace('en/', '/../')
+                else:
+                    # Use relative links
+                    steps_up = len(parent_dir.relative_to(self.base_dir).parts)
+                    updated_path = Path('../' * steps_up) / en_linked_path.relative_to(self.base_dir)
+                    updated_path = str(updated_path).replace('/en/', '/')
+
+                print(f"Redirecting link '[{text}]({path})' from {parent_dir} to {updated_path}")
+                return f'[{text}]({updated_path})'
             else:
                 print(f"Warning: Broken link '[{text}]({path})' found in {parent_dir} does not exist in /docs/en/.")
+
         return match.group(0)
 
     def process_markdown_file(self, md_file_path, lang_dir):
@@ -107,5 +115,5 @@ class MarkdownLinkFixer:
 if __name__ == '__main__':
     # Set the path to your MkDocs 'docs' directory here
     docs_dir = str(Path(__file__).parent.resolve())
-    fixer = MarkdownLinkFixer(docs_dir, update_links=False, update_frontmatter=True, update_iframes=True)
+    fixer = MarkdownLinkFixer(docs_dir, update_links=True, update_frontmatter=True, update_iframes=True)
     fixer.run()

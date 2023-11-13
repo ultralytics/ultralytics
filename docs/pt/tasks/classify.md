@@ -37,7 +37,7 @@ Aqui são mostrados os modelos pré-treinados YOLOv8 Classify. Modelos de Detec�
 
 ## Treino
 
-Treine o modelo YOLOv8n-cls no dataset MNIST160 por 100 épocas com tamanho de imagem 64. Para uma lista completa de argumentos disponíveis, veja a página de [Configuração](../../usage/cfg.md).
+Treine o modelo YOLOv8n-cls no dataset MNIST160 por 100 épocas com tamanho de imagem 64. Para uma lista completa de argumentos disponíveis, veja a página de [Configuração](/../usage/cfg.md).
 
 !!! exemplo ""
 

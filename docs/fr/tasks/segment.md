@@ -48,7 +48,7 @@ Les [modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/
 
 ## Formation
 
-Entraînez YOLOv8n-seg sur le jeu de données COCO128-seg pendant 100 époques à la taille d'image 640. Pour une liste complète des arguments disponibles, consultez la page [Configuration](../../usage/cfg.md).
+Entraînez YOLOv8n-seg sur le jeu de données COCO128-seg pendant 100 époques à la taille d'image 640. Pour une liste complète des arguments disponibles, consultez la page [Configuration](/../usage/cfg.md).
 
 !!! exemple ""
 

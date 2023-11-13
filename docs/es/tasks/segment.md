@@ -48,7 +48,7 @@ Los [Modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/c
 
 ## Entrenamiento
 
-Entrena el modelo YOLOv8n-seg en el conjunto de datos COCO128-seg durante 100 épocas con tamaño de imagen de 640. Para una lista completa de argumentos disponibles, consulta la página de [Configuración](../../usage/cfg.md).
+Entrena el modelo YOLOv8n-seg en el conjunto de datos COCO128-seg durante 100 épocas con tamaño de imagen de 640. Para una lista completa de argumentos disponibles, consulta la página de [Configuración](/../usage/cfg.md).
 
 !!! example ""
 

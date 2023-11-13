@@ -148,41 +148,41 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - Startseite:
-      - Startseite: index.md
-      - Schnellstart: quickstart.md
-      - Modi:
+  - Página Inicial:
+      - Página Inicial: index.md
+      - Início Rápido: quickstart.md
+      - Modos:
           - modes/index.md
-          - Training: modes/train.md
-          - Validierung: modes/val.md
-          - Vorhersage: modes/predict.md
-          - Exportieren: modes/export.md
-          - Verfolgen: modes/track.md
+          - Treinamento: modes/train.md
+          - Validação: modes/val.md
+          - Previsão: modes/predict.md
+          - Exportação: modes/export.md
+          - Rastreamento: modes/track.md
           - Benchmarking: modes/benchmark.md
-      - Aufgaben:
+      - Tarefas:
           - tasks/index.md
-          - Erkennung: tasks/detect.md
-          - Segmentierung: tasks/segment.md
-          - Klassifizierung: tasks/classify.md
+          - Detecção: tasks/detect.md
+          - Segmentação: tasks/segment.md
+          - Classificação: tasks/classify.md
           - Pose: tasks/pose.md
-  - Schnellstart: quickstart.md
-  - Modi:
+  - Início Rápido: quickstart.md
+  - Modos:
       - modes/index.md
-      - Training: modes/train.md
-      - Validierung: modes/val.md
-      - Vorhersage: modes/predict.md
-      - Exportieren: modes/export.md
-      - Verfolgen: modes/track.md
+      - Treinamento: modes/train.md
+      - Validação: modes/val.md
+      - Previsão: modes/predict.md
+      - Exportação: modes/export.md
+      - Rastreamento: modes/track.md
       - Benchmarking: modes/benchmark.md
-  - Aufgaben:
+  - Tarefas:
       - tasks/index.md
-      - Erkennung: tasks/detect.md
-      - Segmentierung: tasks/segment.md
-      - Klassifizierung: tasks/classify.md
+      - Detecção: tasks/detect.md
+      - Segmentação: tasks/segment.md
+      - Classificação: tasks/classify.md
       - Pose: tasks/pose.md
-  - Modelle:
+  - Modelos:
       - models/index.md
-  - Datensätze:
+  - Conjuntos de Dados:
       - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------

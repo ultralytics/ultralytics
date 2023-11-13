@@ -48,7 +48,7 @@ Hier werden vortrainierte YOLOv8 Segment-Modelle gezeigt. Detect-, Segment- und 
 
 ## Training
 
-Trainieren Sie YOLOv8n-seg auf dem COCO128-seg-Datensatz für 100 Epochen mit einer Bildgröße von 640. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](../../usage/cfg.md).
+Trainieren Sie YOLOv8n-seg auf dem COCO128-seg-Datensatz für 100 Epochen mit einer Bildgröße von 640. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](/../usage/cfg.md).
 
 !!! Beispiel ""
 

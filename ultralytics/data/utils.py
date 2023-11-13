@@ -517,8 +517,7 @@ class HUBDatasetStats:
 
                 dataset = YOLODataset(img_path=self.data[split],
                                       data=self.data,
-                                      use_segments=self.task == 'segment',
-                                      use_keypoints=self.task == 'pose')
+                                      task=self.task)
                 x = np.array([
                     np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
                     for label in TQDM(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)

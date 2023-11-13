@@ -32,10 +32,11 @@ class YOLODataset(BaseDataset):
         (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.
     """
 
-    def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, **kwargs):
+    def __init__(self, *args, data=None, task="detect", **kwargs):
         """Initializes the YOLODataset with optional configurations for segments and keypoints."""
-        self.use_segments = use_segments
-        self.use_keypoints = use_keypoints
+        self.use_segments = task == "segment"
+        self.use_keypoints = task == "pose"
+        self.use_obb = task == "obb"
         self.data = data
         assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
         super().__init__(*args, **kwargs)

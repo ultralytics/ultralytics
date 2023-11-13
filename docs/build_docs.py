@@ -1,60 +1,42 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-This script is designed to facilitate the building of MkDocs documentation for a multilingual site.
-It specifically addresses the scenario where the English documentation (located in an 'en' subdirectory)
-needs to be temporarily copied to the root level of the documentation directory for MkDocs to properly
-build the site. This is a workaround to handle MkDocs' limitations with multilingual documentation.
+This Python script is designed to automate the building and post-processing of MkDocs documentation,
+particularly for projects with multilingual content. It streamlines the workflow for generating
+localized versions of the documentation and updating HTML links to ensure they are correctly formatted.
 
-The script performs the following steps:
-1. Copies all files from the 'en' directory to the root of the documentation directory.
-2. Builds the MkDocs site using the main mkdocs.yml file and any other mkdocs_*.yml files in the 'docs' directory,
-   allowing for building localized versions of the documentation.
-3. Cleans up by removing the files that were copied to the root after the build is complete.
+Key Features:
+- Automated building of MkDocs documentation: The script compiles both the main documentation and
+  any localized versions specified in separate MkDocs configuration files.
+- Post-processing of generated HTML files: After the documentation is built, the script updates all
+  HTML files to remove the '.md' extension from internal links. This ensures that links in the built
+  HTML documentation correctly point to other HTML pages rather than Markdown files, which is crucial
+  for proper navigation within the web-based documentation.
 
 Usage:
-    Run this script from the root directory of your MkDocs project.
-    Ensure mkdocs and other dependencies are installed and accessible in your environment.
+- Run the script from the root directory of your MkDocs project.
+- Ensure that MkDocs is installed and that all MkDocs configuration files (main and localized versions)
+  are present in the project directory.
+- The script first builds the documentation using MkDocs, then scans the generated HTML files in the 'site'
+  directory to update the internal links.
+- It's ideal for projects where the documentation is written in Markdown and needs to be served as a static website.
 
 Note:
-    The script uses Python's standard library modules like shutil and os for file operations
-    and subprocess calls, respectively. It's built to be run in an environment where MkDocs
-    and Python are already installed and configured.
+- This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
 
 import os
+import re
 import shutil
 from pathlib import Path
 
-DOCS = Path(__name__).parent
-
-
-def copy_files(src_dir, dest_dir):
-    """Copy files from src_dir to dest_dir and return a list of copied files."""
-    copied_files = []
-    for item in src_dir.iterdir():
-        dest = dest_dir / item.name
-        if item.is_dir():
-            shutil.copytree(item, dest, dirs_exist_ok=True)
-        else:
-            shutil.copy2(item, dest)
-        copied_files.append(dest)
-    return copied_files
-
-
-def remove_files(files):
-    """Remove files from the file system."""
-    for file in files:
-        if file.is_file():
-            file.unlink()
-        elif file.is_dir():
-            shutil.rmtree(file)
+DOCS = Path(__name__).parent.resolve()
+SITE = DOCS.parent / 'site'
 
 
 def build_docs():
     """Build docs using mkdocs."""
-    site_dir = Path('site')
-    if site_dir.exists():
-        shutil.rmtree(site_dir)
+    if SITE.exists():
+        shutil.rmtree(SITE)
 
     # Build the main documentation
     os.system(f'mkdocs build -f {DOCS}/mkdocs.yml')
@@ -65,16 +47,32 @@ def build_docs():
         os.system(f'mkdocs build -f {file}')
 
 
-def main():
-    # Copy files and remember them
-    copied_files = copy_files(DOCS / 'en', DOCS)
+def update_html_links():
+    """Update href links in HTML files to remove '.md'."""
+    html_files = SITE.rglob('*.html')
+    for html_file in html_files:
+        with open(html_file, 'r+', encoding='utf-8') as file:
+            content = file.read()
+            updated_content = re.sub(r'href="([^"]+)\.md"', r'href="\1"', content)
+            file.seek(0)
+            file.write(updated_content)
+            file.truncate()
 
+
+def main(serve=False):
     # Build the docs
+    print(f'Building docs from {DOCS}')
     build_docs()
+    print(f'Site built at {SITE}')
 
-    # Remove the copied files
-    remove_files(copied_files)
+    # Update .md in href links
+    update_html_links()
+
+    # Serve built website
+    if serve:
+        print('Serving site on http://localhost:8000')
+        os.system('python -m http.server --directory site')
 
 
 if __name__ == '__main__':
-    main()
+    main(serve=False)

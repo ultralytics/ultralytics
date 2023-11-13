@@ -48,7 +48,7 @@ keywords: YOLOv8, Ultralytics, 物体検出, 事前訓練済みモデル, トレ
 
 ## トレーニング
 
-YOLOv8nを画像サイズ640でCOCO128データセットに対して100エポックでトレーニングします。使用可能な引数の完全なリストについては、[設定](../usage/cfg.md)ページをご覧ください。
+YOLOv8nを画像サイズ640でCOCO128データセットに対して100エポックでトレーニングします。使用可能な引数の完全なリストについては、[設定](../../usage/cfg.md)ページをご覧ください。
 
 !!! example ""
 
@@ -80,7 +80,7 @@ YOLOv8nを画像サイズ640でCOCO128データセットに対して100エポッ
 
 ### データセットの形式
 
-YOLO検出データセットの形式の詳細は、[データセットガイド](../datasets/detect/index.md)に記載されています。他の形式（COCO等）からYOLO形式に既存のデータセットを変換するには、Ultralyticsの[JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)ツールをご利用ください。
+YOLO検出データセットの形式の詳細は、[データセットガイド](../../datasets/detect/index.md)に記載されています。他の形式（COCO等）からYOLO形式に既存のデータセットを変換するには、Ultralyticsの[JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)ツールをご利用ください。
 
 ## 検証
 

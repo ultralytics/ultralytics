@@ -6,7 +6,7 @@ keywords: Ultralytics, Dokumentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, R
 
 # Von Ultralytics unterstützte Modelle
 
-Willkommen in der Modell-Dokumentation von Ultralytics! Wir bieten Unterstützung für eine breite Palette von Modellen, die für spezifische Aufgaben wie [Objekterkennung](../tasks/detect.md), [Instanzsegmentierung](../tasks/segment.md), [Bildklassifizierung](../tasks/classify.md), [Poseerkennung](../tasks/pose.md) und [Multi-Objekt-Tracking](../modes/track.md) zugeschnitten sind. Wenn Sie daran interessiert sind, Ihre Modellarchitektur an Ultralytics beizutragen, werfen Sie einen Blick auf unseren [Beitragenden-Leitfaden](../help/contributing.md).
+Willkommen in der Modell-Dokumentation von Ultralytics! Wir bieten Unterstützung für eine breite Palette von Modellen, die für spezifische Aufgaben wie [Objekterkennung](../tasks/detect.md), [Instanzsegmentierung](../tasks/segment.md), [Bildklassifizierung](../tasks/classify.md), [Poseerkennung](../tasks/pose.md) und [Multi-Objekt-Tracking](../modes/track.md) zugeschnitten sind. Wenn Sie daran interessiert sind, Ihre Modellarchitektur an Ultralytics beizutragen, werfen Sie einen Blick auf unseren [Beitragenden-Leitfaden](../../help/contributing.md).
 
 !!! Hinweis
 
@@ -16,17 +16,17 @@ Willkommen in der Modell-Dokumentation von Ultralytics! Wir bieten Unterstützun
 
 Hier sind einige der wesentlichen unterstützten Modelle:
 
-1. **[YOLOv3](yolov3.md)**: Die dritte Iteration der YOLO-Modellfamilie, ursprünglich von Joseph Redmon entwickelt und bekannt für ihre effiziente Echtzeit-Objekterkennung.
-2. **[YOLOv4](yolov4.md)**: Eine darknet-native Aktualisierung von YOLOv3, die 2020 von Alexey Bochkovskiy veröffentlicht wurde.
-3. **[YOLOv5](yolov5.md)**: Eine verbesserte Version der YOLO-Architektur von Ultralytics, die im Vergleich zu früheren Versionen bessere Leistungs- und Geschwindigkeitstrade-offs bietet.
-4. **[YOLOv6](yolov6.md)**: Im Jahr 2022 von [Meituan](https://about.meituan.com/) veröffentlicht und in vielen autonomen Zustellrobotern des Unternehmens verwendet.
-5. **[YOLOv7](yolov7.md)**: Im Jahr 2022 von den Autoren von YOLOv4 aktualisierte YOLO-Modelle.
-6. **[YOLOv8](yolov8.md)**: Die neueste Version der YOLO-Familie mit erweiterten Fähigkeiten wie Instanzsegmentierung, Pose-/Schlüsselpunktschätzung und Klassifizierung.
-7. **[Segment Anything Model (SAM)](sam.md)**: Metas Segment Anything Model (SAM).
-8. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM für mobile Anwendungen von der Kyung Hee Universität.
-9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM von der Bild- und Videoanalysegruppe des Instituts für Automatisierung, Chinesische Akademie der Wissenschaften.
-10. **[YOLO-NAS](yolo-nas.md)**: YOLO Neural Architecture Search (NAS) Modelle.
-11. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidus PaddlePaddle Realtime Detection Transformer (RT-DETR) Modelle.
+1. **[YOLOv3](../../models/yolov3.md)**: Die dritte Iteration der YOLO-Modellfamilie, ursprünglich von Joseph Redmon entwickelt und bekannt für ihre effiziente Echtzeit-Objekterkennung.
+2. **[YOLOv4](../../models/yolov4.md)**: Eine darknet-native Aktualisierung von YOLOv3, die 2020 von Alexey Bochkovskiy veröffentlicht wurde.
+3. **[YOLOv5](../../models/yolov5.md)**: Eine verbesserte Version der YOLO-Architektur von Ultralytics, die im Vergleich zu früheren Versionen bessere Leistungs- und Geschwindigkeitstrade-offs bietet.
+4. **[YOLOv6](../../models/yolov6.md)**: Im Jahr 2022 von [Meituan](https://about.meituan.com/) veröffentlicht und in vielen autonomen Zustellrobotern des Unternehmens verwendet.
+5. **[YOLOv7](../../models/yolov7.md)**: Im Jahr 2022 von den Autoren von YOLOv4 aktualisierte YOLO-Modelle.
+6. **[YOLOv8](../../models/yolov8.md)**: Die neueste Version der YOLO-Familie mit erweiterten Fähigkeiten wie Instanzsegmentierung, Pose-/Schlüsselpunktschätzung und Klassifizierung.
+7. **[Segment Anything Model (SAM)](../../models/sam.md)**: Metas Segment Anything Model (SAM).
+8. **[Mobile Segment Anything Model (MobileSAM)](../../models/mobile-sam.md)**: MobileSAM für mobile Anwendungen von der Kyung Hee Universität.
+9. **[Fast Segment Anything Model (FastSAM)](../../models/fast-sam.md)**: FastSAM von der Bild- und Videoanalysegruppe des Instituts für Automatisierung, Chinesische Akademie der Wissenschaften.
+10. **[YOLO-NAS](../../models/yolo-nas.md)**: YOLO Neural Architecture Search (NAS) Modelle.
+11. **[Realtime Detection Transformers (RT-DETR)](../../models/rtdetr.md)**: Baidus PaddlePaddle Realtime Detection Transformer (RT-DETR) Modelle.
 
 <p align="center">
   <br>
@@ -83,7 +83,7 @@ Interessiert, Ihr Modell bei Ultralytics beizutragen? Großartig! Wir sind immer
 
 2. **Ihren Fork klonen**: Klonen Sie Ihren Fork auf Ihre lokale Maschine und erstellen Sie einen neuen Branch, um daran zu arbeiten.
 
-3. **Ihr Modell implementieren**: Fügen Sie Ihr Modell gemäß den in unserem [Beitragenden-Leitfaden](../help/contributing.md) bereitgestellten Codierstandards und Richtlinien hinzu.
+3. **Ihr Modell implementieren**: Fügen Sie Ihr Modell gemäß den in unserem [Beitragenden-Leitfaden](../../help/contributing.md) bereitgestellten Codierstandards und Richtlinien hinzu.
 
 4. **Gründlich testen**: Stellen Sie sicher, dass Sie Ihr Modell sowohl isoliert als auch als Teil der Pipeline rigoros testen.
 
@@ -91,4 +91,4 @@ Interessiert, Ihr Modell bei Ultralytics beizutragen? Großartig! Wir sind immer
 
 6. **Code-Überprüfung und Merging**: Nach der Überprüfung wird Ihr Modell, wenn es unseren Kriterien entspricht, in das Hauptrepository übernommen.
 
-Für detaillierte Schritte konsultieren Sie unseren [Beitragenden-Leitfaden](../help/contributing.md).
+Für detaillierte Schritte konsultieren Sie unseren [Beitragenden-Leitfaden](../../help/contributing.md).

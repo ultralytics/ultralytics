@@ -6,7 +6,7 @@ keywords: Ultralytics, 문서화, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DE
 
 # Ultralytics에서 지원하는 모델
 
-Ultralytics 모델 문서에 오신 것을 환영합니다! 저희는 [객체 검출](../tasks/detect.md), [인스턴스 분할](../tasks/segment.md), [이미지 분류](../tasks/classify.md), [자세 추정](../tasks/pose.md), [다중 객체 추적](../modes/track.md) 등 특정 작업에 맞춤화된 다양한 모델을 지원합니다. Ultralytics에 모델 아키텍처를 기여하고자 한다면, 저희의 [기여 가이드](../help/contributing.md)를 확인해 주세요.
+Ultralytics 모델 문서에 오신 것을 환영합니다! 저희는 [객체 검출](../tasks/detect.md), [인스턴스 분할](../tasks/segment.md), [이미지 분류](../tasks/classify.md), [자세 추정](../tasks/pose.md), [다중 객체 추적](../modes/track.md) 등 특정 작업에 맞춤화된 다양한 모델을 지원합니다. Ultralytics에 모델 아키텍처를 기여하고자 한다면, 저희의 [기여 가이드](../../help/contributing.md)를 확인해 주세요.
 
 !!! note
 
@@ -16,17 +16,17 @@ Ultralytics 모델 문서에 오신 것을 환영합니다! 저희는 [객체 �
 
 여기 몇 가지 주요 모델을 소개합니다:
 
-1. **[YOLOv3](yolov3.md)**: Joseph Redmon에 의해 처음 제안된 YOLO 모델 계열의 세 번째 버전으로, 효율적인 실시간 객체 검출 능력으로 알려져 있습니다.
-2. **[YOLOv4](yolov4.md)**: 2020년 Alexey Bochkovskiy에 의해 발표된 YOLOv3의 다크넷 기반 업데이트 버전입니다.
-3. **[YOLOv5](yolov5.md)**: Ultralytics에 의해 개선된 YOLO 아키텍처 버전으로, 이전 버전들과 비교해 더 나은 성능 및 속도 저하를 제공합니다.
-4. **[YOLOv6](yolov6.md)**: 2022년 [Meituan](https://about.meituan.com/)에 의해 발표되었으며, 회사의 자율 배송 로봇에 많이 사용되고 있습니다.
-5. **[YOLOv7](yolov7.md)**: YOLOv4의 저자들에 의해 2022년에 발표된 업데이트된 YOLO 모델입니다.
-6. **[YOLOv8](yolov8.md)**: YOLO 계열의 최신 버전으로, 인스턴스 분할, 자세/키포인트 추정 및 분류 등 향상된 기능을 제공합니다.
-7. **[Segment Anything Model (SAM)](sam.md)**: Meta의 Segment Anything Model (SAM)입니다.
-8. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: 경희대학교에 의한 모바일 애플리케이션용 MobileSAM입니다.
-9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: 중국 과학원 자동화 연구소의 영상 및 비디오 분석 그룹에 의한 FastSAM입니다.
-10. **[YOLO-NAS](yolo-nas.md)**: YOLO Neural Architecture Search (NAS) 모델입니다.
-11. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu의 PaddlePaddle Realtime Detection Transformer (RT-DETR) 모델입니다.
+1. **[YOLOv3](../../models/yolov3.md)**: Joseph Redmon에 의해 처음 제안된 YOLO 모델 계열의 세 번째 버전으로, 효율적인 실시간 객체 검출 능력으로 알려져 있습니다.
+2. **[YOLOv4](../../models/yolov4.md)**: 2020년 Alexey Bochkovskiy에 의해 발표된 YOLOv3의 다크넷 기반 업데이트 버전입니다.
+3. **[YOLOv5](../../models/yolov5.md)**: Ultralytics에 의해 개선된 YOLO 아키텍처 버전으로, 이전 버전들과 비교해 더 나은 성능 및 속도 저하를 제공합니다.
+4. **[YOLOv6](../../models/yolov6.md)**: 2022년 [Meituan](https://about.meituan.com/)에 의해 발표되었으며, 회사의 자율 배송 로봇에 많이 사용되고 있습니다.
+5. **[YOLOv7](../../models/yolov7.md)**: YOLOv4의 저자들에 의해 2022년에 발표된 업데이트된 YOLO 모델입니다.
+6. **[YOLOv8](../../models/yolov8.md)**: YOLO 계열의 최신 버전으로, 인스턴스 분할, 자세/키포인트 추정 및 분류 등 향상된 기능을 제공합니다.
+7. **[Segment Anything Model (SAM)](../../models/sam.md)**: Meta의 Segment Anything Model (SAM)입니다.
+8. **[Mobile Segment Anything Model (MobileSAM)](../../models/mobile-sam.md)**: 경희대학교에 의한 모바일 애플리케이션용 MobileSAM입니다.
+9. **[Fast Segment Anything Model (FastSAM)](../../models/fast-sam.md)**: 중국 과학원 자동화 연구소의 영상 및 비디오 분석 그룹에 의한 FastSAM입니다.
+10. **[YOLO-NAS](../../models/yolo-nas.md)**: YOLO Neural Architecture Search (NAS) 모델입니다.
+11. **[Realtime Detection Transformers (RT-DETR)](../../models/rtdetr.md)**: Baidu의 PaddlePaddle Realtime Detection Transformer (RT-DETR) 모델입니다.
 
 <p align="center">
   <br>
@@ -83,7 +83,7 @@ Ultralytics에 모델을 기여하고 싶으신가요? 훌륭합니다! 저희�
 
 2. **포크를 클론하세요**: 로컬 기기에 포크한 저장소를 클론하고 작업할 새 브랜치를 만드세요.
 
-3. **모델 구현하기**: 저희의 [기여 가이드](../help/contributing.md)에 제시된 코딩 표준과 가이드라인을 따라 모델을 추가하세요.
+3. **모델 구현하기**: 저희의 [기여 가이드](../../help/contributing.md)에 제시된 코딩 표준과 가이드라인을 따라 모델을 추가하세요.
 
 4. **철저히 테스트하기**: 파이프라인의 일부로서 뿐만 아니라 독립적으로도 모델을 철저히 테스트하세요.
 
@@ -91,4 +91,4 @@ Ultralytics에 모델을 기여하고 싶으신가요? 훌륭합니다! 저희�
 
 6. **코드 리뷰 및 병합**: 리뷰 이후, 모델이 저희의 기준을 만족한다면 메인 저장소로 병합될 것입니다.
 
-자세한 단계는 저희의 [기여 가이드](../help/contributing.md)를 참조하세요.
+자세한 단계는 저희의 [기여 가이드](../../help/contributing.md)를 참조하세요.

@@ -37,7 +37,7 @@ Les [modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/
 
 ## Entraînement
 
-Entraînez le modèle YOLOv8n-cls sur le dataset MNIST160 pendant 100 époques avec une taille d'image de 64. Pour une liste complète des arguments disponibles, consultez la page [Configuration](../usage/cfg.md).
+Entraînez le modèle YOLOv8n-cls sur le dataset MNIST160 pendant 100 époques avec une taille d'image de 64. Pour une liste complète des arguments disponibles, consultez la page [Configuration](../../usage/cfg.md).
 
 !!! example ""
 
@@ -70,7 +70,7 @@ Entraînez le modèle YOLOv8n-cls sur le dataset MNIST160 pendant 100 époques a
 
 ### Format du dataset
 
-Le format du dataset de classification YOLO peut être trouvé en détails dans le [Guide des Datasets](../datasets/classify/index.md).
+Le format du dataset de classification YOLO peut être trouvé en détails dans le [Guide des Datasets](../../datasets/classify/index.md).
 
 ## Validation
 

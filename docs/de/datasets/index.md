@@ -12,63 +12,63 @@ Ultralytics bietet Unterstützung für verschiedene Datensätze an, um Computerv
 
     🚧 Unsere mehrsprachige Dokumentation befindet sich derzeit im Aufbau und wir arbeiten intensiv an deren Verbesserung. Vielen Dank für Ihre Geduld! 🙏
 
-## [Erkennungsdatensätze](detect/index.md)
+## [Erkennungsdatensätze](../../datasets/detect/index.md)
 
 Die Objekterkennung mittels Bounding Box ist eine Computervisionstechnik, die das Erkennen und Lokalisieren von Objekten in einem Bild anhand des Zeichnens einer Bounding Box um jedes Objekt beinhaltet.
 
-- [Argoverse](detect/argoverse.md): Ein Datensatz mit 3D-Tracking- und Bewegungsvorhersagedaten aus städtischen Umgebungen mit umfassenden Annotationen.
-- [COCO](detect/coco.md): Ein umfangreicher Datensatz für Objekterkennung, Segmentierung und Beschreibung mit über 200.000 beschrifteten Bildern.
-- [COCO8](detect/coco8.md): Enthält die ersten 4 Bilder aus COCO Train und COCO Val, geeignet für schnelle Tests.
-- [Global Wheat 2020](detect/globalwheat2020.md): Ein Datensatz mit Bildern von Weizenköpfen aus aller Welt für Objekterkennungs- und Lokalisierungsaufgaben.
-- [Objects365](detect/objects365.md): Ein hochwertiger, großer Datensatz für Objekterkennung mit 365 Objektkategorien und über 600.000 annotierten Bildern.
-- [OpenImagesV7](detect/open-images-v7.md): Ein umfassender Datensatz von Google mit 1,7 Millionen Trainingsbildern und 42.000 Validierungsbildern.
-- [SKU-110K](detect/sku-110k.md): Ein Datensatz mit dichter Objekterkennung in Einzelhandelsumgebungen mit über 11.000 Bildern und 1,7 Millionen Bounding Boxen.
-- [VisDrone](detect/visdrone.md): Ein Datensatz mit Objekterkennungs- und Multi-Objekt-Tracking-Daten aus Drohnenaufnahmen mit über 10.000 Bildern und Videosequenzen.
-- [VOC](detect/voc.md): Der Pascal Visual Object Classes (VOC) Datensatz für Objekterkennung und Segmentierung mit 20 Objektklassen und über 11.000 Bildern.
-- [xView](detect/xview.md): Ein Datensatz für Objekterkennung in Überwachungsbildern mit 60 Objektkategorien und über 1 Million annotierten Objekten.
+- [Argoverse](../../datasets/detect/argoverse.md): Ein Datensatz mit 3D-Tracking- und Bewegungsvorhersagedaten aus städtischen Umgebungen mit umfassenden Annotationen.
+- [COCO](../../datasets/detect/coco.md): Ein umfangreicher Datensatz für Objekterkennung, Segmentierung und Beschreibung mit über 200.000 beschrifteten Bildern.
+- [COCO8](../../datasets/detect/coco8.md): Enthält die ersten 4 Bilder aus COCO Train und COCO Val, geeignet für schnelle Tests.
+- [Global Wheat 2020](../../datasets/detect/globalwheat2020.md): Ein Datensatz mit Bildern von Weizenköpfen aus aller Welt für Objekterkennungs- und Lokalisierungsaufgaben.
+- [Objects365](../../datasets/detect/objects365.md): Ein hochwertiger, großer Datensatz für Objekterkennung mit 365 Objektkategorien und über 600.000 annotierten Bildern.
+- [OpenImagesV7](../../datasets/detect/open-images-v7.md): Ein umfassender Datensatz von Google mit 1,7 Millionen Trainingsbildern und 42.000 Validierungsbildern.
+- [SKU-110K](../../datasets/detect/sku-110k.md): Ein Datensatz mit dichter Objekterkennung in Einzelhandelsumgebungen mit über 11.000 Bildern und 1,7 Millionen Bounding Boxen.
+- [VisDrone](../../datasets/detect/visdrone.md): Ein Datensatz mit Objekterkennungs- und Multi-Objekt-Tracking-Daten aus Drohnenaufnahmen mit über 10.000 Bildern und Videosequenzen.
+- [VOC](../../datasets/detect/voc.md): Der Pascal Visual Object Classes (VOC) Datensatz für Objekterkennung und Segmentierung mit 20 Objektklassen und über 11.000 Bildern.
+- [xView](../../datasets/detect/xview.md): Ein Datensatz für Objekterkennung in Überwachungsbildern mit 60 Objektkategorien und über 1 Million annotierten Objekten.
 
-## [Datensätze für Instanzsegmentierung](segment/index.md)
+## [Datensätze für Instanzsegmentierung](../../datasets/segment/index.md)
 
 Die Instanzsegmentierung ist eine Computervisionstechnik, die das Identifizieren und Lokalisieren von Objekten in einem Bild auf Pixelebene beinhaltet.
 
-- [COCO](segment/coco.md): Ein großer Datensatz für Objekterkennung, Segmentierung und Beschreibungsaufgaben mit über 200.000 beschrifteten Bildern.
-- [COCO8-seg](segment/coco8-seg.md): Ein kleinerer Datensatz für Instanzsegmentierungsaufgaben, der eine Teilmenge von 8 COCO-Bildern mit Segmentierungsannotationen enthält.
+- [COCO](../../datasets/segment/coco.md): Ein großer Datensatz für Objekterkennung, Segmentierung und Beschreibungsaufgaben mit über 200.000 beschrifteten Bildern.
+- [COCO8-seg](../../datasets/segment/coco8-seg.md): Ein kleinerer Datensatz für Instanzsegmentierungsaufgaben, der eine Teilmenge von 8 COCO-Bildern mit Segmentierungsannotationen enthält.
 
-## [Posenschätzung](pose/index.md)
+## [Posenschätzung](../../datasets/pose/index.md)
 
 Die Posenschätzung ist eine Technik, die verwendet wird, um die Position des Objekts relativ zur Kamera oder zum Weltkoordinatensystem zu bestimmen.
 
-- [COCO](pose/coco.md): Ein großer Datensatz mit menschlichen Pose-Annotationen für Posenschätzungsaufgaben.
-- [COCO8-pose](pose/coco8-pose.md): Ein kleinerer Datensatz für Posenschätzungsaufgaben, der eine Teilmenge von 8 COCO-Bildern mit menschlichen Pose-Annotationen enthält.
-- [Tiger-pose](pose/tiger-pose.md): Ein kompakter Datensatz bestehend aus 263 Bildern, die auf Tiger fokussiert sind, mit Annotationen von 12 Schlüsselpunkten pro Tiger für Posenschätzungsaufgaben.
+- [COCO](../../datasets/pose/coco.md): Ein großer Datensatz mit menschlichen Pose-Annotationen für Posenschätzungsaufgaben.
+- [COCO8-pose](../../datasets/pose/coco8-pose.md): Ein kleinerer Datensatz für Posenschätzungsaufgaben, der eine Teilmenge von 8 COCO-Bildern mit menschlichen Pose-Annotationen enthält.
+- [Tiger-pose](../../datasets/pose/tiger-pose.md): Ein kompakter Datensatz bestehend aus 263 Bildern, die auf Tiger fokussiert sind, mit Annotationen von 12 Schlüsselpunkten pro Tiger für Posenschätzungsaufgaben.
 
-## [Bildklassifizierung](classify/index.md)
+## [Bildklassifizierung](../../datasets/classify/index.md)
 
 Die Bildklassifizierung ist eine Computervisionsaufgabe, bei der ein Bild basierend auf seinem visuellen Inhalt in eine oder mehrere vordefinierte Klassen oder Kategorien eingeteilt wird.
 
-- [Caltech 101](classify/caltech101.md): Enthält Bilder von 101 Objektkategorien für Bildklassifizierungsaufgaben.
-- [Caltech 256](classify/caltech256.md): Eine erweiterte Version von Caltech 101 mit 256 Objektkategorien und herausfordernderen Bildern.
-- [CIFAR-10](classify/cifar10.md): Ein Datensatz mit 60.000 32x32 Farbbildern in 10 Klassen, mit 6.000 Bildern pro Klasse.
-- [CIFAR-100](classify/cifar100.md): Eine erweiterte Version von CIFAR-10 mit 100 Objektkategorien und 600 Bildern pro Klasse.
-- [Fashion-MNIST](classify/fashion-mnist.md): Ein Datensatz mit 70.000 Graustufenbildern von 10 Modekategorien für Bildklassifizierungsaufgaben.
-- [ImageNet](classify/imagenet.md): Ein großer Datensatz für Objekterkennung und Bildklassifizierung mit über 14 Millionen Bildern und 20.000 Kategorien.
-- [ImageNet-10](classify/imagenet10.md): Ein kleinerer Teildatensatz von ImageNet mit 10 Kategorien für schnelleres Experimentieren und Testen.
-- [Imagenette](classify/imagenette.md): Ein kleinerer Teildatensatz von ImageNet, der 10 leicht unterscheidbare Klassen für ein schnelleres Training und Testen enthält.
-- [Imagewoof](classify/imagewoof.md): Ein herausfordernderer Teildatensatz von ImageNet mit 10 Hundezuchtkategorien für Bildklassifizierungsaufgaben.
-- [MNIST](classify/mnist.md): Ein Datensatz mit 70.000 Graustufenbildern von handgeschriebenen Ziffern für Bildklassifizierungsaufgaben.
+- [Caltech 101](../../datasets/classify/caltech101.md): Enthält Bilder von 101 Objektkategorien für Bildklassifizierungsaufgaben.
+- [Caltech 256](../../datasets/classify/caltech256.md): Eine erweiterte Version von Caltech 101 mit 256 Objektkategorien und herausfordernderen Bildern.
+- [CIFAR-10](../../datasets/classify/cifar10.md): Ein Datensatz mit 60.000 32x32 Farbbildern in 10 Klassen, mit 6.000 Bildern pro Klasse.
+- [CIFAR-100](../../datasets/classify/cifar100.md): Eine erweiterte Version von CIFAR-10 mit 100 Objektkategorien und 600 Bildern pro Klasse.
+- [Fashion-MNIST](../../datasets/classify/fashion-mnist.md): Ein Datensatz mit 70.000 Graustufenbildern von 10 Modekategorien für Bildklassifizierungsaufgaben.
+- [ImageNet](../../datasets/classify/imagenet.md): Ein großer Datensatz für Objekterkennung und Bildklassifizierung mit über 14 Millionen Bildern und 20.000 Kategorien.
+- [ImageNet-10](../../datasets/classify/imagenet10.md): Ein kleinerer Teildatensatz von ImageNet mit 10 Kategorien für schnelleres Experimentieren und Testen.
+- [Imagenette](../../datasets/classify/imagenette.md): Ein kleinerer Teildatensatz von ImageNet, der 10 leicht unterscheidbare Klassen für ein schnelleres Training und Testen enthält.
+- [Imagewoof](../../datasets/classify/imagewoof.md): Ein herausfordernderer Teildatensatz von ImageNet mit 10 Hundezuchtkategorien für Bildklassifizierungsaufgaben.
+- [MNIST](../../datasets/classify/mnist.md): Ein Datensatz mit 70.000 Graustufenbildern von handgeschriebenen Ziffern für Bildklassifizierungsaufgaben.
 
-## [Orientierte Bounding Boxes (OBB)](obb/index.md)
+## [Orientierte Bounding Boxes (OBB)](../../datasets/obb/index.md)
 
 Orientierte Bounding Boxes (OBB) ist eine Methode in der Computervision für die Erkennung von geneigten Objekten in Bildern mithilfe von rotierten Bounding Boxen, die oft auf Luft- und Satellitenbilder angewendet wird.
 
-- [DOTAv2](obb/dota-v2.md): Ein beliebter OBB-Datensatz für Luftbildaufnahmen mit 1,7 Millionen Instanzen und 11.268 Bildern.
+- [DOTAv2](../../datasets/obb/dota-v2.md): Ein beliebter OBB-Datensatz für Luftbildaufnahmen mit 1,7 Millionen Instanzen und 11.268 Bildern.
 
-## [Multi-Objekt-Verfolgung](track/index.md)
+## [Multi-Objekt-Verfolgung](../../datasets/track/index.md)
 
 Die Verfolgung mehrerer Objekte ist eine Computervisionstechnik, die das Erkennen und Verfolgen mehrerer Objekte über die Zeit in einer Videosequenz beinhaltet.
 
-- [Argoverse](detect/argoverse.md): Ein Datensatz mit 3D-Tracking- und Bewegungsvorhersagedaten aus städtischen Umgebungen mit umfassenden Annotationen für Multi-Objekt-Verfolgungsaufgaben.
-- [VisDrone](detect/visdrone.md): Ein Datensatz mit Daten zur Objekterkennung und Multi-Objekt-Verfolgung aus Drohnenaufnahmen mit über 10.000 Bildern und Videosequenzen.
+- [Argoverse](../../datasets/detect/argoverse.md): Ein Datensatz mit 3D-Tracking- und Bewegungsvorhersagedaten aus städtischen Umgebungen mit umfassenden Annotationen für Multi-Objekt-Verfolgungsaufgaben.
+- [VisDrone](../../datasets/detect/visdrone.md): Ein Datensatz mit Daten zur Objekterkennung und Multi-Objekt-Verfolgung aus Drohnenaufnahmen mit über 10.000 Bildern und Videosequenzen.
 
 ## Neue Datensätze beitragen
 

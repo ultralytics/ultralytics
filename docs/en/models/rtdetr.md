@@ -19,13 +19,6 @@ Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge
 - **IoU-aware Query Selection:** Baidu's RT-DETR improves object query initialization by utilizing IoU-aware query selection. This allows the model to focus on the most relevant objects in the scene, enhancing the detection accuracy.
 - **Adaptable Inference Speed:** Baidu's RT-DETR supports flexible adjustments of inference speed by using different decoder layers without the need for retraining. This adaptability facilitates practical application in various real-time object detection scenarios.
 
-## Pre-trained Models
-
-The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models with different scales:
-
-- RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
-- RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
-
 ## Usage
 
 You can use RT-DETR for object detection tasks using the `ultralytics` pip package. The following is a sample code snippet showing how to use RT-DETR models for training and inference:
@@ -65,17 +58,27 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
 ### Supported Tasks
 
 | Model Type          | Pre-trained Weights | Tasks Supported  |
-|---------------------|---------------------|------------------|
+|---------------------|:-------------------:|------------------|
 | RT-DETR Large       | `rtdetr-l.pt`       | Object Detection |
 | RT-DETR Extra-Large | `rtdetr-x.pt`       | Object Detection |
 
 ### Supported Modes
 
 | Mode       | Supported          |
-|------------|--------------------|
+|------------|:------------------:|
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
+
+# Performance
+
+=== "Detection (COCO)"
+
+        | Model                                                                                            | size<br><sup>(pixels) | AP<sup>val<br> | Speed<br><sup>T4 TensorRT-FP16<br>(FPS) | params<br><sup>(M) | GFLOPs<br> |
+        | ------------------------------------------------------------------------------------------------ | :-------------------: | :------------: | :-------------------------------------: | :----------------: | :--------: |
+        | [RT-DETR-Large]((https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-l.pt)     | 640                   | 53.0           | 114                                     | 32                 | 110        |
+        | [RT-DETR-Xtra-Large](https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-x.pt) | 640                   | 54.8           | 74                                      | 67                 | 234        |
+        
 
 ## Citations and Acknowledgements
 

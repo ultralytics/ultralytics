@@ -10,12 +10,14 @@ import torch.nn.functional as F
 from ultralytics.nn.modules import LayerNorm2d, MLPBlock
 
 
-# This class and its supporting functions below lightly adapted from the ViTDet backbone available at: https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py # noqa
 class ImageEncoderViT(nn.Module):
     """
     An image encoder using Vision Transformer (ViT) architecture for encoding an image into a compact latent space. The
     encoder takes an image, splits it into patches, and processes these patches through a series of transformer blocks.
     The encoded patches are then processed through a neck to generate the final encoded representation.
+
+    This class and its supporting functions below lightly adapted from the ViTDet backbone available at
+    https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py.
 
     Attributes:
         img_size (int): Dimension of input images, assumed to be square.
@@ -410,6 +412,8 @@ class Attention(nn.Module):
         input_size: Optional[Tuple[int, int]] = None,
     ) -> None:
         """
+        Initialize Attention module.
+
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
@@ -502,8 +506,8 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[in
 
 def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
     """
-    Get relative positional embeddings according to the relative positions of
-        query and key sizes.
+    Get relative positional embeddings according to the relative positions of query and key sizes.
+
     Args:
         q_size (int): size of query q.
         k_size (int): size of key k.
@@ -542,8 +546,9 @@ def add_decomposed_rel_pos(
     k_size: Tuple[int, int],
 ) -> torch.Tensor:
     """
-    Calculate decomposed Relative Positional Embeddings from :paper:`mvitv2`.
-    https://github.com/facebookresearch/mvit/blob/19786631e330df9f3622e5402b4a419a263a2c80/mvit/models/attention.py   # noqa B950
+    Calculate decomposed Relative Positional Embeddings from mvitv2 paper at
+    https://github.com/facebookresearch/mvit/blob/main/mvit/models/attention.py.
+
     Args:
         attn (Tensor): attention map.
         q (Tensor): query q in the attention layer with shape (B, q_h * q_w, C).
@@ -583,6 +588,8 @@ class PatchEmbed(nn.Module):
             embed_dim: int = 768,
     ) -> None:
         """
+        Initialize PatchEmbed module.
+
         Args:
             kernel_size (Tuple): kernel size of the projection layer.
             stride (Tuple): stride of the projection layer.

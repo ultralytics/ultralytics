@@ -22,9 +22,9 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 
 ## Supported Tasks
 
-| Model Type | Pre-trained Weights                                                                                                         | Task      |
-|------------|-----------------------------------------------------------------------------------------------------------------------------|:---------:|
-| YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | Detection |
+| Model Type | Pre-trained Weights                                                                                                         | Task             |
+|------------|-----------------------------------------------------------------------------------------------------------------------------|:----------------:|
+| YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | Object Detection |
 
 ## Supported Modes
 

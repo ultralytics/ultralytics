@@ -81,4 +81,5 @@ private:
     std::vector<int> imgSize;
     float rectConfidenceThreshold;
     float iouThreshold;
+    float resizeScales;//letterbox scale
 };

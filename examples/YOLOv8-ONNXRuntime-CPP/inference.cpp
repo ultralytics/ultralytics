@@ -40,12 +40,28 @@ char *BlobFromImage(cv::Mat &iImg, T &iBlob) {
 
 
 char *PostProcess(cv::Mat &iImg, std::vector<int> iImgSize, cv::Mat &oImg) {
-    cv::Mat img = iImg.clone();
-    cv::resize(iImg, oImg, cv::Size(iImgSize.at(0), iImgSize.at(1)));
-    if (img.channels() == 1) {
-        cv::cvtColor(oImg, oImg, cv::COLOR_GRAY2BGR);
+    if (iImg.channels() == 3)
+    {
+        oImg = iImg.clone();
     }
-    cv::cvtColor(oImg, oImg, cv::COLOR_BGR2RGB);
+    else
+    {
+        cv::cvtColor(iImg, oImg, cv::COLOR_GRAY2BGR);
+    }
+
+    if (iImg.cols >= iImg.rows)
+    {
+        resizeScales = iImg.cols / (float)iImgSize.at(0);
+        cv::resize(oImg, oImg, cv::Size(iImgSize.at(0), int(iImg.rows / resizeScales)));
+    }
+    else
+    {
+        resizeScales = iImg.rows / (float)iImgSize.at(0);
+        cv::resize(oImg, oImg, cv::Size(int(iImg.cols / resizeScales), iImgSize.at(1)));
+    }
+    cv::Mat tempImg = cv::Mat::zeros(iImgSize.at(0), iImgSize.at(1), CV_8UC3);
+    oImg.copyTo(tempImg(cv::Rect(0, 0, oImg.cols, oImg.rows)));
+    oImg = tempImg;
     return RET_OK;
 }
 
@@ -188,8 +204,6 @@ char *DCSP_CORE::TensorProcess(clock_t &starttime_1, cv::Mat &iImg, N &blob, std
             rawData = rawData.t();
             float *data = (float *) rawData.data;
 
-            float x_factor = iImg.cols / 640.;
-            float y_factor = iImg.rows / 640.;
             for (int i = 0; i < strideNum; ++i) {
                 float *classesScores = data + 4;
                 cv::Mat scores(1, this->classes.size(), CV_32FC1, classesScores);
@@ -205,11 +219,11 @@ char *DCSP_CORE::TensorProcess(clock_t &starttime_1, cv::Mat &iImg, N &blob, std
                     float w = data[2];
                     float h = data[3];
 
-                    int left = int((x - 0.5 * w) * x_factor);
-                    int top = int((y - 0.5 * h) * y_factor);
+                    int left = int((x - 0.5 * w) * resizeScales);
+                    int top = int((y - 0.5 * h) * resizeScales);
 
-                    int width = int(w * x_factor);
-                    int height = int(h * y_factor);
+                    int width = int(w * resizeScales);
+                    int height = int(h * resizeScales);
 
                     boxes.emplace_back(left, top, width, height);
                 }

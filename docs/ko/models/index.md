@@ -16,17 +16,17 @@ Ultralytics 모델 문서에 오신 것을 환영합니다! 저희는 [객체 �
 
 여기 몇 가지 주요 모델을 소개합니다:
 
-1. **[YOLOv3](./yolov3.md)**: Joseph Redmon에 의해 처음 제안된 YOLO 모델 계열의 세 번째 버전으로, 효율적인 실시간 객체 검출 능력으로 알려져 있습니다.
-2. **[YOLOv4](./yolov4.md)**: 2020년 Alexey Bochkovskiy에 의해 발표된 YOLOv3의 다크넷 기반 업데이트 버전입니다.
-3. **[YOLOv5](./yolov5.md)**: Ultralytics에 의해 개선된 YOLO 아키텍처 버전으로, 이전 버전들과 비교해 더 나은 성능 및 속도 저하를 제공합니다.
-4. **[YOLOv6](./yolov6.md)**: 2022년 [Meituan](https://about.meituan.com/)에 의해 발표되었으며, 회사의 자율 배송 로봇에 많이 사용되고 있습니다.
-5. **[YOLOv7](./yolov7.md)**: YOLOv4의 저자들에 의해 2022년에 발표된 업데이트된 YOLO 모델입니다.
-6. **[YOLOv8](./yolov8.md)**: YOLO 계열의 최신 버전으로, 인스턴스 분할, 자세/키포인트 추정 및 분류 등 향상된 기능을 제공합니다.
-7. **[Segment Anything Model (SAM)](./sam.md)**: Meta의 Segment Anything Model (SAM)입니다.
-8. **[Mobile Segment Anything Model (MobileSAM)](./mobile-sam.md)**: 경희대학교에 의한 모바일 애플리케이션용 MobileSAM입니다.
-9. **[Fast Segment Anything Model (FastSAM)](./fast-sam.md)**: 중국 과학원 자동화 연구소의 영상 및 비디오 분석 그룹에 의한 FastSAM입니다.
-10. **[YOLO-NAS](./yolo-nas.md)**: YOLO Neural Architecture Search (NAS) 모델입니다.
-11. **[Realtime Detection Transformers (RT-DETR)](./rtdetr.md)**: Baidu의 PaddlePaddle Realtime Detection Transformer (RT-DETR) 모델입니다.
+1. **[YOLOv3](yolov3.md)**: Joseph Redmon에 의해 처음 제안된 YOLO 모델 계열의 세 번째 버전으로, 효율적인 실시간 객체 검출 능력으로 알려져 있습니다.
+2. **[YOLOv4](yolov4.md)**: 2020년 Alexey Bochkovskiy에 의해 발표된 YOLOv3의 다크넷 기반 업데이트 버전입니다.
+3. **[YOLOv5](yolov5.md)**: Ultralytics에 의해 개선된 YOLO 아키텍처 버전으로, 이전 버전들과 비교해 더 나은 성능 및 속도 저하를 제공합니다.
+4. **[YOLOv6](yolov6.md)**: 2022년 [Meituan](https://about.meituan.com/)에 의해 발표되었으며, 회사의 자율 배송 로봇에 많이 사용되고 있습니다.
+5. **[YOLOv7](yolov7.md)**: YOLOv4의 저자들에 의해 2022년에 발표된 업데이트된 YOLO 모델입니다.
+6. **[YOLOv8](yolov8.md)**: YOLO 계열의 최신 버전으로, 인스턴스 분할, 자세/키포인트 추정 및 분류 등 향상된 기능을 제공합니다.
+7. **[Segment Anything Model (SAM)](sam.md)**: Meta의 Segment Anything Model (SAM)입니다.
+8. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: 경희대학교에 의한 모바일 애플리케이션용 MobileSAM입니다.
+9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: 중국 과학원 자동화 연구소의 영상 및 비디오 분석 그룹에 의한 FastSAM입니다.
+10. **[YOLO-NAS](yolo-nas.md)**: YOLO Neural Architecture Search (NAS) 모델입니다.
+11. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu의 PaddlePaddle Realtime Detection Transformer (RT-DETR) 모델입니다.
 
 <p align="center">
   <br>

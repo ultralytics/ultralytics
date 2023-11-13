@@ -16,17 +16,17 @@ keywords: Ultralytics, документация, YOLO, SAM, MobileSAM, FastSAM, 
 
 Вот некоторые ключевые модели, поддерживаемые нами:
 
-1. **[YOLOv3](./yolov3.md)**: Третье поколение семейства моделей YOLO, созданное Джозефом Редмоном, известное своей эффективной способностью обнаружения объектов в реальном времени.
-2. **[YOLOv4](./yolov4.md)**: Обновление YOLOv3, оптимизированное для darknet, выпущенное Алексеем Бочковским в 2020 году.
-3. **[YOLOv5](./yolov5.md)**: Улучшенная версия архитектуры YOLO от Ultralytics, предлагающая лучшие компромиссы производительности и скорости по сравнению с предыдущими версиями.
-4. **[YOLOv6](./yolov6.md)**: Выпущена компанией [Meituan](https://about.meituan.com/) в 2022 году и используется во многих роботах автономной доставки компании.
-5. **[YOLOv7](./yolov7.md)**: Обновленные модели YOLO, выпущенные в 2022 году авторами YOLOv4.
-6. **[YOLOv8](./yolov8.md)**: Последняя версия семейства YOLO с расширенными возможностями, такими как сегментация на уровне экземпляров, оценка позы/ключевых точек и классификация.
-7. **[Segment Anything Model (SAM)](./sam.md)**: Модель Segment Anything от Meta (SAM).
-8. **[Mobile Segment Anything Model (MobileSAM)](./mobile-sam.md)**: MobileSAM для мобильных приложений от Университета Кён Хи.
-9. **[Fast Segment Anything Model (FastSAM)](./fast-sam.md)**: FastSAM от Группы анализа изображений и видео, Института автоматики, Китайская академия наук.
-10. **[YOLO-NAS](./yolo-nas.md)**: Модели YOLO с поиском архитектуры нейронных сетей (NAS).
-11. **[Realtime Detection Transformers (RT-DETR)](./rtdetr.md)**: Модели Realtime Detection Transformer (RT-DETR) от Baidu на основе PaddlePaddle.
+1. **[YOLOv3](yolov3.md)**: Третье поколение семейства моделей YOLO, созданное Джозефом Редмоном, известное своей эффективной способностью обнаружения объектов в реальном времени.
+2. **[YOLOv4](yolov4.md)**: Обновление YOLOv3, оптимизированное для darknet, выпущенное Алексеем Бочковским в 2020 году.
+3. **[YOLOv5](yolov5.md)**: Улучшенная версия архитектуры YOLO от Ultralytics, предлагающая лучшие компромиссы производительности и скорости по сравнению с предыдущими версиями.
+4. **[YOLOv6](yolov6.md)**: Выпущена компанией [Meituan](https://about.meituan.com/) в 2022 году и используется во многих роботах автономной доставки компании.
+5. **[YOLOv7](yolov7.md)**: Обновленные модели YOLO, выпущенные в 2022 году авторами YOLOv4.
+6. **[YOLOv8](yolov8.md)**: Последняя версия семейства YOLO с расширенными возможностями, такими как сегментация на уровне экземпляров, оценка позы/ключевых точек и классификация.
+7. **[Segment Anything Model (SAM)](sam.md)**: Модель Segment Anything от Meta (SAM).
+8. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM для мобильных приложений от Университета Кён Хи.
+9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM от Группы анализа изображений и видео, Института автоматики, Китайская академия наук.
+10. **[YOLO-NAS](yolo-nas.md)**: Модели YOLO с поиском архитектуры нейронных сетей (NAS).
+11. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Модели Realtime Detection Transformer (RT-DETR) от Baidu на основе PaddlePaddle.
 
 <p align="center">
   <br>

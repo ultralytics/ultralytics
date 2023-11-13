@@ -29,22 +29,25 @@ import re
 import shutil
 from pathlib import Path
 
-DOCS = Path(__name__).parent.resolve()
+DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / 'site'
 
 
 def build_docs():
     """Build docs using mkdocs."""
     if SITE.exists():
+        print(f'Removing existing {SITE}')
         shutil.rmtree(SITE)
 
     # Build the main documentation
+    print(f'Building docs from {DOCS}')
     os.system(f'mkdocs build -f {DOCS}/mkdocs.yml')
 
     # Build other localized documentations
     for file in DOCS.glob('mkdocs_*.yml'):
         print(f'Building MkDocs site with configuration file: {file}')
         os.system(f'mkdocs build -f {file}')
+    print(f'Site built at {SITE}')
 
 
 def update_html_links():
@@ -59,20 +62,16 @@ def update_html_links():
             file.truncate()
 
 
-def main(serve=False):
+def main():
     # Build the docs
-    print(f'Building docs from {DOCS}')
     build_docs()
-    print(f'Site built at {SITE}')
 
     # Update .md in href links
     update_html_links()
 
-    # Serve built website
-    if serve:
-        print('Serving site on http://localhost:8000')
-        os.system('python -m http.server --directory site')
+    # Show command to serve built website
+    print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
 
 
 if __name__ == '__main__':
-    main(serve=False)
+    main()

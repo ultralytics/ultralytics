@@ -110,6 +110,8 @@ extra:
 
 extra_css:
   - 'stylesheets/style.css'
+extra_javascript:
+  - 'javascript/extra.js'
 
 markdown_extensions:
   - admonition

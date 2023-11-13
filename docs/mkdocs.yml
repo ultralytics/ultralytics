@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 site_name: Ultralytics YOLOv8 Docs
-site_url: https://docs.ultralytics.com
 site_description: Explore Ultralytics YOLOv8, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
+site_url: https://docs.ultralytics.com
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/en/
@@ -65,12 +65,33 @@ extra:
     provider: google
     property: G-2M5EHKC0BH
   alternate: # language drop-down
-    - name: English
+    - name: 🇬🇧 English
       link: /
       lang: en
-    - name: 简体中文
+    - name: 🇨🇳 简体中文
       link: /zh/
       lang: zh
+    - name: 🇰🇷 한국어
+      link: /ko/
+      lang: ko
+    - name: 🇯🇵 日本語
+      link: /ja/
+      lang: ja
+    - name: 🇷🇺 Русский
+      link: /ru/
+      lang: ru
+    - name: 🇩🇪 Deutsch
+      link: /de/
+      lang: de
+    - name: 🇫🇷 Français
+      link: /fr/
+      lang: fr
+    - name: 🇪🇸 Español
+      link: /es/
+      lang: es
+    - name: 🇵🇹 Português
+      link: /pt/
+      lang: pt
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics

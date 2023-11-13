@@ -69,8 +69,8 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
 The YOLO-NAS models are primarily designed for object detection tasks. Additional tasks may be supported by the official repo, the ones supported in the Ultralytics library are shown here.
 
-| Model Type | Pre-trained Weights                               | Tasks Supported  |
-|------------|---------------------------------------------------|------------------|
+| Model Type | Pre-trained Weights                               | Tasks            |
+|------------|---------------------------------------------------|:----------------:|
 | YOLO-NAS   | `yolo_nas_s.pt`, `yolo_nas_m.pt`, `yolo_nas_l.pt` | Object Detection |
 
 ### Supported Modes
@@ -87,7 +87,7 @@ The YOLO-NAS models support both inference and validation modes, allowing you to
 
 === "Detection (COCO)"
 
-        | Model                                                                                      | size<br><sup>(pixels) | mAP<sup>val<br>50 | Speed<br><sup>T4 FP16<br>(ms) |
+        | Model                                                                                      | size<sup>(pixels)<br> | mAP<sup>val<br>50 | Speed<sup>T4 FP16<br>(ms)<br> |
         | ------------------------------------------------------------------------------------------ | :-------------------: | :---------------: | :---------------------------: |
         | [YOLO-NAS S](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | 640                   | 47.5              | 3.21                          |
         | [YOLO-NAS M](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | 640                   | 55.6              | 5.85                          |

@@ -23,16 +23,24 @@ theme:
   #  text: Helvetica
   #  code: Roboto Mono
   palette:
-    - scheme: default  # light mode
-      # primary: grey
+    - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/toggle-switch
-        name: Switch to dark mode
-    - scheme: slate  # dark mode
-      # primary: black
-      toggle:
-        icon: material/toggle-switch-off-outline
+        icon: material/brightness-auto
         name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
   features:
     - announce.dismiss
     - content.action.edit
@@ -154,7 +162,16 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
-      - Ultralytics 文档: https://docs.ultralytics.com/zh/
+      - Languages:
+          - 🇬🇧&nbsp English: https://docs.ultralytics.com/
+          - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
+          - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko/
+          - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja/
+          - 🇷🇺&nbsp Русский: https://docs.ultralytics.com/ru/
+          - 🇩🇪&nbsp Deutsch: https://docs.ultralytics.com/de/
+          - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr/
+          - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es/
+          - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt/
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md

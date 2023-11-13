@@ -48,7 +48,7 @@ Os modelos Segment pré-treinados do YOLOv8 estão mostrados aqui. Os modelos De
 
 ## Treinar
 
-Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com tamanho de imagem 640. Para uma lista completa de argumentos disponíveis, consulte a página [Configuração](../../usage/cfg.md).
+Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com tamanho de imagem 640. Para uma lista completa de argumentos disponíveis, consulte a página [Configuração](/../usage/cfg.md).
 
 !!! example ""
 

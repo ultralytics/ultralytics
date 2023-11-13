@@ -37,7 +37,7 @@ Les [modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/
 
 ## Entraînement
 
-Entraînez le modèle YOLOv8n-cls sur le dataset MNIST160 pendant 100 époques avec une taille d'image de 64. Pour une liste complète des arguments disponibles, consultez la page [Configuration](../../usage/cfg.md).
+Entraînez le modèle YOLOv8n-cls sur le dataset MNIST160 pendant 100 époques avec une taille d'image de 64. Pour une liste complète des arguments disponibles, consultez la page [Configuration](/../usage/cfg.md).
 
 !!! example ""
 
@@ -164,7 +164,7 @@ Les formats d'exportation disponibles pour YOLOv8-cls sont présentés dans le t
 | [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-cls_saved_model/`    | ✅           | `imgsz`, `keras`                                    |
 | [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-cls.pb`              | ❌           | `imgsz`                                             |
 | [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-cls.tflite`          | ✅           | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-into/)          | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅           | `imgsz`                                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)          | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅           | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-cls_web_model/`      | ✅           | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅           | `imgsz`                                             |
 | [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅           | `imgsz`, `half`                                     |

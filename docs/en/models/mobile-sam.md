@@ -89,7 +89,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
         model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
         ```
 
-We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](./sam.md).
+We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](sam.md).
 
 ## Citations and Acknowledgements
 

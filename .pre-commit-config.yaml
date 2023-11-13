@@ -64,6 +64,7 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
+        exclude: 'docs/de|docs/fr|docs/pt|docs/es|docs/mkdocs_de.yml'
         args:
           - --ignore-words-list=crate,nd,strack,dota,ane,segway,fo,gool,winn
 

@@ -59,12 +59,17 @@ def update_html_links():
         with open(html_file, 'r+', encoding='utf-8') as file:
             content = file.read()
             # Find all links to be updated, excluding those starting with 'https://'
-            links_to_update = re.findall(r'href="(?!https://)([^"]+)(/index)?\.md"', content)
+            links_to_update = re.findall(r'href="(?!https://)([^"]+?)(/index)?\.md"', content)
 
             # Update the content and count the number of links updated
             updated_content, number_of_links_updated = re.subn(
-                r'href="(?!https://)([^"]+)(/index)?\.md"', r'href="\1"', content)
+                r'href="(?!https://)([^"]+?)(/index)?\.md"', r'href="\1"', content)
             total_updated_links += number_of_links_updated
+
+            # Special handling for '/index' links
+            updated_content, number_of_index_links_updated = re.subn(
+                r'href="([^"]+)/index"', r'href="\1/"', updated_content)
+            total_updated_links += number_of_index_links_updated
 
             # Write the updated content back to the file
             file.seek(0)

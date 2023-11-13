@@ -851,6 +851,7 @@ class Format:
                  normalize=True,
                  return_mask=False,
                  return_keypoint=False,
+                 return_obb=False,
                  mask_ratio=4,
                  mask_overlap=True,
                  batch_idx=True):
@@ -859,6 +860,7 @@ class Format:
         self.normalize = normalize
         self.return_mask = return_mask  # set False when training detection only
         self.return_keypoint = return_keypoint
+        self.return_obb = return_obb
         self.mask_ratio = mask_ratio
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
@@ -889,6 +891,9 @@ class Format:
         labels['bboxes'] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels['keypoints'] = torch.from_numpy(instances.keypoints)
+        # NOTE: temporarily
+        if self.return_obb:
+            labels['obb'] = torch.from_numpy(instances.segments)
         # Then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)

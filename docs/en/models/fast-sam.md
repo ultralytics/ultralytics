@@ -106,7 +106,22 @@ Validation of the model on a dataset can be done as follows:
         yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
         ```
 
-Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
+**NOTE:** FastSAM _only_ supports detection and segmentation of a <u>single class of object</u>. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
+
+## Available Models and Supported Tasks
+
+| Model Type | Pre-trained Weights                                                                          | Tasks Supported       |
+|------------|:--------------------------------------------------------------------------------------------:|-----------------------|
+| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/FastSAM-s.pt)  | Instance Segmentation |
+| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/FastSAM-x.pt)  | Instance Segmentation |
+
+## Operating Modes
+
+| Mode       | Supported          |
+|------------|:------------------:|
+| Inference  | :heavy_check_mark: |
+| Validation | :heavy_check_mark: |
+| Training   | :x:                |
 
 ### FastSAM official Usage
 

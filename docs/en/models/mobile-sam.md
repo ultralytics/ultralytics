@@ -57,7 +57,7 @@ Just like the original SAM, we offer a straightforward testing method in Ultraly
 
 ### Model Download
 
-You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights/mobile_sam.pt).
+You can download the model weights [here](https://github.com/ultralytics/assets/releases/download/v0.0.0/mobile_sam.pt) or check [the project repo](https://github.com/ChaoningZhang/MobileSAM) for updated weights.
 
 ### Point Prompt
 

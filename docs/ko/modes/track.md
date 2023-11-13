@@ -139,7 +139,7 @@ Ultralytics에서는 수정된 추적기 구성 파일도 사용할 수 있습�
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
         ```
 
-추적 인수에 대한 종합적인 목록은 [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) 페이지를 참조하세요. 
+추적 인수에 대한 종합적인 목록은 [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) 페이지를 참조하세요.
 
 ## 파이썬 예시
 

@@ -34,12 +34,12 @@ keywords: Ultralytics, YOLOv8, détection d'objets, segmentation d'images, appre
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Ouvrir dans Kaggle"></a>
 </div>
 
-Présentation d'[Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), la dernière version du modèle réputé de détection d'objets en temps réel et de segmentation d'images. YOLOv8 est construit sur des avancées de pointe en apprentissage profond et vision par ordinateur, offrant des performances inégalées en termes de vitesse et de précision. Sa conception épurée le rend adapté à diverses applications et facilement adaptable à différentes plateformes matérielles, des appareils de bord aux API cloud. 
+Présentation d'[Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), la dernière version du modèle réputé de détection d'objets en temps réel et de segmentation d'images. YOLOv8 est construit sur des avancées de pointe en apprentissage profond et vision par ordinateur, offrant des performances inégalées en termes de vitesse et de précision. Sa conception épurée le rend adapté à diverses applications et facilement adaptable à différentes plateformes matérielles, des appareils de bord aux API cloud.
 
 Explorez les Docs YOLOv8, une ressource complète conçue pour vous aider à comprendre et à utiliser ses fonctionnalités et capacités. Que vous soyez un praticien chevronné de l'apprentissage automatique ou nouveau dans le domaine, ce hub vise à maximiser le potentiel de YOLOv8 dans vos projets.
 
 !!! note
-    
+
     🚧 Notre documentation multilingue est actuellement en construction et nous travaillons dur pour l'améliorer. Merci de votre patience ! 🙏
 
 ## Par où commencer

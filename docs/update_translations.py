@@ -1,13 +1,12 @@
 """
 Script to fix broken Markdown links and front matter in language-specific directories.
 
-This script processes markdown files in language-specific directories (like /zh/).
-It finds Markdown links and checks their existence. If a link is broken and does not exist
-in the language-specific directory but exists in the /en/ directory, the script updates
-the link to point to the corresponding file in the /en/ directory.
+This script processes markdown files in language-specific directories (like /zh/). It finds Markdown links and checks
+their existence. If a link is broken and does not exist in the language-specific directory but exists in the /en/
+directory, the script updates the link to point to the corresponding file in the /en/ directory.
 
-It also ensures that front matter keywords like 'comments:', 'description:', and 'keywords:'
-are not translated and remain in English.
+It also ensures that front matter keywords like 'comments:', 'description:', and 'keywords:' are not translated and
+remain in English.
 """
 
 import re
@@ -75,8 +74,8 @@ class MarkdownLinkFixer:
 
     def process_markdown_file(self, md_file_path, lang_dir):
         """Process each markdown file in the language directory."""
-        print(f"Processing file: {md_file_path}")
-        with open(md_file_path, 'r', encoding='utf-8') as file:
+        print(f'Processing file: {md_file_path}')
+        with open(md_file_path, encoding='utf-8') as file:
             content = file.read()
 
         if self.update_links:
@@ -93,7 +92,7 @@ class MarkdownLinkFixer:
 
     def process_language_directory(self, lang_dir):
         """Process each language-specific directory."""
-        print(f"Processing language directory: {lang_dir}")
+        print(f'Processing language directory: {lang_dir}')
         for md_file in lang_dir.rglob('*.md'):
             self.process_markdown_file(md_file, lang_dir)
 

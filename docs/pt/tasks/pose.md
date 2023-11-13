@@ -87,7 +87,7 @@ O formato do conjunto de dados de pose YOLO pode ser encontrado em detalhes no [
 
 ## Validar
 
-Valide a acurácia do modelo YOLOv8n-pose treinado no conjunto de dados COCO128-pose. Não é necessário passar nenhum argumento, pois o `model` 
+Valide a acurácia do modelo YOLOv8n-pose treinado no conjunto de dados COCO128-pose. Não é necessário passar nenhum argumento, pois o `model`
 retém seus `data` de treinamento e argumentos como atributos do modelo.
 
 !!! example ""

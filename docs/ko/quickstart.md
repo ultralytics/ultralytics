@@ -84,8 +84,8 @@ Ultralytics는 pip, conda, Docker를 포함한 다양한 설치 방법을 제공
         <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
 
         - **Dockerfile:** 트레이닝에 추천되는 GPU 이미지입니다.
-        - **Dockerfile-arm64:** Raspberry Pi와 같은 ARM64 기반 플랫폼에 배포하기에 최적화된 ARM64 아키텍처용입니다. 
-        - **Dockerfile-cpu:** GPU가 없는 환경에서 인퍼런스에 적합한 Ubuntu 기반 CPU 전용 버전입니다. 
+        - **Dockerfile-arm64:** Raspberry Pi와 같은 ARM64 기반 플랫폼에 배포하기에 최적화된 ARM64 아키텍처용입니다.
+        - **Dockerfile-cpu:** GPU가 없는 환경에서 인퍼런스에 적합한 Ubuntu 기반 CPU 전용 버전입니다.
         - **Dockerfile-jetson:** NVIDIA Jetson 장치에 최적화된 GPU 지원을 통합한 버전입니다.
         - **Dockerfile-python:** 가볍게 애플리케이션을 위해 필요한 종속성과 Python만 있는 최소한의 이미지입니다.
         - **Dockerfile-conda:** Miniconda3를 기반으로 하며 ultralytics 패키지의 conda 설치를 포함하고 있습니다.

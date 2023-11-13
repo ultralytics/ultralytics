@@ -17,7 +17,7 @@ keywords: Ultralytics, YOLO, ImageNet, dataset, object recognition, deep learnin
 
 ## Dataset Structure
 
-The ImageNet dataset is organized using the WordNet hierarchy. Each node in the hierarchy represents a category, and each category is described by a synset (a collection of synonymous terms). The images in ImageNet are annotated with one or more synsets, providing a rich resource for training models to recognize various objects and their relationships.
+The ImageNet dataset is organized using the WordNet hierarchy. Each node in the hierarchy represents a category, and each category is described by a synset (a collection of synonymous terms). The images in ImageNet are annotated with one or more synsets, providing a rich resource for training models to recognize various objects and their relationships. Reference the [classification dataset page](https://docs.ultralytics.com/datasets/classify/) to review the structure expected by the Ultralytics library.
 
 ## ImageNet Large Scale Visual Recognition Challenge (ILSVRC)
 
@@ -26,6 +26,14 @@ The annual [ImageNet Large Scale Visual Recognition Challenge (ILSVRC)](http://i
 ## Applications
 
 The ImageNet dataset is widely used for training and evaluating deep learning models in various computer vision tasks, such as image classification, object detection, and object localization. Some popular deep learning architectures, such as AlexNet, VGG, and ResNet, were developed and benchmarked using the ImageNet dataset.
+
+## Pretrained Model Weights
+
+Models pretrained using ImageNet dataset are available for download to use as starting weights for training or directly for image classification.
+
+| Model   | Task   | Model Performance and Weights                                                                         |
+|---------|:------:|:-----------------------------------------------------------------------------------------------------:|
+| YOLOv8  | Detect | [See Performance Table - Classification Tab](https://docs.ultralytics.com/models/yolov8/#performance) |
 
 ## Usage
 

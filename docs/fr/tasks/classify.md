@@ -70,7 +70,7 @@ Entraînez le modèle YOLOv8n-cls sur le dataset MNIST160 pendant 100 époques a
 
 ### Format du dataset
 
-Le format du dataset de classification YOLO peut être trouvé en détails dans le [Guide des Datasets](../../datasets/classify/index.md).
+Le format du dataset de classification YOLO peut être trouvé en détails dans le [Guide des Datasets](../../../datasets/classify/index.md).
 
 ## Validation
 

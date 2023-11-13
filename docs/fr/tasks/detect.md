@@ -80,7 +80,7 @@ Entraînez le modèle YOLOv8n sur le jeu de données COCO128 pendant 100 époque
 
 ### Format des données
 
-Le format des jeux de données de détection YOLO est détaillé dans le [Guide des Jeux de Données](../../datasets/detect/index.md). Pour convertir votre jeu de données existant depuis d'autres formats (comme COCO, etc.) vers le format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) par Ultralytics.
+Le format des jeux de données de détection YOLO est détaillé dans le [Guide des Jeux de Données](../../../datasets/detect/index.md). Pour convertir votre jeu de données existant depuis d'autres formats (comme COCO, etc.) vers le format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) par Ultralytics.
 
 ## Validation
 

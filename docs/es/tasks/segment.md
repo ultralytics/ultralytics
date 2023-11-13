@@ -80,7 +80,7 @@ Entrena el modelo YOLOv8n-seg en el conjunto de datos COCO128-seg durante 100 é
 
 ### Formato del conjunto de datos
 
-El formato del conjunto de datos de segmentación YOLO puede encontrarse detallado en la [Guía de Conjuntos de Datos](../../datasets/segment/index.md). Para convertir tu conjunto de datos existente de otros formatos (como COCO, etc.) al formato YOLO, utiliza la herramienta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) de Ultralytics.
+El formato del conjunto de datos de segmentación YOLO puede encontrarse detallado en la [Guía de Conjuntos de Datos](../../../datasets/segment/index.md). Para convertir tu conjunto de datos existente de otros formatos (como COCO, etc.) al formato YOLO, utiliza la herramienta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) de Ultralytics.
 
 ## Validación
 

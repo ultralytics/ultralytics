@@ -81,7 +81,7 @@ COCO128-poseデータセットでYOLOv8-poseモデルをトレーニングしま
 
 ### データセットフォーマット
 
-YOLOポーズデータセットフォーマットの詳細は、[データセットガイド](../../datasets/pose/index.md)に記載されています。既存のデータセットを他のフォーマット（COCOなど）からYOLOフォーマットに変換するには、Ultralyticsの[JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) ツールをご使用ください。
+YOLOポーズデータセットフォーマットの詳細は、[データセットガイド](../../../datasets/pose/index.md)に記載されています。既存のデータセットを他のフォーマット（COCOなど）からYOLOフォーマットに変換するには、Ultralyticsの[JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) ツールをご使用ください。
 
 ## Val
 

@@ -36,6 +36,8 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
 
+## Performance
+
 !!! Performance
 
     === "Detection (COCO)"

@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
@@ -231,7 +232,7 @@ class SegmentationValidator(DetectionValidator):
             return rle
 
         stem = Path(filename).stem
-        image_id = int(stem) if stem.isnumeric() else stem
+        image_id = (int(stem) if stem.isnumeric() else stem) if self.is_coco else os.path.basename(filename)
         box = ops.xyxy2xywh(predn[:, :4])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         pred_masks = np.transpose(pred_masks, (2, 0, 1))
@@ -249,7 +250,7 @@ class SegmentationValidator(DetectionValidator):
         """Return COCO-style object detection evaluation metrics."""
         if self.args.save_json and (self.is_coco or self.args.anno_json) and len(self.jdict):
             anno_json = Path(self.args.anno_json) if self.args.anno_json else self.data['path'] / 'annotations/instances_val2017.json'  # annotations
-            pred_json = self.save_dir / 'predictions.json'  # predictions
+            pred_json = self.save_dir / 'predictions-seg.json'  # predictions
             LOGGER.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools>=2.0.6')

@@ -138,41 +138,41 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - Startseite:
-      - Startseite: index.md
-      - Schnellstart: quickstart.md
-      - Modi:
+  - Accueil:
+      - Accueil: index.md
+      - Démarrage rapide: quickstart.md
+      - Modes:
           - modes/index.md
-          - Training: modes/train.md
-          - Validierung: modes/val.md
-          - Vorhersage: modes/predict.md
-          - Exportieren: modes/export.md
-          - Verfolgen: modes/track.md
+          - Entraînement: modes/train.md
+          - Validation: modes/val.md
+          - Prédiction: modes/predict.md
+          - Exportation: modes/export.md
+          - Suivi: modes/track.md
           - Benchmarking: modes/benchmark.md
-      - Aufgaben:
+      - Tâches:
           - tasks/index.md
-          - Erkennung: tasks/detect.md
-          - Segmentierung: tasks/segment.md
-          - Klassifizierung: tasks/classify.md
+          - Détection: tasks/detect.md
+          - Segmentation: tasks/segment.md
+          - Classification: tasks/classify.md
           - Pose: tasks/pose.md
-  - Schnellstart: quickstart.md
-  - Modi:
+  - Démarrage rapide: quickstart.md
+  - Modes:
       - modes/index.md
-      - Training: modes/train.md
-      - Validierung: modes/val.md
-      - Vorhersage: modes/predict.md
-      - Exportieren: modes/export.md
-      - Verfolgen: modes/track.md
+      - Entraînement: modes/train.md
+      - Validation: modes/val.md
+      - Prédiction: modes/predict.md
+      - Exportation: modes/export.md
+      - Suivi: modes/track.md
       - Benchmarking: modes/benchmark.md
-  - Aufgaben:
+  - Tâches:
       - tasks/index.md
-      - Erkennung: tasks/detect.md
-      - Segmentierung: tasks/segment.md
-      - Klassifizierung: tasks/classify.md
+      - Détection: tasks/detect.md
+      - Segmentation: tasks/segment.md
+      - Classification: tasks/classify.md
       - Pose: tasks/pose.md
-  - Modelle:
+  - Modèles:
       - models/index.md
-  - Datensätze:
+  - Jeux de données:
       - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------

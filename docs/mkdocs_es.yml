@@ -138,41 +138,41 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - Startseite:
-      - Startseite: index.md
-      - Schnellstart: quickstart.md
-      - Modi:
+  - Inicio:
+      - Inicio: index.md
+      - Inicio rápido: quickstart.md
+      - Modos:
           - modes/index.md
-          - Training: modes/train.md
-          - Validierung: modes/val.md
-          - Vorhersage: modes/predict.md
-          - Exportieren: modes/export.md
-          - Verfolgen: modes/track.md
+          - Entrenamiento: modes/train.md
+          - Validación: modes/val.md
+          - Predicción: modes/predict.md
+          - Exportar: modes/export.md
+          - Seguimiento: modes/track.md
           - Benchmarking: modes/benchmark.md
-      - Aufgaben:
+      - Tareas:
           - tasks/index.md
-          - Erkennung: tasks/detect.md
-          - Segmentierung: tasks/segment.md
-          - Klassifizierung: tasks/classify.md
+          - Detección: tasks/detect.md
+          - Segmentación: tasks/segment.md
+          - Clasificación: tasks/classify.md
           - Pose: tasks/pose.md
-  - Schnellstart: quickstart.md
-  - Modi:
+  - Inicio rápido: quickstart.md
+  - Modos:
       - modes/index.md
-      - Training: modes/train.md
-      - Validierung: modes/val.md
-      - Vorhersage: modes/predict.md
-      - Exportieren: modes/export.md
-      - Verfolgen: modes/track.md
+      - Entrenamiento: modes/train.md
+      - Validación: modes/val.md
+      - Predicción: modes/predict.md
+      - Exportar: modes/export.md
+      - Seguimiento: modes/track.md
       - Benchmarking: modes/benchmark.md
-  - Aufgaben:
+  - Tareas:
       - tasks/index.md
-      - Erkennung: tasks/detect.md
-      - Segmentierung: tasks/segment.md
-      - Klassifizierung: tasks/classify.md
+      - Detección: tasks/detect.md
+      - Segmentación: tasks/segment.md
+      - Clasificación: tasks/classify.md
       - Pose: tasks/pose.md
-  - Modelle:
+  - Modelos:
       - models/index.md
-  - Datensätze:
+  - Conjuntos de datos:
       - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------

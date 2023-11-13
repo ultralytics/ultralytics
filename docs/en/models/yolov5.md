@@ -34,6 +34,8 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
 
+## Performance
+
 !!! Performance
 
     === "Detection"

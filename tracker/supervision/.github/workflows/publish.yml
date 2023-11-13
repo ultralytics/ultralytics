@@ -1,0 +1,43 @@
+name: Supervision Releases to PyPi
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+[0-9]+.[0-9]'
+      - '[0-9]+.[0-9]+[0-9]+.[0-9]'
+      - '[0-9]+.[0-9]+[0-9]+.[0-9]'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+      - name: 🛎️ Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name:  🏗️ Build source and wheel distributions
+        run: |
+          python -m pip install --upgrade build twine
+          python -m build
+          twine check --strict dist/*
+      - name: 🚀 Publish to PyPi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: ${{ secrets.PYPI_USERNAME }}
+          password: ${{ secrets.PYPI_PASSWORD }}
+      - name: 🚀 Publish to Test-PyPi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          user: ${{ secrets.PYPI_TEST_USERNAME }}
+          password: ${{ secrets.PYPI_TEST_PASSWORD }}

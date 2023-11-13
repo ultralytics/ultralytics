@@ -1,0 +1,3 @@
+supervision
+tqdm
+ultralytics

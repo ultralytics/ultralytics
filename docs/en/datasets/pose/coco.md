@@ -38,6 +38,14 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
     --8<-- "ultralytics/cfg/datasets/coco-pose.yaml"
     ```
 
+## Pretrained Model Weights
+
+Models pretrained using COCO dataset are available for download to use as starting weights for training or keypoint/point detection.
+
+| Model   | Task   | Model Performance and Weights                                                               |
+|---------|:------:|:-------------------------------------------------------------------------------------------:|
+| YOLOv8  | Pose   | [See Performance Table - Pose Tab](https://docs.ultralytics.com/models/yolov8/#performance) |
+
 ## Usage
 
 To train a YOLOv8n-pose model on the COCO-Pose dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.

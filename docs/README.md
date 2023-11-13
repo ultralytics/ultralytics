@@ -64,8 +64,8 @@ For multi-language MkDocs sites use the following additional steps:
     rm -rf site
 
     # Loop through all *.yml files in the docs directory
-    mkdocs build -f docs/mkdocs.yml  # build /en/ docs
-    for file in docs/mkdocs_*.yml; do  # build all other languages
+    mkdocs build -f docs/mkdocs.yml
+    for file in docs/mkdocs_*.yml; do
       echo "Building MkDocs site with configuration file: $file"
       mkdocs build -f "$file"
     done

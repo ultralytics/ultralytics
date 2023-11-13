@@ -32,10 +32,10 @@ La sortie des traceurs Ultralytics est cohérente avec la détection standard d'
 
 ## Applications dans le Monde Réel
 
-| Transport |Distribution| Aquaculture |
-|:----------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------:|
+|                                                        Transport                                                         |                                                       Distribution                                                       |                                                       Aquaculture                                                       |
+|:------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------:|
 | ![Suivi de véhicules](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![Suivi de personnes](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Suivi de poissons](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
-|Suivi de Véhicules|Suivi de Personnes|Suivi de Poissons|
+|                                                    Suivi de Véhicules                                                    |                                                    Suivi de Personnes                                                    |                                                    Suivi de Poissons                                                    |
 
 ## Caractéristiques en Bref
 

@@ -67,20 +67,20 @@ Validez la précision du modèle YOLOv8n entraîné sur le jeu de données COCO1
 
 Les paramètres de validation pour les modèles YOLO font référence aux divers hyperparamètres et configurations utilisés pour évaluer la performance du modèle sur un jeu de données de validation. Ces paramètres peuvent affecter la performance, la vitesse et la précision du modèle. Certains paramètres de validation YOLO courants incluent la taille du lot, la fréquence à laquelle la validation est effectuée pendant l'entraînement et les métriques utilisées pour évaluer la performance du modèle. D'autres facteurs pouvant affecter le processus de validation incluent la taille et la composition du jeu de données de validation et la tâche spécifique pour laquelle le modèle est utilisé. Il est important de régler et d'expérimenter soigneusement ces paramètres pour s'assurer que le modèle fonctionne bien sur le jeu de données de validation et pour détecter et prévenir le surajustement.
 
-| Clé           | Valeur  | Description                                                        |
-|---------------|---------|--------------------------------------------------------------------|
-| `data`        | `None`  | chemin vers le fichier de données, par exemple coco128.yaml        |
-| `imgsz`       | `640`   | taille des images d'entrée en tant qu'entier                       |
-| `batch`       | `16`    | nombre d'images par lot (-1 pour AutoBatch)                        |
-| `save_json`   | `False` | sauvegarder les résultats dans un fichier JSON                     |
-| `save_hybrid` | `False` | sauvegarder la version hybride des étiquettes (étiquettes + prédictions supplémentaires) |
-| `conf`        | `0.001` | seuil de confiance de l'objet pour la détection                    |
-| `iou`         | `0.6`   | seuil d'intersection sur union (IoU) pour la NMS                   |
-| `max_det`     | `300`   | nombre maximum de détections par image                             |
-| `half`        | `True`  | utiliser la précision moitié (FP16)                                |
-| `device`      | `None`  | appareil sur lequel exécuter, par exemple cuda device=0/1/2/3 ou device=cpu |
-| `dnn`         | `False` | utiliser OpenCV DNN pour l'inférence ONNX                          |
-| `plots`       | `False` | afficher les graphiques lors de la formation                       |
-| `rect`        | `False` | val rectangulaire avec chaque lot regroupé pour un minimum de rembourrage |
+| Clé           | Valeur  | Description                                                                                    |
+|---------------|---------|------------------------------------------------------------------------------------------------|
+| `data`        | `None`  | chemin vers le fichier de données, par exemple coco128.yaml                                    |
+| `imgsz`       | `640`   | taille des images d'entrée en tant qu'entier                                                   |
+| `batch`       | `16`    | nombre d'images par lot (-1 pour AutoBatch)                                                    |
+| `save_json`   | `False` | sauvegarder les résultats dans un fichier JSON                                                 |
+| `save_hybrid` | `False` | sauvegarder la version hybride des étiquettes (étiquettes + prédictions supplémentaires)       |
+| `conf`        | `0.001` | seuil de confiance de l'objet pour la détection                                                |
+| `iou`         | `0.6`   | seuil d'intersection sur union (IoU) pour la NMS                                               |
+| `max_det`     | `300`   | nombre maximum de détections par image                                                         |
+| `half`        | `True`  | utiliser la précision moitié (FP16)                                                            |
+| `device`      | `None`  | appareil sur lequel exécuter, par exemple cuda device=0/1/2/3 ou device=cpu                    |
+| `dnn`         | `False` | utiliser OpenCV DNN pour l'inférence ONNX                                                      |
+| `plots`       | `False` | afficher les graphiques lors de la formation                                                   |
+| `rect`        | `False` | val rectangulaire avec chaque lot regroupé pour un minimum de rembourrage                      |
 | `split`       | `val`   | fraction du jeu de données à utiliser pour la validation, par exemple 'val', 'test' ou 'train' |
 |

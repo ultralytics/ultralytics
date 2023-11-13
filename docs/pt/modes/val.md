@@ -67,20 +67,20 @@ Validar a precisão do modelo YOLOv8n treinado no conjunto de dados COCO128. Nen
 
 As configurações de validação para os modelos YOLO referem-se aos vários hiperparâmetros e configurações usados para avaliar o desempenho do modelo em um conjunto de dados de validação. Essas configurações podem afetar o desempenho, velocidade e precisão do modelo. Algumas configurações comuns de validação do YOLO incluem o tamanho do lote, a frequência com que a validação é realizada durante o treinamento e as métricas usadas para avaliar o desempenho do modelo. Outros fatores que podem afetar o processo de validação incluem o tamanho e a composição do conjunto de dados de validação e a tarefa específica para a qual o modelo está sendo usado. É importante ajustar e experimentar cuidadosamente essas configurações para garantir que o modelo apresente um bom desempenho no conjunto de dados de validação e para detectar e prevenir o sobreajuste.
 
-| Chave          | Valor   | Descrição                                                           |
-|----------------|---------|---------------------------------------------------------------------|
-| `data`         | `None`  | caminho para o arquivo de dados, ex. coco128.yaml                   |
-| `imgsz`        | `640`   | tamanho das imagens de entrada como inteiro                          |
-| `batch`        | `16`    | número de imagens por lote (-1 para AutoBatch)                       |
-| `save_json`    | `False` | salvar resultados em arquivo JSON                                    |
-| `save_hybrid`  | `False` | salvar versão híbrida das etiquetas (etiquetas + previsões adicionais) |
-| `conf`         | `0.001` | limite de confiança do objeto para detecção                          |
-| `iou`          | `0.6`   | limiar de interseção sobre união (IoU) para NMS                     |
-| `max_det`      | `300`   | número máximo de detecções por imagem                                |
-| `half`         | `True`  | usar precisão meia (FP16)                                            |
-| `device`       | `None`  | dispositivo para execução, ex. dispositivo cuda=0/1/2/3 ou device=cpu |
-| `dnn`          | `False` | usar OpenCV DNN para inferência ONNX                                 |
-| `plots`        | `False` | mostrar gráficos durante o treinamento                               |
-| `rect`         | `False` | val retangular com cada lote colado para minimizar o preenchimento   |
-| `split`        | `val`   | divisão do conjunto de dados para usar na validação, ex. 'val', 'test' ou 'train' |
+| Chave         | Valor   | Descrição                                                                         |
+|---------------|---------|-----------------------------------------------------------------------------------|
+| `data`        | `None`  | caminho para o arquivo de dados, ex. coco128.yaml                                 |
+| `imgsz`       | `640`   | tamanho das imagens de entrada como inteiro                                       |
+| `batch`       | `16`    | número de imagens por lote (-1 para AutoBatch)                                    |
+| `save_json`   | `False` | salvar resultados em arquivo JSON                                                 |
+| `save_hybrid` | `False` | salvar versão híbrida das etiquetas (etiquetas + previsões adicionais)            |
+| `conf`        | `0.001` | limite de confiança do objeto para detecção                                       |
+| `iou`         | `0.6`   | limiar de interseção sobre união (IoU) para NMS                                   |
+| `max_det`     | `300`   | número máximo de detecções por imagem                                             |
+| `half`        | `True`  | usar precisão meia (FP16)                                                         |
+| `device`      | `None`  | dispositivo para execução, ex. dispositivo cuda=0/1/2/3 ou device=cpu             |
+| `dnn`         | `False` | usar OpenCV DNN para inferência ONNX                                              |
+| `plots`       | `False` | mostrar gráficos durante o treinamento                                            |
+| `rect`        | `False` | val retangular com cada lote colado para minimizar o preenchimento                |
+| `split`       | `val`   | divisão do conjunto de dados para usar na validação, ex. 'val', 'test' ou 'train' |
 |

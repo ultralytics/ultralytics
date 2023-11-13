@@ -136,7 +136,6 @@ Pour activer l'entraînement sur les puces Apple M1 et M2, vous devez spécifier
 
 Tout en exploitant la puissance de calcul des puces M1/M2, cela permet un traitement plus efficace des tâches d'entraînement. Pour des conseils plus détaillés et des options de configuration avancée, veuillez consulter la [documentation MPS de PyTorch](https://pytorch.org/docs/stable/notes/mps.html).
 
-
 ## Journalisation
 
 Lors de l'entraînement d'un modèle YOLOv8, il peut être précieux de suivre la performance du modèle au fil du temps. C'est là que la journalisation entre en jeu. YOLO d'Ultralytics prend en charge trois types de journaux - Comet, ClearML et TensorBoard.

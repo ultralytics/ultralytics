@@ -67,20 +67,20 @@ Validieren Sie die Genauigkeit des trainierten YOLOv8n-Modells auf dem COCO128-D
 
 Validierungseinstellungen für YOLO-Modelle beziehen sich auf verschiedene Hyperparameter und Konfigurationen, die verwendet werden, um die Leistung des Modells an einem Validierungsdatensatz zu bewerten. Diese Einstellungen können die Leistung, Geschwindigkeit und Genauigkeit des Modells beeinflussen. Einige gängige YOLO-Validierungseinstellungen umfassen die Batch-Größe, die Häufigkeit der Validierung während des Trainings und die Metriken zur Bewertung der Modellleistung. Andere Faktoren, die den Validierungsprozess beeinflussen können, sind die Größe und Zusammensetzung des Validierungsdatensatzes und die spezifische Aufgabe, für die das Modell verwendet wird. Es ist wichtig, diese Einstellungen sorgfältig abzustimmen und zu experimentieren, um sicherzustellen, dass das Modell auf dem Validierungsdatensatz gut funktioniert sowie Überanpassung zu erkennen und zu verhindern.
 
-| Key           | Value   | Beschreibung                                                       |
-|---------------|---------|--------------------------------------------------------------------|
-| `data`        | `None`  | Pfad zur Datendatei, z.B. coco128.yaml                             |
-| `imgsz`       | `640`   | Größe der Eingabebilder als ganzzahlige Zahl                       |
-| `batch`       | `16`    | Anzahl der Bilder pro Batch (-1 für AutoBatch)                     |
-| `save_json`   | `False` | Ergebnisse in JSON-Datei speichern                                 |
-| `save_hybrid` | `False` | hybride Version der Labels speichern (Labels + zusätzliche Vorhersagen) |
-| `conf`        | `0.001` | Objekterkennungsschwelle für Zuversichtlichkeit                    |
-| `iou`         | `0.6`   | Schwellenwert für IoU (Intersection over Union) für NMS            |
-| `max_det`     | `300`   | maximale Anzahl an Vorhersagen pro Bild                            |
-| `half`        | `True`  | Halbpräzision verwenden (FP16)                                     |
-| `device`      | `None`  | Gerät zur Ausführung, z.B. CUDA device=0/1/2/3 oder device=cpu     |
-| `dnn`         | `False` | OpenCV DNN für ONNX-Inf erenz nutzen                               |
-| `plots`       | `False` | Diagramme während des Trainings anzeigen                           |
-| `rect`        | `False` | rechteckige Validierung mit jeder Batch-Charge für minimale Polsterung |
+| Key           | Value   | Beschreibung                                                                    |
+|---------------|---------|---------------------------------------------------------------------------------|
+| `data`        | `None`  | Pfad zur Datendatei, z.B. coco128.yaml                                          |
+| `imgsz`       | `640`   | Größe der Eingabebilder als ganzzahlige Zahl                                    |
+| `batch`       | `16`    | Anzahl der Bilder pro Batch (-1 für AutoBatch)                                  |
+| `save_json`   | `False` | Ergebnisse in JSON-Datei speichern                                              |
+| `save_hybrid` | `False` | hybride Version der Labels speichern (Labels + zusätzliche Vorhersagen)         |
+| `conf`        | `0.001` | Objekterkennungsschwelle für Zuversichtlichkeit                                 |
+| `iou`         | `0.6`   | Schwellenwert für IoU (Intersection over Union) für NMS                         |
+| `max_det`     | `300`   | maximale Anzahl an Vorhersagen pro Bild                                         |
+| `half`        | `True`  | Halbpräzision verwenden (FP16)                                                  |
+| `device`      | `None`  | Gerät zur Ausführung, z.B. CUDA device=0/1/2/3 oder device=cpu                  |
+| `dnn`         | `False` | OpenCV DNN für ONNX-Inf erenz nutzen                                            |
+| `plots`       | `False` | Diagramme während des Trainings anzeigen                                        |
+| `rect`        | `False` | rechteckige Validierung mit jeder Batch-Charge für minimale Polsterung          |
 | `split`       | `val`   | Zu verwendende Daten-Teilmenge für Validierung, z.B. 'val', 'test' oder 'train' |
 |

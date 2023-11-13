@@ -70,7 +70,7 @@ Entraînez le modèle YOLOv8n-cls sur le dataset MNIST160 pendant 100 époques a
 
 ### Format du dataset
 
-Le format du dataset de classification YOLO peut être trouvé en détails dans le [Guide des Datasets](../../datasets/classify/index.md).
+Le format du dataset de classification YOLO peut être trouvé en détails dans le [Guide des Datasets](../../../datasets/classify/index.md).
 
 ## Validation
 
@@ -164,7 +164,7 @@ Les formats d'exportation disponibles pour YOLOv8-cls sont présentés dans le t
 | [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-cls_saved_model/`    | ✅           | `imgsz`, `keras`                                    |
 | [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-cls.pb`              | ❌           | `imgsz`                                             |
 | [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-cls.tflite`          | ✅           | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)          | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅           | `imgsz`                                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅           | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-cls_web_model/`      | ✅           | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅           | `imgsz`                                             |
 | [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅           | `imgsz`, `half`                                     |

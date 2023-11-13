@@ -80,7 +80,7 @@ YOLOv8n auf dem COCO128-Datensatz für 100 Epochen bei Bildgröße 640 trainiere
 
 ### Datenformat
 
-Das Datenformat für YOLO-Erkennungsdatensätze finden Sie detailliert im [Dataset Guide](../../datasets/detect/index.md). Um Ihren vorhandenen Datensatz von anderen Formaten (wie COCO etc.) in das YOLO-Format zu konvertieren, verwenden Sie bitte das [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)-Tool von Ultralytics.
+Das Datenformat für YOLO-Erkennungsdatensätze finden Sie detailliert im [Dataset Guide](../../../datasets/detect/index.md). Um Ihren vorhandenen Datensatz von anderen Formaten (wie COCO etc.) in das YOLO-Format zu konvertieren, verwenden Sie bitte das [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)-Tool von Ultralytics.
 
 ## Validierung
 

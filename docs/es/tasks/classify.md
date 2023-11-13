@@ -70,7 +70,7 @@ Entrena el modelo YOLOv8n-cls en el conjunto de datos MNIST160 durante 100 époc
 
 ### Formato del conjunto de datos
 
-El formato del conjunto de datos de clasificación YOLO puede encontrarse en detalle en la [Guía de Conjuntos de Datos](../../datasets/classify/index.md).
+El formato del conjunto de datos de clasificación YOLO puede encontrarse en detalle en la [Guía de Conjuntos de Datos](../../../datasets/classify/index.md).
 
 ## Validación
 

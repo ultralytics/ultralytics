@@ -80,7 +80,7 @@ COCO128-seg 데이터셋에서 이미지 크기 640으로 YOLOv8n-seg을 100 에
 
 ### 데이터셋 형식
 
-YOLO 세그멘테이션 데이터셋 형식은 [데이터셋 가이드](../../datasets/segment/index.md)에서 자세히 확인할 수 있습니다. 기존 데이터셋 (COCO 등)을 YOLO 형식으로 변환하려면 Ultralytics의 [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) 도구를 이용하세요.
+YOLO 세그멘테이션 데이터셋 형식은 [데이터셋 가이드](../../../datasets/segment/index.md)에서 자세히 확인할 수 있습니다. 기존 데이터셋 (COCO 등)을 YOLO 형식으로 변환하려면 Ultralytics의 [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) 도구를 이용하세요.
 
 ## 검증
 

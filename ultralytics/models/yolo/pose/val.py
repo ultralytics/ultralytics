@@ -218,7 +218,7 @@ class PoseValidator(DetectionValidator):
         """Evaluates object detection model using COCO JSON format."""
         if self.args.save_json and (self.is_coco or self.args.anno_json) and len(self.jdict):
             anno_json = Path(self.args.anno_json) if self.args.anno_json else self.data['path'] / 'annotations/person_keypoints_val2017.json'  # annotations
-            pred_json = self.save_dir / 'predictions-pose.json'  # predictions
+            pred_json = self.save_dir / 'predictions.json'  # predictions
             LOGGER.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools>=2.0.6')

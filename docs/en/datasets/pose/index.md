@@ -96,7 +96,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Keypoints**: 17 keypoints including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles.
 - **Usage**: Suitable for training human pose estimation models.
 - **Additional Notes**: The dataset is rich and diverse, containing over 200k labeled images.
-- [Read more about COCO-Pose](./coco.md)
+- [Read more about COCO-Pose](coco.md)
 
 ### COCO8-Pose
 
@@ -106,7 +106,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Keypoints**: 17 keypoints including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles.
 - **Usage**: Suitable for testing and debugging object detection models, or for experimenting with new detection approaches.
 - **Additional Notes**: COCO8-Pose is ideal for sanity checks and CI checks.
-- [Read more about COCO8-Pose](./coco8-pose.md)
+- [Read more about COCO8-Pose](coco8-pose.md)
 
 ### Tiger-Pose
 
@@ -115,7 +115,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Number of Classes**: 1 (Tiger).
 - **Keypoints**: 12 keypoints.
 - **Usage**: Great for animal pose or any other pose that is not human-based.
-- [Read more about Tiger-Pose](./tiger-pose.md)
+- [Read more about Tiger-Pose](tiger-pose.md)
 
 ### Adding your own dataset
 

@@ -1,7 +1,7 @@
 ---
-评论: 真
-描述: 学习如何使用Ultralytics YOLO进行视频流中的物体追踪。指南包括使用不同的追踪器和自定义追踪器配置。
-关键词: Ultralytics, YOLO, 物体追踪, 视频流, BoT-SORT, ByteTrack, Python 指南, CLI 指南
+comments: true
+description: 学习如何使用Ultralytics YOLO进行视频流中的物体追踪。指南包括使用不同的追踪器和自定义追踪器配置。
+keywords: Ultralytics, YOLO, 物体追踪, 视频流, BoT-SORT, ByteTrack, Python 指南, CLI 指南
 ---
 
 # 使用Ultralytics YOLO进行多物体追踪

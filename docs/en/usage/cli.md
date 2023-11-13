@@ -31,7 +31,7 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
                 MODE (required) is one of [train, val, predict, export, track]
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
         ```
-        See all ARGS in the full [Configuration Guide](./cfg.md) or with `yolo cfg`
+        See all ARGS in the full [Configuration Guide](cfg.md) or with `yolo cfg`
 
     === "Train"
 

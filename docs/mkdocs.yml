@@ -163,15 +163,15 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
       - Languages:
-          - 🇬🇧 English: https://docs.ultralytics.com/
-          - 🇨🇳 简体中文: https://docs.ultralytics.com/zh/
-          - 🇰🇷 한국어: https://docs.ultralytics.com/ko/
-          - 🇯🇵 日本語: https://docs.ultralytics.com/ja/
-          - 🇷🇺 Русский: https://docs.ultralytics.com/ru/
-          - 🇩🇪 Deutsch: https://docs.ultralytics.com/de/
-          - 🇫🇷 Français: https://docs.ultralytics.com/fr/
-          - 🇪🇸 Español: https://docs.ultralytics.com/es/
-          - 🇵🇹 Português: https://docs.ultralytics.com/pt/
+          - 🇬🇧&nbsp English: https://docs.ultralytics.com/
+          - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
+          - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko/
+          - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja/
+          - 🇷🇺&nbsp Русский: https://docs.ultralytics.com/ru/
+          - 🇩🇪&nbsp Deutsch: https://docs.ultralytics.com/de/
+          - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr/
+          - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es/
+          - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt/
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md

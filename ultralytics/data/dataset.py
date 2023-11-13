@@ -173,12 +173,11 @@ class YOLODataset(BaseDataset):
         normalized = label.pop('normalized')
 
         # NOTE: Do not need to resample oriented boxes
-        segment_resamples = 4 if self.use_obb else 1000
+        segment_resamples = 1000
         if len(segments) > 0:
             # list[np.array(1000, 2)] * num_samples
-            segments = resample_segments(segments, n=segment_resamples)
             # (N, 1000, 2)
-            segments = np.stack(segments, axis=0)
+            segments = np.stack(segments if self.use_obb else resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
         label['instances'] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)

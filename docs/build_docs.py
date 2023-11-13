@@ -51,15 +51,30 @@ def build_docs():
 
 
 def update_html_links():
-    """Update href links in HTML files to remove '.md'."""
+    """Update href links in HTML files to remove '.md', excluding links starting with 'https://'."""
     html_files = SITE.rglob('*.html')
+    total_updated_links = 0
+
     for html_file in html_files:
         with open(html_file, 'r+', encoding='utf-8') as file:
             content = file.read()
-            updated_content = re.sub(r'href="([^"]+)\.md"', r'href="\1"', content)
+            # Find all links to be updated, excluding those starting with 'https://'
+            links_to_update = re.findall(r'href="(?!https://)([^"]+)\.md"', content)
+
+            # Update the content and count the number of links updated
+            updated_content, number_of_links_updated = re.subn(r'href="(?!https://)([^"]+)\.md"', r'href="\1"', content)
+            total_updated_links += number_of_links_updated
+
+            # Write the updated content back to the file
             file.seek(0)
             file.write(updated_content)
             file.truncate()
+
+            # Print updated links for this file
+            for link in links_to_update:
+                print(f'Updated link in {html_file}: {link}')
+
+    print(f'Total number of links updated: {total_updated_links}')
 
 
 def main():

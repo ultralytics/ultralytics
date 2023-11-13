@@ -29,7 +29,7 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 ## Supported Modes
 
 | Mode       | Supported          |
-|------------|--------------------|
+|------------|:------------------:|
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |

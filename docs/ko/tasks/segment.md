@@ -48,7 +48,7 @@ keywords: yolov8, 인스턴스 세그멘테이션, Ultralytics, COCO 데이터�
 
 ## 훈련
 
-COCO128-seg 데이터셋에서 이미지 크기 640으로 YOLOv8n-seg을 100 에포크 동안 훈련합니다. 가능한 모든 인자 목록은 [설정](../../usage/cfg.md) 페이지에서 확인할 수 있습니다.
+COCO128-seg 데이터셋에서 이미지 크기 640으로 YOLOv8n-seg을 100 에포크 동안 훈련합니다. 가능한 모든 인자 목록은 [설정](/../usage/cfg.md) 페이지에서 확인할 수 있습니다.
 
 !!! example ""
 

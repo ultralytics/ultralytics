@@ -37,7 +37,7 @@ Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/c
 
 ## Entrenamiento
 
-Entrena el modelo YOLOv8n-cls en el conjunto de datos MNIST160 durante 100 épocas con un tamaño de imagen de 64. Para obtener una lista completa de argumentos disponibles, consulte la página de [Configuración](../../usage/cfg.md).
+Entrena el modelo YOLOv8n-cls en el conjunto de datos MNIST160 durante 100 épocas con un tamaño de imagen de 64. Para obtener una lista completa de argumentos disponibles, consulte la página de [Configuración](/../usage/cfg.md).
 
 !!! example ""
 

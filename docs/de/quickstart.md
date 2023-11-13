@@ -88,7 +88,7 @@ Siehe die `ultralytics` [requirements.txt](https://github.com/ultralytics/ultral
 
 ## Ultralytics mit CLI verwenden
 
-Die Befehlszeilenschnittstelle (CLI) von Ultralytics ermöglicht einfache Einzeilige Befehle ohne die Notwendigkeit einer Python-Umgebung. CLI erfordert keine Anpassung oder Python-Code. Sie können alle Aufgaben einfach vom Terminal aus mit dem `yolo` Befehl ausführen. Schauen Sie sich den [CLI-Leitfaden](../usage/cli.md) an, um mehr über die Verwendung von YOLOv8 über die Befehlszeile zu erfahren.
+Die Befehlszeilenschnittstelle (CLI) von Ultralytics ermöglicht einfache Einzeilige Befehle ohne die Notwendigkeit einer Python-Umgebung. CLI erfordert keine Anpassung oder Python-Code. Sie können alle Aufgaben einfach vom Terminal aus mit dem `yolo` Befehl ausführen. Schauen Sie sich den [CLI-Leitfaden](/../usage/cli.md) an, um mehr über die Verwendung von YOLOv8 über die Befehlszeile zu erfahren.
 
 !!! Beispiel
 
@@ -102,7 +102,7 @@ Die Befehlszeilenschnittstelle (CLI) von Ultralytics ermöglicht einfache Einzei
                 MODE (erforderlich) einer von [train, val, predict, export, track] ist
                 ARGS (optional) eine beliebige Anzahl von benutzerdefinierten 'arg=value' Paaren wie 'imgsz=320', die Vorgaben überschreiben.
         ```
-        Sehen Sie alle ARGS im vollständigen [Konfigurationsleitfaden](../usage/cfg.md) oder mit `yolo cfg`
+        Sehen Sie alle ARGS im vollständigen [Konfigurationsleitfaden](/../usage/cfg.md) oder mit `yolo cfg`
 
     === "Trainieren"
 
@@ -152,13 +152,13 @@ Die Befehlszeilenschnittstelle (CLI) von Ultralytics ermöglicht einfache Einzei
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI-Leitfaden](../usage/cli.md){ .md-button .md-button--primary}
+[CLI-Leitfaden](/../usage/cli.md){ .md-button .md-button--primary}
 
 ## Ultralytics mit Python verwenden
 
 Die Python-Schnittstelle von YOLOv8 ermöglicht eine nahtlose Integration in Ihre Python-Projekte und erleichtert das Laden, Ausführen und Verarbeiten der Modellausgabe. Konzipiert für Einfachheit und Benutzerfreundlichkeit, ermöglicht die Python-Schnittstelle Benutzern, Objekterkennung, Segmentierung und Klassifizierung schnell in ihren Projekten zu implementieren. Dies macht die Python-Schnittstelle von YOLOv8 zu einem unschätzbaren Werkzeug für jeden, der diese Funktionalitäten in seine Python-Projekte integrieren möchte.
 
-Benutzer können beispielsweise ein Modell laden, es trainieren, seine Leistung an einem Validierungsset auswerten und sogar in das ONNX-Format exportieren, und das alles mit nur wenigen Codezeilen. Schauen Sie sich den [Python-Leitfaden](../usage/python.md) an, um mehr über die Verwendung von YOLOv8 in Ihren_python_pro_jek_ten zu erfahren.
+Benutzer können beispielsweise ein Modell laden, es trainieren, seine Leistung an einem Validierungsset auswerten und sogar in das ONNX-Format exportieren, und das alles mit nur wenigen Codezeilen. Schauen Sie sich den [Python-Leitfaden](/../usage/python.md) an, um mehr über die Verwendung von YOLOv8 in Ihren_python_pro_jek_ten zu erfahren.
 
 !!! Beispiel
 
@@ -184,4 +184,4 @@ Benutzer können beispielsweise ein Modell laden, es trainieren, seine Leistung 
     success = model.export(format='onnx')
     ```
 
-[Python-Leitfaden](../usage/python.md){.md-button .md-button--primary}
+[Python-Leitfaden](/../usage/python.md){.md-button .md-button--primary}

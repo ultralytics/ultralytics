@@ -49,7 +49,7 @@ Os [Modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cf
 
 ## Treinar
 
-Treine o YOLOv8n no dataset COCO128 por 100 épocas com tamanho de imagem 640. Para uma lista completa de argumentos disponíveis, veja a página [Configuração](../../usage/cfg.md).
+Treine o YOLOv8n no dataset COCO128 por 100 épocas com tamanho de imagem 640. Para uma lista completa de argumentos disponíveis, veja a página [Configuração](/../usage/cfg.md).
 
 !!! example ""
 

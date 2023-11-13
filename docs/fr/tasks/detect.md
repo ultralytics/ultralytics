@@ -48,7 +48,7 @@ Les modèles pré-entraînés Detect YOLOv8 sont présentés ici. Les modèles D
 
 ## Entraînement
 
-Entraînez le modèle YOLOv8n sur le jeu de données COCO128 pendant 100 époques à la taille d'image de 640. Pour une liste complète des arguments disponibles, consultez la page [Configuration](../../usage/cfg.md).
+Entraînez le modèle YOLOv8n sur le jeu de données COCO128 pendant 100 époques à la taille d'image de 640. Pour une liste complète des arguments disponibles, consultez la page [Configuration](/../usage/cfg.md).
 
 !!! example ""
 

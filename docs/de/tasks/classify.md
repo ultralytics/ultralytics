@@ -37,7 +37,7 @@ Hier werden vortrainierte YOLOv8 Classify-Modelle gezeigt. Detect-, Segment- und
 
 ## Trainieren
 
-Trainieren Sie das YOLOv8n-cls-Modell auf dem MNIST160-Datensatz für 100 Epochen bei Bildgröße 64. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](../../usage/cfg.md).
+Trainieren Sie das YOLOv8n-cls-Modell auf dem MNIST160-Datensatz für 100 Epochen bei Bildgröße 64. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](/../usage/cfg.md).
 
 !!! example ""
 

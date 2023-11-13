@@ -57,10 +57,9 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
 
 ### Supported Tasks
 
-| Model Type          | Pre-trained Weights | Tasks Supported  |
-|---------------------|:-------------------:|------------------|
-| RT-DETR Large       | `rtdetr-l.pt`       | Object Detection |
-| RT-DETR Extra-Large | `rtdetr-x.pt`       | Object Detection |
+| Model Type    | Pre-trained Weights                | Tasks            |
+|---------------|------------------------------------|:----------------:|
+| RT-DETR       | `rtdetr-l.pt`, `rtdetr-x.pt`       | Object Detection |
 
 ### Supported Modes
 

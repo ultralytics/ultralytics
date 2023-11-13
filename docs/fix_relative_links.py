@@ -22,7 +22,7 @@ class MarkdownLinkFixer:
     def link_replacer(self, match, parent_dir, lang_dir):
         """Replace broken links with corresponding links in the /en/ directory."""
         text, path = match.groups()
-        linked_path = (parent_dir / path).with_suffix('.md')
+        linked_path = (parent_dir / path).resolve().with_suffix('.md')
 
         if not linked_path.exists():
             en_linked_path = Path(str(linked_path).replace(str(lang_dir), str(lang_dir.parent / 'en')))

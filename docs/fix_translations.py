@@ -1,23 +1,51 @@
 """
-Script to fix broken Markdown links in language-specific directories.
+Script to fix broken Markdown links and front matter in language-specific directories.
 
 This script processes markdown files in language-specific directories (like /zh/).
 It finds Markdown links and checks their existence. If a link is broken and does not exist
 in the language-specific directory but exists in the /en/ directory, the script updates
 the link to point to the corresponding file in the /en/ directory.
+
+It also ensures that front matter keywords like 'comments:', 'description:', and 'keywords:'
+are not translated and remain in English.
 """
 
 import re
 from pathlib import Path
 
+# Front matter translations for comments, description, keyword
+TRANSLATIONS = {
+    'zh': ['评论', '描述', '关键词'],  # Mandarin Chinese (Simplified)
+    'es': ['comentarios', 'descripción', 'palabras clave'],  # Spanish
+    'ru': ['комментарии', 'описание', 'ключевые слова'],  # Russian
+    'pt': ['comentários', 'descrição', 'palavras-chave'],  # Portuguese
+    'fr': ['commentaires', 'description', 'mots-clés'],  # French
+    'de': ['Kommentare', 'Beschreibung', 'Schlüsselwörter'],  # German
+    'ja': ['コメント', '説明', 'キーワード'],  # Japanese
+    'ko': ['댓글', '설명', '키워드']  # Korean
+}
+
 
 class MarkdownLinkFixer:
-    """Class to fix Markdown links in language-specific directories."""
+    """Class to fix Markdown links and front matter in language-specific directories."""
 
-    def __init__(self, base_dir):
+    def __init__(self, base_dir, update_links=False, update_frontmatter=False):
         """Initialize the MarkdownLinkFixer with the base directory."""
         self.base_dir = Path(base_dir)
+        self.update_links = update_links
+        self.update_frontmatter = update_frontmatter
         self.md_link_regex = re.compile(r'\[([^\]]+)\]\(([^:\)]+)\.md\)')
+        self.front_matter_regex = re.compile(r'^(comments|description|keywords):.*$', re.MULTILINE)
+
+    def replace_front_matter(self, content):
+        """Ensure front matter keywords remain in English."""
+        english_keys = ['comments', 'description', 'keywords']
+
+        for lang, terms in TRANSLATIONS.items():
+            for term, eng_key in zip(terms, english_keys):
+                content = re.sub(rf'{term} *:', f'{eng_key}:', content)
+
+        return content
 
     def link_replacer(self, match, parent_dir, lang_dir):
         """Replace broken links with corresponding links in the /en/ directory."""
@@ -42,11 +70,14 @@ class MarkdownLinkFixer:
         with open(md_file_path, 'r', encoding='utf-8') as file:
             content = file.read()
 
-        parent_dir = md_file_path.parent
-        updated_content = self.md_link_regex.sub(lambda m: self.link_replacer(m, parent_dir, lang_dir), content)
+        if self.update_links:
+            content = self.md_link_regex.sub(lambda m: self.link_replacer(m, md_file_path.parent, lang_dir), content)
+
+        if self.update_frontmatter:
+            content = self.replace_front_matter(content)
 
         with open(md_file_path, 'w', encoding='utf-8') as file:
-            file.write(updated_content)
+            file.write(content)
 
     def process_language_directory(self, lang_dir):
         """Process each language-specific directory."""
@@ -55,7 +86,7 @@ class MarkdownLinkFixer:
             self.process_markdown_file(md_file, lang_dir)
 
     def run(self):
-        """Run the link fixing process for each language-specific directory."""
+        """Run the link fixing and front matter updating process for each language-specific directory."""
         for subdir in self.base_dir.iterdir():
             if subdir.is_dir() and re.match(r'^\w\w$', subdir.name) and subdir.name != 'en':
                 self.process_language_directory(subdir)
@@ -64,5 +95,5 @@ class MarkdownLinkFixer:
 if __name__ == '__main__':
     # Set the path to your MkDocs 'docs' directory here
     docs_dir = str(Path(__file__).parent.resolve())
-    fixer = MarkdownLinkFixer(docs_dir)
+    fixer = MarkdownLinkFixer(docs_dir, update_links=False, update_frontmatter=True)
     fixer.run()

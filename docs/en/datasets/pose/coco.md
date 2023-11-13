@@ -44,7 +44,7 @@ Models pretrained using COCO dataset are available for download to use as starti
 
 | Model   | Task   | Model Performance and Weights                                                               |
 |---------|:------:|:-------------------------------------------------------------------------------------------:|
-| YOLOv8  | Pose   | [See Performance Table - Pose Tab](https://docs.ultralytics.com/models/yolov8/#performance) |
+| YOLOv8  | Pose   | [See Performance Table - Pose Tab](../../models/yolov8.md#performance) |
 
 ## Usage
 

@@ -25,7 +25,7 @@ class SegmentationPredictor(DetectionPredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'segment'
 
-    def postprocess(self, preds, img, orig_imgs):
+    def postprocess(self, preds, img, orig_imgs, embedding):
         """Applies non-max suppression and processes detections for each image in an input batch."""
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
@@ -51,5 +51,5 @@ class SegmentationPredictor(DetectionPredictor):
             else:
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-            results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
+            results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks, embedding=embedding))
         return results

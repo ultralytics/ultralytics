@@ -6,6 +6,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
                                     Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d,
@@ -57,6 +58,31 @@ class BaseModel(nn.Module):
         if augment:
             return self._predict_augment(x)
         return self._predict_once(x, profile, visualize)
+    
+    def _average_and_normalize(self, input_tensor):
+        """
+        Compute the average of the 20x20 layers in the input tensor and normalize the result to a list.
+
+        Args:
+            input_tensor (torch.Tensor): Input tensor with shape [B, L, W, H].
+
+        Returns:
+            list: A list containing the normalized values of the backbone.
+        """
+    
+        # Step 1: Apply adaptive average pooling to tensor of shape (B, 576, 20, 20)
+        avg_pooled = torch.nn.functional.adaptive_avg_pool2d(input_tensor, (1, 1))
+
+        # Step 2: Squeeze to remove dimensions with size 1
+        avg_pooled_squeezed = avg_pooled.squeeze()
+
+        # Step 3: Normalize the tensor
+        normalized_tensor = F.normalize(avg_pooled_squeezed, p=2, dim=0)
+
+        # Step 4: Convert the normalized tensor to a Python list
+        normalized_list = normalized_tensor.tolist()
+
+        return normalized_list
 
     def _predict_once(self, x, profile=False, visualize=False):
         """
@@ -71,7 +97,16 @@ class BaseModel(nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
+        img_embedding = None # initialize empty vector
+        
         for m in self.model:
+            
+            # During Model iteration, it is has the following Head Class, 
+            # then access and save backbone embedding prior to processing Head
+            if isinstance(m, (Detect, Segment, Pose, Classify, RTDETRDecoder)):
+                # Ensure vector normalization on output
+                img_embedding = self._average_and_normalize(x)
+                
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
@@ -80,7 +115,8 @@ class BaseModel(nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-        return x
+        
+        return x, img_embedding
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""

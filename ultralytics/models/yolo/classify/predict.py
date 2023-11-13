@@ -37,7 +37,7 @@ class ClassificationPredictor(BasePredictor):
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
         return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
 
-    def postprocess(self, preds, img, orig_imgs):
+    def postprocess(self, preds, img, orig_imgs, embedding):
         """Post-processes predictions to return Results objects."""
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
@@ -46,5 +46,5 @@ class ClassificationPredictor(BasePredictor):
         for i, pred in enumerate(preds):
             orig_img = orig_imgs[i]
             img_path = self.batch[0][i]
-            results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
+            results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred, embedding=embedding))
         return results

@@ -28,7 +28,7 @@ class PosePredictor(DetectionPredictor):
             LOGGER.warning("WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
                            'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
-    def postprocess(self, preds, img, orig_imgs):
+    def postprocess(self, preds, img, orig_imgs, embedding):
         """Return detection results for a given input image or list of images."""
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
@@ -49,5 +49,5 @@ class PosePredictor(DetectionPredictor):
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
             img_path = self.batch[0][i]
             results.append(
-                Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], keypoints=pred_kpts))
+                Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], keypoints=pred_kpts, embedding=embedding))
         return results

@@ -185,7 +185,7 @@ class BasePredictor:
 
         return log_string
 
-    def postprocess(self, preds, img, orig_imgs):
+    def postprocess(self, preds, img, orig_imgs, embedding):
         """Post-processes predictions for an image and returns them."""
         return preds
 
@@ -260,11 +260,11 @@ class BasePredictor:
 
                 # Inference
                 with profilers[1]:
-                    preds = self.inference(im, *args, **kwargs)
+                    preds, embedding = self.inference(im, *args, **kwargs)
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess(preds, im, im0s)
+                    self.results = self.postprocess(preds, im, im0s, embedding)
 
                 self.run_callbacks('on_predict_postprocess_end')
                 # Visualize, save, write results

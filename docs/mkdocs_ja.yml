@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 site_name: Ultralytics YOLOv8 ドキュメント
-site_url: https://docs.ultralytics.com/ja/
 site_description: Ultralytics YOLOv8を探求してください。これは、さまざまなアプリケーションおよびハードウェアプラットフォームに適した最先端のリアルタイム物体検出および画像分割モデルです。
+site_url: https://docs.ultralytics.com/ja/
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/ja/
@@ -83,6 +83,15 @@ extra:
     - name: 🇩🇪 Deutsch
       link: /de/
       lang: de
+    - name: 🇫🇷 Français
+      link: /fr/
+      lang: fr
+    - name: 🇪🇸 Español
+      link: /es/
+      lang: es
+    - name: 🇵🇹 Português
+      link: /pt/
+      lang: pt
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics

@@ -1,19 +1,19 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-site_name: Ultralytics YOLOv8 문서
-site_description: Ultralytics YOLOv8을 탐색하세요. 이는 다양한 애플리케이션 및 하드웨어 플랫폼을 위한 최첨단 실시간 객체 감지 및 이미지 분할 모델입니다.
-site_url: https://docs.ultralytics.com/ko/
+site_name: Documentação Ultralytics YOLOv8
+site_description: Explore o Ultralytics YOLOv8, um modelo avançado de detecção de objetos e segmentação de imagem em tempo real, adequado para várias aplicações e plataformas de hardware.
+site_url: https://docs.ultralytics.com/pt/
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
-edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/ko/
+edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/pt/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
-docs_dir: 'ko/'  # where to find the markdown files
-site_dir: '../site/ko'  # where to publish to
+docs_dir: 'pt/'  # where to find the markdown files
+site_dir: '../site/pt'  # where to publish to
 
 theme:
   name: material
-  language: ko
+  language: pt
   custom_dir: overrides/
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
@@ -138,47 +138,47 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - 홈:
-      - 홈: index.md
-      - 빠른 시작: quickstart.md
-      - 모드:
+  - Startseite:
+      - Startseite: index.md
+      - Schnellstart: quickstart.md
+      - Modi:
           - modes/index.md
-          - 훈련: modes/train.md
-          - 검증: modes/val.md
-          - 예측: modes/predict.md
-          - 내보내기: modes/export.md
-          - 추적: modes/track.md
-          - 벤치마크: modes/benchmark.md
-      - 작업:
+          - Training: modes/train.md
+          - Validierung: modes/val.md
+          - Vorhersage: modes/predict.md
+          - Exportieren: modes/export.md
+          - Verfolgen: modes/track.md
+          - Benchmarking: modes/benchmark.md
+      - Aufgaben:
           - tasks/index.md
-          - 감지: tasks/detect.md
-          - 분할: tasks/segment.md
-          - 분류: tasks/classify.md
-          - 포즈: tasks/pose.md
-  - 빠른 시작: quickstart.md
-  - 모드:
+          - Erkennung: tasks/detect.md
+          - Segmentierung: tasks/segment.md
+          - Klassifizierung: tasks/classify.md
+          - Pose: tasks/pose.md
+  - Schnellstart: quickstart.md
+  - Modi:
       - modes/index.md
-      - 훈련: modes/train.md
-      - 검증: modes/val.md
-      - 예측: modes/predict.md
-      - 내보내기: modes/export.md
-      - 추적: modes/track.md
-      - 벤치마크: modes/benchmark.md
-  - 작업:
+      - Training: modes/train.md
+      - Validierung: modes/val.md
+      - Vorhersage: modes/predict.md
+      - Exportieren: modes/export.md
+      - Verfolgen: modes/track.md
+      - Benchmarking: modes/benchmark.md
+  - Aufgaben:
       - tasks/index.md
-      - 감지: tasks/detect.md
-      - 분할: tasks/segment.md
-      - 분류: tasks/classify.md
-      - 포즈: tasks/pose.md
-  - 모델:
+      - Erkennung: tasks/detect.md
+      - Segmentierung: tasks/segment.md
+      - Klassifizierung: tasks/classify.md
+      - Pose: tasks/pose.md
+  - Modelle:
       - models/index.md
-  - 데이터셋:
+  - Datensätze:
       - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
   - search:
-      lang: ko
+      lang: pt
   - ultralytics:
       add_desc: False
       add_image: True

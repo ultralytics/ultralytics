@@ -40,7 +40,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Pretrained Model Weights
 
-Models pretrained using COCO dataset are available for download to use as starting weights for training or keypoint/point detection.
+Models pretrained using COCO dataset are available for download to use as starting weights for training or directly for keypoint/point detection.
 
 | Model   | Task   | Model Performance and Weights                                                               |
 |---------|:------:|:-------------------------------------------------------------------------------------------:|

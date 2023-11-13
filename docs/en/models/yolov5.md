@@ -23,7 +23,7 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 ## Supported Tasks
 
 | Model Type | Pre-trained Weights                                                                                                         | Task      |
-|------------|-----------------------------------------------------------------------------------------------------------------------------|-----------|
+|------------|-----------------------------------------------------------------------------------------------------------------------------|:---------:|
 | YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | Detection |
 
 ## Supported Modes
@@ -40,8 +40,8 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 
     === "Detection"
 
-    | Model                                                                                       | YAML                                                                                                           | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-    |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+    | Model                                                                                       | YAML                                                                                                           | size<sup>(pixels)<br> | mAP<sup>val<br>50-95 | Speed<sup>CPU ONNX<br>(ms)<br> | Speed<sup>A100 TensorRT<br>(ms)<br> | params<sup>(M)<br> | FLOPs<sup>(B)<br> |
+    |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|:---------------------:|:--------------------:|:------------------------------:|:-----------------------------------:|:------------------:|:-----------------:|
     | [yolov5nu.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5nu.pt)   | [yolov5n.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 34.3                 | 73.6                           | 1.06                                | 2.6                | 7.7               |
     | [yolov5su.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5su.pt)   | [yolov5s.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 43.0                 | 120.7                          | 1.27                                | 9.1                | 24.0              |
     | [yolov5mu.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5mu.pt)   | [yolov5m.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 49.0                 | 233.9                          | 1.86                                | 25.1               | 64.2              |

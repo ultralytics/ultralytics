@@ -32,7 +32,7 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
   <br>
   <iframe width="720" height="405" src="https://www.youtube.com/embed/MWq1UxqTClU?si=nHAW-lYDzrz68jR0"
     title="YouTube 视频播放器" frameborder="0"
-    allow="加速度计; 自动播放; 剪贴板写入; 加密媒体; 陀螺仪; 画中画; web 分享"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>

@@ -17,11 +17,12 @@ from pathlib import Path
 class MarkdownLinkFixer:
     """Class to fix Markdown links and front matter in language-specific directories."""
 
-    def __init__(self, base_dir, update_links=False, update_frontmatter=False):
+    def __init__(self, base_dir, update_links=True, update_frontmatter=True, update_iframes=True):
         """Initialize the MarkdownLinkFixer with the base directory."""
         self.base_dir = Path(base_dir)
         self.update_links = update_links
         self.update_frontmatter = update_frontmatter
+        self.update_iframes = update_iframes
         self.md_link_regex = re.compile(r'\[([^\]]+)\]\(([^:\)]+)\.md\)')
         self.front_matter_regex = re.compile(r'^(comments|description|keywords):.*$', re.MULTILINE)
         self.translations = {
@@ -48,6 +49,12 @@ class MarkdownLinkFixer:
                     content = re.sub(rf'{term} *:', f'{eng_key}:', content)
 
         return content
+
+    def update_iframe(self, content):
+        """Update the 'allow' attribute of iframe if it does not contain the specific English permissions."""
+        english_permissions = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+        pattern = re.compile(f'allow="(?!{re.escape(english_permissions)}).+?"')
+        return pattern.sub(f'allow="{english_permissions}"', content)
 
     def link_replacer(self, match, parent_dir, lang_dir):
         """Replace broken links with corresponding links in the /en/ directory."""
@@ -78,6 +85,9 @@ class MarkdownLinkFixer:
         if self.update_frontmatter:
             content = self.replace_front_matter(content)
 
+        if self.update_iframes:
+            content = self.update_iframe(content)
+
         with open(md_file_path, 'w', encoding='utf-8') as file:
             file.write(content)
 
@@ -97,5 +107,5 @@ class MarkdownLinkFixer:
 if __name__ == '__main__':
     # Set the path to your MkDocs 'docs' directory here
     docs_dir = str(Path(__file__).parent.resolve())
-    fixer = MarkdownLinkFixer(docs_dir, update_links=False, update_frontmatter=True)
+    fixer = MarkdownLinkFixer(docs_dir, update_links=False, update_frontmatter=True, update_iframes=True)
     fixer.run()

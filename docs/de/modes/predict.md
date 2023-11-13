@@ -16,7 +16,7 @@ Im Bereich des maschinellen Lernens und der Computer Vision wird der Prozess des
   <br>
   <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14"
     title="YouTube Video Player" frameborder="0"
-    allow="Beschleunigungsmesser; Automatische Wiedergabe; Zwischenablage-Schreiben; Verschlüsseltes-Medien; Gyroskop; Bild-im-Bild; Web-Teilen"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>

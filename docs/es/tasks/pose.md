@@ -16,7 +16,7 @@ La salida de un modelo de estimación de pose es un conjunto de puntos que repre
   <br>
   <iframe width="720" height="405" src="https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ"
     title="Reproductor de video de YouTube" frameborder="0"
-    allow="acelerómetro; autoplay; escritura en portapapeles; medios cifrados; giroscopio; compartir imágenes"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>

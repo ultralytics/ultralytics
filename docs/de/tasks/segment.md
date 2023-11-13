@@ -16,7 +16,7 @@ Das Ergebnis eines Instanzsegmentierungsmodells ist eine Reihe von Masken oder K
   <br>
   <iframe width="720" height="405" src="https://www.youtube.com/embed/o4Zd-IeMlSY?si=37nusCzDTd74Obsp"
     title="YouTube-Video-Player" frameborder="0"
-    allow="Beschleunigungsmesser; Autoplay; Zwischenablage-schreiben; Verschlüsselte Medien; Kreiselinstrument; Bild-in-Bild; Webaufteilung"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>

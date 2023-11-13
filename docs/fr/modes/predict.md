@@ -16,7 +16,7 @@ Dans l'univers de l'apprentissage automatique et de la vision par ordinateur, le
   <br>
   <iframe width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14"
     title="Lecteur vidéo YouTube" frameborder="0"
-    allow="accéléromètre; autoplay; écriture-presque_papier; média chiffré; gyroscope; picture-in-picture; web-share"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>

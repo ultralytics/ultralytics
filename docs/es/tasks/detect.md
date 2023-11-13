@@ -16,7 +16,7 @@ La salida de un detector de objetos es un conjunto de cajas delimitadoras que en
   <br>
   <iframe width="720" height="405" src="https://www.youtube.com/embed/5ku7npMrW40?si=6HQO1dDXunV8gekh"
     title="Reproductor de video YouTube" frameborder="0"
-    allow="acelerómetro; autoplay; escritura-clipboard; media-encriptado; giroscopio; picture-in-picture; compartir-web"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     permitir pantalla completa>
   </iframe>
   <br>

@@ -16,7 +16,7 @@ La sortie d'un détecteur d'objets est un ensemble de boîtes englobantes qui en
   <br>
   <iframe width="720" height="405" src="https://www.youtube.com/embed/5ku7npMrW40?si=6HQO1dDXunV8gekh"
     title="Lecteur vidéo YouTube" frameborder="0"
-    allow="accéléromètre; autoplay; écriture dans le presse-papiers; médias cryptés; gyroscope; image par image; partage Web"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>

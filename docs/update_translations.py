@@ -65,11 +65,11 @@ class MarkdownLinkFixer:
             en_linked_path = Path(str(linked_path).replace(str(lang_dir), str(lang_dir.parent / 'en')))
             if en_linked_path.exists():
                 if use_abs_link:
-                    # Use absolute links
+                    # Use absolute links WARNING: BUGS, DO NOT USE
                     docs_root_relative_path = en_linked_path.relative_to(lang_dir.parent)
-                    updated_path = f'/{docs_root_relative_path}'
+                    updated_path = str(docs_root_relative_path).replace('en/', '/../')
                 else:
-                    # Use the original relative links
+                    # Use relative links
                     steps_up = len(parent_dir.relative_to(self.base_dir).parts)
                     updated_path = Path('../' * steps_up) / en_linked_path.relative_to(self.base_dir)
                     updated_path = str(updated_path).replace('/en/', '/')

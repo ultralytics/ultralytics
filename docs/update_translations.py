@@ -1,3 +1,4 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 """
 Script to fix broken Markdown links and front matter in language-specific directories.
 

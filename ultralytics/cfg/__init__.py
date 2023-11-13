@@ -405,13 +405,14 @@ def entrypoint(debug=''):
         model = 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     overrides['model'] = model
-    if 'rtdetr' in model.lower():  # guess architecture
+    stem = Path(model).stem.lower()
+    if 'rtdetr' in stem:  # guess architecture
         from ultralytics import RTDETR
         model = RTDETR(model)  # no task argument
-    elif 'fastsam' in model.lower():
+    elif 'fastsam' in stem:
         from ultralytics import FastSAM
         model = FastSAM(model)
-    elif 'sam' in model.lower():
+    elif 'sam' in stem:
         from ultralytics import SAM
         model = SAM(model)
     else:

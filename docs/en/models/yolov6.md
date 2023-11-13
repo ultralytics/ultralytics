@@ -21,18 +21,6 @@ keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directi
 - **Enhanced Backbone and Neck Design:** By deepening YOLOv6 to include another stage in the backbone and neck, this model achieves state-of-the-art performance on the COCO dataset at high-resolution input.
 - **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
 
-## Pre-trained Models
-
-YOLOv6 provides various pre-trained models with different scales:
-
-- YOLOv6-N: 37.5% AP on COCO val2017 at 1187 FPS with NVIDIA Tesla T4 GPU.
-- YOLOv6-S: 45.0% AP at 484 FPS.
-- YOLOv6-M: 50.0% AP at 226 FPS.
-- YOLOv6-L: 52.8% AP at 116 FPS.
-- YOLOv6-L6: State-of-the-art accuracy in real-time.
-
-YOLOv6 also provides quantized models for different precisions and models optimized for mobile platforms.
-
 ## Usage
 
 You can use YOLOv6 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv6 models for training:
@@ -75,21 +63,39 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
 
 ### Supported Tasks
 
-| Model Type | Pre-trained Weights | Tasks Supported  |
-|------------|---------------------|------------------|
-| YOLOv6-N   | `yolov6-n.pt`       | Object Detection |
-| YOLOv6-S   | `yolov6-s.pt`       | Object Detection |
-| YOLOv6-M   | `yolov6-m.pt`       | Object Detection |
-| YOLOv6-L   | `yolov6-l.pt`       | Object Detection |
-| YOLOv6-L6  | `yolov6-l6.pt`      | Object Detection |
+| Model Type | Pre-trained Weights                                                           | Tasks Supported  |
+|------------|-------------------------------------------------------------------------------|------------------|
+| YOLOv6     | `yolov6-n.pt`, `yolov6-s.pt`, `yolov6-m.pt`, `yolov6-l.pt`, `yolov6-l6.pt`    | Object Detection |
 
 ## Supported Modes
 
 | Mode       | Supported          |
-|------------|--------------------|
+|------------|:------------------:|
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
+
+## Performance
+
+YOLOv6 provides various pre-trained models with different scales (table retrieved 2023-11-13):
+
+!!! Performance
+
+    === "Detection "
+
+        | Model                                                                              | Size | mAP<sup>val<br/>0.5:0.95 | Speed<sup>T4<br/>trt fp16 b1 <br/>(fps) | Speed<sup>T4<br/>trt fp16 b32 <br/>(fps) | Params<br/><sup> (M) | FLOPs<br/><sup> (G) |
+        | :--------------------------------------------------------------------------------- | ---- | :----------------------- | --------------------------------------- | ---------------------------------------- | -------------------- | ------------------- |
+        | [YOLOv6-N](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6n.pt)   | 640  | 37.5                     | 779                                     | 1187                                     | 4.7                  | 11.4                |
+        | [YOLOv6-S](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s.pt)   | 640  | 45.0                     | 339                                     | 484                                      | 18.5                 | 45.3                |
+        | [YOLOv6-M](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6m.pt)   | 640  | 50.0                     | 175                                     | 226                                      | 34.9                 | 85.8                |
+        | [YOLOv6-L](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6l.pt)   | 640  | 52.8                     | 98                                      | 116                                      | 59.6                 | 150.7               |
+        |                                                                                    |      |                          |                                         |                                          |                      |                     |
+        | [YOLOv6-N6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6n6.pt) | 1280 | 44.9                     | 228                                     | 281                                      | 10.4                 | 49.8                |
+        | [YOLOv6-S6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s6.pt) | 1280 | 50.3                     | 98                                      | 108                                      | 41.4                 | 198.0               |
+        | [YOLOv6-M6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6m6.pt) | 1280 | 55.2                     | 47                                      | 55                                       | 79.6                 | 379.5               |
+        | [YOLOv6-L6](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6l6.pt) | 1280 | 57.2                     | 26                                      | 29                                       | 140.4                | 673.4               |
+
+YOLOv6 also provides quantized models for different precisions and models optimized for mobile platforms. Check the [meituan/YOLOv6 repository Releases](https://github.com/meituan/YOLOv6/releases) for the latest pretrained model weights.
 
 ## Citations and Acknowledgements
 

@@ -1,6 +1,6 @@
 ---
-Kommentare: wahr
-Beschreibung: Erfahren Sie, wie Sie Instanzsegmentierungsmodelle mit Ultralytics YOLO verwenden. Anleitungen zum Training, zur Validierung, zur Bildvorhersage und zum Export von Modellen.
+comments: true
+description: Erfahren Sie, wie Sie Instanzsegmentierungsmodelle mit Ultralytics YOLO verwenden. Anleitungen zum Training, zur Validierung, zur Bildvorhersage und zum Export von Modellen.
 Schlagworte: yolov8, Instanzsegmentierung, Ultralytics, COCO-Datensatz, Bildsegmentierung, Objekterkennung, Modelltraining, Modellvalidierung, Bildvorhersage, Modellexport
 ---
 

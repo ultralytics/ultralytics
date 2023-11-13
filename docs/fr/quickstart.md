@@ -1,7 +1,7 @@
 ---
-commentaires: true
+comments: true
 description: Explorez diverses méthodes pour installer Ultralytics en utilisant pip, conda, git et Docker. Apprenez comment utiliser Ultralytics avec l'interface en ligne de commande ou au sein de vos projets Python.
-mots-clés: installation d'Ultralytics, pip install Ultralytics, Docker install Ultralytics, interface en ligne de commande Ultralytics, interface Python Ultralytics
+keywords: installation d'Ultralytics, pip install Ultralytics, Docker install Ultralytics, interface en ligne de commande Ultralytics, interface Python Ultralytics
 ---
 
 ## Installer Ultralytics

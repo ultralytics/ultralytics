@@ -1,7 +1,7 @@
 ---
-Kommentare: true
-Beschreibung: Entdecken Sie verschiedene Methoden zur Installation von Ultralytics mit Pip, Conda, Git und Docker. Erfahren Sie, wie Sie Ultralytics über die Befehlszeilenschnittstelle oder innerhalb Ihrer Python-Projekte verwenden können.
-Schlüsselwörter: Ultralytics-Installation, pip installieren Ultralytics, Docker installieren Ultralytics, Ultralytics-Befehlszeilenschnittstelle, Ultralytics Python-Schnittstelle
+comments: true
+description: Entdecken Sie verschiedene Methoden zur Installation von Ultralytics mit Pip, Conda, Git und Docker. Erfahren Sie, wie Sie Ultralytics über die Befehlszeilenschnittstelle oder innerhalb Ihrer Python-Projekte verwenden können.
+keywords: Ultralytics-Installation, pip installieren Ultralytics, Docker installieren Ultralytics, Ultralytics-Befehlszeilenschnittstelle, Ultralytics Python-Schnittstelle
 ---
 
 ## Ultralytics installieren

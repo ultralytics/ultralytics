@@ -1,7 +1,7 @@
 ---
-commentaires: vrai
+comments: true
 description: Apprenez à utiliser les modèles de segmentation d'instance avec Ultralytics YOLO. Instructions pour la formation, la validation, la prédiction d'image et l'exportation de modèle.
-mots-clés: yolov8, segmentation d'instance, Ultralytics, jeu de données COCO, segmentation d'image, détection d'objet, formation de modèle, validation de modèle, prédiction d'image, exportation de modèle
+keywords: yolov8, segmentation d'instance, Ultralytics, jeu de données COCO, segmentation d'image, détection d'objet, formation de modèle, validation de modèle, prédiction d'image, exportation de modèle
 ---
 
 # Segmentation d'Instance

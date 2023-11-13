@@ -13,18 +13,6 @@ are not translated and remain in English.
 import re
 from pathlib import Path
 
-# Front matter translations for comments, description, keyword
-TRANSLATIONS = {
-    'zh': ['评论', '描述', '关键词'],  # Mandarin Chinese (Simplified)
-    'es': ['comentarios', 'descripción', 'palabras clave'],  # Spanish
-    'ru': ['комментарии', 'описание', 'ключевые слова'],  # Russian
-    'pt': ['comentários', 'descrição', 'palavras-chave'],  # Portuguese
-    'fr': ['commentaires', 'description', 'mots-clés'],  # French
-    'de': ['Kommentare', 'Beschreibung', 'Schlüsselwörter'],  # German
-    'ja': ['コメント', '説明', 'キーワード'],  # Japanese
-    'ko': ['댓글', '설명', '키워드']  # Korean
-}
-
 
 class MarkdownLinkFixer:
     """Class to fix Markdown links and front matter in language-specific directories."""
@@ -36,14 +24,28 @@ class MarkdownLinkFixer:
         self.update_frontmatter = update_frontmatter
         self.md_link_regex = re.compile(r'\[([^\]]+)\]\(([^:\)]+)\.md\)')
         self.front_matter_regex = re.compile(r'^(comments|description|keywords):.*$', re.MULTILINE)
+        self.translations = {
+            'zh': ['评论', '描述', '关键词'],  # Mandarin Chinese (Simplified)
+            'es': ['comentarios', 'descripción', 'palabras clave'],  # Spanish
+            'ru': ['комментарии', 'описание', 'ключевые слова'],  # Russian
+            'pt': ['comentários', 'descrição', 'palavras-chave'],  # Portuguese
+            'fr': ['commentaires', 'description', 'mots-clés'],  # French
+            'de': ['Kommentare', 'Beschreibung', 'Schlüsselwörter'],  # German
+            'ja': ['コメント', '説明', 'キーワード'],  # Japanese
+            'ko': ['댓글', '설명', '키워드']  # Korean
+        }  # front matter translations for comments, description, keyword
 
     def replace_front_matter(self, content):
         """Ensure front matter keywords remain in English."""
         english_keys = ['comments', 'description', 'keywords']
 
-        for lang, terms in TRANSLATIONS.items():
+        for lang, terms in self.translations.items():
             for term, eng_key in zip(terms, english_keys):
-                content = re.sub(rf'{term} *:', f'{eng_key}:', content)
+                if eng_key == 'comments':
+                    # Replace comments key and set its value to 'true'
+                    content = re.sub(rf'{term} *:.*', f'{eng_key}: true', content)
+                else:
+                    content = re.sub(rf'{term} *:', f'{eng_key}:', content)
 
         return content
 

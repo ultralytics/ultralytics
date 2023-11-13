@@ -1,7 +1,7 @@
 ---
-评论: 真
-描述: 使用Ultralytics YOLO训练YOLOv8模型的逐步指南，包括单GPU和多GPU训练示例
-关键词: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据集, GPU训练, 多GPU, 超参数, CLI示例, Python示例
+comments: true
+description: 使用Ultralytics YOLO训练YOLOv8模型的逐步指南，包括单GPU和多GPU训练示例
+keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据集, GPU训练, 多GPU, 超参数, CLI示例, Python示例
 ---
 
 # 使用Ultralytics YOLO进行模型训练

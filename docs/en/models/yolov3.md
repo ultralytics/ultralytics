@@ -32,9 +32,9 @@ YOLOv3, YOLOv3-Ultralytics, and YOLOv3u all support the following tasks:
 
 | Model Type   | Pre-trained Weights                                                                                                 | Task                  |
 |--------------|---------------------------------------------------------------------------------------------------------------------|:---------------------:|
-| YOLOv3-SPPu  | `yolov3-sppu.pt`                                                                                                    | Detection             |
-| YOLOv3-Tinyu | `yolov3-tinyu.pt`                                                                                                   | Detection             |
-| YOLOv3u      | `yolov3u.pt`                                                                                                        | Detection             |
+| YOLOv3-SPPu  | `yolov3-sppu.pt`                                                                                                    | Object Detection      |
+| YOLOv3-Tinyu | `yolov3-tinyu.pt`                                                                                                   | Object Detection      |
+| YOLOv3u      | `yolov3u.pt`                                                                                                        | Object Detection      |
 
 ## Supported Modes
 

@@ -73,7 +73,7 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
 
 === "Detection (COCO)"
 
-        | Model                                                                                            | size<br><sup>(pixels) | AP<sup>val<br> | Speed<br><sup>T4 TensorRT-FP16<br>(FPS) | params<br><sup>(M) | GFLOPs<br> |
+        | Model                                                                                            | size<sup>(pixels)<br> | AP<sup>val<br> | Speed<sup>T4 TensorRT-FP16<br>(FPS)<br> | params<sup>(M)<br> | GFLOPs<br> |
         | ------------------------------------------------------------------------------------------------ | :-------------------: | :------------: | :-------------------------------------: | :----------------: | :--------: |
         | [RT-DETR-Large]((https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-l.pt)     | 640                   | 53.0           | 114                                     | 32                 | 110        |
         | [RT-DETR-Xtra-Large](https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-x.pt) | 640                   | 54.8           | 74                                      | 67                 | 234        |

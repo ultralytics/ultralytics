@@ -17,7 +17,7 @@ const applyAutoTheme = () => {
 // Function that checks and applies light/dark theme based on the user's preference (if auto theme is enabled)
 function checkAutoTheme() {
   // Retrieve the palette from local storage
-  const palette = localStorage.getItem("/zh/.__palette");
+  const palette = localStorage.getItem("/.__palette");
   if (palette) {
     // Check if the palette's index is 0 (auto theme)
     const paletteObj = JSON.parse(palette);

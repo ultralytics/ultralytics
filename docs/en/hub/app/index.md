@@ -42,7 +42,7 @@ Welcome to the Ultralytics HUB App! We are excited to introduce this powerful mo
 
 ## App Documentation
 
-- [**iOS**](./ios.md): Learn about YOLO CoreML models accelerated on Apple's Neural Engine for iPhones and iPads.
-- [**Android**](./android.md): Explore TFLite acceleration on Android mobile devices.
+- [**iOS**](ios.md): Learn about YOLO CoreML models accelerated on Apple's Neural Engine for iPhones and iPads.
+- [**Android**](android.md): Explore TFLite acceleration on Android mobile devices.
 
 Get started today by downloading the Ultralytics HUB App on your mobile device and unlock the potential of YOLOv5 and YOLOv8 models on-the-go. Don't forget to check out our comprehensive [HUB Docs](../index.md) for more information on training, deploying, and using your custom models with the Ultralytics HUB platform.

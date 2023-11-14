@@ -72,16 +72,16 @@ Here's how you can use these formats to train your model:
 
 Here is a list of the supported datasets and a brief description for each:
 
-- [**Argoverse**](./argoverse.md): A collection of sensor data collected from autonomous vehicles. It contains 3D tracking annotations for car objects.
-- [**COCO**](./coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
-- [**COCO8**](./coco8.md): A smaller subset of the COCO dataset, COCO8 is more lightweight and faster to train.
-- [**GlobalWheat2020**](./globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
-- [**Objects365**](./objects365.md): A large-scale object detection dataset with 365 object categories and 600k images, aimed at advancing object detection research.
-- [**OpenImagesV7**](./open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
-- [**SKU-110K**](./sku-110k.md): A dataset containing images of densely packed retail products, intended for retail environment object detection.
-- [**VisDrone**](./visdrone.md): A dataset focusing on drone-based images, containing various object categories like cars, pedestrians, and cyclists.
-- [**VOC**](./voc.md): PASCAL VOC is a popular object detection dataset with 20 object categories including vehicles, animals, and furniture.
-- [**xView**](./xview.md): A dataset containing high-resolution satellite imagery, designed for the detection of various object classes in overhead views.
+- [**Argoverse**](argoverse.md): A collection of sensor data collected from autonomous vehicles. It contains 3D tracking annotations for car objects.
+- [**COCO**](coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
+- [**COCO8**](coco8.md): A smaller subset of the COCO dataset, COCO8 is more lightweight and faster to train.
+- [**GlobalWheat2020**](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
+- [**Objects365**](objects365.md): A large-scale object detection dataset with 365 object categories and 600k images, aimed at advancing object detection research.
+- [**OpenImagesV7**](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
+- [**SKU-110K**](sku-110k.md): A dataset containing images of densely packed retail products, intended for retail environment object detection.
+- [**VisDrone**](visdrone.md): A dataset focusing on drone-based images, containing various object categories like cars, pedestrians, and cyclists.
+- [**VOC**](voc.md): PASCAL VOC is a popular object detection dataset with 20 object categories including vehicles, animals, and furniture.
+- [**xView**](xview.md): A dataset containing high-resolution satellite imagery, designed for the detection of various object classes in overhead views.
 
 ### Adding your own dataset
 

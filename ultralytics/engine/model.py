@@ -86,7 +86,7 @@ class Model(nn.Module):
             # Fetch model from HUB
             self.session = get_hub_session(model)
             model = self.session.model_file
-        elif SETTINGS['hub'] is True:
+        elif SETTINGS['hub'] is True and task == 'train':
             # Create a model in HUB
             try:
                 self.session = get_hub_session(model)

@@ -79,6 +79,8 @@ For multi-language MkDocs sites use the following additional steps:
     open http://localhost:8000  # on macOS
     ```
 
+Note the above steps are combined into the Ultralytics [build_docs.py](https://github.com/ultralytics/ultralytics/blob/main/docs/build_docs.py) script.
+
 ### Deploying Your Documentation Site
 
 To deploy your MkDocs documentation site, you will need to choose a hosting provider and a deployment method. Some popular options include GitHub Pages, GitLab Pages, and Amazon S3.

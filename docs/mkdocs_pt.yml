@@ -117,9 +117,9 @@ extra:
       link: https://ultralytics.com/discord
 
 extra_css:
-  - 'stylesheets/style.css'
+  - stylesheets/style.css
 extra_javascript:
-  - 'javascript/extra.js'
+  - javascript/extra.js
 
 markdown_extensions:
   - admonition

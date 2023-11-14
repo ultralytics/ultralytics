@@ -81,7 +81,7 @@ Entrena un modelo YOLOv8-pose en el conjunto de datos COCO128-pose.
 
 ### Formato del conjunto de datos
 
-El formato del conjunto de datos de pose de YOLO se puede encontrar en detalle en la [Guía de Conjuntos de Datos](../../datasets/pose/index.md). Para convertir tu conjunto de datos existente de otros formatos (como COCO, etc.) al formato de YOLO, usa la herramienta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) de Ultralytics.
+El formato del conjunto de datos de pose de YOLO se puede encontrar en detalle en la [Guía de Conjuntos de Datos](../../../datasets/pose/index.md). Para convertir tu conjunto de datos existente de otros formatos (como COCO, etc.) al formato de YOLO, usa la herramienta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) de Ultralytics.
 
 ## Validar
 

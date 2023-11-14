@@ -70,7 +70,7 @@ keywords: Ultralytics, YOLOv8, 画像分類, 事前トレーニングされた�
 
 ### データセットフォーマット
 
-YOLO分類データセットのフォーマットの詳細は [データセットガイド](../../datasets/classify/index.md) にあります。
+YOLO分類データセットのフォーマットの詳細は [データセットガイド](../../../datasets/classify/index.md) にあります。
 
 ## 検証
 

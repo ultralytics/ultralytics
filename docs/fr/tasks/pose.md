@@ -72,7 +72,7 @@ Entraînez un modèle YOLOv8-pose sur le jeu de données COCO128-pose.
 
 ### Format du jeu de données
 
-Le format du jeu de données YOLO pose peut être trouvé en détail dans le [Guide des jeux de données](../../datasets/pose/index.md). Pour convertir votre jeu de données existant à partir d'autres formats (comme COCO, etc.) vers le format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) d'Ultralytics.
+Le format du jeu de données YOLO pose peut être trouvé en détail dans le [Guide des jeux de données](../../../datasets/pose/index.md). Pour convertir votre jeu de données existant à partir d'autres formats (comme COCO, etc.) vers le format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) d'Ultralytics.
 
 ## Val
 

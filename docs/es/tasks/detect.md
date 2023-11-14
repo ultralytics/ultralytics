@@ -80,7 +80,7 @@ Entrena a YOLOv8n en el conjunto de datos COCO128 durante 100 épocas a tamaño 
 
 ### Formato del conjunto de datos
 
-El formato del conjunto de datos de detección de YOLO se puede encontrar en detalle en la [Guía de Conjuntos de Datos](../../datasets/detect/index.md). Para convertir tu conjunto de datos existente desde otros formatos (como COCO, etc.) al formato YOLO, por favor usa la herramienta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) de Ultralytics.
+El formato del conjunto de datos de detección de YOLO se puede encontrar en detalle en la [Guía de Conjuntos de Datos](../../../datasets/detect/index.md). Para convertir tu conjunto de datos existente desde otros formatos (como COCO, etc.) al formato YOLO, por favor usa la herramienta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) de Ultralytics.
 
 ## Validación
 

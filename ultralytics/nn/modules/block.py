@@ -13,7 +13,7 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -387,7 +387,6 @@ class C2f(nn.Module):
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
 
-
 class C3(nn.Module):
     """CSP Bottleneck with 3 convolutions."""
 
@@ -407,12 +406,19 @@ class C3(nn.Module):
 
 class C3x(C3):
     """C3 module with cross-convolutions."""
-
+    
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
         """Initialize C3TR instance and set default parameters."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
         self.m = nn.Sequential(*(Bottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+
+class LightC3x(C3x):
+    #(self, c1, c2, k=3, s=1, expand_ratio=1.0, p=None, g=1, d=1, act=True, se_ratio=0.25)
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize C3TR instance and set default parameters."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.m = nn.Sequential(*(MBConv(self.c_, self.c_)for i in range(n)))
 
 class C3SA(C3):
     """C3 module with cross-convolutions."""

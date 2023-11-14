@@ -65,18 +65,18 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
 
 | Mode       | Supported          |
 |------------|:------------------:|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
-| Training   | :heavy_check_mark: |
+| Inference  | :white_check_mark: |
+| Validation | :white_check_mark: |
+| Training   | :white_check_mark: |
 
 # Performance
 
 === "Detection (COCO)"
 
-        | Model                                                                                            | size<sup>(pixels)<br> | AP<sup>val<br> | Speed<sup>T4 TensorRT-FP16<br>(FPS)<br> | params<sup>(M)<br> | GFLOPs<br> |
-        | ------------------------------------------------------------------------------------------------ | :-------------------: | :------------: | :-------------------------------------: | :----------------: | :--------: |
-        | [RT-DETR-Large]((https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-l.pt)     | 640                   | 53.0           | 114                                     | 32                 | 110        |
-        | [RT-DETR-Xtra-Large](https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-x.pt) | 640                   | 54.8           | 74                                      | 67                 | 234        |
+    | Model                                                                                            | Size<br>(pixels) | AP~val~ | Speed (FPS)<br>~Nvidia\ T4<br>TensorRT^FP16^~ | Params<br>× 10^6^  | GFLOPs<br> |
+    | ------------------------------------------------------------------------------------------------ | :--------------: | :-----: | :-------------------------------------------: | :----------------: | :--------: |
+    | [RT-DETR-Large](https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-l.pt)      | 640              | 53.0    | 114                                           | 32                 | 110        |
+    | [RT-DETR-Xtra-Large](https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-x.pt) | 640              | 54.8    | 74                                            | 67                 | 234        |
 
 
 ## Citations and Acknowledgements

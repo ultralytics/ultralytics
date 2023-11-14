@@ -25,23 +25,23 @@ MobileSAM performs comparably to the original SAM and retains the same pipeline 
 The following table provides a comparison of ViT-based image encoders:
 
 | Image Encoder | Original SAM | MobileSAM |
-|---------------|--------------|-----------|
-| Parameters    | 611M         | 5M        |
-| Speed         | 452ms        | 8ms       |
+|---------------|:------------:|:---------:|
+| Parameters    | 611 × 10^6^  | 5 × 10^6^ |
+| Speed         | 452   ms     | 8   ms    |
 
 Both the original SAM and MobileSAM utilize the same prompt-guided mask decoder:
 
-| Mask Decoder | Original SAM | MobileSAM |
-|--------------|--------------|-----------|
-| Parameters   | 3.876M       | 3.876M    |
-| Speed        | 4ms          | 4ms       |
+| Mask Decoder | Original SAM  | MobileSAM     |
+|--------------|:-------------:|:-------------:|
+| Parameters   | 3.876 × 10^6^ | 3.876 × 10^6^ |
+| Speed        | 4   ms        | 4   ms        |
 
 Here is the comparison of the whole pipeline:
 
-| Whole Pipeline (Enc+Dec) | Original SAM | MobileSAM |
-|--------------------------|--------------|-----------|
-| Parameters               | 615M         | 9.66M     |
-| Speed                    | 456ms        | 12ms      |
+| Whole Pipeline (Enc+Dec) | Original SAM | MobileSAM    |
+|--------------------------|:------------:|:------------:|
+| Parameters               | 615 × 10^6^  | 9.66 × 10^6^ |
+| Speed                    | 456   ms     | 12   ms      |
 
 The performance of MobileSAM and the original SAM are demonstrated using both a point and a box as prompts.
 

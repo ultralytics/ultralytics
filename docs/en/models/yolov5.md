@@ -30,9 +30,9 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 
 | Mode       | Supported          |
 |------------|:------------------:|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
-| Training   | :heavy_check_mark: |
+| Inference  | :white_check_mark: |
+| Validation | :white_check_mark: |
+| Training   | :white_check_mark: |
 
 ## Performance
 
@@ -40,19 +40,19 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 
     === "Detection"
 
-    | Model                                                                                       | YAML                                                                                                           | size<sup>(pixels)<br> | mAP<sup>val<br>50-95 | Speed<sup>CPU ONNX<br>(ms)<br> | Speed<sup>A100 TensorRT<br>(ms)<br> | params<sup>(M)<br> | FLOPs<sup>(B)<br> |
-    |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|:---------------------:|:--------------------:|:------------------------------:|:-----------------------------------:|:------------------:|:-----------------:|
-    | [yolov5nu.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5nu.pt)   | [yolov5n.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 34.3                 | 73.6                           | 1.06                                | 2.6                | 7.7               |
-    | [yolov5su.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5su.pt)   | [yolov5s.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 43.0                 | 120.7                          | 1.27                                | 9.1                | 24.0              |
-    | [yolov5mu.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5mu.pt)   | [yolov5m.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 49.0                 | 233.9                          | 1.86                                | 25.1               | 64.2              |
-    | [yolov5lu.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5lu.pt)   | [yolov5l.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 52.2                 | 408.4                          | 2.50                                | 53.2               | 135.0             |
-    | [yolov5xu.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5xu.pt)   | [yolov5x.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 53.2                 | 763.2                          | 3.81                                | 97.2               | 246.4             |
-    |                                                                                             |                                                                                                                |                       |                      |                                |                                     |                    |                   |
-    | [yolov5n6u.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5n6u.pt) | [yolov5n6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 42.1                 | 211.0                          | 1.83                                | 4.3                | 7.8               |
-    | [yolov5s6u.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5s6u.pt) | [yolov5s6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 48.6                 | 422.6                          | 2.34                                | 15.3               | 24.6              |
-    | [yolov5m6u.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5m6u.pt) | [yolov5m6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 53.6                 | 810.9                          | 4.36                                | 41.2               | 65.7              |
-    | [yolov5l6u.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5l6u.pt) | [yolov5l6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 55.7                 | 1470.9                         | 5.47                                | 86.1               | 137.4             |
-    | [yolov5x6u.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5x6u.pt) | [yolov5x6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 56.8                 | 2436.5                         | 8.98                                | 155.4              | 250.7             |
+    | Model                  | YAML                            | Size<br>(pixels) | mAP^50-95^<br>box | Speed (ms)<br>ONNX~CPU~ | Speed (ms)<br>A100~TensorRT~ | Params<br>× 10^6^ | FLOPs<br>× 10^9^ |
+    |------------------------|---------------------------------|:----------------:|:-----------------:|:-----------------------:|:----------------------------:|:-----------------:|:-----------------:|
+    | [YOLOv5nu][yolov5nu]   | [YOLOv5n.yaml][yolov5n.yaml]    | 640              | 34.3              | 73.6                    | 1.06                         | 2.6               | 7.7               |
+    | [YOLOv5su][yolov5su]   | [YOLOv5s.yaml][yolov5s.yaml]    | 640              | 43.0              | 120.7                   | 1.27                         | 9.1               | 24.0              |
+    | [YOLOv5mu][yolov5mu]   | [YOLOv5m.yaml][yolov5m.yaml]    | 640              | 49.0              | 233.9                   | 1.86                         | 25.1              | 64.2              |
+    | [YOLOv5lu][yolov5lu]   | [YOLOv5l.yaml][yolov5l.yaml]    | 640              | 52.2              | 408.4                   | 2.50                         | 53.2              | 135.0             |
+    | [YOLOv5xu][yolov5xu]   | [YOLOv5x.yaml][yolov5x.yaml]    | 640              | 53.2              | 763.2                   | 3.81                         | 97.2              | 246.4             |
+    |                        |                                 |                  |                   |                         |                              |                   |                   |
+    | [YOLOv5n6u][yolov5n6u] | [YOLOv5n6.yaml][yolov5n6u.yaml] | 1280             | 42.1              | 211.0                   | 1.83                         | 4.3               | 7.8               |
+    | [YOLOv5s6u][yolov5s6u] | [YOLOv5s6.yaml][yolov5s6u.yaml] | 1280             | 48.6              | 422.6                   | 2.34                         | 15.3              | 24.6              |
+    | [YOLOv5m6u][yolov5m6u] | [YOLOv5m6.yaml][yolov5m6u.yaml] | 1280             | 53.6              | 810.9                   | 4.36                         | 41.2              | 65.7              |
+    | [YOLOv5l6u][yolov5l6u] | [YOLOv5l6.yaml][yolov5l6u.yaml] | 1280             | 55.7              | 1470.9                  | 5.47                         | 86.1              | 137.4             |
+    | [YOLOv5x6u][yolov5x6u] | [YOLOv5x6.yaml][yolov5x6u.yaml] | 1280             | 56.8              | 2436.5                  | 8.98                         | 155.4             | 250.7             |
 
 ## Usage
 
@@ -115,3 +115,24 @@ If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv
         ```
 
 Special thanks to Glenn Jocher and the Ultralytics team for their work on developing and maintaining the YOLOv5 and YOLOv5u models.
+
+[yolov5nu]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5nu.pt
+[yolov5su]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5su.pt
+[yolov5mu]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5mu.pt
+[yolov5lu]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5lu.pt
+[yolov5xu]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5xu.pt
+[yolov5n.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml
+[yolov5s.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml
+[yolov5m.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml
+[yolov5l.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml
+[yolov5x.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml
+[yolov5n6u]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5n6u.pt
+[yolov5s6u]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5s6u.pt
+[yolov5m6u]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5m6u.pt
+[yolov5l6u]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5l6u.pt
+[yolov5x6u]: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5x6u.pt
+[yolov5n6u.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml
+[yolov5s6u.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml
+[yolov5m6u.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml
+[yolov5l6u.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml
+[yolov5x6u.yaml]: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml

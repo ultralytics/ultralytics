@@ -58,13 +58,13 @@ Different delegates are available on Android devices to accelerate model inferen
 
 Here's a table showing the primary vendors, their product lines, popular devices, and supported delegates:
 
-| Vendor                                  | Product Lines                                                                        | Popular Devices                                                                                                                                                                | Delegates Supported      |
-|-----------------------------------------|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| [Qualcomm](https://www.qualcomm.com/)   | [Snapdragon (e.g., 800 series)](https://www.qualcomm.com/snapdragon)                 | [Samsung Galaxy S21](https://www.samsung.com/global/galaxy/galaxy-s21-5g/), [OnePlus 9](https://www.oneplus.com/9), [Google Pixel 6](https://store.google.com/product/pixel_6) | CPU, GPU, Hexagon, NNAPI |
-| [Samsung](https://www.samsung.com/)     | [Exynos (e.g., Exynos 2100)](https://www.samsung.com/semiconductor/minisite/exynos/) | [Samsung Galaxy S21 (Global version)](https://www.samsung.com/global/galaxy/galaxy-s21-5g/)                                                                                    | CPU, GPU, NNAPI          |
-| [MediaTek](https://i.mediatek.com/)     | [Dimensity (e.g., Dimensity 1200)](https://i.mediatek.com/dimensity-1200)            | [Realme GT](https://www.realme.com/global/realme-gt), [Xiaomi Redmi Note](https://www.mi.com/en/phone/redmi/note-list)                                                         | CPU, GPU, NNAPI          |
-| [HiSilicon](https://www.hisilicon.com/) | [Kirin (e.g., Kirin 990)](https://www.hisilicon.com/en/products/Kirin)               | [Huawei P40 Pro](https://consumer.huawei.com/en/phones/p40-pro/), [Huawei Mate 30 Pro](https://consumer.huawei.com/en/phones/mate30-pro/)                                      | CPU, GPU, NNAPI          |
-| [NVIDIA](https://www.nvidia.com/)       | [Tegra (e.g., Tegra X1)](https://developer.nvidia.com/content/tegra-x1)              | [NVIDIA Shield TV](https://www.nvidia.com/en-us/shield/shield-tv/), [Nintendo Switch](https://www.nintendo.com/switch/)                                                        | CPU, GPU, NNAPI          |
+| Vendor                 | Product Lines                                      | Popular Devices                                                                                  | Delegates Supported      |
+|------------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------------|--------------------------|
+| [Qualcomm][qualcomm]   | [Snapdragon (e.g., 800 series)][snapdragon]        | [Samsung Galaxy S21][samsung_galaxy_s215g], [OnePlus 9][oneplus9], [Google Pixel 6][google_pxl6] | CPU, GPU, Hexagon, NNAPI |
+| [Samsung][samsung]     | [Exynos (e.g., Exynos 2100)][exynos]               | [Samsung Galaxy S21 (Global version)][samsung_galaxy_s215g]                                      | CPU, GPU, NNAPI          |
+| [MediaTek][mediatek]   | [Dimensity (e.g., Dimensity 1200)][dimensity_1200] | [Realme GT][realtime_gt], [Xiaomi Redmi Note][redmi_note]                                        | CPU, GPU, NNAPI          |
+| [HiSilicon][hisilicon] | [Kirin (e.g., Kirin 990)][kirin]                   | [Huawei P40 Pro][huawei_p40_pro], [Huawei Mate 30 Pro][huawei_mate30_pro]                        | CPU, GPU, NNAPI          |
+| [NVIDIA][nvidia]       | [Tegra (e.g., Tegra X1)][tegrax1]                  | [NVIDIA Shield TV][shield_tv], {--[Nintendo Switch][nintendo_switch]--}                          | CPU, GPU, NNAPI          |
 
 Please note that the list of devices mentioned is not exhaustive and may vary depending on the specific chipsets and device models. Always test your models on your target devices to ensure compatibility and optimal performance.
 
@@ -87,3 +87,23 @@ To get started with the Ultralytics Android App, follow these steps:
 6. Explore the app's settings to adjust the detection threshold, enable or disable specific object classes, and more.
 
 With the Ultralytics Android App, you now have the power of real-time object detection using YOLO models right at your fingertips. Enjoy exploring the app's features and optimizing its settings to suit your specific use cases.
+
+[qualcomm]:             https://www.qualcomm.com/
+[snapdragon]:           https://www.qualcomm.com/snapdragon
+[samsung_galaxy_s215g]: https://www.samsung.com/global/galaxy/galaxy-s21-5g/
+[oneplus9]:             https://www.oneplus.com/9
+[google_pxl6]:          https://store.google.com/product/pixel_6
+[samsung]:              https://www.samsung.com/
+[exynos]:               https://www.samsung.com/semiconductor/minisite/exynos/
+[mediatek]:             https://i.mediatek.com/
+[dimensity_1200]:       https://i.mediatek.com/dimensity-1200
+[realtime_gt]:          https://www.realme.com/global/realme-gt
+[redmi_note]:           https://www.mi.com/en/phone/redmi/note-list
+[hisilicon]:            https://www.hisilicon.com/
+[kirin]:                https://www.hisilicon.com/en/products/Kirin
+[huawei_p40_pro]:       https://consumer.huawei.com/en/phones/p40-pro/
+[huawei_mate30_pro]:    https://consumer.huawei.com/en/phones/mate30-pro/
+[nvidia]:               https://www.nvidia.com/
+[tegrax1]:              https://developer.nvidia.com/content/tegra-x1
+[shield_tv]:            https://www.nvidia.com/en-us/shield/shield-tv/
+[nintendo_switch]:      https://www.nintendo.com/switch/

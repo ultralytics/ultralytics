@@ -41,15 +41,15 @@ This guide offers you the flexibility to start with either [YOLOv5](https://gith
 
 To assist you in making an informed hardware decision, we've summarized the key hardware specifics of Raspberry Pi 3, 4, and 5 in the table below:
 
-| Feature                    | Raspberry Pi 3                                                                           | Raspberry Pi 4                                                                           | Raspberry Pi 5                                                       |
-|----------------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| **CPU**                    | 1.2GHz Quad-Core ARM Cortex-A53                                                          | 1.5GHz Quad-core 64-bit ARM Cortex-A72                                                   | 2.4GHz Quad-core 64-bit Arm Cortex-A76                               |
-| **RAM**                    | 1GB LPDDR2                                                                               | 2GB, 4GB or 8GB LPDDR4                                                                   | *Details not yet available*                                          |
-| **USB Ports**              | 4 x USB 2.0                                                                              | 2 x USB 2.0, 2 x USB 3.0                                                                 | 2 x USB 3.0, 2 x USB 2.0                                             |
-| **Network**                | Ethernet & Wi-Fi 802.11n                                                                 | Gigabit Ethernet & Wi-Fi 802.11ac                                                        | Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi®        |
-| **Performance**            | Slower, may require lighter YOLO models                                                  | Faster, can run complex YOLO models                                                      | *Details not yet available*                                          |
-| **Power Requirement**      | 2.5A power supply                                                                        | 3.0A USB-C power supply                                                                  | *Details not yet available*                                          |
-| **Official Documentation** | [Link](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md) | [Link](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711/README.md) | [Link](https://www.raspberrypi.com/news/introducing-raspberry-pi-5/) |
+| Feature                    | Raspberry Pi 3                          | Raspberry Pi 4                         | Raspberry Pi 5                                                |
+|----------------------------|-----------------------------------------|----------------------------------------|---------------------------------------------------------------|
+| **CPU**                    | 1.2GHz Quad-Core ARM Cortex-A53         | 1.5GHz Quad-core 64-bit ARM Cortex-A72 | 2.4GHz Quad-core 64-bit Arm Cortex-A76                        |
+| **RAM**                    | 1GB LPDDR2                              | 2GB, 4GB or 8GB LPDDR4                 | 4GB or 8GB LPDDR4X-4267                                       |
+| **USB Ports**              | 4 x USB 2.0                             | 2 x USB 2.0, 2 x USB 3.0               | 2 x USB 3.0, 2 x USB 2.0                                      |
+| **Network**                | Ethernet & Wi-Fi 802.11n                | Gigabit Ethernet & Wi-Fi 802.11ac      | Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi® |
+| **Performance**            | Slower, may require lighter YOLO models | Faster, can run complex YOLO models    | Fastest, can run complex YOLO models                          |
+| **Power Requirement**      | 2.5A power supply                       | 3.0A USB-C power supply                | 5V/5.0A USB-C power supply                                    |
+| **Official Documentation** | [Link][bcm2837]                         | [Link][bcm2711]                        | [Link][rpi5]                                                  |
 
 Please make sure to follow the instructions specific to your Raspberry Pi model to ensure a smooth setup process.
 
@@ -194,3 +194,7 @@ Congratulations on successfully setting up YOLO on your Raspberry Pi! For furthe
 This guide was initially created by Daan Eeltink for Kashmir World Foundation, an organization dedicated to the use of YOLO for the conservation of endangered species. We acknowledge their pioneering work and educational focus in the realm of object detection technologies.
 
 For more information about Kashmir World Foundation's activities, you can visit their [website](https://www.kashmirworldfoundation.org/).
+
+[bcm2837]: https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md
+[bcm2711]: https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711/README.md
+[rpi5]:    https://www.raspberrypi.com/documentation/computers/raspberry-pi-5.html

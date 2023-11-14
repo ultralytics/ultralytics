@@ -79,19 +79,19 @@ The YOLO-NAS models support both inference and validation modes, allowing you to
 
 | Mode       | Supported          |
 |------------|:------------------:|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
+| Inference  | :white_check_mark: |
+| Validation | :white_check_mark: |
 | Training   | :x:                |
 
 # Performance
 
 === "Detection (COCO)"
 
-        | Model                                                                                      | size<sup>(pixels)<br> | mAP<sup>val<br>50 | Speed<sup>T4 FP16<br>(ms)<br> |
-        | ------------------------------------------------------------------------------------------ | :-------------------: | :---------------: | :---------------------------: |
-        | [YOLO-NAS S](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | 640                   | 47.5              | 3.21                          |
-        | [YOLO-NAS M](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | 640                   | 55.6              | 5.85                          |
-        | [YOLO-NAS L](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | 640                   | 52.2              | 7.87                          |
+    | Model                                                                                      | Size<br>(pixels) | mAP^50^<br>box | Speed (FPS)<br>~Nvidia\ T4\ ^FP16^~ |
+    | ------------------------------------------------------------------------------------------ | :--------------: | :------------: | :---------------------------------: |
+    | [YOLO-NAS S](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | 640              | 47.5           | 3.21                                |
+    | [YOLO-NAS M](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | 640              | 55.6           | 5.85                                |
+    | [YOLO-NAS L](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | 640              | 52.2           | 7.87                                |
 
 
 ## Citations and Acknowledgements

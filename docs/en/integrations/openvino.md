@@ -117,28 +117,28 @@ Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
 <img width="800" src="https://user-images.githubusercontent.com/26833433/253741543-62659bf8-1765-4d0b-b71c-8a4f9885506a.jpg">
 </div>
 
-| Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|-------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.3709      | 21.79                  |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.3704      | 23.24                  |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.3704      | 37.22                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.3703      | 3.29                   |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.4471      | 31.89                  |
-| YOLOv8s | TorchScript | ✅      | 42.9      | 0.4472      | 32.71                  |
-| YOLOv8s | ONNX        | ✅      | 42.8      | 0.4472      | 43.42                  |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.4470      | 3.92                   |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.5013      | 50.75                  |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.4999      | 47.90                  |
-| YOLOv8m | ONNX        | ✅      | 99.0      | 0.4999      | 63.16                  |
-| YOLOv8m | OpenVINO    | ✅      | 49.8      | 0.4997      | 7.11                   |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.5293      | 77.45                  |
-| YOLOv8l | TorchScript | ✅      | 167.2     | 0.5268      | 85.71                  |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.5268      | 88.94                  |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.5264      | 9.37                   |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.5404      | 100.09                 |
-| YOLOv8x | TorchScript | ✅      | 260.7     | 0.5371      | 114.64                 |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.5371      | 110.32                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.5367      | 15.02                  |
+| Model   | Format      | Status             | Size (MB) | mAP^50-95^<br>box | Speed (ms)<br>intel~Flex170^FP32^~ |
+|---------|-------------|:------------------:|:---------:|:-----------------:|:----------------------------------:|
+| YOLOv8n | PyTorch     | :white_check_mark: | 6.2       | 0.3709            | 21.79                              |
+| YOLOv8n | TorchScript | :white_check_mark: | 12.4      | 0.3704            | 23.24                              |
+| YOLOv8n | ONNX        | :white_check_mark: | 12.2      | 0.3704            | 37.22                              |
+| YOLOv8n | OpenVINO    | :white_check_mark: | 12.3      | 0.3703            | 3.29                               |
+| YOLOv8s | PyTorch     | :white_check_mark: | 21.5      | 0.4471            | 31.89                              |
+| YOLOv8s | TorchScript | :white_check_mark: | 42.9      | 0.4472            | 32.71                              |
+| YOLOv8s | ONNX        | :white_check_mark: | 42.8      | 0.4472            | 43.42                              |
+| YOLOv8s | OpenVINO    | :white_check_mark: | 42.9      | 0.4470            | 3.92                               |
+| YOLOv8m | PyTorch     | :white_check_mark: | 49.7      | 0.5013            | 50.75                              |
+| YOLOv8m | TorchScript | :white_check_mark: | 99.2      | 0.4999            | 47.90                              |
+| YOLOv8m | ONNX        | :white_check_mark: | 99.0      | 0.4999            | 63.16                              |
+| YOLOv8m | OpenVINO    | :white_check_mark: | 49.8      | 0.4997            | 7.11                               |
+| YOLOv8l | PyTorch     | :white_check_mark: | 83.7      | 0.5293            | 77.45                              |
+| YOLOv8l | TorchScript | :white_check_mark: | 167.2     | 0.5268            | 85.71                              |
+| YOLOv8l | ONNX        | :white_check_mark: | 166.8     | 0.5268            | 88.94                              |
+| YOLOv8l | OpenVINO    | :white_check_mark: | 167.0     | 0.5264            | 9.37                               |
+| YOLOv8x | PyTorch     | :white_check_mark: | 130.5     | 0.5404            | 100.09                             |
+| YOLOv8x | TorchScript | :white_check_mark: | 260.7     | 0.5371            | 114.64                             |
+| YOLOv8x | ONNX        | :white_check_mark: | 260.4     | 0.5371            | 110.32                             |
+| YOLOv8x | OpenVINO    | :white_check_mark: | 260.6     | 0.5367            | 15.02                              |
 
 This table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across four different formats (PyTorch, TorchScript, ONNX, OpenVINO), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
@@ -156,28 +156,28 @@ Benchmarks below run on Intel® Arc 770 GPU at FP32 precision.
 <img width="800" src="https://user-images.githubusercontent.com/26833433/253741545-8530388f-8fd1-44f7-a4ae-f875d59dc282.jpg">
 </div>
 
-| Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|---------------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.3709              | 88.79                  |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.3704              | 102.66                 |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.3704              | 57.98                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.3703              | 8.52                   |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.4471              | 189.83                 |
-| YOLOv8s | TorchScript | ✅      | 42.9      | 0.4472              | 227.58                 |
-| YOLOv8s | ONNX        | ✅      | 42.7      | 0.4472              | 142.03                 |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.4469              | 9.19                   |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.5013              | 411.64                 |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.4999              | 517.12                 |
-| YOLOv8m | ONNX        | ✅      | 98.9      | 0.4999              | 298.68                 |
-| YOLOv8m | OpenVINO    | ✅      | 99.1      | 0.4996              | 12.55                  |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.5293              | 725.73                 |
-| YOLOv8l | TorchScript | ✅      | 167.1     | 0.5268              | 892.83                 |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.5268              | 576.11                 |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.5262              | 17.62                  |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.5404              | 988.92                 |
-| YOLOv8x | TorchScript | ✅      | 260.7     | 0.5371              | 1186.42                |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.5371              | 768.90                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.5367              | 19                     |
+| Model   | Format      | Status             | Size (MB) | mAP^50-95^<br>box | Speed (ms)<br>intel~Arc770^FP32^~ |
+|---------|-------------|:------------------:|:---------:|:-----------------:|:---------------------------------:|
+| YOLOv8n | PyTorch     | :white_check_mark: | 6.2       | 0.3709            | 88.79                             |
+| YOLOv8n | TorchScript | :white_check_mark: | 12.4      | 0.3704            | 102.66                            |
+| YOLOv8n | ONNX        | :white_check_mark: | 12.2      | 0.3704            | 57.98                             |
+| YOLOv8n | OpenVINO    | :white_check_mark: | 12.3      | 0.3703            | 8.52                              |
+| YOLOv8s | PyTorch     | :white_check_mark: | 21.5      | 0.4471            | 189.83                            |
+| YOLOv8s | TorchScript | :white_check_mark: | 42.9      | 0.4472            | 227.58                            |
+| YOLOv8s | ONNX        | :white_check_mark: | 42.7      | 0.4472            | 142.03                            |
+| YOLOv8s | OpenVINO    | :white_check_mark: | 42.9      | 0.4469            | 9.19                              |
+| YOLOv8m | PyTorch     | :white_check_mark: | 49.7      | 0.5013            | 411.64                            |
+| YOLOv8m | TorchScript | :white_check_mark: | 99.2      | 0.4999            | 517.12                            |
+| YOLOv8m | ONNX        | :white_check_mark: | 98.9      | 0.4999            | 298.68                            |
+| YOLOv8m | OpenVINO    | :white_check_mark: | 99.1      | 0.4996            | 12.55                             |
+| YOLOv8l | PyTorch     | :white_check_mark: | 83.7      | 0.5293            | 725.73                            |
+| YOLOv8l | TorchScript | :white_check_mark: | 167.1     | 0.5268            | 892.83                            |
+| YOLOv8l | ONNX        | :white_check_mark: | 166.8     | 0.5268            | 576.11                            |
+| YOLOv8l | OpenVINO    | :white_check_mark: | 167.0     | 0.5262            | 17.62                             |
+| YOLOv8x | PyTorch     | :white_check_mark: | 130.5     | 0.5404            | 988.92                            |
+| YOLOv8x | TorchScript | :white_check_mark: | 260.7     | 0.5371            | 1186.42                           |
+| YOLOv8x | ONNX        | :white_check_mark: | 260.4     | 0.5371            | 768.90                            |
+| YOLOv8x | OpenVINO    | :white_check_mark: | 260.6     | 0.5367            | 19                                |
 
 ### Intel Xeon CPU
 
@@ -191,28 +191,28 @@ Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
 <img width="800" src="https://user-images.githubusercontent.com/26833433/253741546-dcd8e52a-fc38-424f-b87e-c8365b6f28dc.jpg">
 </div>
 
-| Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|---------------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.3709              | 24.36                  |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.3704              | 23.93                  |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.3704              | 39.86                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.3704              | 11.34                  |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.4471              | 33.77                  |
-| YOLOv8s | TorchScript | ✅      | 42.9      | 0.4472              | 34.84                  |
-| YOLOv8s | ONNX        | ✅      | 42.8      | 0.4472              | 43.23                  |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.4471              | 13.86                  |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.5013              | 53.91                  |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.4999              | 53.51                  |
-| YOLOv8m | ONNX        | ✅      | 99.0      | 0.4999              | 64.16                  |
-| YOLOv8m | OpenVINO    | ✅      | 99.1      | 0.4996              | 28.79                  |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.5293              | 75.78                  |
-| YOLOv8l | TorchScript | ✅      | 167.2     | 0.5268              | 79.13                  |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.5268              | 88.45                  |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.5263              | 56.23                  |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.5404              | 96.60                  |
-| YOLOv8x | TorchScript | ✅      | 260.7     | 0.5371              | 114.28                 |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.5371              | 111.02                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.5371              | 83.28                  |
+| Model   | Format      | Status             | Size (MB) | mAP^50-95^<br>box | Speed (ms)<br>intel~Xeon^FP32^~ |
+|---------|-------------|:------------------:|:---------:|:-----------------:|:-------------------------------:|
+| YOLOv8n | PyTorch     | :white_check_mark: | 6.2       | 0.3709            | 24.36                           |
+| YOLOv8n | TorchScript | :white_check_mark: | 12.4      | 0.3704            | 23.93                           |
+| YOLOv8n | ONNX        | :white_check_mark: | 12.2      | 0.3704            | 39.86                           |
+| YOLOv8n | OpenVINO    | :white_check_mark: | 12.3      | 0.3704            | 11.34                           |
+| YOLOv8s | PyTorch     | :white_check_mark: | 21.5      | 0.4471            | 33.77                           |
+| YOLOv8s | TorchScript | :white_check_mark: | 42.9      | 0.4472            | 34.84                           |
+| YOLOv8s | ONNX        | :white_check_mark: | 42.8      | 0.4472            | 43.23                           |
+| YOLOv8s | OpenVINO    | :white_check_mark: | 42.9      | 0.4471            | 13.86                           |
+| YOLOv8m | PyTorch     | :white_check_mark: | 49.7      | 0.5013            | 53.91                           |
+| YOLOv8m | TorchScript | :white_check_mark: | 99.2      | 0.4999            | 53.51                           |
+| YOLOv8m | ONNX        | :white_check_mark: | 99.0      | 0.4999            | 64.16                           |
+| YOLOv8m | OpenVINO    | :white_check_mark: | 99.1      | 0.4996            | 28.79                           |
+| YOLOv8l | PyTorch     | :white_check_mark: | 83.7      | 0.5293            | 75.78                           |
+| YOLOv8l | TorchScript | :white_check_mark: | 167.2     | 0.5268            | 79.13                           |
+| YOLOv8l | ONNX        | :white_check_mark: | 166.8     | 0.5268            | 88.45                           |
+| YOLOv8l | OpenVINO    | :white_check_mark: | 167.0     | 0.5263            | 56.23                           |
+| YOLOv8x | PyTorch     | :white_check_mark: | 130.5     | 0.5404            | 96.60                           |
+| YOLOv8x | TorchScript | :white_check_mark: | 260.7     | 0.5371            | 114.28                          |
+| YOLOv8x | ONNX        | :white_check_mark: | 260.4     | 0.5371            | 111.02                          |
+| YOLOv8x | OpenVINO    | :white_check_mark: | 260.6     | 0.5371            | 83.28                           |
 
 ### Intel Core CPU
 
@@ -224,28 +224,28 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 <img width="800" src="https://user-images.githubusercontent.com/26833433/254559985-727bfa43-93fa-4fec-a417-800f869f3f9e.jpg">
 </div>
 
-| Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|---------------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.4478              | 104.61                 |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.4525              | 112.39                 |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.4525              | 28.02                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.4504              | 23.53                  |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.5885              | 194.83                 |
-| YOLOv8s | TorchScript | ✅      | 43.0      | 0.5962              | 202.01                 |
-| YOLOv8s | ONNX        | ✅      | 42.8      | 0.5962              | 65.74                  |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.5966              | 38.66                  |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.6101              | 355.23                 |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.6120              | 424.78                 |
-| YOLOv8m | ONNX        | ✅      | 99.0      | 0.6120              | 173.39                 |
-| YOLOv8m | OpenVINO    | ✅      | 99.1      | 0.6091              | 69.80                  |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.6591              | 593.00                 |
-| YOLOv8l | TorchScript | ✅      | 167.2     | 0.6580              | 697.54                 |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.6580              | 342.15                 |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.0708              | 117.69                 |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.6651              | 804.65                 |
-| YOLOv8x | TorchScript | ✅      | 260.8     | 0.6650              | 921.46                 |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.6650              | 526.66                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.6619              | 158.73                 |
+| Model   | Format      | Status             | Size (MB) | mAP^50-95^<br>box | Speed (ms)<br>intel~i7^FP32^~ |
+|---------|-------------|:------------------:|:---------:|:-----------------:|:-----------------------------:|
+| YOLOv8n | PyTorch     | :white_check_mark: | 6.2       | 0.4478            | 104.61                        |
+| YOLOv8n | TorchScript | :white_check_mark: | 12.4      | 0.4525            | 112.39                        |
+| YOLOv8n | ONNX        | :white_check_mark: | 12.2      | 0.4525            | 28.02                         |
+| YOLOv8n | OpenVINO    | :white_check_mark: | 12.3      | 0.4504            | 23.53                         |
+| YOLOv8s | PyTorch     | :white_check_mark: | 21.5      | 0.5885            | 194.83                        |
+| YOLOv8s | TorchScript | :white_check_mark: | 43.0      | 0.5962            | 202.01                        |
+| YOLOv8s | ONNX        | :white_check_mark: | 42.8      | 0.5962            | 65.74                         |
+| YOLOv8s | OpenVINO    | :white_check_mark: | 42.9      | 0.5966            | 38.66                         |
+| YOLOv8m | PyTorch     | :white_check_mark: | 49.7      | 0.6101            | 355.23                        |
+| YOLOv8m | TorchScript | :white_check_mark: | 99.2      | 0.6120            | 424.78                        |
+| YOLOv8m | ONNX        | :white_check_mark: | 99.0      | 0.6120            | 173.39                        |
+| YOLOv8m | OpenVINO    | :white_check_mark: | 99.1      | 0.6091            | 69.80                         |
+| YOLOv8l | PyTorch     | :white_check_mark: | 83.7      | 0.6591            | 593.00                        |
+| YOLOv8l | TorchScript | :white_check_mark: | 167.2     | 0.6580            | 697.54                        |
+| YOLOv8l | ONNX        | :white_check_mark: | 166.8     | 0.6580            | 342.15                        |
+| YOLOv8l | OpenVINO    | :white_check_mark: | 167.0     | 0.0708            | 117.69                        |
+| YOLOv8x | PyTorch     | :white_check_mark: | 130.5     | 0.6651            | 804.65                        |
+| YOLOv8x | TorchScript | :white_check_mark: | 260.8     | 0.6650            | 921.46                        |
+| YOLOv8x | ONNX        | :white_check_mark: | 260.4     | 0.6650            | 526.66                        |
+| YOLOv8x | OpenVINO    | :white_check_mark: | 260.6     | 0.6619            | 158.73                        |
 
 ## Reproduce Our Results
 

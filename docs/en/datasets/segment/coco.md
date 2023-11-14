@@ -41,9 +41,9 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 Models pretrained using COCO dataset are available for download to use as starting weights for training or directly for instance segmentation.
 
-| Model   | Task    | Model Performance and Weights                                                                    |
-|---------|:-------:|:------------------------------------------------------------------------------------------------:|
-| YOLOv8  | Segment | [See Performance Table - Segmentation Tab](../../models/yolov8.md#performance) |
+| Model   | Task                  | Model Performance and Weights                                                  |
+|---------|-----------------------|:------------------------------------------------------------------------------:|
+| YOLOv8  | Instance Segmentation | [See Performance Table - Segmentation Tab](../../models/yolov8.md#performance) |
 
 ## Usage
 

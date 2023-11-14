@@ -41,10 +41,10 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 Models pretrained using COCO dataset are available for download to use as starting weights for training or object detection.
 
-| Model   | Task   | Model Performance and Weights                                                                    |
-|---------|:------:|:------------------------------------------------------------------------------------------------:|
-| YOLOv8  | Detect | [See Performance Table - Detection Tab](../../models/yolov8.md#performance) |
-| YOLOv5u | Detect | [See Performance Table - Detection Tab](../../models/yolov5.md#performance) |
+| Model   | Task             | Model Performance and Weights                                               |
+|---------|------------------|:---------------------------------------------------------------------------:|
+| YOLOv8  | Object Detection | [See Performance Table - Detection Tab](../../models/yolov8.md#performance) |
+| YOLOv5u | Object Detection | [See Performance Table - Detection Tab](../../models/yolov5.md#performance) |
 
 ## Usage
 

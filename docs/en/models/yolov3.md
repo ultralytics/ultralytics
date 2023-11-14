@@ -30,11 +30,11 @@ This document presents an overview of three closely related object detection mod
 
 YOLOv3, YOLOv3-Ultralytics, and YOLOv3u all support the following tasks:
 
-| Model Type   | Pre-trained Weights                                                                                                 | Task                  |
-|--------------|---------------------------------------------------------------------------------------------------------------------|:---------------------:|
-| YOLOv3-SPPu  | `yolov3-sppu.pt`                                                                                                    | Object Detection      |
-| YOLOv3-Tinyu | `yolov3-tinyu.pt`                                                                                                   | Object Detection      |
-| YOLOv3u      | `yolov3u.pt`                                                                                                        | Object Detection      |
+| Model Type   | Pre-trained Weights | Task                  |
+|--------------|---------------------|:---------------------:|
+| YOLOv3-SPPu  | `yolov3-sppu.pt`    | Object Detection      |
+| YOLOv3-Tinyu | `yolov3-tinyu.pt`   | Object Detection      |
+| YOLOv3u      | `yolov3u.pt`        | Object Detection      |
 
 ## Supported Modes
 
@@ -42,10 +42,10 @@ Using the Ultralytics library, the following modes are supported.
 
 | Mode       | Supported          |
 |------------|:------------------:|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
-| Training   | :heavy_check_mark: |
-| Export     | :heavy_check_mark: |
+| Inference  | :white_check_mark: |
+| Validation | :white_check_mark: |
+| Training   | :white_check_mark: |
+| Export     | :white_check_mark: |
 
 ## Performance
 
@@ -55,11 +55,11 @@ Below is a comparison of the performance of the three models. The performance is
 
     === "Detection (COCO)"
 
-        | Model                                                                                          | size<sup>(pixels)<br> | mAP<sup>val<br>50-95 | Speed<sup>CPU ONNX<br>(ms)<br> | Speed<sup>A100 TensorRT<br>(ms)<br> | params<sup>(M)<br> | FLOPs<sup>(B)<br> |
-        | ---------------------------------------------------------------------------------------------- | :-------------------: | :------------------: | :----------------------------: | :---------------------------------: | :----------------: | :---------------: |
-        | [YOLOv3-SPPu](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov3-sppu.pt)   | 640                   | 00.0                 | 000.0                          | 0.00                                | 0.00               | 0.00              |
-        | [YOLOv3-Tinyu](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov3-tinyu.pt) | 640                   | 00.0                 | 000.0                          | 0.00                                | 0.00               | 0.00              |
-        | [YOLOv3u](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov3u.pt)           | 640                   | 00.0                 | 000.0                          | 0.00                                | 0.00               | 0.00              |
+        | Model                                                                                          | Size<br>(pixels) | mAP^50-95^<br>box | Speed (ms)<br>ONNX~CPU~ | Speed (ms)<br>A100~TensorRT~ | Params<br>× 10^6^ | FLOPs<br>× 10^9^ |
+        | ---------------------------------------------------------------------------------------------- | :--------------: | :---------------: | :---------------------: | :--------------------------: | :---------------: | :--------------: |
+        | [YOLOv3-SPPu](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov3-sppu.pt)   | 640              | 00.0              | 000.0                   | 0.00                         | 0.00              | 0.00             |
+        | [YOLOv3-Tinyu](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov3-tinyu.pt) | 640              | 00.0              | 000.0                   | 0.00                         | 0.00              | 0.00             |
+        | [YOLOv3u](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov3u.pt)           | 640              | 00.0              | 000.0                   | 0.00                         | 0.00              | 0.00             |
 
 ## Usage
 

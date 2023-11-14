@@ -50,9 +50,9 @@ Typically, datasets come with a YAML (Yet Another Markup Language) file that del
 
 Models pretrained using COCO dataset are available for download to use as starting weights for training or object detection.
 
-| Model   | Task   | Model Performance and Weights                                                                                     |
-|---------|:------:|:-----------------------------------------------------------------------------------------------------------------:|
-| YOLOv8  | Detect | [See Performance Table - Detection (Open Images v7) Tab](../../models/yolov8.md#performance) |
+| Model   | Task             | Model Performance and Weights                                                                |
+|---------|------------------|:--------------------------------------------------------------------------------------------:|
+| YOLOv8  | Object Detection | [See Performance Table - Detection (Open Images v7) Tab](../../models/yolov8.md#performance) |
 
 ## Usage
 

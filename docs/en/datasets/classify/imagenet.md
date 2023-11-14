@@ -31,9 +31,9 @@ The ImageNet dataset is widely used for training and evaluating deep learning mo
 
 Models pretrained using ImageNet dataset are available for download to use as starting weights for training or directly for image classification.
 
-| Model   | Task     | Model Performance and Weights                                                    |
-|---------|:--------:|:--------------------------------------------------------------------------------:|
-| YOLOv8  | Classify | [See Performance Table - Classification Tab](../../models/yolov8.md#performance) |
+| Model   | Task                 | Model Performance and Weights                                                    |
+|---------|----------------------|:--------------------------------------------------------------------------------:|
+| YOLOv8  | Image Classification | [See Performance Table - Classification Tab](../../models/yolov8.md#performance) |
 
 ## Usage
 

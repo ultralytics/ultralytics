@@ -32,10 +32,10 @@ The output from Ultralytics trackers is consistent with standard object detectio
 
 ## Real-world Applications
 
-|                                                     Transportation                                                     |                                                        Retail                                                         |                                                     Aquaculture                                                     |
-|:----------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------:|
-| ![Vehicle Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![People Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Fish Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
-|                                                    Vehicle Tracking                                                    |                                                    People Tracking                                                    |                                                    Fish Tracking                                                    |
+|       Transportation               |          Retail                  | Aquaculture                  |
+|:----------------------------------:|:--------------------------------:|:----------------------------:|
+| ![Vehicle Tracking][vehicle track] | ![People Tracking][people track] | ![Fish Tracking][fish track] |
+| Vehicle Tracking                   | People Tracking                  | Fish Tracking                |
 
 ## Features at a Glance
 
@@ -352,3 +352,7 @@ By contributing to this section, you help expand the scope of tracking solutions
 To initiate your contribution, please refer to our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for comprehensive instructions on submitting a Pull Request (PR) 🛠️. We are excited to see what you bring to the table!
 
 Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
+
+[vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab
+[people track]:  https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
+[fish track]:    https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142

@@ -119,8 +119,8 @@ Validation of the model on a dataset can be done as follows:
 
 | Mode       | Supported          |
 |------------|:------------------:|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
+| Inference  | :white_check_mark: |
+| Validation | :white_check_mark: |
 | Training   | :x:                |
 
 ### FastSAM official Usage

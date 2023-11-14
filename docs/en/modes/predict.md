@@ -25,10 +25,10 @@ In the world of machine learning and computer vision, the process of making sens
 
 ## Real-world Applications
 
-|                                                            Manufacturing                                                            |                                                             Sports                                                              |                                                           Safety                                                            |
-|:-----------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------:|
-| ![Vehicle Spare Parts Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Football Player Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![People Fall Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
-|                                                    Vehicle Spare Parts Detection                                                    |                                                    Football Player Detection                                                    |                                                    People Fall Detection                                                    |
+|                   Manufacturing                   |                        Sports                        |                   Safety                    |
+|:-------------------------------------------------:|:----------------------------------------------------:|:-------------------------------------------:|
+| ![Vehicle Spare Parts Detection][car spare parts] | ![Football Player Detection][football player detect] | ![People Fall Detection][human fall detect] |
+| Vehicle Spare Parts Detection                     |  Football Player Detection                           | People Fall Detection                       |
 
 ## Why Use Ultralytics YOLO for Inference?
 
@@ -96,22 +96,22 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 
     Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
-| Source         | Argument                                   | Type            | Notes                                                                                       |
-|----------------|--------------------------------------------|-----------------|---------------------------------------------------------------------------------------------|
-| image          | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
-| URL            | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |
-| screenshot     | `'screen'`                                 | `str`           | Capture a screenshot.                                                                       |
-| PIL            | `Image.open('im.jpg')`                     | `PIL.Image`     | HWC format with RGB channels.                                                               |
-| OpenCV         | `cv2.imread('im.jpg')`                     | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
-| numpy          | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
-| torch          | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                          |
-| CSV            | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                |
-| video ✅        | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                   |
-| directory ✅    | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
-| glob ✅         | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
-| YouTube ✅      | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL to a YouTube video.                                                                     |
-| stream ✅       | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, TCP, or an IP address.                      |
-| multi-stream ✅ | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
+| Source         | Argument                                   | Type           | Notes                                                                                       |
+|:--------------:|:-------------------------------------------|:---------------|:--------------------------------------------------------------------------------------------|
+| image          | `'image.jpg'`                              | `str|Path`     | Single image file.                                                                          |
+| URL            | `'https://ultralytics.com/images/bus.jpg'` | `str`          | URL to an image.                                                                            |
+| screenshot     | `'screen'`                                 | `str`          | Capture a screenshot.                                                                       |
+| PIL            | `Image.open('im.jpg')`                     | `PIL.Image`    | HWC format with RGB channels.                                                               |
+| OpenCV         | `cv2.imread('im.jpg')`                     | `np.ndarray`   | HWC format with BGR channels `uint8 (0-255)`.                                               |
+| numpy          | `np.zeros([640,1280,3])`                   | `np.ndarray`   | HWC format with BGR channels: `uint8 (0-255)`.                                              |
+| torch          | `torch.zeros(16,3,320,640)`                | `torch.Tensor` | BCHW format with RGB channels: `float32 (0.0-1.0)`.                                         |
+| CSV            | `'sources.csv'`                            | `str|Path`     | CSV file containing paths to images, videos, or directories.                                |
+| video          | `'video.mp4'`                              | `str|Path`     | Video file in formats like MP4, AVI, etc.                                                   |
+| directory      | `'path/'`                                  | `str|Path`     | Path to a directory containing images or videos.                                            |
+| glob           | `'path/*.jpg'`                             | `str`          | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
+| YouTube        | `'https://youtu.be/LNwODJXcvt4'`           | `str`          | URL to a YouTube video.                                                                     |
+| stream         | `'rtsp://example.com/media.mp4'`           | `str`          | URL for streaming protocols such as RTSP, RTMP, TCP, or an IP address.                      |
+| multi-stream   | `'list.streams'`                           | `str|Path`     | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
 
 Below are code examples for using each source type:
 
@@ -428,7 +428,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 | Attribute    | Type                  | Description                                                                              |
 |--------------|-----------------------|------------------------------------------------------------------------------------------|
-| `orig_img`   | `numpy.ndarray`       | The original image as a numpy array.                                                     |
+| `orig_img`   | `np.ndarray`          | The original image as a numpy array.                                                     |
 | `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
 | `boxes`      | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
 | `masks`      | `Masks, optional`     | A Masks object containing the detection masks.                                           |
@@ -451,7 +451,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `to()`          | `Results`       | Return a copy of the Results object with tensors on the specified device and dtype. |
 | `new()`         | `Results`       | Return a new Results object with the same image, path, and names.                   |
 | `keys()`        | `List[str]`     | Return a list of non-empty attribute names.                                         |
-| `plot()`        | `numpy.ndarray` | Plots the detection results. Returns a numpy array of the annotated image.          |
+| `plot()`        | `np.ndarray`    | Plots the detection results. Returns a numpy array of the annotated image.          |
 | `verbose()`     | `str`           | Return log string for each task.                                                    |
 | `save_txt()`    | `None`          | Save predictions into a txt file.                                                   |
 | `save_crop()`   | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
@@ -626,13 +626,13 @@ You can use the `plot()` method of a `Result` objects to visualize predictions. 
     The `plot()` method supports the following arguments:
 
     | Argument     | Type            | Description                                                                    | Default       |
-    |--------------|-----------------|--------------------------------------------------------------------------------|---------------|
+    |--------------|-----------------|--------------------------------------------------------------------------------|:-------------:|
     | `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |
     | `line_width` | `float`         | The line width of the bounding boxes. If None, it is scaled to the image size. | `None`        |
     | `font_size`  | `float`         | The font size of the text. If None, it is scaled to the image size.            | `None`        |
     | `font`       | `str`           | The font to use for the text.                                                  | `'Arial.ttf'` |
     | `pil`        | `bool`          | Whether to return the image as a PIL Image.                                    | `False`       |
-    | `img`        | `numpy.ndarray` | Plot to another image. if not, plot to original image.                         | `None`        |
+    | `img`        | `np.ndarray`    | Plot to another image. if not, plot to original image.                         | `None`        |
     | `im_gpu`     | `torch.Tensor`  | Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting. | `None`        |
     | `kpt_radius` | `int`           | Radius of the drawn keypoints. Default is 5.                                   | `5`           |
     | `kpt_line`   | `bool`          | Whether to draw lines connecting keypoints.                                    | `True`        |
@@ -713,3 +713,7 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
     ```
 
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
+
+[car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
+[football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
+[human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43

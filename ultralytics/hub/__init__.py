@@ -6,6 +6,7 @@ from hub_sdk import HUB_API_ROOT, HUB_WEB_ROOT, HUBClient
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.utils import PREFIX
+from ultralytics.utils import LOGGER, SETTINGS
 
 
 def login(api_key: str = None, save=True) -> bool:

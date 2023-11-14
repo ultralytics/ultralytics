@@ -33,7 +33,7 @@ jobs:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
-          command: lychee --accept 403,429,500,502,999 --exclude-loopback --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' --exclude-path '**/ci.yaml|docs/de/**|docs/es/**|docs/fr/**|docs/ja/**|docs/ko/**|docs/pt/**|docs/ru/**|docs/zh/**' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html'
+          command: lychee --accept 403,429,500,502,999 --exclude-loopback --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' --exclude-path '**/ci.yaml|docs/de/**/*.md|docs/es/**/*.md|docs/fr/**/*.md|docs/ja/**/*.md|docs/ko/**/*.md|docs/pt/**/*.md|docs/ru/**/*.md|docs/zh/**/*.md' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html'
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'

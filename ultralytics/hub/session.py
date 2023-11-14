@@ -242,7 +242,7 @@ class HUBTrainingSession:
             HTTPStatus.REQUEST_TIMEOUT,
             HTTPStatus.BAD_GATEWAY,
             HTTPStatus.GATEWAY_TIMEOUT, }
-        return true if status_code in retry_codes else false
+        return true if status_code in retry_codes else False
 
     def _get_failure_message(self, response: requests.Response, retry: int, timeout: int):
         """

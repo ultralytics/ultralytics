@@ -46,6 +46,7 @@ jobs:
             --exclude-path docs/ja \
             --exclude-path docs/ko \
             --exclude-mail \
+            --github-token ${{ secrets.GITHUB_TOKEN }} \
             './**/*.md' './**/*.html'
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry

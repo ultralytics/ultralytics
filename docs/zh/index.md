@@ -11,6 +11,21 @@ keywords: Ultralytics, YOLOv8, 目标检测, 图像分割, 机器学习, 深度�
     <a href="https://yolovision.ultralytics.com" target="_blank">
     <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
   </p>
+  <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%">
+  <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="3%" alt="Ultralytics LinkedIn"></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%">
+  <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%">
+  <a href="https://youtube.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%">
+  <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%">
+  <a href="https://www.instagram.com/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="Ultralytics Instagram"></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%">
+  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
+  <br>
+  <br>
   <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
   <a href="https://codecov.io/github/ultralytics/ultralytics"><img src="https://codecov.io/github/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY" alt="Ultralytics Code Coverage"></a>
   <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLOv8 Citation"></a>
@@ -27,10 +42,10 @@ keywords: Ultralytics, YOLOv8, 目标检测, 图像分割, 机器学习, 深度�
 
 ## 从哪里开始
 
-- **安装** `ultralytics` 并通过 pip 在几分钟内开始运行 &nbsp; [:material-clock-fast: 开始使用](https://docs.ultralytics.com/quickstart/){ .md-button }
-- **预测** 使用YOLOv8预测新的图像和视频 &nbsp; [:octicons-image-16: 在图像上预测](https://docs.ultralytics.com/predict/){ .md-button }
-- **训练** 在您自己的自定义数据集上训练新的YOLOv8模型 &nbsp; [:fontawesome-solid-brain: 训练模型](https://docs.ultralytics.com/modes/train/){ .md-button }
-- **探索** YOLOv8的任务，如分割、分类、姿态和跟踪 &nbsp; [:material-magnify-expand: 探索任务](https://docs.ultralytics.com/tasks/){ .md-button }
+- **安装** `ultralytics` 并通过 pip 在几分钟内开始运行 &nbsp; [:material-clock-fast: 开始使用](quickstart.md){ .md-button }
+- **预测** 使用YOLOv8预测新的图像和视频 &nbsp; [:octicons-image-16: 在图像上预测](modes/predict.md){ .md-button }
+- **训练** 在您自己的自定义数据集上训练新的YOLOv8模型 &nbsp; [:fontawesome-solid-brain: 训练模型](modes/train.md){ .md-button }
+- **探索** YOLOv8的任务，如分割、分类、姿态和跟踪 &nbsp; [:material-magnify-expand: 探索任务](tasks/index.md){ .md-button }
 
 <p align="center">
   <br>
@@ -66,4 +81,4 @@ Ultralytics提供两种许可选项以适应不同的使用场景：
 
 ---
 
-**注意**：我们正在努力为我们的文档页面提供中文文档，并希望在接下来的几个月内发布。请密切关注我们的更新，并感谢您的耐心等待。
+**注意**：我们正在努力为我们的文档页面提供中文文档，并希望在接下来的几个月内发布。请密切关注我们的更新，并感谢您的耐心等待🙏。

@@ -26,9 +26,10 @@ function checkAutoTheme() {
     }
   }
 }
-// ! No need to run the function when the script loads as by default the theme is determined by the user's preference (if auto theme is enabled)
-// checkAutoTheme();
-// Run the function when the user's preference changes (when the user changes their system theme)
+// Run function when the script loads
+checkAutoTheme();
+
+// Re-run the function when the user's preference changes (when the user changes their system theme)
 window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", checkAutoTheme);
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", checkAutoTheme);
 

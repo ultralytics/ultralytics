@@ -78,7 +78,7 @@ The Triton Model Repository is a storage location where Triton can access and lo
     Path(onnx_file).rename(triton_model_path / '1' / 'model.onnx')
 
     # Create config file
-    (triton_model_path / 'config.pdtxt').touch()
+    (triton_model_path / 'config.pbtxt').touch()
     ```
 
 ## Running Triton Inference Server

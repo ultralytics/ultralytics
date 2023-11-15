@@ -55,7 +55,7 @@ def test_triton():
     # Prepare Triton repo
     (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
     Path(f).rename(triton_model_path / '1' / 'model.onnx')
-    (triton_model_path / 'config.pdtxt').touch()
+    (triton_model_path / 'config.pbtxt').touch()
 
     # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
     tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'  # 6.4 GB

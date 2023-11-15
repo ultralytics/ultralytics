@@ -27,8 +27,8 @@ th, td {
 }
 
 /* dark mode alternating table bg colors */
-[data-md-color-scheme="slate"] .md-typeset__table tr:nth-child(2n) {
-    background-color: hsla(var(--md-hue),25%,25%,1)
+body.md-theme--slate .md-typeset__table tr:nth-child(2n) {
+    background-color: hsla(207, 26%, 17%, 1);
 }
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 

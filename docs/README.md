@@ -2,7 +2,7 @@
 
 Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).
 
-[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)  [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg?branch=gh-pages)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
+[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)  [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
 
 ### Install Ultralytics package
 
@@ -51,6 +51,35 @@ Here is a breakdown of what this command does:
 While the site is being served, you can make changes to the documentation files and see them reflected in the live site immediately. This is useful for testing and debugging your documentation before deploying it to a live server.
 
 To stop the serve command and terminate the local server, you can use the `CTRL+C` keyboard shortcut.
+
+### Building and Serving Multi-Language
+
+For multi-language MkDocs sites use the following additional steps:
+
+1. Add all new language *.md files to git commit: `git add docs/**/*.md -f`
+2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
+
+    ```bash
+    # Remove existing /site directory
+    rm -rf site
+
+    # Loop through all *.yml files in the docs directory
+    mkdocs build -f docs/mkdocs.yml
+    for file in docs/mkdocs_*.yml; do
+      echo "Building MkDocs site with configuration file: $file"
+      mkdocs build -f "$file"
+    done
+    ```
+
+3. Preview in web browser with:
+
+    ```bash
+    cd site
+    python -m http.server
+    open http://localhost:8000  # on macOS
+    ```
+
+Note the above steps are combined into the Ultralytics [build_docs.py](https://github.com/ultralytics/ultralytics/blob/main/docs/build_docs.py) script.
 
 ### Deploying Your Documentation Site
 

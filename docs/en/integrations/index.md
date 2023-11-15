@@ -42,21 +42,21 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:
 
-| Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
-|--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](openvino.md)                                            | `openvino`        | `yolov8n_openvino_model/` | ✅        | `imgsz`, `half`, `int8`                             |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n_saved_model/`    | ✅        | `imgsz`, `keras`, `int8`                            |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n.pb`              | ❌        | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n.tflite`          | ✅        | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
-| [NCNN](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
+| Format                      | `format` Argument | Model                     | Metadata   | Arguments                                           |
+|-----------------------------|-------------------|---------------------------|:----------:|-----------------------------------------------------|
+| [PyTorch][pytorch]          | -                 | `yolov8n.pt`              | ✅         | -                                                   |
+| [TorchScript][torchscript]  | `torchscript`     | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
+| [ONNX][onnx]                | `onnx`            | `yolov8n.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO][openvino]        | `openvino`        | `yolov8n_openvino_model/` | ✅         | `imgsz`, `half`                                     |
+| [TensorRT][tensorrt]        | `engine`          | `yolov8n.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML][coreml]            | `coreml`          | `yolov8n.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel][tf_saved]   | `saved_model`     | `yolov8n_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
+| [TF GraphDef][tf_graph]     | `pb`              | `yolov8n.pb`              | ❌         | `imgsz`                                             |
+| [TF Lite][tf_lite]          | `tflite`          | `yolov8n.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU][tf_edge_tpu]  | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅         | `imgsz`                                             |
+| [TF.js][tf_js]              | `tfjs`            | `yolov8n_web_model/`      | ✅         | `imgsz`                                             |
+| [PaddlePaddle][paddle]      | `paddle`          | `yolov8n_paddle_model/`   | ✅         | `imgsz`                                             |
+| [ncnn][ncnn]                | `ncnn`            | `yolov8n_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
 
 Explore the links to learn more about each integration and how to get the most out of them with Ultralytics.
 
@@ -69,3 +69,17 @@ By writing a guide or tutorial, you can help expand our documentation and provid
 To contribute, please check out our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for instructions on how to submit a Pull Request (PR) 🛠️. We eagerly await your contributions!
 
 Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feature-rich 🙏!
+
+[pytorch]:     https://pytorch.org/
+[torchscript]: https://pytorch.org/docs/stable/jit.html
+[onnx]:        https://onnx.ai/
+[openvino]:    https://docs.openvino.ai/latest/index.html
+[tensorrt]:    https://developer.nvidia.com/tensorrt
+[coreml]:      https://github.com/apple/coremltools
+[tf_saved]:    https://www.tensorflow.org/guide/saved_model
+[tf_graph]:    https://www.tensorflow.org/api_docs/python/tf/Graph
+[tf_lite]:     https://www.tensorflow.org/lite
+[tf_edge_tpu]: https://coral.ai/docs/edgetpu/models-intro/
+[tf_js]:       https://www.tensorflow.org/js
+[paddle]:      https://github.com/PaddlePaddle
+[ncnn]:        https://github.com/Tencent/ncnn

@@ -170,20 +170,35 @@ Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
 Available YOLOv8-pose export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-pose.onnx`. Usage examples are shown for your model after export completes.
 
-| Format                                                             | `format` Argument | Model                          | Metadata | Arguments                                           |
-|--------------------------------------------------------------------|-------------------|--------------------------------|----------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-pose.pt`              | ✅        | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-pose.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-pose.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-pose_openvino_model/` | ✅        | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-pose.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-pose.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-pose_saved_model/`    | ✅        | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-pose.pb`              | ❌        | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-pose.tflite`          | ✅        | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-pose_edgetpu.tflite`  | ✅        | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-pose_web_model/`      | ✅        | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-pose_paddle_model/`   | ✅        | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-pose_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
+| Format                      | `format` Argument | Model                     | Metadata   | Arguments                                           |
+|-----------------------------|-------------------|---------------------------|:----------:|-----------------------------------------------------|
+| [PyTorch][pytorch]          | -                 | `yolov8n.pt`              | ✅         | -                                                   |
+| [TorchScript][torchscript]  | `torchscript`     | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
+| [ONNX][onnx]                | `onnx`            | `yolov8n.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO][openvino]        | `openvino`        | `yolov8n_openvino_model/` | ✅         | `imgsz`, `half`                                     |
+| [TensorRT][tensorrt]        | `engine`          | `yolov8n.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML][coreml]            | `coreml`          | `yolov8n.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel][tf_saved]   | `saved_model`     | `yolov8n_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
+| [TF GraphDef][tf_graph]     | `pb`              | `yolov8n.pb`              | ❌         | `imgsz`                                             |
+| [TF Lite][tf_lite]          | `tflite`          | `yolov8n.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU][tf_edge_tpu]  | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅         | `imgsz`                                             |
+| [TF.js][tf_js]              | `tfjs`            | `yolov8n_web_model/`      | ✅         | `imgsz`                                             |
+| [PaddlePaddle][paddle]      | `paddle`          | `yolov8n_paddle_model/`   | ✅         | `imgsz`                                             |
+| [ncnn][ncnn]                | `ncnn`            | `yolov8n_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.
+
+
+[pytorch]:     https://pytorch.org/
+[torchscript]: https://pytorch.org/docs/stable/jit.html
+[onnx]:        https://onnx.ai/
+[openvino]:    https://docs.openvino.ai/latest/index.html
+[tensorrt]:    https://developer.nvidia.com/tensorrt
+[coreml]:      https://github.com/apple/coremltools
+[tf_saved]:    https://www.tensorflow.org/guide/saved_model
+[tf_graph]:    https://www.tensorflow.org/api_docs/python/tf/Graph
+[tf_lite]:     https://www.tensorflow.org/lite
+[tf_edge_tpu]: https://coral.ai/docs/edgetpu/models-intro/
+[tf_js]:       https://www.tensorflow.org/js
+[paddle]:      https://github.com/PaddlePaddle
+[ncnn]:        https://github.com/Tencent/ncnn

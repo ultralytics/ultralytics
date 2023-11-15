@@ -17,7 +17,7 @@ keywords: Ultralytics, YOLO, ImageNet, dataset, object recognition, deep learnin
 
 ## Dataset Structure
 
-The ImageNet dataset is organized using the WordNet hierarchy. Each node in the hierarchy represents a category, and each category is described by a synset (a collection of synonymous terms). The images in ImageNet are annotated with one or more synsets, providing a rich resource for training models to recognize various objects and their relationships. Reference the [classification dataset page](https://docs.ultralytics.com/datasets/classify/) to review the structure expected by the Ultralytics library.
+The ImageNet dataset is organized using the WordNet hierarchy. Each node in the hierarchy represents a category, and each category is described by a synset (a collection of synonymous terms). The images in ImageNet are annotated with one or more synsets, providing a rich resource for training models to recognize various objects and their relationships. Reference the [classification dataset page](../index.md) to review the structure expected by the Ultralytics library.
 
 ## ImageNet Large Scale Visual Recognition Challenge (ILSVRC)
 

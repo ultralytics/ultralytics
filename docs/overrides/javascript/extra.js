@@ -16,8 +16,18 @@ const applyAutoTheme = () => {
 
 // Function that checks and applies light/dark theme based on the user's preference (if auto theme is enabled)
 function checkAutoTheme() {
-  // Retrieve the palette from local storage
-  const palette = localStorage.getItem("/.__palette");
+  // Array of supported language codes -> each language has its own palette (stored in local storage)
+  const supportedLangCodes = ["en", "zh", "ko", "ja", "ru", "de", "fr", "es", "pt"];
+  // Get the URL path
+  const path = window.location.pathname;
+  // Extract the language code from the URL (assuming it's in the format /xx/...)
+  const langCode = path.split("/")[1];
+  // Check if the extracted language code is in the supported languages
+  const isValidLangCode = supportedLangCodes.includes(langCode);
+  // Construct the local storage key based on the language code if valid, otherwise default to the root key
+  const localStorageKey = isValidLangCode ? `/${langCode}/.__palette` : "/.__palette";
+  // Retrieve the palette from local storage using the constructed key
+  const palette = localStorage.getItem(localStorageKey);
   if (palette) {
     // Check if the palette's index is 0 (auto theme)
     const paletteObj = JSON.parse(palette);
@@ -26,6 +36,7 @@ function checkAutoTheme() {
     }
   }
 }
+
 // Run function when the script loads
 checkAutoTheme();
 

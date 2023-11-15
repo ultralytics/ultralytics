@@ -37,15 +37,14 @@ jobs:
             lychee --accept 403,429,500,502,999 \
             --exclude-loopback \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
-            --exclude-path '**/ci.yaml' \
-            --exclude-path 'docs/zh/**' \
-            --exclude-path 'docs/es/**' \
-            --exclude-path 'docs/ru/**' \
-            --exclude-path 'docs/pt/**' \
-            --exclude-path 'docs/fr/**' \
-            --exclude-path 'docs/de/**' \
-            --exclude-path 'docs/ja/**' \
-            --exclude-path 'docs/ko/**' \
+            --exclude-path docs/zh \
+            --exclude-path docs/es \
+            --exclude-path docs/ru \
+            --exclude-path docs/pt \
+            --exclude-path docs/fr \
+            --exclude-path docs/de \
+            --exclude-path docs/ja \
+            --exclude-path docs/ko \
             --exclude-mail \
             './**/*.md' './**/*.html'
 

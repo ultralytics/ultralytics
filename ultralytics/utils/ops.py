@@ -17,6 +17,16 @@ from ultralytics.utils import LOGGER
 class Profile(contextlib.ContextDecorator):
     """
     YOLOv8 Profile class. Use as a decorator with @Profile() or as a context manager with 'with Profile():'.
+
+    Example:
+        ```python
+        from ultralytics.utils.ops import Profile
+
+        with Profile() as dt:
+            pass  # slow operation here
+
+        print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
+        ```
     """
 
     def __init__(self, t=0.0):
@@ -38,6 +48,10 @@ class Profile(contextlib.ContextDecorator):
         """Stop timing."""
         self.dt = self.time() - self.start  # delta-time
         self.t += self.dt  # accumulate dt
+
+    def __str__(self):
+        """Returns a human-readable string representing the accumulated elapsed time in the profiler."""
+        return f'Elapsed time is {self.t} s'
 
     def time(self):
         """Get current time."""
@@ -290,7 +304,7 @@ def clip_coords(coords, shape):
 
 def scale_image(masks, im0_shape, ratio_pad=None):
     """
-    Takes a mask, and resizes it to the original image size
+    Takes a mask, and resizes it to the original image size.
 
     Args:
         masks (np.ndarray): resized and padded masks/images, [h, w, num]/[h, w, 3].
@@ -310,8 +324,8 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
-    top, left = int(pad[1]), int(pad[0])  # y, x
-    bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
+    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))  # y, x
+    bottom, right = (int(round(im1_shape[0] - pad[1] + 0.1)), int(round(im1_shape[1] - pad[0] + 0.1)))
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
@@ -390,8 +404,8 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
 
 def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     """
-    Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height, normalized) format.
-    x, y, width and height are normalized to image dimensions
+    Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height, normalized) format. x, y,
+    width and height are normalized to image dimensions.
 
     Args:
         x (np.ndarray | torch.Tensor): The input bounding box coordinates in (x1, y1, x2, y2) format.
@@ -432,7 +446,7 @@ def xywh2ltwh(x):
 
 def xyxy2ltwh(x):
     """
-    Convert nx4 bounding boxes from [x1, y1, x2, y2] to [x1, y1, w, h], where xy1=top-left, xy2=bottom-right
+    Convert nx4 bounding boxes from [x1, y1, x2, y2] to [x1, y1, w, h], where xy1=top-left, xy2=bottom-right.
 
     Args:
         x (np.ndarray | torch.Tensor): The input tensor with the bounding boxes coordinates in the xyxy format
@@ -448,7 +462,7 @@ def xyxy2ltwh(x):
 
 def ltwh2xywh(x):
     """
-    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
+    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center.
 
     Args:
         x (torch.Tensor): the input tensor
@@ -531,7 +545,7 @@ def xywhr2xyxyxyxy(center):
 
 def ltwh2xyxy(x):
     """
-    It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right.
 
     Args:
         x (np.ndarray | torch.Tensor): the input image
@@ -603,8 +617,8 @@ def crop_mask(masks, boxes):
 
 def process_mask_upsample(protos, masks_in, bboxes, shape):
     """
-    Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
-    quality but is slower.
+    Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher quality
+    but is slower.
 
     Args:
         protos (torch.Tensor): [mask_dim, mask_h, mask_w]
@@ -690,8 +704,8 @@ def scale_masks(masks, shape, padding=True):
     if padding:
         pad[0] /= 2
         pad[1] /= 2
-    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
-    bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
+    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
+    bottom, right = (int(round(mh - pad[1] + 0.1)), int(round(mw - pad[0] + 0.1)))
     masks = masks[..., top:bottom, left:right]
 
     masks = F.interpolate(masks, shape, mode='bilinear', align_corners=False)  # NCHW
@@ -700,7 +714,7 @@ def scale_masks(masks, shape, padding=True):
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False, padding=True):
     """
-    Rescale segment coordinates (xy) from img1_shape to img0_shape
+    Rescale segment coordinates (xy) from img1_shape to img0_shape.
 
     Args:
         img1_shape (tuple): The shape of the image that the coords are from.
@@ -756,6 +770,19 @@ def masks2segments(masks, strategy='largest'):
             c = np.zeros((0, 2))  # no segments found
         segments.append(c.astype('float32'))
     return segments
+
+
+def convert_torch2numpy_batch(batch: torch.Tensor) -> np.ndarray:
+    """
+    Convert a batch of FP32 torch tensors (0.0-1.0) to a NumPy uint8 array (0-255), changing from BCHW to BHWC layout.
+
+    Args:
+        batch (torch.Tensor): Input tensor batch of shape (Batch, Channels, Height, Width) and dtype torch.float32.
+
+    Returns:
+        (np.ndarray): Output NumPy array batch of shape (Batch, Height, Width, Channels) and dtype uint8.
+    """
+    return (batch.permute(0, 2, 3, 1).contiguous() * 255).clamp(0, 255).to(torch.uint8).cpu().numpy()
 
 
 def clean_str(s):

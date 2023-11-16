@@ -14,7 +14,7 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
     Select the positive anchor center in gt.
 
     Args:
-        xy_centers (Tensor): shape(h*w, 4)
+        xy_centers (Tensor): shape(h*w, 2)
         gt_bboxes (Tensor): shape(b, n_boxes, 4)
 
     Returns:
@@ -61,8 +61,8 @@ class TaskAlignedAssigner(nn.Module):
     """
     A task-aligned assigner for object detection.
 
-    This class assigns ground-truth (gt) objects to anchors based on the task-aligned metric,
-    which combines both classification and localization information.
+    This class assigns ground-truth (gt) objects to anchors based on the task-aligned metric, which combines both
+    classification and localization information.
 
     Attributes:
         topk (int): The number of top candidates to consider.
@@ -85,8 +85,8 @@ class TaskAlignedAssigner(nn.Module):
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
         """
-        Compute the task-aligned assignment.
-        Reference https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
+        Compute the task-aligned assignment. Reference code is available at
+        https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py.
 
         Args:
             pd_scores (Tensor): shape(bs, num_total_anchors, num_classes)
@@ -122,8 +122,8 @@ class TaskAlignedAssigner(nn.Module):
 
         # Normalize
         align_metric *= mask_pos
-        pos_align_metrics = align_metric.amax(axis=-1, keepdim=True)  # b, max_num_obj
-        pos_overlaps = (overlaps * mask_pos).amax(axis=-1, keepdim=True)  # b, max_num_obj
+        pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
+        pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
         norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
 
@@ -193,7 +193,7 @@ class TaskAlignedAssigner(nn.Module):
             # Expand topk_idxs for each value of k and add 1 at the specified positions
             count_tensor.scatter_add_(-1, topk_idxs[:, :, k:k + 1], ones)
         # count_tensor.scatter_add_(-1, topk_idxs, torch.ones_like(topk_idxs, dtype=torch.int8, device=topk_idxs.device))
-        # filter invalid bboxes
+        # Filter invalid bboxes
         count_tensor.masked_fill_(count_tensor > 1, 0)
 
         return count_tensor.to(metrics.dtype)
@@ -228,7 +228,7 @@ class TaskAlignedAssigner(nn.Module):
         target_gt_idx = target_gt_idx + batch_ind * self.n_max_boxes  # (b, h*w)
         target_labels = gt_labels.long().flatten()[target_gt_idx]  # (b, h*w)
 
-        # Assigned target boxes, (b, max_num_obj, 4) -> (b, h*w)
+        # Assigned target boxes, (b, max_num_obj, 4) -> (b, h*w, 4)
         target_bboxes = gt_bboxes.view(-1, 4)[target_gt_idx]
 
         # Assigned target scores

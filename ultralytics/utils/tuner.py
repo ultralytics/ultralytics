@@ -1,7 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.cfg import TASK2DATA, TASK2METRIC
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
+import subprocess
+
+from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_save_dir
+from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 
 
 def run_ray_tune(model,
@@ -24,13 +26,26 @@ def run_ray_tune(model,
     Returns:
         (dict): A dictionary containing the results of the hyperparameter search.
 
-    Raises:
-        ModuleNotFoundError: If Ray Tune is not installed.
+    Example:
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLOv8n model
+        model = YOLO('yolov8n.pt')
+
+        # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
+        result_grid = model.tune(data='coco8.yaml', use_ray=True)
+        ```
     """
+
+    LOGGER.info('💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune')
     if train_args is None:
         train_args = {}
 
     try:
+        subprocess.run('pip install ray[tune]'.split(), check=True)
+
+        import ray
         from ray import tune
         from ray.air import RunConfig
         from ray.air.integrations.wandb import WandbLoggerCallback
@@ -69,6 +84,10 @@ def run_ray_tune(model,
         'mixup': tune.uniform(0.0, 1.0),  # image mixup (probability)
         'copy_paste': tune.uniform(0.0, 1.0)}  # segment copy-paste (probability)
 
+    # Put the model in ray store
+    task = model.task
+    model_in_store = ray.put(model)
+
     def _tune(config):
         """
         Trains the YOLO model with the specified hyperparameters and additional arguments.
@@ -79,9 +98,11 @@ def run_ray_tune(model,
         Returns:
             None.
         """
-        model._reset_callbacks()
+        model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
+        model_to_train.reset_callbacks()
         config.update(train_args)
-        model.train(**config)
+        results = model_to_train.train(**config)
+        return results.results_dict
 
     # Get search space
     if not space:
@@ -89,7 +110,7 @@ def run_ray_tune(model,
         LOGGER.warning('WARNING ⚠️ search space not provided, using default search space.')
 
     # Get dataset
-    data = train_args.get('data', TASK2DATA[model.task])
+    data = train_args.get('data', TASK2DATA[task])
     space['data'] = data
     if 'data' not in train_args:
         LOGGER.warning(f'WARNING ⚠️ data not provided, using default "data={data}".')
@@ -99,7 +120,7 @@ def run_ray_tune(model,
 
     # Define the ASHA scheduler for hyperparameter search
     asha_scheduler = ASHAScheduler(time_attr='epoch',
-                                   metric=TASK2METRIC[model.task],
+                                   metric=TASK2METRIC[task],
                                    mode='max',
                                    max_t=train_args.get('epochs') or DEFAULT_CFG_DICT['epochs'] or 100,
                                    grace_period=grace_period,
@@ -109,10 +130,12 @@ def run_ray_tune(model,
     tuner_callbacks = [WandbLoggerCallback(project='YOLOv8-tune')] if wandb else []
 
     # Create the Ray Tune hyperparameter search tuner
+    tune_dir = get_save_dir(DEFAULT_CFG, name='tune').resolve()  # must be absolute dir
+    tune_dir.mkdir(parents=True, exist_ok=True)
     tuner = tune.Tuner(trainable_with_resources,
                        param_space=space,
                        tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
-                       run_config=RunConfig(callbacks=tuner_callbacks, storage_path='./runs/tune'))
+                       run_config=RunConfig(callbacks=tuner_callbacks, storage_path=tune_dir))
 
     # Run the hyperparameter search
     tuner.fit()

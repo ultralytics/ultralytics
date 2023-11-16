@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import cv2
-import numpy as np
 import torch
 
 from ultralytics.data import YOLODataset
@@ -14,37 +12,22 @@ from ultralytics.utils import colorstr, ops
 __all__ = 'RTDETRValidator',  # tuple or list
 
 
-# TODO: Temporarily RT-DETR does not need padding.
 class RTDETRDataset(YOLODataset):
+    """
+    Real-Time DEtection and TRacking (RT-DETR) dataset class extending the base YOLODataset class.
+
+    This specialized dataset class is designed for use with the RT-DETR object detection model and is optimized for
+    real-time detection and tracking tasks.
+    """
 
     def __init__(self, *args, data=None, **kwargs):
+        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class."""
         super().__init__(*args, data=data, use_segments=False, use_keypoints=False, **kwargs)
 
-    # NOTE: add stretch version load_image for rtdetr mosaic
-    def load_image(self, i):
+    # NOTE: add stretch version load_image for RTDETR mosaic
+    def load_image(self, i, rect_mode=False):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
-        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
-        if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
-                im = np.load(fn)
-            else:  # read image
-                im = cv2.imread(f)  # BGR
-                if im is None:
-                    raise FileNotFoundError(f'Image Not Found {f}')
-            h0, w0 = im.shape[:2]  # orig hw
-            im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
-
-            # Add to buffer if training with augmentations
-            if self.augment:
-                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
-                self.buffer.append(i)
-                if len(self.buffer) >= self.max_buffer_length:
-                    j = self.buffer.pop(0)
-                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-
-            return im, (h0, w0), im.shape[:2]
-
-        return self.ims[i], self.im_hw0[i], self.im_hw[i]
+        return super().load_image(i=i, rect_mode=rect_mode)
 
     def build_transforms(self, hyp=None):
         """Temporary, only for evaluation."""
@@ -68,7 +51,11 @@ class RTDETRDataset(YOLODataset):
 
 class RTDETRValidator(DetectionValidator):
     """
-    A class extending the DetectionValidator class for validation based on an RT-DETR detection model.
+    RTDETRValidator extends the DetectionValidator class to provide validation capabilities specifically tailored for
+    the RT-DETR (Real-Time DETR) object detection model.
+
+    The class allows building of an RTDETR-specific dataset for validation, applies Non-maximum suppression for
+    post-processing, and updates evaluation metrics accordingly.
 
     Example:
         ```python
@@ -78,6 +65,9 @@ class RTDETRValidator(DetectionValidator):
         validator = RTDETRValidator(args=args)
         validator()
         ```
+
+    Note:
+        For further details on the attributes and methods, refer to the parent DetectionValidator class.
     """
 
     def build_dataset(self, img_path, mode='val', batch=None):
@@ -109,10 +99,10 @@ class RTDETRValidator(DetectionValidator):
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1)  # (300, )
-            # Do not need threshold for evaluation as only got 300 boxes here.
+            # Do not need threshold for evaluation as only got 300 boxes here
             # idx = score > self.args.conf
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
-            # sort by confidence to correctly get internal metrics.
+            # Sort by confidence to correctly get internal metrics
             pred = pred[score.argsort(descending=True)]
             outputs[i] = pred  # [idx]
 

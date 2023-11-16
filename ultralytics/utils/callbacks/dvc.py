@@ -1,40 +1,31 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import os
-import re
-from pathlib import Path
-
-import pkg_resources as pkg
-
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
-from ultralytics.utils.torch_utils import model_info_for_loggers
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, checks
 
 try:
-    from importlib.metadata import version
-
-    import dvclive
-
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS['dvc'] is True  # verify integration is enabled
+    import dvclive
+    assert checks.check_version('dvclive', '2.11.0', verbose=True)
 
-    ver = version('dvclive')
-    if pkg.parse_version(ver) < pkg.parse_version('2.11.0'):
-        LOGGER.debug(f'DVCLive is detected but version {ver} is incompatible (>=2.11 required).')
-        dvclive = None  # noqa: F811
+    import os
+    import re
+    from pathlib import Path
+
+    # DVCLive logger instance
+    live = None
+    _processed_plots = {}
+
+    # `on_fit_epoch_end` is called on final validation (probably need to be fixed) for now this is the way we
+    # distinguish final evaluation of the best model vs last epoch validation
+    _training_epoch = False
+
 except (ImportError, AssertionError, TypeError):
     dvclive = None
 
-# DVCLive logger instance
-live = None
-_processed_plots = {}
-
-# `on_fit_epoch_end` is called on final validation (probably need to be fixed)
-# for now this is the way we distinguish final evaluation of the best model vs
-# last epoch validation
-_training_epoch = False
-
 
 def _log_images(path, prefix=''):
+    """Logs images at specified path with an optional prefix using DVCLive."""
     if live:
         name = path.name
 
@@ -48,6 +39,7 @@ def _log_images(path, prefix=''):
 
 
 def _log_plots(plots, prefix=''):
+    """Logs plot images for training progress if they have not been previously processed."""
     for name, params in plots.items():
         timestamp = params['timestamp']
         if _processed_plots.get(name) != timestamp:
@@ -56,6 +48,7 @@ def _log_plots(plots, prefix=''):
 
 
 def _log_confusion_matrix(validator):
+    """Logs the confusion matrix for the given validator using DVCLive."""
     targets = []
     preds = []
     matrix = validator.confusion_matrix.matrix
@@ -72,31 +65,34 @@ def _log_confusion_matrix(validator):
 
 
 def on_pretrain_routine_start(trainer):
+    """Initializes DVCLive logger for training metadata during pre-training routine."""
     try:
         global live
         live = dvclive.Live(save_dvc_exp=True, cache_images=True)
-        LOGGER.info(
-            f'DVCLive is detected and auto logging is enabled (can be disabled in the {SETTINGS.file} with `dvc: false`).'
-        )
+        LOGGER.info("DVCLive is detected and auto logging is enabled (run 'yolo settings dvc=False' to disable).")
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ DVCLive installed but not initialized correctly, not logging this run. {e}')
 
 
 def on_pretrain_routine_end(trainer):
+    """Logs plots related to the training process at the end of the pretraining routine."""
     _log_plots(trainer.plots, 'train')
 
 
 def on_train_start(trainer):
+    """Logs the training parameters if DVCLive logging is active."""
     if live:
         live.log_params(trainer.args)
 
 
 def on_train_epoch_start(trainer):
+    """Sets the global variable _training_epoch value to True at the start of training each epoch."""
     global _training_epoch
     _training_epoch = True
 
 
 def on_fit_epoch_end(trainer):
+    """Logs training metrics and model info, and advances to next step on the end of each fit epoch."""
     global _training_epoch
     if live and _training_epoch:
         all_metrics = {**trainer.label_loss_items(trainer.tloss, prefix='train'), **trainer.metrics, **trainer.lr}
@@ -104,6 +100,7 @@ def on_fit_epoch_end(trainer):
             live.log_metric(metric, value)
 
         if trainer.epoch == 0:
+            from ultralytics.utils.torch_utils import model_info_for_loggers
             for metric, value in model_info_for_loggers(trainer).items():
                 live.log_metric(metric, value, plot=False)
 
@@ -115,6 +112,7 @@ def on_fit_epoch_end(trainer):
 
 
 def on_train_end(trainer):
+    """Logs the best metrics, plots, and confusion matrix at the end of training if DVCLive is active."""
     if live:
         # At the end log the best metrics. It runs validator on the best model internally.
         all_metrics = {**trainer.label_loss_items(trainer.tloss, prefix='train'), **trainer.metrics, **trainer.lr}

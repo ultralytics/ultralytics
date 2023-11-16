@@ -2,22 +2,21 @@
 
 import os
 import contextlib
-import re
 import shutil
 import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, SETTINGS, SETTINGS_YAML,
-                               IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
-                               yaml_print)
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, ROOT, RUNS_DIR,
+                               SETTINGS, SETTINGS_YAML, TESTS_RUNNING, IterableSimpleNamespace, __version__, checks,
+                               colorstr, deprecation_warn, yaml_load, yaml_print)
 
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
 TASKS = 'detect', 'segment', 'classify', 'pose'
-TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet100', 'pose': 'coco8-pose.yaml'}
+TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet10', 'pose': 'coco8-pose.yaml'}
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
@@ -44,7 +43,7 @@ CLI_HELP_MSG = \
         yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
+        yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
     3. Val a pretrained detection model at batch-size 1 and image size 640:
         yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
@@ -149,8 +148,23 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
+def get_save_dir(args, name=None):
+    """Return save_dir as created from train/val/predict arguments."""
+
+    if getattr(args, 'save_dir', None):
+        save_dir = args.save_dir
+    else:
+        from ultralytics.utils.files import increment_path
+
+        project = args.project or (ROOT.parent / 'tests/tmp/runs' if TESTS_RUNNING else RUNS_DIR) / args.task
+        name = name or args.name or f'{args.mode}'
+        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in (-1, 0) else True)
+
+    return Path(save_dir)
+
+
 def _handle_deprecation(custom):
-    """Hardcoded function to handle deprecated config keys"""
+    """Hardcoded function to handle deprecated config keys."""
 
     for key in custom.copy().keys():
         if key == 'hide_labels':
@@ -168,12 +182,13 @@ def _handle_deprecation(custom):
 
 def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
-    This function checks for any mismatched keys between a custom configuration list and a base configuration list.
-    If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
+    This function checks for any mismatched keys between a custom configuration list and a base configuration list. If
+    any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
 
     Args:
         custom (dict): a dictionary of custom configuration options
         base (dict): a dictionary of base configuration options
+        e (Error, optional): An optional error that is passed by the calling function.
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
@@ -192,9 +207,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' args in a list of strings.
-    The function considers cases where the first argument ends with '=' or the second starts with '=',
-    as well as when the middle one is an equals sign.
+    Merges arguments around isolated '=' args in a list of strings. The function considers cases where the first
+    argument ends with '=' or the second starts with '=', as well as when the middle one is an equals sign.
 
     Args:
         args (List[str]): A list of strings where each element is an argument.
@@ -278,19 +292,20 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""
-    re.sub(r' *= *', '=', pair)  # remove spaces around equals sign
     k, v = pair.split('=', 1)  # split on first '=' sign
+    k, v = k.strip(), v.strip()  # remove spaces
     assert v, f"missing '{k}' value"
     return k, smart_value(v)
 
 
 def smart_value(v):
     """Convert a string to an underlying type such as int, float, bool, etc."""
-    if v.lower() == 'none':
+    v_lower = v.lower()
+    if v_lower == 'none':
         return None
-    elif v.lower() == 'true':
+    elif v_lower == 'true':
         return True
-    elif v.lower() == 'false':
+    elif v_lower == 'false':
         return False
     else:
         with contextlib.suppress(Exception):
@@ -320,7 +335,7 @@ def entrypoint(debug=''):
 
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
-        'checks': checks.check_yolo,
+        'checks': checks.collect_system_info,
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: handle_yolo_settings(args[1:]),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
@@ -330,7 +345,7 @@ def entrypoint(debug=''):
         'copy-cfg': copy_default_cfg}
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
-    # Define common mis-uses of special commands, i.e. -h, -help, --help
+    # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
     special.update({k[:-1]: v for k, v in special.items() if len(k) > 1 and k.endswith('s')})  # singular
     special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}
@@ -346,7 +361,7 @@ def entrypoint(debug=''):
         if '=' in a:
             try:
                 k, v = parse_key_value_pair(a)
-                if k == 'cfg':  # custom.yaml passed
+                if k == 'cfg' and v is not None:  # custom.yaml passed
                     LOGGER.info(f'Overriding {DEFAULT_CFG_PATH} with {v}')
                     overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != 'cfg'}
                 else:
@@ -394,13 +409,14 @@ def entrypoint(debug=''):
         model = 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     overrides['model'] = model
-    if 'rtdetr' in model.lower():  # guess architecture
+    stem = Path(model).stem.lower()
+    if 'rtdetr' in stem:  # guess architecture
         from ultralytics import RTDETR
         model = RTDETR(model)  # no task argument
-    elif 'fastsam' in model.lower():
+    elif 'fastsam' in stem:
         from ultralytics import FastSAM
         model = FastSAM(model)
-    elif 'sam' in model.lower():
+    elif 'sam' in stem:
         from ultralytics import SAM
         model = SAM(model)
     else:
@@ -430,8 +446,10 @@ def entrypoint(debug=''):
             LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    # getattr(model, mode)(**vars(get_cfg(overrides=overrides)))  # default args using default.yaml
     getattr(model, mode)(**overrides)  # default args from model
+
+    # Show help
+    LOGGER.info(f'💡 Learn more at https://docs.ultralytics.com/modes/{mode}')
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

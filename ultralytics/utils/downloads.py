@@ -11,14 +11,13 @@ from urllib import parse, request
 
 import requests
 import torch
-from tqdm import tqdm
 
-from ultralytics.utils import LOGGER, TQDM_BAR_FORMAT, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = 'ultralytics/assets'
-GITHUB_ASSETS_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
-                      [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
+GITHUB_ASSETS_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '-cls', '-seg', '-pose')] + \
+                      [f'yolov5{k}{resolution}u.pt' for k in 'nsmlx' for resolution in ('', '6')] + \
                       [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] + \
                       [f'yolo_nas_{k}.pt' for k in 'sml'] + \
                       [f'sam_{k}.pt' for k in 'bl'] + \
@@ -70,8 +69,8 @@ def delete_dsstore(path, files_to_delete=('.DS_Store', '__MACOSX')):
 
 def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), progress=True):
     """
-    Zips the contents of a directory, excluding files containing strings in the exclude list.
-    The resulting zip file is named after the directory and placed alongside it.
+    Zips the contents of a directory, excluding files containing strings in the exclude list. The resulting zip file is
+    named after the directory and placed alongside it.
 
     Args:
         directory (str | Path): The path to the directory to be zipped.
@@ -101,11 +100,7 @@ def zip_directory(directory, compress=True, exclude=('.DS_Store', '__MACOSX'), p
     zip_file = directory.with_suffix('.zip')
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, 'w', compression) as f:
-        for file in tqdm(files_to_zip,
-                         desc=f'Zipping {directory} to {zip_file}...',
-                         unit='file',
-                         disable=not progress,
-                         bar_format=TQDM_BAR_FORMAT):
+        for file in TQDM(files_to_zip, desc=f'Zipping {directory} to {zip_file}...', unit='file', disable=not progress):
             f.write(file, file.relative_to(directory))
 
     return zip_file  # return path to zip file
@@ -160,15 +155,15 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         # Check if destination directory already exists and contains files
         if path.exists() and any(path.iterdir()) and not exist_ok:
             # If it exists and is not empty, return the path without unzipping
-            LOGGER.info(f'Skipping {file} unzip (already unzipped)')
+            LOGGER.warning(f'WARNING ⚠️ Skipping {file} unzip as destination directory {path} is not empty.')
             return path
 
-        for f in tqdm(files,
-                      desc=f'Unzipping {file} to {Path(path).resolve()}...',
-                      unit='file',
-                      disable=not progress,
-                      bar_format=TQDM_BAR_FORMAT):
-            zipObj.extract(f, path=extract_path)
+        for f in TQDM(files, desc=f'Unzipping {file} to {Path(path).resolve()}...', unit='file', disable=not progress):
+            # Ensure the file is within the extract_path to avoid path traversal security vulnerability
+            if '..' in Path(f).parts:
+                LOGGER.warning(f'Potentially insecure file path: {f}, skipping extraction.')
+                continue
+            zipObj.extract(f, extract_path)
 
     return path  # return unzip dir
 
@@ -185,22 +180,26 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    with contextlib.suppress(Exception):
-        gib = 1 << 30  # bytes per GiB
-        data = int(requests.head(url).headers['Content-Length']) / gib  # file size (GB)
-        total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
-        if data * sf < free:
-            return True  # sufficient space
+    try:
+        r = requests.head(url)  # response
+        assert r.status_code < 400, f'URL error for {url}: {r.status_code} {r.reason}'  # check response
+    except Exception:
+        return True  # requests issue, default to True
 
-        # Insufficient space
-        text = (f'WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
-                f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
-        if hard:
-            raise MemoryError(text)
-        LOGGER.warning(text)
-        return False
+    # Check file size
+    gib = 1 << 30  # bytes per GiB
+    data = int(r.headers.get('Content-Length', 0)) / gib  # file size (GB)
+    total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
+    if data * sf < free:
+        return True  # sufficient space
 
-    return True
+    # Insufficient space
+    text = (f'WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
+            f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
+    if hard:
+        raise MemoryError(text)
+    LOGGER.warning(text)
+    return False
 
 
 def get_google_drive_file_info(link):
@@ -267,18 +266,25 @@ def safe_download(url,
         min_bytes (float, optional): The minimum number of bytes that the downloaded file should have, to be considered
             a successful download. Default: 1E0.
         progress (bool, optional): Whether to display a progress bar during the download. Default: True.
+
+    Example:
+        ```python
+        from ultralytics.utils.downloads import safe_download
+
+        link = "https://ultralytics.com/assets/bus.jpg"
+        path = safe_download(link)
+        ```
     """
 
     # Check if the URL is a Google Drive link
-    gdrive = 'drive.google.com' in url
+    gdrive = url.startswith('https://drive.google.com/')
     if gdrive:
         url, file = get_google_drive_file_info(url)
 
-    f = dir / (file if gdrive else url2file(url)) if dir else Path(file)  # URL converted to filename
+    f = Path(dir or '.') / (file or url2file(url))  # URL converted to filename
     if '://' not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
-        assert dir or file, 'dir or file required for download'
         desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
@@ -294,13 +300,12 @@ def safe_download(url,
                     if method == 'torch':
                         torch.hub.download_url_to_file(url, f, progress=progress)
                     else:
-                        with request.urlopen(url) as response, tqdm(total=int(response.getheader('Content-Length', 0)),
+                        with request.urlopen(url) as response, TQDM(total=int(response.getheader('Content-Length', 0)),
                                                                     desc=desc,
                                                                     disable=not progress,
                                                                     unit='B',
                                                                     unit_scale=True,
-                                                                    unit_divisor=1024,
-                                                                    bar_format=TQDM_BAR_FORMAT) as pbar:
+                                                                    unit_divisor=1024) as pbar:
                             with open(f, 'wb') as f_opened:
                                 for data in response:
                                     f_opened.write(data)
@@ -347,7 +352,11 @@ def get_github_assets(repo='ultralytics/assets', version='latest', retry=False):
 
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
-    """Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc."""
+    """
+    Attempt file download from GitHub release assets if not found locally.
+
+    release = 'latest', 'v6.2', etc.
+    """
     from ultralytics.utils import SETTINGS  # scoped for circular import
 
     # YOLOv3/5u updates

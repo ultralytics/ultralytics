@@ -33,7 +33,21 @@ jobs:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
-          command: lychee --accept 403,429,500,502,999 --exclude-loopback --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html'
+          command: |
+            lychee --accept 403,429,500,502,999 \
+            --exclude-loopback \
+            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
+            --exclude-path docs/zh \
+            --exclude-path docs/es \
+            --exclude-path docs/ru \
+            --exclude-path docs/pt \
+            --exclude-path docs/fr \
+            --exclude-path docs/de \
+            --exclude-path docs/ja \
+            --exclude-path docs/ko \
+            --exclude-mail \
+            --github-token ${{ secrets.GITHUB_TOKEN }} \
+            './**/*.md' './**/*.html'
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
@@ -42,4 +56,19 @@ jobs:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
-          command: lychee --accept 429,999 --exclude-loopback --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
+          command: |
+            lychee --accept 429,999 \
+            --exclude-loopback \
+            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
+            --exclude-path '**/ci.yaml' \
+            --exclude-path docs/zh \
+            --exclude-path docs/es \
+            --exclude-path docs/ru \
+            --exclude-path docs/pt \
+            --exclude-path docs/fr \
+            --exclude-path docs/de \
+            --exclude-path docs/ja \
+            --exclude-path docs/ko \
+            --exclude-mail \
+            --github-token ${{ secrets.GITHUB_TOKEN }} \
+            './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'

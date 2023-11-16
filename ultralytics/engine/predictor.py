@@ -260,7 +260,7 @@ class BasePredictor:
 
                 # Inference
                 with profilers[1]:
-                    
+
                     # check if the model is the default AutoBackend, ie) YOLO model
                     if isinstance(self.model, AutoBackend):
                         preds, embedding = self.inference(im, *args, **kwargs)
@@ -270,7 +270,7 @@ class BasePredictor:
 
                 # Postprocess
                 with profilers[2]:
-                                      
+
                     self.results = self.postprocess(preds, im, im0s, embedding)
 
                 self.run_callbacks('on_predict_postprocess_end')

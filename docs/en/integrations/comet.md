@@ -59,7 +59,7 @@ comet_ml.init(project_name="comet-example-yolov8-coco128")
 
 ## Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/yolov8.md). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
 !!! example "Usage"
 

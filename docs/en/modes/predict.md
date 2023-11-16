@@ -354,6 +354,7 @@ All supported arguments:
 | `save_txt`      | `bool`         | `False`                | save results as .txt file                                                      |
 | `save_conf`     | `bool`         | `False`                | save results with confidence scores                                            |
 | `save_crop`     | `bool`         | `False`                | save cropped images with results                                               |
+| `save_frames`   | `bool`         | `False`                | save individual video frames as JPEGs (True) instead of as a single video      |
 | `hide_labels`   | `bool`         | `False`                | hide labels                                                                    |
 | `hide_conf`     | `bool`         | `False`                | hide confidence scores                                                         |
 | `max_det`       | `int`          | `300`                  | maximum number of detections per image                                         |

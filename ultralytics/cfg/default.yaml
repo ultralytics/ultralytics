@@ -57,6 +57,7 @@ show: False  # (bool) show results if possible
 save_txt: False  # (bool) save results as .txt file
 save_conf: False  # (bool) save results with confidence scores
 save_crop: False  # (bool) save cropped images with results
+save_frames: False # (bool) save individual frames from videos as JPEGs (True) instead of as a single video
 show_labels: True  # (bool) show object labels in plots
 show_conf: True  # (bool) show object confidence scores in plots
 vid_stride: 1  # (int) video frame-rate stride

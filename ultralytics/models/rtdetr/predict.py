@@ -31,7 +31,7 @@ class RTDETRPredictor(BasePredictor):
         args (dict): Argument overrides for the predictor.
     """
 
-    def postprocess(self, preds, img, orig_imgs):
+    def postprocess(self, preds, img, orig_imgs, embedding):
         """
         Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
 

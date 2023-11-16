@@ -35,7 +35,7 @@ class FastSAMPredictor(DetectionPredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'segment'
 
-    def postprocess(self, preds, img, orig_imgs):
+    def postprocess(self, preds, img, orig_imgs, embedding):
         """
         Perform post-processing steps on predictions, including non-max suppression and scaling boxes to original image
         size, and returns the final results.

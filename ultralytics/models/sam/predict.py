@@ -335,7 +335,7 @@ class Predictor(BasePredictor):
         self.model.fp16 = False
         self.done_warmup = True
 
-    def postprocess(self, preds, img, orig_imgs):
+    def postprocess(self, preds, img, orig_imgs, embedding):
         """
         Post-processes SAM's inference outputs to generate object detection masks and bounding boxes.
 

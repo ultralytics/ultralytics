@@ -32,7 +32,7 @@ class NASPredictor(BasePredictor):
         Typically, this class is not instantiated directly. It is used internally within the `NAS` class.
     """
 
-    def postprocess(self, preds_in, img, orig_imgs):
+    def postprocess(self, preds_in, img, orig_imgs, embedding):
         """Postprocess predictions and returns a list of Results objects."""
 
         # Cat boxes and class scores

@@ -118,6 +118,17 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
 有关依赖项列表，请参见`ultralytics`的[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)文件。请注意，上述所有示例均安装了所有必需的依赖项。
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/_a7cVL9hqnk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
+</p>
+
 !!! 提示 "提示"
 
     PyTorch的要求因操作系统和CUDA需要而异，因此建议首先根据[https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally)上的指南安装PyTorch。

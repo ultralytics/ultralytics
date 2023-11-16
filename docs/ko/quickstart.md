@@ -119,6 +119,17 @@ Ultralytics는 pip, conda, Docker를 포함한 다양한 설치 방법을 제공
 
 `ultralytics`의 종속성 목록은 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 파일에서 확인할 수 있습니다. 위 예제에서는 모든 필요한 종속성을 설치합니다.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/_a7cVL9hqnk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
+</p>
+
 !!! tip "팁"
 
     PyTorch 설치 요구사항은 운영 체제와 CUDA 요구사항에 따라 다르므로 [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally)의 지침에 따라 PyTorch를 먼저 설치하는 것이 권장됩니다.

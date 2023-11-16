@@ -1,33 +1,32 @@
----
-description: Learn how to install Ultralytics in developer mode, build and serve it locally for testing, and deploy your documentation site on platforms like GitHub Pages, GitLab Pages, and Amazon S3.
-keywords: Ultralytics, documentation, mkdocs, installation, developer mode, building, deployment, local server, GitHub Pages, GitLab Pages, Amazon S3
----
-
 # Ultralytics Docs
 
 Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).
 
+[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)  [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
+
 ### Install Ultralytics package
+
+[![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
 To install the ultralytics package in developer mode, you will need to have Git and Python 3 installed on your system. Then, follow these steps:
 
 1. Clone the ultralytics repository to your local machine using Git:
 
-```bash
-git clone https://github.com/ultralytics/ultralytics.git
-```
+    ```bash
+    git clone https://github.com/ultralytics/ultralytics.git
+    ```
 
 2. Navigate to the root directory of the repository:
 
-```bash
-cd ultralytics
-```
+    ```bash
+    cd ultralytics
+    ```
 
 3. Install the package in developer mode using pip:
 
-```bash
-pip install -e ".[dev]"
-```
+    ```bash
+    pip install -e '.[dev]'
+    ```
 
 This will install the ultralytics package and its dependencies in developer mode, allowing you to make changes to the package code and have them reflected immediately in your Python environment.
 
@@ -52,6 +51,35 @@ Here is a breakdown of what this command does:
 While the site is being served, you can make changes to the documentation files and see them reflected in the live site immediately. This is useful for testing and debugging your documentation before deploying it to a live server.
 
 To stop the serve command and terminate the local server, you can use the `CTRL+C` keyboard shortcut.
+
+### Building and Serving Multi-Language
+
+For multi-language MkDocs sites use the following additional steps:
+
+1. Add all new language *.md files to git commit: `git add docs/**/*.md -f`
+2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
+
+    ```bash
+    # Remove existing /site directory
+    rm -rf site
+
+    # Loop through all *.yml files in the docs directory
+    mkdocs build -f docs/mkdocs.yml
+    for file in docs/mkdocs_*.yml; do
+      echo "Building MkDocs site with configuration file: $file"
+      mkdocs build -f "$file"
+    done
+    ```
+
+3. Preview in web browser with:
+
+    ```bash
+    cd site
+    python -m http.server
+    open http://localhost:8000  # on macOS
+    ```
+
+Note the above steps are combined into the Ultralytics [build_docs.py](https://github.com/ultralytics/ultralytics/blob/main/docs/build_docs.py) script.
 
 ### Deploying Your Documentation Site
 

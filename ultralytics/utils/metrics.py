@@ -48,8 +48,7 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
 
 def box_iou(box1, box2, eps=1e-7):
     """
-    Calculate intersection-over-union (IoU) of boxes.
-    Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+    Calculate intersection-over-union (IoU) of boxes. Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
     Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
 
     Args:
@@ -224,6 +223,13 @@ class ConfusionMatrix:
             labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
                                   Each row should contain (class, x1, y1, x2, y2).
         """
+        if labels.size(0) == 0:  # Check if labels is empty
+            if detections is not None:
+                detections = detections[detections[:, 4] > self.conf]
+                detection_classes = detections[:, 5].int()
+                for dc in detection_classes:
+                    self.matrix[dc, self.nc] += 1  # false positives
+            return
         if detections is None:
             gt_classes = labels.int()
             for gc in gt_classes:

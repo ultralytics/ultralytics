@@ -426,6 +426,14 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
+def check_model_file_from_stem(model='yolov8n'):
+    """Return a model filename from a valid model stem."""
+    if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
+        return Path(model).with_suffix('.pt')  # add suffix, i.e. yolov8n -> yolov8n.pt
+    else:
+        return model
+
+
 def check_file(file, suffix='', download=True, hard=True):
     """Search/download file (if necessary) and return path."""
     check_suffix(file, suffix)  # optional
@@ -453,6 +461,23 @@ def check_file(file, suffix='', download=True, hard=True):
 def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
     """Search/download YAML file (if necessary) and return path, checking suffix."""
     return check_file(file, suffix, hard=hard)
+
+
+def check_is_path_safe(basedir, path):
+    """
+    Check if the resolved path is under the intended directory to prevent path traversal.
+
+    Args:
+        basedir (Path | str): The intended directory.
+        path (Path | str): The path to check.
+
+    Returns:
+        (bool): True if the path is safe, False otherwise.
+    """
+    base_dir_resolved = Path(basedir).resolve()
+    path_resolved = Path(path).resolve()
+
+    return path_resolved.is_file() and path_resolved.parts[:len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
 def check_imshow(warn=False):

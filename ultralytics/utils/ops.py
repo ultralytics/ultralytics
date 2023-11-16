@@ -324,8 +324,8 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
-    top, left = int(pad[1]), int(pad[0])  # y, x
-    bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
+    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))  # y, x
+    bottom, right = (int(round(im1_shape[0] - pad[1] + 0.1)), int(round(im1_shape[1] - pad[0] + 0.1)))
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
@@ -704,8 +704,8 @@ def scale_masks(masks, shape, padding=True):
     if padding:
         pad[0] /= 2
         pad[1] /= 2
-    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
-    bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
+    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
+    bottom, right = (int(round(mh - pad[1] + 0.1)), int(round(mw - pad[0] + 0.1)))
     masks = masks[..., top:bottom, left:right]
 
     masks = F.interpolate(masks, shape, mode='bilinear', align_corners=False)  # NCHW

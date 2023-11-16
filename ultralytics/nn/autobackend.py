@@ -476,7 +476,7 @@ class AutoBackend(nn.Module):
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != 'cpu' or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
-            for _ in range(2 if self.jit else 1):  #
+            for _ in range(2 if self.jit else 1):
                 self.forward(im)  # warmup
 
     @staticmethod

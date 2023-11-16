@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Security Alarm System Project Using Ultralytics YOLOv8. Learn How to implement Security Alarm System Using ultralytics YOLOv8
+description: Security Alarm System Project Using Ultralytics YOLOv8. Learn How to implement a Security Alarm System Using ultralytics YOLOv8
 keywords: Object Detection, Security Alarm, Object Tracking, YOLOv8, Computer Vision Projects
 ---
 
 # Security Alarm System Project Using Ultralytics YOLOv8
 
-<img width="1024" src="G:\\Samples\\Security Alarm System.png" alt="Security Alarm System">
+<img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/f4e4a613-fb25-4bd0-9ec5-78352ddb62bd" alt="Security Alarm System">
 
 The Security Alarm System Project utilizing Ultralytics YOLOv8 integrates advanced computer vision capabilities to enhance security measures. YOLOv8, developed by Ultralytics, provides real-time object detection, allowing the system to identify and respond to potential security threats promptly. This project offers several advantages:
 
@@ -33,7 +33,7 @@ from email.mime.text import MIMEText
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated password field as instructed.
 ```python
 password = ""
-from_email = "" # must match with email used to generate the password
+from_email = "" # must match the email used to generate the password
 to_email = ""  # receiver email
 ```
 
@@ -51,7 +51,7 @@ def send_email(to_email, from_email, object_detected=1):
     message['From'] = from_email
     message['To'] = to_email
     message['Subject'] = "Security Alert"
-    # add in the message body
+    # Add in the message body
     message_body = f'ALERT - {object_detected} objects has been detected!!'
 
     message.attach(MIMEText(message_body, 'plain'))
@@ -140,5 +140,5 @@ detector()
 That's it! When you execute the code, you'll receive a single notification on your email if any object is detected. The notification is sent immediately, not repeatedly. However, feel free to customize the code to suit your project requirements.
 
 #### Email Received Sample
-<img width="1024" src="G:\\Samples\\email.png" alt="Email Received Sample">
+<img width="256" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/db79ccc6-aabd-4566-a825-b34e679c90f9" alt="Email Received Sample">
 

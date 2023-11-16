@@ -164,6 +164,8 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
+          - Projects:
+              - Security Alarm System: tasks/projects/security_alarm_system.md
       - Languages:
           - 🇬🇧&nbsp English: https://docs.ultralytics.com/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -189,6 +191,8 @@ nav:
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
+      - Projects:
+          - Security Alarm System: tasks/projects/security_alarm_system.md
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md

@@ -67,6 +67,8 @@ public:
     char *TensorProcess(clock_t &starttime_1, cv::Mat &iImg, N &blob, std::vector<int64_t> &inputNodeDims,
                         std::vector<DCSP_RESULT> &oResult);
 
+    char* PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oImg);
+
     std::vector<std::string> classes{};
 
 private:
@@ -81,4 +83,5 @@ private:
     std::vector<int> imgSize;
     float rectConfidenceThreshold;
     float iouThreshold;
+    float resizeScales;//letterbox scale
 };

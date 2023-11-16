@@ -77,7 +77,7 @@ Train a detection model for 10 epochs with an initial learning_rate of 0.01:
 yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
 
-You can find more [instructions to use the Ultralytics CLI here](https://docs.ultralytics.com/quickstart/#use-ultralytics-with-cli).
+You can find more [instructions to use the Ultralytics CLI here](../quickstart.md#use-ultralytics-with-cli).
 
 ## Quickstart from a Notebook
 
@@ -114,7 +114,7 @@ pip install onnx>=1.12.0
 
 Note that we need to use the `source activate yolov8env` for all the %%bash cells, to make sure that the %%bash cell uses environment we want.
 
-Run some predictions using the [Ultralytics CLI](https://docs.ultralytics.com/quickstart/#use-ultralytics-with-cli):
+Run some predictions using the [Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli):
 
 ```bash
 %%bash
@@ -122,7 +122,7 @@ source activate yolov8env
 yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-Or with the [Ultralytics Python interface](https://docs.ultralytics.com/quickstart/#use-ultralytics-with-python), for example to train the model:
+Or with the [Ultralytics Python interface](../quickstart.md#use-ultralytics-with-python), for example to train the model:
 
 ```python
 from ultralytics import YOLO

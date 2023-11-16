@@ -26,7 +26,7 @@ Let’s start by discussing some metrics that are not only important to YOLOv8 b
 
 ## How to Calculate Metrics for YOLOv8 Model
 
-Now, we can explore [YOLOv8's Validation mode](https://docs.ultralytics.com/modes/val/) that can be used to compute the above discussed evaluation metrics.
+Now, we can explore [YOLOv8's Validation mode](../modes/val.md) that can be used to compute the above discussed evaluation metrics.
 
 Using the validation mode is simple. Once you have a trained model, you can invoke the model.val() function. This function will then process the validation dataset and return a variety of performance metrics. But what do these metrics mean? And how should you interpret them?
 
@@ -152,7 +152,7 @@ Tapping into a community of enthusiasts and experts can amplify your journey wit
 
 ### Official Documentation and Resources:
 
-- **Ultralytics YOLOv8 Docs:** The [official documentation](https://docs.ultralytics.com/) provides a comprehensive overview of YOLOv8, along with guides on installation, usage, and troubleshooting.
+- **Ultralytics YOLOv8 Docs:** The [official documentation](../index.md) provides a comprehensive overview of YOLOv8, along with guides on installation, usage, and troubleshooting.
 
 Using these resources will not only guide you through any challenges but also keep you updated with the latest trends and best practices in the YOLOv8 community.
 

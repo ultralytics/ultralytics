@@ -9,7 +9,7 @@ model.export(
     format='onnx',  # destination format
     imgsz=640,  # inference size (pixels)
     half=False,  # use FP16 half-precision inference
-    dynamic=False,  # ONNX export only supports static size
+    dynamic=True,  # ONNX export only supports static size
     simplify=False,  # ONNX export only supports static size
     opset=9,  # ONNX opset version
 )

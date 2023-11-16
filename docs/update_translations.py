@@ -44,9 +44,9 @@ class MarkdownLinkFixer:
             for term, eng_key in zip(terms, english_keys):
                 if eng_key == 'comments':
                     # Replace comments key and set its value to 'true'
-                    content = re.sub(rf'{term} *:.*', f'{eng_key}: true', content)
+                    content = re.sub(rf'{term} *[：:].*', f'{eng_key}: true', content)
                 else:
-                    content = re.sub(rf'{term} *:', f'{eng_key}:', content)
+                    content = re.sub(rf'{term} *[：:] *', f'{eng_key}: ', content)
 
         return content
 

@@ -13,7 +13,7 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -454,6 +454,17 @@ class C3TR(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)
         self.m = TransformerBlock(c_, c_, 4, n)
+
+
+class C3xTR(C3):
+    """C3 module with cross-convolutions and transformer blocks."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize C3xTR module with cross-convolutions and transformer blocks."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.c_ = int(c2 * e)
+        # Menggantikan Bottleneck dengan TransformerBlock
+        self.m = nn.Sequential(*(TransformerBlock(self.c_, self.c_, 4, 1) for _ in range(n)))
 
 
 class C3Ghost(C3):

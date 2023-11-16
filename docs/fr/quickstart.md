@@ -78,6 +78,17 @@ Ultralytics propose diverses méthodes d'installation, y compris pip, conda et D
 
 Voir le fichier [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) d'`ultralytics` pour une liste des dépendances. Notez que tous les exemples ci-dessus installent toutes les dépendances requises.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/_a7cVL9hqnk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
+</p>
+
 !!! astuce "Conseil"
 
     Les prérequis de PyTorch varient selon le système d'exploitation et les exigences CUDA, donc il est recommandé d'installer PyTorch en premier en suivant les instructions sur [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).

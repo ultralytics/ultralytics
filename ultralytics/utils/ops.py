@@ -500,7 +500,7 @@ def xyxyxyxy2xywhr(corners):
     h = sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2)
 
     rotation = atan2(-dy21, dx21)
-    rotation *= 180.0 / math.pi  # radians to degrees
+    # rotation *= 180.0 / math.pi  # radians to degrees
 
     return np.vstack((cx, cy, w, h, rotation)).T if is_numpy else torch.stack((cx, cy, w, h, rotation), dim=1)
 
@@ -520,7 +520,7 @@ def xywhr2xyxyxyxy(center):
     cos, sin = (np.cos, np.sin) if is_numpy else (torch.cos, torch.sin)
 
     cx, cy, w, h, rotation = center.T
-    rotation *= math.pi / 180.0  # degrees to radians
+    # rotation *= math.pi / 180.0  # degrees to radians
 
     dx = w / 2
     dy = h / 2

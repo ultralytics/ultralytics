@@ -534,18 +534,35 @@ class v8OBBLoss(v8DetectionLoss):
         super().__init__(model)
         self.nm = model.model[-1].ne  # number of extra outputs
 
+    def preprocess(self, targets, batch_size, scale_tensor):
+        """Preprocesses the target counts and matches with the input batch size to output a tensor."""
+        if targets.shape[0] == 0:
+            out = torch.zeros(batch_size, 0, 6, device=self.device)
+        else:
+            i = targets[:, 0]  # image index
+            _, counts = i.unique(return_counts=True)
+            counts = counts.to(dtype=torch.int32)
+            out = torch.zeros(batch_size, counts.max(), 6, device=self.device)
+            for j in range(batch_size):
+                matches = i == j
+                n = matches.sum()
+                if n:
+                    out[j, :n] = targets[matches, 1:]
+            out[..., 1:5] = out[..., 1:5].mul_(scale_tensor)
+        return out
+
     def __call__(self, preds, batch):
         """Calculate and return the loss for the YOLO model."""
         loss = torch.zeros(4, device=self.device)  # box, cls, dfl
-        feats, pred_theta = preds if isinstance(preds[0], list) else preds[1]
-        batch_size = pred_theta.shape[0]  # batch size, number of masks, mask height, mask width
+        feats, pred_angle = preds if isinstance(preds[0], list) else preds[1]
+        batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1)
 
         # b, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
-        pred_theta = pred_theta.permute(0, 2, 1).contiguous()
+        pred_angle = pred_angle.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
@@ -556,7 +573,7 @@ class v8OBBLoss(v8DetectionLoss):
             batch_idx = batch['batch_idx'].view(-1, 1)
             targets = torch.cat((batch_idx, batch['cls'].view(-1, 1), batch['bboxes']), 1)
             targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
-            gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
+            gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
         except RuntimeError as e:
             raise TypeError('ERROR ❌ OBB dataset incorrectly formatted or not a OBB dataset.\n'

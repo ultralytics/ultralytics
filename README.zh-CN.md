@@ -94,7 +94,7 @@ results = model("https://ultralytics.com/images/bus.jpg")  # 对图像进行预�
 success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 ```
 
-[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) 会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)中下载。查看 YOLOv8 [Python 文档](https://docs.ultralytics.com/usage/python)以获取更多示例。
+查看 YOLOv8 [Python 文档](https://docs.ultralytics.com/usage/python)以获取更多示例。
 
 </details>
 

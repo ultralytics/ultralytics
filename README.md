@@ -94,7 +94,7 @@ results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 path = model.export(format="onnx")  # export the model to ONNX format
 ```
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases). See YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
+See YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
 
 </details>
 

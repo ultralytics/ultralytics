@@ -101,9 +101,9 @@ class BaseModel(nn.Module):
         
         for m in self.model:
             
-            # During Model iteration, it is has the following Head Class, 
+            # During Model iteration, it is has the following Head Class (YOLO Models), 
             # then access and save backbone embedding prior to processing Head
-            if isinstance(m, (Detect, Segment, Pose, Classify, RTDETRDecoder)):
+            if isinstance(m, (Detect, Segment, Pose, Classify)):
                 # Ensure vector normalization on output
                 img_embedding = self._average_and_normalize(x)
                 
@@ -115,7 +115,7 @@ class BaseModel(nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-        
+                
         return x, img_embedding
 
     def _predict_augment(self, x):

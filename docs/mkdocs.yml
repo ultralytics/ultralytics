@@ -258,6 +258,7 @@ nav:
       - Triton Inference Server: guides/triton-inference-server.md
   - Integrations:
       - integrations/index.md
+      - Comet ML: integrations/comet.md
       - OpenVINO: integrations/openvino.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md

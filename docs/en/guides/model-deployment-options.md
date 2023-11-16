@@ -14,13 +14,13 @@ This guide walks you through YOLOv8’s deployment options and the essential fac
 
 ## How to Select the Right Deployment Option for Your YOLOv8 Model
 
-When it's time to deploy your YOLOv8 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLOv8 Modes documentation](https://docs.ultralytics.com/modes/export/#usage-examples), the model.export() function allows for converting your trained model into a variety of formats tailored to diverse environments and performance requirements.
+When it's time to deploy your YOLOv8 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLOv8 Modes documentation](../modes/export.md#usage-examples), the model.export() function allows for converting your trained model into a variety of formats tailored to diverse environments and performance requirements.
 
 The ideal format depends on your model's intended operational context, balancing speed, hardware constraints, and ease of integration. In the following section, we'll take a closer look at each export option, understanding when to choose each one.
 
 ### YOLOv8’s Deployment Options
 
-Let’s walk through the different YOLOv8 deployment options. For a detailed walkthrough of the export process, visit the [Ultralytics documentation page on exporting](https://docs.ultralytics.com/modes/export/).
+Let’s walk through the different YOLOv8 deployment options. For a detailed walkthrough of the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 #### PyTorch
 
@@ -94,7 +94,7 @@ OpenVINO is an Intel toolkit designed to facilitate the deployment of deep learn
 
 - **Hardware Acceleration**: Tailored for acceleration on Intel hardware, leveraging dedicated instruction sets and hardware features.
 
-For more details on deployment using OpenVINO, refer to the Ultralytics Integration documentation: [Intel OpenVINO Export](https://docs.ultralytics.com/integrations/openvino/).
+For more details on deployment using OpenVINO, refer to the Ultralytics Integration documentation: [Intel OpenVINO Export](../integrations/openvino.md).
 
 #### TensorRT
 
@@ -260,7 +260,7 @@ ncnn is a high-performance neural network inference framework optimized for the 
 
 ## Comparative Analysis of YOLOv8 Deployment Options
 
-The following table provides a snapshot of the various deployment options available for YOLOv8 models, helping you to assess which may best fit your project needs based on several critical criteria. For an in-depth look at each deployment option's format, please see the [Ultralytics documentation page on export formats](https://docs.ultralytics.com/modes/export/#export-formats).
+The following table provides a snapshot of the various deployment options available for YOLOv8 models, helping you to assess which may best fit your project needs based on several critical criteria. For an in-depth look at each deployment option's format, please see the [Ultralytics documentation page on export formats](../modes/export.md#export-formats).
 
 | Deployment Option | Performance Benchmarks                          | Compatibility and Integration                  | Community Support and Ecosystem               | Case Studies                               | Maintenance and Updates                     | Security Considerations                           | Hardware Acceleration              |
 |-------------------|-------------------------------------------------|------------------------------------------------|-----------------------------------------------|--------------------------------------------|---------------------------------------------|---------------------------------------------------|------------------------------------|
@@ -292,7 +292,7 @@ When you're getting started with YOLOv8, having a helpful community and support 
 
 ### Official Documentation and Resources
 
-- **Ultralytics YOLOv8 Docs:** The [official documentation](https://docs.ultralytics.com/) provides a comprehensive overview of YOLOv8, along with guides on installation, usage, and troubleshooting.
+- **Ultralytics YOLOv8 Docs:** The [official documentation](../index.md) provides a comprehensive overview of YOLOv8, along with guides on installation, usage, and troubleshooting.
 
 These resources will help you tackle challenges and stay updated on the latest trends and best practices in the YOLOv8 community.
 

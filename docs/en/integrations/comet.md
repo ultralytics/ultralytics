@@ -59,7 +59,7 @@ comet_ml.init(project_name="comet-example-yolov8-coco128")
 
 ## Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](https://docs.ultralytics.com/models/). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
 !!! example "Usage"
 
@@ -82,7 +82,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         )
         ```
 
-After running the training code, Comet ML will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLOv8 model's training](https://docs.ultralytics.com/modes/train/) process.
+After running the training code, Comet ML will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLOv8 model's training](../modes/train.md) process.
 
 Comet automatically logs the following data with no additional configuration: metrics such as mAP and loss, hyperparameters, model checkpoints, interactive confusion matrix, and image bounding box predictions.
 
@@ -170,4 +170,4 @@ Explore [Comet ML's official documentation](https://www.comet.com/docs/v2/integr
 
 Furthermore, if you're looking to dive deeper into the practical applications of YOLOv8, specifically for image segmentation tasks, this detailed guide on [fine-tuning YOLOv8 with Comet ML](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
 
-Additionally, to explore other exciting integrations with Ultralytics, check out the [integration guide page](https://docs.ultralytics.com/integrations/), which offers a wealth of resources and information.
+Additionally, to explore other exciting integrations with Ultralytics, check out the [integration guide page](../integrations/index.md), which offers a wealth of resources and information.

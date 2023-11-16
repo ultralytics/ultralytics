@@ -31,6 +31,6 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 
 We welcome contributions from the community! If you've mastered a particular aspect of Ultralytics YOLO that's not yet covered in our guides, we encourage you to share your expertise. Writing a guide is a great way to give back to the community and help us make our documentation more comprehensive and user-friendly.
 
-To get started, please read our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for guidelines on how to open up a Pull Request (PR) 🛠️. We look forward to your contributions!
+To get started, please read our [Contributing Guide](../help/contributing.md) for guidelines on how to open up a Pull Request (PR) 🛠️. We look forward to your contributions!
 
 Let's work together to make the Ultralytics YOLO ecosystem more robust and versatile 🙏!

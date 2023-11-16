@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Script to fix broken Markdown links and front matter in language-specific directories.
+Script to fix broken Markdown links and front matter in language-specific directories zh, ko, ja, ru, de, fr, es, pt.
 
 This script processes markdown files in language-specific directories (like /zh/). It finds Markdown links and checks
 their existence. If a link is broken and does not exist in the language-specific directory but exists in the /en/

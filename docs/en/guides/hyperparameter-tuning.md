@@ -23,7 +23,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
   <img width="640" src="https://user-images.githubusercontent.com/26833433/263858934-4f109a2f-82d9-4d08-8bd6-6fd1ff520bcd.png" alt="Hyperparameter Tuning Visual">
 </p>
 
-For a full list of augmentation hyperparameters used in YOLOv8 please refer to [https://docs.ultralytics.com/usage/cfg/#augmentation](https://docs.ultralytics.com/usage/cfg/#augmentation).
+For a full list of augmentation hyperparameters used in YOLOv8 please refer to the [configurations page](../usage/cfg.md#augmentation).
 
 ### Genetic Evolution and Mutation
 
@@ -200,7 +200,7 @@ The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful
 ### Further Reading
 
 1. [Hyperparameter Optimization in Wikipedia](https://en.wikipedia.org/wiki/Hyperparameter_optimization)
-2. [YOLOv5 Hyperparameter Evolution Guide](https://docs.ultralytics.com/yolov5/tutorials/hyperparameter_evolution/)
-3. [Efficient Hyperparameter Tuning with Ray Tune and YOLOv8](https://docs.ultralytics.com/integrations/ray-tune/)
+2. [YOLOv5 Hyperparameter Evolution Guide](../yolov5/tutorials/hyperparameter_evolution.md)
+3. [Efficient Hyperparameter Tuning with Ray Tune and YOLOv8](../integrations/ray-tune.md)
 
 For deeper insights, you can explore the `Tuner` class source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://ultralytics.com/discord).

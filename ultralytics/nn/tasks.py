@@ -100,8 +100,8 @@ class BaseModel(nn.Module):
         img_embedding = None  # initialize empty vector
 
         for m in self.model:
-            
-            # During Model iteration, it is has the following Head Class (YOLO Models), 
+
+            # During Model iteration, it is has the following Head Class (YOLO Models),
 
             # During Model iteration, it is has the following Head Class,
             # then access and save backbone embedding prior to processing Head
@@ -117,7 +117,7 @@ class BaseModel(nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-                
+
         return x, img_embedding
 
     def _predict_augment(self, x):

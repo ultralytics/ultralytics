@@ -1,20 +1,48 @@
-import argparse
 import os
 import time
-
 import cv2
+import argparse
 import numpy as np
 from tqdm import tqdm
 
-from tracker.utils.parse_config import ConfigParser
-from ultralytics import YOLO
-
 import supervision as sv
+from ultralytics import YOLO
+from utils.parse_config import ConfigParser
 
-COLORS = sv.ColorPalette.default()
-
+COLORS = sv.ColorPalette.default()  # color palette for annotations and  class names corresponding to detectable objects.
 
 class VideoProcessor:
+    '''
+    How works?: This class is designed to perform object tracking on video data.
+                It is using a pre-trained YOLO model for object detection in six
+                categories(person, car, truck, uav, airplane, boat) and ByteTrack
+                as strategy to don't lost predictions with low bounding boxes score.
+                The class takes a video input, applies detection and tracking, then,
+                output video with the annotated bounding boxes and labels of the
+                tracked objects is returned.
+
+    process:
+                1.  Initialization: The class is initialized with a configuration that
+                    includes various thresholds, video paths, and model details.
+                2.  Video Processing: The main video processing occurs in the process_video
+                    class, which iterates over frames of the video, applies object detection
+                    and tracking, and annotates the frames.
+                3.  Frame Annotation: Each frame is annotated with bounding boxes and labels
+                    that contain the object's ID, class, and detection confidence.
+                4.  Output Generation: The processed frames are either displayed in real-time
+                    or saved to an output video file.
+
+    Inputs:     - config: A dictionary-like configuration object that provides necessary parameters
+                such as confidence threshold, input-output paths, model weights path, and device
+                specifications.
+                - source_video_path: Path to the input video file that needs to be processed.
+                - display: A boolean flag to decide whether to display the video in real-time or save
+                 the output.
+
+    Output:     - target_video_path: Path to the output video file with annotations.
+                - processed_video: The video after processing, with object tracking annotations displayed
+                on each frame.
+    '''
     def __init__(self, config) -> None:
         self.conf_threshold = config["conf_threshold"]
         self.iou_threshold = config["iou_threshold"]
@@ -81,7 +109,7 @@ class VideoProcessor:
     def process_frame(self, frame: np.ndarray) -> np.ndarray:
         results = self.model(
             frame,
-            verbose=False,
+            verbose=True,
             conf=self.conf_threshold,
             iou=self.iou_threshold,
             imgsz=self.img_size,
@@ -106,10 +134,11 @@ class VideoProcessor:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="YOLO and ByteTrack")
+    print(os.listdir("./"))
     parser.add_argument(
         "-c",
         "--config",
-        default="./track_config.json",
+        default="./tracker/track_config.json",
         type=str,
         help="config file path (default: None)",
     )

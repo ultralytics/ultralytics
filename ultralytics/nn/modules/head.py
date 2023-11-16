@@ -30,7 +30,8 @@ class Detect(nn.Module):
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
-        self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
+        # NOTE: Tempoarily: Test obb without dfl
+        self.reg_max = 1  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
@@ -119,12 +120,12 @@ class OBB(Detect):
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
-        theta = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
+        angle = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
         x = self.detect(self, x)
         if self.training:
-            return x, theta
-        degrees = self.logits2degrees(theta)  # 0-1 theta to -180 to 180 degrees
-        return torch.cat([x, degrees], 1) if self.export else (torch.cat([x[0], degrees], 1), (x[1], theta))
+            return x, angle
+        degrees = self.logits2degrees(angle)  # 0-1 theta to -180 to 180 degrees
+        return torch.cat([x, degrees], 1) if self.export else (torch.cat([x[0], degrees], 1), (x[1], angle))
 
     @staticmethod
     def logits2degrees(x):

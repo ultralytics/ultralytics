@@ -88,7 +88,7 @@ Veja o arquivo [requirements.txt](https://github.com/ultralytics/ultralytics/blo
 
 ## Use o Ultralytics com CLI
 
-A interface de linha de comando (CLI) do Ultralytics permite comandos simples de uma única linha sem a necessidade de um ambiente Python. O CLI não requer personalização ou código Python. Você pode simplesmente rodar todas as tarefas do terminal com o comando `yolo`. Confira o [Guia CLI](../usage/cli.md) para aprender mais sobre o uso do YOLOv8 pela linha de comando.
+A interface de linha de comando (CLI) do Ultralytics permite comandos simples de uma única linha sem a necessidade de um ambiente Python. O CLI não requer personalização ou código Python. Você pode simplesmente rodar todas as tarefas do terminal com o comando `yolo`. Confira o [Guia CLI](/../usage/cli.md) para aprender mais sobre o uso do YOLOv8 pela linha de comando.
 
 !!! example
 
@@ -102,7 +102,7 @@ A interface de linha de comando (CLI) do Ultralytics permite comandos simples de
                 MODO (obrigatório) é um entre [train, val, predict, export, track]
                 ARGUMENTOS (opcional) são qualquer número de pares personalizados 'arg=valor' como 'imgsz=320' que substituem os padrões.
         ```
-        Veja todos os ARGUMENTOS no guia completo de [Configuração](../usage/cfg.md) ou com `yolo cfg`
+        Veja todos os ARGUMENTOS no guia completo de [Configuração](/../usage/cfg.md) ou com `yolo cfg`
 
     === "Train"
 
@@ -152,13 +152,13 @@ A interface de linha de comando (CLI) do Ultralytics permite comandos simples de
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[Guia CLI](../usage/cli.md){ .md-button .md-button--primary}
+[Guia CLI](/../usage/cli.md){ .md-button .md-button--primary}
 
 ## Use o Ultralytics com Python
 
 A interface Python do YOLOv8 permite uma integração tranquila em seus projetos Python, tornando fácil carregar, executar e processar a saída do modelo. Projetada com simplicidade e facilidade de uso em mente, a interface Python permite que os usuários implementem rapidamente detecção de objetos, segmentação e classificação em seus projetos. Isto torna a interface Python do YOLOv8 uma ferramenta inestimável para qualquer pessoa buscando incorporar essas funcionalidades em seus projetos Python.
 
-Por exemplo, os usuários podem carregar um modelo, treiná-lo, avaliar o seu desempenho em um conjunto de validação e até exportá-lo para o formato ONNX com apenas algumas linhas de código. Confira o [Guia Python](../usage/python.md) para aprender mais sobre o uso do YOLOv8 dentro dos seus projetos Python.
+Por exemplo, os usuários podem carregar um modelo, treiná-lo, avaliar o seu desempenho em um conjunto de validação e até exportá-lo para o formato ONNX com apenas algumas linhas de código. Confira o [Guia Python](/../usage/python.md) para aprender mais sobre o uso do YOLOv8 dentro dos seus projetos Python.
 
 !!! example
 
@@ -184,4 +184,4 @@ Por exemplo, os usuários podem carregar um modelo, treiná-lo, avaliar o seu de
     success = model.export(format='onnx')
     ```
 
-[Guia Python](../usage/python.md){.md-button .md-button--primary}
+[Guia Python](/../usage/python.md){.md-button .md-button--primary}

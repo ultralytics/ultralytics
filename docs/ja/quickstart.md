@@ -88,7 +88,7 @@ Ultralyticsはpip、conda、Dockerを含むさまざまなインストール方�
 
 ## CLIでUltralyticsを使用
 
-Ultralyticsコマンドラインインターフェース（CLI）を使用すると、Python環境がなくても単一の行のコマンドを簡単に実行できます。CLIはカスタマイズもPythonコードも必要ありません。単純にすべてのタスクを`yolo`コマンドでターミナルから実行することができます。コマンドラインからYOLOv8を使用する方法について詳しくは、[CLIガイド](../usage/cli.md)を参照してください。
+Ultralyticsコマンドラインインターフェース（CLI）を使用すると、Python環境がなくても単一の行のコマンドを簡単に実行できます。CLIはカスタマイズもPythonコードも必要ありません。単純にすべてのタスクを`yolo`コマンドでターミナルから実行することができます。コマンドラインからYOLOv8を使用する方法について詳しくは、[CLIガイド](/../usage/cli.md)を参照してください。
 
 !!! example
 
@@ -102,7 +102,7 @@ Ultralyticsコマンドラインインターフェース（CLI）を使用する
                 MODE（必須）は[train, val, predict, export, track]のうちの1つ
                 ARGS（オプション）はデフォルトを上書きする任意の数のカスタム'arg=value'ペアです。
         ```
-        full [Configuration Guide](../usage/cfg.md)または`yolo cfg`で全てのARGSを確認してください
+        full [Configuration Guide](/../usage/cfg.md)または`yolo cfg`で全てのARGSを確認してください
 
     === "トレーニング"
 
@@ -152,13 +152,13 @@ Ultralyticsコマンドラインインターフェース（CLI）を使用する
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLIガイド](../usage/cli.md){ .md-button .md-button--primary}
+[CLIガイド](/../usage/cli.md){ .md-button .md-button--primary}
 
 ## PythonでUltralyticsを使用
 
 YOLOv8のPythonインターフェースを使用すると、Pythonプロジェクトにシームレスに統合し、モデルをロード、実行、出力を処理することが可能です。簡単さと使いやすさを念頭に設計されたPythonインターフェースにより、ユーザーは素早くプロジェクトに物体検出、セグメンテーション、分類を実装することができます。このように、YOLOv8のPythonインターフェースは、これらの機能をPythonプロジェクトに取り入れたいと考えている方にとって貴重なツールです。
 
-たとえば、ユーザーはモデルをロードして、トレーニングし、検証セットでのパフォーマンスを評価し、ONNX形式にエクスポートするまでの一連の処理を数行のコードで行うことができます。YOLOv8をPythonプロジェクトで使用する方法について詳しくは、[Pythonガイド](../usage/python.md)を参照してください。
+たとえば、ユーザーはモデルをロードして、トレーニングし、検証セットでのパフォーマンスを評価し、ONNX形式にエクスポートするまでの一連の処理を数行のコードで行うことができます。YOLOv8をPythonプロジェクトで使用する方法について詳しくは、[Pythonガイド](/../usage/python.md)を参照してください。
 
 !!! example
 
@@ -184,4 +184,4 @@ YOLOv8のPythonインターフェースを使用すると、Pythonプロジェ�
     success = model.export(format='onnx')
     ```
 
-[Pythonガイド](../usage/python.md){.md-button .md-button--primary}
+[Pythonガイド](/../usage/python.md){.md-button .md-button--primary}

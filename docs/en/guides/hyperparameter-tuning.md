@@ -188,7 +188,7 @@ This file contains scatter plots generated from `tune_results.csv`, helping you 
 
 This directory contains the saved PyTorch models for the last and the best iterations during the hyperparameter tuning process.
 
-- **`last.pt`**: The last.pt weights for the iteration that achieved the best fitness score.
+- **`last.pt`**: The last.pt are the weights from the last epoch of training.
 - **`best.pt`**: The best.pt weights for the iteration that achieved the best fitness score.
 
 Using these results, you can make more informed decisions for your future model trainings and analyses. Feel free to consult these artifacts to understand how well your model performed and how you might improve it further.

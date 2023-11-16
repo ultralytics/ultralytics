@@ -48,7 +48,7 @@ keywords: yolov8, インスタンスセグメンテーション, Ultralytics, CO
 
 ## トレーニング
 
-COCO128-segデータセットで、画像サイズ640でYOLOv8n-segを100エポックトレーニングします。利用可能な全ての引数については、[コンフィギュレーション](../../usage/cfg.md)ページを参照してください。
+COCO128-segデータセットで、画像サイズ640でYOLOv8n-segを100エポックトレーニングします。利用可能な全ての引数については、[コンフィギュレーション](/../usage/cfg.md)ページを参照してください。
 
 !!! example ""
 
@@ -80,7 +80,7 @@ COCO128-segデータセットで、画像サイズ640でYOLOv8n-segを100エポ�
 
 ### データセットフォーマット
 
-YOLOセグメンテーションデータセットのフォーマットの詳細は、[データセットガイド](../../datasets/segment/index.md)で見つけることができます。既存のデータセットを他のフォーマット(例えばCOCOなど)からYOLOフォーマットに変換するには、Ultralyticsの[JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)ツールを使用してください。
+YOLOセグメンテーションデータセットのフォーマットの詳細は、[データセットガイド](../../../datasets/segment/index.md)で見つけることができます。既存のデータセットを他のフォーマット(例えばCOCOなど)からYOLOフォーマットに変換するには、Ultralyticsの[JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)ツールを使用してください。
 
 ## 評価
 

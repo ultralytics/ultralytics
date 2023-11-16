@@ -129,7 +129,7 @@ Ultralytics는 pip, conda, Docker를 포함한 다양한 설치 방법을 제공
 
 ## 명령줄 인터페이스(CLI)로 Ultralytics 사용하기
 
-Ultralytics 명령줄 인터페이스(CLI)는 Python 환경이 필요 없이 단일 라인 명령어를 통해 작업을 쉽게 실행할 수 있도록 합니다. CLI는 커스터마이징이나 Python 코드가 필요 없습니다. `yolo` 명령어를 이용해 터미널에서 모든 작업을 실행할 수 있습니다. 명령줄에서 YOLOv8을 사용하는 방법에 대해 더 알아보려면 [CLI 가이드](../usage/cli.md)를 참고하세요.
+Ultralytics 명령줄 인터페이스(CLI)는 Python 환경이 필요 없이 단일 라인 명령어를 통해 작업을 쉽게 실행할 수 있도록 합니다. CLI는 커스터마이징이나 Python 코드가 필요 없습니다. `yolo` 명령어를 이용해 터미널에서 모든 작업을 실행할 수 있습니다. 명령줄에서 YOLOv8을 사용하는 방법에 대해 더 알아보려면 [CLI 가이드](/../usage/cli.md)를 참고하세요.
 
 !!! example
 
@@ -143,7 +143,7 @@ Ultralytics 명령줄 인터페이스(CLI)는 Python 환경이 필요 없이 단
                 MODE (필수)는 [train, val, predict, export, track] 중 하나
                 ARGS (선택적)은 'imgsz=320'과 같이 기본값을 재정의하는 'arg=value' 쌍을 아무 개수나 지정할 수 있습니다.
         ```
-        모든 ARGS는 전체 [구성 가이드](../usage/cfg.md)에서 또는 `yolo cfg`로 확인할 수 있습니다
+        모든 ARGS는 전체 [구성 가이드](/../usage/cfg.md)에서 또는 `yolo cfg`로 확인할 수 있습니다
 
     === "Train"
 
@@ -193,4 +193,4 @@ Ultralytics 명령줄 인터페이스(CLI)는 Python 환경이 필요 없이 단
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI 가이드](../usage/cli.md){ .md-button .md-button--primary}
+[CLI 가이드](/../usage/cli.md){ .md-button .md-button--primary}

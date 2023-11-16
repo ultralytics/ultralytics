@@ -46,7 +46,7 @@
 
 ## <div align="center">文档</div>
 
-请参阅下面的快速安装和使用示例，以及 [YOLOv8 文档](https://docs.ultralytics.com) 上有关培训、验证、预测和部署的完整文档。
+请参阅下面的快速安装和使用示例，以及 [YOLOv8 文档](https://docs.ultralytics.com) 上有关训练、验证、预测和部署的完整文档。
 
 <details open>
 <summary>安装</summary>

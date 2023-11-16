@@ -81,7 +81,7 @@ Trainieren Sie ein YOLOv8-Pose-Modell auf dem COCO128-Pose-Datensatz.
 
 ### Datensatzformat
 
-Das YOLO-Pose-Datensatzformat finden Sie detailliert im [Datensatz-Leitfaden](../../datasets/pose/index.md). Um Ihren bestehenden Datensatz aus anderen Formaten (wie COCO usw.) in das YOLO-Format zu konvertieren, verwenden Sie bitte das [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)-Tool von Ultralytics.
+Das YOLO-Pose-Datensatzformat finden Sie detailliert im [Datensatz-Leitfaden](../../../datasets/pose/index.md). Um Ihren bestehenden Datensatz aus anderen Formaten (wie COCO usw.) in das YOLO-Format zu konvertieren, verwenden Sie bitte das [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)-Tool von Ultralytics.
 
 ## Validieren
 

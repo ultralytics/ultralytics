@@ -23,16 +23,24 @@ theme:
   #  text: Helvetica
   #  code: Roboto Mono
   palette:
-    - scheme: default  # light mode
-      # primary: grey
+    - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/toggle-switch
-        name: Switch to dark mode
-    - scheme: slate  # dark mode
-      # primary: black
-      toggle:
-        icon: material/toggle-switch-off-outline
+        icon: material/brightness-auto
         name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
   features:
     - announce.dismiss
     - content.action.edit
@@ -109,7 +117,9 @@ extra:
       link: https://ultralytics.com/discord
 
 extra_css:
-  - 'stylesheets/style.css'
+  - stylesheets/style.css
+extra_javascript:
+  - javascript/extra.js
 
 markdown_extensions:
   - admonition
@@ -138,43 +148,42 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - Página Inicial:
-      - Página Inicial: index.md
-      - Início Rápido: quickstart.md
-      - Modos:
+  - Startseite:
+      - Startseite: index.md
+      - Schnellstart: quickstart.md
+      - Modi:
           - modes/index.md
-          - Treinamento: modes/train.md
-          - Validação: modes/val.md
-          - Previsão: modes/predict.md
-          - Exportação: modes/export.md
-          - Rastreamento: modes/track.md
+          - Training: modes/train.md
+          - Validierung: modes/val.md
+          - Vorhersage: modes/predict.md
+          - Exportieren: modes/export.md
+          - Verfolgen: modes/track.md
           - Benchmarking: modes/benchmark.md
-      - Tarefas:
+      - Aufgaben:
           - tasks/index.md
-          - Detecção: tasks/detect.md
-          - Segmentação: tasks/segment.md
-          - Classificação: tasks/classify.md
+          - Erkennung: tasks/detect.md
+          - Segmentierung: tasks/segment.md
+          - Klassifizierung: tasks/classify.md
           - Pose: tasks/pose.md
-  - Início Rápido: quickstart.md
-  - Modos:
+  - Schnellstart: quickstart.md
+  - Modi:
       - modes/index.md
-      - Treinamento: modes/train.md
-      - Validação: modes/val.md
-      - Previsão: modes/predict.md
-      - Exportação: modes/export.md
-      - Rastreamento: modes/track.md
+      - Training: modes/train.md
+      - Validierung: modes/val.md
+      - Vorhersage: modes/predict.md
+      - Exportieren: modes/export.md
+      - Verfolgen: modes/track.md
       - Benchmarking: modes/benchmark.md
-  - Tarefas:
+  - Aufgaben:
       - tasks/index.md
-      - Detecção: tasks/detect.md
-      - Segmentação: tasks/segment.md
-      - Classificação: tasks/classify.md
+      - Erkennung: tasks/detect.md
+      - Segmentierung: tasks/segment.md
+      - Klassifizierung: tasks/classify.md
       - Pose: tasks/pose.md
-  - Modelos:
+  - Modelle:
       - models/index.md
-  - Conjuntos de Dados:
+  - Datensätze:
       - datasets/index.md
-
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:

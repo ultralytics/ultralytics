@@ -48,7 +48,7 @@ Hier werden vortrainierte YOLOv8 Segment-Modelle gezeigt. Detect-, Segment- und 
 
 ## Training
 
-Trainieren Sie YOLOv8n-seg auf dem COCO128-seg-Datensatz für 100 Epochen mit einer Bildgröße von 640. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](../../usage/cfg.md).
+Trainieren Sie YOLOv8n-seg auf dem COCO128-seg-Datensatz für 100 Epochen mit einer Bildgröße von 640. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](/../usage/cfg.md).
 
 !!! Beispiel ""
 
@@ -80,7 +80,7 @@ Trainieren Sie YOLOv8n-seg auf dem COCO128-seg-Datensatz für 100 Epochen mit ei
 
 ### Datenformat
 
-Das YOLO Segmentierungsdatenformat finden Sie detailliert im [Dataset Guide](../../datasets/segment/index.md). Um Ihre vorhandenen Daten aus anderen Formaten (wie COCO usw.) in das YOLO-Format umzuwandeln, verwenden Sie bitte das [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)-Tool von Ultralytics.
+Das YOLO Segmentierungsdatenformat finden Sie detailliert im [Dataset Guide](../../../datasets/segment/index.md). Um Ihre vorhandenen Daten aus anderen Formaten (wie COCO usw.) in das YOLO-Format umzuwandeln, verwenden Sie bitte das [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO)-Tool von Ultralytics.
 
 ## Val
 

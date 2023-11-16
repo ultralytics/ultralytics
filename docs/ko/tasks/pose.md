@@ -81,7 +81,7 @@ COCO128-pose 데이터셋에서 YOLOv8-pose 모델 학습하기.
 
 ### 데이터셋 형식
 
-YOLO 포즈 데이터셋 형식에 대한 자세한 내용은 [데이터셋 가이드](../../datasets/pose/index.md)에서 찾아볼 수 있습니다. 기존 데이터셋을 다른 형식(예: COCO 등)에서 YOLO 형식으로 변환하려면 Ultralytics의 [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) 도구를 사용하세요.
+YOLO 포즈 데이터셋 형식에 대한 자세한 내용은 [데이터셋 가이드](../../../datasets/pose/index.md)에서 찾아볼 수 있습니다. 기존 데이터셋을 다른 형식(예: COCO 등)에서 YOLO 형식으로 변환하려면 Ultralytics의 [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) 도구를 사용하세요.
 
 ## 검증
 

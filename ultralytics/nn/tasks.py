@@ -58,7 +58,7 @@ class BaseModel(nn.Module):
         if augment:
             return self._predict_augment(x)
         return self._predict_once(x, profile, visualize)
-    
+
     def _average_and_normalize(self, input_tensor):
         """
         Compute the average of the 20x20 layers in the input tensor and normalize the result to a list.
@@ -69,7 +69,7 @@ class BaseModel(nn.Module):
         Returns:
             list: A list containing the normalized values of the backbone.
         """
-    
+
         # Step 1: Apply adaptive average pooling to tensor of shape (B, 576, 20, 20)
         avg_pooled = torch.nn.functional.adaptive_avg_pool2d(input_tensor, (1, 1))
 
@@ -97,16 +97,18 @@ class BaseModel(nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
-        img_embedding = None # initialize empty vector
-        
+        img_embedding = None  # initialize empty vector
+
         for m in self.model:
             
             # During Model iteration, it is has the following Head Class (YOLO Models), 
+
+            # During Model iteration, it is has the following Head Class,
             # then access and save backbone embedding prior to processing Head
             if isinstance(m, (Detect, Segment, Pose, Classify)):
                 # Ensure vector normalization on output
                 img_embedding = self._average_and_normalize(x)
-                
+
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:

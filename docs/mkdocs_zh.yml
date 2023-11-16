@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 site_name: Ultralytics YOLOv8 文档
+site_description: 探索Ultralytics YOLOv8，这是一款尖端的实时对象检测和图像分割模型，适用于各种应用和硬件平台。
 site_url: https://docs.ultralytics.com/zh/
-site_description: Explore Ultralytics YOLOv8, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/zh/
@@ -65,12 +65,33 @@ extra:
     provider: google
     property: G-2M5EHKC0BH
   alternate: # language drop-down
-    - name: English
+    - name: 🇬🇧 English
       link: /
       lang: en
-    - name: 简体中文
+    - name: 🇨🇳 简体中文
       link: /zh/
       lang: zh
+    - name: 🇰🇷 한국어
+      link: /ko/
+      lang: ko
+    - name: 🇯🇵 日本語
+      link: /ja/
+      lang: ja
+    - name: 🇷🇺 Русский
+      link: /ru/
+      lang: ru
+    - name: 🇩🇪 Deutsch
+      link: /de/
+      lang: de
+    - name: 🇫🇷 Français
+      link: /fr/
+      lang: fr
+    - name: 🇪🇸 Español
+      link: /es/
+      lang: es
+    - name: 🇵🇹 Português
+      link: /pt/
+      lang: pt
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics
@@ -149,7 +170,10 @@ nav:
       - 分割: tasks/segment.md
       - 分类: tasks/classify.md
       - 姿态: tasks/pose.md
-
+  - 模型:
+      - models/index.md
+  - 数据集:
+      - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:

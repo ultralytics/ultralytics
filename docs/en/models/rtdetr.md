@@ -71,11 +71,11 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
 
 ### Supported Modes
 
-| Mode       | Supported          |
-|------------|--------------------|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
-| Training   | :heavy_check_mark: |
+| Mode       | Supported |
+|------------|-----------|
+| Inference  | ✅         |
+| Validation | ✅         |
+| Training   | ✅         |
 
 ## Citations and Acknowledgements
 

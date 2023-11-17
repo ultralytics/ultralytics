@@ -131,11 +131,11 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 ## Operating Modes
 
-| Mode       | Supported          |
-|------------|--------------------|
-| Inference  | :heavy_check_mark: |
-| Validation | :x:                |
-| Training   | :x:                |
+| Mode       | Supported |
+|------------|-----------|
+| Inference  | ✅         |
+| Validation | :x:       |
+| Training   | :x:       |
 
 ## SAM comparison vs YOLOv8
 

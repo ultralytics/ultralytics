@@ -95,6 +95,7 @@ class BboxLoss(nn.Module):
         return (F.cross_entropy(pred_dist, tl.view(-1), reduction='none').view(tl.shape) * wl +
                 F.cross_entropy(pred_dist, tr.view(-1), reduction='none').view(tl.shape) * wr).mean(-1, keepdim=True)
 
+
 class RotatedBboxLoss(nn.Module):
     """Criterion class for computing training losses during training."""
 
@@ -626,7 +627,8 @@ class v8OBBLoss(v8DetectionLoss):
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     def bbox_decode(self, anchor_points, pred_distance):
-        """Decode predicted object bounding box coordinates from anchor points and distribution.
+        """
+        Decode predicted object bounding box coordinates from anchor points and distribution.
 
         Args:
             anchor_points (torch.Tensor): Anchor points, (h*w, 2).

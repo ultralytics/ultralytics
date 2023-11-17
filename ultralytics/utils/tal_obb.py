@@ -16,7 +16,6 @@ def select_candidates_in_rotated_gts(xy_centers, gt_bboxes, eps=1e-9):
     Returns:
         (Tensor): shape(b, n_boxes, h*w)
     """
-    n_anchors = xy_centers.shape[0]
     bs, n_boxes, _ = gt_bboxes.shape
     # (b, n_boxes, 5) --> (b, n_boxes, 4, 2)
     corners = xywhr2xyxyxyxy(gt_bboxes).view(bs, n_boxes, 4, 2)

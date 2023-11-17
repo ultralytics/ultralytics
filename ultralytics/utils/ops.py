@@ -519,7 +519,7 @@ def xywhr2xyxyxyxy(center):
     is_numpy = isinstance(center, np.ndarray)
     cos, sin = (np.cos, np.sin) if is_numpy else (torch.cos, torch.sin)
 
-    cx, cy, w, h, rotation = center.T
+    cx, cy, w, h, rotation = center.split(1, dim=-1)
     # rotation *= math.pi / 180.0  # degrees to radians
 
     dx = w / 2

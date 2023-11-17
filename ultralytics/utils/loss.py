@@ -7,8 +7,9 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
+from ultralytics.utils.tal_obb import RotatedTaskAlignedAssigner
 
-from .metrics import bbox_iou
+from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
 
 
@@ -93,6 +94,22 @@ class BboxLoss(nn.Module):
         wr = 1 - wl  # weight right
         return (F.cross_entropy(pred_dist, tl.view(-1), reduction='none').view(tl.shape) * wl +
                 F.cross_entropy(pred_dist, tr.view(-1), reduction='none').view(tl.shape) * wr).mean(-1, keepdim=True)
+
+class RotatedBboxLoss(nn.Module):
+    """Criterion class for computing training losses during training."""
+
+    def __init__(self):
+        """Initialize the BboxLoss module with regularization maximum and DFL settings."""
+        super().__init__()
+
+    def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
+        """IoU loss."""
+        weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
+        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
+        loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
+        loss_dfl = torch.tensor(0.0).to(pred_dist.device)
+
+        return loss_iou, loss_dfl
 
 
 class KeypointLoss(nn.Module):
@@ -532,7 +549,8 @@ class v8OBBLoss(v8DetectionLoss):
 
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
-        self.nm = model.model[-1].ne  # number of extra outputs
+        self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
+        self.bbox_loss = RotatedBboxLoss().to(self.device)
 
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocesses the target counts and matches with the input batch size to output a tensor."""
@@ -553,7 +571,7 @@ class v8OBBLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate and return the loss for the YOLO model."""
-        loss = torch.zeros(4, device=self.device)  # box, cls, dfl
+        loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         feats, pred_angle = preds if isinstance(preds[0], list) else preds[1]
         batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -583,7 +601,7 @@ class v8OBBLoss(v8DetectionLoss):
                             'as an example.\nSee https://docs.ultralytics.com/datasets/obb/ for help.') from e
 
         # Pboxes
-        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
+        pred_bboxes = self.bbox_decode(anchor_points, torch.cat([pred_distri, pred_angle], dim=-1))  # xyxy, (b, h*w, 4)
 
         _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
@@ -606,3 +624,23 @@ class v8OBBLoss(v8DetectionLoss):
         loss[2] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+
+    def bbox_decode(self, anchor_points, pred_distance):
+        """Decode predicted object bounding box coordinates from anchor points and distribution.
+
+        Args:
+            anchor_points (torch.Tensor): Anchor points, (h*w, 2).
+            distance (torch.Tensor): Predicted rotated distance, (bs, h*w, 5).
+        """
+        pred_distance, angle = pred_distance.split([4, 1], dim=-1)
+        cos, sin = torch.cos(angle), torch.sin(angle)
+        r_matrix = torch.cat([cos, -sin, sin, cos], dim=-1)
+        # (bs, h*w, 2, 2)
+        r_matrix = r_matrix.view(*angle.shape[:-1], 2, 2)
+        wh = pred_distance[..., :2] + pred_distance[..., 2:]
+
+        # (bs, h*w, 2)
+        offset = (pred_distance[..., 2:] - pred_distance[..., :2]) / 2
+        offset = torch.matmul(r_matrix, offset[..., None]).squeeze(-1)
+        xy = anchor_points[..., :2] + offset
+        return torch.cat([xy, wh, angle], dim=-1)

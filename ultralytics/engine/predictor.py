@@ -348,10 +348,11 @@ class BasePredictor:
             cv2.imwrite(save_path, im0)
         else:  # 'video' or 'stream'
             if self.args.save_frames:
-                frame_path = Path(save_path).parent / 'images' / Path(save_path).name.replace('.mp4', f'_{self.vid_frame}.jpg')
+                frame_path = Path(save_path).parent / 'images' / Path(save_path).name.replace(
+                    '.mp4', f'_{self.vid_frame}.jpg')
                 self.vid_frame += 1
                 cv2.imwrite(str(frame_path), im0)
-            else: # gather frames into a video file
+            else:  # gather frames into a video file
                 if self.vid_path[idx] != save_path:  # new video
                     self.vid_frame = 0
                     self.vid_path[idx] = save_path

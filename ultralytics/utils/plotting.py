@@ -107,6 +107,7 @@ class Annotator:
         if self.pil or not is_ascii(label):
             if rotated:
                 p1 = box[0]
+                # NOTE: PIL-version polygon needs tuple type.
                 self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)
             else:
                 p1 = (box[0], box[1])
@@ -123,6 +124,7 @@ class Annotator:
         else:  # cv2
             if rotated:
                 p1 = box[0]
+                # NOTE: cv2-version polylines needs np.asarray type.
                 cv2.polylines(self.im, [np.asarray(box)], True, color, self.lw)
             else:
                 p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))

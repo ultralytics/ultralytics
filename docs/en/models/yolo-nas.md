@@ -98,7 +98,7 @@ The YOLO-NAS models support both inference and validation modes, allowing you to
 |------------|-----------|
 | Inference  | ✅         |
 | Validation | ✅         |
-| Training   | :x:       |
+| Training   | ❌         |
 
 Harness the power of the YOLO-NAS models to drive your object detection tasks to new heights of performance and speed.
 

@@ -134,8 +134,8 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 | Mode       | Supported |
 |------------|-----------|
 | Inference  | ✅         |
-| Validation | :x:       |
-| Training   | :x:       |
+| Validation | ❌         |
+| Training   | ❌         |
 
 ## SAM comparison vs YOLOv8
 

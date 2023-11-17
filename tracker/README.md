@@ -1,33 +1,40 @@
-# 📚 README TO RUN TRACKER 🚀
-This README provides instructions on how to create a Docker image,
-export your model to onnx format and how to run the tracker in video data.
+# 📘 Easy Guide to Run Tracker 🚀
+
+Welcome to the easy step-by-step guide for running the Tracker 📹! This guide will help you set up a Docker image, export your model to ONNX format, and track objects in video data efficiently.
+
+## 🐳 Setting Up the Docker Image
+### 🧰 Prerequisites 
+Before we begin, ensure you have:
+- Docker installed on your machine 🐋
+- Your preferred code editor open and ready 📝
+
+### 🚀 Instructions
+#### Step 1: Prepare Your Data
+Create a data directory to store your video files by running:
+  ```bash
+  mkdir data
+  ```
+Then, adjust the settings in track_config.json within the tracker directory to specify your video file and any parameters you wish to modify.
+
+![Screenshot 2023-11-17 at 16.25.56.png](..%2F..%2F..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fss%2Fmt68jfh13m1481wxxyz6dq2r0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_LRIwtO%2FScreenshot%202023-11-17%20at%2016.25.56.png)
+
+#### Step 2: Build the Docker Image
+Construct your Docker image with this command:
+  ```bash
+  docker build -t tracker_onnx -f Dockerfile.tracker . --platform linux/amd64
+  ```
+This will create an image with all the necessary configurations and packages using the specified Dockerfile.
+
+### Step 3: Run Your Docker Image
+Execute your Docker image with bound volumes:
+
+  ```bash
+  sudo docker run -it -v /absolute_path/inference_tools/models:/app/models -v /absolute_path/tracker/data:/app/data tracker_onnx
+  ```
+🔁 Replace /absolute_path/ with the actual path to your models and data. This setup allows your code to access the model directory, convert models from the .pth format (PyTorch) to ONNX, and process the specified video file. You'll receive the exported model in your model directory and the processed video with annotations, bounding boxes, and trajectory information in your data directory.
 
 
-Welcome to the README for running the Tracker 📹!. Here you can find a guide 
-to create a Docker image, exporting your model to ONNX format, and running 
-the tracker on video data. Let's get started!
-
-## 🐳 In Docker Image
-### 👨🏽‍💻 Prerequisites 
-
-Before diving into the Docker image setup, make sure you have the following
-prerequisites in place:
-
-- Docker installed 🐋
-- Your favorite code editor ready 📝
-
-### 👨🏽‍💻 Steps 
-
-### 1. Build the Docker image using the following command:
-
-```bash
-docker build -t tracker_onnx -f Dockerfile.tracker . --platform linux/amd64
-```
-
-### 2. Run the Docker image with volumes using the following command:
-```bash
-sudo docker run -it -v /Users/ejbejaranos/Documents/Edison/2023/UB/inference_tools/models:/app/models tracker_onnx
-```
+That's it! You're ready to track objects in your video data with your Docker image! 🎉
 
 
 ## 💻 In Local Environment

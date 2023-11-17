@@ -115,8 +115,7 @@ class Annotator:
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
-                    (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1,
-                     p1[1] + 1 if outside else p1[1] + h + 1),
+                    (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
                 )
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0

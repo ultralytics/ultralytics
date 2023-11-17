@@ -1,7 +1,8 @@
-from .tal import TaskAlignedAssigner
-from .ops import xywhr2xyxyxyxy
-from .metrics import probiou
 import torch
+
+from .metrics import probiou
+from .ops import xywhr2xyxyxyxy
+from .tal import TaskAlignedAssigner
 
 
 def select_candidates_in_rotated_gts(xy_centers, gt_bboxes, eps=1e-9):
@@ -30,8 +31,7 @@ def select_candidates_in_rotated_gts(xy_centers, gt_bboxes, eps=1e-9):
     norm_ad = (ad * ad).sum(dim=-1)
     ap_dot_ab = (ap * ab).sum(dim=-1)
     ap_dot_ad = (ap * ad).sum(dim=-1)
-    is_in_box = (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (
-        ap_dot_ad <= norm_ad)
+    is_in_box = (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (ap_dot_ad <= norm_ad)
     return is_in_box
 
 
@@ -69,4 +69,3 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         mask_pos = mask_topk * mask_in_gts * mask_gt
 
         return mask_pos, align_metric, overlaps
-

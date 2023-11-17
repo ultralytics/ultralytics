@@ -199,8 +199,8 @@ def probiou(obb1, obb2, eps=1e-7):
     t1 = (((a1 + a2) * (torch.pow(y1 - y2, 2)) + (b1 + b2) * (torch.pow(x1 - x2, 2))) /
           ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.25
     t2 = (((c1 + c2) * (x2 - x1) * (y1 - y2)) / ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.5
-    t3 = (torch.log(((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2))) /
-                    (4 * torch.sqrt((a1 * b1 - torch.pow(c1, 2)) * (a2 * b2 - torch.pow(c2, 2))) + eps) + eps) * 0.5)
+    t3 = torch.log(((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2))) /
+                    (4 * torch.sqrt((a1 * b1 - torch.pow(c1, 2)).clamp_(0) * (a2 * b2 - torch.pow(c2, 2)).clamp_(0)) + eps) + eps) * 0.5
     bd = t1 + t2 + t3
     bd = torch.clamp(bd, eps, 100.0)
     hd = torch.sqrt(1.0 - torch.exp(-bd) + eps)

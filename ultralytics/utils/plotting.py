@@ -100,25 +100,34 @@ class Annotator:
         self.limb_color = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
         self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
 
-    def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
+    def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
         """Add one xyxy box to image with label."""
         if isinstance(box, torch.Tensor):
             box = box.tolist()
         if self.pil or not is_ascii(label):
-            self.draw.rectangle(box, width=self.lw, outline=color)  # box
+            if rotated:
+                p1 = box[0]
+                self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)
+            else:
+                p1 = (box[0], box[1])
+                self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
                 w, h = self.font.getsize(label)  # text width, height
-                outside = box[1] - h >= 0  # label fits outside box
+                outside = p1[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
-                    (box[0], box[1] - h if outside else box[1], box[0] + w + 1,
-                     box[1] + 1 if outside else box[1] + h + 1),
+                    (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1,
+                     p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
                 )
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
-                self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
+                self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-            cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            if rotated:
+                p1 = box[0]
+                cv2.polylines(self.im, [np.asarray(box)], True, color, self.lw)
+            else:
+                p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
@@ -417,14 +426,14 @@ def plot_images(images,
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
     for i in range(i + 1):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
+        # annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
             annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype('int')
 
-            if len(bboxes):
+            if len(bboxes) and bboxes.shape[-1] == 4:
                 boxes = ops.xywh2xyxy(bboxes[idx, :4]).T
                 labels = bboxes.shape[1] == 4  # labels if no conf column
                 conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
@@ -444,6 +453,25 @@ def plot_images(images,
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
                         annotator.box_label(box, label, color=color)
+            elif len(bboxes) and bboxes.shape[-1] == 5:
+                # TODO: Clean code reduplication
+                boxes = ops.xywhr2xyxyxyxy(bboxes[idx, :5]).reshape(-1, 4, 2)
+                labels = bboxes.shape[1] == 5  # labels if no conf column
+                conf = None if labels else bboxes[idx, 5]  # check for confidence presence (label vs pred)
+                if boxes.max() <= 1.1:  # if normalized with tolerance 0.1
+                    boxes[..., 0] *= w  # scale to pixels
+                    boxes[..., 1] *= h
+                elif scale < 1:  # absolute coords need scale if image scales
+                    boxes *= scale
+                boxes[..., 0] += x
+                boxes[..., 1] += y
+                for j, box in enumerate(boxes.astype(np.int64).tolist()):
+                    c = classes[j]
+                    color = colors(c)
+                    c = names.get(c, c) if names else c
+                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                        label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
+                        annotator.box_label(box, label, color=color, rotated=True)
             elif len(classes):
                 for c in classes:
                     color = colors(c)

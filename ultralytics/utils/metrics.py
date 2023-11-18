@@ -166,7 +166,8 @@ def kpt_iou(kpt1, kpt2, area, sigma, eps=1e-7):
 
 
 def _get_covariance_matrix(boxes):
-    """Generating covariance matrix from obbs.
+    """
+    Generating covariance matrix from obbs.
 
     Args:
         boxes (torch.Tensor): A tensor of shape (N, 5) representing rotated bounding boxes, with xywhr format.
@@ -226,9 +227,9 @@ def batch_probiou(obb1, obb2, eps=1e-7):
         (torch.Tensor): A tensor of shape (N, M) representing obb similarities.
     """
     x1, y1 = obb1[..., :2].split(1, dim=-1)
-    x2, y2 = [x.squeeze(-1)[None] for x in obb2[..., :2].split(1, dim=-1)]
+    x2, y2 = (x.squeeze(-1)[None] for x in obb2[..., :2].split(1, dim=-1))
     a1, b1, c1 = _get_covariance_matrix(obb1)
-    a2, b2, c2 = [x.squeeze(-1)[None] for x in _get_covariance_matrix(obb2)]
+    a2, b2, c2 = (x.squeeze(-1)[None] for x in _get_covariance_matrix(obb2))
 
     t1 = (((a1 + a2) * (torch.pow(y1 - y2, 2)) + (b1 + b2) * (torch.pow(x1 - x2, 2))) /
           ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.25

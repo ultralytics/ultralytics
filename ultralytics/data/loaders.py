@@ -493,7 +493,7 @@ def autocast_list(source):
 LOADERS = LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots  # tuple
 
 
-def get_best_youtube_url(url, use_pafy=True):
+def get_best_youtube_url(url, use_pafy=False):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 

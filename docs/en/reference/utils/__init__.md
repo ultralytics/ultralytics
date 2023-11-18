@@ -22,10 +22,6 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 <br><br>
 
 ---
-## ::: ultralytics.utils.EmojiFilter
-<br><br>
-
----
 ## ::: ultralytics.utils.ThreadingLocked
 <br><br>
 

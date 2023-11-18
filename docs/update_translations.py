@@ -88,10 +88,9 @@ class MarkdownLinkFixer:
     @staticmethod
     def update_iframe(content):
         """Update the 'allow' attribute of iframe if it does not contain the specific English permissions."""
-        english_permissions = \
-            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
-        pattern = re.compile(f'allow="(?!{re.escape(english_permissions)}).+?"')
-        return pattern.sub(f'allow="{english_permissions}"', content)
+        english = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+        pattern = re.compile(f'allow="(?!{re.escape(english)}).+?"')
+        return pattern.sub(f'allow="{english}"', content)
 
     def link_replacer(self, match, parent_dir, lang_dir, use_abs_link=False):
         """Replace broken links with corresponding links in the /en/ directory."""

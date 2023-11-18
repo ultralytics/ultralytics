@@ -1,3 +1,8 @@
+---
+description: Deploy ML models effortlessly with Ultralytics TritonRemoteModel. Simplify serving with our comprehensive utils guide.
+keywords: Ultralytics, YOLO, TritonRemoteModel, machine learning, model serving, deployment, utils, documentation
+---
+
 # Reference for `ultralytics/utils/triton.py`
 
 !!! note

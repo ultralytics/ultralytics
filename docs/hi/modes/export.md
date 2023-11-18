@@ -1,6 +1,6 @@
 ---
 comments: true
-description: सभी प्रकार के निर्यात स्तर पर YOLOv8 मॉडल्स को निर्यात करने के लिए आपके लिए चरण-दर-चरण मार्गदर्शिका। अब निर्यात की जांच करें! 
+description: सभी प्रकार के निर्यात स्तर पर YOLOv8 मॉडल्स को निर्यात करने के लिए आपके लिए चरण-दर-चरण मार्गदर्शिका। अब निर्यात की जांच करें!
 keywords: YOLO, YOLOv8, Ultralytics, मॉडल निर्यात, ONNX, TensorRT, CoreML, TensorFlow SavedModel, OpenVINO, PyTorch, निर्यात मॉडल
 ---
 

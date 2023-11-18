@@ -63,7 +63,7 @@ keywords: Ultralytics، مستندات، YOLO، SAM، MobileSAM، FastSAM، YOLO
         results = model('path/to/bus.jpg')
         ```
     === "CLI"
-    
+
         هناك أوامر CLI متاحة لتشغيل النماذج مباشرةً:
 
         ```bash

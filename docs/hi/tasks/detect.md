@@ -63,7 +63,7 @@ YOLOv8 पूर्व प्रशिक्षित Detect मॉडल यह
         model = YOLO('yolov8n.yaml')  # YAML से नया मॉडल बनाएँ
         model = YOLO('yolov8n.pt')  # प्रशिक्षण के लिए सिफारिश किए गए पूर्वप्रशिक्षित मॉडल लोड करें
         model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # YAML से बनाएं और भार ट्रांसफर करें और प्रशिक्षित करें
-        
+
         # मॉडल को प्रशिक्षित करें
         results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
@@ -72,10 +72,10 @@ YOLOv8 पूर्व प्रशिक्षित Detect मॉडल यह
         ```bash
         # YAML से एक नया मॉडल बनाकर खाली से शुरू करें
         yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
-        
+
         # पूर्व प्रशिक्षित *.pt मॉडल से प्रशिक्षण शुरू करें
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
-        
+
         # यैतायत्मिक रूप से भार ट्रांसफर करके नया मॉडल बनाएँ और प्रशिक्षण शुरू करें
         yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
         ```

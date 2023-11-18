@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Script to fix broken Markdown links and front matter in language-specific directories.
+Script to fix broken Markdown links and front matter in language-specific directories zh, ko, ja, ru, de, fr, es, pt.
 
 This script processes markdown files in language-specific directories (like /zh/). It finds Markdown links and checks
 their existence. If a link is broken and does not exist in the language-specific directory but exists in the /en/
@@ -23,10 +23,9 @@ class MarkdownLinkFixer:
         self.update_links = update_links
         self.update_frontmatter = update_frontmatter
         self.update_iframes = update_iframes
-        self.md_link_regex = re.compile(r'\[([^\]]+)\]\(([^:\)]+)\.md\)')
-        self.front_matter_regex = re.compile(r'^(comments|description|keywords):.*$', re.MULTILINE)
+        self.md_link_regex = re.compile(r'\[([^]]+)]\(([^:)]+)\.md\)')
         self.translations = {
-            'zh': ['评论', '描述', '关键词'],  # Mandarin Chinese (Simplified)
+            'zh': ['评论', '描述', '关键词'],  # Mandarin Chinese (Simplified) warning, sometimes translates as 关键字
             'es': ['comentarios', 'descripción', 'palabras clave'],  # Spanish
             'ru': ['комментарии', 'описание', 'ключевые слова'],  # Russian
             'pt': ['comentários', 'descrição', 'palavras-chave'],  # Portuguese
@@ -44,15 +43,17 @@ class MarkdownLinkFixer:
             for term, eng_key in zip(terms, english_keys):
                 if eng_key == 'comments':
                     # Replace comments key and set its value to 'true'
-                    content = re.sub(rf'{term} *:.*', f'{eng_key}: true', content)
+                    content = re.sub(rf'{term} *[：:].*', f'{eng_key}: true', content)
                 else:
-                    content = re.sub(rf'{term} *:', f'{eng_key}:', content)
+                    content = re.sub(rf'{term} *[：:] *', f'{eng_key}: ', content)
 
         return content
 
-    def update_iframe(self, content):
+    @staticmethod
+    def update_iframe(content):
         """Update the 'allow' attribute of iframe if it does not contain the specific English permissions."""
-        english_permissions = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+        english_permissions = \
+            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
         pattern = re.compile(f'allow="(?!{re.escape(english_permissions)}).+?"')
         return pattern.sub(f'allow="{english_permissions}"', content)
 

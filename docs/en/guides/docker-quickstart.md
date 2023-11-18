@@ -116,4 +116,4 @@ Replace `/path/on/host` with the directory path on your local machine and `/path
 
 ---
 
-Congratulations! You're now set up to use Ultralytics with Docker and ready to take advantage of its powerful capabilities. For alternate installation methods, feel free to explore the [Ultralytics quickstart documentation](https://docs.ultralytics.com/quickstart/).
+Congratulations! You're now set up to use Ultralytics with Docker and ready to take advantage of its powerful capabilities. For alternate installation methods, feel free to explore the [Ultralytics quickstart documentation](../quickstart.md).

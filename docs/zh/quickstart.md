@@ -1,7 +1,7 @@
 ---
-评论：真
-描述：探索使用pip、conda、git和Docker安装Ultralytics的各种方法。了解如何在命令行界面或Python项目中使用Ultralytics。
-关键字：Ultralytics安装，pip安装Ultralytics，Docker安装Ultralytics，Ultralytics命令行界面，Ultralytics Python接口
+comments: true
+description: 探索使用pip、conda、git和Docker安装Ultralytics的各种方法。了解如何在命令行界面或Python项目中使用Ultralytics。
+keywords: Ultralytics安装，pip安装Ultralytics，Docker安装Ultralytics，Ultralytics命令行界面，Ultralytics Python接口
 ---
 
 ## 安装Ultralytics
@@ -117,6 +117,17 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
         欲了解进阶Docker使用方法，请探索[Ultralytics Docker指南](https://docs.ultralytics.com/guides/docker-quickstart/)。
 
 有关依赖项列表，请参见`ultralytics`的[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)文件。请注意，上述所有示例均安装了所有必需的依赖项。
+
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/_a7cVL9hqnk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
+</p>
 
 !!! 提示 "提示"
 

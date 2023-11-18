@@ -85,11 +85,11 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
 
 ## Supported Modes
 
-| Mode       | Supported          |
-|------------|--------------------|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
-| Training   | :heavy_check_mark: |
+| Mode       | Supported |
+|------------|-----------|
+| Inference  | ✅         |
+| Validation | ✅         |
+| Training   | ✅         |
 
 ## Citations and Acknowledgements
 

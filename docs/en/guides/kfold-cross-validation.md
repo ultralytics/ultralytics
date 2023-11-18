@@ -20,7 +20,7 @@ Without further ado, let's dive in!
 
 ## Setup
 
-- Your annotations should be in the [YOLO detection format](https://docs.ultralytics.com/datasets/detect/).
+- Your annotations should be in the [YOLO detection format](../datasets/detect/index.md).
 
 - This guide assumes that annotation files are locally available.
 
@@ -52,7 +52,7 @@ Without further ado, let's dive in!
     - The Ultralytics library: `pip install -U ultralytics`. Alternatively, you can clone the official [repo](https://github.com/ultralytics/ultralytics).
     - Scikit-learn, pandas, and PyYAML: `pip install -U scikit-learn pandas pyyaml`.
 
-2. Verify that your annotations are in the [YOLO detection format](https://docs.ultralytics.com/datasets/detect/).
+2. Verify that your annotations are in the [YOLO detection format](../datasets/detect/index.md).
 
     - For this tutorial, all annotation files are found in the `Fruit-Detection/labels` directory.
 

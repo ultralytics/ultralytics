@@ -148,7 +148,7 @@ YOLOv8モデルをトレーニングする際、モデルのパフォーマン�
 
 Cometを使用するには：
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
         ```python
@@ -166,7 +166,7 @@ Cometアカウントにサインインし、APIキーを取得してください
 
 ClearMLを使用するには：
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
         ```python
@@ -184,7 +184,7 @@ ClearMLを使用するには：
 
 [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)でTensorBoardを使用するには：
 
-!!! Example ""
+!!! Example "例"
 
     === "CLI"
         ```bash
@@ -194,7 +194,7 @@ ClearMLを使用するには：
 
 TensorBoardをローカルで使用する場合は、http://localhost:6006/ で結果を確認できます。
 
-!!! Example ""
+!!! Example "例"
 
     === "CLI"
         ```bash

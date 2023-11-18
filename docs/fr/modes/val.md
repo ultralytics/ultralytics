@@ -38,7 +38,7 @@ Voici les fonctionnalités notables offertes par le mode Val de YOLOv8 :
 
 Validez la précision du modèle YOLOv8n entraîné sur le jeu de données COCO128. Aucun argument n'a besoin d'être passé car le `modèle` conserve ses `données` d'entraînement et arguments comme attributs du modèle. Consultez la section des arguments ci-dessous pour une liste complète des arguments d'exportation.
 
-!!! Example ""
+!!! Example "Exemple"
 
     === "Python"
 

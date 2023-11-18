@@ -58,7 +58,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 لتشغيل المتتبع على تدفقات الفيديو، استخدم نموذج تحديد (Detect) أو قطع (Segment) أو وضع (Pose) مدرب مثل YOLOv8n و YOLOv8n-seg و YOLOv8n-pose.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 
@@ -97,7 +97,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 تتشارك إعدادات التتبع الخصائص مع وضع التوقعات (Predict)، مثل `conf` و `iou` و `show`. للحصول على مزيد من التكوينات، راجع صفحة النموذج [Predict](../modes/predict.md#inference-arguments).
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 
@@ -120,7 +120,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 يتيح لك Ultralytics أيضًا استخدام ملف تكوين متتبع معدل. للقيام بذلك، أنقل نسخة من ملف تكوين المتتبع (مثل `custom_tracker.yaml`) من [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) وقم بتعديل أي تكوينات (باستثناء `tracker_type`) حسب احتياجاتك.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 

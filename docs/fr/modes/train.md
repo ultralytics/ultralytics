@@ -148,7 +148,7 @@ Pour utiliser un journal, sélectionnez-le dans le menu déroulant ci-dessus et 
 
 Pour utiliser Comet :
 
-!!! Example ""
+!!! Example "Exemple"
 
     === "Python"
         ```python
@@ -166,7 +166,7 @@ N'oubliez pas de vous connecter à votre compte Comet sur leur site web et d'obt
 
 Pour utiliser ClearML :
 
-!!! Example ""
+!!! Example "Exemple"
 
     === "Python"
         ```python
@@ -184,7 +184,7 @@ Après avoir exécuté ce script, vous devrez vous connecter à votre compte Cle
 
 Pour utiliser TensorBoard dans [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) :
 
-!!! Example ""
+!!! Example "Exemple"
 
     === "CLI"
         ```bash
@@ -194,7 +194,7 @@ Pour utiliser TensorBoard dans [Google Colab](https://colab.research.google.com/
 
 Pour utiliser TensorBoard localement, exécutez la commande ci-dessous et consultez les résultats à l'adresse http://localhost:6006/.
 
-!!! Example ""
+!!! Example "Exemple"
 
     === "CLI"
         ```bash

@@ -39,7 +39,7 @@ keywords: Ultralytics, YOLOv8, 画像分類, 事前トレーニングされた�
 
 画像サイズ64で100エポックにわたってMNIST160データセットにYOLOv8n-clsをトレーニングします。利用可能な引数の完全なリストについては、[設定](/../usage/cfg.md) ページを参照してください。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -76,7 +76,7 @@ YOLO分類データセットのフォーマットの詳細は [データセッ�
 
 MNIST160データセットでトレーニング済みのYOLOv8n-clsモデルの正確性を検証します。引数は必要ありません。`model` はトレーニング時の `data` および引数をモデル属性として保持しています。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -103,7 +103,7 @@ MNIST160データセットでトレーニング済みのYOLOv8n-clsモデルの�
 
 トレーニング済みのYOLOv8n-clsモデルを使用して、画像に対する予測を実行します。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -130,7 +130,7 @@ MNIST160データセットでトレーニング済みのYOLOv8n-clsモデルの�
 
 YOLOv8n-clsモデルをONNX、CoreMLなどの異なる形式にエクスポートします。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 

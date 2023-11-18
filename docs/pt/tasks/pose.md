@@ -53,7 +53,7 @@ Os modelos YOLOv8 Pose pré-treinados são mostrados aqui. Os modelos Detect, Se
 
 Treine um modelo YOLOv8-pose no conjunto de dados COCO128-pose.
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -90,7 +90,7 @@ O formato do conjunto de dados de pose YOLO pode ser encontrado em detalhes no [
 Valide a acurácia do modelo YOLOv8n-pose treinado no conjunto de dados COCO128-pose. Não é necessário passar nenhum argumento, pois o `model`
 retém seus `data` de treinamento e argumentos como atributos do modelo.
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -119,7 +119,7 @@ retém seus `data` de treinamento e argumentos como atributos do modelo.
 
 Use um modelo YOLOv8n-pose treinado para executar previsões em imagens.
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -146,7 +146,7 @@ Veja detalhes completos do modo `predict` na página [Prever](https://docs.ultra
 
 Exporte um modelo YOLOv8n Pose para um formato diferente como ONNX, CoreML, etc.
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 

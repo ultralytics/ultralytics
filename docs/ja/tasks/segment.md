@@ -50,7 +50,7 @@ keywords: yolov8, インスタンスセグメンテーション, Ultralytics, CO
 
 COCO128-segデータセットで、画像サイズ640でYOLOv8n-segを100エポックトレーニングします。利用可能な全ての引数については、[コンフィギュレーション](/../usage/cfg.md)ページを参照してください。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -86,7 +86,7 @@ YOLOセグメンテーションデータセットのフォーマットの詳細�
 
 訓練されたYOLOv8n-segモデルの精度をCOCO128-segデータセットで検証します。引数は必要ありません、なぜなら`model`はモデル属性としてトレーニング`data`と引数を保持しているからです。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -119,7 +119,7 @@ YOLOセグメンテーションデータセットのフォーマットの詳細�
 
 訓練されたYOLOv8n-segモデルを使用して画像の予測を実行します。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -146,7 +146,7 @@ YOLOセグメンテーションデータセットのフォーマットの詳細�
 
 YOLOv8n-segモデルをONNX、CoreMLなどの別の形式にエクスポートします。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 

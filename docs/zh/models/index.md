@@ -41,7 +41,7 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
 
 ## 入门：使用示例
 
-!!! Example ""
+!!! Example "示例"
 
     === "Python"
 

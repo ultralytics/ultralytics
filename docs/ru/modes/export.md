@@ -48,7 +48,7 @@ keywords: YOLO, YOLOv8, Ultralytics, Экспорт модели, ONNX, TensorRT
 
 Экспорт модели YOLOv8n в другой формат, например ONNX или TensorRT. Смотрите раздел Аргументы ниже для полного списка аргументов экспорта.
 
-!!! Example ""
+!!! Example "Пример"
 
     === "Python"
 

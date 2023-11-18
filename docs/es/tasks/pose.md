@@ -51,7 +51,7 @@ Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/c
 
 Entrena un modelo YOLOv8-pose en el conjunto de datos COCO128-pose.
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -87,7 +87,7 @@ El formato del conjunto de datos de pose de YOLO se puede encontrar en detalle e
 
 Valida la precisión del modelo YOLOv8n-pose entrenado en el conjunto de datos COCO128-pose. No es necesario pasar ningún argumento ya que el `modelo` mantiene sus `datos` de entrenamiento y argumentos como atributos del modelo.
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -116,7 +116,7 @@ Valida la precisión del modelo YOLOv8n-pose entrenado en el conjunto de datos C
 
 Usa un modelo YOLOv8n-pose entrenado para realizar predicciones en imágenes.
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -143,7 +143,7 @@ Consulta los detalles completos del modo `predict` en la página de [Predicción
 
 Exporta un modelo YOLOv8n Pose a un formato diferente como ONNX, CoreML, etc.
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 

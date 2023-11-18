@@ -51,7 +51,7 @@ keywords: Ultralytics, YOLO, YOLOv8, 姿态估计, 关键点检测, 物体检测
 
 在COCO128姿态数据集上训练一个YOLOv8姿态模型。
 
-!!! Example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -87,7 +87,7 @@ YOLO姿态数据集格式可详细找到在[数据集指南](/../datasets/pose/i
 
 在COCO128姿态数据集上验证训练好的YOLOv8n姿态模型的准确性。没有参数需要传递，因为`模型`保存了其训练`数据`和参数作为模型属性。
 
-!!! Example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -116,7 +116,7 @@ YOLO姿态数据集格式可详细找到在[数据集指南](/../datasets/pose/i
 
 使用训练好的YOLOv8n姿态模型在图片上运行预测。
 
-!!! Example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -143,7 +143,7 @@ YOLO姿态数据集格式可详细找到在[数据集指南](/../datasets/pose/i
 
 将YOLOv8n姿态模型导出为ONNX、CoreML等不同格式。
 
-!!! Example ""
+!!! Example "示例"
 
     === "Python"
 

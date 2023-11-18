@@ -41,7 +41,7 @@ keywords: Ultralytics, YOLOv8, ベンチマーク, スピードプロファイ�
 
 ONNX、TensorRTなど、すべてのサポートされるエクスポート形式でYOLOv8nベンチマークを実行します。完全なエクスポート引数のリストについては、以下のArgumentsセクションを参照してください。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 

@@ -51,7 +51,7 @@ YOLOv8事前トレーニング済みポーズモデルはこちらです。Detec
 
 COCO128-poseデータセットでYOLOv8-poseモデルをトレーニングします。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -87,7 +87,7 @@ YOLOポーズデータセットフォーマットの詳細は、[データセッ
 
 COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデルの精度を検証します。引数は必要なく、`model`にはトレーニング`data`と引数がモデル属性として保持されます。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -116,7 +116,7 @@ COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデ�
 
 トレーニング済みのYOLOv8n-poseモデルを使用して画像を予測します。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 
@@ -143,7 +143,7 @@ COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデ�
 
 YOLOv8n PoseモデルをONNX、CoreMLなどの異なるフォーマットにエクスポートします。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 

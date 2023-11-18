@@ -50,7 +50,7 @@ Os modelos Segment pré-treinados do YOLOv8 estão mostrados aqui. Os modelos De
 
 Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com tamanho de imagem 640. Para uma lista completa de argumentos disponíveis, consulte a página [Configuração](/../usage/cfg.md).
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -86,7 +86,7 @@ O formato do conjunto de dados de segmentação YOLO pode ser encontrado em deta
 
 Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-seg. Não é necessário passar nenhum argumento, pois o `modelo` retém seus `dados` de treino e argumentos como atributos do modelo.
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -119,7 +119,7 @@ Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-s
 
 Use um modelo YOLOv8n-seg treinado para realizar previsões em imagens.
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -146,7 +146,7 @@ Veja detalhes completos do modo `predict` na página [Prever](https://docs.ultra
 
 Exporte um modelo YOLOv8n-seg para um formato diferente como ONNX, CoreML, etc.
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 

@@ -38,7 +38,7 @@ Estas son las funcionalidades notables ofrecidas por el modo Val de YOLOv8:
 
 Valide la precisión del modelo YOLOv8n entrenado en el conjunto de datos COCO128. No es necesario pasar ningún argumento ya que el `modelo` retiene sus `datos` de entrenamiento y argumentos como atributos del modelo. Vea la sección de Argumentos a continuación para una lista completa de argumentos de exportación.
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 

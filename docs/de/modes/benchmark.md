@@ -41,7 +41,7 @@ Nachdem Ihr Modell trainiert und validiert wurde, ist der nächste logische Schr
 
 Führen Sie YOLOv8n-Benchmarks auf allen unterstützten Exportformaten einschließlich ONNX, TensorRT usw. durch. Siehe den Abschnitt Argumente unten für eine vollständige Liste der Exportargumente.
 
-!!! Example ""
+!!! Example "Beispiel"
 
     === "Python"
 

@@ -41,7 +41,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 Обучите модель YOLOv8-pose на наборе данных COCO128-pose.
 
-!!! Example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -78,7 +78,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 Проверьте точность обученной модели YOLOv8n-pose на наборе данных COCO128-pose. Аргументы не нужны, так как `model`
 запоминает свои `data` и аргументы как атрибуты модели.
 
-!!! Example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -107,7 +107,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 Используйте обученную модель YOLOv8n-pose для выполнения предсказаний на изображениях.
 
-!!! Example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -134,7 +134,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 Экспортируйте модель YOLOv8n Pose в другой формат, такой как ONNX, CoreML и т.д.
 
-!!! Example ""
+!!! Example "Пример"
 
     === "Python"
 

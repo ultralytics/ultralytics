@@ -41,7 +41,7 @@ Aqui estão alguns dos principais modelos suportados:
 
 ## Começando: Exemplos de Uso
 
-!!! Example ""
+!!! Example "Exemplo"
 
     === "Python"
 

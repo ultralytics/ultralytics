@@ -41,7 +41,7 @@ Ultralytics 모델 문서에 오신 것을 환영합니다! 저희는 [객체 �
 
 ## 시작하기: 사용 예시
 
-!!! Example ""
+!!! Example "예제"
 
     === "Python"
 

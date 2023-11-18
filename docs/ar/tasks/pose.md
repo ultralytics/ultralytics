@@ -51,7 +51,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 
 يتم تدريب نموذج YOLOv8-pose على مجموعة بيانات COCO128-pose.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 
@@ -88,7 +88,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 تحقق من دقة نموذج YOLOv8n-pose المدرّب على مجموعة بيانات COCO128-pose. لا يلزم تمرير سبب ما كوسيط إلى `model`
 عند استدعاء.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 
@@ -117,7 +117,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 
 استخدم نموذج YOLOv8n-pose المدرّب لتشغيل توقعات على الصور.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 
@@ -144,7 +144,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 
 قم بتصدير نموذج YOLOv8n-pose إلى تنسيق مختلف مثل ONNX، CoreML، الخ.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 

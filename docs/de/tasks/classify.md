@@ -39,7 +39,7 @@ Hier werden vortrainierte YOLOv8 Classify-Modelle gezeigt. Detect-, Segment- und
 
 Trainieren Sie das YOLOv8n-cls-Modell auf dem MNIST160-Datensatz für 100 Epochen bei Bildgröße 64. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](/../usage/cfg.md).
 
-!!! Example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -76,7 +76,7 @@ Das Datenformat für YOLO-Klassifizierungsdatensätze finden Sie im Detail im [D
 
 Validieren Sie die Genauigkeit des trainierten YOLOv8n-cls-Modells auf dem MNIST160-Datensatz. Kein Argument muss übergeben werden, da das `modell` seine Trainings`daten` und Argumente als Modellattribute behält.
 
-!!! Example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -103,7 +103,7 @@ Validieren Sie die Genauigkeit des trainierten YOLOv8n-cls-Modells auf dem MNIST
 
 Verwenden Sie ein trainiertes YOLOv8n-cls-Modell, um Vorhersagen auf Bildern durchzuführen.
 
-!!! Example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -130,7 +130,7 @@ Vollständige Details zum `predict`-Modus finden Sie auf der Seite [Vorhersage](
 
 Exportieren Sie ein YOLOv8n-cls-Modell in ein anderes Format wie ONNX, CoreML usw.
 
-!!! Example ""
+!!! Example "Beispiel"
 
     === "Python"
 

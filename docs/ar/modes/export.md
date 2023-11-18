@@ -48,7 +48,7 @@ keywords: YOLO، YOLOv8، Ultralytics، تصدير النموذج، ONNX، Tenso
 
 قم بتصدير نموذج YOLOv8n إلى تنسيق مختلف مثل ONNX أو TensorRT. انظر الجدول أدناه للحصول على قائمة كاملة من وسائط التصدير.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "بايثون"
 

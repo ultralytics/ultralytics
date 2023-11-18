@@ -39,7 +39,7 @@ Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/c
 
 Entrena el modelo YOLOv8n-cls en el conjunto de datos MNIST160 durante 100 épocas con un tamaño de imagen de 64. Para obtener una lista completa de argumentos disponibles, consulte la página de [Configuración](/../usage/cfg.md).
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -76,7 +76,7 @@ El formato del conjunto de datos de clasificación YOLO puede encontrarse en det
 
 Validar la exactitud del modelo YOLOv8n-cls entrenado en el conjunto de datos MNIST160. No es necesario pasar ningún argumento ya que el `modelo` retiene su `data` y argumentos como atributos del modelo.
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -103,7 +103,7 @@ Validar la exactitud del modelo YOLOv8n-cls entrenado en el conjunto de datos MN
 
 Usar un modelo YOLOv8n-cls entrenado para realizar predicciones en imágenes.
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -130,7 +130,7 @@ Ver detalles completos del modo `predict` en la página de [Predicción](https:/
 
 Exportar un modelo YOLOv8n-cls a un formato diferente como ONNX, CoreML, etc.
 
-!!! Example ""
+!!! Example "Ejemplo"
 
     === "Python"
 

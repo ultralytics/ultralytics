@@ -148,7 +148,7 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 Чтобы использовать Comet:
 
-!!! Example ""
+!!! Example "Пример"
 
     === "Python"
         ```python
@@ -166,7 +166,7 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 Чтобы использовать ClearML:
 
-!!! Example ""
+!!! Example "Пример"
 
     === "Python"
         ```python
@@ -184,7 +184,7 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 Чтобы использовать TensorBoard в [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb):
 
-!!! Example ""
+!!! Example "Пример"
 
     === "CLI"
         ```bash
@@ -194,7 +194,7 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 Чтобы использовать TensorBoard локально, запустите приведенную ниже команду и просмотрите результаты по адресу http://localhost:6006/.
 
-!!! Example ""
+!!! Example "Пример"
 
     === "CLI"
         ```bash

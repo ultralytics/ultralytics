@@ -25,7 +25,7 @@ class MarkdownLinkFixer:
         self.md_link_regex = re.compile(r'\[([^]]+)]\(([^:)]+)\.md\)')
 
     @staticmethod
-    def replace_front_matter(content):
+    def replace_front_matter(content, lang_dir):
         """Ensure front matter keywords remain in English."""
         english = ['comments', 'description', 'keywords']
         translations = {
@@ -41,23 +41,18 @@ class MarkdownLinkFixer:
             'ar': ['التعليقات', 'الوصف', 'الكلمات الرئيسية']  # Arabic
         }  # front matter translations for comments, description, keyword
 
-        for terms in translations.values():
-            for term, eng_key in zip(terms, english):
-                content = re.sub(rf'{term} *[：:].*', f'{eng_key}: true', content, flags=re.IGNORECASE) if \
-                    eng_key == 'comments' else re.sub(rf'{term} *[：:] *', f'{eng_key}: ', content, flags=re.IGNORECASE)
+        for term, eng_key in zip(translations.get(lang_dir.stem, []), english):
+            content = re.sub(rf'{term} *[：:].*', f'{eng_key}: true', content, flags=re.IGNORECASE) if \
+                eng_key == 'comments' else re.sub(rf'{term} *[：:] *', f'{eng_key}: ', content, flags=re.IGNORECASE)
         return content
 
     @staticmethod
-    def replace_admonitions(content):
+    def replace_admonitions(content, lang_dir):
         """Ensure front matter keywords remain in English."""
         english = [
             'Note', 'Summary', 'Tip', 'Info', 'Success', 'Question', 'Warning', 'Failure', 'Danger', 'Bug', 'Example',
             'Quote', 'Abstract', 'Seealso', 'Admonition']
         translations = {
-            'en': [
-                'Note', 'Summary', 'Tip', 'Info', 'Success', 'Question', 'Warning', 'Failure', 'Danger', 'Bug',
-                'Example',
-                'Quote', 'Abstract', 'Seealso', 'Admonition'],
             'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用', '摘要', '另见', '警告'],
             'es': [
                 'Nota', 'Resumen', 'Consejo', 'Información', 'Éxito', 'Pregunta', 'Advertencia', 'Fracaso', 'Peligro',
@@ -83,10 +78,11 @@ class MarkdownLinkFixer:
                 'ملاحظة', 'ملخص', 'نصيحة', 'معلومات', 'نجاح', 'سؤال', 'تحذير', 'فشل', 'خطر', 'عطل', 'مثال', 'اقتباس',
                 'ملخص', 'انظر أيضاً', 'تحذير']}
 
-        for terms in translations.values():
-            for term, eng_key in zip(terms, english):
-                # content = re.sub(rf'!!! *{term} ""', f'!!! {eng_key} "{term}"', content, flags=re.IGNORECASE)
-                content = re.sub(rf'!!! *{term}', f'!!! {eng_key}', content, flags=re.IGNORECASE)
+        for term, eng_key in zip(translations.get(lang_dir.stem, []), english):
+            content = re.sub(rf'!!! *{term} *""', f'!!! {eng_key} "{term}"', content, flags=re.IGNORECASE)
+            content = re.sub(rf'!!! *{term}', f'!!! {eng_key}', content, flags=re.IGNORECASE)
+            content = re.sub(rf'!!! *{eng_key} ""', f'!!! {eng_key} "{term}"', content, flags=re.IGNORECASE)
+
         return content
 
     @staticmethod
@@ -132,8 +128,8 @@ class MarkdownLinkFixer:
             content = self.md_link_regex.sub(lambda m: self.link_replacer(m, md_file_path.parent, lang_dir), content)
 
         if self.update_text:
-            content = self.replace_front_matter(content)
-            content = self.replace_admonitions(content)
+            content = self.replace_front_matter(content, lang_dir)
+            content = self.replace_admonitions(content, lang_dir)
             content = self.update_iframe(content)
 
         with open(md_file_path, 'w', encoding='utf-8') as file:

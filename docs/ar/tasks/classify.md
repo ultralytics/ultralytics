@@ -39,7 +39,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 قم بتدريب YOLOv8n-cls على مجموعة بيانات MNIST160 لمدة 100 دورة عند حجم الصورة 64 بكسل. للحصول على قائمة كاملة بالوسائط المتاحة، اطلع على صفحة [تكوين](../usage/cfg.md).
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 
@@ -76,7 +76,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 قم بتحديد دقة النموذج YOLOv8n-cls المدرّب على مجموعة بيانات MNIST160. لا يلزم تمرير أي وسيطة حيث يحتفظ `model` ببيانات التدريب والوسائط كسمات النموذج.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 
@@ -103,7 +103,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 استخدم نموذج YOLOv8n-cls المدرّب لتنفيذ تنبؤات على الصور.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 
@@ -130,7 +130,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 قم بتصدير نموذج YOLOv8n-cls إلى تنسيق مختلف مثل ONNX، CoreML، وما إلى ذلك.
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 

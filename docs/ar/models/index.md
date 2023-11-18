@@ -41,7 +41,7 @@ keywords: Ultralytics، مستندات، YOLO، SAM، MobileSAM، FastSAM، YOLO
 
 ## البدء: أمثلة للإستخدام
 
-!!! Example ""
+!!! Example "مثال"
 
     === "Python"
 

@@ -48,7 +48,7 @@ keywords: YOLO, YOLOv8, Ultralytics, モデルエキスポート, ONNX, TensorRT
 
 YOLOv8nモデルをONNXやTensorRTなどの異なるフォーマットにエキスポートします。エキスポート引数のフルリストについては、以下のArgumentsセクションをご覧ください。
 
-!!! Example ""
+!!! Example "例"
 
     === "Python"
 

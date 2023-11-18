@@ -373,11 +373,20 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 ### 图像
 
-以下表格包含有效的Ultralytics图像格式。
+下表包含了Ultralytics支持的有效图像格式。
 
-| 图像后缀名 | 示例预测命令 | 参考链接 | |
-
-----------------|-----------------------------------------|-------------------------------------------------------------------------------| | .bmp | `yolo predict source=image.bmp`         | [Microsoft BMP文件格式](https://en.wikipedia.org/wiki/BMP_file_format)        | | .dng | `yolo predict source=image.dng`         | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) | | .jpeg | `yolo predict source=image.jpeg`        | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    | | .jpg | `yolo predict source=image.jpg`         | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    | | .mpo | `yolo predict source=image.mpo`         | [多图像对象](https://fileinfo.com/extension/mpo)                              | | .png | `yolo predict source=image.png`         | [便携式网络图形](https://en.wikipedia.org/wiki/PNG)                           | | .tif | `yolo predict source=image.tif`         | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                        | | .tiff | `yolo predict source=image.tiff`        | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                        | | .webp | `yolo predict source=image.webp`        | [WebP](https://en.wikipedia.org/wiki/WebP)                                    | | .pfm | `yolo predict source=image.pfm`         | [便携式浮点图](https://en.wikipedia.org/wiki/Netpbm#File_formats)             |
+| 图像后缀  | 示例预测命令                           | 参考链接                                                                          |
+|-------|----------------------------------|-------------------------------------------------------------------------------|
+| .bmp  | `yolo predict source=image.bmp`  | [Microsoft BMP文件格式](https://en.wikipedia.org/wiki/BMP_file_format)            |
+| .dng  | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
+| .jpeg | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .jpg  | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .mpo  | `yolo predict source=image.mpo`  | [多图像对象](https://fileinfo.com/extension/mpo)                                   |
+| .png  | `yolo predict source=image.png`  | [便携式网络图形](https://en.wikipedia.org/wiki/PNG)                                  |
+| .tif  | `yolo predict source=image.tif`  | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                                |
+| .tiff | `yolo predict source=image.tiff` | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                                |
+| .webp | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
+| .pfm  | `yolo predict source=image.pfm`  | [便携式浮点映射](https://en.wikipedia.org/wiki/Netpbm#File_formats)                  |
 
 ### 视频
 
@@ -464,8 +473,6 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
     # 在图片上运行推理
     results = model('bus.jpg')
-
-# results列表
 
     # 查看结果
     for r in results:

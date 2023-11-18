@@ -6,7 +6,7 @@ keywords: Ultralytics، مستندات، YOLO، SAM، MobileSAM، FastSAM، YOLO
 
 # النماذج المدعومة بواسطة Ultralytics
 
-مرحبًا بك في مستندات نماذج Ultralytics! نحن نقدم دعمًا لمجموعة واسعة من النماذج، وكل نموذج مصمم لمهام محددة مثل [كشف الكائنات](../tasks/detect.md)، [تجزئة الحالات](../tasks/segment.md)، [تصنيف الصور](../tasks/classify.md)، [تقدير الوضع](../tasks/pose.md)، و[تتبع العديد من الكائنات](../modes/track.md). إذا كنت مهتمًا بالمساهمة في بنية نموذجك في Ultralytics ، تحقق من [دليل المساهمة](../help/contributing.md).
+مرحبًا بك في مستندات نماذج Ultralytics! نحن نقدم دعمًا لمجموعة واسعة من النماذج، وكل نموذج مصمم لمهام محددة مثل [كشف الكائنات](../tasks/detect.md)، [تجزئة الحالات](../tasks/segment.md)، [تصنيف الصور](../tasks/classify.md)، [تقدير الوضع](../tasks/pose.md)، و[تتبع العديد من الكائنات](../modes/track.md). إذا كنت مهتمًا بالمساهمة في بنية نموذجك في Ultralytics ، تحقق من [دليل المساهمة](../../help/contributing.md).
 
 !!! Note
 
@@ -16,17 +16,17 @@ keywords: Ultralytics، مستندات، YOLO، SAM، MobileSAM، FastSAM، YOLO
 
 فيما يلي بعض النماذج الرئيسية المدعمة:
 
-1. **[YOLOv3](yolov3.md)**: الإصدار الثالث من عائلة نموذج YOLO، والذي أنشأه جوزيف ريدمون، والمعروف بقدرته على الكشف في الوقت الحقيقي بكفاءة.
-2. **[YOLOv4](yolov4.md)**: تحديث لنموذج YOLOv3 الأصلي من قبل اليكسي بوتشكوفسكي في عام 2020.
-3. **[YOLOv5](yolov5.md)**: إصدار محسن لبنية YOLO بواسطة Ultralytics ، يقدم أداءً أفضل وتفاوتات سرعة مقارنة بالإصدارات السابقة.
-4. **[YOLOv6](yolov6.md)**: تم إصداره بواسطة [ميتوان](https://about.meituan.com/) في عام 2022 ، ويستخدم في العديد من روبوتات التسليم الذاتي للشركة.
-5. **[YOLOv7](yolov7.md)**: نماذج YOLO المحدثة التي تم إطلاقها في عام 2022 من قبل أصحاب YOLOv4.
-6. **[YOLOv8](yolov8.md)**: أحدث إصدار من عائلة YOLO ، ويتميز بقدرات محسنة مثل تجزئة الحالات، وتقدير النقاط الرئيسة، والتصنيف.
-7. **[Segment Anything Model (SAM)](sam.md)**: نموذج Segment Anything Model (SAM) من Meta.
-8. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM لتطبيقات الهواتف المحمولة ، من جامعة Kyung Hee.
-9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM من مجموعة تحليل الصور والفيديو، معهد الأتمتة، الأكاديمية الصينية للعلوم.
-10. **[YOLO-NAS](yolo-nas.md)**: نماذج YOLO للبحث في تصميم العمارة العصبية.
-11. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: نماذج PaddlePaddle Realtime Detection Transformer (RT-DETR) من Baidu.
+1. **[YOLOv3](../../models/yolov3.md)**: الإصدار الثالث من عائلة نموذج YOLO، والذي أنشأه جوزيف ريدمون، والمعروف بقدرته على الكشف في الوقت الحقيقي بكفاءة.
+2. **[YOLOv4](../../models/yolov4.md)**: تحديث لنموذج YOLOv3 الأصلي من قبل اليكسي بوتشكوفسكي في عام 2020.
+3. **[YOLOv5](../../models/yolov5.md)**: إصدار محسن لبنية YOLO بواسطة Ultralytics ، يقدم أداءً أفضل وتفاوتات سرعة مقارنة بالإصدارات السابقة.
+4. **[YOLOv6](../../models/yolov6.md)**: تم إصداره بواسطة [ميتوان](https://about.meituan.com/) في عام 2022 ، ويستخدم في العديد من روبوتات التسليم الذاتي للشركة.
+5. **[YOLOv7](../../models/yolov7.md)**: نماذج YOLO المحدثة التي تم إطلاقها في عام 2022 من قبل أصحاب YOLOv4.
+6. **[YOLOv8](../../models/yolov8.md)**: أحدث إصدار من عائلة YOLO ، ويتميز بقدرات محسنة مثل تجزئة الحالات، وتقدير النقاط الرئيسة، والتصنيف.
+7. **[Segment Anything Model (SAM)](../../models/sam.md)**: نموذج Segment Anything Model (SAM) من Meta.
+8. **[Mobile Segment Anything Model (MobileSAM)](../../models/mobile-sam.md)**: MobileSAM لتطبيقات الهواتف المحمولة ، من جامعة Kyung Hee.
+9. **[Fast Segment Anything Model (FastSAM)](../../models/fast-sam.md)**: FastSAM من مجموعة تحليل الصور والفيديو، معهد الأتمتة، الأكاديمية الصينية للعلوم.
+10. **[YOLO-NAS](../../models/yolo-nas.md)**: نماذج YOLO للبحث في تصميم العمارة العصبية.
+11. **[Realtime Detection Transformers (RT-DETR)](../../models/rtdetr.md)**: نماذج PaddlePaddle Realtime Detection Transformer (RT-DETR) من Baidu.
 
 <p align="center">
   <br>
@@ -82,7 +82,7 @@ keywords: Ultralytics، مستندات، YOLO، SAM، MobileSAM، FastSAM، YOLO
 
 2. **نسخ Fork الخاص بك**: نسخ Fork الخاص بك إلى جهاز الكمبيوتر المحلي الخاص بك وأنشئ فرعًا جديدًا للعمل عليه.
 
-3. **اتبع نموذجك**: قم بإضافة نموذجك وفقًا لمعايير البرمجة والتوجيهات المقدمة في [دليل المساهمة](../help/contributing.md).
+3. **اتبع نموذجك**: قم بإضافة نموذجك وفقًا لمعايير البرمجة والتوجيهات المقدمة في [دليل المساهمة](../../help/contributing.md).
 
 4. **اختبر بدقة**: تأكد من اختبار نموذجك بدقة ، سواء بشكل منفصل أم كجزء من السلسلة.
 
@@ -90,4 +90,4 @@ keywords: Ultralytics، مستندات، YOLO، SAM، MobileSAM، FastSAM، YOLO
 
 6. **استعراض ودمج الكود**: بعد المراجعة، إذا كان نموذجك يلبي معاييرنا، فسيتم دمجه في البرنامج الرئيسي.
 
-للخطوات المفصلة ، استشر [دليل المساهمة](../help/contributing.md).
+للخطوات المفصلة ، استشر [دليل المساهمة](../../help/contributing.md).

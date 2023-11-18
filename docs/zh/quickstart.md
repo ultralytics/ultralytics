@@ -1,7 +1,7 @@
 ---
-评论：真
-描述：探索使用pip、conda、git和Docker安装Ultralytics的各种方法。了解如何在命令行界面或Python项目中使用Ultralytics。
-关键字：Ultralytics安装，pip安装Ultralytics，Docker安装Ultralytics，Ultralytics命令行界面，Ultralytics Python接口
+comments: true
+description: 探索使用pip、conda、git和Docker安装Ultralytics的各种方法。了解如何在命令行界面或Python项目中使用Ultralytics。
+keywords: Ultralytics安装，pip安装Ultralytics，Docker安装Ultralytics，Ultralytics命令行界面，Ultralytics Python接口
 ---
 
 ## 安装Ultralytics

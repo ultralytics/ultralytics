@@ -23,7 +23,7 @@ La salida de un detector de objetos es un conjunto de cajas delimitadoras que en
   <strong>Ver:</strong> Detección de Objetos con Modelo Preentrenado YOLOv8 de Ultralytics.
 </p>
 
-!!! tip "Consejo"
+!!! Tip "Consejo"
 
     Los modelos YOLOv8 Detect son los modelos predeterminados de YOLOv8, es decir, `yolov8n.pt` y están preentrenados en [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 

@@ -41,7 +41,7 @@ Ultralyticsのモデルドキュメンテーションへようこそ！[オブ�
 
 ## 入門：使用例
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

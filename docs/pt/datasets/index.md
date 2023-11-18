@@ -104,7 +104,7 @@ Contribuir com um novo conjunto de dados envolve várias etapas para garantir qu
 
 ### Exemplo de Código para Otimizar e Compactar um Conjunto de Dados
 
-!!! example "Otimizar e Compactar um Conjunto de Dados"
+!!! Example "Otimizar e Compactar um Conjunto de Dados"
 
     === "Python"
 

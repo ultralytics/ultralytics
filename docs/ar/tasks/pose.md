@@ -21,7 +21,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
   <strong>شاهد:</strong> تقدير الوضعية مع Ultralytics YOLOv8.
 </p>
 
-!!! tip "نصيحة"
+!!! Tip "نصيحة"
 
     النماذج التي تحتوي على البادئة "-pose" تستخدم لنماذج YOLOv8 pose ، على سبيل المثال `yolov8n-pose.pt`. هذه النماذج مدربة على [مجموعة بيانات نقاط الوضوح COCO]("https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml") وهي مناسبة لمجموعة متنوعة من مهام تقدير الوضعية.
 
@@ -51,7 +51,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 
 يتم تدريب نموذج YOLOv8-pose على مجموعة بيانات COCO128-pose.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -88,7 +88,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 تحقق من دقة نموذج YOLOv8n-pose المدرّب على مجموعة بيانات COCO128-pose. لا يلزم تمرير سبب ما كوسيط إلى `model`
 عند استدعاء.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -117,7 +117,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 
 استخدم نموذج YOLOv8n-pose المدرّب لتشغيل توقعات على الصور.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -144,7 +144,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 
 قم بتصدير نموذج YOLOv8n-pose إلى تنسيق مختلف مثل ONNX، CoreML، الخ.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

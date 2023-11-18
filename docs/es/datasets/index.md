@@ -104,7 +104,7 @@ Contribuir con un nuevo conjunto de datos implica varios pasos para garantizar q
 
 ### Código de Ejemplo para Optimizar y Comprimir un Conjunto de Datos
 
-!!! example "Optimizar y Comprimir un Conjunto de Datos"
+!!! Example "Optimizar y Comprimir un Conjunto de Datos"
 
     === "Python"
 

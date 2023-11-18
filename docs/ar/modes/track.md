@@ -58,7 +58,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 لتشغيل المتتبع على تدفقات الفيديو، استخدم نموذج تحديد (Detect) أو قطع (Segment) أو وضع (Pose) مدرب مثل YOLOv8n و YOLOv8n-seg و YOLOv8n-pose.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -97,7 +97,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 تتشارك إعدادات التتبع الخصائص مع وضع التوقعات (Predict)، مثل `conf` و `iou` و `show`. للحصول على مزيد من التكوينات، راجع صفحة النموذج [Predict](../modes/predict.md#inference-arguments).
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -120,7 +120,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 يتيح لك Ultralytics أيضًا استخدام ملف تكوين متتبع معدل. للقيام بذلك، أنقل نسخة من ملف تكوين المتتبع (مثل `custom_tracker.yaml`) من [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) وقم بتعديل أي تكوينات (باستثناء `tracker_type`) حسب احتياجاتك.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -147,7 +147,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 فيما يلي سكريبت Python باستخدام OpenCV (cv2) و YOLOv8 لتشغيل تتبع الكائنات على إطارات الفيديو. يفترض هذا السكريبت أنك قد قمت بالفعل بتثبيت الحزم اللازمة (opencv-python و ultralytics). المعامل `persist=True` يخبر المتتبع أن الصورة الحالية أو الإطار التالي في التسلسل ومن المتوقع أن يتوفر مسارات من الصورة السابقة في الصورة الحالية.
 
-!!! example "For-loop للتدفق مع التتبع"
+!!! Example "For-loop للتدفق مع التتبع"
 
     ```python
     import cv2
@@ -195,7 +195,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 في المثال التالي ، نوضح كيفية استخدام قدرات يوكو 8 YOLO لتتبع الكائنات لرسم حركة الكائنات المكتشفة عبر إطارات الفيديو المتعددة. يتضمن هذا البرنامج فتح ملف فيديو وقراءته إطارًا بإطار ، واستخدام نموذج YOLO لتحديد وتتبع العديد من الكائنات. عن طريق الاحتفاظ بنقاط الوسط لمربعات الحدود المكتشفة وتوصيلها ، يمكننا رسم خطوط تمثل المسارات التي تم اتباعها بواسطة الكائنات التي تمت متابعتها.
 
-!!! example "رسم المسارات عبر إطارات الفيديو المتعددة"
+!!! Example "رسم المسارات عبر إطارات الفيديو المتعددة"
 
     ```python
     from collections import defaultdict
@@ -272,7 +272,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 أخيرًا ، بعد اكتمال جميع الخيوط لمهمتها ، يتم إغلاق النوافذ التي تعرض النتائج باستخدام `cv2.destroyAllWindows()`.
 
-!!! example "Streaming for-loop with tracking"
+!!! Example "Streaming for-loop with tracking"
 
     ```python
     import threading

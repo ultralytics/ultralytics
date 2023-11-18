@@ -12,7 +12,7 @@ A classificação de imagens é a tarefa mais simples das três e envolve classi
 
 A saída de um classificador de imagem é um único rótulo de classe e uma pontuação de confiança. A classificação de imagem é útil quando você precisa saber apenas a qual classe uma imagem pertence e não precisa conhecer a localização dos objetos dessa classe ou o formato exato deles.
 
-!!! tip "Dica"
+!!! Tip "Dica"
 
     Os modelos YOLOv8 Classify usam o sufixo `-cls`, ou seja, `yolov8n-cls.pt` e são pré-treinados na [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 

@@ -12,7 +12,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 ناتج نموذج تصنيف الصور هو تسمية فئة واحدة ودرجة ثقة. يكون تصنيف الصور مفيدًا عندما تحتاج فقط إلى معرفة فئة الصورة ولا تحتاج إلى معرفة موقع الكائنات التابعة لتلك الفئة أو شكلها الدقيق.
 
-!!! tip "نصيحة"
+!!! Tip "نصيحة"
 
     تستخدم نماذج YOLOv8 Classify اللاحقة "-cls"، مثالًا "yolov8n-cls.pt" وتم تدريبها على [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
@@ -39,7 +39,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 قم بتدريب YOLOv8n-cls على مجموعة بيانات MNIST160 لمدة 100 دورة عند حجم الصورة 64 بكسل. للحصول على قائمة كاملة بالوسائط المتاحة، اطلع على صفحة [تكوين](../usage/cfg.md).
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -76,7 +76,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 قم بتحديد دقة النموذج YOLOv8n-cls المدرّب على مجموعة بيانات MNIST160. لا يلزم تمرير أي وسيطة حيث يحتفظ `model` ببيانات التدريب والوسائط كسمات النموذج.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -103,7 +103,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 استخدم نموذج YOLOv8n-cls المدرّب لتنفيذ تنبؤات على الصور.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -130,7 +130,7 @@ keywords: Ultralytics، YOLOv8، تصنيف الصور، النماذج المد
 
 قم بتصدير نموذج YOLOv8n-cls إلى تنسيق مختلف مثل ONNX، CoreML، وما إلى ذلك.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

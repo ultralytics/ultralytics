@@ -41,7 +41,7 @@ Aquí tienes algunos de los modelos clave soportados:
 
 ## Comenzando: Ejemplos de Uso
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

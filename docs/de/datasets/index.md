@@ -104,7 +104,7 @@ Das Bereitstellen eines neuen Datensatzes umfasst mehrere Schritte, um sicherzus
 
 ### Beispielcode zum Optimieren und Zippen eines Datensatzes
 
-!!! example "Optimieren und Zippen eines Datensatzes"
+!!! Example "Optimieren und Zippen eines Datensatzes"
 
     === "Python"
 

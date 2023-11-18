@@ -54,6 +54,10 @@ class MarkdownLinkFixer:
             'Note', 'Summary', 'Tip', 'Info', 'Success', 'Question', 'Warning', 'Failure', 'Danger', 'Bug', 'Example',
             'Quote', 'Abstract', 'Seealso', 'Admonition']
         translations = {
+            'en': [
+                'Note', 'Summary', 'Tip', 'Info', 'Success', 'Question', 'Warning', 'Failure', 'Danger', 'Bug',
+                'Example',
+                'Quote', 'Abstract', 'Seealso', 'Admonition'],
             'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用', '摘要', '另见', '警告'],
             'es': [
                 'Nota', 'Resumen', 'Consejo', 'Información', 'Éxito', 'Pregunta', 'Advertencia', 'Fracaso', 'Peligro',
@@ -81,7 +85,7 @@ class MarkdownLinkFixer:
 
         for terms in translations.values():
             for term, eng_key in zip(terms, english):
-                content = re.sub(rf'!!! *{term} ""', f'!!! {eng_key} "{term}"', content, flags=re.IGNORECASE)
+                # content = re.sub(rf'!!! *{term} ""', f'!!! {eng_key} "{term}"', content, flags=re.IGNORECASE)
                 content = re.sub(rf'!!! *{term}', f'!!! {eng_key}', content, flags=re.IGNORECASE)
         return content
 

@@ -34,7 +34,7 @@ class MarkdownLinkFixer:
             'ru': ['комментарии', 'описание', 'ключевые слова'],  # Russian
             'pt': ['comentários', 'descrição', 'palavras-chave'],  # Portuguese
             'fr': ['commentaires', 'description', 'mots-clés'],  # French
-            'de': ['Kommentare', 'Beschreibung', 'Schlüsselwörter'],  # German
+            'de': ['kommentare', 'beschreibung', 'schlüsselwörter'],  # German
             'ja': ['コメント', '説明', 'キーワード'],  # Japanese
             'ko': ['댓글', '설명', '키워드'],  # Korean
             'hi': ['टिप्पणियाँ', 'विवरण', 'कीवर्ड'],  # Hindi
@@ -51,25 +51,25 @@ class MarkdownLinkFixer:
     def replace_admonitions(content):
         """Ensure front matter keywords remain in English."""
         english = [
-            'note', 'summary', 'tip', 'info', 'success', 'question', 'warning', 'failure', 'danger', 'bug', 'example',
-            'quote', 'abstract', 'seealso', 'admonition']
+            'Note', 'Summary', 'Tip', 'Info', 'Success', 'Question', 'Warning', 'Failure', 'Danger', 'Bug', 'Example',
+            'Quote', 'Abstract', 'Seealso', 'Admonition']
         translations = {
             'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用', '摘要', '另见', '警告'],
             'es': [
-                'nota', 'resumen', 'consejo', 'información', 'éxito', 'pregunta', 'advertencia', 'fracaso', 'peligro',
-                'error', 'ejemplo', 'cita', 'abstracto', 'véase también', 'amonestación'],
+                'Nota', 'Resumen', 'Consejo', 'Información', 'Éxito', 'Pregunta', 'Advertencia', 'Fracaso', 'Peligro',
+                'Error', 'Ejemplo', 'Cita', 'Abstracto', 'Véase También', 'Amonestación'],
             'ru': [
-                'заметка', 'сводка', 'совет', 'информация', 'успех', 'вопрос', 'предупреждение', 'неудача', 'опасность',
-                'ошибка', 'пример', 'цитата', 'абстракт', 'см. также', 'предостережение'],
+                'Заметка', 'Сводка', 'Совет', 'Информация', 'Успех', 'Вопрос', 'Предупреждение', 'Неудача', 'Опасность',
+                'Ошибка', 'Пример', 'Цитата', 'Абстракт', 'См. Также', 'Предостережение'],
             'pt': [
-                'nota', 'resumo', 'dica', 'informação', 'sucesso', 'questão', 'aviso', 'falha', 'perigo', 'bug',
-                'exemplo', 'citação', 'abstrato', 'veja também', 'advertência'],
+                'Nota', 'Resumo', 'Dica', 'Informação', 'Sucesso', 'Questão', 'Aviso', 'Falha', 'Perigo', 'Bug',
+                'Exemplo', 'Citação', 'Abstrato', 'Veja Também', 'Advertência'],
             'fr': [
-                'note', 'résumé', 'conseil', 'info', 'succès', 'question', 'avertissement', 'échec', 'danger', 'bug',
-                'exemple', 'citation', 'abstrait', 'voir aussi', 'admonestation'],
+                'Note', 'Résumé', 'Conseil', 'Info', 'Succès', 'Question', 'Avertissement', 'Échec', 'Danger', 'Bug',
+                'Exemple', 'Citation', 'Abstrait', 'Voir Aussi', 'Admonestation'],
             'de': [
-                'hinweis', 'zusammenfassung', 'tipp', 'info', 'erfolg', 'frage', 'warnung', 'ausfall', 'gefahr',
-                'fehler', 'beispiel', 'zitat', 'abstrakt', 'siehe auch', 'ermahnung'],
+                'Hinweis', 'Zusammenfassung', 'Tipp', 'Info', 'Erfolg', 'Frage', 'Warnung', 'Ausfall', 'Gefahr',
+                'Fehler', 'Beispiel', 'Zitat', 'Abstrakt', 'Siehe Auch', 'Ermahnung'],
             'ja': ['ノート', '要約', 'ヒント', '情報', '成功', '質問', '警告', '失敗', '危険', 'バグ', '例', '引用', '抄録', '参照', '訓告'],
             'ko': ['노트', '요약', '팁', '정보', '성공', '질문', '경고', '실패', '위험', '버그', '예제', '인용', '추상', '참조', '경고'],
             'hi': [
@@ -81,6 +81,7 @@ class MarkdownLinkFixer:
 
         for terms in translations.values():
             for term, eng_key in zip(terms, english):
+                content = re.sub(rf'!!! *{term} ""', f'!!! {eng_key} "{term}"', content, flags=re.IGNORECASE)
                 content = re.sub(rf'!!! *{term}', f'!!! {eng_key}', content, flags=re.IGNORECASE)
         return content
 

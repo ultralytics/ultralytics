@@ -54,7 +54,7 @@ class MarkdownLinkFixer:
             'Quote', 'Abstract', 'Seealso', 'Admonition']
         translations = {
             'en':
-                english,
+            english,
             'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用', '摘要', '另见', '警告'],
             'es': [
                 'Nota', 'Resumen', 'Consejo', 'Información', 'Éxito', 'Pregunta', 'Advertencia', 'Fracaso', 'Peligro',

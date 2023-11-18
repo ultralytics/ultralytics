@@ -129,6 +129,37 @@ def make_divisible(x, divisor):
     return math.ceil(x / divisor) * divisor
 
 
+def nms_rotated(boxes, scores, threshold=0.45):
+    """NMS for obbs, powered by probiou.
+
+    Args:
+        boxes (torch.Tensor): (N, 5), xywhr.
+        scores (torch.Tensor): (N, ).
+        threshold (float): Iou threshold.
+
+    Returns:
+
+    """
+    if len(boxes) == 0:
+        return np.empty((0,), dtype=np.int8)
+
+    from ultralytics.utils.metrics import batch_probiou
+    sorted_idx = torch.argsort(scores)
+    boxes = boxes[sorted_idx]
+    ious = batch_probiou(boxes, boxes)
+    pick = torch.zeros_like(scores, dtype=torch.int16)
+    counter = 0
+    while len(sorted_idx) > 0:
+        i = sorted_idx[-1]
+        pick[counter] = i
+        counter += 1
+        o = ious[i]
+        sorted_idx = sorted_idx[np.where(o <= threshold)]
+
+    pick = pick[:counter].clone()
+    return pick
+
+
 def non_max_suppression(
         prediction,
         conf_thres=0.25,
@@ -142,6 +173,7 @@ def non_max_suppression(
         max_time_img=0.05,
         max_nms=30000,
         max_wh=7680,
+        rotated=False,
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -195,7 +227,8 @@ def non_max_suppression(
     multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
-    prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
+    if not rotated:
+        prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
 
     t = time.time()
     output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs

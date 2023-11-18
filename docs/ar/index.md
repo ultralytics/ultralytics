@@ -52,8 +52,8 @@ keywords: Ultralytics، YOLOv8، كشف الكائنات، تجزئة الصور
 <p align = "center">
   <br>
   <iframe width = "720" height = "405" src = "https://www.youtube.com/embed/LNwODJXcvt4؟si=7n1UvGRLSd9p5wKs"
-    title = "مشغل فيديو يوتيوب" frameborder = "0"
-    allow = "accelerometer؛ تشغيل تلقائي؛ تحرير الحافظة؛ وسائط مشفرة؛ جيروسكوب؛ صورة في صورة؛ شبكة الويب"
+    title="مشغل فيديو يوتيوب" frameborder = "0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </ iframe>
   <br>

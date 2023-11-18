@@ -23,7 +23,7 @@ keywords: YOLOv8, Ultralytics, 目标检测, 预训练模型, 训练, 验证, �
   <strong>观看：</strong>使用预训练的Ultralytics YOLOv8模型进行目标检测。
 </p>
 
-!!! tip "提示"
+!!! Tip "提示"
 
     YOLOv8 Detect 模型是默认的 YOLOv8 模型，即 `yolov8n.pt` ，并在 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) 数据集上进行了预训练。
 
@@ -50,7 +50,7 @@ keywords: YOLOv8, Ultralytics, 目标检测, 预训练模型, 训练, 验证, �
 
 在COCO128数据集上使用图像尺寸640将YOLOv8n训练100个epochs。要查看可用参数的完整列表，请参阅 [配置](/../usage/cfg.md) 页面。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -86,7 +86,7 @@ YOLO检测数据集格式可以在 [数据集指南](/../datasets/detect/index.m
 
 在COCO128数据集上验证训练好的YOLOv8n模型准确性。无需传递参数，`model` 作为模型属性保留其训练的 `data` 和参数。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -115,7 +115,7 @@ YOLO检测数据集格式可以在 [数据集指南](/../datasets/detect/index.m
 
 使用训练好的YOLOv8n模型在图像上进行预测。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -142,7 +142,7 @@ YOLO检测数据集格式可以在 [数据集指南](/../datasets/detect/index.m
 
 将YOLOv8n模型导出为ONNX、CoreML等不同格式。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 

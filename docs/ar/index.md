@@ -49,13 +49,13 @@ keywords: Ultralytics، YOLOv8، كشف الكائنات، تجزئة الصور
 - **تدريب** نموذج YOLOv8 الجديد على مجموعة البيانات المخصصة الخاصة بك &nbsp; [:fontawesome-solid-brain: قم بتدريب نموذج](modes/train.md){ .md-button }
 - **استكشاف** مهام YOLOv8 مثل التجزئة والتصنيف والوضع والتتبع &nbsp; [:material-magnify-expand: استكشاف المهام](tasks/index.md){ .md-button }
 
-<p align = "center">
+<p align="center">
   <br>
-  <iframe width = "720" height = "405" src = "https://www.youtube.com/embed/LNwODJXcvt4؟si=7n1UvGRLSd9p5wKs"
-    title="مشغل فيديو يوتيوب" frameborder = "0"
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs"
+    title="مشغل فيديو يوتيوب" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
-  </ iframe>
+  </iframe>
   <br>
   <strong> مشاهدة: </strong> كيفية تدريب نموذج YOLOv8 على مجموعة بيانات مخصصة في <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">جوجل كولاب</a>.
 </p>

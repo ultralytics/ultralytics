@@ -56,7 +56,7 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 
 You can use YOLOv5u for object detection tasks using the Ultralytics repository. The following is a sample code snippet showing how to use YOLOv5u model for inference:
 
-!!! example ""
+!!! Example ""
 
     This example provides simple inference code for YOLOv5. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv5 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
@@ -96,7 +96,7 @@ You can use YOLOv5u for object detection tasks using the Ultralytics repository.
 
 If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv5 repository as follows:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
         ```bibtex

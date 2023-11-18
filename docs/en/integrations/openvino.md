@@ -27,7 +27,7 @@ OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit,
 
 Export a YOLOv8n model to OpenVINO format and run inference with the exported model.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -101,7 +101,7 @@ For more detailed steps and code snippets, refer to the [OpenVINO documentation]
 
 YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 precision (with the `half=False` argument).
 
-!!! note
+!!! Note
 
     The benchmarking results below are for reference and might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run.
 
@@ -251,7 +251,7 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md) run this code:
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

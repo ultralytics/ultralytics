@@ -100,7 +100,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 ### Example Code to Optimize and Zip a Dataset
 
-!!! example "Optimize and Zip a Dataset"
+!!! Example "Optimize and Zip a Dataset"
 
     === "Python"
 

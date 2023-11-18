@@ -43,7 +43,7 @@ FP16 (or half-precision) quantization converts the model's 32-bit floating-point
 
 INT8 (or 8-bit integer) quantization further reduces the model's size and computation requirements by converting its 32-bit floating-point numbers to 8-bit integers. This quantization method can result in a significant speedup, but it may lead to a slight reduction in mean average precision (mAP) due to the lower numerical precision.
 
-!!! tip "mAP Reduction in INT8 Models"
+!!! Tip "mAP Reduction in INT8 Models"
 
     The reduced numerical precision in INT8 models can lead to some loss of information during the quantization process, which may result in a slight decrease in mAP. However, this trade-off is often acceptable considering the substantial performance gains offered by INT8 quantization.
 

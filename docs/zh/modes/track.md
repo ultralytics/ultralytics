@@ -271,4 +271,3 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
 在`threading.Thread`中参数`daemon=True`表示，这些线程会在主程序结束时关闭。然后我们用`start()`来开始线程，并使用`join()`来使主线程等待，直到两个追踪线程都结束。
 
 最后，在所有线程完成任务后，使用`cv2.destroyAllWindows()`关闭显示结果的窗口。
-

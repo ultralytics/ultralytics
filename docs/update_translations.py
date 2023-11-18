@@ -17,14 +17,18 @@ from pathlib import Path
 class MarkdownLinkFixer:
     """Class to fix Markdown links and front matter in language-specific directories."""
 
-    def __init__(self, base_dir, update_links=True, update_frontmatter=True, update_iframes=True):
+    def __init__(self, base_dir, update_links=True, update_text=True):
         """Initialize the MarkdownLinkFixer with the base directory."""
         self.base_dir = Path(base_dir)
         self.update_links = update_links
-        self.update_frontmatter = update_frontmatter
-        self.update_iframes = update_iframes
+        self.update_text = update_text
         self.md_link_regex = re.compile(r'\[([^]]+)]\(([^:)]+)\.md\)')
-        self.translations = {
+
+    @staticmethod
+    def replace_front_matter(content):
+        """Ensure front matter keywords remain in English."""
+        english = ['comments', 'description', 'keywords']
+        translations = {
             'zh': ['评论', '描述', '关键词'],  # Mandarin Chinese (Simplified) warning, sometimes translates as 关键字
             'es': ['comentarios', 'descripción', 'palabras clave'],  # Spanish
             'ru': ['комментарии', 'описание', 'ключевые слова'],  # Russian
@@ -37,18 +41,49 @@ class MarkdownLinkFixer:
             'ar': ['التعليقات', 'الوصف', 'الكلمات الرئيسية']  # Arabic
         }  # front matter translations for comments, description, keyword
 
-    def replace_front_matter(self, content):
+        for terms in translations.values():
+            for term, eng_key in zip(terms, english):
+                content = re.sub(rf'{term} *[：:].*', f'{eng_key}: true', content, flags=re.IGNORECASE) if \
+                    eng_key == 'comments' else re.sub(rf'{term} *[：:] *', f'{eng_key}: ', content, flags=re.IGNORECASE)
+        return content
+
+    @staticmethod
+    def replace_admonitions(content):
         """Ensure front matter keywords remain in English."""
-        english_keys = ['comments', 'description', 'keywords']
+        english = [
+            'note', 'summary', 'tip', 'info', 'success', 'question', 'warning', 'failure', 'danger', 'bug', 'example',
+            'quote', 'abstract', 'seealso', 'admonition']
+        translations = {
+            'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用',
+                   '摘要', '另见', '警告'],
+            'es': [
+                'nota', 'resumen', 'consejo', 'información', 'éxito', 'pregunta', 'advertencia', 'fracaso', 'peligro',
+                'error', 'ejemplo', 'cita', 'abstracto', 'véase también', 'amonestación'],
+            'ru': [
+                'заметка', 'сводка', 'совет', 'информация', 'успех', 'вопрос', 'предупреждение', 'неудача', 'опасность',
+                'ошибка', 'пример', 'цитата', 'абстракт', 'см. также', 'предостережение'],
+            'pt': [
+                'nota', 'resumo', 'dica', 'informação', 'sucesso', 'questão', 'aviso', 'falha', 'perigo', 'bug',
+                'exemplo', 'citação', 'abstrato', 'veja também', 'advertência'],
+            'fr': [
+                'note', 'résumé', 'conseil', 'info', 'succès', 'question', 'avertissement', 'échec', 'danger', 'bug',
+                'exemple', 'citation', 'abstrait', 'voir aussi', 'admonestation'],
+            'de': [
+                'hinweis', 'zusammenfassung', 'tipp', 'info', 'erfolg', 'frage', 'warnung', 'ausfall', 'gefahr',
+                'fehler', 'beispiel', 'zitat', 'abstrakt', 'siehe auch', 'ermahnung'],
+            'ja': ['ノート', '要約', 'ヒント', '情報', '成功', '質問', '警告', '失敗', '危険', 'バグ', '例', '引用',
+                   '抄録', '参照', '訓告'],
+            'ko': ['노트', '요약', '팁', '정보', '성공', '질문', '경고', '실패', '위험', '버그', '예제', '인용', '추상', '참조', '경고'],
+            'hi': [
+                'नोट', 'सारांश', 'सुझाव', 'जानकारी', 'सफलता', 'प्रश्न', 'चेतावनी', 'विफलता', 'खतरा', 'बग', 'उदाहरण',
+                'उद्धरण', 'सार', 'देखें भी', 'आगाही'],
+            'ar': [
+                'ملاحظة', 'ملخص', 'نصيحة', 'معلومات', 'نجاح', 'سؤال', 'تحذير', 'فشل', 'خطر', 'عطل', 'مثال', 'اقتباس',
+                'ملخص', 'انظر أيضاً', 'تحذير']}
 
-        for lang, terms in self.translations.items():
-            for term, eng_key in zip(terms, english_keys):
-                if eng_key == 'comments':
-                    # Replace comments key and set its value to 'true'
-                    content = re.sub(rf'{term} *[：:].*', f'{eng_key}: true', content)
-                else:
-                    content = re.sub(rf'{term} *[：:] *', f'{eng_key}: ', content)
-
+        for terms in translations.values():
+            for term, eng_key in zip(terms, english):
+                content = re.sub(rf'!!! *{term}', f'!!! {eng_key}', content, flags=re.IGNORECASE)
         return content
 
     @staticmethod
@@ -93,10 +128,9 @@ class MarkdownLinkFixer:
         if self.update_links:
             content = self.md_link_regex.sub(lambda m: self.link_replacer(m, md_file_path.parent, lang_dir), content)
 
-        if self.update_frontmatter:
+        if self.update_text:
             content = self.replace_front_matter(content)
-
-        if self.update_iframes:
+            content = self.replace_admonitions(content)
             content = self.update_iframe(content)
 
         with open(md_file_path, 'w', encoding='utf-8') as file:
@@ -118,5 +152,5 @@ class MarkdownLinkFixer:
 if __name__ == '__main__':
     # Set the path to your MkDocs 'docs' directory here
     docs_dir = str(Path(__file__).parent.resolve())
-    fixer = MarkdownLinkFixer(docs_dir, update_links=True, update_frontmatter=True, update_iframes=True)
+    fixer = MarkdownLinkFixer(docs_dir, update_links=True, update_text=True)
     fixer.run()

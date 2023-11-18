@@ -1,7 +1,7 @@
 ---
-评论：真
-描述：学习如何使用Ultralytics YOLOv8进行姿态估计任务。找到预训练模型，学习如何训练、验证、预测以及导出你自己的模型。
-关键词：Ultralytics, YOLO, YOLOv8, 姿态估计, 关键点检测, 物体检测, 预训练模型, 机器学习, 人工智能
+comments: true
+description: 学习如何使用Ultralytics YOLOv8进行姿态估计任务。找到预训练模型，学习如何训练、验证、预测以及导出你自己的模型。
+keywords: Ultralytics, YOLO, YOLOv8, 姿态估计, 关键点检测, 物体检测, 预训练模型, 机器学习, 人工智能
 ---
 
 # 姿态估计

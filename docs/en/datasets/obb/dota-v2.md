@@ -60,7 +60,7 @@ DOTA v2 serves as a benchmark for training and evaluating models specifically ta
 
 Typically, datasets incorporate a YAML (Yet Another Markup Language) file detailing the dataset's configuration. For DOTA v2, a hypothetical `DOTAv2.yaml` could be used. For accurate paths and configurations, it's vital to consult the dataset's official repository or documentation.
 
-!!! example "DOTAv2.yaml"
+!!! Example "DOTAv2.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/DOTAv2.yaml"
@@ -70,11 +70,11 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 To train a model on the DOTA v2 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments.
 
-!!! warning
+!!! Warning
 
     Please note that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
 
-!!! example "Train Example"
+!!! Example "Train Example"
 
     === "Python"
 
@@ -109,7 +109,7 @@ The dataset's richness offers invaluable insights into object detection challeng
 
 For those leveraging DOTA v2 in their endeavors, it's pertinent to cite the relevant research papers:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

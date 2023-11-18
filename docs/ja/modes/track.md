@@ -58,7 +58,7 @@ Ultralytics YOLOは、次のトラッキングアルゴリズムをサポート�
 
 ビデオストリームでトラッカーを実行するには、YOLOv8n、YOLOv8n-seg、YOLOv8n-poseなどのトレーニング済みのDetect、Segment、またはPoseモデルを使用します。
 
-!!! 例 ""
+!!! Example "例"
 
     === "Python"
 
@@ -97,7 +97,7 @@ Ultralytics YOLOは、次のトラッキングアルゴリズムをサポート�
 
 トラッキング構成は、`conf`、`iou`、および`show`などのPredictモードと同じプロパティを共有します。さらなる構成については、[Predict](https://docs.ultralytics.com/modes/predict/)モデルページを参照してください。
 
-!!! 例 ""
+!!! Example "例"
 
     === "Python"
 
@@ -120,7 +120,7 @@ Ultralytics YOLOは、次のトラッキングアルゴリズムをサポート�
 
 Ultralyticsは、変更されたトラッカー構成ファイルの使用も可能にします。これを行うには、[ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)からトラッカー構成ファイル（たとえば`custom_tracker.yaml`）のコピーを作成し、必要に応じて任意の構成（`tracker_type`を除く）を変更します。
 
-!!! 例 ""
+!!! Example "例"
 
     === "Python"
 
@@ -147,7 +147,7 @@ Ultralyticsは、変更されたトラッカー構成ファイルの使用も可
 
 次は、OpenCV (`cv2`)とYOLOv8を使用してビデオフレームでオブジェクトトラッキングを実行するPythonスクリプトです。このスクリプトでは、必要なパッケージ（`opencv-python`および`ultralytics`）が既にインストールされていることが前提です。`persist=True`引数は、トラッカーに現在の画像またはフレームがシーケンスの次のものであり、現在の画像に前の画像からのトラックを期待することを伝えます。
 
-!!! 例 "トラッキングを伴うストリーミングforループ"
+!!! Example "トラッキングを伴うストリーミングforループ"
 
     ```python
     import cv2

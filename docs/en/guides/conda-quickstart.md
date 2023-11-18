@@ -129,4 +129,4 @@ And that's it! Your Conda installation will now use `libmamba` as the solver, wh
 
 ---
 
-Congratulations! You have successfully set up a Conda environment, installed the Ultralytics package, and are now ready to explore its rich functionalities. Feel free to dive deeper into the [Ultralytics documentation](https://docs.ultralytics.com/) for more advanced tutorials and examples.
+Congratulations! You have successfully set up a Conda environment, installed the Ultralytics package, and are now ready to explore its rich functionalities. Feel free to dive deeper into the [Ultralytics documentation](../index.md) for more advanced tutorials and examples.

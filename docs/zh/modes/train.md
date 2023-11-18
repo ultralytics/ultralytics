@@ -49,7 +49,7 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
 
 在COCO128数据集上训练YOLOv8n模型100个时期，图像大小为640。可以使用`device`参数指定训练设备。如果没有传递参数，并且有可用的GPU，则将使用GPU `device=0`，否则将使用`device=cpu`。有关完整列表的训练参数，请参见下面的参数部分。
 
-!!! 示例 "单GPU和CPU训练示例"
+!!! Example "单GPU和CPU训练示例"
 
     设备将自动确定。如果有可用的GPU，那么将使用它，否则将在CPU上开始训练。
 
@@ -84,7 +84,7 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
 
 多GPU训练通过在多个GPU上分布训练负载，实现对可用硬件资源的更有效利用。无论是通过Python API还是命令行界面，都可以使用此功能。 若要启用多GPU训练，请指定您希望使用的GPU设备ID。
 
-!!! 示例 "多GPU训练示例"
+!!! Example "多GPU训练示例"
 
     要使用2个GPU进行训练，请使用CUDA设备0和1，使用以下命令。根据需要扩展到更多GPU。
 
@@ -113,7 +113,7 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
 
 要在Apple M1和M2芯片上启用训练，您应该在启动训练过程时将设备指定为'mps'。以下是Python和命令行中如何做到这点的示例：
 
-!!! 示例 "MPS训练示例"
+!!! Example "MPS训练示例"
 
     === "Python"
 
@@ -146,7 +146,7 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
 
 下面是使用Python和命令行恢复中断训练的示例：
 
-!!! 示例 "恢复训练示例"
+!!! Example "恢复训练示例"
 
     === "Python"
 
@@ -236,7 +236,7 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 
 使用Comet：
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "Python"
         ```python
@@ -254,7 +254,7 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 
 使用ClearML：
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "Python"
         ```python
@@ -272,7 +272,7 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 
 在[Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)中使用TensorBoard：
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "CLI"
         ```bash
@@ -282,7 +282,7 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 
 在本地使用TensorBoard，运行下面的命令并在 http://localhost:6006/ 查看结果。
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "CLI"
         ```bash

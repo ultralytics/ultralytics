@@ -30,11 +30,11 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 ## Supported Modes
 
-| Mode       | Supported          |
-|------------|--------------------|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
-| Training   | :heavy_check_mark: |
+| Mode       | Supported |
+|------------|-----------|
+| Inference  | ✅         |
+| Validation | ✅         |
+| Training   | ✅         |
 
 !!! Performance
 
@@ -95,7 +95,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 You can use YOLOv8 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv8 models for inference:
 
-!!! example ""
+!!! Example ""
 
     This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv8 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
@@ -135,7 +135,7 @@ You can use YOLOv8 for object detection tasks using the Ultralytics pip package.
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

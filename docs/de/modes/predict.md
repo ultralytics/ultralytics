@@ -50,7 +50,7 @@ Der Prognosemodus von YOLOv8 ist robust und vielseitig konzipiert und verfügt �
 
 Ultralytics YOLO-Modelle geben entweder eine Python-Liste von `Results`-Objekten zurück, oder einen speichereffizienten Python-Generator von `Results`-Objekten, wenn `stream=True` beim Inferenzvorgang an das Modell übergeben wird:
 
-!!! Beispiel "Predict"
+!!! Example "Predict"
 
     === "Gibt eine Liste mit `stream=False` zurück"
         ```python
@@ -92,7 +92,7 @@ Ultralytics YOLO-Modelle geben entweder eine Python-Liste von `Results`-Objekten
 
 YOLOv8 kann verschiedene Arten von Eingabequellen für die Inferenz verarbeiten, wie in der folgenden Tabelle gezeigt. Die Quellen umfassen statische Bilder, Videostreams und verschiedene Datenformate. Die Tabelle gibt ebenfalls an, ob jede Quelle im Streaming-Modus mit dem Argument `stream=True` ✅ verwendet werden kann. Der Streaming-Modus ist vorteilhaft für die Verarbeitung von Videos oder Live-Streams, da er einen Generator von Ergebnissen statt das Laden aller Frames in den Speicher erzeugt.
 
-!!! Tipp "Tipp"
+!!! Tip "Tipp"
 
     Verwenden Sie `stream=True` für die Verarbeitung langer Videos oder großer Datensätze, um den Speicher effizient zu verwalten. Bei `stream=False` werden die Ergebnisse für alle Frames oder Datenpunkte im Speicher gehalten, was bei großen Eingaben schnell zu Speicherüberläufen führen kann. Im Gegensatz dazu verwendet `stream=True` einen Generator, der nur die Ergebnisse des aktuellen Frames oder Datenpunkts im Speicher behält, was den Speicherverbrauch erheblich reduziert und Speicherüberlaufprobleme verhindert.
 
@@ -115,7 +115,7 @@ YOLOv8 kann verschiedene Arten von Eingabequellen für die Inferenz verarbeiten,
 
 Untenstehend finden Sie Codebeispiele für die Verwendung jedes Quelltyps:
 
-!!! Beispiel "Vorhersagequellen"
+!!! Example "Vorhersagequellen"
 
     === "Bild"
         Führen Sie die Inferenz auf einer Bilddatei aus.

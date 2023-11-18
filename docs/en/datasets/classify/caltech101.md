@@ -28,7 +28,7 @@ The Caltech-101 dataset is extensively used for training and evaluating deep lea
 
 To train a YOLO model on the Caltech-101 dataset for 100 epochs, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
+!!! Example "Train Example"
 
     === "Python"
 
@@ -61,7 +61,7 @@ The example showcases the variety and complexity of the objects in the Caltech-1
 
 If you use the Caltech-101 dataset in your research or development work, please cite the following paper:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

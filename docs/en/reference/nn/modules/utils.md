@@ -5,7 +5,7 @@ keywords: Ultralytics, neural network, nn.modules.utils, bias_init_with_prob, in
 
 # Reference for `ultralytics/nn/modules/utils.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/utils.py) 🛠️. Thank you 🙏!
 

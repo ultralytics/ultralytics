@@ -23,7 +23,7 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
   <strong>观看:</strong> 在Python中使用预训练的Ultralytics YOLOv8模型运行分割。
 </p>
 
-!!! tip "提示"
+!!! Tip "提示"
 
     YOLOv8分割模型使用`-seg`后缀，即`yolov8n-seg.pt`，并在[COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)上进行预训练。
 
@@ -50,7 +50,7 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 在COCO128-seg数据集上以640的图像尺寸训练YOLOv8n-seg模型共100个周期。想了解更多可用的参数，请查阅[配置](/../usage/cfg.md)页面。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -86,7 +86,7 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 在COCO128-seg数据集上验证已训练的YOLOv8n-seg模型的准确性。不需要传递任何参数，因为`model`保留了其训练的`data`和作为模型属性的设置。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -119,7 +119,7 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 使用已训练的YOLOv8n-seg模型在图像上进行预测。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -146,7 +146,7 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 将YOLOv8n-seg模型导出为ONNX、CoreML等不同格式。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 

@@ -1,0 +1,202 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+site_name: Ultralytics YOLOv8 दस्तावेज़
+site_description: विभिन्न एप्लिकेशन्स और हार्डवेयर प्लेटफॉर्म्स के लिए Ultralytics YOLOv8 की खोज करें, एक अत्याधुनिक वास्तविक समय वस्तु पहचान और छवि विभाजन मॉडल।
+site_url: https://docs.ultralytics.com/hi/
+site_author: Ultralytics
+repo_url: https://github.com/ultralytics/ultralytics
+edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/hi/
+repo_name: ultralytics/ultralytics
+remote_name: https://github.com/ultralytics/docs
+docs_dir: 'hi/'  # where to find the markdown files
+site_dir: '../site/hi'  # where to publish to
+
+theme:
+  name: material
+  language: hi
+  custom_dir: overrides/
+  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
+  favicon: assets/favicon.ico
+  icon:
+    repo: fontawesome/brands/github
+  # font:  # disabled for faster page load times
+  #  text: Helvetica
+  #  code: Roboto Mono
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - navigation.top
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.prune
+    - navigation.footer
+    - navigation.tracking
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.indexes
+    - navigation.sections
+    - content.tabs.link  # all code tabs change simultaneously
+
+# Customization
+copyright: <a href="https://ultralytics.com" target="_blank">© 2023 Ultralytics Inc.</a> All rights reserved.
+extra:
+  # version:
+  #   provider: mike  #  version drop-down menu
+  robots: robots.txt
+  analytics:
+    provider: google
+    property: G-2M5EHKC0BH
+  alternate: # language drop-down
+    - name: 🇬🇧 English
+      link: /
+      lang: en
+    - name: 🇨🇳 简体中文
+      link: /zh/
+      lang: zh
+    - name: 🇰🇷 한국어
+      link: /ko/
+      lang: ko
+    - name: 🇯🇵 日本語
+      link: /ja/
+      lang: ja
+    - name: 🇷🇺 Русский
+      link: /ru/
+      lang: ru
+    - name: 🇩🇪 Deutsch
+      link: /de/
+      lang: de
+    - name: 🇫🇷 Français
+      link: /fr/
+      lang: fr
+    - name: 🇪🇸 Español
+      link: /es/
+      lang: es
+    - name: 🇵🇹 Português
+      link: /pt/
+      lang: pt
+    - name: 🇮🇳 हिन्दी
+      link: /hi/
+      lang: hi
+    - name: 🇸🇦 العربية
+      link: /ar/
+      lang: ar
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ultralytics
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/ultralytics/
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/ultralytics
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/ultralytics
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/ultralytics/ultralytics/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/ultralytics/
+    - icon: fontawesome/brands/discord
+      link: https://ultralytics.com/discord
+
+extra_css:
+  - stylesheets/style.css
+extra_javascript:
+  - javascript/extra.js
+
+markdown_extensions:
+  - admonition
+  - md_in_html
+  - tables
+  - attr_list
+  - def_list
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.snippets:
+      base_path: ./
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
+
+
+# Primary navigation ---------------------------------------------------------------------------------------------------
+nav:
+  - होमपेज:
+      - होमपेज: index.md
+      - त्वरित प्रारंभ: quickstart.md
+      - मोड:
+          - modes/index.md
+          - प्रशिक्षण: modes/train.md
+          - मान्यता: modes/val.md
+          - भविष्यवाणी: modes/predict.md
+          - निर्यात: modes/export.md
+          - ट्रैकिंग: modes/track.md
+          - बेंचमार्किंग: modes/benchmark.md
+      - कार्य:
+          - tasks/index.md
+          - पहचान: tasks/detect.md
+          - खंडन: tasks/segment.md
+          - वर्गीकरण: tasks/classify.md
+          - मुद्रा: tasks/pose.md
+  - त्वरित प्रारंभ: quickstart.md
+  - मोड:
+      - modes/index.md
+      - प्रशिक्षण: modes/train.md
+      - मान्यता: modes/val.md
+      - भविष्यवाणी: modes/predict.md
+      - निर्यात: modes/export.md
+      - ट्रैकिंग: modes/track.md
+      - बेंचमार्किंग: modes/benchmark.md
+  - कार्य:
+      - tasks/index.md
+      - पहचान: tasks/detect.md
+      - खंडन: tasks/segment.md
+      - वर्गीकरण: tasks/classify.md
+      - मुद्रा: tasks/pose.md
+  - मॉडल:
+      - models/index.md
+  - डेटासेट्स:
+      - datasets/index.md
+
+# Plugins including 301 redirects navigation ---------------------------------------------------------------------------
+plugins:
+  - search:
+      lang: hi
+  - ultralytics:
+      add_desc: False
+      add_image: True
+      add_share_buttons: True
+      default_image: https://github.com/ultralytics/ultralytics/assets/26833433/6d09221c-c52a-4234-9a5d-b862e93c6529

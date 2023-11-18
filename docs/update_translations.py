@@ -82,6 +82,7 @@ class MarkdownLinkFixer:
 
         for term, eng_key in zip(translations.get(lang_dir.stem, []), english):
             content = re.sub(rf'!!! *{term}', f'!!! {eng_key}', content, flags=re.IGNORECASE)
+            content = re.sub(r'!!! *"', '!!! Example "', content, flags=re.IGNORECASE)
 
         return content
 

@@ -39,7 +39,7 @@ Ultralytics는 pip, conda, Docker를 포함한 다양한 설치 방법을 제공
         conda install -c conda-forge ultralytics
         ```
 
-        !!! note
+        !!! Note
 
             CUDA 환경에서 설치하는 경우 일반적으로 `ultralytics`, `pytorch` 및 `pytorch-cuda`를 동일한 명령어로 설치하여 Conda 패키지 관리자가 충돌을 해결하도록 하거나, 필요한 경우 CPU 전용 `pytorch` 패키지를 덮어쓸 수 있도록 `pytorch-cuda`를 마지막에 설치하는 것이 좋습니다.
             ```bash

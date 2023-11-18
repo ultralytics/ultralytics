@@ -39,7 +39,7 @@ Ultralytics ofrece varios métodos de instalación incluyendo pip, conda y Docke
         conda install -c conda-forge ultralytics
         ```
 
-        !!! note
+        !!! Note
 
             Si estás instalando en un entorno CUDA, la mejor práctica es instalar `ultralytics`, `pytorch` y `pytorch-cuda` en el mismo comando para permitir que el gestor de paquetes de conda resuelva cualquier conflicto, o en su defecto instalar `pytorch-cuda` al final para permitir que sobrescriba el paquete específico de CPU `pytorch` si es necesario.
             ```bash

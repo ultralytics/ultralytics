@@ -23,7 +23,7 @@ Das Ergebnis eines Instanzsegmentierungsmodells ist eine Reihe von Masken oder K
   <strong>Schauen Sie:</strong> Führen Sie Segmentierung mit dem vortrainierten Ultralytics YOLOv8 Modell in Python aus.
 </p>
 
-!!! Tipp "Tipp"
+!!! Tip "Tipp"
 
     YOLOv8 Segment-Modelle verwenden das Suffix `-seg`, d.h. `yolov8n-seg.pt` und sind auf dem [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)-Datensatz vortrainiert.
 
@@ -50,7 +50,7 @@ Hier werden vortrainierte YOLOv8 Segment-Modelle gezeigt. Detect-, Segment- und 
 
 Trainieren Sie YOLOv8n-seg auf dem COCO128-seg-Datensatz für 100 Epochen mit einer Bildgröße von 640. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](/../usage/cfg.md).
 
-!!! Beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -86,7 +86,7 @@ Das YOLO Segmentierungsdatenformat finden Sie detailliert im [Dataset Guide](../
 
 Validieren Sie die Genauigkeit des trainierten YOLOv8n-seg-Modells auf dem COCO128-seg-Datensatz. Es müssen keine Argumente übergeben werden, da das `Modell` seine Trainingsdaten und -argumente als Modellattribute behält.
 
-!!! Beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -119,7 +119,7 @@ Validieren Sie die Genauigkeit des trainierten YOLOv8n-seg-Modells auf dem COCO1
 
 Verwenden Sie ein trainiertes YOLOv8n-seg-Modell für Vorhersagen auf Bildern.
 
-!!! Beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -146,7 +146,7 @@ Die vollständigen Details zum `predict`-Modus finden Sie auf der Seite [Predict
 
 Exportieren Sie ein YOLOv8n-seg-Modell in ein anderes Format wie ONNX, CoreML usw.
 
-!!! Beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 

@@ -151,5 +151,5 @@ class MarkdownLinkFixer:
 if __name__ == '__main__':
     # Set the path to your MkDocs 'docs' directory here
     docs_dir = str(Path(__file__).parent.resolve())
-    fixer = MarkdownLinkFixer(docs_dir, update_links=True, update_text=True)
+    fixer = MarkdownLinkFixer(docs_dir, update_links=False, update_text=True)
     fixer.run()

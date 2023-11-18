@@ -1,19 +1,19 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-site_name: Ultralytics YOLOv8 Dokumentation
-site_description: Entdecken Sie Ultralytics YOLOv8, ein hochmodernes Echtzeit-Objekterkennungs- und Bildsegmentierungsmodell für verschiedene Anwendungen und Hardware-Plattformen.
-site_url: https://docs.ultralytics.com/de/
+site_name: Ultralytics YOLOv8 दस्तावेज़
+site_description: विभिन्न एप्लिकेशन्स और हार्डवेयर प्लेटफॉर्म्स के लिए Ultralytics YOLOv8 की खोज करें, एक अत्याधुनिक वास्तविक समय वस्तु पहचान और छवि विभाजन मॉडल।
+site_url: https://docs.ultralytics.com/hi/
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
-edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/de/
+edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/hi/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
-docs_dir: 'de/'  # where to find the markdown files
-site_dir: '../site/de'  # where to publish to
+docs_dir: 'hi/'  # where to find the markdown files
+site_dir: '../site/hi'  # where to publish to
 
 theme:
   name: material
-  language: de
+  language: hi
   custom_dir: overrides/
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
@@ -154,47 +154,47 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - Startseite:
-      - Startseite: index.md
-      - Schnellstart: quickstart.md
-      - Modi:
+  - होमपेज:
+      - होमपेज: index.md
+      - त्वरित प्रारंभ: quickstart.md
+      - मोड:
           - modes/index.md
-          - Training: modes/train.md
-          - Validierung: modes/val.md
-          - Vorhersage: modes/predict.md
-          - Exportieren: modes/export.md
-          - Verfolgen: modes/track.md
-          - Benchmarking: modes/benchmark.md
-      - Aufgaben:
+          - प्रशिक्षण: modes/train.md
+          - मान्यता: modes/val.md
+          - भविष्यवाणी: modes/predict.md
+          - निर्यात: modes/export.md
+          - ट्रैकिंग: modes/track.md
+          - बेंचमार्किंग: modes/benchmark.md
+      - कार्य:
           - tasks/index.md
-          - Erkennung: tasks/detect.md
-          - Segmentierung: tasks/segment.md
-          - Klassifizierung: tasks/classify.md
-          - Pose: tasks/pose.md
-  - Schnellstart: quickstart.md
-  - Modi:
+          - पहचान: tasks/detect.md
+          - खंडन: tasks/segment.md
+          - वर्गीकरण: tasks/classify.md
+          - मुद्रा: tasks/pose.md
+  - त्वरित प्रारंभ: quickstart.md
+  - मोड:
       - modes/index.md
-      - Training: modes/train.md
-      - Validierung: modes/val.md
-      - Vorhersage: modes/predict.md
-      - Exportieren: modes/export.md
-      - Verfolgen: modes/track.md
-      - Benchmarking: modes/benchmark.md
-  - Aufgaben:
+      - प्रशिक्षण: modes/train.md
+      - मान्यता: modes/val.md
+      - भविष्यवाणी: modes/predict.md
+      - निर्यात: modes/export.md
+      - ट्रैकिंग: modes/track.md
+      - बेंचमार्किंग: modes/benchmark.md
+  - कार्य:
       - tasks/index.md
-      - Erkennung: tasks/detect.md
-      - Segmentierung: tasks/segment.md
-      - Klassifizierung: tasks/classify.md
-      - Pose: tasks/pose.md
-  - Modelle:
+      - पहचान: tasks/detect.md
+      - खंडन: tasks/segment.md
+      - वर्गीकरण: tasks/classify.md
+      - मुद्रा: tasks/pose.md
+  - मॉडल:
       - models/index.md
-  - Datensätze:
+  - डेटासेट्स:
       - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
   - search:
-      lang: de
+      lang: hi
   - ultralytics:
       add_desc: False
       add_image: True

@@ -32,7 +32,9 @@ class MarkdownLinkFixer:
             'fr': ['commentaires', 'description', 'mots-clés'],  # French
             'de': ['Kommentare', 'Beschreibung', 'Schlüsselwörter'],  # German
             'ja': ['コメント', '説明', 'キーワード'],  # Japanese
-            'ko': ['댓글', '설명', '키워드']  # Korean
+            'ko': ['댓글', '설명', '키워드'],  # Korean
+            'hi': ['टिप्पणियाँ', 'विवरण', 'कीवर्ड'],  # Hindi
+            'ar': ['التعليقات', 'الوصف', 'الكلمات الرئيسية']  # Arabic
         }  # front matter translations for comments, description, keyword
 
     def replace_front_matter(self, content):

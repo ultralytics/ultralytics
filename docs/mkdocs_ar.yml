@@ -1,19 +1,19 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-site_name: Ultralytics YOLOv8 Dokumentation
-site_description: Entdecken Sie Ultralytics YOLOv8, ein hochmodernes Echtzeit-Objekterkennungs- und Bildsegmentierungsmodell für verschiedene Anwendungen und Hardware-Plattformen.
-site_url: https://docs.ultralytics.com/de/
+site_name: وثائق Ultralytics YOLOv8
+site_description: استكشف Ultralytics YOLOv8، نموذج الكشف عن الأجسام وتقطيع الصورة في الوقت الحقيقي المتطور لمختلف التطبيقات والمنصات الأجهزة.
+site_url: https://docs.ultralytics.com/ar/
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
-edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/de/
+edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/ar/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
-docs_dir: 'de/'  # where to find the markdown files
-site_dir: '../site/de'  # where to publish to
+docs_dir: 'ar/'  # where to find the markdown files
+site_dir: '../site/ar'  # where to publish to
 
 theme:
   name: material
-  language: de
+  language: ar
   custom_dir: overrides/
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
@@ -154,47 +154,47 @@ markdown_extensions:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
-  - Startseite:
-      - Startseite: index.md
-      - Schnellstart: quickstart.md
-      - Modi:
+  - الصفحة الرئيسية:
+      - الصفحة الرئيسية: index.md
+      - البدء السريع: quickstart.md
+      - الأوضاع:
           - modes/index.md
-          - Training: modes/train.md
-          - Validierung: modes/val.md
-          - Vorhersage: modes/predict.md
-          - Exportieren: modes/export.md
-          - Verfolgen: modes/track.md
-          - Benchmarking: modes/benchmark.md
-      - Aufgaben:
+          - التدريب: modes/train.md
+          - التحقق: modes/val.md
+          - التنبؤ: modes/predict.md
+          - التصدير: modes/export.md
+          - التتبع: modes/track.md
+          - المعايير: modes/benchmark.md
+      - المهام:
           - tasks/index.md
-          - Erkennung: tasks/detect.md
-          - Segmentierung: tasks/segment.md
-          - Klassifizierung: tasks/classify.md
-          - Pose: tasks/pose.md
-  - Schnellstart: quickstart.md
-  - Modi:
+          - الكشف: tasks/detect.md
+          - التجزئة: tasks/segment.md
+          - التصنيف: tasks/classify.md
+          - الوضعية: tasks/pose.md
+  - البدء السريع: quickstart.md
+  - الأوضاع:
       - modes/index.md
-      - Training: modes/train.md
-      - Validierung: modes/val.md
-      - Vorhersage: modes/predict.md
-      - Exportieren: modes/export.md
-      - Verfolgen: modes/track.md
-      - Benchmarking: modes/benchmark.md
-  - Aufgaben:
+      - التدريب: modes/train.md
+      - التحقق: modes/val.md
+      - التنبؤ: modes/predict.md
+      - التصدير: modes/export.md
+      - التتبع: modes/track.md
+      - المعايير: modes/benchmark.md
+  - المهام:
       - tasks/index.md
-      - Erkennung: tasks/detect.md
-      - Segmentierung: tasks/segment.md
-      - Klassifizierung: tasks/classify.md
-      - Pose: tasks/pose.md
-  - Modelle:
+      - الكشف: tasks/detect.md
+      - التجزئة: tasks/segment.md
+      - التصنيف: tasks/classify.md
+      - الوضعية: tasks/pose.md
+  - النماذج:
       - models/index.md
-  - Datensätze:
+  - المجموعات البيانية:
       - datasets/index.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
   - search:
-      lang: de
+      lang: ar
   - ultralytics:
       add_desc: False
       add_image: True

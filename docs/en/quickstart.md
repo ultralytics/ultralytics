@@ -148,12 +148,13 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         Ultralytics `yolo` commands use the following syntax:
         ```bash
         yolo TASK MODE ARGS
-
-        Where   TASK (optional) is one of [detect, segment, classify]
-                MODE (required) is one of [train, val, predict, export, track]
-                ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
         ```
-        See all ARGS in the full [Configuration Guide](usage/cfg.md) or with `yolo cfg`
+
+        - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [classify](tasks/classify.md), [pose](tasks/pose.md))
+        - `MODE` (required) is one of ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md))
+        - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
+
+        See all `ARGS` in the full [Configuration Guide](usage/cfg.md) or with the `yolo cfg` CLI command.
 
     === "Train"
 
@@ -197,11 +198,12 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
 !!! warning "Warning"
 
-    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
+    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
-    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
-    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
-    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
+    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25`  ✅
+    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
+    - `yolo predict model=yolov8n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
+    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
 
 [CLI Guide](usage/cli.md){ .md-button .md-button--primary}
 

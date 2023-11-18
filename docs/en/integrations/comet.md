@@ -133,7 +133,7 @@ You can control the number of image predictions that Comet ML logs during your e
 ```python
 import os
 os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
- ```
+```
 
 ### Batch Logging Interval
 

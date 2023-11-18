@@ -53,6 +53,8 @@ class MarkdownLinkFixer:
             'Note', 'Summary', 'Tip', 'Info', 'Success', 'Question', 'Warning', 'Failure', 'Danger', 'Bug', 'Example',
             'Quote', 'Abstract', 'Seealso', 'Admonition']
         translations = {
+            'en':
+                english,
             'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用', '摘要', '另见', '警告'],
             'es': [
                 'Nota', 'Resumen', 'Consejo', 'Información', 'Éxito', 'Pregunta', 'Advertencia', 'Fracaso', 'Peligro',
@@ -142,12 +144,12 @@ class MarkdownLinkFixer:
     def run(self):
         """Run the link fixing and front matter updating process for each language-specific directory."""
         for subdir in self.base_dir.iterdir():
-            if subdir.is_dir() and re.match(r'^\w\w$', subdir.name) and subdir.name != 'en':
+            if subdir.is_dir() and re.match(r'^\w\w$', subdir.name):
                 self.process_language_directory(subdir)
 
 
 if __name__ == '__main__':
     # Set the path to your MkDocs 'docs' directory here
     docs_dir = str(Path(__file__).parent.resolve())
-    fixer = MarkdownLinkFixer(docs_dir, update_links=False, update_text=True)
+    fixer = MarkdownLinkFixer(docs_dir, update_links=True, update_text=True)
     fixer.run()

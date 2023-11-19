@@ -81,7 +81,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 
 ### تنسيق مجموعة البيانات
 
-يمكن العثور على تنسيق مجموعات بيانات نقاط الوضوح YOLO في [دليل المجموعة البيانات](../../datasets/pose/index.md). لتحويل مجموعة البيانات الحالية التي لديك من تنسيقات أخرى (مثل COCO إلخ) إلى تنسيق YOLO ، يرجى استخدام أداة [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) من Ultralytics.
+يمكن العثور على تنسيق مجموعات بيانات نقاط الوضوح YOLO في [دليل المجموعة البيانات](../../../datasets/pose/index.md). لتحويل مجموعة البيانات الحالية التي لديك من تنسيقات أخرى (مثل COCO إلخ) إلى تنسيق YOLO ، يرجى استخدام أداة [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) من Ultralytics.
 
 ## التحقق من الصحة
 

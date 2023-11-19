@@ -37,7 +37,7 @@ keywords: Ultralytics, YOLOv8, इमेज क्लासिफिकेशन
 
 ## ट्रेन
 
-100 एपॉक्स के लिए MNIST160 डेटासेट पर YOLOv8n-cls को 64 इमेज आकार पर रिक्तियों के साथ ट्रेन करें। उपलब्ध विकल्पों की पूरी सूची के लिए [Configuration](../../usage/cfg.md) पेज देखें।
+100 एपॉक्स के लिए MNIST160 डेटासेट पर YOLOv8n-cls को 64 इमेज आकार पर रिक्तियों के साथ ट्रेन करें। उपलब्ध विकल्पों की पूरी सूची के लिए [Configuration](/../usage/cfg.md) पेज देखें।
 
 !!! Example "उदाहरण"
 
@@ -70,7 +70,7 @@ keywords: Ultralytics, YOLOv8, इमेज क्लासिफिकेशन
 
 ### डेटासेट प्रारूप
 
-YOLO क्लासिफिकेशन डेटासेट प्रारूप [Dataset Guide](../../datasets/classify/index.md) में विस्तृत रूप में दिया गया है।
+YOLO क्लासिफिकेशन डेटासेट प्रारूप [Dataset Guide](../../../datasets/classify/index.md) में विस्तृत रूप में दिया गया है।
 
 ## वेलिडेट
 

@@ -327,7 +327,7 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
 
 `model.predict()` 在推理时接受多个参数，可以用来覆盖默认值：
 
-!!! Example
+!!! Example "示例"
 
     ```python
     from ultralytics import YOLO

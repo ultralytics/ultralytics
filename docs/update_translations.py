@@ -81,6 +81,9 @@ class MarkdownLinkFixer:
                 'ملخص', 'انظر أيضاً', 'تحذير']}
 
         for term, eng_key in zip(translations.get(lang_dir.stem, []), english):
+            if lang_dir.stem != 'en':
+                content = re.sub(rf'!!! *{eng_key} *\n', f'!!! {eng_key} "{term}"\n', content, flags=re.IGNORECASE)
+                content = re.sub(rf'!!! *{term} *\n', f'!!! {eng_key} "{term}"\n', content, flags=re.IGNORECASE)
             content = re.sub(rf'!!! *{term}', f'!!! {eng_key}', content, flags=re.IGNORECASE)
             content = re.sub(r'!!! *"', '!!! Example "', content, flags=re.IGNORECASE)
 

@@ -8,7 +8,7 @@ keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, R
 
 Bienvenue dans la documentation des modèles d'Ultralytics ! Nous proposons une prise en charge d'une large gamme de modèles, chacun adapté à des tâches spécifiques comme [la détection d'objets](../tasks/detect.md), [la segmentation d'instances](../tasks/segment.md), [la classification d'images](../tasks/classify.md), [l'estimation de posture](../tasks/pose.md) et [le suivi multi-objets](../modes/track.md). Si vous souhaitez contribuer avec votre architecture de modèle à Ultralytics, consultez notre [Guide de Contribution](../../help/contributing.md).
 
-!!! Note
+!!! Note "Note"
 
     🚧 Notre documentation multilingue est actuellement en construction et nous travaillons activement à l'améliorer. Merci de votre patience ! 🙏
 

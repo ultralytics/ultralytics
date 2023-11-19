@@ -135,7 +135,11 @@ def test_predict_grey_and_4ch():
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_youtube():
-    """Test YouTube inference. Marked --slow to reduce YouTube API rate limits risk."""
+    """
+    Test YouTube inference.
+
+    Marked --slow to reduce YouTube API rate limits risk.
+    """
     model = YOLO(MODEL)
     model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96, save=True)
 

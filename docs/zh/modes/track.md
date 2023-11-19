@@ -58,7 +58,7 @@ Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置
 
 要在视频流中运行追踪器，请使用已训练的检测、分割或姿态模型，例如YOLOv8n、YOLOv8n-seg和YOLOv8n-pose。
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "Python"
 
@@ -97,7 +97,7 @@ Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置
 
 追踪配置与预测模式共享一些属性，如`conf`、`iou`和`show`。有关进一步配置，请参见[预测](https://docs.ultralytics.com/modes/predict/)模型页面。
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "Python"
 
@@ -120,7 +120,7 @@ Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置
 
 Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操作，只需从[ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)中复制一个追踪器配置文件（例如，`custom_tracker.yaml`）并根据您的需求修改任何配置（除了`tracker_type`）。
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "Python"
 
@@ -147,7 +147,7 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
 
 这是一个使用OpenCV（`cv2`）和YOLOv8在视频帧上运行物体追踪的Python脚本。此脚本假设您已经安装了必要的包（`opencv-python`和`ultralytics`）。参数`persist=True`告诉追踪器当前的图像或帧是序列中的下一个，并且期望在当前图像中从上一个图像中获得追踪路径。
 
-!!! 示例 "带追踪功能的流循环"
+!!! Example "带追踪功能的流循环"
 
     ```python
     import cv2
@@ -195,7 +195,7 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
 
 在以下示例中，我们演示了如何利用YOLOv8的追踪功能在多个视频帧上绘制检测物体的移动。这个脚本涉及打开视频文件、逐帧读取，并使用YOLO模型识别并追踪各种物体。通过保留检测到的边界框的中心点并连接它们，我们可以绘制表示跟踪物体路径的线条。
 
-!!! 示例 "在多个视频帧上绘制追踪路径"
+!!! Example "在多个视频帧上绘制追踪路径"
 
     ```python
     from collections import defaultdict
@@ -271,7 +271,3 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
 在`threading.Thread`中参数`daemon=True`表示，这些线程会在主程序结束时关闭。然后我们用`start()`来开始线程，并使用`join()`来使主线程等待，直到两个追踪线程都结束。
 
 最后，在所有线程完成任务后，使用`cv2.destroyAllWindows()`关闭显示结果的窗口。
-
-!!! 示例 "带追踪功能的流循环"
-
-    ```pyth

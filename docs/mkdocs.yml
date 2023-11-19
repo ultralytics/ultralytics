@@ -100,6 +100,12 @@ extra:
     - name: 🇵🇹 Português
       link: /pt/
       lang: pt
+    - name: 🇮🇳 हिन्दी
+      link: /hi/
+      lang: hi
+    - name: 🇸🇦 العربية
+      link: /ar/
+      lang: ar
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics
@@ -174,6 +180,8 @@ nav:
           - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr/
           - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es/
           - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt/
+          - 🇮🇳&nbsp हिन्दी: https://docs.ultralytics.com/hi/
+          - 🇸🇦&nbsp العربية: https://docs.ultralytics.com/ar/
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md

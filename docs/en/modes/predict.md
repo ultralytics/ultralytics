@@ -50,7 +50,7 @@ YOLOv8's predict mode is designed to be robust and versatile, featuring:
 
 Ultralytics YOLO models return either a Python list of `Results` objects, or a memory-efficient Python generator of `Results` objects when `stream=True` is passed to the model during inference:
 
-!!! example "Predict"
+!!! Example "Predict"
 
     === "Return a list with `stream=False`"
         ```python
@@ -92,7 +92,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
 
 YOLOv8 can process different types of input sources for inference, as shown in the table below. The sources include static images, video streams, and various data formats. The table also indicates whether each source can be used in streaming mode with the argument `stream=True` ✅. Streaming mode is beneficial for processing videos or live streams as it creates a generator of results instead of loading all frames into memory.
 
-!!! tip "Tip"
+!!! Tip "Tip"
 
     Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
@@ -115,7 +115,7 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 
 Below are code examples for using each source type:
 
-!!! example "Prediction sources"
+!!! Example "Prediction sources"
 
     === "image"
         Run inference on an image file.
@@ -327,7 +327,7 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
-!!! example
+!!! Example
 
     ```python
     from ultralytics import YOLO
@@ -411,7 +411,7 @@ The below table contains valid Ultralytics video formats.
 
 All Ultralytics `predict()` calls will return a list of `Results` objects:
 
-!!! example "Results"
+!!! Example "Results"
 
     ```python
     from ultralytics import YOLO
@@ -463,7 +463,7 @@ For more details see the `Results` class [documentation](../reference/engine/res
 
 `Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats.
 
-!!! example "Boxes"
+!!! Example "Boxes"
 
     ```python
     from ultralytics import YOLO
@@ -501,7 +501,7 @@ For more details see the `Boxes` class [documentation](../reference/engine/resul
 
 `Masks` object can be used index, manipulate and convert masks to segments.
 
-!!! example "Masks"
+!!! Example "Masks"
 
     ```python
     from ultralytics import YOLO
@@ -534,7 +534,7 @@ For more details see the `Masks` class [documentation](../reference/engine/resul
 
 `Keypoints` object can be used index, manipulate and normalize coordinates.
 
-!!! example "Keypoints"
+!!! Example "Keypoints"
 
     ```python
     from ultralytics import YOLO
@@ -568,7 +568,7 @@ For more details see the `Keypoints` class [documentation](../reference/engine/r
 
 `Probs` object can be used index, get `top1` and `top5` indices and scores of classification.
 
-!!! example "Probs"
+!!! Example "Probs"
 
     ```python
     from ultralytics import YOLO
@@ -603,7 +603,7 @@ For more details see the `Probs` class [documentation](../reference/engine/resul
 
 You can use the `plot()` method of a `Result` objects to visualize predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object onto a numpy array that can then be shown or saved.
 
-!!! example "Plotting"
+!!! Example "Plotting"
 
     ```python
     from PIL import Image
@@ -647,7 +647,7 @@ Ensuring thread safety during inference is crucial when you are running multiple
 
 When using YOLO models in a multi-threaded application, it's important to instantiate separate model objects for each thread or employ thread-local storage to prevent conflicts:
 
-!!! example "Thread-Safe Inference"
+!!! Example "Thread-Safe Inference"
 
     Instantiate a single model inside each thread for thread-safe inference:
     ```python
@@ -672,7 +672,7 @@ For an in-depth look at thread-safe inference with YOLO models and step-by-step 
 
 Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video frames. This script assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`).
 
-!!! example "Streaming for-loop"
+!!! Example "Streaming for-loop"
 
     ```python
     import cv2

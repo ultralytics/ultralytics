@@ -48,7 +48,7 @@ Voici quelques-unes des fonctionnalités remarquables :
 
 Exportez un modèle YOLOv8n vers un format différent tel que ONNX ou TensorRT. Voir la section Arguments ci-dessous pour une liste complète des arguments d'exportation.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 

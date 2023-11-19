@@ -49,7 +49,7 @@ We regret any inconvenience this may cause and will strive to update this docume
 
 We would like to acknowledge the YOLOv7 authors for their significant contributions in the field of real-time object detection:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

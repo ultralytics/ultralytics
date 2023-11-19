@@ -32,7 +32,7 @@ keywords: Ultralytics, YOLOv8, 벤치마킹, 속도 프로파일링, 정확도 �
 - **OpenVINO:** 인텔 하드웨어 최적화를 위함
 - **CoreML, TensorFlow SavedModel, 그 외:** 다양한 배포 요구 사항을 위함.
 
-!!! 팁 "팁"
+!!! Tip "팁"
 
     * CPU 속도 향상을 위해 ONNX 또는 OpenVINO로 내보내기.
     * GPU 속도 향상을 위해 TensorRT로 내보내기.
@@ -41,7 +41,7 @@ keywords: Ultralytics, YOLOv8, 벤치마킹, 속도 프로파일링, 정확도 �
 
 YOLOv8n 벤치마킹을 ONNX, TensorRT 등 모든 지원되는 내보내기 형식에 대해 실행합니다. 완벽한 내보내기 인수 목록을 보려면 아래의 인수 섹션을 참조하세요.
 
-!!! 예제 ""
+!!! Example "예제"
 
     === "파이썬"
 

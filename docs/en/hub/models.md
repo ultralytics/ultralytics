@@ -58,7 +58,7 @@ In this step, you have to choose the project in which you want to create your mo
 
     ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the project name](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_7.jpg)
 
-!!! info "Info"
+!!! Info "Info"
 
     You can read more about the available [YOLOv8](https://docs.ultralytics.com/models/yolov8) (and [YOLOv5](https://docs.ultralytics.com/models/yolov5)) architectures in our documentation.
 
@@ -146,7 +146,7 @@ You can export your model to 13 different formats, including ONNX, OpenVINO, Cor
 
 ## Share Model
 
-!!! info "Info"
+!!! Info "Info"
 
     Ultralytics HUB's sharing functionality provides a convenient way to share models with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
 

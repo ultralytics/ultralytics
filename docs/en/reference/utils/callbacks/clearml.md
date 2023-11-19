@@ -5,7 +5,7 @@ keywords: Ultralytics, clearML, callbacks, pretrain routine start, validation en
 
 # Reference for `ultralytics/utils/callbacks/clearml.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/clearml.py) 🛠️. Thank you 🙏!
 

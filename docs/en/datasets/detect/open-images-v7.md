@@ -40,7 +40,7 @@ Open Images V7 is a cornerstone for training and evaluating state-of-the-art mod
 
 Typically, datasets come with a YAML (Yet Another Markup Language) file that delineates the dataset's configuration. For the case of Open Images V7, a hypothetical `OpenImagesV7.yaml` might exist. For accurate paths and configurations, one should refer to the dataset's official repository or documentation.
 
-!!! example "OpenImagesV7.yaml"
+!!! Example "OpenImagesV7.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/open-images-v7.yaml"
@@ -50,7 +50,7 @@ Typically, datasets come with a YAML (Yet Another Markup Language) file that del
 
 To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! warning
+!!! Warning
 
     The complete Open Images V7 dataset comprises 1,743,042 training images and 41,620 validation images, requiring approximately **561 GB of storage space** upon download.
 
@@ -59,7 +59,7 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an im
     - Verify that your device has enough storage capacity.
     - Ensure a robust and speedy internet connection.
 
-!!! example "Train Example"
+!!! Example "Train Example"
 
     === "Python"
 
@@ -94,7 +94,7 @@ Researchers can gain invaluable insights into the array of computer vision chall
 
 For those employing Open Images V7 in their work, it's prudent to cite the relevant papers and acknowledge the creators:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

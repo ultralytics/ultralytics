@@ -58,7 +58,7 @@ El rastreador predeterminado es BoT-SORT.
 
 Para ejecutar el rastreador en flujos de video, usa un modelo Detect, Segment o Pose entrenado tales como YOLOv8n, YOLOv8n-seg y YOLOv8n-pose.
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -97,7 +97,7 @@ Como se puede ver en el uso anterior, el seguimiento está disponible para todos
 
 La configuración de seguimiento comparte propiedades con el modo Predict, como `conf`, `iou` y `show`. Para configuraciones adicionales, consulta la página del modelo [Predict](https://docs.ultralytics.com/modes/predict/).
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -120,7 +120,7 @@ La configuración de seguimiento comparte propiedades con el modo Predict, como 
 
 Ultralytics también te permite usar un archivo de configuración de rastreador modificado. Para hacerlo, simplemente haz una copia de un archivo de configuración de rastreador (por ejemplo, `custom_tracker.yaml`) de [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) y modifica cualquier configuración (excepto el `tracker_type`) según tus necesidades.
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -147,7 +147,7 @@ Para obtener una lista completa de los argumentos de seguimiento, consulta la p�
 
 Aquí hay un script en Python que utiliza OpenCV (`cv2`) y YOLOv8 para ejecutar el seguimiento de objetos en fotogramas de video. Este script aún asume que ya has instalado los paquetes necesarios (`opencv-python` y `ultralytics`). El argumento `persist=True` le indica al rastreador que la imagen o fotograma actual es el siguiente en una secuencia y que espera rastros de la imagen anterior en la imagen actual.
 
-!!! ejemplo "Bucle de transmisión en vivo con seguimiento"
+!!! Example "Bucle de transmisión en vivo con seguimiento"
 
     ```python
     import cv2

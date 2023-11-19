@@ -143,7 +143,7 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
 
 ## استخدم Ultralytics مع واجهة سطر الأوامر (CLI)
 
-تتيح واجهة سطر الأوامر (CLI) في Ultralytics تشغيل أوامر بسيطة بدون الحاجة إلى بيئة Python. لا تحتاج CLI إلى أي تخصيص أو كود Python. يمكنك ببساطة تشغيل جميع المهام من الطرفية باستخدام الأمر `yolo`. تحقق من [دليل CLI](../../usage/cli.md) لمعرفة المزيد حول استخدام YOLOv8 من سطر الأوامر.
+تتيح واجهة سطر الأوامر (CLI) في Ultralytics تشغيل أوامر بسيطة بدون الحاجة إلى بيئة Python. لا تحتاج CLI إلى أي تخصيص أو كود Python. يمكنك ببساطة تشغيل جميع المهام من الطرفية باستخدام الأمر `yolo`. تحقق من [دليل CLI](/../usage/cli.md) لمعرفة المزيد حول استخدام YOLOv8 من سطر الأوامر.
 
 !!! Example
 
@@ -157,7 +157,7 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
         - `MODE` (مطلوب) واحد من ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md))
         - `ARGS` (اختياري) أزواج "arg=value" مثل `imgsz=640` التي تستبدل القيم الافتراضية.
 
-        راجع جميع `ARGS` [هنا](../usage/cfg.md) أو باستخدام الأمر `yolo cfg` في سطر الأوامر.
+        راجع جميع `ARGS` [هنا](/../usage/cfg.md) أو باستخدام الأمر `yolo cfg` في سطر الأوامر.
 
     === "التدريب"
         قم بتدريب نموذج اكتشاف لمدة 10 حلقات مع سعر تعلم بدءي 0.01
@@ -202,13 +202,13 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
     - `yolo predict model=yolov8n.pt, imgsz=640, conf=0.25`  ❌ (لا تستخدم `,`)
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25`  ❌ (لا تستخدم `--`)
 
-[دليل CLI](../usage/cli.md){ .md-button .md-button--primary}
+[دليل CLI](/../usage/cli.md){ .md-button .md-button--primary}
 
 ## استخدم Ultralytics مع Python
 
 تسمح واجهة Python في YOLOv8 بالتكامل السلس في مشاريع Python الخاصة بك، مما يجعل من السهل تحميل النموذج وتشغيله ومعالجة نتائجه. المصممة ببساطة وسهولة الاستخدام في الاعتبار، تمكن واجهة Python المستخدمين من تنفيذ الكشف على الكائنات والتجزئة والتصنيف في مشاريعهم. يجعل هذا واجهة YOLOv8 Python أداة قيمة لأي شخص يرغب في دمج هذه الوظائف في مشاريعهم باسياتو.
 
-على سبيل المثال، يمكن للمستخدمين تحميل نموذج، تدريبه، تقييم أدائه على مجموعة التحقق، وحتى تصديره إلى تنسيق ONNX ببضعة أسطر فقط من الشفرة. تحقق من [دليل Python](../usage/python.md) لمعرفة المزيد حول استخدام YOLOv8 داخل مشاريعك الخاصة.
+على سبيل المثال، يمكن للمستخدمين تحميل نموذج، تدريبه، تقييم أدائه على مجموعة التحقق، وحتى تصديره إلى تنسيق ONNX ببضعة أسطر فقط من الشفرة. تحقق من [دليل Python](/../usage/python.md) لمعرفة المزيد حول استخدام YOLOv8 داخل مشاريعك الخاصة.
 
 !!! Example
 
@@ -234,7 +234,7 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
     success = model.export(format='onnx')
     ```
 
-[دليل Python](../usage/python.md){.md-button .md-button--primary}
+[دليل Python](/../usage/python.md){.md-button .md-button--primary}
 
 ## إعدادات Ultralytics
 

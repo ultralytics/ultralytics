@@ -75,7 +75,8 @@ jobs:
           rm -rf *
           cp -R ../site/* .
           git add .
-          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }}'"
+          LATEST_HASH=$(git rev-parse --short=7 HEAD)
+          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
           git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-pages
       - name: Extract PR Details
         run: |

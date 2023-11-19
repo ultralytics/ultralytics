@@ -141,7 +141,7 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
 Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，无需Python环境。CLI不需要自定义或Python代码。您可以直接从终端使用`yolo`命令运行所有任务。查看[CLI指南](/../usage/cli.md)，了解更多关于从命令行使用YOLOv8的信息。
 
-!!! Example
+!!! Example "示例"
 
     === "语法"
 
@@ -211,7 +211,7 @@ YOLOv8的Python接口允许无缝集成进您的Python项目，轻松加载、�
 
 例如，用户可以加载一个模型，训练它，在验证集上评估性能，甚至只需几行代码就可以将其导出到ONNX格式。查看[Python指南](/../usage/python.md)，了解更多关于在Python项目中使用YOLOv8的信息。
 
-!!! Example
+!!! Example "示例"
 
     ```python
     from ultralytics import YOLO

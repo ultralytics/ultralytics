@@ -45,6 +45,8 @@ jobs:
             --exclude-path docs/de \
             --exclude-path docs/ja \
             --exclude-path docs/ko \
+            --exclude-path docs/hi \
+            --exclude-path docs/ar \
             --exclude-mail \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             './**/*.md' './**/*.html'
@@ -69,6 +71,8 @@ jobs:
             --exclude-path docs/de \
             --exclude-path docs/ja \
             --exclude-path docs/ko \
+            --exclude-path docs/hi \
+            --exclude-path docs/ar \
             --exclude-mail \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'

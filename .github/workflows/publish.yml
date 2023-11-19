@@ -65,6 +65,7 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
         run: |
           python docs/build_docs.py
           git config --global user.name "Glenn Jocher"
@@ -74,9 +75,11 @@ jobs:
           git checkout gh-pages || git checkout -b gh-pages
           rm -rf *
           cp -R ../site/* .
+          echo "$INDEXNOW_KEY" > "$INDEXNOW_KEY.txt"
           git add .
-          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }}'"
-          git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-pages
+          LATEST_HASH=$(git rev-parse --short=7 HEAD)
+          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
+          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
       - name: Extract PR Details
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then

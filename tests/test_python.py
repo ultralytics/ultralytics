@@ -132,11 +132,23 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
+def test_youtube():
+    """
+    Test YouTube inference.
+
+    Marked --slow to reduce YouTube API rate limits risk.
+    """
+    model = YOLO(MODEL)
+    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96, save=True)
+
+
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason='directory is not writeable')
 def test_track_stream():
     """
-    Test YouTube streaming tracking (short 10 frame video) with non-default ByteTrack tracker.
+    Test streaming tracking (short 10 frame video) with non-default ByteTrack tracker.
 
     Note imgsz=160 required for tracking for higher confidence and better matches
     """

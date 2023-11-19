@@ -70,7 +70,7 @@ keywords: Ultralytics, YOLOv8, इमेज क्लासिफिकेशन
 
 ### डेटासेट प्रारूप
 
-YOLO क्लासिफिकेशन डेटासेट प्रारूप [Dataset Guide](../../datasets/classify/index.md) में विस्तृत रूप में दिया गया है।
+YOLO क्लासिफिकेशन डेटासेट प्रारूप [Dataset Guide](../../../datasets/classify/index.md) में विस्तृत रूप में दिया गया है।
 
 ## वेलिडेट
 

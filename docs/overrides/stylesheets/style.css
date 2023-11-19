@@ -43,3 +43,8 @@ div.highlight {
 .md-grid {
   max-width: 1440px;
 }
+
+/* Language dropdown selector (default is shorter 200px in length) */
+body .md-select__inner {
+    max-height: 500px !important;
+}

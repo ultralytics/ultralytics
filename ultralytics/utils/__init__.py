@@ -243,6 +243,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             print(f'Creating custom formatter for non UTF-8 environments due to {e}')
 
             class CustomFormatter(logging.Formatter):
+
                 def format(self, record):
                     return emojis(super().format(record))
 

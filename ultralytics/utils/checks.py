@@ -553,12 +553,12 @@ def collect_system_info():
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
 
     if is_github_action_running():
-        LOGGER.info(f"RUNNER_OS: {os.getenv('RUNNER_OS')}"
-                    f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}"
-                    f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}"
-                    f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}"
-                    f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}"
-                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}")
+        LOGGER.info(f"\nRUNNER_OS: {os.getenv('RUNNER_OS')}\n"
+                    f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}\n"
+                    f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}\n"
+                    f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}\n"
+                    f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}\n"
+                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}\n")
 
 
 def check_amp(model):

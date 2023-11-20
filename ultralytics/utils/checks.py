@@ -149,7 +149,8 @@ def check_version(current: str = '0.0.0',
                   required: str = '0.0.0',
                   name: str = 'version',
                   hard: bool = False,
-                  verbose: bool = False) -> bool:
+                  verbose: bool = False,
+                  msg: str = '') -> bool:
     """
     Check current version against the required version or range.
 
@@ -159,6 +160,7 @@ def check_version(current: str = '0.0.0',
         name (str, optional): Name to be used in warning message.
         hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
         verbose (bool, optional): If True, print warning message if requirement is not met.
+        msg (str, optional): Extra message to display if verbose.
 
     Returns:
         (bool): True if requirement is met, False otherwise.
@@ -212,7 +214,8 @@ def check_version(current: str = '0.0.0',
         elif op == '<' and not (c < v):
             result = False
     if not result:
-        warning_message = f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed'
+        warning_message = \
+            f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed {msg}'
         if hard:
             raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
         if verbose:

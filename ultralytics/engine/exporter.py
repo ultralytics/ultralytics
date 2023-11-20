@@ -653,6 +653,11 @@ class Exporter:
             cmds='--extra-index-url https://pypi.ngc.nvidia.com')  # onnx_graphsurgeon only on NVIDIA
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
+        check_version(tf.__version__,
+                      '<=2.13.1',
+                      name='tensorflow',
+                      verbose=True,
+                      msg='https://github.com/ultralytics/ultralytics/issues/5161')
         f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if f.is_dir():
             import shutil

@@ -230,8 +230,8 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
     # Configure the console (stdout) encoding to UTF-8
     if WINDOWS and sys.stdout.encoding != 'utf-8':
-       import io
-       sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
     # Create and configure the StreamHandler
     stream_handler = logging.StreamHandler(sys.stdout)

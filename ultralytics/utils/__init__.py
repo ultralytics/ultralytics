@@ -229,8 +229,15 @@ def set_logging(name=LOGGING_NAME, verbose=True):
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
     # Configure the console (stdout) encoding to UTF-8
-    if WINDOWS:  # for Windows
-        sys.stdout.reconfigure(encoding='utf-8')
+    if WINDOWS and sys.stdout.encoding != 'utf-8':
+        try:
+            if hasattr(sys.stdout, 'reconfigure'):
+                sys.stdout.reconfigure(encoding='utf-8')
+            else:
+                import io
+                sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        except Exception as e:
+            print(f'ERROR setting UTF-8 encoding: {e}')
 
     # Create and configure the StreamHandler
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -501,14 +508,14 @@ def is_pytest_running():
     return ('PYTEST_CURRENT_TEST' in os.environ) or ('pytest' in sys.modules) or ('pytest' in Path(sys.argv[0]).stem)
 
 
-def is_github_actions_ci() -> bool:
+def is_github_action_running() -> bool:
     """
-    Determine if the current environment is a GitHub Actions CI Python runner.
+    Determine if the current environment is a GitHub Actions runner.
 
     Returns:
-        (bool): True if the current environment is a GitHub Actions CI Python runner, False otherwise.
+        (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
-    return 'GITHUB_ACTIONS' in os.environ and 'RUNNER_OS' in os.environ and 'RUNNER_TOOL_CACHE' in os.environ
+    return 'GITHUB_ACTIONS' in os.environ and 'GITHUB_WORKFLOW' in os.environ and 'RUNNER_OS' in os.environ
 
 
 def is_git_dir():
@@ -913,7 +920,7 @@ WEIGHTS_DIR = Path(SETTINGS['weights_dir'])  # global weights directory
 RUNS_DIR = Path(SETTINGS['runs_dir'])  # global runs directory
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
     'Docker' if is_docker() else platform.system()
-TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
+TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches

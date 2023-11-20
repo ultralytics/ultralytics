@@ -229,19 +229,29 @@ def set_logging(name=LOGGING_NAME, verbose=True):
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
     # Configure the console (stdout) encoding to UTF-8
+    formatter = logging.Formatter('%(message)s')  # Default formatter
     if WINDOWS and sys.stdout.encoding != 'utf-8':
         try:
             if hasattr(sys.stdout, 'reconfigure'):
                 sys.stdout.reconfigure(encoding='utf-8')
-            else:
+            elif hasattr(sys.stdout, 'buffer'):
                 import io
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+            else:
+                sys.stdout.encoding = 'utf-8'
         except Exception as e:
-            print(f'ERROR setting UTF-8 encoding: {e}')
+            print(f'Creating custom formatter for non UTF-8 environments due to {e}')
+
+            class CustomFormatter(logging.Formatter):
+
+                def format(self, record):
+                    return emojis(super().format(record))
+
+            formatter = CustomFormatter('%(message)s')  # Use CustomFormatter to eliminate UTF-8 output as last recourse
 
     # Create and configure the StreamHandler
     stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setFormatter(logging.Formatter('%(message)s'))
+    stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 
     logger = logging.getLogger(name)
@@ -254,7 +264,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 # Set logger
 LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
 for logger in 'sentry_sdk', 'urllib3.connectionpool':
-    logging.getLogger(logger).setLevel(logging.CRITICAL)
+    logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=''):

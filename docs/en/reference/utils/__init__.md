@@ -94,7 +94,8 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 <br><br>
 
 ---
-## ::: ultralytics.utils.is_github_actions_ci
+
+## ::: ultralytics.utils.is_github_action_running
 <br><br>
 
 ---

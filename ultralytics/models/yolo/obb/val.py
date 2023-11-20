@@ -7,7 +7,7 @@ import torch
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import ops
 from ultralytics.utils.metrics import OBBMetrics, batch_probiou
-from ultralytics.utils.plotting import output_to_target, plot_images
+from ultralytics.utils.plotting import output_to_rotated_target, plot_images
 
 
 class OBBValidator(DetectionValidator):
@@ -38,6 +38,7 @@ class OBBValidator(DetectionValidator):
                                        self.args.conf,
                                        self.args.iou,
                                        labels=self.lb,
+                                       nc=self.nc,
                                        multi_label=True,
                                        agnostic=self.args.single_cls,
                                        max_det=self.args.max_det,
@@ -59,7 +60,6 @@ class OBBValidator(DetectionValidator):
         iou = batch_probiou(labels[:, 1:], torch.cat([detections[:, :4], detections[:, -2:-1]], dim=-1))
         return self.match_predictions(detections[:, 5], labels[:, 0], iou)
 
-    # TODO
     def update_metrics(self, preds, batch):
         """Metrics."""
         for si, pred in enumerate(preds):
@@ -108,11 +108,10 @@ class OBBValidator(DetectionValidator):
                 file = self.save_dir / 'labels' / f'{Path(batch["im_file"][si]).stem}.txt'
                 self.save_one_txt(predn, self.args.save_conf, shape, file)
 
-    # TODO
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
         plot_images(batch['img'],
-                    *output_to_target(preds, max_det=self.args.max_det),
+                    *output_to_rotated_target(preds, max_det=self.args.max_det),
                     paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names,

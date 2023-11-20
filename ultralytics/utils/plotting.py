@@ -438,7 +438,7 @@ def plot_images(images,
 
             if len(bboxes) and bboxes.shape[-1] == 4:
                 boxes = ops.xywh2xyxy(bboxes[idx, :4]).T
-                conf = confs[idx, 4] if confs else None  # check for confidence presence (label vs pred)
+                conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
 
                 if boxes.shape[1]:
                     if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
@@ -458,7 +458,7 @@ def plot_images(images,
             elif len(bboxes) and bboxes.shape[-1] == 5:
                 # TODO: Clean code reduplication
                 boxes = ops.xywhr2xyxyxyxy(bboxes[idx, :5]).reshape(-1, 4, 2)
-                conf = confs[idx, 5] if confs else None  # check for confidence presence (label vs pred)
+                conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
                 if boxes.max() <= 1.1:  # if normalized with tolerance 0.1
                     boxes[..., 0] *= w  # scale to pixels
                     boxes[..., 1] *= h

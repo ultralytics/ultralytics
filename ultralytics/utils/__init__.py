@@ -229,11 +229,9 @@ def set_logging(name=LOGGING_NAME, verbose=True):
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
     # Configure the console (stdout) encoding to UTF-8
-    if WINDOWS:  # for Windows
-        if hasattr(sys.stdout, 'reconfigure'):
-            sys.stdout.reconfigure(encoding='utf-8')
-        else:
-            sys.stdout.encoding = 'utf-8'
+    if WINDOWS and sys.stdout.encoding != 'utf-8':
+       import io
+       sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
     # Create and configure the StreamHandler
     stream_handler = logging.StreamHandler(sys.stdout)

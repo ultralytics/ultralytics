@@ -21,9 +21,9 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, SimpleNamespace,
-                               ThreadingLocked, TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
-                               is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, SimpleNamespace, ThreadingLocked,
+                               TryExcept, USER_CONFIG_DIR, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
+                               is_github_action_running, is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
 
 
 def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
@@ -401,7 +401,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
@@ -551,6 +551,16 @@ def collect_system_info():
             current = '(not installed)'
             is_met = '❌ '
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
+
+    if is_github_action_running():
+        LOGGER.info(f"RUNNER_OS: {os.getenv('RUNNER_OS')}"
+                    f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}"
+                    f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}"
+                    f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}"
+                    f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}"
+                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}"
+                    f"Python version: {subprocess.getoutput('python --version')}"
+                    f"Pip version: {subprocess.getoutput('pip --version')}")
 
 
 def check_amp(model):

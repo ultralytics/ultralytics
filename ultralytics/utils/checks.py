@@ -558,9 +558,7 @@ def collect_system_info():
                     f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}"
                     f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}"
                     f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}"
-                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}"
-                    f"Python version: {subprocess.getoutput('python --version')}"
-                    f"Pip version: {subprocess.getoutput('pip --version')}")
+                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}")
 
 
 def check_amp(model):

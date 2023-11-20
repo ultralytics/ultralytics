@@ -233,9 +233,11 @@ def set_logging(name=LOGGING_NAME, verbose=True):
         try:
             if hasattr(sys.stdout, 'reconfigure'):
                 sys.stdout.reconfigure(encoding='utf-8')
-            else:
+            elif hasattr(sys.stdout, 'buffer'):
                 import io
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+            else:
+                sys.stdout.encoding = 'utf-8'
         except Exception as e:
             print(f'ERROR setting UTF-8 encoding: {e}')
 

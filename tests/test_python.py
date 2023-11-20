@@ -379,10 +379,10 @@ def test_cfg_init():
 
 def test_utils_init():
     """Test initialization utilities."""
-    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_actions_ci
+    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_action_running
 
     get_ubuntu_version()
-    is_github_actions_ci()
+    is_github_action_running()
     get_git_origin_url()
     get_git_branch()
 

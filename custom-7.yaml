@@ -16,11 +16,11 @@ backbone:
   # [from, repeats, module, args]
   - [-1, 1, Conv, [64, 3, 2]]  # 0-P1/2
   - [-1, 1, FusedMBConv, [128, 3, 2]]  # 1-P2/4
-  - [-1, 3, C3x, [128, True]]
+  - [-1, 3, MBConv, [128, True]]
   - [-1, 1, MBConv, [256, 3, 2]]  # 3-P3/8
-  - [-1, 6, C3x, [256, True]]
+  - [-1, 6, MBConv, [256, True]]
   - [-1, 1, MBConv, [512, 3, 2]]  # 5-P4/16
-  - [-1, 6, C3TR, [512, True]]
+  - [-1, 6, MBConv, [512, True]]
   - [-1, 1, MBConv, [1024, 3, 2]]  # 7-P5/32
   - [-1, 3, C3x, [1024, True]]
   - [-1, 1, SPPF, [1024, 5]]  # 9

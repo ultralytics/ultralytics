@@ -439,7 +439,8 @@ def check_file(file, suffix='', download=True, hard=True):
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
-    if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
+    if (not file or ('://' not in file and Path(file).exists()) or  # '://' check required in Windows Python<3.10
+            file.lower().startswith('grpc://')):  # file exists or gRPC Triton images
         return file
     elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://', 'tcp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/

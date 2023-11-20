@@ -23,7 +23,7 @@ from matplotlib import font_manager
 
 from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, SimpleNamespace,
                                ThreadingLocked, TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
-                               is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
+                               is_github_action_running, is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
 
 
 def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
@@ -551,6 +551,14 @@ def collect_system_info():
             current = '(not installed)'
             is_met = '❌ '
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
+
+    if is_github_action_running():
+        LOGGER.info(f"\nRUNNER_OS: {os.getenv('RUNNER_OS')}\n"
+                    f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}\n"
+                    f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}\n"
+                    f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}\n"
+                    f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}\n"
+                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}\n")
 
 
 def check_amp(model):

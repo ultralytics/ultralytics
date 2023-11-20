@@ -24,9 +24,9 @@ Note:
 - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
 
-import os
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 DOCS = Path(__file__).parent.resolve()
@@ -41,12 +41,12 @@ def build_docs():
 
     # Build the main documentation
     print(f'Building docs from {DOCS}')
-    os.system(f'mkdocs build -f {DOCS}/mkdocs.yml')
+    subprocess.run(f'mkdocs build -f {DOCS}/mkdocs.yml', check=True, shell=True)
 
     # Build other localized documentations
     for file in DOCS.glob('mkdocs_*.yml'):
         print(f'Building MkDocs site with configuration file: {file}')
-        os.system(f'mkdocs build -f {file}')
+        subprocess.run(f'mkdocs build -f {file}', check=True, shell=True)
     print(f'Site built at {SITE}')
 
 

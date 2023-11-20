@@ -174,7 +174,7 @@ class SegmentationValidator(DetectionValidator):
                     batch['batch_idx'],
                     batch['cls'].squeeze(-1),
                     batch['bboxes'],
-                    batch['masks'],
+                    masks=batch['masks'],
                     paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_labels.jpg',
                     names=self.names,

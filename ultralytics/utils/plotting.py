@@ -378,6 +378,7 @@ def plot_images(images,
                 batch_idx,
                 cls,
                 bboxes=np.zeros(0, dtype=np.float32),
+                confs=None,
                 masks=np.zeros(0, dtype=np.uint8),
                 kpts=np.zeros((0, 51), dtype=np.float32),
                 paths=None,
@@ -433,11 +434,11 @@ def plot_images(images,
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype('int')
+            labels = confs is None
 
             if len(bboxes) and bboxes.shape[-1] == 4:
                 boxes = ops.xywh2xyxy(bboxes[idx, :4]).T
-                labels = bboxes.shape[1] == 4  # labels if no conf column
-                conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
+                conf = confs[idx, 4] if confs else None  # check for confidence presence (label vs pred)
 
                 if boxes.shape[1]:
                     if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
@@ -457,8 +458,7 @@ def plot_images(images,
             elif len(bboxes) and bboxes.shape[-1] == 5:
                 # TODO: Clean code reduplication
                 boxes = ops.xywhr2xyxyxyxy(bboxes[idx, :5]).reshape(-1, 4, 2)
-                labels = bboxes.shape[1] == 5  # labels if no conf column
-                conf = None if labels else bboxes[idx, 5]  # check for confidence presence (label vs pred)
+                conf = confs[idx, 5] if confs else None  # check for confidence presence (label vs pred)
                 if boxes.max() <= 1.1:  # if normalized with tolerance 0.1
                     boxes[..., 0] *= w  # scale to pixels
                     boxes[..., 1] *= h
@@ -681,7 +681,18 @@ def output_to_target(output, max_det=300):
         j = torch.full((conf.shape[0], 1), i)
         targets.append(torch.cat((j, cls, ops.xyxy2xywh(box), conf), 1))
     targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:]
+    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
+
+
+def output_to_rotated_target(output, max_det=300):
+    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
+    targets = []
+    for i, o in enumerate(output):
+        box, conf, cls, angle = o[:max_det].cpu().split((4, 1, 1, 1), 1)
+        j = torch.full((conf.shape[0], 1), i)
+        targets.append(torch.cat((j, cls, box, angle, conf), 1))
+    targets = torch.cat(targets, 0).numpy()
+    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
 
 
 def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detect/exp')):

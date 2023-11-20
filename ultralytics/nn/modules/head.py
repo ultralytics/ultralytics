@@ -124,8 +124,8 @@ class OBB(Detect):
         x = self.detect(self, x)
         if self.training:
             return x, angle
-        degrees = self.logits2degrees(angle)  # 0-1 theta to -180 to 180 degrees
-        return torch.cat([x, degrees], 1) if self.export else (torch.cat([x[0], degrees], 1), (x[1], angle))
+        # degrees = self.logits2degrees(angle)  # 0-1 theta to -180 to 180 degrees
+        return torch.cat([x, angle], 1) if self.export else (torch.cat([x[0], angle], 1), (x[1], angle))
 
     @staticmethod
     def logits2degrees(x):

@@ -16,8 +16,7 @@ Create a data directory to store your video files by running:
   ```
 Then, adjust the settings in track_config.json within the tracker directory to specify your video file and any parameters you wish to modify.
 
-![Screenshot 2023-11-17 at 16.25.56.png](..%2F..%2F..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fss%2Fmt68jfh13m1481wxxyz6dq2r0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_LRIwtO%2FScreenshot%202023-11-17%20at%2016.25.56.png)
-
+![track_config.json](./utils/config_img.png)
 #### Step 2: Build the Docker Image
 Construct your Docker image with this command:
   ```bash

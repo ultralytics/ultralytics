@@ -130,7 +130,8 @@ def make_divisible(x, divisor):
 
 
 def nms_rotated(boxes, scores, threshold=0.45):
-    """NMS for obbs, powered by probiou.
+    """
+    NMS for obbs, powered by probiou.
 
     Args:
         boxes (torch.Tensor): (N, 5), xywhr.
@@ -138,10 +139,9 @@ def nms_rotated(boxes, scores, threshold=0.45):
         threshold (float): Iou threshold.
 
     Returns:
-
     """
     if len(boxes) == 0:
-        return np.empty((0,), dtype=np.int8)
+        return np.empty((0, ), dtype=np.int8)
 
     from ultralytics.utils.metrics import batch_probiou
     sorted_idx = torch.argsort(scores)
@@ -161,19 +161,19 @@ def nms_rotated(boxes, scores, threshold=0.45):
 
 
 def non_max_suppression(
-        prediction,
-        conf_thres=0.25,
-        iou_thres=0.45,
-        classes=None,
-        agnostic=False,
-        multi_label=False,
-        labels=(),
-        max_det=300,
-        nc=0,  # number of classes (optional)
-        max_time_img=0.05,
-        max_nms=30000,
-        max_wh=7680,
-        rotated=False,
+    prediction,
+    conf_thres=0.25,
+    iou_thres=0.45,
+    classes=None,
+    agnostic=False,
+    multi_label=False,
+    labels=(),
+    max_det=300,
+    nc=0,  # number of classes (optional)
+    max_time_img=0.05,
+    max_nms=30000,
+    max_wh=7680,
+    rotated=False,
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.

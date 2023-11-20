@@ -145,16 +145,15 @@ def nms_rotated(boxes, scores, threshold=0.45):
 
     from ultralytics.utils.metrics import batch_probiou
     sorted_idx = torch.argsort(scores)
-    boxes = boxes[sorted_idx]
-    ious = batch_probiou(boxes, boxes)
-    pick = torch.zeros_like(scores, dtype=torch.int16)
+    pick = torch.zeros_like(scores, dtype=torch.int64)
     counter = 0
     while len(sorted_idx) > 0:
         i = sorted_idx[-1]
         pick[counter] = i
         counter += 1
-        o = ious[i]
-        sorted_idx = sorted_idx[np.where(o <= threshold)]
+        other = sorted_idx[0:-1]
+        iou = batch_probiou(boxes[i][None], boxes[other]).squeeze(0)
+        sorted_idx = sorted_idx[torch.nonzero(iou <= threshold).squeeze(-1)]
 
     pick = pick[:counter].clone()
     return pick
@@ -238,7 +237,7 @@ def non_max_suppression(
         x = x[xc[xi]]  # confidence
 
         # Cat apriori labels if autolabelling
-        if labels and len(labels[xi]):
+        if labels and len(labels[xi]) and not rotated:
             lb = labels[xi]
             v = torch.zeros((len(lb), nc + nm + 4), device=x.device)
             v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
@@ -272,8 +271,13 @@ def non_max_suppression(
 
         # Batched NMS
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
-        boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class), scores
-        i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
+        scores = x[:, 4]   # scores
+        if rotated:
+            boxes = torch.cat((x[:, :4], x[:, 5:6]), dim=-1)
+            i = nms_rotated(boxes, scores, iou_thres)
+        else:
+            boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class)
+            i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
         i = i[:max_det]  # limit detections
 
         # # Experimental

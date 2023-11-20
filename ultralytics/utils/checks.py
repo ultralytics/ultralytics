@@ -23,7 +23,7 @@ from matplotlib import font_manager
 
 from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, SimpleNamespace,
                                ThreadingLocked, TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
-                               is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
+                               is_github_action_running, is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
 
 
 def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
@@ -149,7 +149,8 @@ def check_version(current: str = '0.0.0',
                   required: str = '0.0.0',
                   name: str = 'version',
                   hard: bool = False,
-                  verbose: bool = False) -> bool:
+                  verbose: bool = False,
+                  msg: str = '') -> bool:
     """
     Check current version against the required version or range.
 
@@ -159,6 +160,7 @@ def check_version(current: str = '0.0.0',
         name (str, optional): Name to be used in warning message.
         hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
         verbose (bool, optional): If True, print warning message if requirement is not met.
+        msg (str, optional): Extra message to display if verbose.
 
     Returns:
         (bool): True if requirement is met, False otherwise.
@@ -212,7 +214,8 @@ def check_version(current: str = '0.0.0',
         elif op == '<' and not (c < v):
             result = False
     if not result:
-        warning_message = f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed'
+        warning_message = \
+            f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed {msg}'
         if hard:
             raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
         if verbose:
@@ -439,7 +442,8 @@ def check_file(file, suffix='', download=True, hard=True):
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
-    if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
+    if (not file or ('://' not in file and Path(file).exists()) or  # '://' check required in Windows Python<3.10
+            file.lower().startswith('grpc://')):  # file exists or gRPC Triton images
         return file
     elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://', 'tcp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
@@ -550,6 +554,14 @@ def collect_system_info():
             current = '(not installed)'
             is_met = '❌ '
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
+
+    if is_github_action_running():
+        LOGGER.info(f"\nRUNNER_OS: {os.getenv('RUNNER_OS')}\n"
+                    f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}\n"
+                    f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}\n"
+                    f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}\n"
+                    f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}\n"
+                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}\n")
 
 
 def check_amp(model):

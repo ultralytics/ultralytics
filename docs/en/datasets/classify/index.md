@@ -80,7 +80,7 @@ In this example, the `train` directory contains subdirectories for each class in
 
 ## Usage
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

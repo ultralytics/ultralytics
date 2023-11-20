@@ -30,7 +30,7 @@ The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models with
 
 You can use RT-DETR for object detection tasks using the `ultralytics` pip package. The following is a sample code snippet showing how to use RT-DETR models for training and inference:
 
-!!! example ""
+!!! Example ""
 
     This example provides simple inference code for RT-DETR. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using RT-DETR with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
@@ -71,17 +71,17 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
 
 ### Supported Modes
 
-| Mode       | Supported          |
-|------------|--------------------|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
-| Training   | :heavy_check_mark: |
+| Mode       | Supported |
+|------------|-----------|
+| Inference  | ✅         |
+| Validation | ✅         |
+| Training   | ✅         |
 
 ## Citations and Acknowledgements
 
 If you use Baidu's RT-DETR in your research or development work, please cite the [original paper](https://arxiv.org/abs/2304.08069):
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

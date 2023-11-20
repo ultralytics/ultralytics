@@ -69,7 +69,7 @@ The process is repeated until either the set number of iterations is reached or 
 
 Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLOv8n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

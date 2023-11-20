@@ -50,7 +50,7 @@ O modo predict do YOLOv8 é projetado para ser robusto e versátil, apresentando
 
 Os modelos Ultralytics YOLO retornam ou uma lista de objetos `Results` em Python, ou um gerador em Python eficiente de memória de objetos `Results` quando `stream=True` é passado para o modelo durante a inferência:
 
-!!! exemplo "Predict"
+!!! Example "Predict"
 
     === "Retorna uma lista com `stream=False`"
         ```python
@@ -92,7 +92,7 @@ Os modelos Ultralytics YOLO retornam ou uma lista de objetos `Results` em Python
 
 O YOLOv8 pode processar diferentes tipos de fontes de entrada para inferência, conforme mostrado na tabela abaixo. As fontes incluem imagens estáticas, transmissões de vídeo e vários formatos de dados. A tabela também indica se cada fonte pode ser usada no modo de streaming com o argumento `stream=True` ✅. O modo de streaming é benéfico para processar vídeos ou transmissões ao vivo, pois cria um gerador de resultados em vez de carregar todos os quadros na memória.
 
-!!! dica "Dica"
+!!! Tip "Dica"
 
     Use `stream=True` para processar vídeos longos ou grandes conjuntos de dados para gerenciar a memória de forma eficiente. Quando `stream=False`, os resultados de todos os quadros ou pontos de dados são armazenados na memória, o que pode aumentar rapidamente e causar erros de falta de memória para grandes entradas. Em contraste, `stream=True` utiliza um gerador, que mantém apenas os resultados do quadro atual ou ponto de dados na memória, reduzindo significativamente o consumo de memória e prevenindo problemas de falta dela.
 
@@ -115,7 +115,7 @@ O YOLOv8 pode processar diferentes tipos de fontes de entrada para inferência, 
 
 Abaixo estão exemplos de código para usar cada tipo de fonte:
 
-!!! exemplo "Fontes de previsão"
+!!! Example "Fontes de previsão"
 
     === "imagem"
         Executa a inferência em um arquivo de imagem.

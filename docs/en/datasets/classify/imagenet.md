@@ -31,7 +31,7 @@ The ImageNet dataset is widely used for training and evaluating deep learning mo
 
 To train a deep learning model on the ImageNet dataset for 100 epochs with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
+!!! Example "Train Example"
 
     === "Python"
 
@@ -64,7 +64,7 @@ The example showcases the variety and complexity of the images in the ImageNet d
 
 If you use the ImageNet dataset in your research or development work, please cite the following paper:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

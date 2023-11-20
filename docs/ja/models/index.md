@@ -8,7 +8,7 @@ keywords: Ultralytics, ドキュメンテーション, YOLO, SAM, MobileSAM, Fas
 
 Ultralyticsのモデルドキュメンテーションへようこそ！[オブジェクト検出](../tasks/detect.md)、[インスタンスセグメンテーション](../tasks/segment.md)、[画像分類](../tasks/classify.md)、[ポーズ推定](../tasks/pose.md)、[マルチオブジェクトトラッキング](../modes/track.md)など、特定のタスクに適した幅広いモデルをサポートしています。Ultralyticsにあなたのモデルアーキテクチャを寄稿したい場合は、[コントリビューティングガイド](../../help/contributing.md)を確認してください。
 
-!!! note
+!!! Note "ノート"
 
     🚧 弊社の多言語ドキュメンテーションは現在建設中で、改善に向けて努力しています。ご理解いただきありがとうございます！🙏
 
@@ -41,7 +41,7 @@ Ultralyticsのモデルドキュメンテーションへようこそ！[オブ�
 
 ## 入門：使用例
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 

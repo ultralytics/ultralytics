@@ -1,14 +1,14 @@
 ---
-评论：真
-描述：探索使用pip、conda、git和Docker安装Ultralytics的各种方法。了解如何在命令行界面或Python项目中使用Ultralytics。
-关键字：Ultralytics安装，pip安装Ultralytics，Docker安装Ultralytics，Ultralytics命令行界面，Ultralytics Python接口
+comments: true
+description: 探索使用pip、conda、git和Docker安装Ultralytics的各种方法。了解如何在命令行界面或Python项目中使用Ultralytics。
+keywords: Ultralytics安装，pip安装Ultralytics，Docker安装Ultralytics，Ultralytics命令行界面，Ultralytics Python接口
 ---
 
 ## 安装Ultralytics
 
 Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ultralytics`pip包安装最新稳定版的YOLOv8，或者克隆[Ultralytics GitHub仓库](https://github.com/ultralytics/ultralytics)以获取最新版本。Docker可用于在隔离容器中执行包，避免本地安装。
 
-!!! 示例 "安装"
+!!! Example "安装"
 
     === "Pip安装（推荐）"
         使用pip安装`ultralytics`包，或通过运行`pip install -U ultralytics`更新现有安装。访问Python包索引(PyPI)了解更多关于`ultralytics`包的详细信息：[https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/)。
@@ -129,7 +129,7 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
   <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
 </p>
 
-!!! 提示 "提示"
+!!! Tip "提示"
 
     PyTorch的要求因操作系统和CUDA需要而异，因此建议首先根据[https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally)上的指南安装PyTorch。
 
@@ -141,7 +141,7 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
 Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，无需Python环境。CLI不需要自定义或Python代码。您可以直接从终端使用`yolo`命令运行所有任务。查看[CLI指南](/../usage/cli.md)，了解更多关于从命令行使用YOLOv8的信息。
 
-!!! 示例
+!!! Example "示例"
 
     === "语法"
 
@@ -195,7 +195,7 @@ Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，
         yolo cfg
         ```
 
-!!! 警告 "警告"
+!!! Warning "警告"
 
     参数必须以`arg=val`对的形式传递，用等号`=`分隔，并用空格` `分隔对。不要使用`--`参数前缀或逗号`,`分隔参数。
 
@@ -211,7 +211,7 @@ YOLOv8的Python接口允许无缝集成进您的Python项目，轻松加载、�
 
 例如，用户可以加载一个模型，训练它，在验证集上评估性能，甚至只需几行代码就可以将其导出到ONNX格式。查看[Python指南](/../usage/python.md)，了解更多关于在Python项目中使用YOLOv8的信息。
 
-!!! 示例
+!!! Example "示例"
 
     ```python
     from ultralytics import YOLO
@@ -245,7 +245,7 @@ Ultralytics库提供了一个强大的设置管理系统，允许您精细控制
 
 若要了解当前设置的配置情况，您可以直接查看：
 
-!!! 示例 "查看设置"
+!!! Example "查看设置"
 
     === "Python"
         您可以使用Python查看设置。首先从`ultralytics`模块导入`settings`对象。使用以下命令打印和返回设置：
@@ -269,7 +269,7 @@ Ultralytics库提供了一个强大的设置管理系统，允许您精细控制
 
 Ultralytics允许用户轻松修改他们的设置。更改可以通过以下方式执行：
 
-!!! 示例 "更新设置"
+!!! Example "更新设置"
 
     === "Python"
         在Python环境中，调用`settings`对象上的`update`方法来更改您的设置：

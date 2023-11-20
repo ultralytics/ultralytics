@@ -1,7 +1,7 @@
 ---
-评论：真
-描述：学习如何使用Ultralytics YOLOv8进行姿态估计任务。找到预训练模型，学习如何训练、验证、预测以及导出你自己的模型。
-关键词：Ultralytics, YOLO, YOLOv8, 姿态估计, 关键点检测, 物体检测, 预训练模型, 机器学习, 人工智能
+comments: true
+description: 学习如何使用Ultralytics YOLOv8进行姿态估计任务。找到预训练模型，学习如何训练、验证、预测以及导出你自己的模型。
+keywords: Ultralytics, YOLO, YOLOv8, 姿态估计, 关键点检测, 物体检测, 预训练模型, 机器学习, 人工智能
 ---
 
 # 姿态估计
@@ -23,7 +23,7 @@
   <strong>观看：</strong>使用Ultralytics YOLOv8进行姿态估计。
 </p>
 
-!!! tip "提示"
+!!! Tip "提示"
 
     YOLOv8 _姿态_ 模型使用 `-pose` 后缀，例如 `yolov8n-pose.pt`。这些模型在 [COCO关键点](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) 数据集上进行了训练，并且适用于各种姿态估计任务。
 
@@ -51,7 +51,7 @@
 
 在COCO128姿态数据集上训练一个YOLOv8姿态模型。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -87,7 +87,7 @@ YOLO姿态数据集格式可详细找到在[数据集指南](/../datasets/pose/i
 
 在COCO128姿态数据集上验证训练好的YOLOv8n姿态模型的准确性。没有参数需要传递，因为`模型`保存了其训练`数据`和参数作为模型属性。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -116,7 +116,7 @@ YOLO姿态数据集格式可详细找到在[数据集指南](/../datasets/pose/i
 
 使用训练好的YOLOv8n姿态模型在图片上运行预测。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -143,7 +143,7 @@ YOLO姿态数据集格式可详细找到在[数据集指南](/../datasets/pose/i
 
 将YOLOv8n姿态模型导出为ONNX、CoreML等不同格式。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 

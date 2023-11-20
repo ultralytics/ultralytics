@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLOv8, Détection, Segmentation, Classification, Estimat
 
 YOLOv8 est un cadre d'intelligence artificielle qui prend en charge de multiples tâches de **vision par ordinateur**. Le cadre peut être utilisé pour effectuer de la [détection](detect.md), de la [segmentation](segment.md), de la [classification](classify.md) et de l'estimation de la [pose](pose.md). Chacune de ces tâches a un objectif et un cas d'utilisation différents.
 
-!!! note
+!!! Note "Note"
 
     🚧 Notre documentation multilingue est actuellement en construction et nous travaillons dur pour l'améliorer. Merci de votre patience ! 🙏
 

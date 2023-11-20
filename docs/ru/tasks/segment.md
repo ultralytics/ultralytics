@@ -23,7 +23,7 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
   <strong>Смотрите:</strong> Запуск сегментации с предварительно обученной моделью Ultralytics YOLOv8 на Python.
 </p>
 
-!!! tip "Совет"
+!!! Tip "Совет"
 
     Модели YOLOv8 Segment используют суффикс `-seg`, например `yolov8n-seg.pt` и предварительно обучены на [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
@@ -51,7 +51,7 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 Обучите модель YOLOv8n-seg на наборе данных COCO128-seg в течение 100 эпох при размере изображения 640. Полный список доступных аргументов см. на странице [Конфигурация](/../usage/cfg.md).
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -87,7 +87,7 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 Проверьте точность обученной модели YOLOv8n-seg на наборе данных COCO128-seg. Аргументы передавать не нужно, так как `model` сохраняет `data` и аргументы обучения в качестве атрибутов модели.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -120,7 +120,7 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 Используйте обученную модель YOLOv8n-seg для выполнения предсказаний на изображениях.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -147,7 +147,7 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 Экспортируйте модель YOLOv8n-seg в другой формат, например ONNX, CoreML и т.д.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 

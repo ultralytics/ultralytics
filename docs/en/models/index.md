@@ -37,7 +37,7 @@ Here are some of the key models supported:
 
 ## Getting Started: Usage Examples
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

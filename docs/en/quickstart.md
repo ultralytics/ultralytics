@@ -8,7 +8,7 @@ keywords: Ultralytics installation, pip install Ultralytics, Docker install Ultr
 
 Ultralytics provides various installation methods including pip, conda, and Docker. Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most up-to-date version. Docker can be used to execute the package in an isolated container, avoiding local installation.
 
-!!! example "Install"
+!!! Example "Install"
 
     === "Pip install (recommended)"
         Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
@@ -39,7 +39,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         conda install -c conda-forge ultralytics
         ```
 
-        !!! note
+        !!! Note
 
             If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
             ```bash
@@ -129,7 +129,7 @@ See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralyt
   <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
 </p>
 
-!!! tip "Tip"
+!!! Tip "Tip"
 
     PyTorch requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).
 
@@ -141,19 +141,20 @@ See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralyt
 
 The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment. CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
 
-!!! example
+!!! Example
 
     === "Syntax"
 
         Ultralytics `yolo` commands use the following syntax:
         ```bash
         yolo TASK MODE ARGS
-
-        Where   TASK (optional) is one of [detect, segment, classify]
-                MODE (required) is one of [train, val, predict, export, track]
-                ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
         ```
-        See all ARGS in the full [Configuration Guide](usage/cfg.md) or with `yolo cfg`
+
+        - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [classify](tasks/classify.md), [pose](tasks/pose.md))
+        - `MODE` (required) is one of ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md))
+        - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
+
+        See all `ARGS` in the full [Configuration Guide](usage/cfg.md) or with the `yolo cfg` CLI command.
 
     === "Train"
 
@@ -195,13 +196,14 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         yolo cfg
         ```
 
-!!! warning "Warning"
+!!! Warning "Warning"
 
-    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
+    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
-    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
-    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
-    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
+    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25`  ✅
+    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
+    - `yolo predict model=yolov8n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
+    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
 
 [CLI Guide](usage/cli.md){ .md-button .md-button--primary}
 
@@ -211,7 +213,7 @@ YOLOv8's Python interface allows for seamless integration into your Python proje
 
 For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code. Check out the [Python Guide](usage/python.md) to learn more about using YOLOv8 within your Python projects.
 
-!!! example
+!!! Example
 
     ```python
     from ultralytics import YOLO
@@ -245,7 +247,7 @@ The Ultralytics library provides a powerful settings management system to enable
 
 To gain insight into the current configuration of your settings, you can view them directly:
 
-!!! example "View settings"
+!!! Example "View settings"
 
     === "Python"
         You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
@@ -269,7 +271,7 @@ To gain insight into the current configuration of your settings, you can view th
 
 Ultralytics allows users to easily modify their settings. Changes can be performed in the following ways:
 
-!!! example "Update settings"
+!!! Example "Update settings"
 
     === "Python"
         Within the Python environment, call the `update` method on the `settings` object to change your settings:

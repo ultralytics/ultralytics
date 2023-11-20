@@ -8,7 +8,7 @@ YOLO settings and hyperparameters play a critical role in the model's performanc
 
 YOLOv8 `yolo` CLI commands use the following syntax:
 
-!!! example ""
+!!! Example ""
 
     === "CLI"
 

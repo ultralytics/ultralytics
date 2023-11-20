@@ -17,44 +17,84 @@ from pathlib import Path
 class MarkdownLinkFixer:
     """Class to fix Markdown links and front matter in language-specific directories."""
 
-    def __init__(self, base_dir, update_links=True, update_frontmatter=True, update_iframes=True):
+    def __init__(self, base_dir, update_links=True, update_text=True):
         """Initialize the MarkdownLinkFixer with the base directory."""
         self.base_dir = Path(base_dir)
         self.update_links = update_links
-        self.update_frontmatter = update_frontmatter
-        self.update_iframes = update_iframes
-        self.md_link_regex = re.compile(r'\[([^\]]+)\]\(([^:\)]+)\.md\)')
-        self.front_matter_regex = re.compile(r'^(comments|description|keywords):.*$', re.MULTILINE)
-        self.translations = {
-            'zh': ['评论', '描述', '关键词'],  # Mandarin Chinese (Simplified)
+        self.update_text = update_text
+        self.md_link_regex = re.compile(r'\[([^]]+)]\(([^:)]+)\.md\)')
+
+    @staticmethod
+    def replace_front_matter(content, lang_dir):
+        """Ensure front matter keywords remain in English."""
+        english = ['comments', 'description', 'keywords']
+        translations = {
+            'zh': ['评论', '描述', '关键词'],  # Mandarin Chinese (Simplified) warning, sometimes translates as 关键字
             'es': ['comentarios', 'descripción', 'palabras clave'],  # Spanish
             'ru': ['комментарии', 'описание', 'ключевые слова'],  # Russian
             'pt': ['comentários', 'descrição', 'palavras-chave'],  # Portuguese
             'fr': ['commentaires', 'description', 'mots-clés'],  # French
-            'de': ['Kommentare', 'Beschreibung', 'Schlüsselwörter'],  # German
+            'de': ['kommentare', 'beschreibung', 'schlüsselwörter'],  # German
             'ja': ['コメント', '説明', 'キーワード'],  # Japanese
-            'ko': ['댓글', '설명', '키워드']  # Korean
+            'ko': ['댓글', '설명', '키워드'],  # Korean
+            'hi': ['टिप्पणियाँ', 'विवरण', 'कीवर्ड'],  # Hindi
+            'ar': ['التعليقات', 'الوصف', 'الكلمات الرئيسية']  # Arabic
         }  # front matter translations for comments, description, keyword
 
-    def replace_front_matter(self, content):
-        """Ensure front matter keywords remain in English."""
-        english_keys = ['comments', 'description', 'keywords']
+        for term, eng_key in zip(translations.get(lang_dir.stem, []), english):
+            content = re.sub(rf'{term} *[：:].*', f'{eng_key}: true', content, flags=re.IGNORECASE) if \
+                eng_key == 'comments' else re.sub(rf'{term} *[：:] *', f'{eng_key}: ', content, flags=re.IGNORECASE)
+        return content
 
-        for lang, terms in self.translations.items():
-            for term, eng_key in zip(terms, english_keys):
-                if eng_key == 'comments':
-                    # Replace comments key and set its value to 'true'
-                    content = re.sub(rf'{term} *:.*', f'{eng_key}: true', content)
-                else:
-                    content = re.sub(rf'{term} *:', f'{eng_key}:', content)
+    @staticmethod
+    def replace_admonitions(content, lang_dir):
+        """Ensure front matter keywords remain in English."""
+        english = [
+            'Note', 'Summary', 'Tip', 'Info', 'Success', 'Question', 'Warning', 'Failure', 'Danger', 'Bug', 'Example',
+            'Quote', 'Abstract', 'Seealso', 'Admonition']
+        translations = {
+            'en':
+            english,
+            'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用', '摘要', '另见', '警告'],
+            'es': [
+                'Nota', 'Resumen', 'Consejo', 'Información', 'Éxito', 'Pregunta', 'Advertencia', 'Fracaso', 'Peligro',
+                'Error', 'Ejemplo', 'Cita', 'Abstracto', 'Véase También', 'Amonestación'],
+            'ru': [
+                'Заметка', 'Сводка', 'Совет', 'Информация', 'Успех', 'Вопрос', 'Предупреждение', 'Неудача', 'Опасность',
+                'Ошибка', 'Пример', 'Цитата', 'Абстракт', 'См. Также', 'Предостережение'],
+            'pt': [
+                'Nota', 'Resumo', 'Dica', 'Informação', 'Sucesso', 'Questão', 'Aviso', 'Falha', 'Perigo', 'Bug',
+                'Exemplo', 'Citação', 'Abstrato', 'Veja Também', 'Advertência'],
+            'fr': [
+                'Note', 'Résumé', 'Conseil', 'Info', 'Succès', 'Question', 'Avertissement', 'Échec', 'Danger', 'Bug',
+                'Exemple', 'Citation', 'Abstrait', 'Voir Aussi', 'Admonestation'],
+            'de': [
+                'Hinweis', 'Zusammenfassung', 'Tipp', 'Info', 'Erfolg', 'Frage', 'Warnung', 'Ausfall', 'Gefahr',
+                'Fehler', 'Beispiel', 'Zitat', 'Abstrakt', 'Siehe Auch', 'Ermahnung'],
+            'ja': ['ノート', '要約', 'ヒント', '情報', '成功', '質問', '警告', '失敗', '危険', 'バグ', '例', '引用', '抄録', '参照', '訓告'],
+            'ko': ['노트', '요약', '팁', '정보', '성공', '질문', '경고', '실패', '위험', '버그', '예제', '인용', '추상', '참조', '경고'],
+            'hi': [
+                'नोट', 'सारांश', 'सुझाव', 'जानकारी', 'सफलता', 'प्रश्न', 'चेतावनी', 'विफलता', 'खतरा', 'बग', 'उदाहरण',
+                'उद्धरण', 'सार', 'देखें भी', 'आगाही'],
+            'ar': [
+                'ملاحظة', 'ملخص', 'نصيحة', 'معلومات', 'نجاح', 'سؤال', 'تحذير', 'فشل', 'خطر', 'عطل', 'مثال', 'اقتباس',
+                'ملخص', 'انظر أيضاً', 'تحذير']}
+
+        for term, eng_key in zip(translations.get(lang_dir.stem, []), english):
+            if lang_dir.stem != 'en':
+                content = re.sub(rf'!!! *{eng_key} *\n', f'!!! {eng_key} "{term}"\n', content, flags=re.IGNORECASE)
+                content = re.sub(rf'!!! *{term} *\n', f'!!! {eng_key} "{term}"\n', content, flags=re.IGNORECASE)
+            content = re.sub(rf'!!! *{term}', f'!!! {eng_key}', content, flags=re.IGNORECASE)
+            content = re.sub(r'!!! *"', '!!! Example "', content, flags=re.IGNORECASE)
 
         return content
 
-    def update_iframe(self, content):
+    @staticmethod
+    def update_iframe(content):
         """Update the 'allow' attribute of iframe if it does not contain the specific English permissions."""
-        english_permissions = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
-        pattern = re.compile(f'allow="(?!{re.escape(english_permissions)}).+?"')
-        return pattern.sub(f'allow="{english_permissions}"', content)
+        english = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+        pattern = re.compile(f'allow="(?!{re.escape(english)}).+?"')
+        return pattern.sub(f'allow="{english}"', content)
 
     def link_replacer(self, match, parent_dir, lang_dir, use_abs_link=False):
         """Replace broken links with corresponding links in the /en/ directory."""
@@ -90,10 +130,9 @@ class MarkdownLinkFixer:
         if self.update_links:
             content = self.md_link_regex.sub(lambda m: self.link_replacer(m, md_file_path.parent, lang_dir), content)
 
-        if self.update_frontmatter:
-            content = self.replace_front_matter(content)
-
-        if self.update_iframes:
+        if self.update_text:
+            content = self.replace_front_matter(content, lang_dir)
+            content = self.replace_admonitions(content, lang_dir)
             content = self.update_iframe(content)
 
         with open(md_file_path, 'w', encoding='utf-8') as file:
@@ -108,12 +147,12 @@ class MarkdownLinkFixer:
     def run(self):
         """Run the link fixing and front matter updating process for each language-specific directory."""
         for subdir in self.base_dir.iterdir():
-            if subdir.is_dir() and re.match(r'^\w\w$', subdir.name) and subdir.name != 'en':
+            if subdir.is_dir() and re.match(r'^\w\w$', subdir.name):
                 self.process_language_directory(subdir)
 
 
 if __name__ == '__main__':
     # Set the path to your MkDocs 'docs' directory here
     docs_dir = str(Path(__file__).parent.resolve())
-    fixer = MarkdownLinkFixer(docs_dir, update_links=True, update_frontmatter=True, update_iframes=True)
+    fixer = MarkdownLinkFixer(docs_dir, update_links=True, update_text=True)
     fixer.run()

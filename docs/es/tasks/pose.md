@@ -23,7 +23,7 @@ La salida de un modelo de estimación de pose es un conjunto de puntos que repre
   <strong>Ver:</strong> Estimación de Pose con Ultralytics YOLOv8.
 </p>
 
-!!! tip "Consejo"
+!!! Tip "Consejo"
 
     Los modelos _pose_ YOLOv8 utilizan el sufijo `-pose`, por ejemplo, `yolov8n-pose.pt`. Estos modelos están entrenados en el conjunto de datos [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) y son adecuados para una variedad de tareas de estimación de pose.
 
@@ -51,7 +51,7 @@ Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/c
 
 Entrena un modelo YOLOv8-pose en el conjunto de datos COCO128-pose.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -87,7 +87,7 @@ El formato del conjunto de datos de pose de YOLO se puede encontrar en detalle e
 
 Valida la precisión del modelo YOLOv8n-pose entrenado en el conjunto de datos COCO128-pose. No es necesario pasar ningún argumento ya que el `modelo` mantiene sus `datos` de entrenamiento y argumentos como atributos del modelo.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -116,7 +116,7 @@ Valida la precisión del modelo YOLOv8n-pose entrenado en el conjunto de datos C
 
 Usa un modelo YOLOv8n-pose entrenado para realizar predicciones en imágenes.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -143,7 +143,7 @@ Consulta los detalles completos del modo `predict` en la página de [Predicción
 
 Exporta un modelo YOLOv8n Pose a un formato diferente como ONNX, CoreML, etc.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 

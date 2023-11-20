@@ -32,7 +32,7 @@ Nachdem Ihr Modell trainiert und validiert wurde, ist der nächste logische Schr
 - **OpenVINO:** Für die Optimierung von Intel-Hardware
 - **CoreML, TensorFlow SavedModel, und mehr:** Für vielfältige Deployment-Anforderungen.
 
-!!! tip "Tipp"
+!!! Tip "Tipp"
 
     * Exportieren Sie in ONNX oder OpenVINO für bis zu 3x CPU-Beschleunigung.
     * Exportieren Sie in TensorRT für bis zu 5x GPU-Beschleunigung.
@@ -41,7 +41,7 @@ Nachdem Ihr Modell trainiert und validiert wurde, ist der nächste logische Schr
 
 Führen Sie YOLOv8n-Benchmarks auf allen unterstützten Exportformaten einschließlich ONNX, TensorRT usw. durch. Siehe den Abschnitt Argumente unten für eine vollständige Liste der Exportargumente.
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 

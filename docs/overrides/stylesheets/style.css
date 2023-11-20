@@ -43,3 +43,10 @@ div.highlight {
 .md-grid {
   max-width: 1440px;
 }
+
+/* Language dropdown selector (default is shorter 200px in length) */
+/* Not working as activates on hover under icon area
+body .md-select__inner {
+    max-height: 500px !important;
+}
+*/

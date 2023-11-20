@@ -1,6 +1,11 @@
+---
+description: Dive into the intricacies of YOLO tasks.py. Learn about DetectionModel, PoseModel and more for powerful AI development.
+keywords: Ultralytics, YOLO, nn tasks, DetectionModel, PoseModel, RTDETRDetectionModel, model weights, parse model, AI development
+---
+
 # Reference for `ultralytics/nn/tasks.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/tasks.py) 🛠️. Thank you 🙏!
 

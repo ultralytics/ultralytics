@@ -8,7 +8,7 @@ keywords: Ultralytics, 문서화, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DE
 
 Ultralytics 모델 문서에 오신 것을 환영합니다! 저희는 [객체 검출](../tasks/detect.md), [인스턴스 분할](../tasks/segment.md), [이미지 분류](../tasks/classify.md), [자세 추정](../tasks/pose.md), [다중 객체 추적](../modes/track.md) 등 특정 작업에 맞춤화된 다양한 모델을 지원합니다. Ultralytics에 모델 아키텍처를 기여하고자 한다면, 저희의 [기여 가이드](../../help/contributing.md)를 확인해 주세요.
 
-!!! note
+!!! Note "노트"
 
     🚧 현재 다국어 문서화 작업이 진행 중이며 문서를 개선하기 위해 열심히 작업하고 있습니다. 기다려 주셔서 감사합니다! 🙏
 
@@ -41,7 +41,7 @@ Ultralytics 모델 문서에 오신 것을 환영합니다! 저희는 [객체 �
 
 ## 시작하기: 사용 예시
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 

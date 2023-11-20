@@ -74,7 +74,7 @@ class OBBValidator(DetectionValidator):
             if npr == 0:
                 if nl:
                     self.stats.append((correct_bboxes, *torch.zeros((2, 0), device=self.device), cls.squeeze(-1)))
-                    # TODO: Not supprted confusion matrix for obb yet.
+                    # TODO: Not supported confusion matrix for obb yet.
                     # if self.args.plots:
                     #     self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
                 continue
@@ -96,7 +96,7 @@ class OBBValidator(DetectionValidator):
                                         ratio_pad=batch['ratio_pad'][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
-                # TODO: Not supprted confusion matrix for obb yet.
+                # TODO: Not supported confusion matrix for obb yet.
                 # if self.args.plots:
                 #     self.confusion_matrix.process_batch(predn, labelsn)
             self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))  # (conf, pcls, tcls)

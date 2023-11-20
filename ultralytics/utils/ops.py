@@ -112,6 +112,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
     clip_boxes(boxes, img0_shape)
     return boxes
 
+
 def scale_rotated_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
     """
     Rescales bounding boxes (in the format of xyxy) from the shape of the image they were originally specified in
@@ -302,7 +303,7 @@ def non_max_suppression(
 
         # Batched NMS
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
-        scores = x[:, 4]   # scores
+        scores = x[:, 4]  # scores
         if rotated:
             boxes = torch.cat((x[:, :4], x[:, -2:-1]), dim=-1)  # concat with angle
             i = nms_rotated(boxes, scores, iou_thres)

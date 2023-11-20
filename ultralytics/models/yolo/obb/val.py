@@ -1,11 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from pathlib import Path
+
+import torch
+
 from ultralytics.models.yolo.detect import DetectionValidator
+from ultralytics.utils import ops
 from ultralytics.utils.metrics import OBBMetrics, batch_probiou
 from ultralytics.utils.plotting import output_to_target, plot_images
-from ultralytics.utils import ops
-from pathlib import Path
-import torch
 
 
 class OBBValidator(DetectionValidator):
@@ -83,16 +85,15 @@ class OBBValidator(DetectionValidator):
             predn = pred.clone()
             # TODO: optimize this inefficient way of scaling rotated boxes
             ops.scale_rotated_boxes(batch['img'][si].shape[1:], predn[:, :4], shape,
-                            ratio_pad=batch['ratio_pad'][si])  # native-space pred
+                                    ratio_pad=batch['ratio_pad'][si])  # native-space pred
 
             # Evaluate
             if nl:
                 height, width = batch['img'].shape[2:]
-                tbox = bbox[:, :4] * torch.tensor(
-                    (width, height, width, height), device=self.device)  # target boxes
+                tbox = bbox[:, :4] * torch.tensor((width, height, width, height), device=self.device)  # target boxes
                 tbox = torch.cat([tbox, bbox[:, 4:5]], dim=-1)
                 ops.scale_rotated_boxes(batch['img'][si].shape[1:], tbox, shape,
-                                ratio_pad=batch['ratio_pad'][si])  # native-space labels
+                                        ratio_pad=batch['ratio_pad'][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: Not supprted confusion matrix for obb yet.

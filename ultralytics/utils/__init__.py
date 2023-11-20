@@ -235,7 +235,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
     # Create and configure the StreamHandler
     stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setFormatter(logging.Formatter(u'%(message)s'))
+    stream_handler.setFormatter(logging.Formatter('%(message)s'))
     stream_handler.setLevel(level)
 
     logger = logging.getLogger(name)

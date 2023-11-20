@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 # For more info visit: # https://docs.ultralytics.com/modes/export/
-
+print(" 🚀 Exporting model .......")
 # Load model
 model = YOLO('./models/detector_best.pt', task='detect')
 

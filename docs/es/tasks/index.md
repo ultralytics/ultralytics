@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLOv8, Detección, Segmentación, Clasificación, Estima
 
 YOLOv8 es un marco de trabajo de IA que soporta múltiples **tareas** de visión por computadora. El marco puede usarse para realizar [detección](detect.md), [segmentación](segment.md), [clasificación](classify.md) y estimación de [pose](pose.md). Cada una de estas tareas tiene un objetivo y caso de uso diferente.
 
-!!! note
+!!! Note "Nota"
 
     🚧 Nuestra documentación multilenguaje está actualmente en construcción y estamos trabajando arduamente para mejorarla. ¡Gracias por su paciencia! 🙏
 

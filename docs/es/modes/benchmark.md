@@ -32,7 +32,7 @@ Una vez que su modelo está entrenado y validado, el siguiente paso lógico es e
 - **OpenVINO:** Para la optimización en hardware de Intel
 - **CoreML, TensorFlow SavedModel y Más:** Para necesidades de despliegue diversas.
 
-!!! tip "Consejo"
+!!! Tip "Consejo"
 
     * Exporte a ONNX o OpenVINO para acelerar la velocidad de CPU hasta 3 veces.
     * Exporte a TensorRT para acelerar la velocidad de GPU hasta 5 veces.
@@ -41,7 +41,7 @@ Una vez que su modelo está entrenado y validado, el siguiente paso lógico es e
 
 Ejecute benchmarks de YOLOv8n en todos los formatos de exportación soportados incluyendo ONNX, TensorRT, etc. Vea la sección de Argumentos a continuación para una lista completa de argumentos de exportación.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 

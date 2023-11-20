@@ -41,7 +41,7 @@ Une fois votre modèle entraîné et validé, l'étape logique suivante est d'é
 
 Exécutez les benchmarks YOLOv8n sur tous les formats d'exportation supportés, y compris ONNX, TensorRT, etc. Consultez la section Arguments ci-dessous pour une liste complète des arguments d'exportation.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 

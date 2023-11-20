@@ -32,7 +32,7 @@ keywords: Ultralytics, YOLOv8, ベンチマーク, スピードプロファイ�
 - **OpenVINO:** Intelハードウェアの最適化のために
 - **CoreML, TensorFlow SavedModel など:** 多様なデプロイメントニーズに。
 
-!!! tip "ヒント"
+!!! Tip "ヒント"
 
     * CPUスピードアップのためにONNXまたはOpenVINOにエクスポートする。
     * GPUスピードアップのためにTensorRTにエクスポートする。
@@ -41,7 +41,7 @@ keywords: Ultralytics, YOLOv8, ベンチマーク, スピードプロファイ�
 
 ONNX、TensorRTなど、すべてのサポートされるエクスポート形式でYOLOv8nベンチマークを実行します。完全なエクスポート引数のリストについては、以下のArgumentsセクションを参照してください。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 

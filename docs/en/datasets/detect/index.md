@@ -48,7 +48,7 @@ When using the Ultralytics YOLO format, organize your training and validation im
 
 Here's how you can use these formats to train your model:
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -93,7 +93,7 @@ If you have your own dataset and would like to use it for training detection mod
 
 You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

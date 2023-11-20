@@ -30,7 +30,7 @@ keywords: Ultralytics, YOLO 文档, YOLOv8, 验证, 模型评估, 超参数, 准
 - **CLI 和 Python API：** 根据您的验证偏好选择命令行界面或 Python API。
 - **数据兼容性：** 与训练阶段使用的数据集以及自定义数据集无缝协作。
 
-!!! tip "提示"
+!!! Tip "提示"
 
     * YOLOv8 模型会自动记住其训练设置，因此您可以很容易地仅使用 `yolo val model=yolov8n.pt` 或 `model('yolov8n.pt').val()` 在原始数据集上并以相同图像大小验证模型。
 
@@ -38,7 +38,7 @@ keywords: Ultralytics, YOLO 文档, YOLOv8, 验证, 模型评估, 超参数, 准
 
 在 COCO128 数据集上验证训练过的 YOLOv8n 模型的准确性。由于 `model` 保留了其训练的 `data` 和参数作为模型属性，因此无需传递任何参数。有关完整的导出参数列表，请参阅下面的参数部分。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 

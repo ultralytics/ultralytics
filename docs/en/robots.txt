@@ -1,8 +1,10 @@
 User-agent: *
 Sitemap: http://docs.ultralytics.com/sitemap.xml
+Sitemap: http://docs.ultralytics.com/ar/sitemap.xml
 Sitemap: http://docs.ultralytics.com/de/sitemap.xml
 Sitemap: http://docs.ultralytics.com/es/sitemap.xml
 Sitemap: http://docs.ultralytics.com/fr/sitemap.xml
+Sitemap: http://docs.ultralytics.com/hi/sitemap.xml
 Sitemap: http://docs.ultralytics.com/ja/sitemap.xml
 Sitemap: http://docs.ultralytics.com/ko/sitemap.xml
 Sitemap: http://docs.ultralytics.com/pt/sitemap.xml

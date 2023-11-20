@@ -23,7 +23,7 @@ keywords: Ultralytics, YOLO, YOLOv8, 포즈 추정, 키포인트 검출, 객체 
   <strong>시청하기:</strong> Ultralytics YOLOv8을 이용한 포즈 추정.
 </p>
 
-!!! tip "팁"
+!!! Tip "팁"
 
     YOLOv8 _pose_ 모델은 `-pose` 접미사가 붙습니다. 예: `yolov8n-pose.pt`. 이 모델들은 [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) 데이터셋으로 학습되었으며 포즈 추정 작업에 적합합니다.
 
@@ -51,7 +51,7 @@ keywords: Ultralytics, YOLO, YOLOv8, 포즈 추정, 키포인트 검출, 객체 
 
 COCO128-pose 데이터셋에서 YOLOv8-pose 모델 학습하기.
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 
@@ -87,7 +87,7 @@ YOLO 포즈 데이터셋 형식에 대한 자세한 내용은 [데이터셋 가�
 
 학습된 YOLOv8n-pose 모델의 정확도를 COCO128-pose 데이터셋에서 검증하기. 모델은 학습 `data` 및 인수를 모델 속성으로 유지하기 때문에 인수를 전달할 필요가 없습니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 
@@ -116,7 +116,7 @@ YOLO 포즈 데이터셋 형식에 대한 자세한 내용은 [데이터셋 가�
 
 학습된 YOLOv8n-pose 모델을 사용하여 이미지에 대한 예측 수행하기.
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 
@@ -143,7 +143,7 @@ YOLO 포즈 데이터셋 형식에 대한 자세한 내용은 [데이터셋 가�
 
 YOLOv8n 포즈 모델을 ONNX, CoreML 등 다른 형식으로 내보내기.
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 

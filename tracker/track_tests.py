@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
+from tracker.action_recognition import ActionRecognizer
 from tracker.utils.parse_config import ConfigParser
 from tracker.utils.utils import FrameRateCounter, Timer
 from ultralytics import YOLO
@@ -57,6 +58,8 @@ class VideoProcessor:
             4: "airplane",
             5: "boat",
         }
+
+        self.action_recognizer = ActionRecognizer(config["action_recognition"])
 
     def process_video(self):
         print(f"Processing video: {os.path.basename(self.source_video_path)} ...")
@@ -155,16 +158,18 @@ class VideoProcessor:
         )[0]
         detections = sv.Detections.from_ultralytics(results)
         detections = self.tracker.update_with_detections(detections)
+        crowd_detections = self.action_recognizer.recognize_frame_gathering(detections)
 
-        return self.annotate_frame(frame, detections)
+        return self.annotate_frame(frame, detections, crowd_detections)
 
-    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections) -> np.ndarray:
+    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections, crowd_detections=None) -> np.ndarray:
         annotated_frame = frame.copy()
 
         labels = [f"#{tracker_id} {self.class_names[class_id]} {confidence:.2f}"
                   for tracker_id, class_id, confidence in zip(detections.tracker_id, detections.class_id, detections.confidence)]
         annotated_frame = self.trace_annotator.annotate(annotated_frame, detections)
         annotated_frame = self.box_annotator.annotate(annotated_frame, detections, labels)
+        annotated_frame = self.action_recognizer.annotate_crowd(annotated_frame, crowd_detections)
 
         return annotated_frame
 

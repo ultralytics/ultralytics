@@ -2,12 +2,12 @@
   "name": null,
 
   "source_weights_path": "./../inference_tools/models/detector_best.pt",
-  "source_video_path": "./data/example1.mp4",
+  "source_video_path": "./data/example2.mp4",
 
   "device": "mps",
   "video_stride": 1,
 
-  "img_size": 1280,
+  "img_size": 640,
   "conf_threshold": 0.1,
   "iou_threshold": 0.8,
   "max_det": 50,
@@ -18,5 +18,14 @@
   "frame_rate": 25,
 
   "save_dir": "./outputs/",
-  "display": true
+  "save_results": true,
+  "display": false,
+
+  "action_recognition": {
+    "gathering": {
+      "enabled": true,
+      "distance_threshold": 1.5,
+      "area_threshold": 0.5
+    }
+  }
 }

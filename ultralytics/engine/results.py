@@ -102,7 +102,7 @@ class Results(SimpleClass):
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = 'boxes', 'masks', 'probs', 'keypoints'
+        self._keys = 'boxes', 'masks', 'probs', 'keypoints', 'obb'
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
@@ -220,7 +220,8 @@ class Results(SimpleClass):
             img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
         names = self.names
-        pred_boxes, show_boxes = self.boxes, boxes
+        is_obb = self.obb is not None
+        pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
         annotator = Annotator(
@@ -241,12 +242,13 @@ class Results(SimpleClass):
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
-        if pred_boxes and show_boxes:
+        if pred_boxes is not None and show_boxes:
             for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
-                annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+                box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
+                annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:

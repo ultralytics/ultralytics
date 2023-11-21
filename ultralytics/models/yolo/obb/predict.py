@@ -1,7 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, ops
+from ultralytics.engine.results import Results
+
+import torch
 
 
 class OBBPredictor(DetectionPredictor):
@@ -24,5 +27,25 @@ class OBBPredictor(DetectionPredictor):
         self.args.task = 'obb'
 
     def postprocess(self, preds, img, orig_imgs):
-        pass
-        # TODO
+        """Post-processes predictions and returns a list of Results objects."""
+        preds = ops.non_max_suppression(preds,
+                                        self.args.conf,
+                                        self.args.iou,
+                                        agnostic=self.args.agnostic_nms,
+                                        max_det=self.args.max_det,
+                                        nc=len(self.model.names),
+                                        classes=self.args.classes,
+                                        rotated=True)
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
+        results = []
+        for i, pred in enumerate(preds):
+            orig_img = orig_imgs[i]
+            pred[:, :4] = ops.scale_rotated_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
+            img_path = self.batch[0][i]
+            # xywh, r, conf, cls
+            obb = torch.cat([pred[:, :4], pred[:, -2:-1], pred[:, 4:6]], dim=-1)
+            results.append(Results(orig_img, path=img_path, names=self.model.names, obb=obb))
+        return results

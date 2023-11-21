@@ -455,9 +455,9 @@ def plot_images(images,
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
                         annotator.box_label(box, label, color=color)
-            elif len(bboxes) and bboxes.shape[-1] == 5:
+            elif len(bboxes) and bboxes.shape[-1] == 2:
                 # TODO: Clean code reduplication
-                boxes = ops.xywhr2xyxyxyxy(bboxes[idx, :5]).reshape(-1, 4, 2)
+                boxes = bboxes[idx]
                 conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
                 if boxes.max() <= 1.1:  # if normalized with tolerance 0.1
                     boxes[..., 0] *= w  # scale to pixels

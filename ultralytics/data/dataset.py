@@ -179,7 +179,7 @@ class YOLODataset(BaseDataset):
             # (N, 1000, 2)
             segments = np.stack(segments if self.use_obb else resample_segments(segments, n=segment_resamples), axis=0)
         else:
-            segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
+            segments = np.zeros((0, 4 if self.use_obb else segment_resamples, 2), dtype=np.float32)
         label['instances'] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
         return label
 

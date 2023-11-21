@@ -602,14 +602,16 @@ class v8OBBLoss(v8DetectionLoss):
                             'as an example.\nSee https://docs.ultralytics.com/datasets/obb/ for help.') from e
 
         # Pboxes
-        pred_bboxes = torch.cat([dist2bbox(pred_distri, anchor_points, xywh=True), pred_angle], dim=-1)  # xyxy, (b, h*w, 4)
+        pred_bboxes = torch.cat([dist2bbox(pred_distri, anchor_points, xywh=True), pred_angle],
+                                dim=-1)  # xyxy, (b, h*w, 4)
 
         bboxes_for_assigner = pred_bboxes.clone().detach()
         # Only the first four elements need to be scaled
         bboxes_for_assigner[..., :4] *= stride_tensor
-        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
-            pred_scores.detach().sigmoid(), bboxes_for_assigner.type(gt_bboxes.dtype),
-            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
+        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(pred_scores.detach().sigmoid(),
+                                                                    bboxes_for_assigner.type(gt_bboxes.dtype),
+                                                                    anchor_points * stride_tensor, gt_labels, gt_bboxes,
+                                                                    mask_gt)
 
         target_scores_sum = max(target_scores.sum(), 1)
 

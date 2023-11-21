@@ -459,11 +459,12 @@ def plot_images(images,
                 # TODO: Clean code reduplication
                 boxes = bboxes[idx]
                 conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
-                if boxes.max() <= 1.1:  # if normalized with tolerance 0.1
-                    boxes[..., 0] *= w  # scale to pixels
-                    boxes[..., 1] *= h
-                elif scale < 1:  # absolute coords need scale if image scales
-                    boxes *= scale
+                if len(boxes):
+                    if boxes.max() <= 1.1:  # if normalized with tolerance 0.1
+                        boxes[..., 0] *= w  # scale to pixels
+                        boxes[..., 1] *= h
+                    elif scale < 1:  # absolute coords need scale if image scales
+                        boxes *= scale
                 boxes[..., 0] += x
                 boxes[..., 1] += y
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
@@ -692,7 +693,7 @@ def output_to_rotated_target(output, max_det=300):
         j = torch.full((conf.shape[0], 1), i)
         targets.append(torch.cat((j, cls, box, angle, conf), 1))
     targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
+    return targets[:, 0], targets[:, 1], ops.xywhr2xyxyxyxy(targets[:, 2:-1]).reshape(-1, 4, 2), targets[:, -1]
 
 
 def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detect/exp')):

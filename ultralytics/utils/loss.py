@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh, xyxyxyxy2xywhr
 from ultralytics.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
-from ultralytics.utils.tal_obb import RotatedTaskAlignedAssigner
+from ultralytics.utils.tal_obb import RotatedTaskAlignedAssigner, dist2rbox
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
@@ -604,8 +604,11 @@ class v8OBBLoss(v8DetectionLoss):
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, torch.cat([pred_distri, pred_angle], dim=-1))  # xyxy, (b, h*w, 4)
 
+        bboxes_for_assigner = pred_bboxes.clone().detach()
+        # Only the first four elements need to be scaled
+        bboxes_for_assigner[..., :4] *= stride_tensor
         _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
-            pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
+            pred_scores.detach().sigmoid(), bboxes_for_assigner.type(gt_bboxes.dtype),
             anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
 
         target_scores_sum = max(target_scores.sum(), 1)
@@ -634,15 +637,4 @@ class v8OBBLoss(v8DetectionLoss):
             anchor_points (torch.Tensor): Anchor points, (h*w, 2).
             distance (torch.Tensor): Predicted rotated distance, (bs, h*w, 5).
         """
-        pred_distance, angle = pred_distance.split([4, 1], dim=-1)
-        cos, sin = torch.cos(angle), torch.sin(angle)
-        r_matrix = torch.cat([cos, -sin, sin, cos], dim=-1)
-        # (bs, h*w, 2, 2)
-        r_matrix = r_matrix.view(*angle.shape[:-1], 2, 2)
-        wh = pred_distance[..., :2] + pred_distance[..., 2:]
-
-        # (bs, h*w, 2)
-        offset = (pred_distance[..., 2:] - pred_distance[..., :2]) / 2
-        offset = torch.matmul(r_matrix, offset[..., None]).squeeze(-1)
-        xy = anchor_points[..., :2] + offset
-        return torch.cat([xy, wh, angle], dim=-1)
+        return dist2rbox(pred_distance, anchor_points)

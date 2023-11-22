@@ -114,4 +114,3 @@ Wenn Sie MobileSAM in Ihrer Forschungs- oder Entwicklungsarbeit nützlich finden
           journal={arXiv preprint arXiv:2306.14289},
           year={2023}
         }
-

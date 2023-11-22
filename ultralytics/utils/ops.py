@@ -603,7 +603,7 @@ def xywhr2xyxyxyxy(center):
     vec1 = [w / 2 * cos_value, w / 2 * sin_value]
     vec2 = [-h / 2 * sin_value, h / 2 * cos_value]
     vec1 = np.concatenate(vec1, axis=-1) if is_numpy else torch.cat(vec1, dim=-1)
-    vec2 = np.concatenate(vec1, axis=-1) if is_numpy else torch.cat(vec2, dim=-1)
+    vec2 = np.concatenate(vec2, axis=-1) if is_numpy else torch.cat(vec2, dim=-1)
     pt1 = ctr + vec1 + vec2
     pt2 = ctr + vec1 - vec2
     pt3 = ctr - vec1 - vec2

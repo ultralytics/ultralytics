@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explora el YOLOv7, un detector de objetos en tiempo real. Comprende su velocidad superior, precisión impresionante y enfoque único en la optimización de entrenamiento de bolsas de características entrenables. 
+description: Explora el YOLOv7, un detector de objetos en tiempo real. Comprende su velocidad superior, precisión impresionante y enfoque único en la optimización de entrenamiento de bolsas de características entrenables.
 keywords: YOLOv7, detector de objetos en tiempo real, estado del arte, Ultralytics, conjunto de datos MS COCO, re-parametrización del modelo, asignación dinámica de etiquetas, escalado extendido, escalado compuesto
 ---
 

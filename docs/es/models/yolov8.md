@@ -105,7 +105,7 @@ Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia con YO
 
 Ten en cuenta que el siguiente ejemplo es para modelos de detección YOLOv8. Para ver las tareas adicionales compatibles, consulta la documentación de [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) y [Pose](../tasks/pose.md).
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -143,7 +143,7 @@ Ten en cuenta que el siguiente ejemplo es para modelos de detección YOLOv8. Par
 
 Si utilizas el modelo YOLOv8 u otro software de este repositorio en tu trabajo, por favor cítalos utilizando el siguiente formato:
 
-!!! Cita ""
+!!! Quote ""
 
     === "BibTeX"
 
@@ -159,4 +159,4 @@ Si utilizas el modelo YOLOv8 u otro software de este repositorio en tu trabajo, 
         }
         ```
 
-    Ten en cuenta que el DOI está pendiente y se agregará a la cita una vez esté disponible. Los modelos de YOLOv8 se proporcionan bajo las licencias [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) y [Enterprise](https://ultralytics.com/license).
+Ten en cuenta que el DOI está pendiente y se agregará a la cita una vez esté disponible. Los modelos de YOLOv8 se proporcionan bajo las licencias [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) y [Enterprise](https://ultralytics.com/license).

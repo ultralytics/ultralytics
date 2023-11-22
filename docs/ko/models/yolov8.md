@@ -105,7 +105,7 @@ YOLOv8 시리즈는 컴퓨터 비전의 특정 작업에 특화된 다양한 모
 
 아래 예제는 객체 탐지를 위한 YOLOv8 [Detect](../tasks/detect.md) 모델을 위한 것입니다. 추가로 지원되는 작업은 [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) 및 [Pose](../tasks/pose.md) 문서를 참조하십시오.
 
-!!! 예제
+!!! Example "예제"
 
     === "파이썬"
 

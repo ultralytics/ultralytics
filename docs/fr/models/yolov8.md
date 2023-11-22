@@ -105,7 +105,7 @@ Cet exemple fournit des exemples simples d'entraînement et d'inférence avec YO
 
 Veuillez noter que l'exemple ci-dessous concerne les modèles de détection YOLOv8. Pour d'autres tâches prises en charge, consultez la documentation de [Segmentation](../tasks/segment.md), [Classification](../tasks/classify.md) et [Pose](../tasks/pose.md).
 
-!!! Example
+!!! Example "Exemple"
 
     === "Python"
 

@@ -105,7 +105,7 @@ Este exemplo fornece exemplos simples de treinamento e inferência do YOLOv8. Pa
 
 Observe que o exemplo abaixo é para modelos YOLOv8 de [Detecção](../tasks/detect.md) para detecção de objetos. Para outras tarefas suportadas, consulte a documentação de [Segmentação](../tasks/segment.md), [Classificação](../tasks/classify.md) e [Pose](../tasks/pose.md).
 
-!!! Exemplo
+!!! Example "Exemplo"
 
     === "Python"
 

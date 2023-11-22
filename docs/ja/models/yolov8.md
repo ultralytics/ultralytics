@@ -105,7 +105,7 @@ YOLOv8シリーズの各バリアントは、それぞれのタスクに最適�
 
 以下の例は、オブジェクト検出のためのYOLOv8 [Detect](../tasks/detect.md)モデルのものです。サポートされているタスクの詳細については、[Segment](../tasks/segment.md)、[Classify](../tasks/classify.md)、および[Pose](../tasks/pose.md)のドキュメントを参照してください。
 
-!!! 例
+!!! Example "例"
 
     === "Python"
 
@@ -143,7 +143,7 @@ YOLOv8シリーズの各バリアントは、それぞれのタスクに最適�
 
 このリポジトリのYOLOv8モデルやその他のソフトウェアを使用する場合は、次の形式で引用してください：
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
 

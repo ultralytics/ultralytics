@@ -635,6 +635,7 @@ class v8OBBLoss(v8DetectionLoss):
     def bbox_decode(self, anchor_points, pred_distance):
         """
         Decode predicted object bounding box coordinates from anchor points and distribution.
+
         Args:
             anchor_points (torch.Tensor): Anchor points, (h*w, 2).
             distance (torch.Tensor): Predicted rotated distance, (bs, h*w, 5).

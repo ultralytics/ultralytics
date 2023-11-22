@@ -137,7 +137,9 @@ class OBB(Detect):
             cls = x_cat[:, self.reg_max * 4:]
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-        dbox = dist2rbox(torch.cat([self.dfl(box), angle], dim=1).permute(0, 2, 1), self.anchors.unsqueeze(0).permute(0, 2, 1))
+        dbox = dist2rbox(
+            torch.cat([self.dfl(box), angle], dim=1).permute(0, 2, 1),
+            self.anchors.unsqueeze(0).permute(0, 2, 1))
         dbox = dbox[..., :4].permute(0, 2, 1) * self.strides
 
         if self.export and self.format in ('tflite', 'edgetpu'):

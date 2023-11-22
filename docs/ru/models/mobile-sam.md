@@ -106,7 +106,7 @@ MobileSAM обеспечивает примерно в 5 раз меньший �
 !!! Quote ""
 
     === "BibTeX"
-  
+
         ```bibtex
         @article{mobile_sam,
           title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
@@ -114,4 +114,4 @@ MobileSAM обеспечивает примерно в 5 раз меньший �
           journal={arXiv preprint arXiv:2306.14289},
           year={2023}
         }
-        
+

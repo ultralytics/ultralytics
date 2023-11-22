@@ -114,4 +114,4 @@ MobileSAM 的性能优于当前的 FastSAM，尺寸大约减小了 5 倍，速�
           journal={arXiv preprint arXiv:2306.14289},
           year={2023}
         }
-        
+

@@ -113,4 +113,4 @@ MobileSAM और मूल SAM के प्रदर्शन को एक ब
           journal={arXiv preprint arXiv:2306.14289},
           year={2023}
         }
-        
+

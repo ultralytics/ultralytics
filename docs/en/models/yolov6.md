@@ -95,7 +95,7 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
 

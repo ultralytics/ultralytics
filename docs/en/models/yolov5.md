@@ -96,7 +96,7 @@ You can use YOLOv5u for object detection tasks using the Ultralytics repository.
 
 If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv5 repository as follows:
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
         ```bibtex

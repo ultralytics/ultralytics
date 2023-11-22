@@ -91,7 +91,7 @@ You can use YOLOv3 for object detection tasks using the Ultralytics repository. 
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository:
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
 

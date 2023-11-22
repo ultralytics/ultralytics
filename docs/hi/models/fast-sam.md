@@ -76,7 +76,7 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
         ann = prompt_process.text_prompt(text='a photo of a dog')
 
         # पॉइंट प्रोम्प्ट
-        # डिफ़ॉल्ट poins [[0,0]] [[x1,y1],[x2,y2]]
+        # डिफ़ॉल्ट point [[0,0]] [[x1,y1],[x2,y2]]
         # डिफ़ॉल्ट point_label [0] [1,0] 0:background, 1:foreground
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
         prompt_process.plot(annotations=ann, output='./')

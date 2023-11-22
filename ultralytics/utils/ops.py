@@ -598,7 +598,7 @@ def xywhr2xyxyxyxy(center):
     cos, sin = (np.cos, np.sin) if is_numpy else (torch.cos, torch.sin)
 
     ctr = center[..., :2]
-    w, h, rotation = (center[..., i:i+1] for i in range(2, 5))
+    w, h, rotation = (center[..., i:i + 1] for i in range(2, 5))
     cos_value, sin_value = cos(rotation), sin(rotation)
     vec1 = [w / 2 * cos_value, w / 2 * sin_value]
     vec2 = [-h / 2 * sin_value, h / 2 * cos_value]
@@ -608,8 +608,8 @@ def xywhr2xyxyxyxy(center):
     pt2 = ctr + vec1 - vec2
     pt3 = ctr - vec1 - vec2
     pt4 = ctr - vec1 + vec2
-    return np.stack([pt1, pt2, pt3, pt4], axis=-2).reshape(-1, 8) if is_numpy else torch.stack(
-            [pt1, pt2, pt3, pt4], dim=-2).view(-1, 8)
+    return np.stack([pt1, pt2, pt3, pt4], axis=-2).reshape(-1, 8) if is_numpy else torch.stack([pt1, pt2, pt3, pt4],
+                                                                                               dim=-2).view(-1, 8)
 
 
 def ltwh2xyxy(x):

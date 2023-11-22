@@ -63,7 +63,7 @@ Le modèle Segment Anything peut être utilisé pour une multitude de tâches se
         model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
         ```
 
-!!! Exemple "Segmenter tout"
+!!! Example "Segmenter tout"
 
     Segmenter toute l'image.
 
@@ -91,7 +91,7 @@ Le modèle Segment Anything peut être utilisé pour une multitude de tâches se
 
 - La logique ici est de segmenter toute l'image si vous ne passez aucun prompt (bboxes/points/masks).
 
-!!! Exemple "Exemple SAMPredictor"
+!!! Example "Exemple SAMPredictor"
 
     De cette manière, vous pouvez définir l'image une fois et exécuter l'inférence des prompts plusieurs fois sans exécuter l'encodeur d'image plusieurs fois.
 
@@ -129,7 +129,7 @@ Le modèle Segment Anything peut être utilisé pour une multitude de tâches se
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- Plus d'arguments supplémentaires pour `Segmenter tout` voir la référence [`Predictor/generate`](../reference/models/sam/predict.md).
+- Plus d'arguments supplémentaires pour `Segmenter tout` voir la référence [`Predictor/generate`](../../reference/models/sam/predict.md).
 
 ## Comparaison de SAM avec YOLOv8
 
@@ -146,7 +146,7 @@ Cette comparaison montre les différences d'ordre de grandeur dans les tailles e
 
 Tests effectués sur un MacBook Apple M2 de 2023 avec 16 Go de RAM. Pour reproduire ce test :
 
-!!! Exemple
+!!! Example "Exemple"
 
     === "Python"
         ```python
@@ -181,7 +181,7 @@ L'annotation automatique est une fonctionnalité clé de SAM, permettant aux uti
 
 Pour annoter automatiquement votre jeu de données avec le framework Ultralytics, utilisez la fonction `auto_annotate` comme indiqué ci-dessous :
 
-!!! Exemple
+!!! Example "Exemple"
 
     === "Python"
         ```python
@@ -206,7 +206,7 @@ L'annotation automatique avec des modèles pré-entraînés peut réduire consid
 
 Si vous trouvez SAM utile dans vos travaux de recherche ou de développement, veuillez envisager de citer notre article :
 
-!!! Citation ""
+!!! Quote ""
 
     === "BibTeX"
 
@@ -223,4 +223,4 @@ Si vous trouvez SAM utile dans vos travaux de recherche ou de développement, ve
 
 Nous tenons à exprimer notre gratitude à Meta AI pour la création et la maintenance de cette ressource précieuse pour la communauté de la vision par ordinateur.
 
-*mots-clés : Segment Anything, Segment Anything Model, SAM, Meta SAM, segmentation d'image, segmentation promptable, performances hors échantillon, jeu de données SA-1B, architecture avancée, annotation automatique, Ultralytics, modèles pré-entraînés, SAM de base, SAM large, segmentation d'instance, vision par ordinateur, IA, intelligence artificielle, apprentissage automatique, annotation de données, masques de segmentation, modèle de détection, modèle de détection YOLO, bibtex, Meta AI.*
+*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, segmentation d'image, segmentation promptable, performances hors échantillon, jeu de données SA-1B, architecture avancée, annotation automatique, Ultralytics, modèles pré-entraînés, SAM de base, SAM large, segmentation d'instance, vision par ordinateur, IA, intelligence artificielle, apprentissage automatique, annotation de données, masques de segmentation, modèle de détection, modèle de détection YOLO, bibtex, Meta AI.*

@@ -44,7 +44,7 @@ Os seguintes exemplos mostram como usar os modelos YOLO-NAS com o pacote `ultral
 
 Neste exemplo, validamos o YOLO-NAS-s no conjunto de dados COCO8.
 
-!!! Exemplo
+!!! Example "Exemplo"
 
     Este exemplo fornece um código simples de inferência e validação para o YOLO-NAS. Para lidar com os resultados da inferência, consulte o modo [Predict](../modes/predict.md). Para usar o YOLO-NAS com modos adicionais, consulte [Val](../modes/val.md) e [Export](../modes/export.md). O YOLO-NAS no pacote `ultralytics` não suporta treinamento.
 
@@ -118,4 +118,4 @@ Se você utilizar o YOLO-NAS em seus estudos ou trabalho de desenvolvimento, por
 
 Expressamos nossa gratidão à equipe [SuperGradients](https://github.com/Deci-AI/super-gradients/) da Deci AI por seus esforços na criação e manutenção deste recurso valioso para a comunidade de visão computacional. Acreditamos que o YOLO-NAS, com sua arquitetura inovadora e capacidades superiores de detecção de objetos, se tornará uma ferramenta fundamental para desenvolvedores e pesquisadores.
 
-*Palavras-chave: YOLO-NAS, Deci AI, detecção de objetos, aprendizado profundo, busca de arquitetura neural, API do Ultralytics Python, modelo YOLO, SuperGradients, modelos pré-treinados, bloco básico amigável para quantização, esquemas avançados de treinamento, quantização pós-treinamento, otimização AutoNAC, COCO, Objects365, Roboflow 100*
+*keywords: YOLO-NAS, Deci AI, detecção de objetos, aprendizado profundo, busca de arquitetura neural, API do Ultralytics Python, modelo YOLO, SuperGradients, modelos pré-treinados, bloco básico amigável para quantização, esquemas avançados de treinamento, quantização pós-treinamento, otimização AutoNAC, COCO, Objects365, Roboflow 100*

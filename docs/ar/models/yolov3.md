@@ -44,7 +44,7 @@ keywords: YOLOv3، YOLOv3-Ultralytics، YOLOv3u، الكشف عن الكائنا
 
 يقدم هذا المثال أمثلة بسيطة للتدريب والتنبؤ باستخدام YOLOv3. للحصول على وثائق كاملة حول هذه وغيرها من [الأوضاع](../modes/index.md) انظر صفحات الوثائق: [التنبؤ](../modes/predict.md) ، (../modes/train.md) [Val](../modes/val.md) و [التصدير](../modes/export.md) docs.
 
-!!! مثال
+!!! Example "مثال"
 
     === "بيثون"
 
@@ -82,7 +82,7 @@ keywords: YOLOv3، YOLOv3-Ultralytics، YOLOv3u، الكشف عن الكائنا
 
 إذا قمت باستخدام YOLOv3 في بحثك ، فيرجى الاقتباس لأوراق YOLO الأصلية ومستودع Ultralytics YOLOv3:
 
-!!! اقتباس ""
+!!! Quote ""
 
     === "بيب تيكس"
 

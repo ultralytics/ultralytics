@@ -56,7 +56,7 @@ Essa tabela oferece uma visão detalhada das variantes do modelo YOLOv5u, destac
 
 Este exemplo fornece exemplos simples de treinamento e inferência do YOLOv5. Para documentação completa sobre esses e outros [modos](../modes/index.md), consulte as páginas de documentação [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) e [Export](../modes/export.md).
 
-!!! Exemplo
+!!! Example "Exemplo"
 
     === "Python"
 

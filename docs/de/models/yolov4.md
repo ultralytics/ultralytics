@@ -53,7 +53,7 @@ YOLOv4 ist ein leistungsstarkes und effizientes Modell zur Objekterkennung, das 
 
 Wir möchten den Autoren von YOLOv4 für ihren bedeutenden Beitrag auf dem Gebiet der Echtzeit-Objekterkennung danken:
 
-!!! Zitat ""
+!!! Quote ""
 
     === "BibTeX"
 

@@ -47,7 +47,7 @@ Os modelos FastSAM são fáceis de integrar em suas aplicações Python. A Ultra
 
 Para realizar detecção de objetos em uma imagem, use o método `predict` conforme mostrado abaixo:
 
-!!! Exemplo
+!!! Example "Exemplo"
 
     === "Python"
         ```python
@@ -94,7 +94,7 @@ Este trecho de código demonstra a simplicidade de carregar um modelo pré-trein
 
 A validação do modelo em um conjunto de dados pode ser feita da seguinte forma:
 
-!!! Exemplo
+!!! Example "Exemplo"
 
     === "Python"
         ```python

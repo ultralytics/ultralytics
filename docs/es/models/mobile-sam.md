@@ -69,7 +69,7 @@ Puedes descargar el modelo [aquí](https://github.com/ChaoningZhang/MobileSAM/bl
 
 ### Instrucción de Punto
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ Puedes descargar el modelo [aquí](https://github.com/ChaoningZhang/MobileSAM/bl
 
 ### Instrucción de Caja
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
         ```python

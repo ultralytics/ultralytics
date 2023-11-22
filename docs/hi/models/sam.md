@@ -41,7 +41,7 @@ Segment Anything Model का उपयोग उपस्थित डेटा
 
 ### SAM पूर्वानुमान उदाहरण
 
-!!! उदाहरण "निर्दिष्ट प्रप्ति के साथ सेगमेंट तय करें"
+!!! Example "निर्दिष्ट प्रप्ति के साथ सेगमेंट तय करें"
 
     निर्दिष्ट प्रप्ति के साथ चित्रीय भविष्यवाणी करें।
 
@@ -63,7 +63,7 @@ Segment Anything Model का उपयोग उपस्थित डेटा
         model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
         ```
 
-!!! उदाहरण "सब कुछ सेगमेंट करें"
+!!! Example "सब कुछ सेगमेंट करें"
 
     पूरी छवि को सेगमेंट करें।
 
@@ -91,7 +91,7 @@ Segment Anything Model का उपयोग उपस्थित डेटा
 
 - यहां यह तर्क है कि आप प्रोम्प्ट (बॉक्स / पॉइंट / मास्क) पास नहीं करते हैं तो पूरी छवि को सेगमेंट करें।
 
-!!! उदाहरण "SAMPredictor उदाहरण"
+!!! Example "SAMPredictor उदाहरण"
 
     इस तरह से आप एक बार छवि सेट कर सकते हैं और बार-बार प्रोम्प्ट इन्फ़रेंस चला सकते हैं। छवि को बार बार इन्कोडर के मध्य में नहीं चलाने के लिए।
 
@@ -129,7 +129,7 @@ Segment Anything Model का उपयोग उपस्थित डेटा
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- `सब कुछ का सेगमेंट` के लिए अतिरिक्त तत्वों के लिए अधिक देखें [`Predictor/generate` Reference](../reference/models/sam/predict.md).
+- `सब कुछ का सेगमेंट` के लिए अतिरिक्त तत्वों के लिए अधिक देखें [`Predictor/generate` Reference](../../reference/models/sam/predict.md).
 
 ## SAM की तुलना YOLOv8 के बनाम
 
@@ -146,7 +146,7 @@ Segment Anything Model का उपयोग उपस्थित डेटा
 
 एक 2023 Apple M2 Macbook (16GB रैम के साथ) पर चलाई गई परीक्षा। इस परीक्षण को दोहराने के लिए:
 
-!!! उदाहरण
+!!! Example "उदाहरण"
 
     === "Python"
         ```python
@@ -181,7 +181,7 @@ Segment Anything Model का उपयोग उपस्थित डेटा
 
 Ultralytics फ़्रेमवर्क के साथ स्‍वस्‍थ दिखाई देने वाले वर्गानुसार [सेगमेंटेशन डेटासेट](https://docs.ultralytics.com/datasets/segment) बनाएं। एपनी में दिए गए आदेश का उपयोग करके।
 
-!!! उदाहरण
+!!! Example "उदाहरण"
 
     === "Python"
         ```python

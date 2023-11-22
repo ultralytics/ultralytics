@@ -6,7 +6,7 @@ keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, R
 
 # النماذج المدعومة من Ultralytics
 
-أهلاً بك في وثائق نماذج Ultralytics! نحن نقدم الدعم لمجموعة واسعة من النماذج، كل منها مُصمم لمهام محددة مثل [الكشف عن الأجسام](../tasks/detect.md)، [تقطيع الحالات](../tasks/segment.md)، [تصنيف الصور](../tasks/classify.md)، [تقدير الوضعيات](../tasks/pose.md)، و[تتبع الأجسام المتعددة](../modes/track.md). إذا كنت مهتمًا بالمساهمة في هندسة نموذجك مع Ultralytics، راجع دليل [المساهمة](../help/contributing.md).
+أهلاً بك في وثائق نماذج Ultralytics! نحن نقدم الدعم لمجموعة واسعة من النماذج، كل منها مُصمم لمهام محددة مثل [الكشف عن الأجسام](../tasks/detect.md)، [تقطيع الحالات](../tasks/segment.md)، [تصنيف الصور](../tasks/classify.md)، [تقدير الوضعيات](../tasks/pose.md)، و[تتبع الأجسام المتعددة](../modes/track.md). إذا كنت مهتمًا بالمساهمة في هندسة نموذجك مع Ultralytics، راجع دليل [المساهمة](../../help/contributing.md).
 
 !!! Note "ملاحظة"
 
@@ -45,7 +45,7 @@ keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, R
 
 لاحظ أن المثال أدناه هو لنماذج [Detect](../tasks/detect.md) YOLOv8 لكشف الأجسام. للاطلاع على المهام الإضافية المدعومة، راجع وثائق [Segment](../tasks/segment.md)، و[Classify](../tasks/classify.md) و[Pose](../tasks/pose.md).
 
-!!! Example
+!!! Example "مثال"
 
     === "Python"
 
@@ -87,7 +87,7 @@ keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, R
 
 2. **استنسخ نسختك**: انسخ نسختك إلى جهازك المحلي وأنشئ فرعًا جديدًا للعمل عليه.
 
-3. **طبق نموذجك**: أضف نموذجك متبعًا معايير وإرشادات البرمجة الموفرة في دليل [المساهمة](../help/contributing.md) لدينا.
+3. **طبق نموذجك**: أضف نموذجك متبعًا معايير وإرشادات البرمجة الموفرة في دليل [المساهمة](../../help/contributing.md) لدينا.
 
 4. **اختبر بدقة**: تأكد من اختبار نموذجك بشكل مكثف، سواء بشكل منفصل أو كجزء من المسار البرمجي.
 
@@ -95,4 +95,4 @@ keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, R
 
 6. **مراجعة الكود والدمج**: بعد المراجعة، إذا كان نموذجك يلبي معاييرنا، سيتم دمجه في المستودع الرئيسي.
 
-للخطوات التفصيلية، يرجى الرجوع إلى دليل [المساهمة](../help/contributing.md).
+للخطوات التفصيلية، يرجى الرجوع إلى دليل [المساهمة](../../help/contributing.md).

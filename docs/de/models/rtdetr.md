@@ -30,7 +30,7 @@ Die Ultralytics Python API bietet vortrainierte PaddlePaddle RT-DETR-Modelle in 
 
 Das folgende Beispiel enthält einfache Trainings- und Inferenzbeispiele für RT-DETRR. Für die vollständige Dokumentation zu diesen und anderen [Modi](../modes/index.md) siehe die Dokumentationsseiten für [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) und [Export](../modes/export.md).
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -73,7 +73,7 @@ In dieser Tabelle werden die Modelltypen, die spezifischen vortrainierten Gewich
 
 Wenn Sie Baidus RT-DETR in Ihrer Forschungs- oder Entwicklungsarbeit verwenden, zitieren Sie bitte das [ursprüngliche Papier](https://arxiv.org/abs/2304.08069):
 
-!!! Zitat ""
+!!! Quote ""
 
     === "BibTeX"
 

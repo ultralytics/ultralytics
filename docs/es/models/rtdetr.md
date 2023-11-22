@@ -30,7 +30,7 @@ La API de Python de Ultralytics proporciona modelos pre-entrenados de RT-DETR de
 
 Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia de RT-DETRR. Para obtener una documentación completa sobre estos y otros [modos](../modes/index.md), consulta las páginas de documentación de [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) y [Export](../modes/export.md).
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -90,4 +90,4 @@ Si utilizas RT-DETR de Baidu en tu investigación o trabajo de desarrollo, por f
 
 Nos gustaría agradecer a Baidu y al equipo de [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) por crear y mantener este valioso recurso para la comunidad de visión por computadora. Apreciamos enormemente su contribución al campo con el desarrollo del detector de objetos en tiempo real basado en Vision Transformers, RT-DETR.
 
-*Palabras clave: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, detección de objetos en tiempo real, detección de objetos basada en Vision Transformers, modelos pre-entrenados PaddlePaddle RT-DETR, uso de RT-DETR de Baidu, API de Python de Ultralytics*
+*keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, detección de objetos en tiempo real, detección de objetos basada en Vision Transformers, modelos pre-entrenados PaddlePaddle RT-DETR, uso de RT-DETR de Baidu, API de Python de Ultralytics*

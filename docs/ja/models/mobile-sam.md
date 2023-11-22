@@ -69,7 +69,7 @@ MobileSAMは、現在のFastSAMよりも約5倍小さく、約7倍高速です�
 
 ### ポイントプロンプト
 
-!!! 例
+!!! Example "例"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ MobileSAMは、現在のFastSAMよりも約5倍小さく、約7倍高速です�
 
 ### ボックスプロンプト
 
-!!! 例
+!!! Example "例"
 
     === "Python"
         ```python
@@ -103,7 +103,7 @@ MobileSAMは、現在のFastSAMよりも約5倍小さく、約7倍高速です�
 
 MobileSAMが研究や開発のお役に立つ場合は、次の論文を引用していただけると幸いです：
 
-!!! 引用文 ""
+!!! Quote文 ""
 
     === "BibTeX"
 

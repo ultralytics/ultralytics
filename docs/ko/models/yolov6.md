@@ -37,7 +37,7 @@ YOLOv6은 다양한 스케일의 사전 훈련 모델을 제공합니다:
 
 다음은 간단한 YOLOv6 훈련 및 추론 예시입니다. 이 외에도 [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md), [Export](../modes/export.md) 문서 페이지에서 자세한 내용을 확인할 수 있습니다.
 
-!!! 예제
+!!! Example "예제"
 
     === "Python"
 
@@ -89,7 +89,7 @@ YOLOv6 시리즈는 높은 성능의 [오브젝트 디텍션](../tasks/detect.md
 
 실시간 물체 감지 분야에서의 중요한 기여에 대해 작성자들에게 감사의 말씀을 전합니다:
 
-!!! 인용 ""
+!!! Quote ""
 
     === "BibTeX"
 

@@ -44,7 +44,7 @@ Ultralyticsの`ultralytics` Pythonパッケージを使用して、YOLO-NASモ�
 
 この例では、COCO8データセットでYOLO-NAS-sを検証します。
 
-!!! 例
+!!! Example "例"
 
     この例では、YOLO-NASの推論と検証のためのシンプルなコードを提供しています。推論結果の処理については、[Predict](../modes/predict.md)モードを参照してください。他のモードでYOLO-NASを使用する方法については、[Val](../modes/val.md)および[Export](../modes/export.md)を参照してください。`ultralytics`パッケージのYOLO-NASはトレーニングをサポートしていません。
 
@@ -100,7 +100,7 @@ YOLO-NASモデルは、Small（s）、Medium（m）、Large（l）の3つのバ�
 
 研究や開発の中でYOLO-NASを使用する場合は、SuperGradientsを引用してください:
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
 
@@ -118,4 +118,4 @@ YOLO-NASモデルは、Small（s）、Medium（m）、Large（l）の3つのバ�
 
 このコンピュータビジョンコミュニティ向けの貴重なリソースを作成および維持するために、Deci AIの[SuperGradients](https://github.com/Deci-AI/super-gradients/)チームに感謝の意を表します。革新的なアーキテクチャと優れた物体検出能力を持つYOLO-NASが、開発者や研究者の重要なツールになると信じています。
 
-*キーワード: YOLO-NAS, Deci AI, 物体検出, 深層学習, ニューラルアーキテクチャ検索, Ultralytics Python API, YOLOモデル, SuperGradients, 事前学習モデル, 量子化フレンドリーな基本ブロック, 高度なトレーニングスキーム, ポストトレーニング量子化, AutoNAC最適化, COCO, Objects365, Roboflow 100*
+*keywords: YOLO-NAS, Deci AI, 物体検出, 深層学習, ニューラルアーキテクチャ検索, Ultralytics Python API, YOLOモデル, SuperGradients, 事前学習モデル, 量子化フレンドリーな基本ブロック, 高度なトレーニングスキーム, ポストトレーニング量子化, AutoNAC最適化, COCO, Objects365, Roboflow 100*

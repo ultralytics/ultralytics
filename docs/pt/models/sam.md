@@ -129,7 +129,7 @@ O Modelo de Segmentação de Qualquer Coisa pode ser utilizado para uma variedad
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- Mais argumentos adicionais para `Segmentar tudo` consulte a [Referência do `Predictor/generate`](../reference/models/sam/predict.md).
+- Mais argumentos adicionais para `Segmentar tudo` consulte a [Referência do `Predictor/generate`](../../reference/models/sam/predict.md).
 
 ## Comparação SAM vs. YOLOv8
 
@@ -146,7 +146,7 @@ Essa comparação mostra as diferenças de ordem de magnitude nos tamanhos e vel
 
 Os testes foram executados em um MacBook Apple M2 de 2023 com 16GB de RAM. Para reproduzir este teste:
 
-!!! Example
+!!! Example "Exemplo"
 
     === "Python"
         ```python
@@ -181,7 +181,7 @@ A autoanotação é um recurso-chave do SAM que permite aos usuários gerar um [
 
 Para fazer a autoanotação do seu conjunto de dados com o framework Ultralytics, use a função `auto_annotate` conforme mostrado abaixo:
 
-!!! Example
+!!! Example "Exemplo"
 
     === "Python"
         ```python
@@ -223,4 +223,4 @@ Se você encontrar o SAM útil em seu trabalho de pesquisa ou desenvolvimento, c
 
 Gostaríamos de expressar nossa gratidão à Meta AI por criar e manter esse recurso valioso para a comunidade de visão computacional.
 
-*Palavras-chave: Segment Anything, Modelo de Segmentação de Qualquer Coisa, SAM, SAM da Meta, segmentação de imagem, segmentação baseada em prompts, desempenho de transferência zero, conjunto de dados SA-1B, arquitetura avançada, autoanotação, Ultralytics, modelos pré-treinados, SAM base, SAM large, segmentação de instâncias, visão computacional, IA, inteligência artificial, aprendizado de máquina, anotação de dados, máscaras de segmentação, modelo de detecção, modelo de detecção YOLO, bibtex, Meta AI.*
+*keywords: Segment Anything, Modelo de Segmentação de Qualquer Coisa, SAM, SAM da Meta, segmentação de imagem, segmentação baseada em prompts, desempenho de transferência zero, conjunto de dados SA-1B, arquitetura avançada, autoanotação, Ultralytics, modelos pré-treinados, SAM base, SAM large, segmentação de instâncias, visão computacional, IA, inteligência artificial, aprendizado de máquina, anotação de dados, máscaras de segmentação, modelo de detecção, modelo de detecção YOLO, bibtex, Meta AI.*

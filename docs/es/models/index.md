@@ -6,7 +6,7 @@ keywords: Ultralytics, documentación, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, 
 
 # Modelos soportados por Ultralytics
 
-¡Bienvenido a la documentación de modelos de Ultralytics! Ofrecemos soporte para una amplia gama de modelos, cada uno adaptado a tareas específicas como [detección de objetos](../tasks/detect.md), [segmentación de instancias](../tasks/segment.md), [clasificación de imágenes](../tasks/classify.md), [estimación de posturas](../tasks/pose.md), y [seguimiento de múltiples objetos](../modes/track.md). Si estás interesado en contribuir con tu arquitectura de modelo a Ultralytics, consulta nuestra [Guía de Contribución](../help/contributing.md).
+¡Bienvenido a la documentación de modelos de Ultralytics! Ofrecemos soporte para una amplia gama de modelos, cada uno adaptado a tareas específicas como [detección de objetos](../tasks/detect.md), [segmentación de instancias](../tasks/segment.md), [clasificación de imágenes](../tasks/classify.md), [estimación de posturas](../tasks/pose.md), y [seguimiento de múltiples objetos](../modes/track.md). Si estás interesado en contribuir con tu arquitectura de modelo a Ultralytics, consulta nuestra [Guía de Contribución](../../help/contributing.md).
 
 !!! Note "Nota"
 
@@ -45,7 +45,7 @@ Este ejemplo proporciona ejemplos simples de entrenamiento e inferencia YOLO. Pa
 
 Nota que el siguiente ejemplo es para los modelos YOLOv8 [Detect](../tasks/detect.md) para detección de objetos. Para tareas adicionales soportadas, consulta la documentación de [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) y [Pose](../tasks/pose.md).
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -87,7 +87,7 @@ Nota que el siguiente ejemplo es para los modelos YOLOv8 [Detect](../tasks/detec
 
 2. **Clona tu Fork**: Clona tu fork a tu máquina local y crea una nueva rama para trabajar.
 
-3. **Implementa tu Modelo**: Añade tu modelo siguiendo los estándares de codificación y directrices proporcionadas en nuestra [Guía de Contribución](../help/contributing.md).
+3. **Implementa tu Modelo**: Añade tu modelo siguiendo los estándares de codificación y directrices proporcionadas en nuestra [Guía de Contribución](../../help/contributing.md).
 
 4. **Prueba Rigurosamente**: Asegúrate de probar tu modelo rigurosamente, tanto de forma aislada como parte del proceso.
 
@@ -95,4 +95,4 @@ Nota que el siguiente ejemplo es para los modelos YOLOv8 [Detect](../tasks/detec
 
 6. **Revisión de Código y Fusión**: Después de la revisión, si tu modelo cumple con nuestros criterios, será fusionado al repositorio principal.
 
-Para pasos detallados, consulta nuestra [Guía de Contribución](../help/contributing.md).
+Para pasos detallados, consulta nuestra [Guía de Contribución](../../help/contributing.md).

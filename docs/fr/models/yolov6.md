@@ -37,7 +37,7 @@ YOLOv6 propose également des modèles quantifiés pour différentes précisions
 
 Cet exemple fournit des exemples simples d'entraînement et d'inférence de YOLOv6. Pour une documentation complète sur ces exemples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
 
-!!! Exemple
+!!! Example "Exemple"
 
     === "Python"
 

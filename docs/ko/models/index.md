@@ -6,7 +6,7 @@ keywords: Ultralytics, 문서화, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DE
 
 # Ultralytics가 지원하는 모델들
 
-Ultralytics 모델 문서에 오신 것을 환영합니다! 우리는 [객체 감지](../tasks/detect.md), [인스턴스 분할](../tasks/segment.md), [이미지 분류](../tasks/classify.md), [자세 추정](../tasks/pose.md), [다중 객체 추적](../modes/track.md)과 같은 특정 작업에 맞춰진 다양한 범위의 모델을 지원합니다. Ultralytics에 모델 아키텍처를 기여하고 싶다면, [기여 가이드](../help/contributing.md)를 확인해 보세요.
+Ultralytics 모델 문서에 오신 것을 환영합니다! 우리는 [객체 감지](../tasks/detect.md), [인스턴스 분할](../tasks/segment.md), [이미지 분류](../tasks/classify.md), [자세 추정](../tasks/pose.md), [다중 객체 추적](../modes/track.md)과 같은 특정 작업에 맞춰진 다양한 범위의 모델을 지원합니다. Ultralytics에 모델 아키텍처를 기여하고 싶다면, [기여 가이드](../../help/contributing.md)를 확인해 보세요.
 
 !!! Note "주의사항"
 
@@ -45,7 +45,7 @@ Ultralytics 모델 문서에 오신 것을 환영합니다! 우리는 [객체 �
 
 아래 예제는 객체 감지를 위한 YOLOv8 [감지](../tasks/detect.md) 모델에 대한 것입니다. 추가적으로 지원되는 작업들은 [분할](../tasks/segment.md), [분류](../tasks/classify.md), [자세](../tasks/pose.md) 문서를 참조하세요.
 
-!!! 예제
+!!! Example "예제"
 
     === "Python"
 
@@ -87,7 +87,7 @@ Ultralytics에 여러분의 모델을 기여하고 싶으신가요? 훌륭합니
 
 2. **포크 복제하기**: 포크한 저장소를 로컬 기계에 복제하고 새로운 브랜치를 생성하여 작업합니다.
 
-3. **모델 구현하기**: 우리의 [기여 가이드](../help/contributing.md)에 제공된 코딩 표준 및 가이드라인을 따라 모델을 추가합니다.
+3. **모델 구현하기**: 우리의 [기여 가이드](../../help/contributing.md)에 제공된 코딩 표준 및 가이드라인을 따라 모델을 추가합니다.
 
 4. **철저히 테스트하기**: 독립적으로뿐만 아니라 파이프라인의 일부로도 모델을 철저히 테스트해야 합니다.
 
@@ -95,4 +95,4 @@ Ultralytics에 여러분의 모델을 기여하고 싶으신가요? 훌륭합니
 
 6. **코드 리뷰 & 병합**: 리뷰 후, 여러분의 모델이 우리 기준에 부합한다면 메인 저장소에 병합됩니다.
 
-자세한 단계는 [기여 가이드](../help/contributing.md)를 참조해주십시오.
+자세한 단계는 [기여 가이드](../../help/contributing.md)를 참조해주십시오.

@@ -30,7 +30,7 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
 
 この例では、RT-DETRの訓練と推論の簡単な例を提供します。これらと他の[モード](../modes/index.md)の詳しいドキュメントについては、[Predict](../modes/predict.md)、[Train](../modes/train.md)、[Val](../modes/val.md)、および[Export](../modes/export.md)ドキュメントページを参照してください。
 
-!!! 例
+!!! Example "例"
 
     === "Python"
 
@@ -73,7 +73,7 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
 
 研究や開発の中でBaiduのRT-DETRを使用する場合は、[元の論文](https://arxiv.org/abs/2304.08069)を引用してください。
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
 

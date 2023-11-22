@@ -44,7 +44,7 @@ YOLOv3シリーズ、YOLOv3、YOLOv3-Ultralytics、およびYOLOv3uは、オブ�
 
 この例では、YOLOv3の簡単なトレーニングおよび推論の例を提供します。これらおよびその他の[モード](../modes/index.md)の完全なドキュメンテーションについては、[Predict](../modes/predict.md)、[Train](../modes/train.md)、[Val](../modes/val.md)、および[Export](../modes/export.md)のドキュメントページを参照してください。
 
-!!! Example
+!!! Example "例"
 
     === "Python"
 

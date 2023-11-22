@@ -6,7 +6,7 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
 
 # Ultralytics 支持的模型
 
-欢迎来到 Ultralytics 的模型文档！我们提供多种模型的支持，每种模型都针对特定任务量身定做，如[对象检测](../tasks/detect.md)、[实例分割](../tasks/segment.md)、[图像分类](../tasks/classify.md)、[姿态估计](../tasks/pose.md)以及[多对象跟踪](../modes/track.md)。如果您有兴趣将您的模型架构贡献给 Ultralytics，请查看我们的[贡献指南](../help/contributing.md)。
+欢迎来到 Ultralytics 的模型文档！我们提供多种模型的支持，每种模型都针对特定任务量身定做，如[对象检测](../tasks/detect.md)、[实例分割](../tasks/segment.md)、[图像分类](../tasks/classify.md)、[姿态估计](../tasks/pose.md)以及[多对象跟踪](../modes/track.md)。如果您有兴趣将您的模型架构贡献给 Ultralytics，请查看我们的[贡献指南](../../help/contributing.md)。
 
 !!! Note "注意"
 
@@ -45,7 +45,7 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
 
 请注意，以下示例适用于对象检测的 YOLOv8 [Detect](../tasks/detect.md) 模型。有关其他支持任务的详细信息，请查看[Segment](../tasks/segment.md)、[Classify](../tasks/classify.md) 和 [Pose](../tasks/pose.md) 文档。
 
-!!! Example
+!!! Example "示例"
 
     === "Python"
 
@@ -87,7 +87,7 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
 
 2. **克隆您的 Fork**：将您的 Fork 克隆到您的本地机器，并创建一个新的分支进行工作。
 
-3. **实现您的模型**：按照我们在[贡献指南](../help/contributing.md)中提供的编码标准和指南添加您的模型。
+3. **实现您的模型**：按照我们在[贡献指南](../../help/contributing.md)中提供的编码标准和指南添加您的模型。
 
 4. **彻底测试**：确保彻底测试您的模型，无论是独立测试还是作为流水线的一部分。
 
@@ -95,4 +95,4 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
 
 6. **代码审查与合并**：经过审查，如果您的模型符合我们的标准，它将被合并到主仓库中。
 
-有关详细步骤，请参阅我们的[贡献指南](../help/contributing.md)。
+有关详细步骤，请参阅我们的[贡献指南](../../help/contributing.md)。

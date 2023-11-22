@@ -6,7 +6,7 @@ keywords: Ultralytics, Dokumentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, R
 
 # Von Ultralytics unterstützte Modelle
 
-Willkommen bei der Modell-Dokumentation von Ultralytics! Wir bieten Unterstützung für eine breite Palette von Modellen, die jeweils für spezifische Aufgaben wie [Objekterkennung](../tasks/detect.md), [Instanzsegmentierung](../tasks/segment.md), [Bildklassifizierung](../tasks/classify.md), [Posenschätzung](../tasks/pose.md) und [Multi-Objekt-Tracking](../modes/track.md) maßgeschneidert sind. Wenn Sie daran interessiert sind, Ihre Modellarchitektur bei Ultralytics beizutragen, sehen Sie sich unseren [Beitragenden-Leitfaden](../help/contributing.md) an.
+Willkommen bei der Modell-Dokumentation von Ultralytics! Wir bieten Unterstützung für eine breite Palette von Modellen, die jeweils für spezifische Aufgaben wie [Objekterkennung](../tasks/detect.md), [Instanzsegmentierung](../tasks/segment.md), [Bildklassifizierung](../tasks/classify.md), [Posenschätzung](../tasks/pose.md) und [Multi-Objekt-Tracking](../modes/track.md) maßgeschneidert sind. Wenn Sie daran interessiert sind, Ihre Modellarchitektur bei Ultralytics beizutragen, sehen Sie sich unseren [Beitragenden-Leitfaden](../../help/contributing.md) an.
 
 !!! Note "Hinweis"
 
@@ -45,7 +45,7 @@ Dieses Beispiel bietet einfache YOLO-Trainings- und Inferenzbeispiele. Für voll
 
 Beachten Sie, dass das folgende Beispiel für YOLOv8 [Detect](../tasks/detect.md) Modelle zur Objekterkennung ist. Für zusätzliche unterstützte Aufgaben siehe die Dokumentation zu [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) und [Pose](../tasks/pose.md).
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -87,7 +87,7 @@ Sind Sie daran interessiert, Ihr Modell bei Ultralytics beizutragen? Großartig!
 
 2. **Ihren Fork klonen**: Klonen Sie Ihren Fork auf Ihre lokale Maschine und erstellen Sie einen neuen Branch, um daran zu arbeiten.
 
-3. **Ihr Modell implementieren**: Fügen Sie Ihr Modell entsprechend den in unserem [Beitragenden-Leitfaden](../help/contributing.md) bereitgestellten Kodierungsstandards und Richtlinien hinzu.
+3. **Ihr Modell implementieren**: Fügen Sie Ihr Modell entsprechend den in unserem [Beitragenden-Leitfaden](../../help/contributing.md) bereitgestellten Kodierungsstandards und Richtlinien hinzu.
 
 4. **Gründlich testen**: Stellen Sie sicher, dass Sie Ihr Modell sowohl isoliert als auch als Teil des Pipelines gründlich testen.
 
@@ -95,4 +95,4 @@ Sind Sie daran interessiert, Ihr Modell bei Ultralytics beizutragen? Großartig!
 
 6. **Code-Review & Zusammenführen**: Nach der Überprüfung, wenn Ihr Modell unseren Kriterien entspricht, wird es in das Hauptrepository zusammengeführt.
 
-Für detaillierte Schritte konsultieren Sie unseren [Beitragenden-Leitfaden](../help/contributing.md).
+Für detaillierte Schritte konsultieren Sie unseren [Beitragenden-Leitfaden](../../help/contributing.md).

@@ -73,7 +73,7 @@ Ultralytics의 파이썬 API는 다양한 스케일의 사전 훈련된 PaddlePa
 
 만약 연구나 개발 작업에서 비둘기(Baidu)의 RT-DETR을 사용한다면, [원래 논문을](https://arxiv.org/abs/2304.08069) 인용해주시기 바랍니다:
 
-!!! 인용 ""
+!!! Quote ""
 
     === "BibTeX"
 

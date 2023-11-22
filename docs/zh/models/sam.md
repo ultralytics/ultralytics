@@ -146,7 +146,7 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
 
 在配备有16GB RAM的2023年 Apple M2 MacBook 上进行了测试。要重现这个测试：
 
-!!! Example
+!!! Example "示例"
 
     === "Python"
         ```python
@@ -181,7 +181,7 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
 
 要使用Ultralytics框架对数据集进行自动注释，可以使用如下所示的 `auto_annotate` 函数：
 
-!!! Example
+!!! Example "示例"
 
     === "Python"
         ```python
@@ -223,4 +223,4 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
 
 我们要向 Meta AI 表示感谢，感谢他们为计算机视觉社区创建和维护了这个宝贵的资源。
 
-*关键词：Segment Anything，Segment Anything Model，SAM，Meta SAM，图像分割，可提示分割，零样本性能，SA-1B数据集，先进架构，自动注释，Ultralytics，预训练模型，SAM base，SAM large，实例分割，计算机视觉，AI，人工智能，机器学习，数据注释，分割掩模，检测模型，YOLO检测模型，bibtex，Meta AI。*
+*keywords: Segment Anything，Segment Anything Model，SAM，Meta SAM，图像分割，可提示分割，零样本性能，SA-1B数据集，先进架构，自动注释，Ultralytics，预训练模型，SAM base，SAM large，实例分割，计算机视觉，AI，人工智能，机器学习，数据注释，分割掩模，检测模型，YOLO检测模型，bibtex，Meta AI。*

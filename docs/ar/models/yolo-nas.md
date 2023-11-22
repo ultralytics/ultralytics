@@ -44,7 +44,7 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 
 في هذا المثال ، نقوم بالتحقق من صحة YOLO-NAS-s على مجموعة بيانات COCO8.
 
-!!! Example
+!!! Example "مثال"
 
     يوفر هذا المثال رمز بسيط لعملية الكشف والتحقق لـ YOLO-NAS. لمعالجة نتائج الاستدلال ، انظر وضع [توقع](../modes/predict.md). لاستخدام YOLO-NAS مع وضعيات إضافية ، انظر [توصيف](../modes/val.md) و[تصدير](../modes/export.md). لا يدعم نظام YOLO-NAS على حزمة `ultralytics` عملية التدريب.
 
@@ -118,4 +118,4 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 
 نعبر عن امتناننا لفريق [SuperGradients](https://github.com/Deci-AI/super-gradients/) في Deci AI لجهودهم في إنشاء وصيانة هذة الموارد القيمة لمجتمع رؤية الحاسوب. نعتقد أن YOLO-NAS ، بتصميمه المبتكر وقدرته الاستشعار المتفوقة للكائنات ، سيصبح أداة حاسمة للمطورين والباحثين على حد سواء.
 
-*الكلمات الرئيسية: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث في الهندسة العصبية, واجهة برمجة Ultralytics Python, نموذج YOLO, SuperGradients, الطرز المدربة مسبقًا, كتلة أساسية ودية للتمثيل الكموني, أنظمة تدريب متطورة, تمثيل كمي بعد التدريب, تحسين AutoNAC, COCO, Objects365, Roboflow 100*
+*keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث في الهندسة العصبية, واجهة برمجة Ultralytics Python, نموذج YOLO, SuperGradients, الطرز المدربة مسبقًا, كتلة أساسية ودية للتمثيل الكموني, أنظمة تدريب متطورة, تمثيل كمي بعد التدريب, تحسين AutoNAC, COCO, Objects365, Roboflow 100*

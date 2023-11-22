@@ -100,7 +100,7 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 如果您在研究或开发工作中使用了YOLO-NAS，请引用SuperGradients：
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
 
@@ -118,4 +118,4 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 我们向Deci AI的[SuperGradients](https://github.com/Deci-AI/super-gradients/)团队表示感谢，他们致力于创建和维护这个对计算机视觉社区非常有价值的资源。我们相信YOLO-NAS凭借其创新的架构和卓越的物体检测能力，将成为开发者和研究人员的重要工具。
 
-*关键词：YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ultralytics Python API, YOLO模型, SuperGradients, 预训练模型, 量化友好基本块, 高级训练方案, 训练后量化, AutoNAC优化, COCO, Objects365, Roboflow 100*
+*keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ultralytics Python API, YOLO模型, SuperGradients, 预训练模型, 量化友好基本块, 高级训练方案, 训练后量化, AutoNAC优化, COCO, Objects365, Roboflow 100*

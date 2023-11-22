@@ -44,7 +44,7 @@ Ultralytics는 YOLO-NAS 모델을 `ultralytics` Python 패키지를 통해 Pytho
 
 이 예시에서는 COCO8 데이터셋에서 YOLO-NAS-s 모델을 유효성 검사합니다.
 
-!!! 예제
+!!! Example "예제"
 
     이 예시에서는 YOLO-NAS를 위한 간단한 추론 및 유효성 검사 코드를 제공합니다. 추론 결과를 처리하기 위한 방법은 [예측](../modes/predict.md) 모드를 참조하세요. 추가 모드에서 YOLO-NAS를 사용하는 방법은 [Val](../modes/val.md) 및 [Export](../modes/export.md)를 참조하세요. `ultralytics` 패키지에서 YOLO-NAS의 훈련은 지원하지 않습니다.
 
@@ -100,7 +100,7 @@ YOLO-NAS 모델은 Small (s), Medium (m) 및 Large (l) 세 가지 변형이 있�
 
 YOLO-NAS를 연구 또는 개발 작업에 활용한 경우 SuperGradients를 인용해 주세요.
 
-!!! 인용 ""
+!!! Quote ""
 
     === "BibTeX"
 

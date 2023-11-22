@@ -31,7 +31,7 @@ Ultralytics Python API विभिन्न स्केलों के सा
 
 यह उदाहरण सरल RT-DETRR प्रशिक्षण और संदर्भ उदाहरण प्रदान करता है। पूरे दस्तावेज़ीकरण के लिए इन और अन्य [modes](../modes/index.md) पर देखें: [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) और [Export](../modes/export.md) दस्तावेज़ पृष्ठों।
 
-!!! उदाहरण
+!!! Example "उदाहरण"
 
     === "पायथन"
 
@@ -74,7 +74,7 @@ Ultralytics Python API विभिन्न स्केलों के सा
 
 यदि आप अपने शोध या विकास कार्य में Baidu के RT-DETR का उपयोग करते हैं, कृपया [मूल पेपर](https://arxiv.org/abs/2304.08069) को उद्धृत करें:
 
-!!! उद्धरण ""
+!!! Quote ""
 
     === "BibTeX"
 

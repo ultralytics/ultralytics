@@ -47,7 +47,7 @@ Los modelos FastSAM son fáciles de integrar en tus aplicaciones Python. Ultraly
 
 Para realizar la detección de objetos en una imagen, utiliza el método `predict` de la siguiente manera:
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
         ```python
@@ -94,7 +94,7 @@ Este fragmento de código demuestra la simplicidad de cargar un modelo pre-entre
 
 La validación del modelo en un conjunto de datos se puede realizar de la siguiente manera:
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
         ```python

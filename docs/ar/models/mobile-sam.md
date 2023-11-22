@@ -69,7 +69,7 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 
 ### النقطة ككلمة محفز
 
-!!! مثال
+!!! Example "مثال"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 
 ### الصندوق ككلمة محفز
 
-!!! مثال
+!!! Example "مثال"
 
     === "Python"
         ```python
@@ -103,7 +103,7 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 
 إذا وجدت MobileSAM مفيدًا في أبحاثك أو عملك التطويري، يُرجى النظر في استشهاد ورقتنا:
 
-!!! اقتباس ""
+!!! Quote ""
 
     === "BibTeX"
 

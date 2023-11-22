@@ -47,7 +47,7 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
 
 要对图像进行对象检测，可以使用下面的`predict`方法：
 
-!!! 示例
+!!! Example "示例"
 
     === "Python"
         ```python
@@ -94,7 +94,7 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
 
 可以采用以下方式对数据集上的模型进行验证：
 
-!!! 示例
+!!! Example "示例"
 
     === "Python"
         ```python
@@ -175,7 +175,7 @@ FastSAM也可以直接从[https://github.com/CASIA-IVA-Lab/FastSAM](https://gith
 
 我们要感谢FastSAM作者在实时实例分割领域作出的重要贡献：
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
 

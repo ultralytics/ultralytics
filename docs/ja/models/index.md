@@ -6,7 +6,7 @@ keywords: Ultralytics, ドキュメント, YOLO, SAM, MobileSAM, FastSAM, YOLO-N
 
 # Ultralyticsがサポートするモデル
 
-Ultralyticsのモデルドキュメントへようこそ！我々は、[オブジェクト検出](../tasks/detect.md)、[インスタンスセグメンテーション](../tasks/segment.md)、[画像分類](../tasks/classify.md)、[ポーズ推定](../tasks/pose.md)、[多対象トラッキング](../modes/track.md)などの特定のタスクに特化した幅広いモデルのサポートを提供しています。Ultralyticsにあなたのモデルアーキテクチャを貢献したい場合は、[貢献ガイド](../help/contributing.md)を確認してください。
+Ultralyticsのモデルドキュメントへようこそ！我々は、[オブジェクト検出](../tasks/detect.md)、[インスタンスセグメンテーション](../tasks/segment.md)、[画像分類](../tasks/classify.md)、[ポーズ推定](../tasks/pose.md)、[多対象トラッキング](../modes/track.md)などの特定のタスクに特化した幅広いモデルのサポートを提供しています。Ultralyticsにあなたのモデルアーキテクチャを貢献したい場合は、[貢献ガイド](../../help/contributing.md)を確認してください。
 
 !!! Note "注意"
 
@@ -45,7 +45,7 @@ Ultralyticsのモデルドキュメントへようこそ！我々は、[オブ�
 
 以下の例は、オブジェクト検出のためのYOLOv8 [Detect](../tasks/detect.md) モデルについてです。追加のサポートされるタスクについては、[Segment](../tasks/segment.md)、[Classify](../tasks/classify.md)、[Pose](../tasks/pose.md)のドキュメントを参照してください。
 
-!!! 例
+!!! Example "例"
 
     === "Python"
 
@@ -87,7 +87,7 @@ Ultralyticsにあなたのモデルを貢献することに興味があります
 
 2. **あなたのフォークをクローンする**：あなたのフォークをローカルマシンにクローンし、作業を行う新しいブランチを作成します。
 
-3. **あなたのモデルを実装する**：[貢献ガイド](../help/contributing.md)に示されているコーディング規格および指針に従ってモデルを追加します。
+3. **あなたのモデルを実装する**：[貢献ガイド](../../help/contributing.md)に示されているコーディング規格および指針に従ってモデルを追加します。
 
 4. **徹底的にテストする**：パイプラインの一部としてだけでなく、単独でモデルを厳密にテストすることを確認してください。
 
@@ -95,4 +95,4 @@ Ultralyticsにあなたのモデルを貢献することに興味があります
 
 6. **コードレビュー＆マージ**：レビュー後、モデルが我々の基準を満たしている場合、本リポジトリにマージされます。
 
-詳細な手順については、[貢献ガイド](../help/contributing.md)を参照してください。
+詳細な手順については、[貢献ガイド](../../help/contributing.md)を参照してください。

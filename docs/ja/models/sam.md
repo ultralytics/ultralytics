@@ -129,7 +129,7 @@ Segment Anything Modelは、トレーニングデータを超えた多くのダ�
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- `すべてをセグメントする` のための追加の引数の詳細は、[`Predictor/generate` リファレンス](../reference/models/sam/predict.md)を参照してください。
+- `すべてをセグメントする` のための追加の引数の詳細は、[`Predictor/generate` リファレンス](../../reference/models/sam/predict.md)を参照してください。
 
 ## YOLOv8とのSAM比較
 
@@ -146,7 +146,7 @@ Segment Anything Modelは、トレーニングデータを超えた多くのダ�
 
 テストは、2023年製のApple M2 Macbook、16GBのRAMで実行されました。このテストを再現するには:
 
-!!! Example
+!!! Example "例"
 
     === "Python"
         ```python
@@ -181,7 +181,7 @@ Segment Anything Modelは、トレーニングデータを超えた多くのダ�
 
 Ultralyticsフレームワークを使用してデータセットをオートアノテーションするには、以下のように`auto_annotate`関数を使用します:
 
-!!! Example
+!!! Example "例"
 
     === "Python"
         ```python
@@ -223,4 +223,4 @@ SAMが研究や開発の場で役立つ場合は、引用にご協力いただ�
 
 この貴重なコンピュータビジョンコミュニティ向けのリソースを作成および維持してくれたMeta AIに感謝の意を表します。
 
-*キーワード: Segment Anything, Segment Anything Model, SAM, Meta SAM, 画像セグメンテーション, プロンプト可能なセグメンテーション, ゼロショットパフォーマンス, SA-1B データセット, 先進のアーキテクチャ, オートアノテーション, Ultralytics, 事前トレーニング済みモデル, SAM base, SAM large, インスタンスセグメンテーション, コンピュータビジョン, AI, 人工知能, 機械学習, データアノテーション, セグメンテーションマスク, ディテクションモデル, YOLOディテクションモデル, bibtex, Meta AI.*
+*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, 画像セグメンテーション, プロンプト可能なセグメンテーション, ゼロショットパフォーマンス, SA-1B データセット, 先進のアーキテクチャ, オートアノテーション, Ultralytics, 事前トレーニング済みモデル, SAM base, SAM large, インスタンスセグメンテーション, コンピュータビジョン, AI, 人工知能, 機械学習, データアノテーション, セグメンテーションマスク, ディテクションモデル, YOLOディテクションモデル, bibtex, Meta AI.*

@@ -69,7 +69,7 @@ Você pode baixar o modelo [aqui](https://github.com/ChaoningZhang/MobileSAM/blo
 
 ### Prompt de Ponto
 
-!!! Exemplo
+!!! Example "Exemplo"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ Você pode baixar o modelo [aqui](https://github.com/ChaoningZhang/MobileSAM/blo
 
 ### Prompt de Caixa
 
-!!! Exemplo
+!!! Example "Exemplo"
 
     === "Python"
         ```python

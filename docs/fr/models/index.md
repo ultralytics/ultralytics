@@ -6,7 +6,7 @@ keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, R
 
 # Modèles pris en charge par Ultralytics
 
-Bienvenue dans la documentation des modèles d'Ultralytics ! Nous offrons un soutien pour une large gamme de modèles, chacun étant adapté à des tâches spécifiques comme [la détection d'objets](../tasks/detect.md), [la segmentation d'instance](../tasks/segment.md), [la classification d'images](../tasks/classify.md), [l'estimation de pose](../tasks/pose.md), et [le suivi multi-objets](../modes/track.md). Si vous êtes intéressé à contribuer avec votre architecture de modèle à Ultralytics, consultez notre [Guide de Contribution](../help/contributing.md).
+Bienvenue dans la documentation des modèles d'Ultralytics ! Nous offrons un soutien pour une large gamme de modèles, chacun étant adapté à des tâches spécifiques comme [la détection d'objets](../tasks/detect.md), [la segmentation d'instance](../tasks/segment.md), [la classification d'images](../tasks/classify.md), [l'estimation de pose](../tasks/pose.md), et [le suivi multi-objets](../modes/track.md). Si vous êtes intéressé à contribuer avec votre architecture de modèle à Ultralytics, consultez notre [Guide de Contribution](../../help/contributing.md).
 
 !!! Note "Remarque"
 
@@ -45,7 +45,7 @@ Cet exemple fournit des exemples simples d'entraînement et d'inférence YOLO. P
 
 Notez que l'exemple ci-dessous concerne les modèles [Detect](../tasks/detect.md) YOLOv8 pour la détection d'objets. Pour des tâches supplémentaires prises en charge, voir les documentations [Segmenter](../tasks/segment.md), [Classifier](../tasks/classify.md) et [Poser](../tasks/pose.md).
 
-!!! Exemple
+!!! Example "Exemple"
 
     === "Python"
 
@@ -87,7 +87,7 @@ Vous êtes intéressé à contribuer votre modèle à Ultralytics ? Génial ! No
 
 2. **Clonez Votre Fork** : Clonez votre fork sur votre machine locale et créez une nouvelle branche pour travailler dessus.
 
-3. **Implémentez Votre Modèle** : Ajoutez votre modèle en suivant les normes et directives de codage fournies dans notre [Guide de Contribution](../help/contributing.md).
+3. **Implémentez Votre Modèle** : Ajoutez votre modèle en suivant les normes et directives de codage fournies dans notre [Guide de Contribution](../../help/contributing.md).
 
 4. **Testez Rigoureusement** : Assurez-vous de tester votre modèle de manière rigoureuse, à la fois isolément et comme partie du pipeline.
 
@@ -95,4 +95,4 @@ Vous êtes intéressé à contribuer votre modèle à Ultralytics ? Génial ! No
 
 6. **Revue de Code & Fusion** : Après examen, si votre modèle répond à nos critères, il sera fusionné dans le répertoire principal.
 
-Pour des étapes détaillées, consultez notre [Guide de Contribution](../help/contributing.md).
+Pour des étapes détaillées, consultez notre [Guide de Contribution](../../help/contributing.md).

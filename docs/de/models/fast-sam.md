@@ -47,7 +47,7 @@ Die FastSAM-Modelle lassen sich problemlos in Ihre Python-Anwendungen integriere
 
 Um eine Objekterkennung auf einem Bild durchzuführen, verwenden Sie die Methode `predict` wie folgt:
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
         ```python
@@ -94,7 +94,7 @@ Dieser Code-Ausschnitt zeigt die Einfachheit des Ladens eines vorab trainierten 
 
 Die Validierung des Modells auf einem Datensatz kann wie folgt durchgeführt werden:
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
         ```python
@@ -175,7 +175,7 @@ Sie können FastSAM auch über eine [Colab-Demo](https://colab.research.google.c
 
 Wir möchten den Autoren von FastSAM für ihre bedeutenden Beiträge auf dem Gebiet der Echtzeit-Instanzsegmentierung danken:
 
-!!! Zitat ""
+!!! Quote ""
 
     === "BibTeX"
 

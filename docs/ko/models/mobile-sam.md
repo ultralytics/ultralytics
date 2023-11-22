@@ -69,7 +69,7 @@ MobileSAM은 우수한 성능을 자랑하며, 현재의 FastSAM보다 약 5배 
 
 ### 포인트 프롬프트
 
-!!! 예제
+!!! Example "예제"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ MobileSAM은 우수한 성능을 자랑하며, 현재의 FastSAM보다 약 5배 
 
 ### 박스 프롬프트
 
-!!! 예제
+!!! Example "예제"
 
     === "Python"
         ```python

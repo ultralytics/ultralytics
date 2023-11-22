@@ -56,7 +56,7 @@ YOLOv5uは、物体検出方法論の進歩を表しています。Ultralytics�
 
 この例では、単純なYOLOv5のトレーニングと推論の使用例を提供します。これらと他の[モード](../modes/index.md)の完全なドキュメントについては、[Predict](../modes/predict.md)、[Train](../modes/train.md)、[Val](../modes/val.md)、[Export](../modes/export.md)のドキュメントページを参照してください。
 
-!!! 例
+!!! Example "例"
 
     === "Python"
 
@@ -94,7 +94,7 @@ YOLOv5uは、物体検出方法論の進歩を表しています。Ultralytics�
 
 研究でYOLOv5またはYOLOv5uを使用する場合は、以下のようにUltralytics YOLOv5リポジトリを引用してください：
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
         ```bibtex

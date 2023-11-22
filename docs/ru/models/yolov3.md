@@ -44,7 +44,7 @@ keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Обнаружение объек
 
 Этот пример предоставляет простые примеры обучения и вывода с использованием YOLOv3. Полную документацию об этих и других [режимах](../modes/index.md) см. на страницах документации по [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) и [Export](../modes/export.md).
 
-!!! Пример
+!!! Example "Пример"
 
     === "Python"
 
@@ -82,7 +82,7 @@ keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Обнаружение объек
 
 Если вы используете YOLOv3 в своем исследовании, пожалуйста, цитируйте оригинальные статьи о YOLO и репозиторий Ultralytics YOLOv3:
 
-!!! Цитата ""
+!!! Quote ""
 
     === "BibTeX"
 

@@ -37,7 +37,7 @@ YOLOv6 bietet auch quantisierte Modelle für verschiedene Genauigkeiten sowie Mo
 
 In diesem Beispiel werden einfache Schulungs- und Inferenzbeispiele für YOLOv6 bereitgestellt. Weitere Dokumentation zu diesen und anderen [Modi](../modes/index.md) finden Sie auf den Seiten [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) und [Export](../modes/export.md).
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -89,7 +89,7 @@ Diese Tabelle bietet einen detaillierten Überblick über die YOLOv6-Modellvaria
 
 Wir möchten den Autoren für ihre bedeutenden Beiträge auf dem Gebiet der Echtzeit-Objekterkennung danken:
 
-!!! Zitat ""
+!!! Quote ""
 
     === "BibTeX"
 

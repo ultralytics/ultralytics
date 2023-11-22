@@ -1,5 +1,5 @@
 ---
-댓글: true
+comments: true
 description: FastSAM은 이미지에서 실시간 객체 분할을 위한 CNN 기반 솔루션으로, 향상된 사용자 상호작용, 계산 효율성, 다양한 비전 작업에 대응할 수 있는 특징을 갖고 있습니다.
 keywords: FastSAM, 머신러닝, CNN 기반 솔루션, 객체 분할, 실시간 솔루션, Ultralytics, 비전 작업, 이미지 처리, 산업 응용, 사용자 상호작용
 ---
@@ -47,7 +47,7 @@ FastSAM 모델을 Python 애플리케이션에 쉽게 통합할 수 있습니다
 
 이미지에서 객체 검출을 수행하려면 다음과 같이 `predict` 메서드를 사용합니다:
 
-!!! 예제
+!!! Example "예제"
 
     === "Python"
         ```python
@@ -94,7 +94,7 @@ FastSAM 모델을 Python 애플리케이션에 쉽게 통합할 수 있습니다
 
 데이터셋에서 모델을 검증하는 방법은 다음과 같습니다:
 
-!!! 예제
+!!! Example "예제"
 
     === "Python"
         ```python
@@ -175,7 +175,7 @@ FastSAM은 [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-I
 
 FastSAM의 실시간 인스턴스 분할 분야에 대한 혁신적인 기여를 위해 FastSAM 저자들에게 감사의 말씀을 전합니다:
 
-!!! 인용 ""
+!!! Quote ""
 
     === "BibTeX"
 

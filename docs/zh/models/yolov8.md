@@ -105,7 +105,7 @@ YOLOv8系列的每个变体都针对其相应的任务进行了优化，确保�
 
 请注意，以下示例是针对用于目标检测的YOLOv8 [Detect](../tasks/detect.md)模型。有关其他支持的任务，请参见[Segment](../tasks/segment.md)、[Classify](../tasks/classify.md)和[Pose](../tasks/pose.md)文档。
 
-!!! 示例
+!!! Example "示例"
 
     === "Python"
 
@@ -143,7 +143,7 @@ YOLOv8系列的每个变体都针对其相应的任务进行了优化，确保�
 
 如果您在工作中使用YOLOv8模型或此存储库中的其他软件，请使用以下格式进行引用：
 
-!!! 引用
+!!! Quote "引用"
 
     === "BibTeX"
 

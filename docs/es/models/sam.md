@@ -41,7 +41,7 @@ El Segment Anything Model se puede utilizar para una multitud de tareas posterio
 
 ### Ejemplo de predicción con SAM
 
-!!! Ejemplo "Segmentar con indicaciones"
+!!! Example "Segmentar con indicaciones"
 
     Segmenta la imagen con las indicaciones proporcionadas.
 
@@ -63,7 +63,7 @@ El Segment Anything Model se puede utilizar para una multitud de tareas posterio
         modelo('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
         ```
 
-!!! Ejemplo "Segmentar todo"
+!!! Example "Segmentar todo"
 
     Segmenta toda la imagen.
 
@@ -91,7 +91,7 @@ El Segment Anything Model se puede utilizar para una multitud de tareas posterio
 
 - La lógica aquí es segmentar toda la imagen si no se proporcionan indicaciones (bboxes/puntos/máscaras).
 
-!!! Ejemplo "Ejemplo de SAMPredictor"
+!!! Example "Ejemplo de SAMPredictor"
 
     De esta manera, puedes configurar una imagen una vez y ejecutar inferencia con indicaciones múltiples sin ejecutar el codificador de imágenes múltiples veces.
 
@@ -129,7 +129,7 @@ El Segment Anything Model se puede utilizar para una multitud de tareas posterio
         resultados = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- Más argumentos adicionales para `Segmentar todo` en [`Referencia de Predictor/generate`](../reference/models/sam/predict.md).
+- Más argumentos adicionales para `Segmentar todo` en [`Referencia de Predictor/generate`](../../reference/models/sam/predict.md).
 
 ## SAM comparado con YOLOv8
 
@@ -146,7 +146,7 @@ Esta comparación muestra las diferencias de órdenes de magnitud en los tamaño
 
 Las pruebas se realizaron en una MacBook Apple M2 de 2023 con 16 GB de RAM. Para reproducir esta prueba:
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
         ```python
@@ -181,7 +181,7 @@ La auto-anotación es una característica clave de SAM que permite a los usuario
 
 Para auto-anotar tu conjunto de datos con el marco de trabajo de Ultralytics, utiliza la función `auto_annotate` como se muestra a continuación:
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
         ```python

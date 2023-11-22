@@ -30,7 +30,7 @@ Ultralytics Python API提供了不同尺度的预训练PaddlePaddle RT-DETR模�
 
 此示例提供了简单的RT-DETR训练和推断示例。有关这些和其他[模式](../modes/index.md)的完整文档，请参阅[预测](../modes/predict.md)、[训练](../modes/train.md)、[验证](../modes/val.md)和[导出](../modes/export.md)文档页面。
 
-!!! 示例
+!!! Example "示例"
 
     === "Python"
 
@@ -73,7 +73,7 @@ Ultralytics Python API提供了不同尺度的预训练PaddlePaddle RT-DETR模�
 
 如果你在研究或开发中使用了百度的RT-DETR，请引用[原始论文](https://arxiv.org/abs/2304.08069)：
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
 
@@ -90,4 +90,4 @@ Ultralytics Python API提供了不同尺度的预训练PaddlePaddle RT-DETR模�
 
 我们要感谢百度和[PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection)团队为计算机视觉社区创建和维护了这个宝贵的资源。非常感谢他们使用基于Vision Transformers的实时目标检测器RT-DETR在该领域做出的贡献。
 
-*关键词: RT-DETR、Transformer、ViT、Vision Transformers、Baidu RT-DETR、PaddlePaddle、Paddle Paddle RT-DETR，实时目标检测、基于Vision Transformers的目标检测、预训练的PaddlePaddle RT-DETR模型、百度RT-DETR的使用、Ultralytics Python API*
+*keywords: RT-DETR、Transformer、ViT、Vision Transformers、Baidu RT-DETR、PaddlePaddle、Paddle Paddle RT-DETR，实时目标检测、基于Vision Transformers的目标检测、预训练的PaddlePaddle RT-DETR模型、百度RT-DETR的使用、Ultralytics Python API*

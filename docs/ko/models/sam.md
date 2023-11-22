@@ -41,7 +41,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
 
 ### SAM 예측 예제
 
-!!! 예제 "프롬프트를 이용한 세분화"
+!!! Example "프롬프트를 이용한 세분화"
 
     주어진 프롬프트로 이미지 세분화를 실행합니다.
 
@@ -63,7 +63,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
         model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
         ```
 
-!!! 예제 "전체 이미지 세분화"
+!!! Example "전체 이미지 세분화"
 
     전체 이미지 세분화를 실행합니다.
 
@@ -91,7 +91,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
 
 - 여기서 전체 이미지 세분화는 프롬프트(bboxes/points/masks)를 전달하지 않으면 실행됩니다.
 
-!!! 예제 "SAMPredictor 예제"
+!!! Example "SAMPredictor 예제"
 
     이미지를 설정하고 이미지 인코더를 여러번 실행하지 않고 여러번 프롬프트 추론을 실행할 수 있습니다.
 
@@ -129,7 +129,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- `전체 이미지 세분화`에 대한 자세한 추가 인수는 [`Predictor/generate` 참조](../reference/models/sam/predict.md)를 참조하세요.
+- `전체 이미지 세분화`에 대한 자세한 추가 인수는 [`Predictor/generate` 참조](../../reference/models/sam/predict.md)를 참조하세요.
 
 ## YOLOv8과의 SAM 비교
 
@@ -146,7 +146,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
 
 이 테스트는 2023년 애플 M2 맥북(16GB RAM)에서 수행되었습니다. 이 테스트를 재현하려면:
 
-!!! 예제
+!!! Example "예제"
 
     === "파이썬"
         ```python
@@ -181,7 +181,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
 
 Ultralytics 프레임워크를 사용하여 미리 훈련된 탐지 및 SAM 세분화 모델과 함께 데이터셋을 자동으로 주석할 수 있습니다. 아래와 같이 `auto_annotate` 함수를 사용하세요:
 
-!!! 예제
+!!! Example "예제"
 
     === "파이썬"
         ```python
@@ -223,4 +223,4 @@ Ultralytics 프레임워크를 사용하여 미리 훈련된 탐지 및 SAM 세�
 
 모델 개발과 알고리즘 개발을 위한 귀중한 리소스를 만들고 유지 관리하는 Meta AI에게 감사의 말씀을 드립니다.
 
-*키워드: Segment Anything, Segment Anything Model, SAM, Meta SAM, 이미지 세분화, 프롬프트 기반 세분화, 제로샷 성능, SA-1B 데이터셋, 고급설계, 자동 주석, 얼트라리얼리틱스, 사전 훈련 모델, SAM base, SAM large, 인스턴스 세분화, 컴퓨터 비전, 인공 지능, 머신 러닝, 데이터 주석, 세분화 마스크, 탐지 모델, YOLO 탐지 모델, bibtex, Meta AI.*
+*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, 이미지 세분화, 프롬프트 기반 세분화, 제로샷 성능, SA-1B 데이터셋, 고급설계, 자동 주석, 얼트라리얼리틱스, 사전 훈련 모델, SAM base, SAM large, 인스턴스 세분화, 컴퓨터 비전, 인공 지능, 머신 러닝, 데이터 주석, 세분화 마스크, 탐지 모델, YOLO 탐지 모델, bibtex, Meta AI.*

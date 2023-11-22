@@ -69,7 +69,7 @@ MobileSAM और मूल SAM के प्रदर्शन को एक ब
 
 ### बिंदु प्रॉम्प्ट
 
-!!! Example
+!!! Example "उदाहरण"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ MobileSAM और मूल SAM के प्रदर्शन को एक ब
 
 ### बॉक्स प्रॉम्प्ट
 
-!!! Example
+!!! Example "उदाहरण"
 
     === "Python"
         ```python

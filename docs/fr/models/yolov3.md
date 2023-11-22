@@ -44,7 +44,7 @@ Ce tableau offre un aperçu rapide des capacités de chaque variante de YOLOv3, 
 
 Cet exemple présente des exemples simples d'entraînement et d'inférence de YOLOv3. Pour une documentation complète sur ces exemples et d'autres [modes](../modes/index.md), consultez les pages de documentation sur [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
 
-!!! Exemple
+!!! Example "Exemple"
 
     === "Python"
 

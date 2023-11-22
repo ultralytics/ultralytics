@@ -44,7 +44,7 @@ YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u 시리즈는 물체 탐지 작업을 위�
 
 다음 예제는 간단한 YOLOv3 훈련 및 추론 예제를 제공합니다. 이와 다른 [모드](../modes/index.md)의 전체 설명은 [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) 및 [Export](../modes/export.md) 문서 페이지를 참조하세요.
 
-!!! 예제
+!!! Example "예제"
 
     === "Python"
 
@@ -82,7 +82,7 @@ YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u 시리즈는 물체 탐지 작업을 위�
 
 본인의 연구에서 YOLOv3를 사용한다면, 원본 YOLO 논문과 Ultralytics YOLOv3 저장소를 인용해 주십시오.
 
-!!! 인용 ""
+!!! Quote ""
 
     === "BibTeX"
 

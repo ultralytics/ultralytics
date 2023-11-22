@@ -69,7 +69,7 @@ MobileSAM 的性能优于当前的 FastSAM，尺寸大约减小了 5 倍，速�
 
 ### 点提示
 
-!!! Example
+!!! Example "示例"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ MobileSAM 的性能优于当前的 FastSAM，尺寸大约减小了 5 倍，速�
 
 ### 框提示
 
-!!! Example
+!!! Example "示例"
 
     === "Python"
         ```python

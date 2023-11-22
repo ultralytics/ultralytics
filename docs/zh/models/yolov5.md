@@ -56,7 +56,7 @@ YOLOv5u是目标检测方法的一种进步。YOLOv5u源于Ultralytics开发的[
 
 这个示例提供了YOLOv5训练和推断的简单示例。有关这些和其他[模式](../modes/index.md)的完整文档，请参阅[预测](../modes/predict.md)、[训练](../modes/train.md)、[验证](../modes/val.md)和[导出](../modes/export.md)的文档页面。
 
-!!! 示例
+!!! Example "示例"
 
     === "Python"
 
@@ -94,7 +94,7 @@ YOLOv5u是目标检测方法的一种进步。YOLOv5u源于Ultralytics开发的[
 
 如果您在您的研究中使用了YOLOv5或YOLOv5u，请引用Ultralytics的YOLOv5存储库，引用方式如下：
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
         ```bibtex

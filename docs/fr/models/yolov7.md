@@ -1,7 +1,7 @@
 ---
-commentaires: true
+comments: true
 description: Découvrez le YOLOv7, un détecteur d'objets en temps réel. Comprenez sa vitesse supérieure, son impressionnante précision et son accent unique sur l'optimisation bag-of-freebies entraînable.
-mots-clés: YOLOv7, détecteur d'objets en temps réel, état de l'art, Ultralytics, jeu de données MS COCO, ré-paramétrisation du modèle, affectation des étiquettes dynamiques, mise à l'échelle étendue, mise à l'échelle composée
+keywords: YOLOv7, détecteur d'objets en temps réel, état de l'art, Ultralytics, jeu de données MS COCO, ré-paramétrisation du modèle, affectation des étiquettes dynamiques, mise à l'échelle étendue, mise à l'échelle composée
 ---
 
 # YOLOv7 : Bag-of-Freebies Entraînable

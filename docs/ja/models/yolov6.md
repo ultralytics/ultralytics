@@ -37,7 +37,7 @@ YOLOv6には、異なる精度に最適化されたクォンタイズ済みの�
 
 この例では、YOLOv6のトレーニングおよび推論の簡単な使用例を示します。これらおよび他の[モード](../modes/index.md)の完全なドキュメントについては、[Predict](../modes/predict.md)、[Train](../modes/train.md)、[Val](../modes/val.md)、[Export](../modes/export.md)のドキュメントページを参照してください。
 
-!!! Example
+!!! Example "例"
 
     === "Python"
 

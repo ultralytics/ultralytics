@@ -69,7 +69,7 @@ Vous pouvez télécharger le modèle [ici](https://github.com/ChaoningZhang/Mobi
 
 ### Instruction Point
 
-!!! Example
+!!! Example "Exemple"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ Vous pouvez télécharger le modèle [ici](https://github.com/ChaoningZhang/Mobi
 
 ### Instruction Boîte
 
-!!! Example
+!!! Example "Exemple"
 
     === "Python"
         ```python

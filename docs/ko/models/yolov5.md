@@ -56,7 +56,7 @@ YOLOv5u는 객체 감지 기법에서의 진보를 나타냅니다. Ultralytics�
 
 이 예제는 간단한 YOLOv5 훈련 및 추론 예제를 제공합니다. 이와 기타 [모드](../modes/index.md)의 자세한 설명은 [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) 및 [Export](../modes/export.md) 문서 페이지를 참조하세요.
 
-!!! 예제
+!!! Example "예제"
 
     === "Python"
 
@@ -94,7 +94,7 @@ YOLOv5u는 객체 감지 기법에서의 진보를 나타냅니다. Ultralytics�
 
 연구에서 YOLOv5 또는 YOLOv5u를 사용하는 경우 Ultralytics YOLOv5 리포지토리를 다음과 같이 인용하세요.
 
-!!! 인용 ""
+!!! Quote ""
 
     === "BibTeX"
         ```bibtex

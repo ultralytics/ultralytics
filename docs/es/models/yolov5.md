@@ -56,7 +56,7 @@ Esta tabla proporciona una descripción detallada de las variantes de modelos YO
 
 Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia de YOLOv5. Para obtener documentación completa sobre estos y otros [modos](../modes/index.md), consulta las páginas de documentación de [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) y [Export](../modes/export.md).
 
-!!! Ejemplo
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -94,7 +94,7 @@ Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia de YOL
 
 Si utilizas YOLOv5 o YOLOv5u en tu investigación, por favor cita el repositorio de Ultralytics YOLOv5 de la siguiente manera:
 
-!!! Cita ""
+!!! Quote ""
 
     === "BibTeX"
         ```bibtex

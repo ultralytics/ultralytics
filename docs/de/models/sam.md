@@ -129,7 +129,7 @@ Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- Weitere zusätzliche Argumente für `Alles segmentieren` finden Sie in der [`Predictor/generate` Referenz](../reference/models/sam/predict.md).
+- Weitere zusätzliche Argumente für `Alles segmentieren` finden Sie in der [`Predictor/generate` Referenz](../../reference/models/sam/predict.md).
 
 ## Vergleich von SAM und YOLOv8
 
@@ -146,7 +146,7 @@ Dieser Vergleich zeigt die Größen- und Geschwindigkeitsunterschiede zwischen d
 
 Die Tests wurden auf einem Apple M2 MacBook aus dem Jahr 2023 mit 16 GB RAM durchgeführt. Um diesen Test zu reproduzieren:
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
         ```python
@@ -181,7 +181,7 @@ Die Auto-Annotierung ist eine wichtige Funktion von SAM, mit der Benutzer mithil
 
 Um Ihren Datensatz mit dem Ultralytics-Framework automatisch zu annotieren, verwenden Sie die `auto_annotate` Funktion wie folgt:
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
         ```python

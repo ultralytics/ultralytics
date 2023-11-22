@@ -69,7 +69,7 @@ Sie können das Modell [hier](https://github.com/ChaoningZhang/MobileSAM/blob/ma
 
 ### Punkt-Prompt
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ Sie können das Modell [hier](https://github.com/ChaoningZhang/MobileSAM/blob/ma
 
 ### Kasten-Prompt
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
         ```python
@@ -103,7 +103,7 @@ Wir haben `MobileSAM` und `SAM` mit derselben API implementiert. Für weitere Ve
 
 Wenn Sie MobileSAM in Ihrer Forschungs- oder Entwicklungsarbeit nützlich finden, zitieren Sie bitte unser Paper:
 
-!!! Zitat ""
+!!! Quote ""
 
     === "BibTeX"
 

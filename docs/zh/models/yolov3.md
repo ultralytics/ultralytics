@@ -44,7 +44,7 @@ YOLOv3 系列，包括 YOLOv3、YOLOv3-Ultralytics 和 YOLOv3u，专门用于目
 
 以下示例提供了简单的 YOLOv3 训练和推理示例。有关这些和其他模式的完整文档，请参阅 [Predict](../modes/predict.md)、[Train](../modes/train.md)、[Val](../modes/val.md) 和 [Export](../modes/export.md) 文档页面。
 
-!!! 示例
+!!! Example "示例"
 
     === "Python"
 
@@ -82,7 +82,7 @@ YOLOv3 系列，包括 YOLOv3、YOLOv3-Ultralytics 和 YOLOv3u，专门用于目
 
 如果您在研究中使用 YOLOv3，请引用原始的 YOLO 论文和 Ultralytics 的 YOLOv3 仓库：
 
-!!! 引用 ""
+!!! Quote ""
 
     === "BibTeX"
 

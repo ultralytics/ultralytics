@@ -88,7 +88,7 @@ results = model('path/to/bus.jpg')
 
 إذا قمت باستخدام YOLOv5 أو YOLOv5u في بحثك، يرجى استشهاد نموذج Ultralytics YOLOv5 بطريقة الاقتباس التالية:
 
-!!! اقتباس ""
+!!! Quote ""
 
     === "BibTeX"
         ```bibtex

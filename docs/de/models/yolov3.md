@@ -44,7 +44,7 @@ Diese Tabelle bietet einen schnellen Überblick über die Fähigkeiten jeder YOL
 
 Dieses Beispiel enthält einfache Trainings- und Inferenzbeispiele für YOLOv3. Für die vollständige Dokumentation zu diesen und anderen [Modi](../modes/index.md) siehe die Seiten zur [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) und [Export](../modes/export.md).
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -82,7 +82,7 @@ Dieses Beispiel enthält einfache Trainings- und Inferenzbeispiele für YOLOv3. 
 
 Wenn Sie YOLOv3 in Ihrer Forschung verwenden, zitieren Sie bitte die ursprünglichen YOLO-Papiere und das Ultralytics YOLOv3-Repository:
 
-!!! Zitat ""
+!!! Quote ""
 
     === "BibTeX"
 

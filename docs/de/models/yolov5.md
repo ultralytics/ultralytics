@@ -56,7 +56,7 @@ Diese Tabelle bietet eine detaillierte Übersicht über die verschiedenen Varian
 
 Dieses Beispiel enthält einfache Beispiele zur Schulung und Inferenz mit YOLOv5. Die vollständige Dokumentation zu diesen und anderen [Modi](../modes/index.md) finden Sie in den Seiten [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) und [Export](../modes/export.md).
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     === "Python"
 

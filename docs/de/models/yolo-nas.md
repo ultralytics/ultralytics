@@ -44,7 +44,7 @@ Die folgenden Beispiele zeigen, wie Sie YOLO-NAS-Modelle mit dem `ultralytics`-P
 
 In diesem Beispiel validieren wir YOLO-NAS-s auf dem COCO8-Datensatz.
 
-!!! Beispiel
+!!! Example "Beispiel"
 
     Dieses Beispiel bietet einfachen Code für Inferenz und Validierung für YOLO-NAS. Für die Verarbeitung von Inferenzergebnissen siehe den [Predict](../modes/predict.md)-Modus. Für die Verwendung von YOLO-NAS mit zusätzlichen Modi siehe [Val](../modes/val.md) und [Export](../modes/export.md). Das YOLO-NAS-Modell im `ultralytics`-Paket unterstützt kein Training.
 
@@ -100,7 +100,7 @@ Im Folgenden finden Sie eine detaillierte Übersicht über jedes Modell, einschl
 
 Wenn Sie YOLO-NAS in Ihrer Forschungs- oder Entwicklungsarbeit verwenden, zitieren Sie bitte SuperGradients:
 
-!!! Zitat ""
+!!! Quote ""
 
     === "BibTeX"
 

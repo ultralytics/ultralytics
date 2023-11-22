@@ -122,7 +122,7 @@ class OBB(Detect):
         bs = x[0].shape[0]  # batch size
         angle = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
         x = self.detect(self, x)
-        angle = (2 * angle.sigmoid() - 1) * torch.pi
+        angle = (2 * angle.sigmoid() - 1) * math.pi
         if self.training:
             return x, angle
         # degrees = self.logits2degrees(angle)  # 0-1 theta to -180 to 180 degrees

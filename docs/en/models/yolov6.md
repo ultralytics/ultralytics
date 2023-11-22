@@ -93,7 +93,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
 

@@ -79,7 +79,7 @@ This example provides simple RT-DETRR training and inference examples. For full 
 
 If you use Baidu's RT-DETR in your research or development work, please cite the [original paper](https://arxiv.org/abs/2304.08069):
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
 

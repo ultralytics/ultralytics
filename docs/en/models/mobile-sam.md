@@ -95,7 +95,7 @@ We have implemented `MobileSAM` and `SAM` using the same API. For more usage inf
 
 If you find MobileSAM useful in your research or development work, please consider citing our paper:
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
 

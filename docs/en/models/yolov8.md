@@ -135,7 +135,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
 

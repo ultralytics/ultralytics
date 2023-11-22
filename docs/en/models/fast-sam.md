@@ -168,7 +168,7 @@ Additionally, you can try FastSAM through a [Colab demo](https://colab.research.
 
 We would like to acknowledge the FastSAM authors for their significant contributions in the field of real-time instance segmentation:
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
 

@@ -106,7 +106,7 @@ Harness the power of the YOLO-NAS models to drive your object detection tasks to
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 
-!!! Note ""
+!!! Note
 
     === "BibTeX"
 

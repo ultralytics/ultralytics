@@ -599,7 +599,8 @@ def voc_ap_per_class(tp,
     nc = unique_classes.shape[0]  # number of classes, number of detections
 
     # Create Precision-Recall curve and compute AP for each class
-    # px, py = np.linspace(0, 1, 1000), []  # for plotting
+    x, prec_values = np.linspace(0, 1, 1000), []  # for plotting
+    p_curve, r_curve = np.zeros((nc, 1000)), np.zeros((nc, 1000))
     ap, p, r, f1 = np.zeros((nc, tp.shape[1])), np.zeros((nc,)), np.zeros((nc,)), np.zeros((nc,))
     tp_r, fp_r = np.empty((nc,)), np.empty((nc,))
     for ci, c in enumerate(unique_classes):
@@ -618,11 +619,11 @@ def voc_ap_per_class(tp,
 
         # Recall
         recall = tpc / (n_l + eps)  # recall curve
-        # r[ci] = np.interp(-px, -conf[i], recall[:, 0], left=0)  # negative x, xp because xp decreases
+        r_curve[ci] = np.interp(-x, -conf[i], recall[:, 0], left=0)  # negative x, xp because xp decreases
 
         # Precision
         precision = tpc / (tpc + fpc)  # precision curve
-        # p[ci] = np.interp(-px, -conf[i], precision[:, 0], left=1)  # p at pr_score
+        p_curve[ci] = np.interp(-x, -conf[i], precision[:, 0], left=1)  # p at pr_score
 
         # calculate p r
         r[ci] = recall[-1, 0]
@@ -632,9 +633,11 @@ def voc_ap_per_class(tp,
         for j in range(tp.shape[1]):
             ap[ci, j], mpre, mrec = voc_calculate_ap_by_tpfp(recall[:, j], precision[:, j])
             # if plot and j == 0:
-            #     py.append(np.interp(px, mrec, mpre))  # precision at mAP@0.5
+            #     prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
 
-    return tp_r, fp_r, p, r, f1, ap, unique_classes.astype(int)
+    prec_values = np.array((nc, 1000)) # (nc, 1000)
+    f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)
+    return tp_r, fp_r, p, r, f1, ap, unique_classes.astype(int), p_curve, r_curve, f1_curve, x, prec_values
 
 
 class Metric(SimpleClass):

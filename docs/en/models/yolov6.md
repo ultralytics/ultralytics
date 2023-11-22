@@ -21,7 +21,7 @@ keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directi
 - **Enhanced Backbone and Neck Design:** By deepening YOLOv6 to include another stage in the backbone and neck, this model achieves state-of-the-art performance on the COCO dataset at high-resolution input.
 - **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
 
-## Pre-trained Models
+## Performance Metrics
 
 YOLOv6 provides various pre-trained models with different scales:
 

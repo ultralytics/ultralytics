@@ -105,11 +105,11 @@ Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia con YO
 
 Ten en cuenta que el siguiente ejemplo es para modelos de detección YOLOv8. Para ver las tareas adicionales compatibles, consulta la documentación de [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) y [Pose](../tasks/pose.md).
 
-!!! Example "Ejemplo"
+!!! Ejemplo
 
     === "Python"
 
-        Los modelos preentrenados `*.pt` de PyTorch y los archivos de configuración `*.yaml` se pueden pasar a la clase `YOLO()` para crear una instancia del modelo en Python:
+        Los modelos preentrenados en PyTorch `*.pt`, así como los archivos de configuración `*.yaml`, se pueden pasar a la clase `YOLO()` para crear una instancia del modelo en Python:
 
         ```python
         from ultralytics import YOLO
@@ -120,11 +120,11 @@ Ten en cuenta que el siguiente ejemplo es para modelos de detección YOLOv8. Par
         # Muestra información del modelo (opcional)
         model.info()
 
-        # Entrena el modelo en el conjunto de datos de ejemplo de COCO8 durante 100 épocas
+        # Entrena el modelo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
         results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
         # Realiza inferencia con el modelo YOLOv8n en la imagen 'bus.jpg'
-        results = model('path/to/bus.jpg')
+        results = model('ruta/a/bus.jpg')
         ```
 
     === "CLI"
@@ -132,18 +132,18 @@ Ten en cuenta que el siguiente ejemplo es para modelos de detección YOLOv8. Par
         Hay comandos de CLI disponibles para ejecutar directamente los modelos:
 
         ```bash
-        # Carga un modelo YOLOv8n preentrenado en COCO y entrénalo en el conjunto de datos de ejemplo de COCO8 durante 100 épocas
+        # Carga un modelo YOLOv8n preentrenado en COCO y entrénalo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
         yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Carga un modelo YOLOv8n preentrenado en COCO y realiza inferencia en la imagen 'bus.jpg'
-        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        yolo predict model=yolov8n.pt source=ruta/a/bus.jpg
         ```
 
 ## Citas y reconocimientos
 
-Si utilizas el modelo YOLOv8 u otro software de este repositorio en tu trabajo, por favor cítalos utilizando el siguiente formato:
+Si utilizas el modelo YOLOv8 u otro software de este repositorio en tu trabajo, por favor cítalo utilizando el siguiente formato:
 
-!!! Quote ""
+!!! Cita ""
 
     === "BibTeX"
 
@@ -159,4 +159,4 @@ Si utilizas el modelo YOLOv8 u otro software de este repositorio en tu trabajo, 
         }
         ```
 
-Ten en cuenta que el DOI está pendiente y se agregará a la cita una vez esté disponible. Los modelos de YOLOv8 se proporcionan bajo las licencias [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) y [Enterprise](https://ultralytics.com/license).
+    Ten en cuenta que el DOI está pendiente y se agregará a la cita una vez que esté disponible. Los modelos de YOLOv8 se proporcionan bajo las licencias [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) y [Enterprise](https://ultralytics.com/license).

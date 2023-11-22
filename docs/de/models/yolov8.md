@@ -105,7 +105,7 @@ Dieses Beispiel liefert einfache Trainings- und Inferenzbeispiele für YOLOv8. F
 
 Beachten Sie, dass das folgende Beispiel für YOLOv8 [Detect](../tasks/detect.md) Modelle für die Objekterkennung verwendet. Für zusätzliche unterstützte Aufgaben siehe die Dokumentation zur [Segmentation](../tasks/segment.md), [Classification](../tasks/classify.md) und [Pose](../tasks/pose.md).
 
-!!! Example "Beispiel"
+!!! Beispiel
 
     === "Python"
 
@@ -143,7 +143,7 @@ Beachten Sie, dass das folgende Beispiel für YOLOv8 [Detect](../tasks/detect.md
 
 Wenn Sie das YOLOv8-Modell oder eine andere Software aus diesem Repository in Ihrer Arbeit verwenden, zitieren Sie es bitte in folgendem Format:
 
-!!! Quote ""
+!!! Zitat ""
 
     === "BibTeX"
 

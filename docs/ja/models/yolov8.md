@@ -8,41 +8,41 @@ keywords: YOLOv8, Ultralytics, リアルタイムオブジェクト検出器, �
 
 ## 概要
 
-YOLOv8は、リアルタイムオブジェクト検出器のYOLOシリーズの最新版であり、精度と速度において最先端の性能を提供します。以前のYOLOバージョンの進化を基に、YOLOv8は新機能と最適化を導入し、幅広いアプリケーションでさまざまなオブジェクト検出タスクに最適な選択肢となります。
+YOLOv8は、リアルタイムオブジェクト検出器のYOLOシリーズの最新版であり、精度と速度において最先端の性能を提供します。以前のYOLOバージョンの進化を基にして、YOLOv8は新機能と最適化を導入し、様々なオブジェクト検出タスクにおいて広範なアプリケーションに適した選択肢となります。
 
 ![Ultralytics YOLOv8](https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png)
 
 ## 主な特徴
 
-- **高度なバックボーンとネックアーキテクチャ**：YOLOv8は、最先端のバックボーンとネックアーキテクチャを採用しており、特徴抽出とオブジェクト検出の性能を向上させています。
-- **アンカーフリースプリットUltralyticsヘッド**：YOLOv8は、アンカーベースのアプローチと比較して、より優れた精度と効率的な検出プロセスを実現するアンカーフリースプリットUltralyticsヘッドを採用しています。
-- **最適な精度と速度のトレードオフ**：精度と速度の最適なバランスを維持することを重視して、YOLOv8は多様なアプリケーション領域でのリアルタイムオブジェクト検出タスクに適しています。
-- **さまざまな事前学習済みモデル**：YOLOv8は、さまざまなタスクとパフォーマンス要件に対応する事前学習済みモデルの範囲を提供し、特定のユースケースに適したモデルを簡単に見つけることができます。
+- **高度なバックボーンおよびネックアーキテクチャ:** YOLOv8は最先端のバックボーンとネックアーキテクチャを採用しており、特徴抽出とオブジェクト検出のパフォーマンスが向上しています。
+- **アンカーフリーな分割Ultralyticsヘッド:** YOLOv8はアンカーベースの方法と比べて、アンカーフリーな分割Ultralyticsヘッドを採用し、より高い精度と効率的な検出プロセスに貢献しています。
+- **最適な精度と速度のトレードオフの最適化:** 精度と速度の最適なバランスを保ちながら、YOLOv8は多岐にわたるリアルタイムオブジェクト検出タスクに適しています。
+- **さまざまな事前学習済みモデル:** YOLOv8はさまざまなタスクやパフォーマンス要件に対応する事前学習済みモデルを提供しており、特定のユースケースに適したモデルを簡単に見つけることができます。
 
-## サポートされるタスクおよびモード
+## サポートされるタスクとモード
 
-YOLOv8シリーズは、コンピュータビジョンのさまざまなタスクに特化した多様なモデルを提供しています。これらのモデルは、オブジェクト検出からインスタンスセグメンテーション、ポーズ/キーポイント検出、分類などのより複雑なタスクまで、さまざまな要件に対応するように設計されています。
+YOLOv8シリーズは、コンピュータビジョンのさまざまなタスクに特化したさまざまなモデルを提供しています。これらのモデルは、オブジェクト検出からインスタンスセグメンテーション、ポーズ/キーポイントの検出、分類などのより複雑なタスクまで、さまざまな要件に対応するように設計されています。
 
-YOLOv8シリーズの各バリアントは、それぞれのタスクに最適化されており、高いパフォーマンスと精度を実現しています。さらに、これらのモデルは、[Inference](../modes/predict.md)、[Validation](../modes/val.md)、[Training](../modes/train.md)、および[Export](../modes/export.md)などのさまざまな運用モードと互換性があり、展開と開発のさまざまな段階で使用できるようになっています。
+YOLOv8シリーズの各バリアントは、それぞれのタスクに最適化されており、高いパフォーマンスと精度を提供します。また、これらのモデルは、推論、検証、トレーニング、エクスポートといったさまざまな運用モードと互換性があり、展開と開発のさまざまな段階で使用することができます。
 
-| モデル         | ファイル名                                                                                                          | タスク                                    | 推論 | バリデーション | トレーニング | エクスポート |
-|-------------|----------------------------------------------------------------------------------------------------------------|----------------------------------------|----|---------|--------|--------|
-| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [検出](../tasks/detect.md)               | ✅  | ✅       | ✅      | ✅      |
-| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [インスタンスセグメンテーション](../tasks/segment.md) | ✅  | ✅       | ✅      | ✅      |
-| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [ポーズ/キーポイント](../tasks/pose.md)         | ✅  | ✅       | ✅      | ✅      |
-| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [分類](../tasks/classify.md)             | ✅  | ✅       | ✅      | ✅      |
+| モデル         | ファイル名                                                                                                          | タスク                                    | 推論 | 検証 | トレーニング | エクスポート |
+|-------------|----------------------------------------------------------------------------------------------------------------|----------------------------------------|----|----|--------|--------|
+| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [検出](../tasks/detect.md)               | ✅  | ✅  | ✅      | ✅      |
+| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [インスタンスセグメンテーション](../tasks/segment.md) | ✅  | ✅  | ✅      | ✅      |
+| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [ポーズ/キーポイント](../tasks/pose.md)         | ✅  | ✅  | ✅      | ✅      |
+| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [分類](../tasks/classify.md)             | ✅  | ✅  | ✅      | ✅      |
 
-この表は、YOLOv8モデルのバリアントの概要を提供し、特定のタスクへの適用性とInference、Validation、Training、Exportなどのさまざまな運用モードとの互換性を強調しています。コンピュータビジョンのさまざまなアプリケーションに適しており、YOLOv8シリーズの柔軟性と堅牢性を示しています。
+この表は、YOLOv8モデルのバリアントの概要を提供し、特定のタスクでの適用性と推論、検証、トレーニング、エクスポートなどのさまざまな運用モードとの互換性を示しています。これにより、YOLOv8シリーズの多様性と堅牢性が示されており、コンピュータビジョンのさまざまなアプリケーションに適しています。
 
-## パフォーマンスメトリクス
+## 性能メトリクス
 
 !!! パフォーマンス
 
     === "検出（COCO）"
 
-        [COCO](https://docs.ultralytics.com/datasets/detect/coco/)でトレーニングされたこれらのモデルの使用例については、[Detection Docs](https://docs.ultralytics.com/tasks/detect/)を参照してください。80種類の事前学習済みクラスが含まれています。
+        [COCO](https://docs.ultralytics.com/datasets/detect/coco/)でトレーニングされたこれらのモデルを使用した使用例については、[検出ドキュメント](https://docs.ultralytics.com/tasks/detect/)を参照してください。これらのモデルには80の事前学習済みクラスが含まれています。
 
-        | モデル                                                                                | サイズ<br><sup>(ピクセル) | mAP<sup>val<br>50-95 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
+        | モデル                                                                                | サイズ（ピクセル） | mAP<sup>val<br>50-95 | スピード（CPU ONNX<br>（ミリ秒）） | スピード（A100 TensorRT<br>（ミリ秒）） | パラメータ数（百万） | FLOPs（10億） |
         | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
         | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
         | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
@@ -52,9 +52,9 @@ YOLOv8シリーズの各バリアントは、それぞれのタスクに最適�
 
     === "検出（Open Images V7）"
 
-        [Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/)でトレーニングされたこれらのモデルの使用例については、[Detection Docs](https://docs.ultralytics.com/tasks/detect/)を参照してください。600種類の事前学習済みクラスが含まれています。
+        [Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/)でトレーニングされたこれらのモデルを使用した使用例については、[検出ドキュメント](https://docs.ultralytics.com/tasks/detect/)を参照してください。これらのモデルには600の事前訓練クラスが含まれています。
 
-        | モデル                                                                                     | サイズ<br><sup>(ピクセル) | mAP<sup>val<br>50-95 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
+        | モデル                                                                                     | サイズ（ピクセル） | mAP<sup>val<br>50-95 | スピード（CPU ONNX<br>（ミリ秒）） | スピード（A100 TensorRT<br>（ミリ秒）） | パラメータ数（百万） | FLOPs（10億） |
         | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
         | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
         | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
@@ -64,9 +64,9 @@ YOLOv8シリーズの各バリアントは、それぞれのタスクに最適�
 
     === "セグメンテーション（COCO）"
 
-        [COCO](https://docs.ultralytics.com/datasets/segment/coco/)でトレーニングされたこれらのモデルの使用例については、[Segmentation Docs](https://docs.ultralytics.com/tasks/segment/)を参照してください。80種類の事前学習済みクラスが含まれています。
+        [COCO](https://docs.ultralytics.com/datasets/segment/coco/)でトレーニングされたこれらのモデルを使用した使用例については、[セグメンテーションドキュメント](https://docs.ultralytics.com/tasks/segment/)を参照してください。これらのモデルには80の事前学習済みクラスが含まれています。
 
-        | モデル                                                                                        | サイズ<br><sup>(ピクセル) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
+        | モデル                                                                                        | サイズ（ピクセル） | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | スピード（CPU ONNX<br>（ミリ秒）） | スピード（A100 TensorRT<br>（ミリ秒）） | パラメータ数（百万） | FLOPs（10億） |
         | -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
         | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | 96.1                           | 1.21                                | 3.4                | 12.6              |
         | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | 155.7                          | 1.47                                | 11.8               | 42.6              |
@@ -76,21 +76,21 @@ YOLOv8シリーズの各バリアントは、それぞれのタスクに最適�
 
     === "分類（ImageNet）"
 
-        [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/)でトレーニングされたこれらのモデルの使用例については、[Classification Docs](https://docs.ultralytics.com/tasks/classify/)を参照してください。1000種類の事前学習済みクラスが含まれています。
+        [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/)でトレーニングされたこれらのモデルを使用した使用例については、[分類ドキュメント](https://docs.ultralytics.com/tasks/classify/)を参照してください。これらのモデルには1000の事前学習済みクラスが含まれています。
 
-        | モデル                                                                                        | サイズ<br><sup>(ピクセル) | top1精度<br><sup>（%) | top5精度<br><sup>（%) | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-        | -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
-        | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                   | 66.6             | 87.0             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
-        | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                   | 72.3             | 91.1             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
-        | [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                   | 76.4             | 93.2             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
-        | [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                   | 78.0             | 94.1             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
-        | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
+        | モデル                                                                                        | サイズ（ピクセル） | top1精度 | top5精度 | スピード（CPU ONNX<br>（ミリ秒）） | スピード（A100 TensorRT<br>（ミリ秒）） | パラメータ数（百万） | FLOPs（640ピクセル時の10億） |
+        | -------------------------------------------------------------------------------------------- | --------------------- | --------- | --------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
+        | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                   | 66.6      | 87.0      | 12.9                           | 0.31                                | 2.7                | 4.3                      |
+        | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                   | 72.3      | 91.1      | 23.4                           | 0.35                                | 6.4                | 13.5                     |
+        | [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                   | 76.4      | 93.2      | 85.4                           | 0.62                                | 17.0               | 42.7                     |
+        | [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                   | 78.0      | 94.1      | 163.0                          | 0.87                                | 37.5               | 99.7                     |
+        | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4      | 94.3      | 232.0                          | 1.01                                | 57.4               | 154.8                    |
 
     === "ポーズ（COCO）"
 
-        'person'クラスを含む1つの事前学習済みクラスで、[COCO](https://docs.ultralytics.com/datasets/pose/coco/)でトレーニングされたこれらのモデルの使用例については、[Pose Estimation Docs](https://docs.ultralytics.com/tasks/segment/)を参照してください。
+        ['person']クラスの1つの事前学習済みクラスを含む、[COCO](https://docs.ultralytics.com/datasets/pose/coco/)でトレーニングされたこれらのモデルを使用した使用例については、[ポーズ推定ドキュメント](https://docs.ultralytics.com/tasks/pose/)を参照してください。
 
-        | モデル                                                                                                | サイズ<br><sup>(ピクセル) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
+        | モデル                                                                                                | サイズ（ピクセル） | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | スピード（CPU ONNX<br>（ミリ秒）） | スピード（A100 TensorRT<br>（ミリ秒）） | パラメータ数（百万） | FLOPs（10億） |
         | ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
         | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | 50.4                  | 80.1               | 131.8                          | 1.18                                | 3.3                | 9.2               |
         | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | 60.0                  | 86.2               | 233.2                          | 1.42                                | 11.6               | 30.2              |
@@ -101,49 +101,49 @@ YOLOv8シリーズの各バリアントは、それぞれのタスクに最適�
 
 ## 使用例
 
-この例では、YOLOv8のトレーニングおよび推論の簡単な使用例を示しています。これらおよび他の[モード](../modes/index.md)の完全なドキュメントについては、[Predict](../modes/predict.md)、[Train](../modes/train.md)、[Val](../modes/val.md)、[Export](../modes/export.md)のドキュメントページを参照してください。
+この例では、YOLOv8のシンプルなトレーニングと推論の使用例を提供しています。これらとその他のモードに関する完全なドキュメントについては、[Predict](../modes/predict.md)、[Train](../modes/train.md)、[Val](../modes/val.md)、および[Export](../modes/export.md)のドキュメントページを参照してください。
 
-以下の例は、オブジェクト検出のためのYOLOv8 [Detect](../tasks/detect.md)モデルのものです。サポートされているタスクの詳細については、[Segment](../tasks/segment.md)、[Classify](../tasks/classify.md)、および[Pose](../tasks/pose.md)のドキュメントを参照してください。
+以下の例は、オブジェクト検出のためのYOLOv8 [Detect](../tasks/detect.md)モデル用のものです。他のサポートされるタスクについては、[Segment](../tasks/segment.md)、[Classify](../tasks/classify.md)、および[Pose](../tasks/pose.md)のドキュメントを参照してください。
 
-!!! Example "例"
+!!! 例
 
     === "Python"
 
-        Pythonで、PyTorchの事前学習済みの`*.pt`モデルや設定の`*.yaml`ファイルを`YOLO()`クラスに渡してモデルインスタンスを作成できます：
+        Pythonでの、`.pt`形式の事前学習済みPyTorchモデルおよび設定ファイル`*.yaml`を使用して、`YOLO()`クラスを介してモデルインスタンスを作成する方法の例です：
 
         ```python
         from ultralytics import YOLO
 
-        # COCO-pretrained YOLOv8nモデルをロード
+        # COCOで事前学習済みのYOLOv8nモデルをロード
         model = YOLO('yolov8n.pt')
 
         # モデルの情報を表示（オプション）
         model.info()
 
-        # COCO8の例のデータセットでモデルを100エポックトレーニング
+        # COCO8の例データセットで100エポックトレーニングを実行
         results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # YOLOv8nモデルで'bus.jpg'画像で推論を実行
+        # 'bus.jpg'画像に対してYOLOv8nモデルで推論を実行
         results = model('path/to/bus.jpg')
         ```
 
     === "CLI"
 
-        CLIコマンドを使用して、直接モデルを実行できます：
+        直接モデルを実行するためのCLIコマンドも使用できます：
 
         ```bash
-        # COCO-pretrained YOLOv8nモデルをロードして、COCO8の例のデータセットで100エポックトレーニング
+        # COCOで事前学習済みのYOLOv8nモデルをロードし、COCO8の例データセットで100エポックトレーニングを実行
         yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # COCO-pretrained YOLOv8nモデルで'bus.jpg'画像上で推論を実行
+        # COCOで事前学習済みのYOLOv8nモデルをロードし、'bus.jpg'画像に対して推論を実行
         yolo predict model=yolov8n.pt source=path/to/bus.jpg
         ```
 
 ## 引用および謝辞
 
-このリポジトリのYOLOv8モデルやその他のソフトウェアを使用する場合は、次の形式で引用してください：
+このリポジトリからYOLOv8モデルまたは他のソフトウェアを使用する場合は、次の形式で引用してください：
 
-!!! Quote ""
+!!! 引用 ""
 
     === "BibTeX"
 
@@ -159,4 +159,4 @@ YOLOv8シリーズの各バリアントは、それぞれのタスクに最適�
         }
         ```
 
-DOIは確定待ちであり、利用可能になったら引用に追加されます。YOLOv8モデルは、[AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE)および[Enterprise](https://ultralytics.com/license)ライセンスの下で提供されています。
+DOIは準備中であり、利用可能になり次第、引用に追加されます。YOLOv8モデルは[AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE)および[Enterprise](https://ultralytics.com/license)ライセンスで提供されています。

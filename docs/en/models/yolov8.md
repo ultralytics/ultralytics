@@ -93,11 +93,11 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 ## Usage
 
-You can use YOLOv8 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv8 models for inference:
+This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv8 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
-!!! Example ""
+Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for object detection. For additional tasks see [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) and [Pose](../tasks/pose.md) docs.
 
-    This example provides simple inference code for YOLOv8. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv8 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
+!!! Example
 
     === "Python"
 

@@ -558,22 +558,29 @@ def xyxyxyxy2xywhr(corners):
     Returns:
         (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format of shape (n, 5).
     """
-    is_numpy = isinstance(corners, np.ndarray)
-    atan2, sqrt = (np.arctan2, np.sqrt) if is_numpy else (torch.atan2, torch.sqrt)
-
-    x1, y1, x2, y2, x3, y3 = (corners[..., i] for i in range(6))
-    cx = (x1 + x3) / 2
-    cy = (y1 + y3) / 2
-    dx21 = x2 - x1
-    dy21 = y2 - y1
-
-    w = sqrt(dx21 ** 2 + dy21 ** 2)
-    h = sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2)
-
-    rotation = atan2(-dy21, dx21)
-    # rotation *= 180.0 / math.pi  # radians to degrees
-
-    return np.vstack((cx, cy, w, h, rotation)).T if is_numpy else torch.stack((cx, cy, w, h, rotation), dim=1)
+    points = corners.cpu().numpy().reshape(-1, 4, 2)
+    rboxes = []
+    for pts in points:
+        (x, y), (w, h), angle = cv2.minAreaRect(pts)
+        rboxes.append([x, y, w, h, angle / 180 * np.pi])
+    rboxes = torch.tensor(rboxes, device=corners.device, dtype=corners.dtype)
+    return rboxes
+    # is_numpy = isinstance(corners, np.ndarray)
+    # atan2, sqrt = (np.arctan2, np.sqrt) if is_numpy else (torch.atan2, torch.sqrt)
+    #
+    # x1, y1, x2, y2, x3, y3 = (corners[..., i] for i in range(6))
+    # cx = (x1 + x3) / 2
+    # cy = (y1 + y3) / 2
+    # dx21 = x2 - x1
+    # dy21 = y2 - y1
+    #
+    # w = sqrt(dx21 ** 2 + dy21 ** 2)
+    # h = sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2)
+    #
+    # rotation = atan2(-dy21, dx21)
+    # # rotation *= 180.0 / math.pi  # radians to degrees
+    #
+    # return np.vstack((cx, cy, w, h, rotation)).T if is_numpy else torch.stack((cx, cy, w, h, rotation), dim=1)
 
 
 def xywhr2xyxyxyxy(center):
@@ -590,30 +597,19 @@ def xywhr2xyxyxyxy(center):
     is_numpy = isinstance(center, np.ndarray)
     cos, sin = (np.cos, np.sin) if is_numpy else (torch.cos, torch.sin)
 
-    cx, cy, w, h, rotation = (center[..., i] for i in range(5))
-    # rotation *= math.pi / 180.0  # degrees to radians
-
-    dx = w / 2
-    dy = h / 2
-
-    cos_rot = cos(rotation)
-    sin_rot = sin(rotation)
-    dx_cos_rot = dx * cos_rot
-    dx_sin_rot = dx * sin_rot
-    dy_cos_rot = dy * cos_rot
-    dy_sin_rot = dy * sin_rot
-
-    x1 = cx - dx_cos_rot - dy_sin_rot
-    y1 = cy + dx_sin_rot - dy_cos_rot
-    x2 = cx + dx_cos_rot - dy_sin_rot
-    y2 = cy - dx_sin_rot - dy_cos_rot
-    x3 = cx + dx_cos_rot + dy_sin_rot
-    y3 = cy - dx_sin_rot + dy_cos_rot
-    x4 = cx - dx_cos_rot + dy_sin_rot
-    y4 = cy + dx_sin_rot + dy_cos_rot
-
-    return np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T if is_numpy else torch.stack(
-        (x1, y1, x2, y2, x3, y3, x4, y4), dim=1)
+    ctr = center[..., :2]
+    w, h, rotation = (center[..., i:i+1] for i in range(2, 5))
+    cos_value, sin_value = cos(rotation), sin(rotation)
+    vec1 = [w / 2 * cos_value, w / 2 * sin_value]
+    vec2 = [-h / 2 * sin_value, h / 2 * cos_value]
+    vec1 = np.concatenate(vec1, axis=-1) if is_numpy else torch.cat(vec1, dim=-1)
+    vec2 = np.concatenate(vec1, axis=-1) if is_numpy else torch.cat(vec2, dim=-1)
+    pt1 = ctr + vec1 + vec2
+    pt2 = ctr + vec1 - vec2
+    pt3 = ctr - vec1 - vec2
+    pt4 = ctr - vec1 + vec2
+    return np.stack([pt1, pt2, pt3, pt4], axis=-2).reshape(-1, 8) if is_numpy else torch.stack(
+            [pt1, pt2, pt3, pt4], dim=-2).view(-1, 8)
 
 
 def ltwh2xyxy(x):

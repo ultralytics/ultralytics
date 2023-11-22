@@ -54,8 +54,9 @@ class MarkdownLinkFixer:
             'Quote', 'Abstract', 'Seealso', 'Admonition']
         translations = {
             'en':
-            english,
-            'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用', '摘要', '另见', '警告'],
+                english,
+            'zh': ['笔记', '摘要', '提示', '信息', '成功', '问题', '警告', '失败', '危险', '故障', '示例', '引用',
+                   '摘要', '另见', '警告'],
             'es': [
                 'Nota', 'Resumen', 'Consejo', 'Información', 'Éxito', 'Pregunta', 'Advertencia', 'Fracaso', 'Peligro',
                 'Error', 'Ejemplo', 'Cita', 'Abstracto', 'Véase También', 'Amonestación'],
@@ -71,7 +72,8 @@ class MarkdownLinkFixer:
             'de': [
                 'Hinweis', 'Zusammenfassung', 'Tipp', 'Info', 'Erfolg', 'Frage', 'Warnung', 'Ausfall', 'Gefahr',
                 'Fehler', 'Beispiel', 'Zitat', 'Abstrakt', 'Siehe Auch', 'Ermahnung'],
-            'ja': ['ノート', '要約', 'ヒント', '情報', '成功', '質問', '警告', '失敗', '危険', 'バグ', '例', '引用', '抄録', '参照', '訓告'],
+            'ja': ['ノート', '要約', 'ヒント', '情報', '成功', '質問', '警告', '失敗', '危険', 'バグ', '例', '引用',
+                   '抄録', '参照', '訓告'],
             'ko': ['노트', '요약', '팁', '정보', '성공', '질문', '경고', '실패', '위험', '버그', '예제', '인용', '추상', '참조', '경고'],
             'hi': [
                 'नोट', 'सारांश', 'सुझाव', 'जानकारी', 'सफलता', 'प्रश्न', 'चेतावनी', 'विफलता', 'खतरा', 'बग', 'उदाहरण',

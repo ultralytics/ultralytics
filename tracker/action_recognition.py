@@ -4,12 +4,24 @@ import cv2
 import networkx as nx
 import numpy as np
 
+font = cv2.FONT_HERSHEY_SIMPLEX
+font_scale = 0.4
+font_thickness = 1
+text_color = (255, 255, 255)
+background_color = (100, 100, 100)
+text_padding = 7
+
 
 class ActionRecognizer:
     def __init__(self, config):
+        # Gathering parameters
         self.gathering_enabled = config["gathering"]["enabled"]
         self.distance_threshold = config["gathering"]["distance_threshold"]
         self.area_threshold = config["gathering"]["area_threshold"]
+        # Standing still parameters
+        self.ss_enabled = config["standing_still"]["enabled"]
+        self.ss_frame_window = config["standing_still"]["frame_window"]
+        self.ss_speed_threshold = config["standing_still"]["speed_threshold"]
 
     def recognize_frame(self, tracks):
         """
@@ -17,10 +29,15 @@ class ActionRecognizer:
         Args:
             tracks (list): list of detections in the frame (sv.STrack objects).
         """
-        if self.gathering_enabled:
-            crowd_results = self.recognize_frame_gathering(tracks)
+        ar_results = {}
 
-        return crowd_results
+        if self.gathering_enabled:
+            ar_results["gathering"] = self.recognize_gathering(tracks)
+
+        if self.ss_enabled:
+            ar_results["standing_still"] = self.recognize_standing_still(tracks)
+
+        return ar_results
 
     def annotate(self, frame, ar_results):
         """
@@ -32,11 +49,14 @@ class ActionRecognizer:
             frame (np.array): annotated frame.
         """
         if self.gathering_enabled:
-            frame = self.annotate_gathering(frame, ar_results)
+            frame = self.annotate_gathering(frame, ar_results["gathering"])
+
+        if self.ss_enabled:
+            frame = self.annotate_standing_still(frame, ar_results["standing_still"])
 
         return frame
 
-    def recognize_frame_gathering(self, tracks):
+    def recognize_gathering(self, tracks):
         """
         Recognizes gatherings in a frame by computing the normalized euclidean distance between all pairs of detections
         and conditioning pairs to have similar areas. Then, it finds the independent chains in the graph and computes
@@ -136,6 +156,22 @@ class ActionRecognizer:
         # TODO maybe add more space to the bounding box, not narrow it down to the crowd
         return np.array(crowd_box)
 
+    def recognize_standing_still(self, tracks):
+        ss_results = {}
+        for idx, track in enumerate(tracks):
+            # TODO: maybe condition on seconds and not frames using average FPS of the video
+            if track.tracklet_len > self.ss_frame_window and track.class_ids == 1:
+                # TODO compute real speed with homograahy matrix
+                #pixel_speed = np.sqrt(np.sum(track.mean[4:6]**2))
+                pixel_speed = np.sqrt(np.sum(track.mean[4:]**2))
+                # TODO: condition on height and aspect ratio of the bounding box
+                if pixel_speed < self.ss_speed_threshold:
+                    """f (track.mean[4] < self.ss_speed_threshold) \
+                        and (track.mean[5] < self.ss_speed_threshold) \
+                        and (track.mean[-1] < self.ss_speed_threshold):"""
+                    ss_results[idx] = track.tlbr
+        return ss_results if len(ss_results.keys()) > 0 else None
+
     @staticmethod
     def annotate_gathering(frame, crowd_results):
         """
@@ -148,7 +184,6 @@ class ActionRecognizer:
             frame (np.array): annotated frame.
         """
         if crowd_results is not None:
-            font = cv2.FONT_HERSHEY_SIMPLEX
             for idx, bbox in crowd_results.items():
                 x1, y1, x2, y2 = bbox.astype(int)
 
@@ -156,34 +191,33 @@ class ActionRecognizer:
                     img=frame,
                     pt1=(x1, y1),
                     pt2=(x2, y2),
-                    color=(0, 0, 0),
+                    color=background_color,
                     thickness=2,
                 )
 
-                text = f"crowd #{idx}"
-
+                text = f"G #{idx+1}"
                 text_width, text_height = cv2.getTextSize(
                     text=text,
                     fontFace=font,
-                    fontScale=0.5,
-                    thickness=1,
+                    fontScale=font_scale,
+                    thickness=font_thickness,
                 )[0]
 
                 # Text must be top right corner of the bounding box of the crowd but outside the frame
-                text_x = x2 - 10 - text_width
-                text_y = y2 + 10 + text_height
+                text_x = x2 - text_padding - text_width
+                text_y = y2 + text_padding + text_height
 
                 text_background_x2 = x2
-                text_background_x1 = x2 - 2 * 10 - text_width
+                text_background_x1 = x2 - 2 * text_padding - text_width
 
                 text_background_y1 = y2
-                text_background_y2 = y2 + 2 * 10 + text_height
+                text_background_y2 = y2 + 2 * text_padding + text_height
 
                 cv2.rectangle(
                     img=frame,
                     pt1=(text_background_x1, text_background_y1),
                     pt2=(text_background_x2, text_background_y2),
-                    color=(0, 0, 0),
+                    color=background_color,
                     thickness=cv2.FILLED,
                 )
                 cv2.putText(
@@ -191,10 +225,56 @@ class ActionRecognizer:
                     text=text,
                     org=(text_x, text_y),
                     fontFace=font,
-                    fontScale=0.5,
-                    color=(255, 255, 255),
-                    thickness=1,
+                    fontScale=font_scale,
+                    color=text_color,
+                    thickness=font_thickness,
                     lineType=cv2.LINE_AA,
                 )
 
         return frame
+
+    @staticmethod
+    def annotate_standing_still(frame, ss_results):
+        if ss_results is not None:
+            for idx, bbox in ss_results.items():
+                x1, y1, x2, y2 = bbox.astype(int)
+
+                text = f"SS"
+                text_width, text_height = cv2.getTextSize(
+                    text=text,
+                    fontFace=font,
+                    fontScale=font_scale,
+                    thickness=font_thickness,
+                )[0]
+
+                # Text must be top right corner of the bounding box of the crowd but outside the frame
+                text_x = x2 - text_padding - text_width
+                text_y = y2 + text_padding + text_height
+
+                text_background_x2 = x2
+                text_background_x1 = x2 - 2 * text_padding - text_width
+
+                text_background_y1 = y2
+                text_background_y2 = y2 + 2 * text_padding + text_height
+
+                cv2.rectangle(
+                    img=frame,
+                    pt1=(text_background_x1, text_background_y1),
+                    pt2=(text_background_x2, text_background_y2),
+                    color=background_color,
+                    thickness=cv2.FILLED,
+                )
+                cv2.putText(
+                    img=frame,
+                    text=text,
+                    org=(text_x, text_y),
+                    fontFace=font,
+                    fontScale=font_scale,
+                    color=text_color,
+                    thickness=font_thickness,
+                    lineType=cv2.LINE_AA,
+                )
+
+        return frame
+
+

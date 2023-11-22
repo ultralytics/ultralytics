@@ -2,7 +2,7 @@
   "name": null,
 
   "source_weights_path": "./../inference_tools/models/detector_best.pt",
-  "source_video_path": "./data/example2.mp4",
+  "source_video_path": "./data/example1.mp4",
 
   "device": "mps",
   "video_stride": 1,
@@ -22,10 +22,17 @@
   "display": true,
 
   "action_recognition": {
+
     "gathering": {
       "enabled": true,
       "distance_threshold": 1.5,
       "area_threshold": 0.5
+    },
+
+    "standing_still": {
+        "enabled": true,
+        "frame_window": 100,
+        "speed_threshold": 0.04
     }
   }
 }

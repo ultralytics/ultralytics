@@ -16,7 +16,6 @@ from tarfile import is_tarfile
 import cv2
 import numpy as np
 import yaml
-from clearml import Dataset
 from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
@@ -246,6 +245,8 @@ def get_clearml_dataset(clearml_info_string: str):
     Returns:
         (dict): Parsed dataset information and paths.
     """
+    from clearml import Dataset
+
     dataset_id = clearml_info_string.replace('clearml://', '')
     dataset = Dataset.get(dataset_id=dataset_id)
     dataset_root_path = Path(dataset.get_local_copy())

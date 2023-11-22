@@ -46,6 +46,6 @@ class OBBPredictor(DetectionPredictor):
             pred[:, :4] = ops.scale_rotated_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             img_path = self.batch[0][i]
             # xywh, r, conf, cls
-            obb = torch.cat([pred[:, :4], pred[:, -2:-1], pred[:, 4:6]], dim=-1)
+            obb = torch.cat([pred[:, :4], pred[:, -1:], pred[:, 4:6]], dim=-1)
             results.append(Results(orig_img, path=img_path, names=self.model.names, obb=obb))
         return results

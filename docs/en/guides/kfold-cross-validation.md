@@ -30,7 +30,7 @@ Without further ado, let's dive in!
         - It includes 6 class labels, each with its total instance counts listed below.
 
           | Class Label | Instance Count |
-          |:------------|:--------------:|
+                              |:------------|:--------------:|
           | Apple       |      7049      |
           | Grapes      |      7202      |
           | Pineapple   |      1613      |

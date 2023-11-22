@@ -64,7 +64,7 @@ The example showcases the variety and complexity of the objects in the CIFAR-10 
 
 If you use the CIFAR-10 dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

@@ -21,7 +21,7 @@ keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directi
 - **Enhanced Backbone and Neck Design:** By deepening YOLOv6 to include another stage in the backbone and neck, this model achieves state-of-the-art performance on the COCO dataset at high-resolution input.
 - **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
 
-## Pre-trained Models
+## Performance Metrics
 
 YOLOv6 provides various pre-trained models with different scales:
 
@@ -33,13 +33,11 @@ YOLOv6 provides various pre-trained models with different scales:
 
 YOLOv6 also provides quantized models for different precisions and models optimized for mobile platforms.
 
-## Usage
+## Usage Examples
 
-You can use YOLOv6 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv6 models for training:
+This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-!!! Example ""
-
-    This example provides simple training code for YOLOv6. For more options including training settings see [Train](../modes/train.md) mode. For using YOLOv6 with additional modes see [Predict](../modes/predict.md), [Val](../modes/val.md) and [Export](../modes/export.md).
+!!! Example
 
     === "Python"
 
@@ -73,29 +71,25 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
         yolo predict model=yolov6n.yaml source=path/to/bus.jpg
         ```
 
-### Supported Tasks
+## Supported Tasks and Modes
 
-| Model Type | Pre-trained Weights | Tasks Supported  |
-|------------|---------------------|------------------|
-| YOLOv6-N   | `yolov6-n.pt`       | Object Detection |
-| YOLOv6-S   | `yolov6-s.pt`       | Object Detection |
-| YOLOv6-M   | `yolov6-m.pt`       | Object Detection |
-| YOLOv6-L   | `yolov6-l.pt`       | Object Detection |
-| YOLOv6-L6  | `yolov6-l6.pt`      | Object Detection |
+The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-## Supported Modes
+| Model Type | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
+|------------|---------------------|----------------------------------------|-----------|------------|----------|--------|
+| YOLOv6-N   | `yolov6-n.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv6-S   | `yolov6-s.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv6-M   | `yolov6-m.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv6-L   | `yolov6-l.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv6-L6  | `yolov6-l6.pt`      | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 
-| Mode       | Supported |
-|------------|-----------|
-| Inference  | ✅         |
-| Validation | ✅         |
-| Training   | ✅         |
+This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
 
 ## Citations and Acknowledgements
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

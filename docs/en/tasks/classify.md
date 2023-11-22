@@ -40,7 +40,7 @@ YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose model
 
 Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -77,7 +77,7 @@ YOLO classification dataset format can be found in detail in the [Dataset Guide]
 
 Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -104,7 +104,7 @@ Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument
 
 Use a trained YOLOv8n-cls model to run predictions on images.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -131,7 +131,7 @@ See full `predict` mode details in the [Predict](https://docs.ultralytics.com/mo
 
 Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

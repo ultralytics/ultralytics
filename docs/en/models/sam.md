@@ -152,7 +152,7 @@ This comparison shows the order-of-magnitude differences in the model sizes and 
 
 Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python
@@ -187,7 +187,7 @@ Auto-annotation is a key feature of SAM, allowing users to generate a [segmentat
 
 To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python

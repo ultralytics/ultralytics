@@ -40,7 +40,7 @@ The FastSAM models are easy to integrate into your Python applications. Ultralyt
 
 To perform object detection on an image, use the `predict` method as shown below:
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python
@@ -87,7 +87,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
 
 Validation of the model on a dataset can be done as follows:
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python

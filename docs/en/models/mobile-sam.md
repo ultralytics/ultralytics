@@ -61,7 +61,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
 ### Point Prompt
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python
@@ -76,7 +76,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
 ### Box Prompt
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python

@@ -58,7 +58,7 @@ The default tracker is BoT-SORT.
 
 To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLOv8n, YOLOv8n-seg and YOLOv8n-pose.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -97,7 +97,7 @@ As can be seen in the above usage, tracking is available for all Detect, Segment
 
 Tracking configuration shares properties with Predict mode, such as `conf`, `iou`, and `show`. For further configurations, refer to the [Predict](../modes/predict.md#inference-arguments) model page.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -120,7 +120,7 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
 
 Ultralytics also allows you to use a modified tracker configuration file. To do this, simply make a copy of a tracker config file (for example, `custom_tracker.yaml`) from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify any configurations (except the `tracker_type`) as per your needs.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

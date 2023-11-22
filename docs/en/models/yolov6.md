@@ -37,7 +37,7 @@ YOLOv6 also provides quantized models for different precisions and models optimi
 
 You can use YOLOv6 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv6 models for training:
 
-!!! Example ""
+!!! Example
 
     This example provides simple training code for YOLOv6. For more options including training settings see [Train](../modes/train.md) mode. For using YOLOv6 with additional modes see [Predict](../modes/predict.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 

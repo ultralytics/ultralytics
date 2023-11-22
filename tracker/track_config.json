@@ -18,8 +18,8 @@
   "frame_rate": 25,
 
   "save_dir": "./outputs/",
-  "save_results": true,
-  "display": false,
+  "save_results": false,
+  "display": true,
 
   "action_recognition": {
     "gathering": {

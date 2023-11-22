@@ -453,6 +453,8 @@ def check_file(file, suffix='', download=True, hard=True):
         else:
             downloads.safe_download(url=url, file=file, unzip=False)
         return file
+    elif file.startswith('clearml://'):
+        return file
     else:  # search
         files = glob.glob(str(ROOT / 'cfg' / '**' / file), recursive=True)  # find file
         if not files and hard:

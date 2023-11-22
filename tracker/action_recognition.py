@@ -38,7 +38,9 @@ class ActionRecognizer:
 
     def recognize_frame_gathering(self, tracks):
         """
-        Recognizes gatherings in a frame.
+        Recognizes gatherings in a frame by computing the normalized euclidean distance between all pairs of detections
+        and conditioning pairs to have similar areas. Then, it finds the independent chains in the graph and computes
+        the bounding box of each crowd.
         Args:
             tracks (list): list of detections in the frame (sv.STrack objects).
         Returns:
@@ -134,7 +136,8 @@ class ActionRecognizer:
         # TODO maybe add more space to the bounding box, not narrow it down to the crowd
         return np.array(crowd_box)
 
-    def annotate_gathering(self, frame, crowd_results):
+    @staticmethod
+    def annotate_gathering(frame, crowd_results):
         """
         Annotates the frame with the results of the gathering recognition. Draws a bounding box around each crowd. Text
         is placed on the bottom right corner of the bounding box.

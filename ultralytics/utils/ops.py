@@ -175,20 +175,22 @@ def nms_rotated(boxes, scores, threshold=0.45):
     if len(boxes) == 0:
         return np.empty((0, ), dtype=np.int8)
 
-    from ultralytics.utils.metrics import batch_probiou
-    sorted_idx = torch.argsort(scores)
-    pick = torch.zeros_like(scores, dtype=torch.int64)
-    counter = 0
-    while len(sorted_idx) > 0:
-        i = sorted_idx[-1]
-        pick[counter] = i
-        counter += 1
-        other = sorted_idx[0:-1]
-        iou = batch_probiou(boxes[i][None], boxes[other]).squeeze(0)
-        sorted_idx = sorted_idx[torch.nonzero(iou <= threshold).squeeze(-1)]
-
-    pick = pick[:counter].clone()
-    return pick
+    from mmcv.ops import nms_rotated
+    return nms_rotated(boxes, scores, threshold)[1]
+    # from ultralytics.utils.metrics import batch_probiou
+    # sorted_idx = torch.argsort(scores)
+    # pick = torch.zeros_like(scores, dtype=torch.int64)
+    # counter = 0
+    # while len(sorted_idx) > 0:
+    #     i = sorted_idx[-1]
+    #     pick[counter] = i
+    #     counter += 1
+    #     other = sorted_idx[0:-1]
+    #     iou = batch_probiou(boxes[i][None], boxes[other]).squeeze(0)
+    #     sorted_idx = sorted_idx[torch.nonzero(iou <= threshold).squeeze(-1)]
+    #
+    # pick = pick[:counter].clone()
+    # return pick
 
 
 def non_max_suppression(

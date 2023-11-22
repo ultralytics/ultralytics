@@ -114,4 +114,3 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
           journal={arXiv preprint arXiv:2306.14289},
           year={2023}
         }
-

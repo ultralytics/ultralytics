@@ -236,9 +236,10 @@ def find_dataset_yaml(path: Path) -> Path:
     assert len(files) == 1, f"Expected 1 YAML file in '{path.resolve()}', but found {len(files)}.\n{files}"
     return files[0]
 
+
 def get_clearml_dataset(clearml_info_string: str):
     """
-    Load in a clearml dataset and fill the internal data_dict with its contents
+    Load in a clearml dataset and fill the internal data_dict with its contents.
 
     Args:
         clearml_info_string: str in format clearml://<dataset_id>
@@ -251,7 +252,7 @@ def get_clearml_dataset(clearml_info_string: str):
     dataset_root_path = Path(dataset.get_local_copy())
 
     # We'll search for the yaml file definition in the dataset
-    yaml_filenames = list(glob.glob(str(dataset_root_path / "*.yaml")) + glob.glob(str(dataset_root_path / "*.yml")))
+    yaml_filenames = list(glob.glob(str(dataset_root_path / '*.yaml')) + glob.glob(str(dataset_root_path / '*.yml')))
     if len(yaml_filenames) > 1:
         raise ValueError('More than one yaml file was found in the dataset root, cannot determine which one contains '
                          'the dataset definition this way.')
@@ -277,6 +278,7 @@ def get_clearml_dataset(clearml_info_string: str):
 
     return data_dict
 
+
 def check_det_dataset(dataset, autodownload=True):
     """
     Download, verify, and/or unzip a dataset if not found locally.
@@ -297,7 +299,7 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Download (optional)
     extract_dir = ''
-    if isinstance(data, str) and data.startswith("clearml://"):
+    if isinstance(data, str) and data.startswith('clearml://'):
         data = get_clearml_dataset(data)
     else:
         if isinstance(data, (str, Path)) and (zipfile.is_zipfile(data) or is_tarfile(data)):

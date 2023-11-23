@@ -636,7 +636,7 @@ class v8OBBLoss(v8DetectionLoss):
 
         # Bbox loss
         if fg_mask.sum():
-            target_bboxes /= stride_tensor
+            target_bboxes[..., :4] /= stride_tensor
             loss[0], loss[2] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
                                               target_scores_sum, fg_mask)
 

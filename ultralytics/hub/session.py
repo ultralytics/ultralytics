@@ -3,7 +3,6 @@
 import threading
 import time
 from http import HTTPStatus
-
 from pathlib import Path
 from time import sleep
 
@@ -55,7 +54,7 @@ class HUBTrainingSession:
             'heartbeat': 300.0, }  # rate limits (seconds)
         self.metrics_queue = {}  # holds metrics for each epoch until upload
         self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
-        
+
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)
 
@@ -69,7 +68,7 @@ class HUBTrainingSession:
         if model_id:
             self.load_model(model_id)  # Load existing model
         else:
-            self.model = self.client.model() # Load empty model
+            self.model = self.client.model()  # Load empty model
 
     def load_model(self, model_id):
         # Initialize model
@@ -115,6 +114,7 @@ class HUBTrainingSession:
     def _parse_identifier(self, identifier):
         """
         Parses the given identifier to determine the type of identifier and extract relevant components.
+
         The method supports different identifier formats:
         - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
         - An identifier containing an API key and a model ID separated by an underscore
@@ -246,6 +246,7 @@ class HUBTrainingSession:
     def _get_failure_message(self, response: requests.Response, retry: int, timeout: int):
         """
         Generate a retry message based on the response status code.
+
         Args:
             response: The HTTP response object.
             retry: The number of retry attempts allowed.
@@ -307,6 +308,7 @@ class HUBTrainingSession:
     def _show_upload_progress(self, content_length: int, response: requests.Response) -> None:
         """
         Display a progress bar to track the upload progress of a file download.
+
         Args:
             content_length (int): The total size of the content to be downloaded in bytes.
             response (requests.Response): The response object from the file download request.

@@ -8,7 +8,6 @@ from typing import Union
 from hub_sdk.config import HUB_WEB_ROOT
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
-
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
 
@@ -75,7 +74,7 @@ class Model(nn.Module):
         self.session = None  # HUB session
         self.task = task  # task type
         model = str(model).strip()  # strip spaces
-        
+
         def get_hub_session(model):
             from ultralytics.hub.session import HUBTrainingSession
 

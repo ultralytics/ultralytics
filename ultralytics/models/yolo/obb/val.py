@@ -117,3 +117,20 @@ class OBBValidator(DetectionValidator):
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names,
                     on_plot=self.on_plot)  # pred
+
+    def pred_to_json(self, predn, filename):
+        """Serialize YOLO predictions to COCO json format."""
+        stem = Path(filename).stem
+        image_id = int(stem) if stem.isnumeric() else stem
+        box = ops.xywhr2xyxyxyxy(torch.cat([predn[:, :4], predn[:, -1:]], dim=-1))
+        for p, b in zip(predn.tolist(), box.tolist()):
+            self.jdict.append({
+                'image_id': image_id,
+                'category_id': self.class_map[int(p[5])],
+                'bbox': [round(x, 3) for x in b],
+                'score': round(p[4], 5),
+                'file_name': stem})
+
+    def eval_json(self, stats):
+        """Evaluates YOLO output in JSON format and returns performance statistics."""
+        return stats

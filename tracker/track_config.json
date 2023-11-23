@@ -13,9 +13,9 @@
   "max_det": 50,
 
   "track_threshold": 0.4,
-  "track_buffer": 100,
-  "match_threshold": 0.9,
-  "frame_rate": 25,
+  "track_buffer": 180,
+  "match_threshold": 0.8,
+  "frame_rate": 1,
 
   "save_dir": "./data/outputs/",
   "display": false

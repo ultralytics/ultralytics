@@ -1,0 +1,96 @@
+MODEL:
+  META_ARCHITECTURE: Baseline
+
+  FREEZE_LAYERS: [ backbone ]
+
+  BACKBONE:
+    NAME: build_resnet_backbone
+    DEPTH: 34x
+    LAST_STRIDE: 1
+    FEAT_DIM: 512
+    NORM: BN
+    WITH_NL: False
+    WITH_IBN: True
+    PRETRAIN: True
+    PRETRAIN_PATH: /export/home/lxy/.cache/torch/checkpoints/resnet34_ibn_a-94bc1577.pth
+
+  HEADS:
+    NUM_CLASSES: 702
+    NAME: EmbeddingHead
+    NORM: BN
+    NECK_FEAT: after
+    EMBEDDING_DIM: 0
+    POOL_LAYER: GeneralizedMeanPooling
+    CLS_LAYER: CircleSoftmax
+    SCALE: 64
+    MARGIN: 0.35
+
+  LOSSES:
+    NAME: ("CrossEntropyLoss", "TripletLoss",)
+
+    CE:
+      EPSILON: 0.1
+      SCALE: 1.
+
+    TRI:
+      MARGIN: 0.0
+      HARD_MINING: True
+      NORM_FEAT: False
+      SCALE: 1.
+
+INPUT:
+  SIZE_TRAIN: [ 256, 128 ]
+  SIZE_TEST: [ 256, 128 ]
+
+  AUTOAUG:
+    ENABLED: True
+    PROB: 0.1
+
+  REA:
+    ENABLED: True
+
+  CJ:
+    ENABLED: True
+
+  PADDING:
+    ENABLED: True
+
+DATALOADER:
+  SAMPLER_TRAIN: NaiveIdentitySampler
+  NUM_INSTANCE: 16
+  NUM_WORKERS: 8
+
+SOLVER:
+  AMP:
+    ENABLED: False
+  MAX_EPOCH: 60
+  OPT: Adam
+  SCHED: CosineAnnealingLR
+  BASE_LR: 0.00035
+  BIAS_LR_FACTOR: 1.
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.0
+  IMS_PER_BATCH: 64
+
+  DELAY_EPOCHS: 30
+  ETA_MIN_LR: 0.00000077
+
+  FREEZE_ITERS: 500
+
+  WARMUP_FACTOR: 0.1
+  WARMUP_ITERS: 1000
+
+  CHECKPOINT_PERIOD: 100
+
+TEST:
+  EVAL_PERIOD: 10
+  IMS_PER_BATCH: 256
+
+DATASETS:
+  NAMES: ("DukeMTMC",)
+  TESTS: ("DukeMTMC",)
+  COMBINEALL: False
+
+CUDNN_BENCHMARK: True
+
+OUTPUT_DIR: projects/FastTune/logs/trial

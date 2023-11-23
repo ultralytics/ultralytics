@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * some extra css to make markdown look similar between github/sphinx
+ */
+
+/*
+ * Below is for install.md:
+ */
+.rst-content code {
+  white-space: pre;
+  border: 0px;
+}
+
+.rst-content th {
+  border: 1px solid #e1e4e5;
+}
+
+.rst-content th p {
+  /* otherwise will be default 24px for regular paragraph */
+  margin-bottom: 0px;
+}
+
+div.section > details {
+  padding-bottom: 1em;
+}

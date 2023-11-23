@@ -1,0 +1,7 @@
+_BASE_: ../Base-bagtricks.yml
+
+DATASETS:
+  NAMES: ("MOT17",)
+  TESTS: ("MOT17",)
+
+OUTPUT_DIR: logs/mot17/bagtricks_R50

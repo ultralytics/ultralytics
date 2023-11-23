@@ -1,0 +1,12 @@
+_BASE_: ../Base-AGW.yml
+
+MODEL:
+  BACKBONE:
+    DEPTH: 101x
+    WITH_IBN: True
+
+DATASETS:
+  NAMES: ("MOT17",)
+  TESTS: ("MOT17",)
+
+OUTPUT_DIR: logs/mot17/agw_R101-ibn

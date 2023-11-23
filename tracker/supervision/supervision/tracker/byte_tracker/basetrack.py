@@ -53,3 +53,7 @@ class BaseTrack:
 
     def mark_removed(self):
         self.state = TrackState.Removed
+
+    @staticmethod
+    def clear_count():
+        BaseTrack._count = 0

@@ -1,0 +1,7 @@
+_BASE_: Base-attribute.yml
+
+DATASETS:
+  NAMES: ("PA100K",)
+  TESTS: ("PA100K",)
+
+OUTPUT_DIR: projects/FastAttr/logs/pa100k/strong_baseline

@@ -1,0 +1,7 @@
+_BASE_: ../Base-SBS.yml
+
+DATASETS:
+  NAMES: ("MOT20",)
+  TESTS: ("MOT20",)
+
+OUTPUT_DIR: logs/mot20/sbs_R50

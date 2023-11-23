@@ -1,0 +1,11 @@
+_BASE_: Base-attribute.yml
+
+DATASETS:
+  NAMES: ("DukeMTMCAttr",)
+  TESTS: ("DukeMTMCAttr",)
+
+MODEL:
+  HEADS:
+    NUM_CLASSES: 23
+
+OUTPUT_DIR: projects/FastAttr/logs/dukemtmc/strong_baseline

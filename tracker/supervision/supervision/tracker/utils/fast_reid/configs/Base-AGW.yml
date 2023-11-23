@@ -1,0 +1,19 @@
+_BASE_: Base-bagtricks.yml
+
+MODEL:
+  BACKBONE:
+    WITH_NL: True
+
+  HEADS:
+    POOL_LAYER: GeneralizedMeanPooling
+
+  LOSSES:
+    NAME: ("CrossEntropyLoss", "TripletLoss")
+    CE:
+      EPSILON: 0.1
+      SCALE: 1.0
+
+    TRI:
+      MARGIN: 0.0
+      HARD_MINING: False
+      SCALE: 1.0

@@ -1,0 +1,104 @@
+MODEL:
+  META_ARCHITECTURE: Baseline
+
+  FREEZE_LAYERS: [ backbone ]
+
+  HEADS:
+    NAME: EmbeddingHead
+    NORM: BN
+    EMBEDDING_DIM: 0
+    NECK_FEAT: after
+    POOL_LAYER: GeneralizedMeanPooling
+    CLS_LAYER: CircleSoftmax
+    SCALE: 64
+    MARGIN: 0.35
+
+  LOSSES:
+    NAME: ("CrossEntropyLoss", "Cosface",)
+
+    CE:
+      EPSILON: 0.
+      SCALE: 1.
+
+    TRI:
+      MARGIN: 0.
+      HARD_MINING: True
+      NORM_FEAT: True
+      SCALE: 1.
+
+    COSFACE:
+      MARGIN: 0.35
+      GAMMA: 64
+      SCALE: 1.
+
+INPUT:
+  SIZE_TRAIN: [ 256, 128 ]
+  SIZE_TEST: [ 256, 128 ]
+
+  FLIP:
+    ENABLED: True
+
+  PADDING:
+    ENABLED: True
+
+  AUGMIX:
+    ENABLED: True
+    PROB: 0.5
+
+  AFFINE:
+    ENABLED: True
+
+  REA:
+    ENABLED: True
+    VALUE: [ 0., 0., 0. ]
+
+  CJ:
+    ENABLED: True
+    BRIGHTNESS: 0.15
+    CONTRAST: 0.1
+    SATURATION: 0.
+    HUE: 0.
+
+DATALOADER:
+  SAMPLER_TRAIN: NaiveIdentitySampler
+  NUM_INSTANCE: 2
+  NUM_WORKERS: 8
+
+SOLVER:
+  AMP:
+    ENABLED: False
+  OPT: Adam
+  SCHED: CosineAnnealingLR
+  MAX_EPOCH: 30
+  BASE_LR: 0.0007
+  BIAS_LR_FACTOR: 1.
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.0005
+  IMS_PER_BATCH: 256
+
+  DELAY_EPOCHS: 5
+  ETA_MIN_LR: 0.0000007
+
+  FREEZE_ITERS: 1000
+  FREEZE_FC_ITERS: 0
+
+  WARMUP_FACTOR: 0.1
+  WARMUP_ITERS: 4000
+
+  CHECKPOINT_PERIOD: 3
+
+DATASETS:
+  NAMES: ("NAIC20_R2", "NAIC20_R1", "NAIC19",)
+  TESTS: ("NAIC20_R2",)
+  RM_LT: True
+
+TEST:
+  EVAL_PERIOD: 3
+  IMS_PER_BATCH: 256
+  RERANK:
+    ENABLED: False
+    K1: 20
+    K2: 3
+    LAMBDA: 0.5
+
+CUDNN_BENCHMARK: True

@@ -1,0 +1,27 @@
+MODEL:
+  TYPE: effnet
+  NUM_CLASSES: 1000
+EN:
+  STEM_W: 48
+  STRIDES: [1, 2, 2, 2, 1, 2, 1]
+  DEPTHS: [3, 5, 5, 7, 7, 9, 3]
+  WIDTHS: [24, 40, 64, 128, 176, 304, 512]
+  EXP_RATIOS: [1, 6, 6, 6, 6, 6, 6]
+  KERNELS: [3, 3, 5, 3, 5, 5, 3]
+  HEAD_W: 2048
+OPTIM:
+  LR_POLICY: cos
+  BASE_LR: 0.1
+  MAX_EPOCH: 100
+  MOMENTUM: 0.9
+  WEIGHT_DECAY: 1e-5
+TRAIN:
+  DATASET: imagenet
+  IM_SIZE: 456
+  BATCH_SIZE: 64
+TEST:
+  DATASET: imagenet
+  IM_SIZE: 522
+  BATCH_SIZE: 48
+NUM_GPUS: 8
+OUT_DIR: .

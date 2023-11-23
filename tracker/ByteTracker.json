@@ -1,0 +1,23 @@
+{
+  "name": "ByteTracker",
+
+  "source_weights_path": "/Users/johnny/Projects/models/detector_best.pt",
+  "source_video_path": "/Users/johnny/Projects/new_samples/output.mp4",
+
+  "device": "cpu",
+  "video_stride": 1,
+
+  "img_size": 1280,
+  "conf_threshold": 0.1,
+  "iou_threshold": 0.8,
+  "max_det": 50,
+
+  "track_threshold": 0.4,
+  "track_buffer": 100,
+  "match_threshold": 0.9,
+  "frame_rate": 25,
+
+
+  "save_dir": "/home/johnny/Projects/small-fast-detector/tracker/outputs/",
+  "display": true
+}

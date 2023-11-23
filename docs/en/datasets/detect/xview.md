@@ -79,7 +79,7 @@ The example showcases the variety and complexity of the data in the xView datase
 
 If you use the xView dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

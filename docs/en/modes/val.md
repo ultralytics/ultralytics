@@ -38,7 +38,7 @@ These are the notable functionalities offered by YOLOv8's Val mode:
 
 Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes. See Arguments section below for a full list of export arguments.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

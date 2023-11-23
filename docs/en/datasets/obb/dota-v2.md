@@ -109,7 +109,7 @@ The dataset's richness offers invaluable insights into object detection challeng
 
 For those leveraging DOTA v2 in their endeavors, it's pertinent to cite the relevant research papers:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

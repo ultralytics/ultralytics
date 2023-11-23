@@ -76,7 +76,7 @@ The example showcases the variety and complexity of the images in the COCO-Seg d
 
 If you use the COCO-Seg dataset in your research or development work, please cite the original COCO paper and acknowledge the extension to COCO-Seg:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

@@ -94,7 +94,7 @@ Researchers can gain invaluable insights into the array of computer vision chall
 
 For those employing Open Images V7 in their work, it's prudent to cite the relevant papers and acknowledge the creators:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

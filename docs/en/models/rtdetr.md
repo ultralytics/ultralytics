@@ -26,13 +26,11 @@ The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models with
 - RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
 - RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
 
-## Usage
+## Usage Examples
 
-You can use RT-DETR for object detection tasks using the `ultralytics` pip package. The following is a sample code snippet showing how to use RT-DETR models for training and inference:
+This example provides simple RT-DETRR training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-!!! Example ""
-
-    This example provides simple inference code for RT-DETR. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using RT-DETR with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
+!!! Example
 
     === "Python"
 
@@ -62,26 +60,20 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
         yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
 
-### Supported Tasks
+## Supported Tasks and Modes
 
-| Model Type          | Pre-trained Weights | Tasks Supported  |
-|---------------------|---------------------|------------------|
-| RT-DETR Large       | `rtdetr-l.pt`       | Object Detection |
-| RT-DETR Extra-Large | `rtdetr-x.pt`       | Object Detection |
+This table presents the model types, the specific pre-trained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.
 
-### Supported Modes
-
-| Mode       | Supported |
-|------------|-----------|
-| Inference  | ✅         |
-| Validation | ✅         |
-| Training   | ✅         |
+| Model Type          | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
+|---------------------|---------------------|----------------------------------------|-----------|------------|----------|--------|
+| RT-DETR Large       | `rtdetr-l.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| RT-DETR Extra-Large | `rtdetr-x.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 
 ## Citations and Acknowledgements
 
 If you use Baidu's RT-DETR in your research or development work, please cite the [original paper](https://arxiv.org/abs/2304.08069):
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

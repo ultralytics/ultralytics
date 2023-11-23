@@ -129,7 +129,7 @@ Segment Anything Model का उपयोग उपस्थित डेटा
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- `सब कुछ का सेगमेंट` के लिए अतिरिक्त तत्वों के लिए अधिक देखें [`Predictor/generate` Reference](../../reference/models/sam/predict.md).
+- `सब कुछ का सेगमेंट` के लिए अतिरिक्त तत्वों के लिए अधिक देखें [`Predictor/generate` Reference](../../../reference/models/sam/predict.md).
 
 ## SAM की तुलना YOLOv8 के बनाम
 

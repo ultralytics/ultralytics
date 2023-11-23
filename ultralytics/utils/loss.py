@@ -580,7 +580,7 @@ class v8OBBLoss(v8DetectionLoss):
                 matches = i == j
                 n = matches.sum()
                 if n:
-                    bboxes = self.regularize_boxes(xyxyxyxy2xywhr(targets[matches, 2:].mul_(scale_tensor)))
+                    bboxes = xyxyxyxy2xywhr(targets[matches, 2:].mul_(scale_tensor))
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 

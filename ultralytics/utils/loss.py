@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh, xyxyxyxy2xywhr
 from ultralytics.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
-from ultralytics.utils.tal_obb import RotatedTaskAlignedAssigner, dist2rbox
+from ultralytics.utils.tal_obb import RotatedTaskAlignedAssigner
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
@@ -616,9 +616,9 @@ class v8OBBLoss(v8DetectionLoss):
                             'as an example.\nSee https://docs.ultralytics.com/datasets/obb/ for help.') from e
 
         # Pboxes
-        # pred_bboxes = torch.cat([dist2bbox(pred_distri, anchor_points, xywh=True), pred_angle],
-        #                         dim=-1)  # xyxy, (b, h*w, 4)
-        pred_bboxes = self.bbox_decode(anchor_points, torch.cat([pred_distri, pred_angle], dim=-1))  # xyxy, (b, h*w, 4)
+        pred_bboxes = torch.cat([dist2bbox(pred_distri, anchor_points, xywh=True), pred_angle],
+                                dim=-1)  # xyxy, (b, h*w, 4)
+        # pred_bboxes = self.bbox_decode(anchor_points, torch.cat([pred_distri, pred_angle], dim=-1))  # xyxy, (b, h*w, 4)
 
         bboxes_for_assigner = pred_bboxes.clone().detach()
         # Only the first four elements need to be scaled
@@ -645,13 +645,3 @@ class v8OBBLoss(v8DetectionLoss):
         loss[2] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
-
-    def bbox_decode(self, anchor_points, pred_distance):
-        """
-        Decode predicted object bounding box coordinates from anchor points and distribution.
-
-        Args:
-            anchor_points (torch.Tensor): Anchor points, (h*w, 2).
-            distance (torch.Tensor): Predicted rotated distance, (bs, h*w, 5).
-        """
-        return dist2rbox(pred_distance, anchor_points)

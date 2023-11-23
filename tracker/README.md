@@ -56,3 +56,17 @@ Execute this code into your terminal
 gdown -O "./tracker/data/traffic_analysis.mov" "https://drive.google.com/uc?id=1qadBd7lgpediafCpL_yedGjQPk-FLK-W"
 ```
 
+## 💻 Bytetrack Parameters
+
+- ***frame_rate***: The frame rate refers to the number of frames processed per second in the video or stream being analyzed. It is crucial for calculating the time window in which an object can be considered lost.
+
+- ***track_buffer***: This parameter is used to calculate the `max_time_lost`. A higher `track_buffer` value allows an object to be considered 'lost' for a longer period before being removed from tracking. It essentially determines the duration for which an object can remain undetected before being declared lost.
+
+- ***track_thresh***: This threshold is used to filter detections for tracking. Only detections with a confidence score higher than this threshold are considered for tracking. It helps in distinguishing between potential tracking objects and false positives.
+
+- ***match_thresh***: The matching threshold is used during the data association step. It determines how closely a detection needs to match an existing track to be considered the same object. A lower threshold means stricter criteria for matching detections to existing tracks.
+
+The `max_time_lost` is calculated based on the `frame_rate` and `track_buffer` using the following formula:
+```math
+Max_time_lost = frame_rate * track_buffer / 30
+ ```

@@ -8,7 +8,7 @@ keywords: instalación de Ultralytics, pip install Ultralytics, instalación de 
 
 Ultralytics ofrece varios métodos de instalación incluyendo pip, conda y Docker. Instala YOLOv8 a través del paquete `ultralytics` de pip para la última versión estable o clonando el [repositorio de GitHub de Ultralytics](https://github.com/ultralytics/ultralytics) para obtener la versión más actualizada. Docker se puede utilizar para ejecutar el paquete en un contenedor aislado, evitando la instalación local.
 
-!!! example "Instalar"
+!!! Example "Instalar"
 
     === "Instalación con Pip (recomendado)"
         Instala el paquete `ultralytics` usando pip o actualiza una instalación existente ejecutando `pip install -U ultralytics`. Visita el Índice de Paquetes de Python (PyPI) para más detalles sobre el paquete `ultralytics`: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
@@ -39,7 +39,7 @@ Ultralytics ofrece varios métodos de instalación incluyendo pip, conda y Docke
         conda install -c conda-forge ultralytics
         ```
 
-        !!! note
+        !!! Note "Nota"
 
             Si estás instalando en un entorno CUDA, la mejor práctica es instalar `ultralytics`, `pytorch` y `pytorch-cuda` en el mismo comando para permitir que el gestor de paquetes de conda resuelva cualquier conflicto, o en su defecto instalar `pytorch-cuda` al final para permitir que sobrescriba el paquete específico de CPU `pytorch` si es necesario.
             ```bash
@@ -78,7 +78,18 @@ Ultralytics ofrece varios métodos de instalación incluyendo pip, conda y Docke
 
 Consulta el archivo [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) de `ultralytics` para ver una lista de dependencias. Ten en cuenta que todos los ejemplos anteriores instalan todas las dependencias requeridas.
 
-!!! tip "Consejo"
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/_a7cVL9hqnk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
+</p>
+
+!!! Tip "Consejo"
 
     Los requisitos de PyTorch varían según el sistema operativo y los requisitos de CUDA, por lo que se recomienda instalar primero PyTorch siguiendo las instrucciones en [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).
 
@@ -90,7 +101,7 @@ Consulta el archivo [requirements.txt](https://github.com/ultralytics/ultralytic
 
 La interfaz de línea de comandos (CLI) de Ultralytics permite el uso de comandos simples de una sola línea sin la necesidad de un entorno de Python. La CLI no requiere personalización ni código Python. Puedes simplemente ejecutar todas las tareas desde el terminal con el comando `yolo`. Consulta la [Guía de CLI](/../usage/cli.md) para aprender más sobre el uso de YOLOv8 desde la línea de comandos.
 
-!!! example
+!!! Example "Ejemplo"
 
     === "Sintaxis"
 
@@ -144,7 +155,7 @@ La interfaz de línea de comandos (CLI) de Ultralytics permite el uso de comando
         yolo cfg
         ```
 
-!!! warning "Advertencia"
+!!! Warning "Advertencia"
 
     Los argumentos deben pasarse como pares `arg=valor`, separados por un signo igual `=` y delimitados por espacios ` ` entre pares. No utilices prefijos de argumentos `--` ni comas `,` entre los argumentos.
 
@@ -160,7 +171,7 @@ La interfaz de Python de YOLOv8 permite una integración perfecta en tus proyect
 
 Por ejemplo, los usuarios pueden cargar un modelo, entrenarlo, evaluar su rendimiento en un conjunto de validación e incluso exportarlo al formato ONNX con solo unas pocas líneas de código. Consulta la [Guía de Python](/../usage/python.md) para aprender más sobre el uso de YOLOv8 dentro de tus proyectos de Python.
 
-!!! example
+!!! Example "Ejemplo"
 
     ```python
     from ultralytics import YOLO

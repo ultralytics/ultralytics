@@ -38,7 +38,7 @@ Présentation d'[Ultralytics](https://ultralytics.com) [YOLOv8](https://github.c
 
 Explorez les Docs YOLOv8, une ressource complète conçue pour vous aider à comprendre et à utiliser ses fonctionnalités et capacités. Que vous soyez un praticien chevronné de l'apprentissage automatique ou nouveau dans le domaine, ce hub vise à maximiser le potentiel de YOLOv8 dans vos projets.
 
-!!! note
+!!! Note "Note"
 
     🚧 Notre documentation multilingue est actuellement en construction et nous travaillons dur pour l'améliorer. Merci de votre patience ! 🙏
 

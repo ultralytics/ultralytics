@@ -8,7 +8,7 @@ keywords: visão computacional, conjuntos de dados, Ultralytics, YOLO, detecçã
 
 A Ultralytics oferece suporte para diversos conjuntos de dados para facilitar tarefas de visão computacional, como detecção, segmentação de instância, estimativa de pose, classificação e rastreamento de múltiplos objetos. Abaixo está uma lista dos principais conjuntos de dados da Ultralytics, seguidos por um resumo de cada tarefa de visão computacional e os respectivos conjuntos de dados.
 
-!!! note
+!!! Note "Nota"
 
     🚧 Nossa documentação multilíngue está atualmente em construção e estamos trabalhando arduamente para melhorá-la. Obrigado pela sua paciência! 🙏
 
@@ -104,7 +104,7 @@ Contribuir com um novo conjunto de dados envolve várias etapas para garantir qu
 
 ### Exemplo de Código para Otimizar e Compactar um Conjunto de Dados
 
-!!! example "Otimizar e Compactar um Conjunto de Dados"
+!!! Example "Otimizar e Compactar um Conjunto de Dados"
 
     === "Python"
 

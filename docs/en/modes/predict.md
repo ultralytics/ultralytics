@@ -25,10 +25,10 @@ In the world of machine learning and computer vision, the process of making sens
 
 ## Real-world Applications
 
-|                                                            Manufacturing                                                            |                                                             Sports                                                              |                                                           Safety                                                            |
-|:-----------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------:|
-| ![Vehicle Spare Parts Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Football Player Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![People Fall Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
-|                                                    Vehicle Spare Parts Detection                                                    |                                                    Football Player Detection                                                    |                                                    People Fall Detection                                                    |
+|                   Manufacturing                   |                        Sports                        |                   Safety                    |
+|:-------------------------------------------------:|:----------------------------------------------------:|:-------------------------------------------:|
+| ![Vehicle Spare Parts Detection][car spare parts] | ![Football Player Detection][football player detect] | ![People Fall Detection][human fall detect] |
+|           Vehicle Spare Parts Detection           |              Football Player Detection               |            People Fall Detection            |
 
 ## Why Use Ultralytics YOLO for Inference?
 
@@ -50,7 +50,7 @@ YOLOv8's predict mode is designed to be robust and versatile, featuring:
 
 Ultralytics YOLO models return either a Python list of `Results` objects, or a memory-efficient Python generator of `Results` objects when `stream=True` is passed to the model during inference:
 
-!!! example "Predict"
+!!! Example "Predict"
 
     === "Return a list with `stream=False`"
         ```python
@@ -92,7 +92,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
 
 YOLOv8 can process different types of input sources for inference, as shown in the table below. The sources include static images, video streams, and various data formats. The table also indicates whether each source can be used in streaming mode with the argument `stream=True` ✅. Streaming mode is beneficial for processing videos or live streams as it creates a generator of results instead of loading all frames into memory.
 
-!!! tip "Tip"
+!!! Tip "Tip"
 
     Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
@@ -115,7 +115,7 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 
 Below are code examples for using each source type:
 
-!!! example "Prediction sources"
+!!! Example "Prediction sources"
 
     === "image"
         Run inference on an image file.
@@ -327,7 +327,7 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
-!!! example
+!!! Example
 
     ```python
     from ultralytics import YOLO
@@ -411,7 +411,7 @@ The below table contains valid Ultralytics video formats.
 
 All Ultralytics `predict()` calls will return a list of `Results` objects:
 
-!!! example "Results"
+!!! Example "Results"
 
     ```python
     from ultralytics import YOLO
@@ -463,7 +463,7 @@ For more details see the `Results` class [documentation](../reference/engine/res
 
 `Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats.
 
-!!! example "Boxes"
+!!! Example "Boxes"
 
     ```python
     from ultralytics import YOLO
@@ -495,13 +495,13 @@ Here is a table for the `Boxes` class methods and properties, including their na
 | `xyxyn`   | Property (`torch.Tensor`) | Return the boxes in xyxy format normalized by original image size. |
 | `xywhn`   | Property (`torch.Tensor`) | Return the boxes in xywh format normalized by original image size. |
 
-For more details see the `Boxes` class [documentation](../reference/engine/results.md).
+For more details see the `Boxes` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Boxes).
 
 ### Masks
 
 `Masks` object can be used index, manipulate and convert masks to segments.
 
-!!! example "Masks"
+!!! Example "Masks"
 
     ```python
     from ultralytics import YOLO
@@ -528,13 +528,13 @@ Here is a table for the `Masks` class methods and properties, including their na
 | `xyn`     | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
 | `xy`      | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
 
-For more details see the `Masks` class [documentation](../reference/engine/results.md).
+For more details see the `Masks` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Masks).
 
 ### Keypoints
 
 `Keypoints` object can be used index, manipulate and normalize coordinates.
 
-!!! example "Keypoints"
+!!! Example "Keypoints"
 
     ```python
     from ultralytics import YOLO
@@ -562,13 +562,13 @@ Here is a table for the `Keypoints` class methods and properties, including thei
 | `xy`      | Property (`torch.Tensor`) | A list of keypoints in pixel coordinates represented as tensors.  |
 | `conf`    | Property (`torch.Tensor`) | Returns confidence values of keypoints if available, else None.   |
 
-For more details see the `Keypoints` class [documentation](../reference/engine/results.md).
+For more details see the `Keypoints` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Keypoints).
 
 ### Probs
 
 `Probs` object can be used index, get `top1` and `top5` indices and scores of classification.
 
-!!! example "Probs"
+!!! Example "Probs"
 
     ```python
     from ultralytics import YOLO
@@ -597,13 +597,13 @@ Here's a table summarizing the methods and properties for the `Probs` class:
 | `top1conf` | Property (`torch.Tensor`) | Confidence of the top 1 class.                                          |
 | `top5conf` | Property (`torch.Tensor`) | Confidences of the top 5 classes.                                       |
 
-For more details see the `Probs` class [documentation](../reference/engine/results.md).
+For more details see the `Probs` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Probs).
 
 ## Plotting Results
 
 You can use the `plot()` method of a `Result` objects to visualize predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object onto a numpy array that can then be shown or saved.
 
-!!! example "Plotting"
+!!! Example "Plotting"
 
     ```python
     from PIL import Image
@@ -647,7 +647,7 @@ Ensuring thread safety during inference is crucial when you are running multiple
 
 When using YOLO models in a multi-threaded application, it's important to instantiate separate model objects for each thread or employ thread-local storage to prevent conflicts:
 
-!!! example "Thread-Safe Inference"
+!!! Example "Thread-Safe Inference"
 
     Instantiate a single model inside each thread for thread-safe inference:
     ```python
@@ -672,7 +672,7 @@ For an in-depth look at thread-safe inference with YOLO models and step-by-step 
 
 Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video frames. This script assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`).
 
-!!! example "Streaming for-loop"
+!!! Example "Streaming for-loop"
 
     ```python
     import cv2
@@ -713,3 +713,9 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
     ```
 
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
+
+[car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
+
+[football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
+
+[human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43

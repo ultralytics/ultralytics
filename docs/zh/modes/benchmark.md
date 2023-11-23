@@ -41,7 +41,7 @@ keywords: Ultralytics, YOLOv8, 基准测试, 速度分析, 准确性分析, mAP5
 
 在所有支持的导出格式上运行YOLOv8n基准测试，包括ONNX、TensorRT等。更多导出参数的完整列表请见下方的参数部分。
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "Python"
 

@@ -180,13 +180,15 @@ def nms_rotated(boxes, scores, threshold=0.45):
     # from ultralytics.utils.metrics import batch_probiou
     # sorted_idx = torch.argsort(scores)
     # pick = torch.zeros_like(scores, dtype=torch.int64)
+    # ious = batch_probiou(boxes, boxes)
     # counter = 0
     # while len(sorted_idx) > 0:
     #     i = sorted_idx[-1]
     #     pick[counter] = i
     #     counter += 1
     #     other = sorted_idx[0:-1]
-    #     iou = batch_probiou(boxes[i][None], boxes[other]).squeeze(0)
+    #     iou = ious[i, other]
+    #     # iou = batch_probiou(boxes[i][None], boxes[other]).squeeze(0)
     #     sorted_idx = sorted_idx[torch.nonzero(iou <= threshold).squeeze(-1)]
     #
     # pick = pick[:counter].clone()

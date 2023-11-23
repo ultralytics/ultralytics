@@ -13,6 +13,7 @@ COPY ultralytics ultralytics
 RUN pip install ./supervision
 
 
+
 # Copy other necessary files or directories
 COPY tracker/ tracker
 

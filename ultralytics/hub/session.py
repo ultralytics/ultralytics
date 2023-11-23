@@ -4,7 +4,6 @@ import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
-from time import sleep
 
 import requests
 from hub_sdk import HUB_WEB_ROOT, HUBClient

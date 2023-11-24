@@ -48,6 +48,9 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-i
 # If you want to change model file
 python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weights "path/to/model.pt"
 
+# If you want to detect specific class (first class and third class)
+python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/model.pt"
+
 # If you dont want to save results
 python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 ```
@@ -58,6 +61,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 - `--device`: Specifies the device `cpu` or `0`
 - `--save-img`: Flag to save the detection results as images.
 - `--weights`: Specifies a different YOLOv8 model file (e.g., `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt`).
+- `--classes`: Specifies the class to be detected
 - `--line-thickness`: Specifies the bounding box thickness
 - `--region-thickness`: Specifies the region boxes thickness
 - `--track-thickness`: Specifies the track line thickness
@@ -73,6 +77,8 @@ Region counting is a computational method utilized to ascertain the quantity of 
 The Region Counter offers the capability to create regions in various formats, such as polygons and rectangles. You have the flexibility to modify region attributes, including coordinates, colors, and other details, as demonstrated in the following code:
 
 ```python
+from shapely.geometry import Polygon
+
 counting_regions = [
     {
         "name": "YOLOv8 Polygon Region",

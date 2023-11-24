@@ -83,11 +83,11 @@ def update_html_links():
     print(f'Total number of links updated: {total_updated_links}')
 
 
-def update_404_title(file_path: Path = SITE / '404.html', new_title: str = "Ultralytics Docs - 404"):
+def update_404_title(file_path: Path = SITE / '404.html', new_title: str = 'Ultralytics Docs - 404'):
     """Update the title of a 404.html file."""
 
     # Read the content of the file
-    with open(file_path, 'r', encoding='utf-8') as file:
+    with open(file_path, encoding='utf-8') as file:
         content = file.read()
 
     # Replace the existing title with the new title

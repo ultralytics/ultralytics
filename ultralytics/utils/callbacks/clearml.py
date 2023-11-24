@@ -87,7 +87,7 @@ def on_train_epoch_end(trainer):
     """Logs debug samples for the first epoch of YOLO training and report current training progress."""
     if task := Task.current_task():
         # Log debug samples
-        if trainer.epoch == 1:
+        if trainer.epoch == 1 and not trainer.args.privacy_mode:
             _log_debug_samples(sorted(trainer.save_dir.glob('train_batch*.jpg')), 'Mosaic')
         # Report the current training progress
         for k, v in trainer.validator.metrics.results_dict.items():
@@ -129,7 +129,8 @@ def on_train_end(trainer):
         for k, v in trainer.validator.metrics.results_dict.items():
             task.get_logger().report_single_value(k, v)
         # Log the final model
-        task.update_output_model(model_path=str(trainer.best), model_name=trainer.args.name, auto_delete_file=False)
+        if not trainer.args.privacy_mode:
+            task.update_output_model(model_path=str(trainer.best), model_name=trainer.args.name, auto_delete_file=False)
 
 
 callbacks = {

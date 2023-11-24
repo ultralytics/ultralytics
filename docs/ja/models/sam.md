@@ -129,7 +129,7 @@ Segment Anything Modelは、トレーニングデータを超えた多くのダ�
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- `すべてをセグメントする` のための追加の引数の詳細は、[`Predictor/generate` リファレンス](../../reference/models/sam/predict.md)を参照してください。
+- `すべてをセグメントする` のための追加の引数の詳細は、[`Predictor/generate` リファレンス](../../../reference/models/sam/predict.md)を参照してください。
 
 ## YOLOv8とのSAM比較
 

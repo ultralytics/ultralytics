@@ -129,7 +129,7 @@ Segment Anything Model (SAM) - это передовая модель сегме
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- Больше дополнительных аргументов для `Сегментации всего изображения` см. [Ссылка на`Predictor/generate`](../../reference/models/sam/predict.md).
+- Больше дополнительных аргументов для `Сегментации всего изображения` см. [Ссылка на`Predictor/generate`](../../../reference/models/sam/predict.md).
 
 ## Сравнение SAM и YOLOv8
 

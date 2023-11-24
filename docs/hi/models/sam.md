@@ -129,11 +129,11 @@ Segment Anything Model का उपयोग उपस्थित डेटा
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- `सब कुछ का सेगमेंट` के लिए अतिरिक्त तत्वों के लिए अधिक देखें [`Predictor/generate` Reference](../../reference/models/sam/predict.md).
+- `सब कुछ का सेगमेंट` के लिए अतिरिक्त तत्वों के लिए अधिक देखें [`Predictor/generate` Reference](../../../reference/models/sam/predict.md).
 
 ## SAM की तुलना YOLOv8 के बनाम
 
-यहां हम SAM के सबसे छोटे मॉडल, SAM-b, की तुलना Ultralytics के सबसे छोटे सेगमेंट मॉडल, [YOLOv8n-seg](../टास्क/सेगमेंट.md), के साथ करते हैं:
+यहां हम SAM के सबसे छोटे मॉडल, SAM-b, की तुलना Ultralytics के सबसे छोटे सेगमेंट मॉडल, [YOLOv8n-seg](../tasks/segment.md), के साथ करते हैं:
 
 | मॉडल                                                               | आकार                        | पैरामीटर             | गति (सीपीयू)            |
 |--------------------------------------------------------------------|-----------------------------|----------------------|-------------------------|

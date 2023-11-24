@@ -129,7 +129,7 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- 更多关于`分割整个图像`的附加参数，请查看[`Predictor/generate` 参考] (../reference/models/sam/predict.md)。
+- 更多关于`分割整个图像`的附加参数，请查看[`Predictor/generate` 参考](../../../reference/models/sam/predict.md)。
 
 ## SAM 与 YOLOv8 的对比
 

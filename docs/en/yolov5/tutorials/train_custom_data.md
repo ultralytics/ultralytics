@@ -32,7 +32,7 @@ YOLOv5 models must be trained on labelled data in order to learn classes of obje
 <details open markdown>
 <summary>Use <a href="https://roboflow.com/?ref=ultralytics">Roboflow</a> to create your dataset in YOLO format 🌟</summary>
 
-!!! Note
+!!! Warning
 
     Roboflow users can use Ultralytics under the [AGPL license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) or can request an [Enterprise license](https://ultralytics.com/license) directly from Ultralytics. Be aware that Roboflow does not provide Ultralytics licenses, and it is the responsibility of the user to ensure appropriate licensing.
 

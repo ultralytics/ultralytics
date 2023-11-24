@@ -254,14 +254,13 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Download (optional)
     extract_dir = ''
-    if isinstance(file, (str, Path)) and (zipfile.is_zipfile(file) or is_tarfile(file)):
+    if zipfile.is_zipfile(file) or is_tarfile(file):
         new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
-        data = find_dataset_yaml(DATASETS_DIR / new_dir)
-        extract_dir, autodownload = data.parent, False
+        file = find_dataset_yaml(DATASETS_DIR / new_dir)
+        extract_dir, autodownload = file.parent, False
 
-    # Read YAML (optional)
-    if isinstance(file, (str, Path)):
-        data = yaml_load(file, append_filename=True)  # dictionary
+    # Read YAML
+    data = yaml_load(file, append_filename=True)  # dictionary
 
     # Checks
     for k in 'train', 'val':

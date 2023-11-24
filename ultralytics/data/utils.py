@@ -18,7 +18,7 @@ from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, TQDM, clean_url, colorstr,
-                               emojis, yaml_load)
+                               emojis, yaml_load, yaml_save)
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes
@@ -403,7 +403,7 @@ class HUBDatasetStats:
     A class for generating HUB dataset JSON and `-hub` dataset directory.
 
     Args:
-        path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip). Default is 'coco128.yaml'.
+        path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip). Default is 'coco8.yaml'.
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
@@ -423,7 +423,7 @@ class HUBDatasetStats:
         ```
     """
 
-    def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
+    def __init__(self, path='coco8.yaml', task='detect', autodownload=False):
         """Initialize class."""
         path = Path(path).resolve()
         LOGGER.info(f'Starting HUB dataset checks for {path}....')
@@ -436,7 +436,11 @@ class HUBDatasetStats:
         else:  # detect, segment, pose
             zipped, data_dir, yaml_path = self._unzip(Path(path))
             try:
-                data = check_det_dataset(yaml_path, autodownload)  # data dict
+                # Load YAML with checks
+                data = yaml_load(yaml_path)
+                data['path'] = ''  # strip path since YAML should be in dataset root for all HUB datasets
+                yaml_save(yaml_path, data)
+                data = check_det_dataset(yaml_path, autodownload)  # dict
                 data['path'] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
             except Exception as e:
                 raise Exception('error/HUB/dataset_stats/init') from e

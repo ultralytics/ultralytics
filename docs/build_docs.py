@@ -87,7 +87,7 @@ def update_page_title(file_path: Path, new_title: str):
     """Update the title of an HTML file."""
 
     # Read the content of the file
-    with open(file_path, 'r', encoding='utf-8') as file:
+    with open(file_path, encoding='utf-8') as file:
         content = file.read()
 
     # Replace the existing title with the new title
@@ -109,7 +109,7 @@ def main():
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
 
     # Update titles
-    update_page_title(SITE / '404.html', new_title="Ultralytics Docs - Not Found")
+    update_page_title(SITE / '404.html', new_title='Ultralytics Docs - Not Found')
 
 
 if __name__ == '__main__':

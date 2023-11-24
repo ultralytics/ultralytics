@@ -285,9 +285,9 @@ def check_det_dataset(dataset, autodownload=True):
     path = Path(extract_dir or data.get('path') or Path(data.get('yaml_file', '')).parent)  # dataset root
     if not path.is_absolute():
         path = (DATASETS_DIR / path).resolve()
-    if not path.exists():
-        LOGGER.info(f"WARNING ⚠️ dataset 'path={path}' error, attempting to set path to {file} parent.")
-        path = Path(file).parent
+    # if not path.exists():
+    #    LOGGER.info(f"WARNING ⚠️ dataset 'path={path}' error, attempting to set path to {file} parent.")
+    #    path = Path(file).parent
 
     # Set paths
     data['path'] = path  # download scripts

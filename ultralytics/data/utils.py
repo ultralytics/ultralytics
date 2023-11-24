@@ -250,18 +250,18 @@ def check_det_dataset(dataset, autodownload=True):
         (dict): Parsed dataset information and paths.
     """
 
-    data = check_file(dataset)
+    file = check_file(dataset)
 
     # Download (optional)
     extract_dir = ''
-    if isinstance(data, (str, Path)) and (zipfile.is_zipfile(data) or is_tarfile(data)):
-        new_dir = safe_download(data, dir=DATASETS_DIR, unzip=True, delete=False)
+    if isinstance(file, (str, Path)) and (zipfile.is_zipfile(file) or is_tarfile(file)):
+        new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
         data = find_dataset_yaml(DATASETS_DIR / new_dir)
         extract_dir, autodownload = data.parent, False
 
     # Read YAML (optional)
-    if isinstance(data, (str, Path)):
-        data = yaml_load(data, append_filename=True)  # dictionary
+    if isinstance(file, (str, Path)):
+        data = yaml_load(file, append_filename=True)  # dictionary
 
     # Checks
     for k in 'train', 'val':
@@ -285,9 +285,13 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Resolve paths
     path = Path(extract_dir or data.get('path') or Path(data.get('yaml_file', '')).parent)  # dataset root
-
     if not path.is_absolute():
         path = (DATASETS_DIR / path).resolve()
+    if not path.exists():
+        LOGGER.info(f"WARNING ⚠️⚠️⚠⚠⚠⚠⚠⚠⚠ dataset 'path={path}' error, attempting to set path to {file} parent.")
+        path = Path(file).parent
+
+    # Set paths
     data['path'] = path  # download scripts
     for k in 'train', 'val', 'test':
         if data.get(k):  # prepend path

@@ -436,10 +436,8 @@ class HUBDatasetStats:
         else:  # detect, segment, pose
             zipped, data_dir, yaml_path = self._unzip(Path(path))
             try:
-                # data = yaml_load(check_yaml(yaml_path))  # data dict
                 data = check_det_dataset(yaml_path, autodownload)  # data dict
-                if zipped:
-                    data['path'] = data_dir
+                data['path'] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
             except Exception as e:
                 raise Exception('error/HUB/dataset_stats/init') from e
 

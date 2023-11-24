@@ -266,12 +266,11 @@ def check_det_dataset(dataset, autodownload=True):
     # Checks
     for k in 'train', 'val':
         if k not in data:
-            if k == 'val' and 'validation' in data:
-                LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
-                data['val'] = data.pop('validation')  # replace 'validation' key with 'val' key
-            else:
+            if k != 'val' or 'validation' not in data:
                 raise SyntaxError(
                     emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs."))
+            LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
+            data['val'] = data.pop('validation')  # replace 'validation' key with 'val' key
     if 'names' not in data and 'nc' not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if 'names' in data and 'nc' in data and len(data['names']) != data['nc']:
@@ -288,7 +287,7 @@ def check_det_dataset(dataset, autodownload=True):
     if not path.is_absolute():
         path = (DATASETS_DIR / path).resolve()
     if not path.exists():
-        LOGGER.info(f"WARNING ⚠️⚠️⚠⚠⚠⚠⚠⚠⚠ dataset 'path={path}' error, attempting to set path to {file} parent.")
+        LOGGER.info(f"WARNING ⚠️ dataset 'path={path}' error, attempting to set path to {file} parent.")
         path = Path(file).parent
 
     # Set paths

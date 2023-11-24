@@ -135,7 +135,7 @@ def run(
 
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 annotator.box_label(box, str(names[cls]), color=colors(cls, True))
-                bbox_center = (box[0]+box[2])/2, (box[1]+box[3])/2  # Bbox center
+                bbox_center = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2  # Bbox center
 
                 track = track_history[track_id]  # Tracking Lines plot
                 track.append((float(bbox_center[0]), float(bbox_center[1])))

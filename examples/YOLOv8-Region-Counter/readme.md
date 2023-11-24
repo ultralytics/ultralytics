@@ -78,11 +78,13 @@ The Region Counter offers the capability to create regions in various formats, s
 
 ```python
 from shapely.geometry import Polygon
+
 counting_regions = [
     {
         "name": "YOLOv8 Polygon Region",
         "polygon": Polygon(
-            [(50, 80), (250, 20), (450, 80), (400, 350), (100, 350)]),  # Polygon with five points (Pentagon)
+            [(50, 80), (250, 20), (450, 80), (400, 350), (100, 350)]
+        ),  # Polygon with five points (Pentagon)
         "counts": 0,
         "dragging": False,
         "region_color": (255, 42, 4),  # BGR Value
@@ -91,7 +93,8 @@ counting_regions = [
     {
         "name": "YOLOv8 Rectangle Region",
         "polygon": Polygon(
-            [(200, 250), (440, 250), (440, 550), (200, 550)]),  # Rectangle with four points
+            [(200, 250), (440, 250), (440, 550), (200, 550)]
+        ),  # Rectangle with four points
         "counts": 0,
         "dragging": False,
         "region_color": (37, 255, 225),  # BGR Value

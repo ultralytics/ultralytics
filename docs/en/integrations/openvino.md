@@ -27,7 +27,7 @@ OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit,
 
 Export a YOLOv8n model to OpenVINO format and run inference with the exported model.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -251,7 +251,7 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md) run this code:
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

@@ -77,7 +77,7 @@ The example showcases the variety and complexity of the data in the SKU-110k dat
 
 If you use the SKU-110k dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

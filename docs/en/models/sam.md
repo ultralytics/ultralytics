@@ -26,6 +26,15 @@ Example images with overlaid masks from our newly introduced dataset, SA-1B. SA-
 
 For an in-depth look at the Segment Anything Model and the SA-1B dataset, please visit the [Segment Anything website](https://segment-anything.com) and check out the research paper [Segment Anything](https://arxiv.org/abs/2304.02643).
 
+## Available Models, Supported Tasks, and Operating Modes
+
+This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
+
+| Model Type | Pre-trained Weights | Tasks Supported                              | Inference | Validation | Training | Export |
+|------------|---------------------|----------------------------------------------|-----------|------------|----------|--------|
+| SAM base   | `sam_b.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| SAM large  | `sam_l.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
 The Segment Anything Model can be employed for a multitude of downstream tasks that go beyond its training data. This includes edge detection, object proposal generation, instance segmentation, and preliminary text-to-mask prediction. With prompt engineering, SAM can swiftly adapt to new tasks and data distributions in a zero-shot manner, establishing it as a versatile and potent tool for all your image segmentation needs.
@@ -122,21 +131,6 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 - More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 
-## Available Models and Supported Tasks
-
-| Model Type | Pre-trained Weights | Tasks Supported       |
-|------------|---------------------|-----------------------|
-| SAM base   | `sam_b.pt`          | Instance Segmentation |
-| SAM large  | `sam_l.pt`          | Instance Segmentation |
-
-## Operating Modes
-
-| Mode       | Supported |
-|------------|-----------|
-| Inference  | ✅         |
-| Validation | ❌         |
-| Training   | ❌         |
-
 ## SAM comparison vs YOLOv8
 
 Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
@@ -152,7 +146,7 @@ This comparison shows the order-of-magnitude differences in the model sizes and 
 
 Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python
@@ -187,7 +181,7 @@ Auto-annotation is a key feature of SAM, allowing users to generate a [segmentat
 
 To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python
@@ -212,7 +206,7 @@ Auto-annotation with pre-trained models can dramatically cut down the time and e
 
 If you find SAM useful in your research or development work, please consider citing our paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

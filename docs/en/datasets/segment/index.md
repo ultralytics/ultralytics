@@ -66,7 +66,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 ## Usage
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -101,7 +101,7 @@ If you have your own dataset and would like to use it for training segmentation 
 
 You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -123,7 +123,7 @@ Auto-annotation is an essential feature that allows you to generate a segmentati
 
 To auto-annotate your dataset using the Ultralytics framework, you can use the `auto_annotate` function as shown below:
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

@@ -269,7 +269,7 @@ class ByteTrack:
         else:
             detections.tracker_id = np.array([], dtype=int)
 
-        return detections
+        return detections, tracks
 
     def update_with_tensors(self, tensors: np.ndarray) -> List[STrack]:
         """

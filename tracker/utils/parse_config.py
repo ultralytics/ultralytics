@@ -33,11 +33,10 @@ class ConfigParser:
         self._save_dir = save_dir / exper_name
 
         # make directory for saving checkpoints and log.
-        if not self.config["display"]:
-            self.save_dir.mkdir(parents=True, exist_ok=True)
+        self.save_dir.mkdir(parents=True, exist_ok=True)
 
-            # save updated config file to the checkpoint dir
-            write_json(self.config, self.save_dir / "config.json")
+        # save updated config file to the checkpoint dir
+        write_json(self.config, self.save_dir / "config.json")
 
     @classmethod
     def from_args(cls, args):

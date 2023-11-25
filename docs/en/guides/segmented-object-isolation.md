@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLO, segmentation, Python, object detection, inference, 
 When working with the results from the [Segment Task](../tasks/segment.md), it's sometimes desirable to extract the isolated objects from the inference results. This guide provides a generic recipe on how to accomplish this using the Ultralytics [Predict Mode](../modes/predict.md).
 
 <p align="center">
-  <img src="https://uce0a21b8340a4e572bf1c6a6a44.previews.dropboxusercontent.com/p/thumb/ACGjOQoKG4T2afPMHovJBcIQg7-RH7lkc2fJa_uqk2iXT3mqvparZbC320Aqz1HQ2cjyHlpDR70XnfWY9E9CBiHxM63QtzzGszcxa_XvLSZWYmcRVxUZQfXC44iE4w7iPlfeE1D-V1pAZREdkEpfEKljKGOvo8q9LuZL1069zhgNrmbaz-jJDrPKU6GRF1-bGgwbm67V803Xr1zarl23dwsFMe36_qli_7C_vy5W4RlAg0eiIROqPOJ5TLHoVGOZUGZxzfElWFfq72YwsIN2CxhqdNhTLtkPb-olyqhAep0HkpLqb6RQb8usu14PpzNN3C_HdD1a5Xv3Vdbr_YJKZCNqfuo0iRVS_kggs6u52tlIl4aPnlodhytSm_dM5h0LH-Oi9VzBz6ImlT5D3HWpMtEvBDS43h78c2Z1ThvzfbycO_-KvCVM_JOV_lRsDkkEbmEeL8-5wLwV7zaCGVheqWADkHHKbz3E9BN0N94ADFs4j2_PnxHUCIfNPoUiBCmj0YN6M7rVvquWKuUziDxqXnv4ZiosxtHAZhH57BK9dw7hfE5nkhOi1PaSpML8Bi1chcbYowUNFpfTQ897km9bIOMRxHhOrKbMN_BQtnM6ec7ABJ999L6iLcsc6AUcp5iUgrXKA0TVpq61EbXoIIvXCo7bVYBKKbUApICnzKXFRcQBE1ykQFRtu79zmtpoFyQsiK2-51Ga9f1p2u8S5eNfgxlvDkYeji4E9fXRzMiyVKR3OhltgewKLMEELKsjBkcX5oUTe93Dor3NGndNIm0pA-vbVFauVZSCVz6bN20_Q2_YDXbpiV6_pp5WsrbYK14_Dlv1FqE0tsc8c-i2sdlyRqdnnq0viqFdc0oVRYZbooz-J25jJwqHMoUpu_IrEvFmD9Z08S8m7TPiNLcT2B3sD5M4YaRBMtxDot4-9EsgAN_FLwcbvMTAGMm3dRYfEYnVuoFnuNFbuhVzfBdqngtAV0VYOk7LVPB1mUB-WPOQAMqZHqSCgOMfZddLnZk1PDUvV4i1zR79z-2nrTI6reYVYIxAearqwWw9GD2FyD9CNMQKLigFbLxTprZYQF_aveHq2RavytqK_KO1BdSXJY5-S3HJ/p.gif">
+  <img src="https://github.com/Burhan-Q/ultralytics/blob/segmnt_masks_ex/docs/en/guides/media/seg-obj/seg-obj-example.gif?raw=true">
 </p>
 
 ## Recipe Walk Through

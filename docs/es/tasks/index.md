@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLOv8, Detección, Segmentación, Clasificación, Estima
 
 YOLOv8 es un marco de trabajo de IA que soporta múltiples **tareas** de visión por computadora. El marco puede usarse para realizar [detección](detect.md), [segmentación](segment.md), [clasificación](classify.md) y estimación de [pose](pose.md). Cada una de estas tareas tiene un objetivo y caso de uso diferente.
 
-!!! note
+!!! Note "Nota"
 
     🚧 Nuestra documentación multilenguaje está actualmente en construcción y estamos trabajando arduamente para mejorarla. ¡Gracias por su paciencia! 🙏
 
@@ -30,25 +30,25 @@ YOLOv8 es un marco de trabajo de IA que soporta múltiples **tareas** de visión
 
 La detección es la tarea principal soportada por YOLOv8. Implica detectar objetos en una imagen o cuadro de video y dibujar cuadros delimitadores alrededor de ellos. Los objetos detectados se clasifican en diferentes categorías basadas en sus características. YOLOv8 puede detectar múltiples objetos en una sola imagen o cuadro de video con alta precisión y velocidad.
 
-[Ejemplos de Detección](detect.md){ .md-button .md-button--primary}
+[Ejemplos de Detección](detect.md){ .md-button }
 
 ## [Segmentación](segment.md)
 
 La segmentación es una tarea que implica segmentar una imagen en diferentes regiones basadas en el contenido de la imagen. A cada región se le asigna una etiqueta basada en su contenido. Esta tarea es útil en aplicaciones tales como segmentación de imágenes y imágenes médicas. YOLOv8 utiliza una variante de la arquitectura U-Net para realizar la segmentación.
 
-[Ejemplos de Segmentación](segment.md){ .md-button .md-button--primary}
+[Ejemplos de Segmentación](segment.md){ .md-button }
 
 ## [Clasificación](classify.md)
 
 La clasificación es una tarea que implica clasificar una imagen en diferentes categorías. YOLOv8 puede usarse para clasificar imágenes basadas en su contenido. Utiliza una variante de la arquitectura EfficientNet para realizar la clasificación.
 
-[Ejemplos de Clasificación](classify.md){ .md-button .md-button--primary}
+[Ejemplos de Clasificación](classify.md){ .md-button }
 
 ## [Pose](pose.md)
 
 La detección de pose/puntos clave es una tarea que implica detectar puntos específicos en una imagen o cuadro de video. Estos puntos se conocen como puntos clave y se utilizan para rastrear el movimiento o la estimación de la pose. YOLOv8 puede detectar puntos clave en una imagen o cuadro de video con alta precisión y velocidad.
 
-[Ejemplos de Pose](pose.md){ .md-button .md-button--primary}
+[Ejemplos de Pose](pose.md){ .md-button }
 
 ## Conclusión
 

@@ -40,34 +40,34 @@ Ultralytics YOLOv8不仅仅是另一个目标检测模型；它是一个多功�
 
 训练模式用于在自定义数据集上训练YOLOv8模型。在此模式下，模型将使用指定的数据集和超参数进行训练。训练过程包括优化模型的参数，使其能够准确预测图像中对象的类别和位置。
 
-[训练示例](train.md){ .md-button .md-button--primary}
+[训练示例](train.md){ .md-button }
 
 ## [验证](val.md)
 
 验证模式用于训练YOLOv8模型后进行验证。在此模式下，模型在验证集上进行评估，以衡量其准确性和泛化能力。此模式可以用来调整模型的超参数，以改善其性能。
 
-[验证示例](val.md){ .md-button .md-button--primary}
+[验证示例](val.md){ .md-button }
 
 ## [预测](predict.md)
 
 预测模式用于使用训练好的YOLOv8模型在新图像或视频上进行预测。在此模式下，模型从检查点文件加载，用户可以提供图像或视频以执行推理。模型预测输入图像或视频中对象的类别和位置。
 
-[预测示例](predict.md){ .md-button .md-button--primary}
+[预测示例](predict.md){ .md-button }
 
 ## [导出](export.md)
 
 导出模式用于将YOLOv8模型导出为可用于部署的格式。在此模式下，模型被转换为其他软件应用或硬件设备可以使用的格式。当模型部署到生产环境时，此模式十分有用。
 
-[导出示例](export.md){ .md-button .md-button--primary}
+[导出示例](export.md){ .md-button }
 
 ## [跟踪](track.md)
 
 跟踪模式用于使用YOLOv8模型实时跟踪对象。在此模式下，模型从检查点文件加载，用户可以提供实时视频流以执行实时对象跟踪。此模式适用于监控系统或自动驾驶汽车等应用。
 
-[跟踪示例](track.md){ .md-button .md-button--primary}
+[跟踪示例](track.md){ .md-button }
 
 ## [基准](benchmark.md)
 
 基准模式用于对YOLOv8的各种导出格式的速度和准确性进行评估。基准提供了有关导出格式大小、其针对目标检测、分割和姿态的`mAP50-95`指标，或针对分类的`accuracy_top5`指标，以及每张图像跨各种导出格式（如ONNX、OpenVINO、TensorRT等）的推理时间（以毫秒为单位）的信息。此信息可以帮助用户根据对速度和准确性的具体需求，选择最佳的导出格式。
 
-[基准示例](benchmark.md){ .md-button .md-button--primary}
+[基准示例](benchmark.md){ .md-button }

@@ -20,23 +20,22 @@ Without further ado, let's dive in!
 
 ## Setup
 
-- Your annotations should be in the [YOLO detection format](https://docs.ultralytics.com/datasets/detect/).
+- Your annotations should be in the [YOLO detection format](../datasets/detect/index.md).
 
 - This guide assumes that annotation files are locally available.
 
-    - For our demonstration, we use the [Fruit Detection](https://www.kaggle.com/datasets/lakshaytyagi01/fruit-detection/code) dataset.
+- For our demonstration, we use the [Fruit Detection](https://www.kaggle.com/datasets/lakshaytyagi01/fruit-detection/code) dataset.
+    - This dataset contains a total of 8479 images.
+    - It includes 6 class labels, each with its total instance counts listed below.
 
-        - This dataset contains a total of 8479 images.
-        - It includes 6 class labels, each with its total instance counts listed below.
-
-          | Class Label | Instance Count |
-          |:------------|:--------------:|
-          | Apple       |      7049      |
-          | Grapes      |      7202      |
-          | Pineapple   |      1613      |
-          | Orange      |     15549      |
-          | Banana      |      3536      |
-          | Watermelon  |      1976      |
+| Class Label | Instance Count |
+|:------------|:--------------:|
+| Apple       |      7049      |
+| Grapes      |      7202      |
+| Pineapple   |      1613      |
+| Orange      |     15549      |
+| Banana      |      3536      |
+| Watermelon  |      1976      |
 
 - Necessary Python packages include:
 
@@ -52,7 +51,7 @@ Without further ado, let's dive in!
     - The Ultralytics library: `pip install -U ultralytics`. Alternatively, you can clone the official [repo](https://github.com/ultralytics/ultralytics).
     - Scikit-learn, pandas, and PyYAML: `pip install -U scikit-learn pandas pyyaml`.
 
-2. Verify that your annotations are in the [YOLO detection format](https://docs.ultralytics.com/datasets/detect/).
+2. Verify that your annotations are in the [YOLO detection format](../datasets/detect/index.md).
 
     - For this tutorial, all annotation files are found in the `Fruit-Detection/labels` directory.
 

@@ -12,7 +12,7 @@ La clasificación de imágenes es la tarea más sencilla de las tres y consiste 
 
 La salida de un clasificador de imágenes es una única etiqueta de clase y una puntuación de confianza. La clasificación de imágenes es útil cuando solo necesita saber a qué clase pertenece una imagen y no necesita conocer dónde están ubicados los objetos de esa clase o cuál es su forma exacta.
 
-!!! tip "Consejo"
+!!! Tip "Consejo"
 
     Los modelos YOLOv8 Classify utilizan el sufijo `-cls`, por ejemplo, `yolov8n-cls.pt` y están preentrenados en [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
@@ -39,7 +39,7 @@ Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/c
 
 Entrena el modelo YOLOv8n-cls en el conjunto de datos MNIST160 durante 100 épocas con un tamaño de imagen de 64. Para obtener una lista completa de argumentos disponibles, consulte la página de [Configuración](/../usage/cfg.md).
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -76,7 +76,7 @@ El formato del conjunto de datos de clasificación YOLO puede encontrarse en det
 
 Validar la exactitud del modelo YOLOv8n-cls entrenado en el conjunto de datos MNIST160. No es necesario pasar ningún argumento ya que el `modelo` retiene su `data` y argumentos como atributos del modelo.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -103,7 +103,7 @@ Validar la exactitud del modelo YOLOv8n-cls entrenado en el conjunto de datos MN
 
 Usar un modelo YOLOv8n-cls entrenado para realizar predicciones en imágenes.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -130,7 +130,7 @@ Ver detalles completos del modo `predict` en la página de [Predicción](https:/
 
 Exportar un modelo YOLOv8n-cls a un formato diferente como ONNX, CoreML, etc.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 

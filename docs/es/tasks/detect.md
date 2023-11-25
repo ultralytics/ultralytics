@@ -23,7 +23,7 @@ La salida de un detector de objetos es un conjunto de cajas delimitadoras que en
   <strong>Ver:</strong> Detección de Objetos con Modelo Preentrenado YOLOv8 de Ultralytics.
 </p>
 
-!!! tip "Consejo"
+!!! Tip "Consejo"
 
     Los modelos YOLOv8 Detect son los modelos predeterminados de YOLOv8, es decir, `yolov8n.pt` y están preentrenados en [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
@@ -50,7 +50,7 @@ Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/c
 
 Entrena a YOLOv8n en el conjunto de datos COCO128 durante 100 épocas a tamaño de imagen 640. Para una lista completa de argumentos disponibles, consulta la página [Configuración](/../usage/cfg.md).
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -86,7 +86,7 @@ El formato del conjunto de datos de detección de YOLO se puede encontrar en det
 
 Valida la precisión del modelo YOLOv8n entrenado en el conjunto de datos COCO128. No es necesario pasar ningún argumento, ya que el `modelo` retiene sus datos de `entrenamiento` y argumentos como atributos del modelo.
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -115,7 +115,7 @@ Valida la precisión del modelo YOLOv8n entrenado en el conjunto de datos COCO12
 
 Utiliza un modelo YOLOv8n entrenado para realizar predicciones en imágenes.
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
 
@@ -142,7 +142,7 @@ Consulta los detalles completos del modo `predict` en la página [Predicción](h
 
 Exporta un modelo YOLOv8n a un formato diferente como ONNX, CoreML, etc.
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
 

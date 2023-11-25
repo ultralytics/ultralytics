@@ -26,7 +26,7 @@ Installation errors can arise due to various reasons, such as incompatible versi
 
 - Consider using virtual environments to avoid conflicts.
 
-- Follow the [official installation guide](https://docs.ultralytics.com/quickstart/) step by step.
+- Follow the [official installation guide](../quickstart.md) step by step.
 
 Additionally, here are some common installation issues users have encountered, along with their respective solutions:
 
@@ -263,7 +263,7 @@ Engaging with a community of like-minded individuals can significantly enhance y
 
 ### Official Documentation and Resources
 
-**Ultralytics YOLOv8 Docs**: The [official documentation](https://docs.ultralytics.com/) provides a comprehensive overview of YOLOv8, along with guides on installation, usage, and troubleshooting.
+**Ultralytics YOLOv8 Docs**: The [official documentation](../index.md) provides a comprehensive overview of YOLOv8, along with guides on installation, usage, and troubleshooting.
 
 These resources should provide a solid foundation for troubleshooting and improving your YOLOv8 projects, as well as connecting with others in the YOLOv8 community.
 

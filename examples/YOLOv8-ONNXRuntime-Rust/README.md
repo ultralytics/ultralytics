@@ -103,11 +103,11 @@ cargo run --release -- --cuda --width 480 --height 640 --model <MODEL> --source 
 
 And also:
 
-`--conf`: confidence threshold \[default: 0.3\]  
-`--iou`: iou threshold in NMS \[default: 0.45\]  
-`--kconf`: confidence threshold of keypoint \[default: 0.55\]  
-`--plot`: plot inference result and save  
-`--profile`: show time consumed in each stage  
+`--conf`: confidence threshold \[default: 0.3\]
+`--iou`: iou threshold in NMS \[default: 0.45\]
+`--kconf`: confidence threshold of keypoint \[default: 0.55\]
+`--plot`: plot inference result and save
+`--profile`: show time consumed in each stage
 
 you can check out all CLI arguments by:
 

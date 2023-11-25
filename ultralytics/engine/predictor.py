@@ -27,7 +27,6 @@ Usage - formats:
                               yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolov8n_paddle_model       # PaddlePaddle
 """
-import os
 import platform
 import threading
 from pathlib import Path
@@ -344,7 +343,7 @@ class BasePredictor:
         if self.dataset.mode == 'image':
             cv2.imwrite(save_path, im0)
         else:  # 'video' or 'stream'
-            frames_path = f'{save_path.split(".", 1)[0]}_frames'
+            frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[idx] != save_path:  # new video
                 Path(frames_path).mkdir(parents=True, exist_ok=True)
                 self.vid_path[idx] = save_path
@@ -364,7 +363,7 @@ class BasePredictor:
             self.vid_writer[idx].write(im0)
 
             # Write frame
-            cv2.imwrite(f'{frames_path}{os.sep}{self.vid_frame[idx]}.jpg', im0)
+            cv2.imwrite(f'{frames_path}{self.vid_frame[idx]}.jpg', im0)
             self.vid_frame[idx] += 1
 
     def run_callbacks(self, event: str):

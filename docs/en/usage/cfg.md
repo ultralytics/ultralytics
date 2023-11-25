@@ -49,7 +49,7 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 |--------|------------|-------------------------------------------------|
 | `task` | `'detect'` | YOLO task, i.e. detect, segment, classify, pose |
 
-[Tasks Guide](../tasks/index.md){ .md-button .md-button--primary}
+[Tasks Guide](../tasks/index.md){ .md-button }
 
 #### Modes
 
@@ -66,7 +66,7 @@ YOLO models can be used in different modes depending on the specific problem you
 |--------|-----------|---------------------------------------------------------------|
 | `mode` | `'train'` | YOLO mode, i.e. train, val, predict, export, track, benchmark |
 
-[Modes Guide](../modes/index.md){ .md-button .md-button--primary}
+[Modes Guide](../modes/index.md){ .md-button }
 
 ## Train
 
@@ -122,7 +122,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `val`             | `True`   | validate/test during training                                                                  |
 | `plots`           | `False`  | save plots and images during train/val                                                         |
 
-[Train Guide](../modes/train.md){ .md-button .md-button--primary}
+[Train Guide](../modes/train.md){ .md-button }
 
 ## Predict
 
@@ -161,7 +161,7 @@ Visualization arguments:
 | `show_boxes`  | `bool`        | `True`  | show prediction boxes                                           |
 | `line_width`  | `None or int` | `None`  | line width of the bounding boxes. Scaled to image size if None. |
 
-[Predict Guide](../modes/predict.md){ .md-button .md-button--primary}
+[Predict Guide](../modes/predict.md){ .md-button }
 
 ## Val
 
@@ -184,7 +184,7 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 | `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
 
-[Val Guide](../modes/val.md){ .md-button .md-button--primary}
+[Val Guide](../modes/val.md){ .md-button }
 
 ## Export
 
@@ -204,7 +204,7 @@ Export settings for YOLO models encompass configurations and options related to 
 | `workspace` | `4`             | TensorRT: workspace size (GB)                        |
 | `nms`       | `False`         | CoreML: add NMS                                      |
 
-[Export Guide](../modes/export.md){ .md-button .md-button--primary}
+[Export Guide](../modes/export.md){ .md-button }
 
 ## Augmentation
 

@@ -26,25 +26,25 @@ YOLOv8 是一个支持多种计算机视觉**任务**的 AI 框架。该框架�
 
 检测是 YOLOv8 支持的主要任务。它涉及在图像或视频帧中检测对象并围绕它们绘制边界框。侦测到的对象根据其特征被归类到不同的类别。YOLOv8 能够在单个图像或视频帧中检测多个对象，具有高准确性和速度。
 
-[检测示例](detect.md){ .md-button .md-button--primary}
+[检测示例](detect.md){ .md-button }
 
 ## [分割](segment.md)
 
 分割是一项涉及将图像分割成基于图像内容的不同区域的任务。每个区域根据其内容被分配一个标签。该任务在应用程序中非常有用，如图像分割和医学成像。YOLOv8 使用 U-Net 架构的变体来执行分割。
 
-[分割示例](segment.md){ .md-button .md-button--primary}
+[分割示例](segment.md){ .md-button }
 
 ## [分类](classify.md)
 
 分类是一项涉及将图像归类为不同类别的任务。YOLOv8 可用于根据图像内容对图像进行分类。它使用 EfficientNet 架构的变体来执行分类。
 
-[分类示例](classify.md){ .md-button .md-button--primary}
+[分类示例](classify.md){ .md-button }
 
 ## [姿态](pose.md)
 
 姿态/关键点检测是一项涉及在图像或视频帧中检测特定点的任务。这些点被称为关键点，用于跟踪移动或姿态估计。YOLOv8 能够在图像或视频帧中准确迅速地检测关键点。
 
-[姿态示例](pose.md){ .md-button .md-button--primary}
+[姿态示例](pose.md){ .md-button }
 
 ## 结论
 

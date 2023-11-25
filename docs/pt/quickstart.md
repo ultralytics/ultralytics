@@ -163,7 +163,7 @@ A interface de linha de comando (CLI) do Ultralytics permite comandos simples de
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[Guia CLI](/../usage/cli.md){ .md-button .md-button--primary}
+[Guia CLI](/../usage/cli.md){ .md-button }
 
 ## Use o Ultralytics com Python
 

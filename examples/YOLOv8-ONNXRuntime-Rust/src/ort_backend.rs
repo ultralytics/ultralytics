@@ -147,7 +147,7 @@ impl OrtBackend {
             _ => (OrtEP::Cpu, ExecutionProvider::CPU(Default::default())),
         };
 
-        // build session again withe new provider
+        // build session again with the new provider
         let session = SessionBuilder::new(&env)?
             // .with_optimization_level(ort::GraphOptimizationLevel::Level3)?
             .with_execution_providers([provider])?

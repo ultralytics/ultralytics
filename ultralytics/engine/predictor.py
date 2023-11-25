@@ -170,7 +170,7 @@ class BasePredictor:
         if self.args.save or self.args.show:  # Add bbox to image
             plot_args = {
                 'line_width': self.args.line_width,
-                'boxes': self.args.boxes,
+                'boxes': self.args.show_boxes,
                 'conf': self.args.show_conf,
                 'labels': self.args.show_labels}
             if not self.args.retina_masks:

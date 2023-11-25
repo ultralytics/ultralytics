@@ -339,33 +339,38 @@ Below are code examples for using each source type:
     model.predict('bus.jpg', save=True, imgsz=320, conf=0.5)
     ```
 
-All supported arguments:
+Inference arguments:
 
-| Name            | Type           | Default                | Description                                                                    |
-|-----------------|----------------|------------------------|--------------------------------------------------------------------------------|
-| `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                          |
-| `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                      |
-| `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
-| `imgsz`         | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                           |
-| `half`          | `bool`         | `False`                | use half precision (FP16)                                                      |
-| `device`        | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
-| `show`          | `bool`         | `False`                | show results if possible                                                       |
-| `save`          | `bool`         | `False`                | save images with results                                                       |
-| `save_txt`      | `bool`         | `False`                | save results as .txt file                                                      |
-| `save_conf`     | `bool`         | `False`                | save results with confidence scores                                            |
-| `save_crop`     | `bool`         | `False`                | save cropped images with results                                               |
-| `hide_labels`   | `bool`         | `False`                | hide labels                                                                    |
-| `hide_conf`     | `bool`         | `False`                | hide confidence scores                                                         |
-| `max_det`       | `int`          | `300`                  | maximum number of detections per image                                         |
-| `vid_stride`    | `bool`         | `False`                | video frame-rate stride                                                        |
-| `stream_buffer` | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False)     |
-| `line_width`    | `None or int`  | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
-| `visualize`     | `bool`         | `False`                | visualize model features                                                       |
-| `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                                 |
-| `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                             |
-| `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                         |
-| `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                    |
-| `boxes`         | `bool`         | `True`                 | Show boxes in segmentation predictions                                         |
+| Name            | Type           | Default                | Description                                                                |
+|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
+| `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
+| `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
+| `imgsz`         | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                       |
+| `half`          | `bool`         | `False`                | use half precision (FP16)                                                  |
+| `device`        | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                   |
+| `max_det`       | `int`          | `300`                  | maximum number of detections per image                                     |
+| `vid_stride`    | `bool`         | `False`                | video frame-rate stride                                                    |
+| `stream_buffer` | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False) |
+| `visualize`     | `bool`         | `False`                | visualize model features                                                   |
+| `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
+| `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
+| `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
+| `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+
+Visualization arguments:
+
+| Name          | Type          | Default | Description                                                     |
+|---------------|---------------|---------|-----------------------------------------------------------------|
+| `show`        | `bool`        | `False` | show predicted images and videos if environment allows          |
+| `save`        | `bool`        | `False` | save predicted images and videos                                |
+| `save_txt`    | `bool`        | `False` | save results as `.txt` file                                     |
+| `save_conf`   | `bool`        | `False` | save results with confidence scores                             |
+| `save_crop`   | `bool`        | `False` | save cropped images with results                                |
+| `show_labels` | `bool`        | `True`  | show prediction labels, i.e. 'person'                           |
+| `show_conf`   | `bool`        | `True`  | show prediction confidence, i.e. '0.99'                         |
+| `show_boxes`  | `bool`        | `True`  | show prediction boxes                                           |
+| `line_width`  | `None or int` | `None`  | line width of the bounding boxes. Scaled to image size if None. |
 
 ## Image and Video Formats
 

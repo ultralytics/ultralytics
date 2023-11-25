@@ -45,8 +45,8 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
         'ultralytics/assets/bus.jpg'
         'ultra.ytics/assets/zidane.jpg'
         ```
-        
-        This is helpful for rapid testing with the `predict()` method. 
+
+        This is helpful for rapid testing with the `predict()` method.
 
     For additional information about Segmentation Models, visit the [Segement Task](../tasks/segment.md/#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
 
@@ -59,7 +59,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
     for r in res:
         img = np.copy(r.orig_img)
         img_name = Path(r.path).stem # source image base-name
-        
+
         # Iterate each object contour (multiple detections)
         for ci,c in enumerate(r):
             # (1) Get detection class name
@@ -71,7 +71,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
     2.  To learn more about `predict()` results see [Working with Results for Predict Mode](../modes/predict.md/#working-with-results)
 
     ??? info "For-Loop"
-    
+
         A single image will only iterate the first loop once. A single image with only a single detection will iterate each loop _only_ once.
 
     ---
@@ -89,7 +89,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
     contour = contour.astype(np.int32)
     # (3) Reshaping
     contour = contour.reshape(-1, 1, 2)
-    
+
 
     # Draw contour onto mask
     _ = cv.drawContours(b_mask,
@@ -101,7 +101,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
     ```
 
     1.  For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md/#masks).
-    
+
     2.  Here, the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
 
     3.  The OpenCV `drawContours()` function expects contours to have a shape of `[N, 1, 2]` expand section below for more details.
@@ -150,7 +150,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
             ```py
             # Create 3-channel mask
             mask3ch = cv.cvtColor(b_mask, cv.COLOR_GRAY2BGR)
-            
+
             # Isolate object with binary mask
             isolated = cv.bitwise_and(mask3ch, img)
 
@@ -161,7 +161,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
                 - First, the binary mask is converted from a single channel image to a 3-channel image. This is required for the next step where the mask and source image are combined, since they will need to have the same dimensions.
 
                 - The original image and 3-channel binary mask are combined using the OpenCV function `bitwise_and()` which keeps only pixel values `> 0` from <u>both images</u>. Since the mask pixels are `> 0` <u>only</u> inside the contour, the only pixels from the original image that remain are the ones overlapping the contour.
-        
+
             ### Isolate with Black Pixels: Sub-options
 
             ??? info "Full-size Image"
@@ -209,7 +209,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
             ??? question "How does this work?"
 
                 - Using the Numpy `dstack()` function (array stacking along depth-axis) in conjunction with the binary mask generated, will create an image with four channels. This allows for all pixels outside of the object contour to be transparent when saving as a `PNG` file.
-        
+
             ### Isolate with Transparent Pixels: Sub-options
 
             ??? info "Full-size Image"
@@ -252,12 +252,12 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
     ---
 
-1. <u>What to do next is entirely left to the you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown. 
+1. <u>What to do next is entirely left to the you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
     ??? example "Example Final Step"
-    
+
         ```py
         # Save isolated object to file
         _ = cv.imwrite(f'{img_name}_{label}-{ci}.png', iso_crop)
@@ -283,7 +283,7 @@ res = m.predict()#(3)!
 for r in res:
     img = np.copy(r.orig_img)
     img_name = Path(r.path).stem
-    
+
     # iterate each object contour (6)
     for ci,c in enumerate(r):
         label = c.names[c.boxes.cls.tolist().pop()]
@@ -293,7 +293,7 @@ for r in res:
         # Create contour mask (1)
         contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
         _ = cv.drawContours(b_mask, [contour], -1, (255, 255, 255), cv.FILLED)
-        
+
         # Choose one:
 
         # OPTION-1: Isolate object with black background

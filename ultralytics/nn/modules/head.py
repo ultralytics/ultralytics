@@ -126,44 +126,17 @@ class OBB(Detect):
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
         angle = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
-        shape = x[0].shape  # BCHW
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        # NOTE: set `angle` as an attribute so that `decode_bboxes` could use it.
+        if not self.training:
+            self.angle = angle
+        x = self.detect(self, x)
         if self.training:
             return x, angle
-        elif self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
-            self.shape = shape
+        return torch.cat([x, angle], 1) if self.export else (torch.cat([x[0], angle], 1), (x[1], angle))
 
-        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
-        if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
-            box = x_cat[:, :self.reg_max * 4]
-            cls = x_cat[:, self.reg_max * 4:]
-        else:
-            box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-        dbox = dist2rbox(torch.cat([self.dfl(box), angle], dim=1), self.anchors.unsqueeze(0), dim=1)[:, :4] * self.strides
-
-        if self.export and self.format in ('tflite', 'edgetpu'):
-            # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
-            # https://github.com/ultralytics/yolov5/blob/0c8de3fca4a702f8ff5c435e67f378d1fce70243/models/tf.py#L307-L309
-            # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
-            img_h = shape[2] * self.stride[0]
-            img_w = shape[3] * self.stride[0]
-            img_size = torch.tensor([img_w, img_h, img_w, img_h], device=dbox.device).reshape(1, 4, 1)
-            dbox /= img_size
-
-        y = torch.cat((dbox, cls.sigmoid()), 1)
-        return torch.cat([y, angle], 1) if self.export else (torch.cat([y, angle], 1), (x, angle))
-
-    @staticmethod
-    def logits2degrees(x):
-        """
-        Convert 0-1 theta to -180 to +180 degrees.
-
-        Overlap from -216 to +216 degrees to avoid edge effects.
-        """
-        return (x.sigmoid() * 1.2 - 0.6) * 360
-
+    def decode_bboxes(self, bboxes):
+        """Decode horizontal bounding boxes."""
+        return dist2rbox(torch.cat([self.dfl(bboxes), self.angle], dim=1), self.anchors.unsqueeze(0), dim=1)[:, :4] * self.strides
 
 class Pose(Detect):
     """YOLOv8 Pose head for keypoints models."""

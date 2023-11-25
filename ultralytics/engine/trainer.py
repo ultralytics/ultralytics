@@ -250,11 +250,7 @@ class BaseTrainer:
         batch_size = self.batch_size // max(world_size, 1)
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')
         if RANK in (-1, 0):
-            # NOTE: Reset batch size cause obb validation on DOTA while training could easily get OOM during calculating val loss.
-            self.test_loader = self.get_dataloader(self.testset,
-                                                   batch_size=batch_size if self.args.task == 'obb' else batch_size * 2,
-                                                   rank=-1,
-                                                   mode='val')
+            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val')
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))

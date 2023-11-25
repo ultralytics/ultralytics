@@ -86,7 +86,7 @@ impl YOLOv8 {
         };
 
         // class names
-        let names = engine.names().unwrap_or(vec!["Unkonwn".to_string()]);
+        let names = engine.names().unwrap_or(vec!["Unknown".to_string()]);
 
         // color palette
         let mut rng = thread_rng();

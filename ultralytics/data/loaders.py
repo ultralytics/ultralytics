@@ -67,7 +67,7 @@ class LoadStreams:
         self.mode = 'stream'
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
-        
+
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.fps = [0] * n  # frames per second

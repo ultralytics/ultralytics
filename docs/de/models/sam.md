@@ -129,7 +129,7 @@ Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- Weitere zusätzliche Argumente für `Alles segmentieren` finden Sie in der [`Predictor/generate` Referenz](../../reference/models/sam/predict.md).
+- Weitere zusätzliche Argumente für `Alles segmentieren` finden Sie in der [`Predictor/generate` Referenz](../../../reference/models/sam/predict.md).
 
 ## Vergleich von SAM und YOLOv8
 

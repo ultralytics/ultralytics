@@ -163,7 +163,7 @@ Ultralytics предлагает различные методы установ�
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[Руководство по CLI](/../usage/cli.md){ .md-button .md-button--primary}
+[Руководство по CLI](/../usage/cli.md){ .md-button }
 
 ## Использование Ultralytics с Python
 

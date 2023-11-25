@@ -71,8 +71,8 @@ CFG_INT_KEYS = ('epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic'
                 'line_width', 'workspace', 'nbs', 'save_period')
 CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'rect', 'cos_lr', 'overlap_mask', 'val',
                  'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf', 'save_crop',
-                 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks', 'boxes', 'keras',
-                 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile')
+                 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks', 'show_boxes',
+                 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile')
 
 
 def cfg2dict(cfg):
@@ -164,6 +164,9 @@ def _handle_deprecation(custom):
     """Hardcoded function to handle deprecated config keys."""
 
     for key in custom.copy().keys():
+        if key == 'boxes':
+            deprecation_warn(key, 'show_boxes')
+            custom['show_boxes'] = custom.pop('boxes')
         if key == 'hide_labels':
             deprecation_warn(key, 'show_labels')
             custom['show_labels'] = custom.pop('hide_labels') == 'False'

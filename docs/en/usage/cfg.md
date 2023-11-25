@@ -6,7 +6,7 @@ keywords: YOLOv8, settings, hyperparameters, YOLO CLI commands, YOLO tasks, YOLO
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings and hyperparameters can affect the model's behavior at various stages of the model development process, including training, validation, and prediction.
 
-YOLOv8 `yolo` CLI commands use the following syntax:
+Ultralytics commands use the following syntax:
 
 !!! Example
 
@@ -30,11 +30,11 @@ YOLOv8 `yolo` CLI commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify, pose]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
-- `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
-- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
+- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md))
+- `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md))
+- `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
-For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml` GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
+Default `ARG` values are defined on this page from the `cfg/defaults.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 #### Tasks
 
@@ -49,7 +49,7 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 |--------|------------|-------------------------------------------------|
 | `task` | `'detect'` | YOLO task, i.e. detect, segment, classify, pose |
 
-[Tasks Guide](../tasks/index.md){ .md-button .md-button--primary}
+[Tasks Guide](../tasks/index.md){ .md-button }
 
 #### Modes
 
@@ -66,7 +66,7 @@ YOLO models can be used in different modes depending on the specific problem you
 |--------|-----------|---------------------------------------------------------------|
 | `mode` | `'train'` | YOLO mode, i.e. train, val, predict, export, track, benchmark |
 
-[Modes Guide](../modes/index.md){ .md-button .md-button--primary}
+[Modes Guide](../modes/index.md){ .md-button }
 
 ## Train
 
@@ -79,7 +79,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training                    |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                                  |
-| `imgsz`           | `640`    | size of input images as integer or w,h                                                         |
+| `imgsz`           | `640`    | size of input images as integer                                                                |
 | `save`            | `True`   | save train checkpoints and predict results                                                     |
 | `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if < 1)                                               |
 | `cache`           | `False`  | True/ram, disk or False. Use cache for data loading                                            |
@@ -120,39 +120,48 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                                     |
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                                               |
 | `val`             | `True`   | validate/test during training                                                                  |
+| `plots`           | `False`  | save plots and images during train/val                                                         |
 
-[Train Guide](../modes/train.md){ .md-button .md-button--primary}
+[Train Guide](../modes/train.md){ .md-button }
 
 ## Predict
 
 The prediction settings for YOLO models encompass a range of hyperparameters and configurations that influence the model's performance, speed, and accuracy during inference on new data. Careful tuning and experimentation with these settings are essential to achieve optimal performance for a specific task. Key settings include the confidence threshold, Non-Maximum Suppression (NMS) threshold, and the number of classes considered. Additional factors affecting the prediction process are input data size and format, the presence of supplementary features such as masks or multiple labels per box, and the particular task the model is employed for.
 
-| Key             | Value                  | Description                                                                    |
-|-----------------|------------------------|--------------------------------------------------------------------------------|
-| `source`        | `'ultralytics/assets'` | source directory for images or videos                                          |
-| `conf`          | `0.25`                 | object confidence threshold for detection                                      |
-| `iou`           | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
-| `half`          | `False`                | use half precision (FP16)                                                      |
-| `device`        | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
-| `show`          | `False`                | show results if possible                                                       |
-| `save`          | `False`                | save images with results                                                       |
-| `save_txt`      | `False`                | save results as .txt file                                                      |
-| `save_conf`     | `False`                | save results with confidence scores                                            |
-| `save_crop`     | `False`                | save cropped images with results                                               |
-| `show_labels`   | `True`                 | show object labels in plots                                                    |
-| `show_conf`     | `True`                 | show object confidence scores in plots                                         |
-| `max_det`       | `300`                  | maximum number of detections per image                                         |
-| `vid_stride`    | `False`                | video frame-rate stride                                                        |
-| `stream_buffer` | `bool`                 | buffer all streaming frames (True) or return the most recent frame (False)     |
-| `line_width`    | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
-| `visualize`     | `False`                | visualize model features                                                       |
-| `augment`       | `False`                | apply image augmentation to prediction sources                                 |
-| `agnostic_nms`  | `False`                | class-agnostic NMS                                                             |
-| `retina_masks`  | `False`                | use high-resolution segmentation masks                                         |
-| `classes`       | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                    |
-| `boxes`         | `True`                 | Show boxes in segmentation predictions                                         |
+Inference arguments:
 
-[Predict Guide](../modes/predict.md){ .md-button .md-button--primary}
+| Name            | Type           | Default                | Description                                                                |
+|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
+| `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
+| `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
+| `imgsz`         | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                       |
+| `half`          | `bool`         | `False`                | use half precision (FP16)                                                  |
+| `device`        | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                   |
+| `max_det`       | `int`          | `300`                  | maximum number of detections per image                                     |
+| `vid_stride`    | `bool`         | `False`                | video frame-rate stride                                                    |
+| `stream_buffer` | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False) |
+| `visualize`     | `bool`         | `False`                | visualize model features                                                   |
+| `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
+| `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
+| `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
+| `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+
+Visualization arguments:
+
+| Name          | Type          | Default | Description                                                     |
+|---------------|---------------|---------|-----------------------------------------------------------------|
+| `show`        | `bool`        | `False` | show predicted images and videos if environment allows          |
+| `save`        | `bool`        | `False` | save predicted images and videos                                |
+| `save_txt`    | `bool`        | `False` | save results as `.txt` file                                     |
+| `save_conf`   | `bool`        | `False` | save results with confidence scores                             |
+| `save_crop`   | `bool`        | `False` | save cropped images with results                                |
+| `show_labels` | `bool`        | `True`  | show prediction labels, i.e. 'person'                           |
+| `show_conf`   | `bool`        | `True`  | show prediction confidence, i.e. '0.99'                         |
+| `show_boxes`  | `bool`        | `True`  | show prediction boxes                                           |
+| `line_width`  | `None or int` | `None`  | line width of the bounding boxes. Scaled to image size if None. |
+
+[Predict Guide](../modes/predict.md){ .md-button }
 
 ## Val
 
@@ -160,6 +169,9 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 
 | Key           | Value   | Description                                                        |
 |---------------|---------|--------------------------------------------------------------------|
+| `data`        | `None`  | path to data file, i.e. coco128.yaml                               |
+| `imgsz`       | `640`   | size of input images as integer                                    |
+| `batch`       | `16`    | number of images per batch (-1 for AutoBatch)                      |
 | `save_json`   | `False` | save results to JSON file                                          |
 | `save_hybrid` | `False` | save hybrid version of labels (labels + additional predictions)    |
 | `conf`        | `0.001` | object confidence threshold for detection                          |
@@ -168,11 +180,11 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 | `half`        | `True`  | use half precision (FP16)                                          |
 | `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
 | `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
-| `plots`       | `False` | show plots during training                                         |
+| `plots`       | `False` | save plots and images during train/val                             |
 | `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
 
-[Val Guide](../modes/val.md){ .md-button .md-button--primary}
+[Val Guide](../modes/val.md){ .md-button }
 
 ## Export
 
@@ -186,13 +198,13 @@ Export settings for YOLO models encompass configurations and options related to 
 | `optimize`  | `False`         | TorchScript: optimize for mobile                     |
 | `half`      | `False`         | FP16 quantization                                    |
 | `int8`      | `False`         | INT8 quantization                                    |
-| `dynamic`   | `False`         | ONNX/TF/TensorRT: dynamic axes                       |
-| `simplify`  | `False`         | ONNX: simplify model                                 |
+| `dynamic`   | `False`         | ONNX/TensorRT: dynamic axes                          |
+| `simplify`  | `False`         | ONNX/TensorRT: simplify model                        |
 | `opset`     | `None`          | ONNX: opset version (optional, defaults to latest)   |
 | `workspace` | `4`             | TensorRT: workspace size (GB)                        |
 | `nms`       | `False`         | CoreML: add NMS                                      |
 
-[Export Guide](../modes/export.md){ .md-button .md-button--primary}
+[Export Guide](../modes/export.md){ .md-button }
 
 ## Augmentation
 

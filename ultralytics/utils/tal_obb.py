@@ -70,7 +70,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         return mask_pos, align_metric, overlaps
 
 
-def dist2rbox(pred_distance, anchor_points):
+def dist2rbox(pred_distance, anchor_points, dim=-1):
     """
     Decode predicted object bounding box coordinates from anchor points and distribution.
 
@@ -78,15 +78,10 @@ def dist2rbox(pred_distance, anchor_points):
         anchor_points (torch.Tensor): Anchor points, (h*w, 2).
         distance (torch.Tensor): Predicted rotated distance, (bs, h*w, 5).
     """
-    pred_distance, angle = pred_distance.split([4, 1], dim=-1)
+    lt, rb, angle = pred_distance.split([2, 2, 1], dim=dim)
     cos, sin = torch.cos(angle), torch.sin(angle)
-    r_matrix = torch.cat([cos, -sin, sin, cos], dim=-1)
-    # (bs, h*w, 2, 2)
-    r_matrix = r_matrix.view(*angle.shape[:-1], 2, 2)
-    wh = pred_distance[..., :2] + pred_distance[..., 2:]
-
-    # (bs, h*w, 2)
-    offset = (pred_distance[..., 2:] - pred_distance[..., :2]) / 2
-    offset = torch.matmul(r_matrix, offset[..., None]).squeeze(-1)
-    xy = anchor_points[..., :2] + offset
-    return torch.cat([xy, wh, angle], dim=-1)
+    # (bs, h*w, 1)
+    xf, yf = ((rb - lt) / 2).split([1, 1], dim=dim)
+    x, y = xf * cos - yf * sin, xf * sin + yf * cos
+    xy = torch.cat([x, y], dim=dim) + anchor_points
+    return torch.cat([xy, lt + rb, angle], dim=dim)

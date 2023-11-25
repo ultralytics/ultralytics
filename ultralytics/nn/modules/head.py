@@ -58,7 +58,7 @@ class Detect(nn.Module):
             cls = x_cat[:, self.reg_max * 4:]
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-        dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+        dbox = self.decode_bboxes(box)
 
         if self.export and self.format in ('tflite', 'edgetpu'):
             # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
@@ -67,7 +67,7 @@ class Detect(nn.Module):
             img_h = shape[2] * self.stride[0]
             img_w = shape[3] * self.stride[0]
             img_size = torch.tensor([img_w, img_h, img_w, img_h], device=dbox.device).reshape(1, 4, 1)
-            dbox /= img_size
+            dbox[:, :4] /= img_size
 
         y = torch.cat((dbox, cls.sigmoid()), 1)
         return y if self.export else (y, x)
@@ -80,6 +80,10 @@ class Detect(nn.Module):
         for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
             b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+
+    def decode_bboxes(self, bboxes):
+        """Decode bounding boxes."""
+        return dist2bbox(self.dfl(bboxes), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
 
 
 class Segment(Detect):
@@ -137,10 +141,7 @@ class OBB(Detect):
             cls = x_cat[:, self.reg_max * 4:]
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-        dbox = dist2rbox(
-            torch.cat([self.dfl(box), angle], dim=1).permute(0, 2, 1),
-            self.anchors.unsqueeze(0).permute(0, 2, 1))
-        dbox = dbox[..., :4].permute(0, 2, 1) * self.strides
+        dbox = dist2rbox(torch.cat([self.dfl(box), angle], dim=1), self.anchors.unsqueeze(0), dim=1)[:, :4] * self.strides
 
         if self.export and self.format in ('tflite', 'edgetpu'):
             # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:

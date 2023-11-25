@@ -107,10 +107,9 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+        self.vid_frame = 0
         self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
-
-        self.vid_frame = 1
 
     def preprocess(self, im):
         """

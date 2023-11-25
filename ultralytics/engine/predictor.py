@@ -27,6 +27,7 @@ Usage - formats:
                               yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolov8n_paddle_model       # PaddlePaddle
 """
+import os
 import platform
 import threading
 from pathlib import Path
@@ -98,7 +99,7 @@ class BasePredictor:
         self.imgsz = None
         self.device = None
         self.dataset = None
-        self.vid_path, self.vid_writer = None, None
+        self.vid_path, self.vid_writer, self.vid_frame = None, None, None
         self.plotted_img = None
         self.data_path = None
         self.source_type = None
@@ -107,7 +108,6 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
-        self.vid_frame = 0
         self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
 
@@ -222,7 +222,9 @@ class BasePredictor:
                                                   len(self.dataset) > 1000 or  # images
                                                   any(getattr(self.dataset, 'video_flag', [False]))):  # videos
             LOGGER.warning(STREAM_WARNING)
-        self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
+        self.vid_path = [None] * self.dataset.bs
+        self.vid_writer = [None] * self.dataset.bs
+        self.vid_frame = [None] * self.dataset.bs
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
@@ -239,12 +241,8 @@ class BasePredictor:
             self.setup_source(source if source is not None else self.args.source)
 
             # Check if save_dir/ label file exists
-            if self.args.save:
-                (self.save_dir).mkdir(parents=True, exist_ok=True)
-                if self.args.save_txt:
-                    (self.save_dir / 'labels').mkdir(parents=True, exist_ok=True)
-                if self.args.save_frames:
-                    (self.save_dir / 'images').mkdir(parents=True, exist_ok=True)
+            if self.args.save or self.args.save_txt:
+                (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
             # Warmup model
             if not self.done_warmup:
@@ -346,27 +344,28 @@ class BasePredictor:
         if self.dataset.mode == 'image':
             cv2.imwrite(save_path, im0)
         else:  # 'video' or 'stream'
-            if self.args.save_frames:
-                frame_path = Path(save_path).parent / 'images' / Path(save_path).name.replace(
-                    '.mp4', f'_{self.vid_frame}.jpg')
-                self.vid_frame += 1
-                cv2.imwrite(str(frame_path), im0)
-            else:  # gather frames into a video file
-                if self.vid_path[idx] != save_path:  # new video
-                    self.vid_frame = 0
-                    self.vid_path[idx] = save_path
-                    if isinstance(self.vid_writer[idx], cv2.VideoWriter):
-                        self.vid_writer[idx].release()  # release previous video writer
-                    if vid_cap:  # video
-                        fps = int(vid_cap.get(cv2.CAP_PROP_FPS))  # integer required, floats produce error in MP4 codec
-                        w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                        h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                    else:  # stream
-                        fps, w, h = 30, im0.shape[1], im0.shape[0]
-                    suffix, fourcc = ('.mp4', 'avc1') if MACOS else ('.avi', 'WMV2') if WINDOWS else ('.avi', 'MJPG')
-                    save_path = str(Path(save_path).with_suffix(suffix))
-                    self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
-                self.vid_writer[idx].write(im0)
+            frames_path = f'{save_path.split(".", 1)[0]}_frames'
+            if self.vid_path[idx] != save_path:  # new video
+                Path(frames_path).mkdir(parents=True, exist_ok=True)
+                self.vid_path[idx] = save_path
+                self.vid_frame[idx] = 0
+                if isinstance(self.vid_writer[idx], cv2.VideoWriter):
+                    self.vid_writer[idx].release()  # release previous video writer
+                if vid_cap:  # video
+                    fps = int(vid_cap.get(cv2.CAP_PROP_FPS))  # integer required, floats produce error in MP4 codec
+                    w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                else:  # stream
+                    fps, w, h = 30, im0.shape[1], im0.shape[0]
+                suffix, fourcc = ('.mp4', 'avc1') if MACOS else ('.avi', 'WMV2') if WINDOWS else ('.avi', 'MJPG')
+                self.vid_writer[idx] = cv2.VideoWriter(str(Path(save_path).with_suffix(suffix)),
+                                                       cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
+            # Write video
+            self.vid_writer[idx].write(im0)
+
+            # Write frame
+            cv2.imwrite(f'{frames_path}{os.sep}{self.vid_frame[idx]}.jpg', im0)
+            self.vid_frame[idx] += 1
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

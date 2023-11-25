@@ -163,7 +163,7 @@ Die Befehlszeilenschnittstelle (CLI) von Ultralytics ermöglicht einfache Einzei
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI-Leitfaden](/../usage/cli.md){ .md-button .md-button--primary}
+[CLI-Leitfaden](/../usage/cli.md){ .md-button }
 
 ## Ultralytics mit Python verwenden
 

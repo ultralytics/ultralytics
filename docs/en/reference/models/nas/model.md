@@ -9,6 +9,8 @@ keywords: Ultralytics, NAS model, NAS guide, machine learning, model documentati
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/nas/model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/nas/model.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/nas/model.py) 🛠️. Thank you 🙏!
 
----
+<br><br>
+
 ## ::: ultralytics.models.nas.model.NAS
+
 <br><br>

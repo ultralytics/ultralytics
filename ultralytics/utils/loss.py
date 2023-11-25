@@ -96,19 +96,26 @@ class BboxLoss(nn.Module):
                 F.cross_entropy(pred_dist, tr.view(-1), reduction='none').view(tl.shape) * wr).mean(-1, keepdim=True)
 
 
-class RotatedBboxLoss(nn.Module):
+class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses during training."""
 
-    def __init__(self):
+    def __init__(self, reg_max, use_dfl=False):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
-        super().__init__()
+        super().__init__(reg_max, use_dfl)
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
         """IoU loss."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
         iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
-        loss_dfl = torch.tensor(0.0).to(pred_dist.device)
+
+        # DFL loss
+        if self.use_dfl:
+            target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]), self.reg_max)
+            loss_dfl = self._df_loss(pred_dist[fg_mask].view(-1, self.reg_max + 1), target_ltrb[fg_mask]) * weight
+            loss_dfl = loss_dfl.sum() / target_scores_sum
+        else:
+            loss_dfl = torch.tensor(0.0).to(pred_dist.device)
 
         return loss_iou, loss_dfl
 
@@ -551,7 +558,7 @@ class v8OBBLoss(v8DetectionLoss):
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
-        self.bbox_loss = RotatedBboxLoss().to(self.device)
+        self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl).to(self.device)
 
     def regularize_boxes(self, boxes, start_angle=-90):
         import numpy as np
@@ -618,7 +625,7 @@ class v8OBBLoss(v8DetectionLoss):
         # Pboxes
         # pred_bboxes = torch.cat([dist2bbox(pred_distri, anchor_points, xywh=True), pred_angle],
         #                         dim=-1)  # xyxy, (b, h*w, 4)
-        pred_bboxes = self.bbox_decode(anchor_points, torch.cat([pred_distri, pred_angle], dim=-1))  # xyxy, (b, h*w, 4)
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri, pred_angle)  # xyxy, (b, h*w, 4)
 
         bboxes_for_assigner = pred_bboxes.clone().detach()
         # Only the first four elements need to be scaled
@@ -646,7 +653,7 @@ class v8OBBLoss(v8DetectionLoss):
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def bbox_decode(self, anchor_points, pred_distance):
+    def bbox_decode(self, anchor_points, pred_dist, pred_angle):
         """
         Decode predicted object bounding box coordinates from anchor points and distribution.
 
@@ -654,4 +661,8 @@ class v8OBBLoss(v8DetectionLoss):
             anchor_points (torch.Tensor): Anchor points, (h*w, 2).
             distance (torch.Tensor): Predicted rotated distance, (bs, h*w, 5).
         """
+        if self.use_dfl:
+            b, a, c = pred_dist.shape  # batch, anchors, channels
+            pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
+        pred_distance = torch.cat([pred_dist, pred_angle], dim=-1)
         return dist2rbox(pred_distance, anchor_points)

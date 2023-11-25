@@ -614,7 +614,7 @@ class OBB(BaseTensor):
 
     @property
     def xywhr(self):
-        """Return the boxes in xywhr format."""
+        """Return the rotated boxes in xywhr format."""
         return self.data[:, :5]
 
     @property
@@ -635,5 +635,5 @@ class OBB(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxyxyxy(self):
-        """Return the boxes in xyxyxyxy format normalized by original image size."""
+        """Return the boxes in xyxyxyxy format."""
         return ops.xywhr2xyxyxyxy(self.xywhr)

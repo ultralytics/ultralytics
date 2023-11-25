@@ -70,7 +70,8 @@ class LoadStreams:
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.imgs, self.fps, self.frames, self.threads, self.shape = [[] for _ in range(n)], [0] * n, [0] * n, [None] * n, [[] for _ in range(n)]
+        self.imgs, self.fps, self.frames, self.threads, self.shape = [
+            [] for _ in range(n)], [0] * n, [0] * n, [None] * n, [[] for _ in range(n)]
         self.caps = [None] * n  # video capture objects
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream

@@ -118,7 +118,7 @@ class VideoProcessor:
                 for i, frame in enumerate(pbar := tqdm(frame_generator, total=self.video_info.total_frames)):
                     pbar.set_description(f"[FPS: {fps_counter.value():.2f}] ")
                     if i % self.video_stride == 0:
-                        annotated_frame = self.process_frame(frame, i)
+                        annotated_frame = self.process_frame(frame)
                         sink.write_frame(annotated_frame)
 
                         # Store results
@@ -142,10 +142,8 @@ class VideoProcessor:
             for i, frame in enumerate(pbar := tqdm(frame_generator, total=self.video_info.total_frames)):
                 pbar.set_description(f"[FPS: {fps_counter.value():.2f}] ")
                 if i % self.video_stride == 0:
-                    annotated_frame = self.process_frame(frame, i, fps)
+                    annotated_frame = self.process_frame(frame, i, fps_counter.value())
                     cv2.imshow("Processed Video", annotated_frame)
-                    k = cv2.waitKey(int(self.wait_time * self.slow_factor))  # dd& 0xFF
-                    if k == ord('q'):  # stop playing
 
                     # Store results
                     if self.save_results:
@@ -159,6 +157,7 @@ class VideoProcessor:
                             data_dict["y2"].append(track.tlbr[3])
 
                     fps_counter.step()
+                    k = cv2.waitKey(int(self.wait_time * self.slow_factor))  # dd& 0xFF
 
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         break
@@ -172,6 +171,7 @@ class VideoProcessor:
                     elif k == ord('i'):
                         slow_factor = self.slow_factor + 1
                         print(slow_factor)
+                        break
             cv2.destroyAllWindows()
 
         # Print time and fps
@@ -199,23 +199,18 @@ class VideoProcessor:
             max_det=self.max_det
         )[0]
         detections = sv.Detections.from_ultralytics(results)
-        if config["name"] == "ByteTracker":
-            detections = self.tracker.update_with_detections(detections)
         detections, tracks = self.tracker.update_with_detections(detections)
         ar_results = self.action_recognizer.recognize_frame(tracks)
 
-        else:
-            detections = self.tracker.update_with_detections(detections, frame)
-        return self.annotate_frame(frame, detections, ar_results)
+        return self.annotate_frame(frame, detections, ar_results,  frame_number, fps)
 
-        return self.annotate_frame(frame, detections, frame_number, fps)
-
-    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections, frame_number: int, fps: float) -> np.ndarray:
-    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections, crowd_detections=None) -> np.ndarray:
+    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections, crowd_detections: None, frame_number: int,
+                       fps: float) -> np.ndarray:
         annotated_frame = frame.copy()
 
         labels = [f"#{tracker_id} {self.class_names[class_id]} {confidence:.2f}"
-                  for tracker_id, class_id, confidence in zip(detections.tracker_id, detections.class_id, detections.confidence)]
+                  for tracker_id, class_id, confidence in
+                  zip(detections.tracker_id, detections.class_id, detections.confidence)]
         annotated_frame = self.trace_annotator.annotate(annotated_frame, detections)
         annotated_frame = self.box_annotator.annotate(annotated_frame, detections, labels)
         annotated_frame = self.action_recognizer.annotate(annotated_frame, crowd_detections)
@@ -230,7 +225,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c",
         "--config",
-        default="./SmileByTracker.json",
+        default="./ByteTracker.json",
         type=str,
         help="config file path (default: None)",
     )

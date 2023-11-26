@@ -230,7 +230,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c",
         "--config",
-        default="./SmileByTracker.json",
+        default="./ByteTracker.json",
         type=str,
         help="config file path (default: None)",
     )

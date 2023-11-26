@@ -1,5 +1,7 @@
 #![allow(clippy::type_complexity)]
 
+use std::io::{Read, Write};
+
 pub mod cli;
 pub mod model;
 pub mod ort_backend;
@@ -61,3 +63,57 @@ pub const SKELETON: [(usize, usize); 16] = [
     (13, 15),
     (14, 16),
 ];
+
+pub fn check_font(font: &str) -> rusttype::Font<'static> {
+    // check then load font
+
+    // ultralytics font path
+    let font_path_config = match dirs::config_dir() {
+        Some(mut d) => {
+            d.push("Ultralytics");
+            d.push(font);
+            d
+        }
+        None => panic!("Unsupported operating system. Now support Linux, MacOS, Windows."),
+    };
+
+    // current font path
+    let font_path_current = std::path::PathBuf::from(font);
+
+    // check font
+    let font_path = if font_path_config.exists() {
+        font_path_config
+    } else if font_path_current.exists() {
+        font_path_current
+    } else {
+        println!("Downloading font...");
+        let source_url = "https://ultralytics.com/assets/Arial.ttf";
+        let resp = ureq::get(source_url)
+            .timeout(std::time::Duration::from_secs(500))
+            .call()
+            .unwrap_or_else(|err| panic!("> Failed to download font: {source_url}: {err:?}"));
+
+        // read to buffer
+        let mut buffer = vec![];
+        let total_size = resp
+            .header("Content-Length")
+            .and_then(|s| s.parse::<u64>().ok())
+            .unwrap();
+        let _reader = resp
+            .into_reader()
+            .take(total_size)
+            .read_to_end(&mut buffer)
+            .unwrap();
+
+        // save
+        let _path = std::fs::File::create(font).unwrap();
+        let mut writer = std::io::BufWriter::new(_path);
+        writer.write_all(&buffer).unwrap();
+        println!("Font saved at: {:?}", font_path_current.display());
+        font_path_current
+    };
+
+    // load font
+    let buffer = std::fs::read(font_path).unwrap();
+    rusttype::Font::try_from_vec(buffer).unwrap()
+}

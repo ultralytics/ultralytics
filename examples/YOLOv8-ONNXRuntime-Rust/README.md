@@ -101,6 +101,37 @@ Set `--height` and `--width` to do dynamic image size inference. (Note that the 
 cargo run --release -- --cuda --width 480 --height 640 --model <MODEL> --source <SOURCE>
 ```
 
+Set `--profile` to check time consumed in each stage.(Note that the model usually needs to take 1~3 times dry run to warmup. Make sure to run enought times to evalute the result.)
+```
+cargo run --release -- --trt --fp16 --profile --model <MODEL> --source <SOURCE>
+```
+
+Results: (yolov8m.onnx, batch=1, 3 times, trt, fp16, RTX 3060Ti)
+```
+==> 0
+[Model Preprocess]: 12.75788ms
+[ORT H2D]: 237.118µs
+[ORT Inference]: 507.895469ms
+[ORT D2H]: 191.655µs
+[Model Inference]: 508.34589ms
+[Model Postprocess]: 1.061122ms
+==> 1
+[Model Preprocess]: 13.658655ms
+[ORT H2D]: 209.975µs
+[ORT Inference]: 5.12372ms
+[ORT D2H]: 182.389µs
+[Model Inference]: 5.530022ms
+[Model Postprocess]: 1.04851ms
+==> 2
+[Model Preprocess]: 12.475332ms
+[ORT H2D]: 246.127µs
+[ORT Inference]: 5.048432ms
+[ORT D2H]: 187.117µs
+[Model Inference]: 5.493119ms
+[Model Postprocess]: 1.040906ms
+```
+
+
 And also:
 
 `--conf`: confidence threshold \[default: 0.3\]
@@ -109,9 +140,7 @@ And also:
 
 `--kconf`: confidence threshold of keypoint \[default: 0.55\]
 
-`--plot`: plot inference result and save
-
-`--profile`: show time consumed in each stage
+`--plot`: plot inference result with random RGB color and save
 
 you can check out all CLI arguments by:
 
@@ -125,11 +154,11 @@ cargo run --release -- --help
 
 ### Classification
 
-Running dynamic ONNX model on `CPU` with image size `--height 224 --width 224`.
+Running dynamic shape ONNX model on `CPU` with image size `--height 224 --width 224`.
 Saving plotted image in `runs` directory.
 
 ```
-cargo run --release -- --model ../assets/weights/yolov8m-cls-dyn.onnx --source ../assets/images/bus.jpg --height 224 --width 224 --plot --profile
+cargo run --release -- --model ../assets/weights/yolov8m-cls-dyn.onnx --source ../assets/images/dog.jpg --height 224 --width 224 --plot --profile
 ```
 
 You will see result like:
@@ -166,7 +195,7 @@ Summary:
 Using `CUDA` EP and dynamic image size `--height 640 --width 480`
 
 ```
-cargo run --release -- --cuda --model ../assets/weights/yolov8m-dynamic.onnx --source ../assets/images/bus.jpg --plot
+cargo run --release -- --cuda --model ../assets/weights/yolov8m-dynamic.onnx --source ../assets/images/bus.jpg --plot --height 640 --width 480
 ```
 
 ![det](https://github.com/jamjamjon/ultralytics/assets/51357717/5d89a19d-0c96-4a59-875c-defab6887a2c)

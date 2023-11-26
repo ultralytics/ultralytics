@@ -7,8 +7,8 @@ use rand::{thread_rng, Rng};
 use std::path::PathBuf;
 
 use crate::{
-    gen_time_string, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend, OrtConfig,
-    OrtEP, Point2, YOLOResult, YOLOTask, SKELETON,
+    check_font, gen_time_string, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend,
+    OrtConfig, OrtEP, Point2, YOLOResult, YOLOTask, SKELETON,
 };
 
 pub struct YOLOv8 {
@@ -409,6 +409,8 @@ impl YOLOv8 {
         xs0: &[DynamicImage],
         skeletons: Option<&[(usize, usize)]>,
     ) {
+        // check font then load
+        let font = check_font("Arial.ttf");
         for (_idb, (img0, y)) in xs0.iter().zip(ys.iter()).enumerate() {
             let mut img = img0.to_rgb8();
 
@@ -416,8 +418,6 @@ impl YOLOv8 {
             if let Some(probs) = y.probs() {
                 for (i, k) in probs.topk(5).iter().enumerate() {
                     let legend = format!("{} {:.2}%", self.names[k.0], k.1);
-                    let font = Vec::from(include_bytes!("roboto-mono-stripped.ttf") as &[u8]);
-                    let font = rusttype::Font::try_from_vec(font);
                     let scale = 32;
                     let legend_size = img.width().max(img.height()) / scale;
                     let x = img.width() / 20;
@@ -428,7 +428,7 @@ impl YOLOv8 {
                         x as i32,
                         y as i32,
                         rusttype::Scale::uniform(legend_size as f32 - 1.),
-                        &font.unwrap(),
+                        &font,
                         &legend,
                     );
                 }
@@ -446,10 +446,8 @@ impl YOLOv8 {
                     );
 
                     // text
-                    let font = Vec::from(include_bytes!("roboto-mono-stripped.ttf") as &[u8]);
-                    let font = rusttype::Font::try_from_vec(font);
                     let legend = format!("{} {:.2}%", self.names[bbox.id()], bbox.confidence());
-                    let scale = 32;
+                    let scale = 40;
                     let legend_size = img.width().max(img.height()) / scale;
                     imageproc::drawing::draw_text_mut(
                         &mut img,
@@ -457,7 +455,7 @@ impl YOLOv8 {
                         bbox.xmin() as i32,
                         (bbox.ymin() - legend_size as f32) as i32,
                         rusttype::Scale::uniform(legend_size as f32 - 1.),
-                        &font.unwrap(),
+                        &font,
                         &legend,
                     );
                 }
@@ -611,38 +609,30 @@ impl YOLOv8 {
     }
 
     pub fn task(&self) -> &YOLOTask {
-        // self.engine.task()
         &self.task
     }
 
     pub fn batch(&self) -> u32 {
-        // self.engine.batch()
         self.batch
     }
 
     pub fn width(&self) -> u32 {
-        // self.engine.width()
         self.width
     }
 
     pub fn height(&self) -> u32 {
-        // self.engine.height()
         self.height
     }
 
     pub fn nc(&self) -> u32 {
-        // self.engine.nc()
-        // Some(self.nc)
         self.nc
     }
 
     pub fn nk(&self) -> u32 {
-        // self.engine.nk()
         self.nk
     }
 
     pub fn nm(&self) -> u32 {
-        // self.engine.nm()
         self.nm
     }
 

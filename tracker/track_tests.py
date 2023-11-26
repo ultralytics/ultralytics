@@ -199,7 +199,12 @@ class VideoProcessor:
             max_det=self.max_det
         )[0]
         detections = sv.Detections.from_ultralytics(results)
-        detections, tracks = self.tracker.update_with_detections(detections)
+        if config["name"] == "ByteTracker":
+            detections, tracks = self.tracker.update_with_detections(detections)
+
+        else:
+            detections, tracks = self.tracker.update_with_detections(detections, frame)
+
         ar_results = self.action_recognizer.recognize_frame(tracks)
 
         return self.annotate_frame(frame, detections, ar_results,  frame_number, fps)
@@ -225,7 +230,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c",
         "--config",
-        default="./ByteTracker.json",
+        default="./SmileByTracker.json",
         type=str,
         help="config file path (default: None)",
     )

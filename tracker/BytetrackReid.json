@@ -1,8 +1,8 @@
 {
   "name": "BytetrackReid",
 
-  "source_weights_path": "/Users/johnny/Projects/models/detector_best.pt",
-  "source_video_path": "/Users/johnny/Projects/new_samples/output.mp4",
+  "source_weights_path": "/home/johnny/Projects/models/detector_best.pt",
+  "source_video_path": "/home/johnny/Projects/new_samples/output.mp4",
 
   "device": "cuda",
   "video_stride": 1,

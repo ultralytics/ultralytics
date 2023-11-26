@@ -13,7 +13,7 @@
   "max_det": 50,
 
   "track_threshold": 0.4,
-  "track_buffer": 100,
+  "track_buffer": 500,
   "match_threshold": 0.9,
   "frame_rate": 25,
 

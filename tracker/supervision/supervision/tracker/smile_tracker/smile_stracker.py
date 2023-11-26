@@ -282,15 +282,15 @@ class SMILETracker(object):
             self.model = models.resnet18(pretrained=True)  # Example for ResNet-50
             self.model = self.model.eval().to(device)
             self.weight_path = self.fast_reid_weights
-            # self.encoder = load_model(self.weight_path)
+            self.encoder = load_model(self.weight_path)
 
-            """if device == 'cuda':
+            if device == 'cuda':
                 self.encoder = self.encoder.to(torch.device("cuda"))
             elif device == 'mps':
                 self.encoder = self.encoder.to(torch.device("mps"))
             else:
                 self.encoder = self.encoder.to(torch.device("cpu"))
-            self.encoder = self.encoder.eval()"""
+            self.encoder = self.encoder.eval()
             # self.encoder = self.encoder.half()
             self.extractor = create_extractor(FeatureExtractor, batch_size=1, model=self.model.eval())
         self.gmc = GMC(method=cmc_method, verbose=[name, ablation])
@@ -553,7 +553,7 @@ class SMILETracker(object):
         else:
             detections.tracker_id = np.array([], dtype=int)
 
-        return detections
+        return detections, tracks
 
 
 def joint_stracks(tlista, tlistb):

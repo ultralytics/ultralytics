@@ -101,7 +101,7 @@ Set `--height` and `--width` to do dynamic image size inference. (Note that the 
 cargo run --release -- --cuda --width 480 --height 640 --model <MODEL> --source <SOURCE>
 ```
 
-Set `--profile` to check time consumed in each stage.(Note that the model usually needs to take 1~3 times dry run to warmup. Make sure to run enought times to evalute the result.)
+Set `--profile` to check time consumed in each stage.(Note that the model usually needs to take 1~3 times dry run to warmup. Make sure to run enough times to evaluate the result.)
 
 ```
 cargo run --release -- --trt --fp16 --profile --model <MODEL> --source <SOURCE>

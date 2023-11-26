@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Brief walk through and explanation on how to isolate segmented objects using Ultralytics.
+description: A concise guide on isolating segmented objects using Ultralytics.
 keywords: Ultralytics, YOLO, segmentation, Python, object detection, inference, dataset, prediction, instance segmentation, contours, binary mask, object mask, image processing
 ---
 
 # Segmented Objects Isolation
 
-When working with the results from the [Segment Task](../tasks/segment.md), it's sometimes desirable to extract the isolated objects from the inference results. This guide provides a generic recipe on how to accomplish this using the Ultralytics [Predict Mode](../modes/predict.md).
+After performing the [Segment Task](../tasks/segment.md), it's sometimes desirable to extract the isolated objects from the inference results. This guide provides a generic recipe on how to accomplish this using the Ultralytics [Predict Mode](../modes/predict.md).
 
 <p align="center">
   <img src="https://github.com/Burhan-Q/ultralytics/blob/segmnt_masks_ex/docs/en/guides/media/seg-obj/seg-obj-example.gif?raw=true">
@@ -110,13 +110,13 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
     <summary> Expand to understand what is happening when defining the <code>contour</code> variable.</summary>
     <p>
 
-    - `c.masks.xy` :: returns the mask contour points with `(x, y)` coordinates, see [Masks Section from Predict Mode](../modes/predict.md/#masks) for additional information.
+    - `c.masks.xy` :: Provides the coordinates of the mask contour points in the format  `(x, y)`. For more details, refer to the [Masks Section from Predict Mode](../modes/predict.md/#masks).
 
-    - `.pop()` :: since `masks.xy` is a list and there will only be a single value, this single entry is 'popped' from the list.
+    - `.pop()` :: As `masks.xy` is a list containing a single element, this element is extracted using the `pop()` method.
 
-    - `.astype(np.int32)` :: the output of `masks.xy` will have a data type of `float32`, but this won't be compatible with the OpenCV `drawContours()` function, so this will change the data type to `int32` for compatibility.
+    - `.astype(np.int32)` :: Using `masks.xy` will return with a data type of `float32`, but this won't be compatible with the OpenCV `drawContours()` function, so this will change the data type to `int32` for compatibility.
 
-    - `.reshape(-1, 1, 2)` :: the OpenCV `drawContours()` function expects contours to have a shape of `[N, 1, 2]` where `N` is the number of contour points, with each point represented by a single entry `1`, and the entry is composed of `2` values. The `-1` denotes that the number of values along this dimension is flexible.
+    - `.reshape(-1, 1, 2)` :: Reformats the data into the required shape of of `[N, 1, 2]` where `N` is the number of contour points, with each point represented by a single entry `1`, and the entry is composed of `2` values. The `-1` denotes that the number of values along this dimension is flexible.
 
     </details>
     <p></p>
@@ -124,11 +124,11 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
     <summary> Expand for an explanation of the <code>drawContours()</code> configuration.</summary>
     <p>
 
-    - During testing it was found that wrapping the variable `contour` in brackets to form a list, `[contour]` would correctly generate the contour mask desired.
+    - Encapsulating the `contour` variable within square brackets, `[contour]`, was found to effectively generate the desired contour mask during testing.
 
-    - The `-1` indicates that all contours should be drawn.
+    - The value `-1` specified for the `drawContours()` parameter instructs the function to draw all contours present in the image.
 
-    - The `tuple` value `(255, 255, 255)` indicates that the contour will be drawn using white pixels, which is what we desire for this binary mask.
+    - The `tuple` `(255, 255, 255)` represents the color white, which is the desired color for drawing the contour in this binary mask.
 
     - The addition of `cv.FILLED` will color all pixels enclosed by the contour boundary the same, in this case, all enclosed pixels will be white.
 
@@ -158,9 +158,9 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
             ??? question "How does this work?"
 
-                - First, the binary mask is converted from a single channel image to a 3-channel image. This is required for the next step where the mask and source image are combined, since they will need to have the same dimensions.
+                - First, the binary mask is first converted from a single-channel image to a three-channel image. This conversion is necessary for the subsequent step where the mask and the original image are combined. Both images must have the same number of channels to be compatible with the blending operation.
 
-                - The original image and 3-channel binary mask are combined using the OpenCV function `bitwise_and()` which keeps only pixel values `> 0` from <u>both images</u>. Since the mask pixels are `> 0` <u>only</u> inside the contour, the only pixels from the original image that remain are the ones overlapping the contour.
+                - The original image and the three-channel binary mask are merged using the OpenCV function `bitwise_and()`. This operation retains <u>only</u> pixel values that are greater than zero `(> 0)` from both images. Since the mask pixels are greater than zero `(> 0)` <u>only</u> within the contour region, the pixels remaining from the original image are those that overlap with the contour.
 
             ### Isolate with Black Pixels: Sub-options
 
@@ -190,13 +190,13 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
                 ??? question "What does this code do?"
 
-                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a Numpy array, using the `xyxy` box coordinates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
+                    - The `c.boxes.xyxy.cpu().numpy()` call retrieves the bounding boxes as a NumPy array in the `xyxy` format, where `xmin`, `ymin`, `xmax`, and `ymax` represent the coordinates of the bounding box rectangle. See [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more details.
 
-                    - Adding `squeeze()` ensures that any extraneous dimensions are removed from the Numpy array.
+                    - The `squeeze()` operation removes any unnecessary dimensions from the NumPy array, ensuring it has the expected shape.
 
-                    - Converting the coordinate values using `.astype(np.int32)` changes the box coordinates data type from `float32` to `int32` which will be compatible when cropping the image using index slices.
+                    - Converting the coordinate values using `.astype(np.int32)` changes the box coordinates data type from `float32` to `int32`, making them compatible for image cropping using index slices.
 
-                    - Finally the image region for the bounding box is cropped using index slicing, where the bounds are set using the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
+                    - Finally, the bounding box region is cropped from the image using index slicing. The bounds are defined by the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
 
         === "Transparent Background Pixels"
 
@@ -208,7 +208,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
             ??? question "How does this work?"
 
-                - Using the Numpy `dstack()` function (array stacking along depth-axis) in conjunction with the binary mask generated, will create an image with four channels. This allows for all pixels outside of the object contour to be transparent when saving as a `PNG` file.
+                - Using the NumPy `dstack()` function (array stacking along depth-axis) in conjunction with the binary mask generated, will create an image with four channels. This allows for all pixels outside of the object contour to be transparent when saving as a `PNG` file.
 
             ### Isolate with Transparent Pixels: Sub-options
 
@@ -238,9 +238,9 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
                 ??? question "What does this code do?"
 
-                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a Numpy array, using the `xyxy` box cooridates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
+                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a NumPy array, using the `xyxy` box cooridates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
 
-                    - Adding `squeeze()` ensures that any extraneous dimensions are removed from the Numpy array.
+                    - Adding `squeeze()` ensures that any extraneous dimensions are removed from the NumPy array.
 
                     - Converting the coordinate values using `.astype(np.int32)` changes the box coordinates data type from `float32` to `int32` which will be compatible when cropping the image using index slices.
 

@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Brief walk through and explaination on how to isolate segmented objects using Ultralytics.
+description: Brief walk through and explanation on how to isolate segmented objects using Ultralytics.
 keywords: Ultralytics, YOLO, segmentation, Python, object detection, inference, dataset, prediction, instance segmentation, contours, binary mask, object mask, image processing
 ---
 
@@ -26,7 +26,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
     ???+ tip "Ultralytics Install"
 
-        See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthough on installing the required libraries.
+        See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
 
     ---
 
@@ -43,16 +43,16 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
         ```
         'ultralytics/assets/bus.jpg'
-        'ultra.ytics/assets/zidane.jpg'
+        'ultralytics/assets/zidane.jpg'
         ```
 
         This is helpful for rapid testing with the `predict()` method.
 
-    For additional information about Segmentation Models, visit the [Segement Task](../tasks/segment.md/#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
+    For additional information about Segmentation Models, visit the [Segment Task](../tasks/segment.md/#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
 
     ---
 
-1. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrived for later use (optional).
+1. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ``` { .py .annotate }
     # (2) Iterate detection results (helpful for multiple images)
@@ -121,7 +121,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
     </details>
     <p></p>
     <details>
-    <summary> Expand for an explaination of the <code>drawContours()</code> configuration.</summary>
+    <summary> Expand for an explanation of the <code>drawContours()</code> configuration.</summary>
     <p>
 
     - During testing it was found that wrapping the variable `contour` in brackets to form a list, `[contour]` would correctly generate the contour mask desired.
@@ -132,7 +132,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
     - The addition of `cv.FILLED` will color all pixels enclosed by the contour boundary the same, in this case, all enclosed pixels will be white.
 
-    - See [OpenCV Documentation on `drawContours()`](https://docs.opencv.org/4.8.0/d6/d6e/group__imgproc__draw.html#ga746c0625f1781f1ffc9056259103edbc) for more infromation.
+    - See [OpenCV Documentation on `drawContours()`](https://docs.opencv.org/4.8.0/d6/d6e/group__imgproc__draw.html#ga746c0625f1781f1ffc9056259103edbc) for more information.
 
     </details>
     <p></p>
@@ -190,7 +190,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
                 ??? question "What does this code do?"
 
-                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a Numpy array, using the `xyxy` box cooridates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
+                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a Numpy array, using the `xyxy` box coordinates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
 
                     - Adding `squeeze()` ensures that any extraneous dimensions are removed from the Numpy array.
 
@@ -198,10 +198,10 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
                     - Finally the image region for the bounding box is cropped using index slicing, where the bounds are set using the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
 
-        === "Tranparent Background Pixels"
+        === "Transparent Background Pixels"
 
             ```py
-            # Isolate object with transparent backgroud (when saved as PNG)
+            # Isolate object with transparent background (when saved as PNG)
             isolated = np.dstack([img, b_mask])
 
             ```
@@ -218,7 +218,7 @@ When working with the results from the [Segment Task](../tasks/segment.md), it's
 
                 <figure markdown>
                     ![](./media/seg-obj/bus-full-iso_person-1-NO_BG.png){ width=240 }
-                    <figcaption>Example full-size output + transparent bacground</figcaption>
+                    <figcaption>Example full-size output + transparent background</figcaption>
                 </figure>
 
             ??? info "Cropped object Image"
@@ -300,7 +300,7 @@ for r in res:
         mask3ch = cv.cvtColor(b_mask, cv.COLOR_GRAY2BGR)
         isolated = cv.bitwise_and(mask3ch, img)
 
-        # OPTION-2: Isolate object with transparent backgroud (when saved as PNG)
+        # OPTION-2: Isolate object with transparent background (when saved as PNG)
         isolated = np.dstack([img, b_mask])
 
         # OPTIONAL: detection crop (from either OPT1 or OPT2)
@@ -314,6 +314,6 @@ for r in res:
 1.  The line populating `contour` is combined into a single line here, where it was split to multiple above.
 2.  {==What goes here is up to you!==}
 3.  See [Predict Mode](../modes/predict.md) for additional information.
-4.  See [Segement Task](../tasks/segment.md/#models) for more information.
+4.  See [Segment Task](../tasks/segment.md/#models) for more information.
 5.  Learn more about [Working with Results](../modes/predict.md/#working-with-results)
 6.  Learn more about [Segmentation Mask Results](../modes/predict.md/#masks)

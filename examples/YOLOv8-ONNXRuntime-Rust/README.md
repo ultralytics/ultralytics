@@ -102,11 +102,13 @@ cargo run --release -- --cuda --width 480 --height 640 --model <MODEL> --source 
 ```
 
 Set `--profile` to check time consumed in each stage.(Note that the model usually needs to take 1~3 times dry run to warmup. Make sure to run enought times to evalute the result.)
+
 ```
 cargo run --release -- --trt --fp16 --profile --model <MODEL> --source <SOURCE>
 ```
 
 Results: (yolov8m.onnx, batch=1, 3 times, trt, fp16, RTX 3060Ti)
+
 ```
 ==> 0
 [Model Preprocess]: 12.75788ms
@@ -130,7 +132,6 @@ Results: (yolov8m.onnx, batch=1, 3 times, trt, fp16, RTX 3060Ti)
 [Model Inference]: 5.493119ms
 [Model Postprocess]: 1.040906ms
 ```
-
 
 And also:
 

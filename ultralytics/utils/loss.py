@@ -562,7 +562,7 @@ class v8OBBLoss(v8DetectionLoss):
         self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl).to(self.device)
 
     def regularize_boxes(self, boxes, start_angle=math.pi / -2):
-        """regularize bboxes to range [-π/2, π/2]."""
+        """Regularize bboxes to range [-π/2, π/2]."""
         x, y, w, h, t = boxes.unbind(dim=-1)
         # swap edge and angle if h >= w
         condition = w > h

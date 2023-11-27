@@ -560,10 +560,11 @@ def xyxyxyxy2xywhr(corners):
     Returns:
         (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format of shape (n, 5).
     """
-    # TODO: Implement torch version
     points = corners.cpu().numpy().reshape(-1, 4, 2)
     rboxes = []
     for pts in points:
+        # NOTE: Have to use cv2.minAreaRect to get accurate xywhr,
+        # especially some objects are cut off by augmentations in dataloader.
         (x, y), (w, h), angle = cv2.minAreaRect(pts)
         rboxes.append([x, y, w, h, angle / 180 * np.pi])
     rboxes = torch.tensor(rboxes, device=corners.device, dtype=corners.dtype)

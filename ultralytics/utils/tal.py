@@ -260,7 +260,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
     @staticmethod
     def select_candidates_in_gts(xy_centers, gt_bboxes):
         """
-        Select the positive anchor center in gt.
+        Select the positive anchor center in gt for rotated bounding boxes.
 
         Args:
             xy_centers (Tensor): shape(h*w, 2)

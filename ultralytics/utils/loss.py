@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -560,16 +561,14 @@ class v8OBBLoss(v8DetectionLoss):
         self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl).to(self.device)
 
     def regularize_boxes(self, boxes, start_angle=-90):
-        import numpy as np
-        start_angle = start_angle / 180 * np.pi
+        start_angle = start_angle / 180 * math.pi
 
         x, y, w, h, t = boxes.unbind(dim=-1)
         # swap edge and angle if h >= w
         w_ = torch.where(w > h, w, h)
         h_ = torch.where(w > h, h, w)
-        t = torch.where(w > h, t, t + np.pi / 2)
-        t = ((t - start_angle) % np.pi) + start_angle
-        # t = t / np.pi * 180
+        t = torch.where(w > h, t, t + math.pi / 2)
+        t = ((t - start_angle) % math.pi) + start_angle
         boxes = torch.stack([x, y, w_, h_, t], dim=-1)
         return boxes
 

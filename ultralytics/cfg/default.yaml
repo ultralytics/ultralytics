@@ -61,6 +61,9 @@ agnostic_nms: False  # (bool) class-agnostic NMS
 classes:  # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
 retina_masks: False  # (bool) use high-resolution segmentation masks
 
+# Tune settings --------------------------------------------------------------------------------------------------------
+fitness_file: # (str, optional) path to fitness file from previous tuning run
+
 # Visualize settings ---------------------------------------------------------------------------------------------------
 show: False  # (bool) show predicted images and videos if environment allows
 save_frames: False  # (bool) save predicted individual video frames

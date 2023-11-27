@@ -22,6 +22,7 @@ Commands:
 """
 
 from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr
+import subprocess
 
 try:
     import os
@@ -36,6 +37,16 @@ try:
 
 except (ImportError, AssertionError):
     mlflow = None
+
+
+def get_git_commit_hash(data_path):
+    original_dir = os.getcwd()
+    os.chdir(data_path)
+
+    commit_hash = subprocess.check_output(['git', 'log', '-n', '1', '--pretty=format:%H']).strip().decode()
+    os.chdir(original_dir)
+
+    return commit_hash
 
 
 def on_pretrain_routine_end(trainer):
@@ -80,6 +91,30 @@ def on_pretrain_routine_end(trainer):
         LOGGER.warning(f'{PREFIX}WARNING ⚠️ Failed to initialize: {e}\n'
                        f'{PREFIX}WARNING ⚠️ Not tracking this run')
 
+    try:
+        mlflow.log_param("dataset_path", trainer.data['path'])
+    except Exception as e:
+        LOGGER.warning(f'{PREFIX}WARNING ⚠️ Failed to log dataset path: {e}\n')
+
+    try:
+        mlflow.log_param("dataset_commit", get_git_commit_hash(trainer.data['path']))
+    except Exception as e:
+        LOGGER.warning(f'{PREFIX}WARNING ⚠️ Failed to log dataset_commit: {e}\n')
+
+    data_artifact_path=os.path.join('dvc_files')
+    try:
+        mlflow.log_artifact(trainer.data['yaml_file'], artifact_path=data_artifact_path)
+    except Exception as e:
+        LOGGER.warning(f'{PREFIX}WARNING ⚠️ Failed to save splits .yaml file: {e}\n')
+
+    try:
+        for root, _, files in os.walk(trainer.data['path']):
+            for file in files:
+                if file.endswith('.dvc'):
+                    mlflow.log_artifact(os.path.join(root, file),
+                                        artifact_path=data_artifact_path)
+    except Exception as e:
+        LOGGER.warning(f'{PREFIX}WARNING ⚠️ Failed to save .dvc files: {e}\n')
 
 def on_fit_epoch_end(trainer):
     """Log training metrics at the end of each fit epoch to MLflow."""

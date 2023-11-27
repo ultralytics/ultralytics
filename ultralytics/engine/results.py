@@ -635,5 +635,5 @@ class OBB(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxyxyxy(self):
-        """Return the boxes in xyxyxyxy format."""
+        """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
         return ops.xywhr2xyxyxyxy(self.xywhr)

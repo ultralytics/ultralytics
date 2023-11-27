@@ -122,7 +122,7 @@ class OBBValidator(DetectionValidator):
         """Serialize YOLO predictions to COCO json format."""
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xywhr2xyxyxyxy(torch.cat([predn[:, :4], predn[:, -1:]], dim=-1))
+        box = ops.xywhr2xyxyxyxy(torch.cat([predn[:, :4], predn[:, -1:]], dim=-1)).view(-1, 8)
         for p, b in zip(predn.tolist(), box.tolist()):
             self.jdict.append({
                 'image_id': image_id,

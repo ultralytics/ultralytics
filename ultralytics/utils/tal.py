@@ -271,7 +271,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         """
         bs, n_boxes, _ = gt_bboxes.shape
         # (b, n_boxes, 5) --> (b, n_boxes, 4, 2)
-        corners = xywhr2xyxyxyxy(gt_bboxes).view(bs, n_boxes, 4, 2)
+        corners = xywhr2xyxyxyxy(gt_bboxes)
         # (b, n_boxes, 1, 2)
         a, b, _, d = corners.split(1, dim=-2)
         ab = b - a

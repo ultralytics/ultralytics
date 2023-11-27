@@ -127,7 +127,7 @@ Results saved to runs/detect/exp2
 Done. (0.223s)
 ```
 
-<img src="https://user-images.githubusercontent.com/26833433/124489091-ea4f9a00-ddb0-11eb-8ef1-d6f335c97f6f.jpg" width="500">
+<img src="https://user-images.githubusercontent.com/26833433/124489091-ea4f9a00-ddb0-11eb-8ef1-d6f335c97f6f.jpg" width="500" alt="YOLO inference result">
 
 ## Environments
 

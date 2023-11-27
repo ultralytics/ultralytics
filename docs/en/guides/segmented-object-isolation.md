@@ -238,7 +238,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
                 ??? question "What does this code do?"
 
-                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a NumPy array, using the `xyxy` box cooridates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
+                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a NumPy array, using the `xyxy` box coordinates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
 
                     - Adding `squeeze()` ensures that any extraneous dimensions are removed from the NumPy array.
 

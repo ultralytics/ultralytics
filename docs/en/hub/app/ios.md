@@ -26,7 +26,7 @@ keywords: Ultralytics, iOS app, object detection, YOLO models, real time, Apple 
   <br>
   <br>
   <a href="https://apps.apple.com/xk/app/ultralytics/id1583935240" style="text-decoration:none;">
-    <img src="https://raw.githubusercontent.com/ultralytics/assets/master/app/app-store.svg" width="15%" alt="" /></a>
+    <img src="https://raw.githubusercontent.com/ultralytics/assets/master/app/app-store.svg" width="15%" alt=""></a>
 </div>
 
 The Ultralytics iOS App is a powerful tool that allows you to run YOLO models directly on your iPhone or iPad for real-time object detection. This app utilizes the Apple Neural Engine and Core ML for model optimization and acceleration, enabling fast and efficient object detection.

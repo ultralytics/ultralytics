@@ -46,7 +46,7 @@ If this is not possible, you can start from [a public dataset](https://universe.
 
 Once you have collected images, you will need to annotate the objects of interest to create a ground truth for your model to learn from.
 
-<p align="center"><a href="https://app.roboflow.com/?model=yolov5&ref=ultralytics" title="Create a Free Roboflow Account"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a275ad4b4ac20cd2e21a_roboflow-annotate.gif" alt="YOLOv5 accuracies"/></a></p>
+<p align="center"><a href="https://app.roboflow.com/?model=yolov5&ref=ultralytics" title="Create a Free Roboflow Account"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a275ad4b4ac20cd2e21a_roboflow-annotate.gif" alt="YOLOv5 accuracies"></a></p>
 
 [Roboflow Annotate](https://roboflow.com/annotate?ref=ultralytics) is a simple web-based tool for managing and labeling your images with your team and exporting them in [YOLOv5's annotation format](https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics).
 
@@ -59,18 +59,18 @@ and upload your dataset to a `Public` workspace, label any unannotated images, t
 
 Note: YOLOv5 does online augmentation during training, so we do not recommend applying any augmentation steps in Roboflow for training with YOLOv5. But we recommend applying the following preprocessing steps:
 
-<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273477fccf42a0fd3d6_roboflow-preprocessing.png" title="Recommended Preprocessing Steps" /></p>
+<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273477fccf42a0fd3d6_roboflow-preprocessing.png" title="Recommended Preprocessing Steps"></p>
 
 * **Auto-Orient** - to strip EXIF orientation from your images.
 * **Resize (Stretch)** - to the square input size of your model (640x640 is the YOLOv5 default).
 
 Generating a version will give you a point in time snapshot of your dataset so you can always go back and compare your future model training runs against it, even if you add more images or change its configuration later.
 
-<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a2733fd1da943619934e_roboflow-export.png" title="Export in YOLOv5 Format" /></p>
+<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a2733fd1da943619934e_roboflow-export.png" title="Export in YOLOv5 Format"></p>
 
 Export in `YOLOv5 Pytorch` format, then copy the snippet into your training script or notebook to download your dataset.
 
-<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273a92e4f5cb72594df_roboflow-snippet.png" title="Roboflow dataset download snippet" /></p>
+<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273a92e4f5cb72594df_roboflow-snippet.png" title="Roboflow dataset download snippet"></p>
 
 Now continue with `2. Select a Model`.
 </details>
@@ -182,7 +182,7 @@ You'll get all the great expected features from an experiment manager: live upda
 You can use ClearML Data to version your dataset and then pass it to YOLOv5 simply using its unique ID. This will help you keep track of your data without adding extra hassle. Explore the [ClearML Tutorial](https://docs.ultralytics.com/yolov5/tutorials/clearml_logging_integration) for details!
 
 <a href="https://cutt.ly/yolov5-notebook-clearml">
-<img alt="ClearML Experiment Management UI" src="https://github.com/thepycoder/clearml_screenshots/raw/main/scalars.jpg" width="1280"/></a>
+<img alt="ClearML Experiment Management UI" src="https://github.com/thepycoder/clearml_screenshots/raw/main/scalars.jpg" width="1280"></a>
 
 #### Local Logging
 
@@ -190,7 +190,7 @@ Training results are automatically logged with [Tensorboard](https://www.tensorf
 
 This directory contains train and val statistics, mosaics, labels, predictions and augmented mosaics, as well as metrics and charts including precision-recall (PR) curves and confusion matrices.
 
-<img alt="Local logging results" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-local_logging.jpg" width="1280"/>
+<img alt="Local logging results" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-local_logging.jpg" width="1280">
 
 Results file `results.csv` is updated after each epoch, and then plotted as `results.png` (below) after training completes. You can also plot any `results.csv` file manually:
 

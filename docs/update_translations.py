@@ -130,15 +130,15 @@ class MarkdownLinkFixer:
         pattern = re.compile(r'<([^>]+?)\s*/>')
         content = re.sub(pattern, r'<\1>', content)
 
-        # Find all images without alt tags and add placeholder alt text
-        pattern = re.compile(r'!\[(.*?)\]\((.*?)\)')
-        content, num_replacements = re.subn(pattern, lambda match: f'![{match.group(1) or alt_tag}]({match.group(2)})',
-                                            content)
-
-        # Add missing alt tags to HTML images
-        pattern = re.compile(r'<img\s+(?!.*?\balt\b)[^>]*src=["\'](.*?)["\'][^>]*>')
-        content, num_replacements = re.subn(pattern, lambda match: match.group(0).replace('>', f' alt="{alt_tag}">', 1),
-                                            content)
+        # # Find all images without alt tags and add placeholder alt text
+        # pattern = re.compile(r'!\[(.*?)\]\((.*?)\)')
+        # content, num_replacements = re.subn(pattern, lambda match: f'![{match.group(1) or alt_tag}]({match.group(2)})',
+        #                                     content)
+        #
+        # # Add missing alt tags to HTML images
+        # pattern = re.compile(r'<img\s+(?!.*?\balt\b)[^>]*src=["\'](.*?)["\'][^>]*>')
+        # content, num_replacements = re.subn(pattern, lambda match: match.group(0).replace('>', f' alt="{alt_tag}">', 1),
+        #                                     content)
 
         return content
 

@@ -162,7 +162,7 @@ deepsparse.object_detection.annotate --model_filepath zoo:cv/detection/yolov5-s/
 Running the above command will create an `annotation-results` folder and save the annotated image inside.
 
 <p align = "center">
-<img src="https://github.com/neuralmagic/deepsparse/raw/d31f02596ebff2ec62761d0bc9ca14c4663e8858/src/deepsparse/yolo/sample_images/basilica-annotated.jpg" alt="annotated" width="60%"/>
+<img src="https://github.com/neuralmagic/deepsparse/raw/d31f02596ebff2ec62761d0bc9ca14c4663e8858/src/deepsparse/yolo/sample_images/basilica-annotated.jpg" alt="annotated" width="60%">
 </p>
 
 ## Benchmarking Performance

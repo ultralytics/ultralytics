@@ -59,18 +59,18 @@ and upload your dataset to a `Public` workspace, label any unannotated images, t
 
 Note: YOLOv5 does online augmentation during training, so we do not recommend applying any augmentation steps in Roboflow for training with YOLOv5. But we recommend applying the following preprocessing steps:
 
-<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273477fccf42a0fd3d6_roboflow-preprocessing.png" title="Recommended Preprocessing Steps"></p>
+<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273477fccf42a0fd3d6_roboflow-preprocessing.png" alt="Recommended Preprocessing Steps"></p>
 
 * **Auto-Orient** - to strip EXIF orientation from your images.
 * **Resize (Stretch)** - to the square input size of your model (640x640 is the YOLOv5 default).
 
 Generating a version will give you a point in time snapshot of your dataset so you can always go back and compare your future model training runs against it, even if you add more images or change its configuration later.
 
-<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a2733fd1da943619934e_roboflow-export.png" title="Export in YOLOv5 Format"></p>
+<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a2733fd1da943619934e_roboflow-export.png" alt="Export in YOLOv5 Format"></p>
 
 Export in `YOLOv5 Pytorch` format, then copy the snippet into your training script or notebook to download your dataset.
 
-<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273a92e4f5cb72594df_roboflow-snippet.png" title="Roboflow dataset download snippet"></p>
+<p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273a92e4f5cb72594df_roboflow-snippet.png" alt="Roboflow dataset download snippet"></p>
 
 Now continue with `2. Select a Model`.
 </details>

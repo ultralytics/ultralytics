@@ -289,15 +289,21 @@ class SMILETracker(object):
             if device == 'cuda':
                 self.encoder = self.encoder.to(torch.device("cuda"))
                 self.model = self.model.to(torch.device("cuda"))
+                self.encoder = torch.compile(self.encoder)
+                self.model = torch.compile(self.model)
             elif device == 'mps':
                 self.encoder = self.encoder.to(torch.device("mps"))
                 self.model = self.model.to(torch.device("mps"))
+                self.encoder = torch.compile(self.encoder)
+                self.model = torch.compile(self.model)
             else:
                 self.encoder = self.encoder.to(torch.device("cpu"))
                 self.model = self.model.to(torch.device("cpu"))
+                self.encoder = torch.compile(self.encoder)
+                self.model = torch.compile(self.model)
 
             # self.encoder = self.encoder.half()
-            self.extractor = create_extractor(FeatureExtractor, batch_size=1, model=self.model)
+            self.extractor = create_extractor(FeatureExtractor, batch_size=1, model=self.model, device=self.device)
         self.gmc = GMC(method=cmc_method, verbose=[name, ablation])
 
     def process_detections(self, img, detections):
@@ -367,7 +373,7 @@ class SMILETracker(object):
             for time in range(len(patches_det)):
 
                 patches_det[time] = torch.tensor(patches_det[time]).to(self.device)
-                features[time, :] = self.encoder.inference_forward_fast(patches_det[time].float())
+                features[time, :] = self.encoder.inference_forward_fast(patches_det[time].type(torch.float32))
 
             features_keep = features.cpu().detach().numpy()
 

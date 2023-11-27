@@ -8,7 +8,6 @@ from torchvision import models
 
 from supervision.tracker.byte_tracker.kalman_filter import KalmanFilter
 from supervision.tracker.utils.SLM import load_model
-from supervision.tracker.utils.fast_reid.fast_reid_interfece import FastReIDInterface
 from supervision.tracker.utils.feature_extractor import extract_image_patch, create_extractor, FeatureExtractor
 from supervision.tracker.utils.gmc import GMC
 

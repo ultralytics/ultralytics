@@ -1,7 +1,0 @@
-_BASE_: ../Base-AGW.yml
-
-DATASETS:
-  NAMES: ("DukeMTMC",)
-  TESTS: ("DukeMTMC",)
-
-OUTPUT_DIR: logs/dukemtmc/agw_R50

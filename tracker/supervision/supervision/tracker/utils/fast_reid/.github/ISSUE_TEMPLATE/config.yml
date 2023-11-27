@@ -1,9 +1,0 @@
-# require an issue template to be chosen
-blank_issues_enabled: false
-
-# Unexpected behaviors & bugs are split to two templates.
-# When they are one template, users think "it's not a bug" and don't choose the template.
-#
-# But the file name is still "unexpected-problems-bugs.md" so that old references
-# to this issue template still works.
-# It's ok since this template should be a superset of "bugs.md" (unexpected behaviors is a superset of bugs)

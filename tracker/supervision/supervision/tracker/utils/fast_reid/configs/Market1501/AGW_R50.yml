@@ -1,7 +1,0 @@
-_BASE_: ../Base-AGW.yml
-
-DATASETS:
-  NAMES: ("Market1501",)
-  TESTS: ("Market1501",)
-
-OUTPUT_DIR: logs/market1501/agw_R50

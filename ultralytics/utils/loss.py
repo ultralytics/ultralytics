@@ -561,14 +561,14 @@ class v8OBBLoss(v8DetectionLoss):
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl).to(self.device)
 
-    def regularize_boxes(self, boxes, start_angle=-90):
-        start_angle = start_angle / 180 * math.pi
-
+    def regularize_boxes(self, boxes, start_angle=math.pi / -2):
+        """regularize bboxes to range [-π/2, π/2]."""
         x, y, w, h, t = boxes.unbind(dim=-1)
         # swap edge and angle if h >= w
-        w_ = torch.where(w > h, w, h)
-        h_ = torch.where(w > h, h, w)
-        t = torch.where(w > h, t, t + math.pi / 2)
+        condition = w > h
+        w_ = torch.where(condition, w, h)
+        h_ = torch.where(condition, h, w)
+        t = torch.where(condition, t, t + math.pi / 2)
         t = ((t - start_angle) % math.pi) + start_angle
         boxes = torch.stack([x, y, w_, h_, t], dim=-1)
         return boxes
@@ -622,8 +622,6 @@ class v8OBBLoss(v8DetectionLoss):
                             'as an example.\nSee https://docs.ultralytics.com/datasets/obb/ for help.') from e
 
         # Pboxes
-        # pred_bboxes = torch.cat([dist2bbox(pred_distri, anchor_points, xywh=True), pred_angle],
-        #                         dim=-1)  # xyxy, (b, h*w, 4)
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri, pred_angle)  # xyxy, (b, h*w, 4)
 
         bboxes_for_assigner = pred_bboxes.clone().detach()
@@ -658,10 +656,12 @@ class v8OBBLoss(v8DetectionLoss):
 
         Args:
             anchor_points (torch.Tensor): Anchor points, (h*w, 2).
-            distance (torch.Tensor): Predicted rotated distance, (bs, h*w, 5).
+            pred_dist (torch.Tensor): Predicted rotated distance, (bs, h*w, 4).
+            pred_angle (torch.Tensor): Predicted angle, (bs, h*w, 1).
+        Returns:
+            (torch.Tensor): Predicted rotated bounding boxes with angles, (bs, h*w, 5).
         """
         if self.use_dfl:
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
-        pred_distance = torch.cat([pred_dist, pred_angle], dim=-1)
-        return dist2rbox(pred_distance, anchor_points)
+        return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)

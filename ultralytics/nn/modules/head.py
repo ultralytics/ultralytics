@@ -137,8 +137,7 @@ class OBB(Detect):
 
     def decode_bboxes(self, bboxes):
         """Decode rotated bounding boxes."""
-        return dist2rbox(torch.cat([self.dfl(bboxes), self.angle], dim=1), self.anchors.unsqueeze(0),
-                         dim=1)[:, :4] * self.strides
+        return dist2rbox(self.dfl(bboxes), self.angle, self.anchors.unsqueeze(0), dim=1) * self.strides
 
 
 class Pose(Detect):

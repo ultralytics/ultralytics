@@ -234,20 +234,12 @@ class STrack(BaseTrack):
 
 
 def extract_image_patches(image, bboxes):
-    bboxes = np.round(bboxes).astype(np.int)
-    patches = [image[box[1]:box[3], box[0]:box[2], :] for box in bboxes]
-    # bboxes = clip_boxes(bboxes, image.shape)
-    return patches
-
-def extract_image_patches(image, bboxes):
     bboxes = np.round(bboxes).astype(np.int32)
     patches = [image[box[1]:box[3], box[0]:box[2], :] for box in bboxes]
     # bboxes = clip_boxes(bboxes, image.shape)
     return patches
 
 
-
-    return np.array(features)
 class SMILETracker(object):
     def __init__(self, track_high_thresh, track_low_thresh, new_track_thresh, track_buffer,
                  proximity_thresh, appearance_thresh, with_reid, fast_reid_config, fast_reid_weights, device,
@@ -278,35 +270,25 @@ class SMILETracker(object):
         self.proximity_thresh = proximity_thresh
         self.appearance_thresh = appearance_thresh
 
-
         if self.with_reid:
             # self.encoder = FastReIDInterface(fast_reid_config, fast_reid_weights, device)
-            self.model = models.resnet18(pretrained=True)  # Example for ResNet-50
-            self.model = self.model.eval()
             self.weight_path = self.fast_reid_weights
             self.encoder = load_model(self.weight_path)
             self.encoder = self.encoder.eval()
             if device == 'cuda':
                 self.encoder = self.encoder.to(torch.device("cuda"))
-                self.model = self.model.to(torch.device("cuda"))
                 self.encoder = torch.compile(self.encoder)
-                self.model = torch.compile(self.model)
             elif device == 'mps':
                 self.encoder = self.encoder.to(torch.device("mps"))
-                self.model = self.model.to(torch.device("mps"))
                 self.encoder = torch.compile(self.encoder, backend="aot_eager")
-                self.model = torch.compile(self.model, backend="aot_eager")
             else:
                 self.encoder = self.encoder.to(torch.device("cpu"))
-                self.model = self.model.to(torch.device("cpu"))
                 self.encoder = torch.compile(self.encoder)
-                self.model = torch.compile(self.model)
 
-            # self.encoder = self.encoder.half()
-            self.extractor = create_extractor(FeatureExtractor, batch_size=1, model=self.model, device=self.device)
+            # self.extractor = create_extractor(FeatureExtractor, batch_size=1, model=self.model, device=self.device)
         self.gmc = GMC(method=cmc_method, verbose=[name, ablation])
 
-    def process_detections(self, img, detections):
+        """    def process_detections(self, img, detections):
         # Convert detections.xyxy to a numpy array if it's not already
         xyxy = np.array(
             detections.xyxy)  # Assuming detections.xyxy is in the format [x_center, y_center, width, height]
@@ -323,7 +305,7 @@ class SMILETracker(object):
 
         # Extract features
         features = self.extractor(img, boxes_tlwh)
-        return features
+        return features"""
 
     def update_with_detections(self, Detections, img):
         self.frame_id += 1
@@ -331,28 +313,23 @@ class SMILETracker(object):
         refind_stracks = []
         lost_stracks = []
         removed_stracks = []
+        features_keep = []
 
         if len(Detections):
             bboxes = Detections.xyxy
             scores = Detections.confidence
             classes = Detections.class_id
-            if self.with_reid:
-                features = self.process_detections(img, Detections)
-
-
             # Remove bad detections
             lowest_inds = scores > self.track_low_thresh
             bboxes = bboxes[lowest_inds]
             scores = scores[lowest_inds]
             classes = classes[lowest_inds]
-            features = Detections[lowest_inds]
 
             # Find high threshold detections
             remain_inds = scores > self.track_high_thresh
             dets = bboxes[remain_inds]
             scores_keep = scores[remain_inds]
             classes_keep = classes[remain_inds]
-            features_keep = features[remain_inds]
         else:
             bboxes = []
             scores = []
@@ -360,6 +337,7 @@ class SMILETracker(object):
             dets = []
             scores_keep = []
             classes_keep = []
+            features_keep = []
 
         '''Extract embeddings '''
         if self.with_reid:
@@ -371,7 +349,6 @@ class SMILETracker(object):
             features = torch.zeros((len(patches_det), 128), dtype=torch.float32)
 
             for time in range(len(patches_det)):
-
                 patches_det[time] = torch.tensor(patches_det[time]).to(self.device)
                 features[time, :] = self.encoder.inference_forward_fast(patches_det[time].type(torch.float32))
 

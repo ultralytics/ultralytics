@@ -5,14 +5,14 @@
   "source_video_path": "/Users/johnny/Projects/new_samples/output.mp4",
 
   "device": "cpu",
-  "video_stride": 5,
+  "video_stride": 1,
 
-  "img_size": 640,
+  "img_size": 1280,
   "conf_threshold": 0.1,
   "iou_threshold": 0.8,
   "max_det": 50,
 
-  "track_high_thresh": 0.5,
+  "track_high_thresh": 0.1,
   "track_low_thresh": 0.1,
   "new_track_thresh": 0.95,
   "track_buffer": 500,

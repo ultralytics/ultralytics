@@ -560,6 +560,7 @@ def xyxyxyxy2xywhr(corners):
     Returns:
         (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format of shape (n, 5).
     """
+    # TODO: Implement torch version
     points = corners.cpu().numpy().reshape(-1, 4, 2)
     rboxes = []
     for pts in points:

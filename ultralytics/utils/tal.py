@@ -4,57 +4,11 @@ import torch
 import torch.nn as nn
 
 from .checks import check_version
-from .metrics import bbox_iou
+from .metrics import bbox_iou, probiou
+from .ops import xywhr2xyxyxyxy
 
 TORCH_1_10 = check_version(torch.__version__, '1.10.0')
 
-
-def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
-    """
-    Select the positive anchor center in gt.
-
-    Args:
-        xy_centers (Tensor): shape(h*w, 2)
-        gt_bboxes (Tensor): shape(b, n_boxes, 4)
-
-    Returns:
-        (Tensor): shape(b, n_boxes, h*w)
-    """
-    n_anchors = xy_centers.shape[0]
-    bs, n_boxes, _ = gt_bboxes.shape
-    lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
-    bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
-    # return (bbox_deltas.min(3)[0] > eps).to(gt_bboxes.dtype)
-    return bbox_deltas.amin(3).gt_(eps)
-
-
-def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
-    """
-    If an anchor box is assigned to multiple gts, the one with the highest IoI will be selected.
-
-    Args:
-        mask_pos (Tensor): shape(b, n_max_boxes, h*w)
-        overlaps (Tensor): shape(b, n_max_boxes, h*w)
-
-    Returns:
-        target_gt_idx (Tensor): shape(b, h*w)
-        fg_mask (Tensor): shape(b, h*w)
-        mask_pos (Tensor): shape(b, n_max_boxes, h*w)
-    """
-    # (b, n_max_boxes, h*w) -> (b, h*w)
-    fg_mask = mask_pos.sum(-2)
-    if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
-        mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
-        max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
-
-        is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-        is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
-
-        mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
-        fg_mask = mask_pos.sum(-2)
-    # Find each grid serve which gt(index)
-    target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
-    return target_gt_idx, fg_mask, mask_pos
 
 
 class TaskAlignedAssigner(nn.Module):
@@ -115,7 +69,7 @@ class TaskAlignedAssigner(nn.Module):
         mask_pos, align_metric, overlaps = self.get_pos_mask(pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points,
                                                              mask_gt)
 
-        target_gt_idx, fg_mask, mask_pos = select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes)
+        target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes)
 
         # Assigned target
         target_labels, target_bboxes, target_scores = self.get_targets(gt_labels, gt_bboxes, target_gt_idx, fg_mask)
@@ -131,7 +85,7 @@ class TaskAlignedAssigner(nn.Module):
 
     def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
         """Get in_gts mask, (b, max_num_obj, h*w)."""
-        mask_in_gts = select_candidates_in_gts(anc_points, gt_bboxes)
+        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes)
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
@@ -157,10 +111,14 @@ class TaskAlignedAssigner(nn.Module):
         # (b, max_num_obj, 1, 4), (b, 1, h*w, 4)
         pd_boxes = pd_bboxes.unsqueeze(1).expand(-1, self.n_max_boxes, -1, -1)[mask_gt]
         gt_boxes = gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)[mask_gt]
-        overlaps[mask_gt] = bbox_iou(gt_boxes, pd_boxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
+        overlaps[mask_gt] = self.iou_calculation(gt_boxes, pd_boxes)
 
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps
+
+    def iou_calculation(self, gt_bboxes, pd_bboxes):
+        """Iou calculation for horizontal bounding boxes."""
+        return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
 
     def select_topk_candidates(self, metrics, largest=True, topk_mask=None):
         """
@@ -245,6 +203,90 @@ class TaskAlignedAssigner(nn.Module):
 
         return target_labels, target_bboxes, target_scores
 
+    @staticmethod
+    def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
+        """
+        Select the positive anchor center in gt.
+
+        Args:
+            xy_centers (Tensor): shape(h*w, 2)
+            gt_bboxes (Tensor): shape(b, n_boxes, 4)
+
+        Returns:
+            (Tensor): shape(b, n_boxes, h*w)
+        """
+        n_anchors = xy_centers.shape[0]
+        bs, n_boxes, _ = gt_bboxes.shape
+        lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
+        bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
+        # return (bbox_deltas.min(3)[0] > eps).to(gt_bboxes.dtype)
+        return bbox_deltas.amin(3).gt_(eps)
+
+    @staticmethod
+    def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
+        """
+        If an anchor box is assigned to multiple gts, the one with the highest IoI will be selected.
+
+        Args:
+            mask_pos (Tensor): shape(b, n_max_boxes, h*w)
+            overlaps (Tensor): shape(b, n_max_boxes, h*w)
+
+        Returns:
+            target_gt_idx (Tensor): shape(b, h*w)
+            fg_mask (Tensor): shape(b, h*w)
+            mask_pos (Tensor): shape(b, n_max_boxes, h*w)
+        """
+        # (b, n_max_boxes, h*w) -> (b, h*w)
+        fg_mask = mask_pos.sum(-2)
+        if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
+            mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
+            max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
+
+            is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+            is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
+
+            mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
+            fg_mask = mask_pos.sum(-2)
+        # Find each grid serve which gt(index)
+        target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
+        return target_gt_idx, fg_mask, mask_pos
+
+
+class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
+
+    def iou_calculation(self, gt_bboxes, pd_bboxes):
+        """Iou calculation for rotated bounding boxes."""
+        return probiou(gt_bboxes, pd_bboxes).squeeze(-1).clamp_(0)
+
+    @staticmethod
+    def select_candidates_in_gts(xy_centers, gt_bboxes):
+        """
+        Select the positive anchor center in gt.
+
+        Args:
+            xy_centers (Tensor): shape(h*w, 2)
+            gt_bboxes (Tensor): shape(b, n_boxes, 5)
+
+        Returns:
+            (Tensor): shape(b, n_boxes, h*w)
+        """
+        bs, n_boxes, _ = gt_bboxes.shape
+        # (b, n_boxes, 5) --> (b, n_boxes, 4, 2)
+        corners = xywhr2xyxyxyxy(gt_bboxes).view(bs, n_boxes, 4, 2)
+        # (b, n_boxes, 1, 2)
+        a, b, _, d = corners.split(1, dim=-2)
+        ab = b - a
+        ad = d - a
+
+        # (b, n_boxes, h*w, 2)
+        ap = xy_centers - a
+        norm_ab = (ab * ab).sum(dim=-1)
+        norm_ad = (ad * ad).sum(dim=-1)
+        ap_dot_ab = (ap * ab).sum(dim=-1)
+        ap_dot_ad = (ap * ad).sum(dim=-1)
+        is_in_box = (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (ap_dot_ad <= norm_ad)
+        return is_in_box
+
 
 def make_anchors(feats, strides, grid_cell_offset=0.5):
     """Generate anchors from features."""
@@ -277,3 +319,20 @@ def bbox2dist(anchor_points, bbox, reg_max):
     """Transform bbox(xyxy) to dist(ltrb)."""
     x1y1, x2y2 = bbox.chunk(2, -1)
     return torch.cat((anchor_points - x1y1, x2y2 - anchor_points), -1).clamp_(0, reg_max - 0.01)  # dist (lt, rb)
+
+
+def dist2rbox(pred_distance, anchor_points, dim=-1):
+    """
+    Decode predicted object bounding box coordinates from anchor points and distribution.
+
+    Args:
+        anchor_points (torch.Tensor): Anchor points, (h*w, 2).
+        distance (torch.Tensor): Predicted rotated distance, (bs, h*w, 5).
+    """
+    lt, rb, angle = pred_distance.split([2, 2, 1], dim=dim)
+    cos, sin = torch.cos(angle), torch.sin(angle)
+    # (bs, h*w, 1)
+    xf, yf = ((rb - lt) / 2).split([1, 1], dim=dim)
+    x, y = xf * cos - yf * sin, xf * sin + yf * cos
+    xy = torch.cat([x, y], dim=dim) + anchor_points
+    return torch.cat([xy, lt + rb, angle], dim=dim)

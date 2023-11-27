@@ -10,7 +10,6 @@ from .ops import xywhr2xyxyxyxy
 TORCH_1_10 = check_version(torch.__version__, '1.10.0')
 
 
-
 class TaskAlignedAssigner(nn.Module):
     """
     A task-aligned assigner for object detection.

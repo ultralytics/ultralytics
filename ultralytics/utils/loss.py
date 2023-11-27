@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh, xyxyxyxy2xywhr
-from ultralytics.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors, RotatedTaskAlignedAssigner, dist2rbox
+from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist

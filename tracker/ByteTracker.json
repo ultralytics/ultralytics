@@ -1,5 +1,5 @@
 {
-  "name": null,
+  "name": "ByteTracker",
 
   "source_weights_path": "./../inference_tools/models/detector_best.pt",
   "source_video_path": "./data/example1.mp4",
@@ -13,13 +13,13 @@
   "max_det": 50,
 
   "track_threshold": 0.4,
-  "track_buffer": 100,
+  "track_buffer": 500,
   "match_threshold": 0.9,
   "frame_rate": 25,
 
   "save_dir": "./outputs/",
   "save_results": false,
-  "display": true,
+  "display": false,
 
   "action_recognition": {
 

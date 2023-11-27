@@ -1,0 +1,11 @@
+_BASE_: Base-attribute.yml
+
+DATASETS:
+  NAMES: ("Market1501Attr",)
+  TESTS: ("Market1501Attr",)
+
+MODEL:
+  HEADS:
+    NUM_CLASSES: 27
+
+OUTPUT_DIR: projects/FastAttr/logs/market1501/strong_baseline

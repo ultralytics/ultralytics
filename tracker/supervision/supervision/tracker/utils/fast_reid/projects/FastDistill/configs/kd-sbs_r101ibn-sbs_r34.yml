@@ -1,0 +1,18 @@
+_BASE_: Base-kd.yml
+
+MODEL:
+  META_ARCHITECTURE: Distiller
+  BACKBONE:
+    DEPTH: 34x
+    FEAT_DIM: 512
+    WITH_IBN: False
+
+KD:
+  MODEL_CONFIG: ("projects/FastDistill/logs/dukemtmc/r101_ibn/config.yaml",)
+  MODEL_WEIGHTS: ("projects/FastDistill/logs/dukemtmc/r101_ibn/model_best.pth",)
+
+DATASETS:
+  NAMES: ("DukeMTMC",)
+  TESTS: ("DukeMTMC",)
+
+OUTPUT_DIR: projects/FastDistill/logs/dukemtmc/kd-r34-r101_ibn

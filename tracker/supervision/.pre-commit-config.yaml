@@ -13,6 +13,7 @@ repos:
       - id: trailing-whitespace
       - id: check-yaml
       - id: check-docstring-first
+      - id: debug-statements
       - id: check-executables-have-shebangs
       - id: check-toml
       - id: check-case-conflict
@@ -22,7 +23,6 @@ repos:
       - id: detect-private-key
       - id: forbid-new-submodules
       - id: pretty-format-json
-        exclude: demo.ipynb
         args: ['--autofix', '--no-sort-keys', '--indent=4']
       - id: end-of-file-fixer
       - id: mixed-line-ending

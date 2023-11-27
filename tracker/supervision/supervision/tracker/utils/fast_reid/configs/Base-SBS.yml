@@ -1,0 +1,63 @@
+_BASE_: Base-bagtricks.yml
+
+MODEL:
+  FREEZE_LAYERS: [ backbone ]
+
+  BACKBONE:
+    WITH_NL: True
+
+  HEADS:
+    NECK_FEAT: after
+    POOL_LAYER: GeneralizedMeanPoolingP
+    CLS_LAYER: CircleSoftmax
+    SCALE: 64
+    MARGIN: 0.35
+
+  LOSSES:
+    NAME: ("CrossEntropyLoss", "TripletLoss",)
+    CE:
+      EPSILON: 0.1
+      SCALE: 1.0
+
+    TRI:
+      MARGIN: 0.0
+      HARD_MINING: True
+      NORM_FEAT: False
+      SCALE: 1.0
+
+INPUT:
+  SIZE_TRAIN: [ 384, 128 ]
+  SIZE_TEST: [ 384, 128 ]
+
+  AUTOAUG:
+    ENABLED: True
+    PROB: 0.1
+
+DATALOADER:
+  NUM_INSTANCE: 16
+
+SOLVER:
+  AMP:
+    ENABLED: True
+  OPT: Adam
+  MAX_EPOCH: 60
+  BASE_LR: 0.00035
+  WEIGHT_DECAY: 0.0005
+  IMS_PER_BATCH: 64
+
+  SCHED: CosineAnnealingLR
+  DELAY_EPOCHS: 30
+  ETA_MIN_LR: 0.0000007
+
+  WARMUP_FACTOR: 0.1
+  WARMUP_ITERS: 2000
+
+  FREEZE_ITERS: 1000
+
+  CHECKPOINT_PERIOD: 1
+
+TEST:
+  EVAL_PERIOD: 1000
+  IMS_PER_BATCH: 128
+
+CUDNN_BENCHMARK: False # True

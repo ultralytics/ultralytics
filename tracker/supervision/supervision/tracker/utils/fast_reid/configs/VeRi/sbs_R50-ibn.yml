@@ -1,0 +1,35 @@
+_BASE_: ../Base-SBS.yml
+
+INPUT:
+  SIZE_TRAIN: [256, 256]
+  SIZE_TEST: [256, 256]
+
+MODEL:
+  BACKBONE:
+    WITH_IBN: True
+    WITH_NL: True
+
+SOLVER:
+  OPT: SGD
+  BASE_LR: 0.01
+  ETA_MIN_LR: 7.7e-5
+
+  IMS_PER_BATCH: 64
+  MAX_EPOCH: 60
+  WARMUP_ITERS: 3000
+  FREEZE_ITERS: 3000
+
+  CHECKPOINT_PERIOD: 10
+
+DATASETS:
+  NAMES: ("VeRi",)
+  TESTS: ("VeRi",)
+
+DATALOADER:
+  SAMPLER_TRAIN: BalancedIdentitySampler
+
+TEST:
+  EVAL_PERIOD: 10
+  IMS_PER_BATCH: 256
+
+OUTPUT_DIR: logs/veri/sbs_R50-ibn

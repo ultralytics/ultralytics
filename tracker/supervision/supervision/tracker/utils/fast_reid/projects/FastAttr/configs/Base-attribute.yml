@@ -1,0 +1,66 @@
+MODEL:
+  META_ARCHITECTURE: AttrBaseline
+
+  BACKBONE:
+    NAME: build_resnet_backbone
+    NORM: BN
+    DEPTH: 50x
+    LAST_STRIDE: 2
+    FEAT_DIM: 2048
+    WITH_IBN: False
+    PRETRAIN: True
+    PRETRAIN_PATH: /export/home/lxy/.cache/torch/checkpoints/resnet50-19c8e357.pth
+
+  HEADS:
+    NAME: AttrHead
+    WITH_BNNECK: True
+    POOL_LAYER: FastGlobalAvgPool
+    CLS_LAYER: Linear
+    NUM_CLASSES: 26
+
+  LOSSES:
+    NAME: ("BinaryCrossEntropyLoss",)
+
+    BCE:
+      WEIGHT_ENABLED: True
+      SCALE: 1.
+
+INPUT:
+  SIZE_TRAIN: [ 256, 192 ]
+  SIZE_TEST: [ 256, 192 ]
+
+  FLIP:
+    ENABLED: True
+
+  PADDING:
+    ENABLED: True
+
+DATALOADER:
+  SAMPLER_TRAIN: TrainingSampler
+  NUM_WORKERS: 8
+
+SOLVER:
+  MAX_EPOCH: 30
+  OPT: SGD
+  BASE_LR: 0.04
+  BIAS_LR_FACTOR: 2.
+  HEADS_LR_FACTOR: 10.
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.0005
+  IMS_PER_BATCH: 256
+
+  NESTEROV: False
+  SCHED: MultiStepLR
+  STEPS: [ 15, 20, 25 ]
+
+  WARMUP_FACTOR: 0.1
+  WARMUP_ITERS: 1000
+
+  CHECKPOINT_PERIOD: 10
+
+TEST:
+  EVAL_PERIOD: 10
+  IMS_PER_BATCH: 256
+
+CUDNN_BENCHMARK: True
+

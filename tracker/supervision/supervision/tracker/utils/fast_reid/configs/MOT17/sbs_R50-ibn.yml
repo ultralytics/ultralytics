@@ -1,0 +1,11 @@
+_BASE_: ../Base-SBS.yml
+
+MODEL:
+  BACKBONE:
+    WITH_IBN: True
+
+DATASETS:
+  NAMES: ("MOT17",)
+  TESTS: ("MOT17",)
+
+OUTPUT_DIR: logs/mot17/sbs_R50-ibn

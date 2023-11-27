@@ -30,14 +30,44 @@ class VideoProcessor:
 
         self.device = config["device"]
         self.video_stride = config["video_stride"]
+        self.wait_time = 1
+        self.slow_factor = 1
 
         self.model = YOLO(config["source_weights_path"])
-        self.tracker = sv.ByteTrack(
-            track_thresh=config["track_threshold"],
-            track_buffer=config["track_buffer"],
-            match_thresh=config["match_threshold"],
-            frame_rate=config["frame_rate"],
-        )
+        self.model.fuse()
+
+        if config["name"] == "ByteTracker":
+            self.tracker = sv.ByteTrack(
+                track_thresh=config["track_threshold"],
+                track_buffer=config["track_buffer"],
+                match_thresh=config["match_threshold"],
+                frame_rate=config["frame_rate"],
+            )
+        elif config["name"] == "SmileByTracker":
+            self.tracker = sv.SMILETracker(
+                track_high_thresh=config["track_high_thresh"],
+                track_low_thresh=config["track_low_thresh"],
+                new_track_thresh=config["new_track_thresh"],
+                track_buffer=config["track_buffer"],
+                proximity_thresh=config["proximity_thresh"],
+                appearance_thresh=config["appearance_thresh"],
+                with_reid=config["with_reid"],
+                fast_reid_config=config["fast_reid_config"],
+                fast_reid_weights=config["fast_reid_weights"],
+                cmc_method=config["cmc_method"],
+                name=config["name"],
+                ablation=config["ablation"],
+                device=config["device"],
+                match_thresh=config["match_thresh"],
+                frame_rate=config["frame_rate"],
+            )
+        elif config["name"] == "BytetrackReid":
+            self.tracker = sv.ByteTrackReid(
+                frame_rate=config["frame_rate"],
+                low_thresh=config["low_thresh"],
+                track_thresh=config["track_thresh"],
+                det_thresh_offset=config["det_thresh_offset"],
+            )
 
         self.video_info = sv.VideoInfo.from_video_path(self.source_video_path)
 
@@ -88,7 +118,7 @@ class VideoProcessor:
                 for i, frame in enumerate(pbar := tqdm(frame_generator, total=self.video_info.total_frames)):
                     pbar.set_description(f"[FPS: {fps_counter.value():.2f}] ")
                     if i % self.video_stride == 0:
-                        annotated_frame = self.process_frame(frame)
+                        annotated_frame = self.process_frame(frame, i, fps_counter.value())
                         sink.write_frame(annotated_frame)
 
                         # Store results
@@ -112,7 +142,7 @@ class VideoProcessor:
             for i, frame in enumerate(pbar := tqdm(frame_generator, total=self.video_info.total_frames)):
                 pbar.set_description(f"[FPS: {fps_counter.value():.2f}] ")
                 if i % self.video_stride == 0:
-                    annotated_frame = self.process_frame(frame)
+                    annotated_frame = self.process_frame(frame, i, fps_counter.value())
                     cv2.imshow("Processed Video", annotated_frame)
 
                     # Store results
@@ -127,8 +157,20 @@ class VideoProcessor:
                             data_dict["y2"].append(track.tlbr[3])
 
                     fps_counter.step()
+                    k = cv2.waitKey(int(self.wait_time * self.slow_factor))  # dd& 0xFF
 
                     if cv2.waitKey(1) & 0xFF == ord("q"):
+                        break
+                    elif k == ord('p'):  # pause the video
+                        cv2.waitKey(-1)  # wait until any key is pressed
+                    elif k == ord('r'):  # resume the video
+                        continue
+                    elif k == ord('d'):
+                        slow_factor = self.slow_factor - 1
+                        print(slow_factor)
+                    elif k == ord('i'):
+                        slow_factor = self.slow_factor + 1
+                        print(slow_factor)
                         break
             cv2.destroyAllWindows()
 
@@ -146,7 +188,7 @@ class VideoProcessor:
                 w.writerow(data_dict.keys())
                 w.writerows(zip(*data_dict.values()))
 
-    def process_frame(self, frame: np.ndarray) -> np.ndarray:
+    def process_frame(self, frame: np.ndarray, frame_number: int, fps: float) -> np.ndarray:
         results = self.model(
             frame,
             verbose=False,
@@ -157,19 +199,28 @@ class VideoProcessor:
             max_det=self.max_det
         )[0]
         detections = sv.Detections.from_ultralytics(results)
-        detections, tracks = self.tracker.update_with_detections(detections)
+        if config["name"] == "ByteTracker":
+            detections, tracks = self.tracker.update_with_detections(detections)
+
+        else:
+            detections, tracks = self.tracker.update_with_detections(detections, frame)
+
         ar_results = self.action_recognizer.recognize_frame(tracks)
 
-        return self.annotate_frame(frame, detections, ar_results)
+        return self.annotate_frame(frame, detections, ar_results,  frame_number, fps)
 
-    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections, crowd_detections=None) -> np.ndarray:
+    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections, crowd_detections: None, frame_number: int,
+                       fps: float) -> np.ndarray:
         annotated_frame = frame.copy()
 
         labels = [f"#{tracker_id} {self.class_names[class_id]} {confidence:.2f}"
-                  for tracker_id, class_id, confidence in zip(detections.tracker_id, detections.class_id, detections.confidence)]
+                  for tracker_id, class_id, confidence in
+                  zip(detections.tracker_id, detections.class_id, detections.confidence)]
         annotated_frame = self.trace_annotator.annotate(annotated_frame, detections)
         annotated_frame = self.box_annotator.annotate(annotated_frame, detections, labels)
         annotated_frame = self.action_recognizer.annotate(annotated_frame, crowd_detections)
+        cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         return annotated_frame
 
@@ -179,7 +230,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c",
         "--config",
-        default="./track_config.json",
+        default="./ByteTracker.json",
         type=str,
         help="config file path (default: None)",
     )

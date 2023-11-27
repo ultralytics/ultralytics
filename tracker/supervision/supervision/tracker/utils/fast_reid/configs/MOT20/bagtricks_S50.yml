@@ -1,0 +1,11 @@
+_BASE_: ../Base-bagtricks.yml
+
+MODEL:
+  BACKBONE:
+    NAME: build_resnest_backbone
+
+DATASETS:
+  NAMES: ("MOT20",)
+  TESTS: ("MOT20",)
+
+OUTPUT_DIR: logs/mot20/bagtricks_S50

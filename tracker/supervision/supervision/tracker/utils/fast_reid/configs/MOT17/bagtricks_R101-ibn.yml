@@ -1,0 +1,12 @@
+_BASE_: ../Base-bagtricks.yml
+
+MODEL:
+  BACKBONE:
+    DEPTH: 101x
+    WITH_IBN: True
+
+DATASETS:
+  NAMES: ("MOT17",)
+  TESTS: ("MOT17",)
+
+OUTPUT_DIR: logs/mot17/bagtricks_R101-ibn

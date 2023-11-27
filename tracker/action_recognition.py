@@ -160,7 +160,7 @@ class ActionRecognizer:
         ss_results = {}
         for idx, track in enumerate(tracks):
             # TODO: maybe condition on seconds and not frames using average FPS of the video
-            if track.tracklet_len > self.ss_frame_window and track.class_ids == 1:
+            if track.tracklet_len > self.ss_frame_window and track.class_ids == 0:
                 # TODO compute real speed with homograahy matrix
                 #pixel_speed = np.sqrt(np.sum(track.mean[4:6]**2))
                 pixel_speed = np.sqrt(np.sum(track.mean[4:]**2))

@@ -1,0 +1,76 @@
+MODEL:
+  META_ARCHITECTURE: FaceBaseline
+
+  PIXEL_MEAN: [127.5, 127.5, 127.5]
+  PIXEL_STD: [127.5, 127.5, 127.5]
+
+  BACKBONE:
+    NAME: build_iresnet_backbone
+
+  HEADS:
+    NAME: FaceHead
+    WITH_BNNECK: True
+    NORM: BN
+    NECK_FEAT: after
+    EMBEDDING_DIM: 512
+    POOL_LAYER: Flatten
+    CLS_LAYER: CosSoftmax
+    SCALE: 64
+    MARGIN: 0.4
+    NUM_CLASSES: 360232
+
+    PFC:
+      ENABLED: False
+      SAMPLE_RATE: 0.1
+
+  LOSSES:
+    NAME: ("CrossEntropyLoss",)
+
+    CE:
+      EPSILON: 0.
+      SCALE: 1.
+
+DATASETS:
+  REC_PATH: /export/home/DATA/Glint360k/train.rec
+  NAMES: ("MS1MV2",)
+  TESTS: ("CFP_FP", "AgeDB_30", "LFW")
+
+INPUT:
+  SIZE_TRAIN: [0,]  # No need of resize
+  SIZE_TEST: [0,]
+
+  FLIP:
+    ENABLED: True
+    PROB: 0.5
+
+DATALOADER:
+  SAMPLER_TRAIN: TrainingSampler
+  NUM_WORKERS: 8
+
+SOLVER:
+  MAX_EPOCH: 20
+  AMP:
+    ENABLED: True
+
+  OPT: SGD
+  BASE_LR: 0.05
+  MOMENTUM: 0.9
+
+  SCHED: MultiStepLR
+  STEPS: [8, 12, 15, 18]
+
+  BIAS_LR_FACTOR: 1.
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.0005
+  IMS_PER_BATCH: 256
+
+  WARMUP_FACTOR: 0.1
+  WARMUP_ITERS: 0
+
+  CHECKPOINT_PERIOD: 1
+
+TEST:
+  EVAL_PERIOD: 1
+  IMS_PER_BATCH: 1024
+
+CUDNN_BENCHMARK: True

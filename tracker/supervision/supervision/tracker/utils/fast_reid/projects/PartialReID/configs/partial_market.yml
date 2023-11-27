@@ -1,0 +1,73 @@
+MODEL:
+  META_ARCHITECTURE: PartialBaseline
+
+  BACKBONE:
+    NAME: build_resnet_backbone
+    NORM: BN
+    DEPTH: 50x
+    LAST_STRIDE: 1
+    FEAT_DIM: 2048
+    WITH_IBN: True
+    PRETRAIN: True
+
+  HEADS:
+    NAME: DSRHead
+    POOL_LAYER: FastGlobalAvgPool
+    WITH_BNNECK: True
+    CLS_LAYER: Linear
+
+  LOSSES:
+    NAME: ("CrossEntropyLoss", "TripletLoss",)
+  
+    CE:
+      EPSILON: 0.12
+      SCALE: 1.
+
+    TRI:
+      MARGIN: 0.3
+      SCALE: 1.0
+      HARD_MINING: False
+
+DATASETS:
+  NAMES: ("Market1501",)
+  TESTS: ("PartialREID", "PartialiLIDS", "OccludedREID",)
+
+INPUT:
+  SIZE_TRAIN: [384, 128]
+  SIZE_TEST: [384, 128]
+
+  FLIP:
+    ENABLED: True
+
+DATALOADER:
+  SAMPLER_TRAIN: NaiveIdentitySampler
+  NUM_INSTANCE: 4
+  NUM_WORKERS: 8
+
+SOLVER:
+  AMP:
+    ENABLED: False
+  OPT: Adam
+  MAX_EPOCH: 60
+  BASE_LR: 0.0007
+  BIAS_LR_FACTOR: 1.
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.0005
+  IMS_PER_BATCH: 256
+
+  SCHED: CosineAnnealingLR
+  DELAY_EPOCHS: 20
+  ETA_MIN_LR: 0.0000007
+
+  WARMUP_FACTOR: 0.1
+  WARMUP_ITERS: 500
+
+  CHECKPOINT_PERIOD: 20
+
+TEST:
+  EVAL_PERIOD: 10
+  IMS_PER_BATCH: 128
+
+CUDNN_BENCHMARK: True
+
+OUTPUT_DIR: projects/PartialReID/logs/test_partial

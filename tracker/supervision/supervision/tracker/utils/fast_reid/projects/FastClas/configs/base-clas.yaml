@@ -1,0 +1,76 @@
+MODEL:
+  META_ARCHITECTURE: Baseline
+
+  BACKBONE:
+    NAME: build_resnet_backbone
+    DEPTH: 18x
+    NORM: BN
+    LAST_STRIDE: 2
+    FEAT_DIM: 512
+    PRETRAIN: True
+
+  HEADS:
+    NAME: ClasHead
+    WITH_BNNECK: False
+    EMBEDDING_DIM: 0
+    POOL_LAYER: FastGlobalAvgPool
+    CLS_LAYER: Linear
+    NUM_CLASSES: 2
+
+  LOSSES:
+    NAME: ("CrossEntropyLoss",)
+
+    CE:
+      EPSILON: 0.1
+      SCALE: 1.
+
+INPUT:
+  SIZE_TRAIN: [0,]  # no need for resize when training
+  SIZE_TEST: [256,]
+
+  CROP:
+    ENABLED: True
+    SIZE: [224,]
+    SCALE: [0.08, 1]
+    RATIO: [0.75, 1.333333333]
+
+  FLIP:
+    ENABLED: True
+
+DATALOADER:
+  SAMPLER_TRAIN: TrainingSampler
+  NUM_WORKERS: 8
+
+SOLVER:
+  MAX_EPOCH: 100
+  AMP:
+    ENABLED: True
+
+  OPT: SGD
+  SCHED: CosineAnnealingLR
+
+  BASE_LR: 0.001
+  MOMENTUM: 0.9
+  NESTEROV: False
+
+  BIAS_LR_FACTOR: 1.
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.
+  IMS_PER_BATCH: 16
+
+  ETA_MIN_LR: 0.00003
+
+  WARMUP_FACTOR: 0.1
+  WARMUP_ITERS: 100
+
+  CHECKPOINT_PERIOD: 10
+
+TEST:
+  EVAL_PERIOD: 10
+  IMS_PER_BATCH: 256
+
+DATASETS:
+  NAMES: ("Hymenoptera",)
+  TESTS: ("Hymenoptera",)
+
+OUTPUT_DIR: projects/FastClas/logs/r18_demo

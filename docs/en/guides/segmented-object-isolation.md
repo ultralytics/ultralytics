@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLO, segmentation, Python, object detection, inference, 
 After performing the [Segment Task](../tasks/segment.md), it's sometimes desirable to extract the isolated objects from the inference results. This guide provides a generic recipe on how to accomplish this using the Ultralytics [Predict Mode](../modes/predict.md).
 
 <p align="center">
-  <img src="https://github.com/Burhan-Q/ultralytics/blob/BQ_assets/ASSETS/guides/seg-obj-example-1920.gif?raw=true" alt="Example Isolated Object Segmentation">
+  <img src="https://github.com/Burhan-Q/ultralytics/blob/BQ_assets/ASSETS/guides/seg-obj-example-1920-Compressed.gif?raw=true" alt="Example Isolated Object Segmentation">
 </p>
 
 ## Recipe Walk Through

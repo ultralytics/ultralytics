@@ -70,3 +70,54 @@ The `max_time_lost` is calculated based on the `frame_rate` and `track_buffer` u
 ```math
 Max_time_lost = frame_rate * track_buffer / 30
  ```
+
+# Bytrack Optional with ReID
+- ***source_weights_path***: The file path to the pretrained weights for the detector model.
+
+- ***source_video_path***: The file path to the input video on which detection and tracking will be performed.
+
+- ***device***: The computing device to use (e.g., 'cpu', 'cuda').
+
+- ***video_stride***: Number of frames to skip while processing the video. A stride of 5 means every 5th frame is processed.
+
+- ***img_size***: The size to which the input images are resized. A size of 640 means each frame is resized to 640x640 pixels before processing.
+
+- ***conf_threshold***: The confidence threshold for detections. Detections with a confidence score below 0.1 are discarded.
+
+- ***iou_threshold***: The Intersection Over Union threshold used for Non-Maximum Suppression in object detection. Helps in filtering out overlapping bounding boxes.
+
+- ***max_det***: Maximum number of detections allowed per frame.
+
+- ***track_high_thresh***: The higher threshold for initiating a track. Detections with a confidence score above this threshold are considered for initiating new tracks.
+
+- ***track_low_thresh***: The lower threshold for maintaining a track. Tracks are maintained as long as their confidence is above this threshold.
+
+- ***new_track_thresh***: The threshold for creating new tracks. Only detections with a confidence score above 0.95 initiate a new track.
+
+- ***track_buffer***: The maximum length of the track history.
+
+- ***proximity_thresh***: A threshold used in proximity-based track matching or merging.
+
+- ***frame_rate***: The frame rate of the video.
+
+- ***appearance_thresh***: Threshold for appearance similarity in re-identification.
+
+- ***match_thresh***: Threshold for matching detections with existing tracks.
+
+- ***with_reid***: A boolean indicating whether re-identification features are used in tracking.
+
+- ***fast_reid_config***: Path to the configuration file for the re-identification model.
+
+- ***fast_reid_weights***: Path to the pretrained weights for the re-identification model.
+
+- ***cmc_method***: The method used for cross-model correlation, such as 'sparseOptFlow'.
+
+- ***ablation***: Used for testing different components or variations in the tracking algorithm, set to 'sparseOptFlow'.
+
+- ***save_dir***: The directory where outputs (like processed videos or logs) will be saved.
+
+- ***save_results***: A boolean indicating whether to save the tracking results.
+
+- ***display***: A boolean to enable or disable real-time display of tracking results.
+
+- ***action_recognition***: Configuration for specific action recognition tasks, with settings for different actions like "gathering" and "standing still", each with its specific parameters like distance_threshold, area_threshold, frame_window, and speed_threshold.

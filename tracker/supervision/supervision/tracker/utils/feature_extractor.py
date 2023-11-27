@@ -112,12 +112,14 @@ def fliplr(img):
 class FeatureExtractor:
     def __init__(self, model, device, feature_dim="infer"):
         self.device = device
+        self.dtype = next(iter(model.parameters())).dtype
         self.model = model
         self.model.eval()
         self.model.to(self.device)
-        self.model = torch.compile(self.model)
-        self.device = next(iter(model.parameters())).device
-        self.dtype = next(iter(model.parameters())).dtype
+        if self.device == torch.device("mps"):
+            self.model = torch.compile(self.model, backend="aot_eager")
+        else:
+            self.model = torch.compile(self.model)
         self.feature_dim = feature_dim
 
     def __call__(self, X, batch_size=32):

@@ -7,12 +7,12 @@
   "device": "cpu",
   "video_stride": 5,
 
-  "img_size": 1280,
+  "img_size": 640,
   "conf_threshold": 0.1,
   "iou_threshold": 0.8,
   "max_det": 50,
 
-  "track_high_thresh": 0.9,
+  "track_high_thresh": 0.5,
   "track_low_thresh": 0.1,
   "new_track_thresh": 0.95,
   "track_buffer": 500,

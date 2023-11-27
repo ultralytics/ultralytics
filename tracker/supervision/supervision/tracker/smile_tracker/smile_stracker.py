@@ -294,8 +294,8 @@ class SMILETracker(object):
             elif device == 'mps':
                 self.encoder = self.encoder.to(torch.device("mps"))
                 self.model = self.model.to(torch.device("mps"))
-                self.encoder = torch.compile(self.encoder)
-                self.model = torch.compile(self.model)
+                self.encoder = torch.compile(self.encoder, backend="aot_eager")
+                self.model = torch.compile(self.model, backend="aot_eager")
             else:
                 self.encoder = self.encoder.to(torch.device("cpu"))
                 self.model = self.model.to(torch.device("cpu"))

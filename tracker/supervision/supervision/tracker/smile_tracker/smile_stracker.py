@@ -27,8 +27,9 @@ class STrack(BaseTrack):
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
+        self.features = deque([], maxlen=feat_history)
 
-        self.cls = -1
+        self.class_ids = -1
         self.cls_hist = []  # (cls id, freq)
         self.update_cls(cls, score)
 
@@ -39,7 +40,7 @@ class STrack(BaseTrack):
         self.curr_feat = None
         if feat is not None:
             self.update_features(feat)
-        self.features = deque([], maxlen=feat_history)
+
         self.alpha = 0.9
 
     def update_features(self, feat):
@@ -52,24 +53,24 @@ class STrack(BaseTrack):
         self.features.append(feat)
         self.smooth_feat /= np.linalg.norm(self.smooth_feat)
 
-    def update_cls(self, cls, score):
+    def update_cls(self, class_ids, score):
         if len(self.cls_hist) > 0:
             max_freq = 0
             found = False
             for c in self.cls_hist:
-                if cls == c[0]:
+                if class_ids == c[0]:
                     c[1] += score
                     found = True
 
                 if c[1] > max_freq:
                     max_freq = c[1]
-                    self.cls = c[0]
+                    self.class_ids = c[0]
             if not found:
-                self.cls_hist.append([cls, score])
-                self.cls = cls
+                self.cls_hist.append([class_ids, score])
+                self.class_ids = class_ids
         else:
-            self.cls_hist.append([cls, score])
-            self.cls = cls
+            self.cls_hist.append([class_ids, score])
+            self.class_ids = class_ids
 
     def predict(self):
         mean_state = self.mean.copy()
@@ -100,7 +101,7 @@ class STrack(BaseTrack):
             multi_covariance = np.asarray([st.covariance for st in stracks])
 
             R = H[:2, :2]
-            R8x8 = np.kron(np.eye(4, dtype=float32), R)
+            R8x8 = np.kron(np.eye(4, dtype=np.float32), R)
             t = H[:2, 2]
 
             for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
@@ -139,7 +140,7 @@ class STrack(BaseTrack):
             self.track_id = self.next_id()
         self.score = new_track.score
 
-        self.update_cls(new_track.cls, new_track.score)
+        self.update_cls(new_track.class_ids, new_track.score)
 
     def update(self, new_track, frame_id):
         """
@@ -163,7 +164,7 @@ class STrack(BaseTrack):
         self.is_activated = True
 
         self.score = new_track.score
-        self.update_cls(new_track.cls, new_track.score)
+        self.update_cls(new_track.class_ids, new_track.score)
 
     @property
     def tlwh(self):
@@ -261,6 +262,7 @@ class SMILETracker(object):
         self.mot20 = False
         self.fast_reid_config = fast_reid_config
         self.fast_reid_weights = fast_reid_weights
+        self.device = torch.device(device)
 
         self.frame_id = 0
 
@@ -280,19 +282,22 @@ class SMILETracker(object):
         if self.with_reid:
             # self.encoder = FastReIDInterface(fast_reid_config, fast_reid_weights, device)
             self.model = models.resnet18(pretrained=True)  # Example for ResNet-50
-            self.model = self.model.eval().to(device)
+            self.model = self.model.eval()
             self.weight_path = self.fast_reid_weights
             self.encoder = load_model(self.weight_path)
-
+            self.encoder = self.encoder.eval()
             if device == 'cuda':
                 self.encoder = self.encoder.to(torch.device("cuda"))
+                self.model = self.model.to(torch.device("cuda"))
             elif device == 'mps':
                 self.encoder = self.encoder.to(torch.device("mps"))
+                self.model = self.model.to(torch.device("mps"))
             else:
                 self.encoder = self.encoder.to(torch.device("cpu"))
-            self.encoder = self.encoder.eval()
+                self.model = self.model.to(torch.device("cpu"))
+
             # self.encoder = self.encoder.half()
-            self.extractor = create_extractor(FeatureExtractor, batch_size=1, model=self.model.eval())
+            self.extractor = create_extractor(FeatureExtractor, batch_size=1, model=self.model)
         self.gmc = GMC(method=cmc_method, verbose=[name, ablation])
 
     def process_detections(self, img, detections):
@@ -361,14 +366,7 @@ class SMILETracker(object):
 
             for time in range(len(patches_det)):
 
-                if torch.backends.mps.is_available():
-                    patches_det[time] = torch.tensor(patches_det[time]).to('mps')
-                # Check if CUDA is available and use it
-                elif torch.cuda.is_available():
-                    patches_det[time] = torch.tensor(patches_det[time]).cuda()
-                # Otherwise, use CPU
-                else:
-                    patches_det[time] = torch.tensor(patches_det[time])
+                patches_det[time] = torch.tensor(patches_det[time]).to(self.device)
                 features[time, :] = self.encoder.inference_forward_fast(patches_det[time].float())
 
             features_keep = features.cpu().detach().numpy()

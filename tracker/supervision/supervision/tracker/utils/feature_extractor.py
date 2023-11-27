@@ -112,10 +112,11 @@ def fliplr(img):
 class FeatureExtractor:
     def __init__(self, model, feature_dim="infer"):
         self.model = model
-        model.eval()
+        self.model.eval()
         self.device = next(iter(model.parameters())).device
         self.dtype = next(iter(model.parameters())).dtype
         self.feature_dim = feature_dim
+        self.model.to(self.device)
 
     def __call__(self, X, batch_size=32):
         X = X.type(self.dtype)

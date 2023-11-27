@@ -110,3 +110,20 @@ def embedding_distance(tracks, detections, metric='cosine'):
 
     cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # / 2.0  # Nomalized features
     return cost_matrix
+
+
+def gate(cost_matrix, emb_cost):
+    """
+    :param tracks: list[STrack]
+    :param detections: list[BaseTrack]
+    :param metric:
+    :return: cost_matrix np.ndarray
+    """
+
+    if cost_matrix.size == 0:
+        return cost_matrix
+
+    index = emb_cost > 0.3
+    cost_matrix[index] = 1
+
+    return cost_matrix

@@ -91,8 +91,8 @@ class PoseValidator(DetectionValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             npr = len(pred)
-            stat = dict(conf=torch.zeros((1, 0), device=self.device),
-                        pred_cls=torch.zeros((1, 0), device=self.device),
+            stat = dict(conf=torch.zeros(0, device=self.device),
+                        pred_cls=torch.zeros(0, device=self.device),
                         tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
                         tp_p=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device))
             pbatch = self._prepare_batch(si, batch)

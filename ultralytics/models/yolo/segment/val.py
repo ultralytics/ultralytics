@@ -87,8 +87,8 @@ class SegmentationValidator(DetectionValidator):
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
             self.seen += 1
             npr = len(pred)
-            stat = dict(conf=torch.zeros((1, 0), device=self.device),
-                        pred_cls=torch.zeros((1, 0), device=self.device),
+            stat = dict(conf=torch.zeros(0, device=self.device),
+                        pred_cls=torch.zeros(0, device=self.device),
                         tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
                         tp_m=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device))
             pbatch = self._prepare_batch(si, batch)

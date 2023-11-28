@@ -78,9 +78,7 @@ class SegmentationValidator(DetectionValidator):
         return prepared_batch
 
     def _prepare_pred(self, pred, pbatch, proto):
-        predn = pred.clone()
-        ops.scale_boxes(pbatch['imgsz'], predn[:, :4], pbatch["ori_shape"],
-                        ratio_pad=pbatch['ratio_pad'])  # native-space pred
+        predn = super()._prepare_pred(pred, pbatch)
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
         return predn, pred_masks
 

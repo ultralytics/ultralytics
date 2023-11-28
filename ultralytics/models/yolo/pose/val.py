@@ -80,9 +80,7 @@ class PoseValidator(DetectionValidator):
         return pbatch
 
     def _prepare_pred(self, pred, pbatch):
-        predn = pred.clone()
-        ops.scale_boxes(pbatch['imgsz'], predn[:, :4], pbatch["ori_shape"],
-                        ratio_pad=pbatch['ratio_pad'])  # native-space pred
+        predn = super()._prepare_pred(pred, pbatch)
         nk = pbatch["kpts"].shape[1]
         pred_kpts = predn[:, 6:].view(len(predn), nk, -1)
         ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch['ratio_pad'])

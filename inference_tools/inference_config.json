@@ -7,7 +7,7 @@
   "img_size": 640,
   "input_data_dir": "./data",
   "output_dir": "./outputs",
-  "simplify_onnx": false,
-  "optimize_onnx": false,
+  "simplify_onnx": true,
+  "optimize_onnx": true,
   "save_images": true
 }

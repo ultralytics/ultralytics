@@ -19,7 +19,7 @@
 
   "save_dir": "./outputs/",
   "save_results": false,
-  "display": false,
+  "display": true,
 
   "action_recognition": {
 
@@ -33,6 +33,12 @@
         "enabled": true,
         "frame_window": 100,
         "speed_threshold": 0.04
+    },
+
+    "fast_approach": {
+      "enabled": true,
+      "distance_threshold": 200,
+      "speed_threshold": 0.01
     }
   }
 }

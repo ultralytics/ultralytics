@@ -22,6 +22,10 @@ class ActionRecognizer:
         self.ss_enabled = config["standing_still"]["enabled"]
         self.ss_frame_window = config["standing_still"]["frame_window"]
         self.ss_speed_threshold = config["standing_still"]["speed_threshold"]
+        # Fast approach parameters
+        self.fa_enabled = config["fast_approach"]["enabled"]
+        self.fa_distance_threshold = config["fast_approach"]["distance_threshold"]
+        self.fa_speed_threshold = config["fast_approach"]["speed_threshold"]
 
     def recognize_frame(self, tracks):
         """
@@ -33,9 +37,10 @@ class ActionRecognizer:
 
         if self.gathering_enabled:
             ar_results["gathering"] = self.recognize_gathering(tracks)
-
         if self.ss_enabled:
             ar_results["standing_still"] = self.recognize_standing_still(tracks)
+        if self.fa_enabled:
+            ar_results["fast_approach"] = self.recognize_fast_approach(tracks)
 
         return ar_results
 
@@ -51,8 +56,12 @@ class ActionRecognizer:
         if self.gathering_enabled:
             frame = self.annotate_gathering(frame, ar_results["gathering"])
 
+        # TODO: merge individual actions so that we only loop and annotate once
         if self.ss_enabled:
             frame = self.annotate_standing_still(frame, ar_results["standing_still"])
+
+        if self.fa_enabled:
+            frame = self.annotate_fast_approach(frame, ar_results["fast_approach"])
 
         return frame
 
@@ -158,7 +167,7 @@ class ActionRecognizer:
 
     def recognize_standing_still(self, tracks):
         ss_results = {}
-        for idx, track in enumerate(tracks):
+        for track in tracks:
             # TODO: maybe condition on seconds and not frames using average FPS of the video
             if track.tracklet_len > self.ss_frame_window and track.class_ids == 0:
                 # TODO compute real speed with homograahy matrix
@@ -166,11 +175,22 @@ class ActionRecognizer:
                 pixel_speed = np.sqrt(np.sum(track.mean[4:]**2))
                 # TODO: condition on height and aspect ratio of the bounding box
                 if pixel_speed < self.ss_speed_threshold:
-                    """f (track.mean[4] < self.ss_speed_threshold) \
-                        and (track.mean[5] < self.ss_speed_threshold) \
-                        and (track.mean[-1] < self.ss_speed_threshold):"""
-                    ss_results[idx] = track.tlbr
+                    ss_results[track.track_id] = track.tlbr
         return ss_results if len(ss_results.keys()) > 0 else None
+
+    def recognize_fast_approach(self, tracks):
+        fa_results = {}
+        valid_classes = [0, 1, 2]   # personnel, car, truck
+        interest_point = np.array([1080, 960])   # TODO: not hardcoded
+        for track in tracks:
+            if track.class_ids in valid_classes:
+                # TODO compute real speed with homograahy matrix
+                pixel_speed = np.sqrt(np.sum(track.mean[4:]**2))
+                if pixel_speed > self.fa_speed_threshold and track.mean[1] > 0:
+                    distace_to_interest_point = np.sqrt(np.sum((track.mean[0:2] - interest_point) ** 2))
+                    if distace_to_interest_point < self.fa_distance_threshold:
+                        fa_results[track.track_id] = track.tlbr
+        return fa_results if len(fa_results.keys()) > 0 else None
 
     @staticmethod
     def annotate_gathering(frame, crowd_results):
@@ -277,4 +297,47 @@ class ActionRecognizer:
 
         return frame
 
+    @staticmethod
+    def annotate_fast_approach(frame, fa_results):
+        if fa_results is not None:
+            for idx, bbox in fa_results.items():
+                x1, y1, x2, y2 = bbox.astype(int)
+
+                text = f"FA"
+                text_width, text_height = cv2.getTextSize(
+                    text=text,
+                    fontFace=font,
+                    fontScale=font_scale,
+                    thickness=font_thickness,
+                )[0]
+
+                # Text must be top right corner of the bounding box of the crowd but outside the frame
+                text_x = x2 - text_padding - text_width
+                text_y = y2 + text_padding + text_height
+
+                text_background_x2 = x2
+                text_background_x1 = x2 - 2 * text_padding - text_width
+
+                text_background_y1 = y2
+                text_background_y2 = y2 + 2 * text_padding + text_height
+
+                cv2.rectangle(
+                    img=frame,
+                    pt1=(text_background_x1, text_background_y1),
+                    pt2=(text_background_x2, text_background_y2),
+                    color=background_color,
+                    thickness=cv2.FILLED,
+                )
+                cv2.putText(
+                    img=frame,
+                    text=text,
+                    org=(text_x, text_y),
+                    fontFace=font,
+                    fontScale=font_scale,
+                    color=text_color,
+                    thickness=font_thickness,
+                    lineType=cv2.LINE_AA,
+                )
+
+        return frame
 

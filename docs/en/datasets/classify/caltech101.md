@@ -61,7 +61,7 @@ The example showcases the variety and complexity of the objects in the Caltech-1
 
 If you use the Caltech-101 dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

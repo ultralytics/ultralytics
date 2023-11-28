@@ -218,7 +218,7 @@ To do this first create a copy of `default.yaml` in your current working dir wit
 
 This will create `default_copy.yaml`, which you can then pass as `cfg=default_copy.yaml` along with any additional args, like `imgsz=320` in this example:
 
-!!! Example ""
+!!! Example
 
     === "CLI"
         ```bash

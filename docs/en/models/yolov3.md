@@ -26,34 +26,25 @@ This document presents an overview of three closely related object detection mod
 
 - **YOLOv3u:** This updated model incorporates the anchor-free, objectness-free split head from YOLOv8. By eliminating the need for pre-defined anchor boxes and objectness scores, this detection head design can improve the model's ability to detect objects of varying sizes and shapes. This makes YOLOv3u more robust and accurate for object detection tasks.
 
-## Supported Tasks
+## Supported Tasks and Modes
 
-YOLOv3, YOLOv3-Ultralytics, and YOLOv3u all support the following tasks:
+The YOLOv3 series, including YOLOv3, YOLOv3-Ultralytics, and YOLOv3u, are designed specifically for object detection tasks. These models are renowned for their effectiveness in various real-world scenarios, balancing accuracy and speed. Each variant offers unique features and optimizations, making them suitable for a range of applications.
 
-- Object Detection
+All three models support a comprehensive set of modes, ensuring versatility in various stages of model deployment and development. These modes include [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), providing users with a complete toolkit for effective object detection.
 
-## Supported Modes
+| Model Type         | Tasks Supported                        | Inference | Validation | Training | Export |
+|--------------------|----------------------------------------|-----------|------------|----------|--------|
+| YOLOv3             | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv3-Ultralytics | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv3u            | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 
-All three models support the following modes:
+This table provides an at-a-glance view of the capabilities of each YOLOv3 variant, highlighting their versatility and suitability for various tasks and operational modes in object detection workflows.
 
-- Inference
-- Validation
-- Training
-- Export
+## Usage Examples
 
-## Performance
+This example provides simple YOLOv3 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-Below is a comparison of the performance of the three models. The performance is measured in terms of the Mean Average Precision (mAP) on the COCO dataset:
-
-TODO
-
-## Usage
-
-You can use YOLOv3 for object detection tasks using the Ultralytics repository. The following is a sample code snippet showing how to use YOLOv3 model for inference:
-
-!!! Example ""
-
-    This example provides simple inference code for YOLOv3. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv3 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
+!!! Example
 
     === "Python"
 
@@ -91,7 +82,7 @@ You can use YOLOv3 for object detection tasks using the Ultralytics repository. 
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

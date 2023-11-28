@@ -41,7 +41,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a full list of export arguments.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

@@ -59,7 +59,7 @@ The example showcases the variety and complexity of the images in the ImageNet10
 
 If you use the ImageNet10 dataset in your research or development work, please cite the original ImageNet paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

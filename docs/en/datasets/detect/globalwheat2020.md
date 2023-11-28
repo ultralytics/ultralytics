@@ -75,7 +75,7 @@ The example showcases the variety and complexity of the data in the Global Wheat
 
 If you use the Global Wheat Head Dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

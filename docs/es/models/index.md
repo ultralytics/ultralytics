@@ -1,32 +1,32 @@
 ---
 comments: true
-description: Explora la amplia gama de modelos de la familia YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS y RT-DETR compatibles con Ultralytics. Comienza con ejemplos de uso tanto para CLI como para Python.
+description: Explore la amplia gama de modelos de la familia YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS y RT-DETR soportados por Ultralytics. Comienza con ejemplos para el uso tanto de CLI como de Python.
 keywords: Ultralytics, documentación, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, modelos, arquitecturas, Python, CLI
 ---
 
 # Modelos soportados por Ultralytics
 
-¡Bienvenido a la documentación de modelos de Ultralytics! Ofrecemos soporte para una amplia gama de modelos, cada uno adaptado a tareas específicas como [detección de objetos](../tasks/detect.md), [segmentación de instancias](../tasks/segment.md), [clasificación de imágenes](../tasks/classify.md), [estimación de postura](../tasks/pose.md) y [seguimiento de múltiples objetos](../modes/track.md). Si estás interesado en contribuir con tu arquitectura de modelo a Ultralytics, consulta nuestra [Guía de Contribución](../../help/contributing.md).
+¡Bienvenido a la documentación de modelos de Ultralytics! Ofrecemos soporte para una amplia gama de modelos, cada uno adaptado a tareas específicas como [detección de objetos](../tasks/detect.md), [segmentación de instancias](../tasks/segment.md), [clasificación de imágenes](../tasks/classify.md), [estimación de posturas](../tasks/pose.md), y [seguimiento de múltiples objetos](../modes/track.md). Si estás interesado en contribuir con tu arquitectura de modelo a Ultralytics, consulta nuestra [Guía de Contribución](../../help/contributing.md).
 
 !!! Note "Nota"
 
-    🚧 Nuestra documentación en varios idiomas está actualmente en construcción y estamos trabajando arduamente para mejorarla. ¡Gracias por tu paciencia! 🙏
+    🚧 Estamos trabajando arduamente para mejorar nuestra documentación en varios idiomas actualmente en construcción. ¡Gracias por tu paciencia! 🙏
 
-## Modelos Destacados
+## Modelos destacados
 
-Aquí tienes algunos de los modelos clave soportados:
+Aquí están algunos de los modelos clave soportados:
 
-1. **[YOLOv3](../../models/yolov3.md)**: La tercera iteración de la familia de modelos YOLO, originalmente creada por Joseph Redmon, conocida por su capacidad de detección de objetos en tiempo real de manera eficiente.
-2. **[YOLOv4](../../models/yolov4.md)**: Una actualización para la red oscura de YOLOv3, lanzada por Alexey Bochkovskiy en 2020.
-3. **[YOLOv5](../../models/yolov5.md)**: Una versión mejorada de la arquitectura YOLO por Ultralytics, que ofrece mejores compensaciones de rendimiento y velocidad en comparación con versiones anteriores.
-4. **[YOLOv6](../../models/yolov6.md)**: Lanzado por [Meituan](https://about.meituan.com/) en 2022, y utilizado en muchos de los robots autónomos de entrega de la compañía.
-5. **[YOLOv7](../../models/yolov7.md)**: Modelos YOLO actualizados lanzados en 2022 por los autores de YOLOv4.
-6. **[YOLOv8](../../models/yolov8.md)**: La última versión de la familia YOLO, que presenta capacidades mejoradas como segmentación de instancias, estimación de postura/puntos clave y clasificación.
-7. **[Modelo de Segmentación de Cualquier Cosa (SAM)](../../models/sam.md)**: El Modelo de Segmentación de Cualquier Cosa (SAM) de Meta.
-8. **[Modelo de Segmentación de Cualquier Cosa Móvil (MobileSAM)](../../models/mobile-sam.md)**: MobileSAM para aplicaciones móviles, por la Universidad Kyung Hee.
-9. **[Modelo de Segmentación de Cualquier Cosa Rápida (FastSAM)](../../models/fast-sam.md)**: FastSAM del Grupo de Análisis de Imágenes y Video, Instituto de Automatización, Academia China de Ciencias.
-10. **[YOLO-NAS](../../models/yolo-nas.md)**: Modelos de Búsqueda de Arquitectura Neural de YOLO (NAS).
-11. **[Transformadores de Detección en Tiempo Real (RT-DETR)](../../models/rtdetr.md)**: Modelos de Transformadores de Detección en Tiempo Real (RT-DETR) de Baidu PaddlePaddle.
+1. **[YOLOv3](yolov3.md)**: La tercera iteración de la familia de modelos YOLO, original de Joseph Redmon, conocida por su capacidad de detección de objetos en tiempo real eficientemente.
+2. **[YOLOv4](yolov4.md)**: Una actualización nativa de darknet para YOLOv3, lanzada por Alexey Bochkovskiy en 2020.
+3. **[YOLOv5](yolov5.md)**: Una versión mejorada de la arquitectura YOLO por Ultralytics, ofreciendo un mejor rendimiento y compromiso de velocidad comparado con versiones anteriores.
+4. **[YOLOv6](yolov6.md)**: Lanzado por [Meituan](https://about.meituan.com/) en 2022, y utilizado en muchos de los robots de entrega autónomos de la compañía.
+5. **[YOLOv7](yolov7.md)**: Modelos YOLO actualizados lanzados en 2022 por los autores de YOLOv4.
+6. **[YOLOv8](yolov8.md) NUEVO 🚀**: La última versión de la familia YOLO, con capacidades mejoradas como segmentación de instancias, estimación de posturas/puntos clave y clasificación.
+7. **[Modelo Segment Anything (SAM)](sam.md)**: Modelo Segment Anything (SAM) de Meta.
+8. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM para aplicaciones móviles, por la Universidad de Kyung Hee.
+9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM por el Grupo de Análisis de Imagen y Video, Instituto de Automatización, Academia China de Ciencias.
+10. **[YOLO-NAS](yolo-nas.md)**: Modelos YOLO de Búsqueda de Arquitectura Neural (NAS).
+11. **[Transformadores de Detección en Tiempo Real (RT-DETR)](rtdetr.md)**: Modelos de Transformador de Detección en Tiempo Real (RT-DETR) de Baidu's PaddlePaddle.
 
 <p align="center">
   <br>
@@ -39,33 +39,37 @@ Aquí tienes algunos de los modelos clave soportados:
   <strong>Mira:</strong> Ejecuta modelos YOLO de Ultralytics en solo unas pocas líneas de código.
 </p>
 
-## Comenzando: Ejemplos de Uso
+## Empezando: Ejemplos de Uso
+
+Este ejemplo proporciona ejemplos simples de entrenamiento e inferencia YOLO. Para la documentación completa de estos y otros [modos](../modes/index.md), consulta las páginas de documentación de [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) y [Export](../modes/export.md).
+
+Nota que el siguiente ejemplo es para los modelos YOLOv8 [Detect](../tasks/detect.md) para detección de objetos. Para tareas adicionales soportadas, consulta la documentación de [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) y [Pose](../tasks/pose.md).
 
 !!! Example "Ejemplo"
 
     === "Python"
 
-        Los modelos preentrenados en PyTorch `*.pt` así como los archivos de configuración `*.yaml` pueden pasarse a las clases `YOLO()`, `SAM()`, `NAS()` y `RTDETR()` para crear una instancia de modelo en Python:
+        Los modelos pre-entrenados `*.pt` de PyTorch así como los archivos de configuración `*.yaml` se pueden pasar a las clases `YOLO()`, `SAM()`, `NAS()` y `RTDETR()` para crear una instancia de modelo en Python:
 
         ```python
         from ultralytics import YOLO
 
         # Cargar un modelo YOLOv8n preentrenado en COCO
-        modelo = YOLO('yolov8n.pt')
+        model = YOLO('yolov8n.pt')
 
         # Mostrar información del modelo (opcional)
-        modelo.info()
+        model.info()
 
         # Entrenar el modelo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
-        resultados = modelo.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
         # Ejecutar inferencia con el modelo YOLOv8n en la imagen 'bus.jpg'
-        resultados = modelo('path/to/bus.jpg')
+        results = model('path/to/bus.jpg')
         ```
 
     === "CLI"
 
-        Comandos CLI están disponibles para ejecutar directamente los modelos:
+        Los comandos CLI están disponibles para ejecutar directamente los modelos:
 
         ```bash
         # Cargar un modelo YOLOv8n preentrenado en COCO y entrenarlo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
@@ -75,20 +79,20 @@ Aquí tienes algunos de los modelos clave soportados:
         yolo predict model=yolov8n.pt source=path/to/bus.jpg
         ```
 
-## Contribuyendo con Nuevos Modelos
+## Contribuir con Nuevos Modelos
 
 ¿Interesado en contribuir con tu modelo a Ultralytics? ¡Genial! Siempre estamos abiertos a expandir nuestro portafolio de modelos.
 
 1. **Haz un Fork del Repositorio**: Comienza haciendo un fork del [repositorio de GitHub de Ultralytics](https://github.com/ultralytics/ultralytics).
 
-2. **Clona tu Fork**: Clona tu fork en tu máquina local y crea una nueva rama para trabajar.
+2. **Clona tu Fork**: Clona tu fork a tu máquina local y crea una nueva rama para trabajar.
 
-3. **Implementa tu Modelo**: Añade tu modelo siguiendo los estándares y guías de codificación proporcionados en nuestra [Guía de Contribución](../../help/contributing.md).
+3. **Implementa tu Modelo**: Añade tu modelo siguiendo los estándares de codificación y directrices proporcionadas en nuestra [Guía de Contribución](../../help/contributing.md).
 
-4. **Prueba a Fondo**: Asegúrate de probar tu modelo rigurosamente, tanto de manera aislada como parte del pipeline.
+4. **Prueba Rigurosamente**: Asegúrate de probar tu modelo rigurosamente, tanto de forma aislada como parte del proceso.
 
-5. **Crea un Pull Request**: Una vez que estés satisfecho con tu modelo, crea un pull request al repositorio principal para su revisión.
+5. **Crea un Pull Request**: Una vez que estés satisfecho con tu modelo, crea un pull request al repositorio principal para revisión.
 
-6. **Revisión de Código y Fusión**: Después de la revisión, si tu modelo cumple con nuestros criterios, se fusionará en el repositorio principal.
+6. **Revisión de Código y Fusión**: Después de la revisión, si tu modelo cumple con nuestros criterios, será fusionado al repositorio principal.
 
-Consulta nuestra [Guía de Contribución](../../help/contributing.md) para los pasos detallados.
+Para pasos detallados, consulta nuestra [Guía de Contribución](../../help/contributing.md).

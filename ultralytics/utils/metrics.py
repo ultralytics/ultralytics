@@ -1016,12 +1016,12 @@ class PoseMetrics(SegmentMetrics):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.task = 'pose'
 
-    def process(self, tp_b, tp_p, conf, pred_cls, target_cls):
+    def process(self, tp, tp_p, conf, pred_cls, target_cls):
         """
         Processes the detection and pose metrics over the given set of predictions.
 
         Args:
-            tp_b (list): List of True Positive boxes.
+            tp (list): List of True Positive boxes.
             tp_p (list): List of True Positive keypoints.
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
@@ -1039,7 +1039,7 @@ class PoseMetrics(SegmentMetrics):
                                     prefix='Pose')[2:]
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
-        results_box = ap_per_class(tp_b,
+        results_box = ap_per_class(tp,
                                    conf,
                                    pred_cls,
                                    target_cls,

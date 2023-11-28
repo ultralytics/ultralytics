@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, ClearML, Model Training, MLOps,
 
 MLOps bridges the gap between creating and deploying machine learning models in real-world settings. It focuses on efficient deployment, scalability, and ongoing management to ensure models perform well in practical applications.
 
-[Ultralytics YOLOv8](https://ultralytics.com) effortlessly integrates with ClearML, streamlining and enhancing your object detection model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively. 
+[Ultralytics YOLOv8](https://ultralytics.com) effortlessly integrates with ClearML, streamlining and enhancing your object detection model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
 
 ## ClearML
 
@@ -16,7 +16,7 @@ MLOps bridges the gap between creating and deploying machine learning models in 
   <img width="640" src="https://clear.ml/wp-content/uploads/2023/06/DataOps@2x-1.png" alt="ClearML Overview">
 </p>
 
-[ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy data visualization and analysis, advanced hyperparameter optimization algorithms, and robust model management for efficient deployment across various platforms. 
+[ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy data visualization and analysis, advanced hyperparameter optimization algorithms, and robust model management for efficient deployment across various platforms.
 
 ## YOLOv8 Training with ClearML
 
@@ -114,7 +114,7 @@ Upon running the usage code snippet above, you can expect the following output:
 
 ### Viewing the ClearML Results Page
 
-By clicking on the URL link to the ClearML results page in the output of the usage code snippet, you can access a comprehensive view of your model's training process. 
+By clicking on the URL link to the ClearML results page in the output of the usage code snippet, you can access a comprehensive view of your model's training process.
 
 #### Key Features of the ClearML Results Page
 
@@ -122,11 +122,11 @@ By clicking on the URL link to the ClearML results page in the output of the usa
   - Track critical metrics like loss, accuracy, and validation scores as they occur.
   - Provides immediate feedback for timely model performance adjustments.
 
-- **Experiment Comparison** 
+- **Experiment Comparison**
   - Compare different training runs side-by-side.
   - Essential for hyperparameter tuning and identifying the most effective models.
 
-- **Detailed Logs and Outputs** 
+- **Detailed Logs and Outputs**
   - Access comprehensive logs, graphical representations of metrics, and console outputs.
   - Gain a deeper understanding of model behavior and issue resolution.
 
@@ -134,7 +134,7 @@ By clicking on the URL link to the ClearML results page in the output of the usa
   - Monitor the utilization of computational resources, including CPU, GPU, and memory.
   - Key to optimizing training efficiency and costs.
 
-- **Model Artifacts Management** 
+- **Model Artifacts Management**
   - View, download, and share model artifacts like trained models and checkpoints.
   - Enhances collaboration and streamlines model deployment and sharing.
 
@@ -155,7 +155,7 @@ For a visual walkthrough of what the ClearML Results Page looks like, watch the 
 
 ClearML offers several advanced features to enhance your MLOps experience.
 
-#### Remote Execution 
+#### Remote Execution
 
 ClearML's remote execution feature facilitates the reproduction and manipulation of experiments on different machines. It logs essential details like installed packages and uncommitted changes. When a task is enqueued, the ClearML Agent pulls it, recreates the environment, and runs the experiment, reporting back with detailed results.
 

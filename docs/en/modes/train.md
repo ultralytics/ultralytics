@@ -222,8 +222,8 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `overlap_mask`    | `True`   | masks should overlap during training (segment train only)                                      |
 | `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                                     |
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                                               |
-| `val`             | `True`   | validate/test during training                                                                  |
 | `letterbox`       | `False`  | letterbox preprocessing (classify train only)                                                  |
+| `val`             | `True`   | validate/test during training                                                                  |
 | `plots`           | `False`  | save plots and images during train/val                                                         |
 
 ## Logging

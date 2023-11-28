@@ -70,20 +70,20 @@ class PoseValidator(DetectionValidator):
 
     def _prepare_batch(self, si, batch):
         pbatch = super()._prepare_batch(si, batch)
-        kpts = batch["keypoints"][batch['batch_idx'] == si]
-        h, w = pbatch["imgsz"]
+        kpts = batch['keypoints'][batch['batch_idx'] == si]
+        h, w = pbatch['imgsz']
         kpts = kpts.clone()
         kpts[..., 0] *= w
         kpts[..., 1] *= h
-        kpts = ops.scale_coords(pbatch["imgsz"], kpts, pbatch["ori_shape"], ratio_pad=pbatch['ratio_pad'])
-        pbatch["kpts"] = kpts
+        kpts = ops.scale_coords(pbatch['imgsz'], kpts, pbatch['ori_shape'], ratio_pad=pbatch['ratio_pad'])
+        pbatch['kpts'] = kpts
         return pbatch
 
     def _prepare_pred(self, pred, pbatch):
         predn = super()._prepare_pred(pred, pbatch)
-        nk = pbatch["kpts"].shape[1]
+        nk = pbatch['kpts'].shape[1]
         pred_kpts = predn[:, 6:].view(len(predn), nk, -1)
-        ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch['ratio_pad'])
+        ops.scale_coords(pbatch['imgsz'], pred_kpts, pbatch['ori_shape'], ratio_pad=pbatch['ratio_pad'])
         return predn, pred_kpts
 
     def update_metrics(self, preds, batch):
@@ -91,14 +91,14 @@ class PoseValidator(DetectionValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             npr = len(pred)
-            stat = dict(conf=torch.zeros((1, 0), device=self.device), 
+            stat = dict(conf=torch.zeros((1, 0), device=self.device),
                         pred_cls=torch.zeros((1, 0), device=self.device),
                         tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
                         tp_p=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device))
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
+            cls, bbox = pbatch.pop('cls'), pbatch.pop('bbox')
             nl = len(cls)
-            stat["target_cls"] = cls
+            stat['target_cls'] = cls
             if npr == 0:
                 if nl:
                     self.stats.append(stat)
@@ -110,13 +110,13 @@ class PoseValidator(DetectionValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn, pred_kpts = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn[:, 4]
-            stat["pred_cls"] = predn[:, 5]
+            stat['conf'] = predn[:, 4]
+            stat['pred_cls'] = predn[:, 5]
 
             # Evaluate
             if nl:
-                stat["tp"] = self._process_batch(predn, bbox, cls)
-                stat["tp_p"] = self._process_batch(predn, bbox, cls, pred_kpts, pbatch["kpts"])
+                stat['tp'] = self._process_batch(predn, bbox, cls)
+                stat['tp_p'] = self._process_batch(predn, bbox, cls, pred_kpts, pbatch['kpts'])
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
 

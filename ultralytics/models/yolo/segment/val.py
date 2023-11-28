@@ -74,12 +74,12 @@ class SegmentationValidator(DetectionValidator):
     def _prepare_batch(self, si, batch):
         prepared_batch = super()._prepare_batch(si, batch)
         midx = [si] if self.args.overlap_mask else batch['batch_idx'] == si
-        prepared_batch["masks"] = batch['masks'][midx]
+        prepared_batch['masks'] = batch['masks'][midx]
         return prepared_batch
 
     def _prepare_pred(self, pred, pbatch, proto):
         predn = super()._prepare_pred(pred, pbatch)
-        pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
+        pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch['imgsz'])
         return predn, pred_masks
 
     def update_metrics(self, preds, batch):
@@ -87,14 +87,14 @@ class SegmentationValidator(DetectionValidator):
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
             self.seen += 1
             npr = len(pred)
-            stat = dict(conf=torch.zeros((1, 0), device=self.device), 
+            stat = dict(conf=torch.zeros((1, 0), device=self.device),
                         pred_cls=torch.zeros((1, 0), device=self.device),
                         tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
                         tp_m=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device))
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
+            cls, bbox = pbatch.pop('cls'), pbatch.pop('bbox')
             nl = len(cls)
-            stat["target_cls"] = cls
+            stat['target_cls'] = cls
             if npr == 0:
                 if nl:
                     self.stats.append(stat)
@@ -103,18 +103,24 @@ class SegmentationValidator(DetectionValidator):
                 continue
 
             # Masks
-            gt_masks = pbatch.pop("masks")
+            gt_masks = pbatch.pop('masks')
             # Predictions
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn, pred_masks = self._prepare_pred(pred, pbatch, proto)
-            stat["conf"] = predn[:, 4]
-            stat["pred_cls"] = predn[:, 5]
+            stat['conf'] = predn[:, 4]
+            stat['pred_cls'] = predn[:, 5]
 
             # Evaluate
             if nl:
-                stat["tp"] = self._process_batch(predn, bbox, cls)
-                stat["tp_m"] = self._process_batch(predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True)
+                stat['tp'] = self._process_batch(predn, bbox, cls)
+                stat['tp_m'] = self._process_batch(predn,
+                                                   bbox,
+                                                   cls,
+                                                   pred_masks,
+                                                   gt_masks,
+                                                   self.args.overlap_mask,
+                                                   masks=True)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
 
@@ -128,7 +134,7 @@ class SegmentationValidator(DetectionValidator):
             # Save
             if self.args.save_json:
                 pred_masks = ops.scale_image(pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
-                                             pbatch["ori_shape"],
+                                             pbatch['ori_shape'],
                                              ratio_pad=batch['ratio_pad'][si])
                 self.pred_to_json(predn, batch['im_file'][si], pred_masks)
             # if self.args.save_txt:

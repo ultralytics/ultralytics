@@ -65,21 +65,19 @@ class OBBValidator(DetectionValidator):
         cls = batch['cls'][idx].squeeze(-1)
         bbox = batch['bboxes'][idx]
         ori_shape = batch['ori_shape'][si]
-        imgsz=batch['img'].shape[2:]
+        imgsz = batch['img'].shape[2:]
         ratio_pad = batch['ratio_pad'][si]
         if len(cls):
-            bbox = bbox.view(-1, 8) * torch.tensor(
-                imgsz, device=self.device)[[1, 0, 1, 0, 1, 0, 1, 0]]  # target boxes
+            bbox = bbox.view(-1, 8) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0, 1, 0, 1, 0]]  # target boxes
             bbox = ops.xyxyxyxy2xywhr(bbox)
-            ops.scale_rotated_boxes(imgsz, bbox, ori_shape,
-                                    ratio_pad=ratio_pad)  # native-space labels
+            ops.scale_rotated_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
         prepared_batch = dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
         return prepared_batch
 
     def _prepare_pred(self, pred, pbatch):
         predn = pred.clone()
-        ops.scale_rotated_boxes(pbatch['imgsz'], predn[:, :4], pbatch["ori_shape"],
-                        ratio_pad=pbatch['ratio_pad'])  # native-space pred
+        ops.scale_rotated_boxes(pbatch['imgsz'], predn[:, :4], pbatch['ori_shape'],
+                                ratio_pad=pbatch['ratio_pad'])  # native-space pred
         return predn
 
     def plot_predictions(self, batch, preds, ni):

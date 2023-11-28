@@ -113,7 +113,7 @@ class RTDETRValidator(DetectionValidator):
         cls = batch['cls'][idx].squeeze(-1)
         bbox = batch['bboxes'][idx]
         ori_shape = batch['ori_shape'][si]
-        imgsz=batch['img'].shape[2:]
+        imgsz = batch['img'].shape[2:]
         ratio_pad = batch['ratio_pad'][si]
         if len(cls):
             bbox = ops.xywh2xyxy(bbox)  # target boxes
@@ -124,6 +124,6 @@ class RTDETRValidator(DetectionValidator):
 
     def _prepare_pred(self, pred, pbatch):
         predn = pred.clone()
-        predn[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        predn[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
+        predn[..., [0, 2]] *= pbatch['ori_shape'][1] / self.args.imgsz  # native-space pred
+        predn[..., [1, 3]] *= pbatch['ori_shape'][0] / self.args.imgsz  # native-space pred
         return predn.float()

@@ -91,7 +91,7 @@ class DetectionValidator(BaseValidator):
         cls = batch['cls'][idx].squeeze(-1)
         bbox = batch['bboxes'][idx]
         ori_shape = batch['ori_shape'][si]
-        imgsz=batch['img'].shape[2:]
+        imgsz = batch['img'].shape[2:]
         ratio_pad = batch['ratio_pad'][si]
         if len(cls):
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
@@ -101,7 +101,7 @@ class DetectionValidator(BaseValidator):
 
     def _prepare_pred(self, pred, pbatch):
         predn = pred.clone()
-        ops.scale_boxes(pbatch['imgsz'], predn[:, :4], pbatch["ori_shape"],
+        ops.scale_boxes(pbatch['imgsz'], predn[:, :4], pbatch['ori_shape'],
                         ratio_pad=pbatch['ratio_pad'])  # native-space pred
         return predn
 
@@ -110,18 +110,18 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             npr = len(pred)
-            stat = dict(conf=torch.zeros((1, 0), device=self.device), 
+            stat = dict(conf=torch.zeros((1, 0), device=self.device),
                         pred_cls=torch.zeros((1, 0), device=self.device),
                         tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device))
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
+            cls, bbox = pbatch.pop('cls'), pbatch.pop('bbox')
             nl = len(cls)
-            stat["target_cls"] = cls
+            stat['target_cls'] = cls
             if npr == 0:
                 if nl:
                     self.stats.append(stat)
                     # TODO: obb has not supported confusion_matrix yet.
-                    if self.args.plots and self.args.task != "obb":
+                    if self.args.plots and self.args.task != 'obb':
                         self.confusion_matrix.process_batch(detections=None, labels=cls)
                 continue
 
@@ -129,14 +129,14 @@ class DetectionValidator(BaseValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn[:, 4]
-            stat["pred_cls"] = predn[:, 5]
+            stat['conf'] = predn[:, 4]
+            stat['pred_cls'] = predn[:, 5]
 
             # Evaluate
             if nl:
-                stat["tp"] = self._process_batch(predn, bbox, cls)
+                stat['tp'] = self._process_batch(predn, bbox, cls)
                 # TODO: obb has not supported confusion_matrix yet.
-                if self.args.plots and self.args.task != "obb":
+                if self.args.plots and self.args.task != 'obb':
                     self.confusion_matrix.process_batch(predn, bbox, cls)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
@@ -146,7 +146,7 @@ class DetectionValidator(BaseValidator):
                 self.pred_to_json(predn, batch['im_file'][si])
             if self.args.save_txt:
                 file = self.save_dir / 'labels' / f'{Path(batch["im_file"][si]).stem}.txt'
-                self.save_one_txt(predn, self.args.save_conf, pbatch["ori_shape"], file)
+                self.save_one_txt(predn, self.args.save_conf, pbatch['ori_shape'], file)
 
     def finalize_metrics(self, *args, **kwargs):
         """Set final values for metrics speed and confusion matrix."""
@@ -156,9 +156,10 @@ class DetectionValidator(BaseValidator):
     def get_stats(self):
         """Returns metrics statistics and results dictionary."""
         stats = {k: torch.cat(v, 0).cpu().numpy() for k, v in self.stats.items()}  # to numpy
-        if len(stats) and stats["tp"].any():
+        if len(stats) and stats['tp'].any():
             self.metrics.process(**stats)
-        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)  # number of targets per class
+        self.nt_per_class = np.bincount(stats['target_cls'].astype(int),
+                                        minlength=self.nc)  # number of targets per class
         return self.metrics.results_dict
 
     def print_results(self):

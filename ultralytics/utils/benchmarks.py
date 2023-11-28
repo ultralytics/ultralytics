@@ -48,6 +48,7 @@ def benchmark(model=WEIGHTS_DIR / 'yolov8n.pt',
               half=False,
               int8=False,
               device='cpu',
+              num_warmups=1,
               verbose=False):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -60,6 +61,7 @@ def benchmark(model=WEIGHTS_DIR / 'yolov8n.pt',
         half (bool, optional): Use half-precision for the model if True. Default is False.
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
+        num_warmups (int, optional): Number of warmup runs before the actual benchmarking starts. Default is 1.
         verbose (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
             Default is False.
 
@@ -111,7 +113,9 @@ def benchmark(model=WEIGHTS_DIR / 'yolov8n.pt',
             assert model.task != 'pose' or i != 7, 'GraphDef Pose inference is not supported'
             assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
-            exported_model.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half)
+            for _ in range(num_warmups):
+                exported_model.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half)
+            LOGGER.info(f'Done {num_warmups} warm up runs for {name} on format {format} and {device} at imgsz={imgsz}')
 
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect

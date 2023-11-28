@@ -123,7 +123,7 @@ class DetectionValidator(BaseValidator):
                         self.stats[k].append(stat[k])
                     # TODO: obb has not supported confusion_matrix yet.
                     if self.args.plots and self.args.task != 'obb':
-                        self.confusion_matrix.process_batch(detections=None, labels=cls)
+                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
                 continue
 
             # Predictions

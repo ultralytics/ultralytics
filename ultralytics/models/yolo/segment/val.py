@@ -97,7 +97,8 @@ class SegmentationValidator(DetectionValidator):
             stat['target_cls'] = cls
             if npr == 0:
                 if nl:
-                    self.stats.append(stat)
+                    for k in self.stats.keys():
+                        self.stats[k].append(stat[k])
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=cls)
                 continue

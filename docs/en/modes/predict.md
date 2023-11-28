@@ -364,6 +364,7 @@ Visualization arguments:
 |---------------|---------------|---------|-----------------------------------------------------------------|
 | `show`        | `bool`        | `False` | show predicted images and videos if environment allows          |
 | `save`        | `bool`        | `False` | save predicted images and videos                                |
+| `save_frames` | `bool`        | `False` | save predicted individual video frames                          |
 | `save_txt`    | `bool`        | `False` | save results as `.txt` file                                     |
 | `save_conf`   | `bool`        | `False` | save results with confidence scores                             |
 | `save_crop`   | `bool`        | `False` | save cropped images with results                                |

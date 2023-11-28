@@ -121,6 +121,27 @@ class MarkdownLinkFixer:
 
         return match.group(0)
 
+    @staticmethod
+    def update_html_tags(content):
+        """Updates HTML tags in docs."""
+        alt_tag = 'MISSING'
+
+        # Remove closing slashes from self-closing HTML tags
+        pattern = re.compile(r'<([^>]+?)\s*/>')
+        content = re.sub(pattern, r'<\1>', content)
+
+        # Find all images without alt tags and add placeholder alt text
+        pattern = re.compile(r'!\[(.*?)\]\((.*?)\)')
+        content, num_replacements = re.subn(pattern, lambda match: f'![{match.group(1) or alt_tag}]({match.group(2)})',
+                                            content)
+
+        # Add missing alt tags to HTML images
+        pattern = re.compile(r'<img\s+(?!.*?\balt\b)[^>]*src=["\'](.*?)["\'][^>]*>')
+        content, num_replacements = re.subn(pattern, lambda match: match.group(0).replace('>', f' alt="{alt_tag}">', 1),
+                                            content)
+
+        return content
+
     def process_markdown_file(self, md_file_path, lang_dir):
         """Process each markdown file in the language directory."""
         print(f'Processing file: {md_file_path}')
@@ -134,6 +155,7 @@ class MarkdownLinkFixer:
             content = self.replace_front_matter(content, lang_dir)
             content = self.replace_admonitions(content, lang_dir)
             content = self.update_iframe(content)
+            content = self.update_html_tags(content)
 
         with open(md_file_path, 'w', encoding='utf-8') as file:
             file.write(content)

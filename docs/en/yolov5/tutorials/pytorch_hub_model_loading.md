@@ -76,7 +76,8 @@ results.pandas().xyxy[0]  # im1 predictions (pandas)
 # 3  986.00  304.00  1028.0  420.0    0.286865     27     tie
 ```
 
-<img src="https://user-images.githubusercontent.com/26833433/124915064-62a49e00-dff1-11eb-86b3-a85b97061afb.jpg" width="500">  <img src="https://user-images.githubusercontent.com/26833433/124915055-60424400-dff1-11eb-9055-24585b375a29.jpg" width="300">
+<img src="https://user-images.githubusercontent.com/26833433/124915064-62a49e00-dff1-11eb-86b3-a85b97061afb.jpg" width="500" alt="YOLO inference results on zidane.jpg">
+<img src="https://user-images.githubusercontent.com/26833433/124915055-60424400-dff1-11eb-9055-24585b375a29.jpg" width="300" alt="YOLO inference results on bus.jpg">
 
 For all inference options see YOLOv5 `AutoShape()` forward [method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252).
 

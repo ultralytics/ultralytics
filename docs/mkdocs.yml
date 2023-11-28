@@ -264,6 +264,7 @@ nav:
       - Docker Quickstart: guides/docker-quickstart.md
       - Raspberry Pi: guides/raspberry-pi.md
       - Triton Inference Server: guides/triton-inference-server.md
+      - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
   - Integrations:
       - integrations/index.md
       - Comet ML: integrations/comet.md

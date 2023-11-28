@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Trackin
 
 ## What is Object Counting?
 
-Object counting with Ultralytics YOLOv8 involves accurately identification and counting specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and deep learning capabilities.
+Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves accurately identification and counting specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and deep learning capabilities.
 
 
 ## Advantages of Object Counting?

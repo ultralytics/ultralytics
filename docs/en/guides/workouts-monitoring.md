@@ -5,7 +5,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Pose Estimation, Pushups, Pull 
 ---
 
 # Workouts Monitoring using Ultralytics YOLOv8 🚀 
-Monitoring workouts through pose estimation with YOLOv8 enhances exercise assessment by accurately tracking key body landmarks and joints in real-time. This technology provides instant feedback on exercise form, tracks workout routines, and measures performance metrics, optimizing training sessions for users and trainers alike.
+Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) enhances exercise assessment by accurately tracking key body landmarks and joints in real-time. This technology provides instant feedback on exercise form, tracks workout routines, and measures performance metrics, optimizing training sessions for users and trainers alike.
 
 ## Advantages of Workouts Monitoring?
 

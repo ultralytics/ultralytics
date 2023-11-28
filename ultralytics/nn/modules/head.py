@@ -326,7 +326,7 @@ class RTDETRDecoder(nn.Module):
             # [b, c, h, w] -> [b, h*w, c]
             feats.append(feat.flatten(2).permute(0, 2, 1))
             # [nl, 2]
-            shapes.append([h, w])
+            shapes.append([int(h), int(w)])
 
         # [b, h*w, c]
         feats = torch.cat(feats, 1)

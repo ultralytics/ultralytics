@@ -83,19 +83,35 @@ class AIFI(TransformerEncoderLayer):
         c, h, w = x.shape[1:]
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
         # Flatten [B, C, H, W] to [B, HxW, C]
+        if not isinstance(c, torch.Tensor):
+            c = torch.tensor(c)
+        c = c.to(device=x.device)
+        print(f"{x.shape=}; {c=}; {type(c)=}")
+        pos_embed = self.build_2d_sincos_position_embedding(w, h, c, device=x.device)
+        # print(f"DEVICE: {x.device}")
+        # flatten [B, C, H, W] to [B, HxW, C]
         x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(device=x.device, dtype=x.dtype))
         return x.permute(0, 2, 1).view([-1, c, h, w]).contiguous()
 
     @staticmethod
-    def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000.0):
+    def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000., device='cpu'):
         """Builds 2D sine-cosine position embedding."""
-        grid_w = torch.arange(int(w), dtype=torch.float32)
-        grid_h = torch.arange(int(h), dtype=torch.float32)
+        grid_w = torch.arange(int(w), dtype=torch.float32, device=device)
+        grid_h = torch.arange(int(h), dtype=torch.float32, device=device)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing='ij')
         assert embed_dim % 4 == 0, \
             'Embed dimension must be divisible by 4 for 2D sin-cos position embedding'
-        pos_dim = embed_dim // 4
-        omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
+        pos_dim = torch.floor_divide(embed_dim, 4).to(device)
+        # pos_dim = torch.floor(embed_dim / torch.tensor(4).to(device)).to(device)
+        print(f"{pos_dim.device=}; {type(pos_dim)=}")
+        omega = torch.arange(pos_dim, dtype=torch.float32, device=device) / pos_dim
+        print(f"{omega.device=}; {type(embed_dim)=}")
+        if isinstance(embed_dim, torch.Tensor):
+            print(f"{embed_dim.device=}")
+        else:
+            print(f"{embed_dim=}")
+
+        omega = omega.to(device)
         omega = 1. / (temperature ** omega)
 
         out_w = grid_w.flatten()[..., None] @ omega[None]

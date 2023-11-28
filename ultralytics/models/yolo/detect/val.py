@@ -95,7 +95,7 @@ class DetectionValidator(BaseValidator):
         ratio_pad = batch['ratio_pad'][si]
         if len(cls):
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
-            ops.scale_boxes(batch['img'][si].shape[1:], bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
+            ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
         prepared_batch = dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
         return prepared_batch
 
@@ -120,7 +120,8 @@ class DetectionValidator(BaseValidator):
             if npr == 0:
                 if nl:
                     self.stats.append(stat)
-                    if self.args.plots:
+                    # TODO: obb has not supported confusion_matrix yet.
+                    if self.args.plots and self.args.task != "obb":
                         self.confusion_matrix.process_batch(detections=None, labels=cls)
                 continue
 
@@ -134,7 +135,8 @@ class DetectionValidator(BaseValidator):
             # Evaluate
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
-                if self.args.plots:
+                # TODO: obb has not supported confusion_matrix yet.
+                if self.args.plots and self.args.task != "obb":
                     self.confusion_matrix.process_batch(predn, bbox, cls)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])

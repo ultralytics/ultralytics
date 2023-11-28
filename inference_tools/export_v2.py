@@ -73,8 +73,8 @@ if __name__ == "__main__":
     print("📦 Exporting to ONNX format...")
     # Export to ONNX
     onnx_output_file = "./models/"
-    # create folder if it doesn't exist
-    Path(onnx_output_file).mkdir(parents=True)
+    # create folder if it doesn't exist, if exists, do nothing
+    Path(onnx_output_file).mkdir(parents=True, exist_ok=True)
     onnx_output_file += "detector_best"
     export_to_onnx(model, dummy_input, onnx_output_file + ".onnx")
 

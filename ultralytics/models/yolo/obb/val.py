@@ -83,7 +83,6 @@ class OBBValidator(DetectionValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn = pred.clone()
-            # TODO: optimize this inefficient way of scaling rotated boxes
             ops.scale_rotated_boxes(batch['img'][si].shape[1:], predn[:, :4], shape,
                                     ratio_pad=batch['ratio_pad'][si])  # native-space pred
 

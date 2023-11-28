@@ -892,12 +892,12 @@ class SegmentMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.task = 'segment'
 
-    def process(self, tp_b, tp_m, conf, pred_cls, target_cls):
+    def process(self, tp, tp_m, conf, pred_cls, target_cls):
         """
         Processes the detection and segmentation metrics over the given set of predictions.
 
         Args:
-            tp_b (list): List of True Positive boxes.
+            tp (list): List of True Positive boxes.
             tp_m (list): List of True Positive masks.
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
@@ -915,7 +915,7 @@ class SegmentMetrics(SimpleClass):
                                     prefix='Mask')[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
-        results_box = ap_per_class(tp_b,
+        results_box = ap_per_class(tp,
                                    conf,
                                    pred_cls,
                                    target_cls,

@@ -291,7 +291,7 @@ class ConfusionMatrix:
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
             self.matrix[p][t] += 1
 
-    def process_batch(self, detections, labels):
+    def process_batch(self, detections, gt_bboxes, gt_cls):
         """
         Update confusion matrix for object detection task.
 
@@ -301,7 +301,7 @@ class ConfusionMatrix:
             labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
                                   Each row should contain (class, x1, y1, x2, y2).
         """
-        if labels.size(0) == 0:  # Check if labels is empty
+        if gt_cls.size(0) == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
                 detection_classes = detections[:, 5].int()
@@ -309,15 +309,15 @@ class ConfusionMatrix:
                     self.matrix[dc, self.nc] += 1  # false positives
             return
         if detections is None:
-            gt_classes = labels.int()
+            gt_classes = gt_cls.int()
             for gc in gt_classes:
                 self.matrix[self.nc, gc] += 1  # background FN
             return
 
         detections = detections[detections[:, 4] > self.conf]
-        gt_classes = labels[:, 0].int()
+        gt_classes = gt_cls.int()
         detection_classes = detections[:, 5].int()
-        iou = box_iou(labels[:, 1:], detections[:, :4])
+        iou = box_iou(gt_bboxes, detections[:, :4])
 
         x = torch.where(iou > self.iou_thres)
         if x[0].shape[0]:

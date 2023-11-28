@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from ultralytics import YOLO
 import torch
 from torch import Tensor
@@ -5,9 +7,6 @@ import json
 import onnx
 from onnxsim import simplify
 from onnxoptimizer import optimize
-
-from ultralytics.nn import SegmentationModel
-
 
 def export_to_onnx(
     model: torch.nn.Module,
@@ -51,7 +50,7 @@ def export_to_onnx(
 
 if __name__ == "__main__":
     # Load config.json
-    with open("/home/johnny/Projects/small-fast-detector/inference_tools/inference_config.json", "r") as f:
+    with open("./inference_config.json", "r") as f:
         config = json.load(f)
     print("Loaded config: ", config)
     img_height_size = config["img_size"]
@@ -73,7 +72,10 @@ if __name__ == "__main__":
 
     print("📦 Exporting to ONNX format...")
     # Export to ONNX
-    onnx_output_file = "./models/detector_best"
+    onnx_output_file = "./models/"
+    # create folder if it doesn't exist
+    Path(onnx_output_file).mkdir(parents=True)
+    onnx_output_file += "detector_best"
     export_to_onnx(model, dummy_input, onnx_output_file + ".onnx")
 
     if config["simplify_onnx"]:

@@ -1,6 +1,6 @@
 {
   "name": "inference",
-  "model_path": "/home/johnny/Projects/models/detector_best.pt",
+  "model_path": "/Users/johnny/Projects/models/detector_best.pt",
   "device": 0,
   "num_workers": 4,
   "batch_size": 1,

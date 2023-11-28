@@ -34,7 +34,7 @@ class VideoProcessor:
         self.slow_factor = 1
 
         self.model = YOLO(config["source_weights_path"])
-        self.model.fuse()
+        # self.model.fuse()
 
         if config["name"] == "ByteTracker":
             self.tracker = sv.ByteTrack(
@@ -230,7 +230,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c",
         "--config",
-        default="./SmileByTracker.json",
+        default="./ByteTracker.json",
         type=str,
         help="config file path (default: None)",
     )

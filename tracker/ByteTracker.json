@@ -1,7 +1,7 @@
 {
   "name": "ByteTracker",
 
-  "source_weights_path": "/Users/johnny/Projects/models/detector_best.pt",
+  "source_weights_path": "/Users/johnny/Projects/small-fast-detector/inference_tools/models/detector_best_simplified_optimized.onnx",
   "source_video_path": "/Users/johnny/Projects/new_samples/output.mp4",
 
   "device": "cpu",

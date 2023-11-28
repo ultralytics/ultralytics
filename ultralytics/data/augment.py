@@ -13,7 +13,7 @@ from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, masks2segments, resample_segments
+from ultralytics.utils.ops import masks2segments, resample_segments, segment2box
 
 from .utils import polygons2masks, polygons2masks_overlap
 
@@ -803,7 +803,9 @@ class Albumentations:
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0)]  # transforms
-            self.transform = A.Compose(T, bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels', 'indices']))
+            self.transform = A.Compose(T,
+                                       bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels',
+                                                                                             'indices']))
 
             LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
         except ImportError:  # package not installed, skip
@@ -825,14 +827,18 @@ class Albumentations:
             bboxes = labels['instances'].bboxes
             # TODO: add support for keypoints
             if self.transform and random.random() < self.p:
-                new = self.transform(image=im, masks=masks, bboxes=bboxes, class_labels=cls, indices=np.arange(len(bboxes)))  # transformed
+                new = self.transform(image=im,
+                                     masks=masks,
+                                     bboxes=bboxes,
+                                     class_labels=cls,
+                                     indices=np.arange(len(bboxes)))  # transformed
                 labels['img'] = new['image']
                 if len(new['class_labels']) > 0:  # skip update if no bbox in new im
                     labels['cls'] = np.array(new['class_labels'])
                     bboxes_new = np.array(new['bboxes'], dtype=np.float32)
-                    masks_new = np.array(new['masks'])[new['indices']] # use bbox indices to find matching masks
+                    masks_new = np.array(new['masks'])[new['indices']]  # use bbox indices to find matching masks
                     segments_new = masks2segments(masks_new, strategy='largest')
-                    non_empty = [s.shape[0] != 0 for s in segments_new] # find non empty segments
+                    non_empty = [s.shape[0] != 0 for s in segments_new]  # find non empty segments
                     segments_out = [segment for segment, flag in zip(segments_new, non_empty) if flag]
                     bboxes_out = bboxes_new[non_empty]
                     if len(segments_out) > 0:

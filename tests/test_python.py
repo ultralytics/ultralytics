@@ -408,7 +408,7 @@ def test_utils_benchmarks():
 
 
 def test_utils_benchmark():
-    """Test benchmark method"""
+    """Test benchmark method."""
     from ultralytics.utils.benchmarks import benchmark
 
     benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=32, half=False, num_warmups=1, device='cpu')

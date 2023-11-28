@@ -86,7 +86,7 @@ class AIFI(TransformerEncoderLayer):
         if not isinstance(c, torch.Tensor):
             c = torch.tensor(c)
         c = c.to(device=x.device)
-        print(f"{x.shape=}; {c=}; {type(c)=}")
+        print(f'{x.shape=}; {c=}; {type(c)=}')
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c, device=x.device)
         # print(f"DEVICE: {x.device}")
         # flatten [B, C, H, W] to [B, HxW, C]
@@ -103,13 +103,13 @@ class AIFI(TransformerEncoderLayer):
             'Embed dimension must be divisible by 4 for 2D sin-cos position embedding'
         pos_dim = torch.floor_divide(embed_dim, 4).to(device)
         # pos_dim = torch.floor(embed_dim / torch.tensor(4).to(device)).to(device)
-        print(f"{pos_dim.device=}; {type(pos_dim)=}")
+        print(f'{pos_dim.device=}; {type(pos_dim)=}')
         omega = torch.arange(pos_dim, dtype=torch.float32, device=device) / pos_dim
-        print(f"{omega.device=}; {type(embed_dim)=}")
+        print(f'{omega.device=}; {type(embed_dim)=}')
         if isinstance(embed_dim, torch.Tensor):
-            print(f"{embed_dim.device=}")
+            print(f'{embed_dim.device=}')
         else:
-            print(f"{embed_dim=}")
+            print(f'{embed_dim=}')
 
         omega = omega.to(device)
         omega = 1. / (temperature ** omega)

@@ -407,6 +407,13 @@ def test_utils_benchmarks():
     ProfileModels(['yolov8n.yaml'], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
 
 
+def test_utils_benchmark():
+    """Test benchmark method"""
+    from ultralytics.utils.benchmarks import benchmark
+
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=32, half=False, num_warmups=1, device='cpu')
+
+
 def test_utils_torchutils():
     """Test Torch utility functions."""
     from ultralytics.nn.modules.conv import Conv

@@ -17,7 +17,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ## Real World Demos
 <p align="center">
-  <img width="1024" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/f1ef39b2-a67a-4c0e-952b-7dc313c7d562" alt="Workouts Monitoring">
+  <img width="1024" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/086419bf-6b34-40e8-88e1-422e3cbc113c" alt="Workouts Monitoring">
 </p>
 
 ## Example

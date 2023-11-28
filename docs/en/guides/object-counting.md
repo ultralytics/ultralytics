@@ -19,8 +19,10 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 - **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, traffic management, and various other domains.
 
 
-## Real World Applications
-
+## Real World Demos
+<p align="center">
+  <img width="1024" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/f1ef39b2-a67a-4c0e-952b-7dc313c7d562" alt="Workouts Monitoring">
+</p>
 
 ## Example
 ```python

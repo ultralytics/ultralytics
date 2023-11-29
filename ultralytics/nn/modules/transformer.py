@@ -7,12 +7,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
+from einops import Rearrange
+from einops.layers.torch import Rearrange
 
 from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 
 __all__ = ('TransformerEncoderLayer', 'TransformerLayer', 'TransformerBlock', 'MLPBlock', 'LayerNorm2d', 'AIFI',
-           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'DATransformerBlock')
+           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'DATransformerBlock', 'DualTransformerBlock')
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -463,4 +465,50 @@ class CrossDATransformerBlock(nn.Module):
         p = x.flatten(2).permute(2, 0, 1)
         pos = self.linear(p)
         return self.tr(p + pos, refer_bbox, feats, shapes, padding_mask).permute(1, 2, 0).reshape(b, self.c2, w, h)
+    
+
+# Implementasi EfficientAttention yang disederhanakan
+class SimplifiedEfficientAttention(nn.Module):
+    def __init__(self, in_channels, key_channels, value_channels):
+        super().__init__()
+        self.keys = nn.Conv2d(in_channels, key_channels, 1)
+        self.queries = nn.Conv2d(in_channels, key_channels, 1)
+        self.values = nn.Conv2d(in_channels, value_channels, 1)
+        self.reprojection = nn.Conv2d(value_channels, in_channels, 1)
+
+    def forward(self, x):
+        keys = self.keys(x)
+        queries = self.queries(x)
+        values = self.values(x)
+
+        context = F.softmax(keys @ values.transpose(1, 2), dim=-1)
+        attended_values = context @ queries
+        return self.reprojection(attended_values)
+
+# Implementasi ChannelAttention yang disederhanakan
+class SimplifiedChannelAttention(nn.Module):
+    def __init__(self, in_channels):
+        super().__init__()
+        self.attention = nn.Linear(in_channels, in_channels)
+
+    def forward(self, x):
+        return self.attention(x)
+
+# Implementasi DualTransformerBlock
+class DualTransformerBlock(nn.Module):
+    def __init__(self, in_dim, key_dim, value_dim, num_heads, num_layers):
+        super().__init__()
+        self.efficient_attn = SimplifiedEfficientAttention(in_dim, key_dim, value_dim)
+        self.channel_attn = SimplifiedChannelAttention(in_dim)
+        self.transformer_layers = nn.Sequential(*(SimplifiedTransformerLayer(in_dim, num_heads) for _ in range(num_layers)))
+        self.norm = nn.LayerNorm(in_dim)
+
+    def forward(self, x, H, W):
+        x = self.norm(x)
+        x = Rearrange('b (h w) d -> b d h w', h=H, w=W)(x)
+        x = self.efficient_attn(x)
+        x = Rearrange('b d h w -> b (h w) d')(x)
+        x = self.channel_attn(x)
+        x = self.transformer_layers(x)
+        return x
 

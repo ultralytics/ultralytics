@@ -11,10 +11,11 @@ from torchvision.ops import SqueezeExcitation
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock
 from .transformer import DATransformerBlock
+from .transformer import DualTransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -455,6 +456,16 @@ class C3TR(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)
         self.m = TransformerBlock(c_, c_, 4, n)
+
+
+class C3TR2(C3):
+    """C3 module with TransformerBlock()."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize C3Ghost module with GhostBottleneck()."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)
+        self.m = DualTransformerBlock(c_, c_, 4, n)
 
 
 class C3xTR(C3):

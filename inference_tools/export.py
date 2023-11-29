@@ -1,3 +1,4 @@
+from copy import deepcopy
 from pathlib import Path
 
 from ultralytics import YOLO
@@ -63,9 +64,13 @@ if __name__ == "__main__":
 
     print("🔌 Setting up device...")
     # Device setup
-    device = torch.device("cpu")
-    model = model.to(device)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = deepcopy(model).to(device)
+    for p in model.parameters():
+        p.requires_grad = False
     model.eval()
+    model.float()
+    model = model.fuse()
 
     print("📝 Preparing dummy input...")
     # Create a dummy input using img_height_size and img_width_size from config.json
@@ -75,7 +80,6 @@ if __name__ == "__main__":
     # Export to ONNX
     onnx_output_file = "./models/"
     # create folder if it doesn't exist, if exists, do nothing
-    Path(onnx_output_file).mkdir(parents=True, exist_ok=True)
     onnx_output_file += "detector_best"
     export_to_onnx(model, dummy_input, onnx_output_file + ".onnx")
 
@@ -92,7 +96,7 @@ if __name__ == "__main__":
         print("🔧 Optimizing ONNX file...")
         # Optimize ONNX file
         onnx_model = onnx.load(onnx_output_file + "_simplified.onnx")
-        passes = ["fuse_bn_into_conv", "fuse_add_bias_into_conv"]
+        passes = ["fuse_bn_into_conv", "fuse_add_bias_into_conv", ]
         onnx_model_opt = optimize(onnx_model, passes)
         onnx.save(onnx_model_opt, onnx_output_file + "_simplified" + "_optimized.onnx")
 

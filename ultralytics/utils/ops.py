@@ -274,7 +274,7 @@ def clip_boxes(boxes, shape):
       shape (tuple): the shape of the image
     """
     if torch.backends.mps.is_available():
-        boxes = boxes.to("cpu")
+        boxes = boxes.to('cpu')
     if isinstance(boxes, torch.Tensor):  # faster individually
         boxes[..., 0].clamp_(0, shape[1])  # x1
         boxes[..., 1].clamp_(0, shape[0])  # y1

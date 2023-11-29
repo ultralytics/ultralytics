@@ -6,7 +6,7 @@ keywords: DVCLive, Ultralytics, YOLOv8, Machine Learning, Experiment Tracking, D
 
 # Advanced YOLOv8 Experiment Tracking with DVCLive
 
-Experiment tracking in machine learning is critical to model development and evaluation. It involves recording and analyzing various parameters, metrics, and outcomes from numerous training runs. This process is essential for understanding model performance and making data-driven decisions to refine and optimize models. 
+Experiment tracking in machine learning is critical to model development and evaluation. It involves recording and analyzing various parameters, metrics, and outcomes from numerous training runs. This process is essential for understanding model performance and making data-driven decisions to refine and optimize models.
 
 Integrating DVCLive with [Ultralytics YOLOv8](https://ultralytics.com) transforms the way experiments are tracked and managed. This integration offers a seamless solution for automatically logging key experiment details, comparing results across different runs, and visualizing data for in-depth analysis. In this guide, we'll understand how DVCLive can be used to streamline the process.
 
@@ -50,7 +50,7 @@ Begin by initializing a Git repository, as Git plays a crucial role in version c
         ```bash
         # Initialize a Git repository
         git init -q
-    
+
         # Configure Git with your details
         git config --local user.email "you@example.com"
         git config --local user.name "Your Name"
@@ -62,7 +62,7 @@ Begin by initializing a Git repository, as Git plays a crucial role in version c
         git commit -m "DVC init"
         ```
 
-In these commands, ensure to replace "you@example.com" with the email address associated with your Git account, and "Your Name" with your Git account username. 
+In these commands, ensure to replace "you@example.com" with the email address associated with your Git account, and "Your Name" with your Git account username.
 
 ## Usage
 

@@ -649,8 +649,7 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             ('onnx', 'git+https://github.com/ultralytics/onnx2tf.git@main', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.33',
-             'onnx_graphsurgeon>=0.3.26',
-             'tflite_support', 'onnxruntime-gpu' if cuda else 'onnxruntime'),
+             'onnx_graphsurgeon>=0.3.26', 'tflite_support', 'onnxruntime-gpu' if cuda else 'onnxruntime'),
             cmds='--extra-index-url https://pypi.ngc.nvidia.com')  # onnx_graphsurgeon only on NVIDIA
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')

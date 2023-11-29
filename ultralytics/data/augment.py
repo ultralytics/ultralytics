@@ -892,7 +892,8 @@ class Format:
         if self.return_keypoint:
             labels['keypoints'] = torch.from_numpy(instances.keypoints)
         if self.return_obb:
-            labels["bboxes"] = xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
+            labels['bboxes'] = xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(
+                instances.segments) else torch.zeros((0, 5))
         # Then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)

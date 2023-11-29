@@ -11,8 +11,8 @@ import torch
 import torch.nn.functional as F
 import torchvision
 
-from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils import LOGGER
+from ultralytics.utils.metrics import batch_probiou
 
 
 class Profile(contextlib.ContextDecorator):
@@ -556,7 +556,8 @@ def xyxyxyxy2xywhr(corners):
         # especially some objects are cut off by augmentations in dataloader.
         (x, y), (w, h), angle = cv2.minAreaRect(pts)
         rboxes.append([x, y, w, h, angle / 180 * np.pi])
-    rboxes = torch.tensor(rboxes, device=corners.device, dtype=corners.dtype) if is_torch else np.asarray(rboxes, dtype=points.dtype)
+    rboxes = torch.tensor(rboxes, device=corners.device, dtype=corners.dtype) if is_torch else np.asarray(
+        rboxes, dtype=points.dtype)
     return rboxes
 
 

@@ -110,7 +110,6 @@ jobs:
           pip install -e ".[export]" coverage --extra-index-url https://download.pytorch.org/whl/cpu
           # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
           # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
-          # yolo settings tensorboard=False
           yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |

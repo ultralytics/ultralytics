@@ -196,11 +196,13 @@ def check_version(current: str = '0.0.0',
     if not required:  # if required is '' or None
         return True
 
+    op = ''
+    version = ''
     result = True
     c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     for r in required.strip(',').split(','):
-        op, v = re.match(r'([^0-9]*)([\d.]+)', r).groups()  # split '>=22.04' -> ('>=', '22.04')
-        v = parse_version(v)  # '1.2.3' -> (1, 2, 3)
+        op, version = re.match(r'([^0-9]*)([\d.]+)', r).groups()  # split '>=22.04' -> ('>=', '22.04')
+        v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
         if op == '==' and c != v:
             result = False
         elif op == '!=' and c == v:
@@ -214,12 +216,11 @@ def check_version(current: str = '0.0.0',
         elif op == '<' and not (c < v):
             result = False
     if not result:
-        warning_message = \
-            f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed {msg}'
+        warning = f'WARNING ⚠️ {name}{op}{version} is required, but {name}=={current} is currently installed {msg}'
         if hard:
-            raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
+            raise ModuleNotFoundError(emojis(warning))  # assert version requirements met
         if verbose:
-            LOGGER.warning(warning_message)
+            LOGGER.warning(warning)
     return result
 
 

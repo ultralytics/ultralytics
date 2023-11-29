@@ -4,7 +4,7 @@ description: Learn how to set up and use Comet to enhance your YOLOv5 model trai
 keywords: YOLOv5, Comet, Machine Learning, Ultralytics, Real time metrics tracking, Hyperparameters, Model checkpoints, Model predictions, YOLOv5 training, Comet Credentials
 ---
 
-<img src="https://cdn.comet.ml/img/notebook_logo.png">
+![Comet](https://cdn.comet.ml/img/notebook_logo.png)
 
 # YOLOv5 with Comet
 

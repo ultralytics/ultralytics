@@ -139,7 +139,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 - **mAP<sup>验证</sup>** 值适用于在[Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/)数据集上的单模型单尺度。
   <br>通过 `yolo val detect data=open-images-v7.yaml device=0` 以复现。
-- **速度** 在使用[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)实例对COCO验证图像进行平均测算。
+- **速度** 在使用[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)实例对Open Image V7验证图像进行平均测算。
   <br>通过 `yolo val detect data=open-images-v7.yaml batch=1 device=0|cpu` 以复现。
 
 </details>

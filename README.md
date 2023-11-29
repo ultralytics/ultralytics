@@ -139,7 +139,7 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examp
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/) dataset.
   <br>Reproduce by `yolo val detect data=open-images-v7.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
+- **Speed** averaged over Open Image V7 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
   <br>Reproduce by `yolo val detect data=open-images-v7.yaml batch=1 device=0|cpu`
 
 </details>

@@ -11,10 +11,11 @@ from torchvision.ops import SqueezeExcitation
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, DfConv, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock
 from .transformer import CrossDATransformerBlock
+from .transformer import MSDeformAttn
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'MSDeformAttn', 'C2fDA')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -774,4 +775,32 @@ class C2DfConv(nn.Module):
         """Forward pass using split() instead of chunk() with Deformable Convolution."""
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C2fDA(nn.Module):
+    """Modified C2f class with MSDeformAttn integration."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, d_model=256, n_levels=4, n_heads=8, n_points=4):
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+        self.ms_deform_attn = MSDeformAttn(d_model=d_model, n_levels=n_levels, n_heads=n_heads, n_points=n_points)
+
+    def forward(self, x, refer_bbox, value_shapes):
+        # Apply initial convolution
+        y = list(self.cv1(x).chunk(2, 1))
+
+        # Apply bottleneck layers
+        for m in self.m:
+            y.append(m(y[-1]))
+
+        # Apply MSDeformAttn here (you may need to modify this based on your specific use case)
+        # Note: You need to ensure that the dimensions of the input to MSDeformAttn match its expected input dimensions
+        attn_output = self.ms_deform_attn(y[-1], refer_bbox, y[-1], value_shapes)
+
+        # Continue with the rest of the C2f operations
+        y.append(attn_output)
         return self.cv2(torch.cat(y, 1))

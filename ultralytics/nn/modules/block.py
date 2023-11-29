@@ -13,7 +13,7 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -652,3 +652,24 @@ class C2SA(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+    
+
+class C2HG(nn.Module):
+    def __init__(self, c1, c2, n=1, g=1, e=0.5, cm=128, k=3, n_hg=6, lightconv=False, shortcut_hg=False, act=nn.ReLU()):
+        super().__init__()
+        # Inisialisasi C2f
+        self.c2f = C2f(c1, c2, n, shortcut=False, g=g, e=e)
+
+        # Cari jumlah saluran output dari C2f
+        c_out_c2f = c2
+
+        # Inisialisasi HGBlock dengan jumlah saluran yang sesuai
+        self.hgblock = HGBlock(c_out_c2f, cm, c_out_c2f, k=k, n=n_hg, lightconv=lightconv, shortcut=shortcut_hg, act=act)
+
+    def forward(self, x):
+        x = self.c2f(x)
+        x = self.hgblock(x)
+        return x
+
+# Contoh inisialisasi model
+model = C2HG(c1=64, c2=256, n=2, g=1, e=0.5, cm=128, k=3, n_hg=6, lightconv=False, shortcut_hg=False, act=nn.ReLU())

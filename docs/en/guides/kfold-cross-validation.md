@@ -24,19 +24,18 @@ Without further ado, let's dive in!
 
 - This guide assumes that annotation files are locally available.
 
-    - For our demonstration, we use the [Fruit Detection](https://www.kaggle.com/datasets/lakshaytyagi01/fruit-detection/code) dataset.
+- For our demonstration, we use the [Fruit Detection](https://www.kaggle.com/datasets/lakshaytyagi01/fruit-detection/code) dataset.
+    - This dataset contains a total of 8479 images.
+    - It includes 6 class labels, each with its total instance counts listed below.
 
-        - This dataset contains a total of 8479 images.
-        - It includes 6 class labels, each with its total instance counts listed below.
-
-          | Class Label | Instance Count |
-                              |:------------|:--------------:|
-          | Apple       |      7049      |
-          | Grapes      |      7202      |
-          | Pineapple   |      1613      |
-          | Orange      |     15549      |
-          | Banana      |      3536      |
-          | Watermelon  |      1976      |
+| Class Label | Instance Count |
+|:------------|:--------------:|
+| Apple       |      7049      |
+| Grapes      |      7202      |
+| Pineapple   |      1613      |
+| Orange      |     15549      |
+| Banana      |      3536      |
+| Watermelon  |      1976      |
 
 - Necessary Python packages include:
 

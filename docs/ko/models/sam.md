@@ -129,7 +129,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- `전체 이미지 세분화`에 대한 자세한 추가 인수는 [`Predictor/generate` 참조](../../reference/models/sam/predict.md)를 참조하세요.
+- `전체 이미지 세분화`에 대한 자세한 추가 인수는 [`Predictor/generate` 참조](../../../reference/models/sam/predict.md)를 참조하세요.
 
 ## YOLOv8과의 SAM 비교
 

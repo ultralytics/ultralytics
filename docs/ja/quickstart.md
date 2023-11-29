@@ -163,7 +163,7 @@ Ultralyticsコマンドラインインターフェース（CLI）を使用する
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLIガイド](/../usage/cli.md){ .md-button .md-button--primary}
+[CLIガイド](/../usage/cli.md){ .md-button }
 
 ## PythonでUltralyticsを使用
 

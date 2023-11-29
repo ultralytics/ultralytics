@@ -68,8 +68,7 @@ class OBBValidator(DetectionValidator):
         imgsz = batch['img'].shape[2:]
         ratio_pad = batch['ratio_pad'][si]
         if len(cls):
-            bbox = bbox.view(-1, 8) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0, 1, 0, 1, 0]]  # target boxes
-            bbox = ops.xyxyxyxy2xywhr(bbox)
+            bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
             ops.scale_rotated_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
         prepared_batch = dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
         return prepared_batch

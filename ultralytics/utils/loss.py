@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils.metrics import OKS_SIGMA
-from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh, xyxyxyxy2xywhr
+from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 
 from .metrics import bbox_iou, probiou
@@ -586,7 +586,9 @@ class v8OBBLoss(v8DetectionLoss):
                 matches = i == j
                 n = matches.sum()
                 if n:
-                    bboxes = self.regularize_boxes(xyxyxyxy2xywhr(targets[matches, 2:].mul_(scale_tensor)))
+                    bboxes = targets[matches, 2:]
+                    bboxes[..., :4].mul_(scale_tensor)
+                    bboxes = self.regularize_boxes(bboxes)
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 
@@ -610,8 +612,8 @@ class v8OBBLoss(v8DetectionLoss):
         # targets
         try:
             batch_idx = batch['batch_idx'].view(-1, 1)
-            targets = torch.cat((batch_idx, batch['cls'].view(-1, 1), batch['bboxes'].view(-1, 8)), 1)
-            targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0, 1, 0, 1, 0]])
+            targets = torch.cat((batch_idx, batch['cls'].view(-1, 1), batch['bboxes'].view(-1, 5)), 1)
+            targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
         except RuntimeError as e:

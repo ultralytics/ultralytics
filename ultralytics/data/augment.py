@@ -13,7 +13,7 @@ from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box
+from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 
 from .utils import polygons2masks, polygons2masks_overlap
 
@@ -892,7 +892,7 @@ class Format:
         if self.return_keypoint:
             labels['keypoints'] = torch.from_numpy(instances.keypoints)
         if self.return_obb:
-            labels['bboxes'] = torch.from_numpy(instances.segments)  # (n, 4, 2)
+            labels["bboxes"] = xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
         # Then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)

@@ -18,7 +18,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Comet ML](comet.md): Enhance your model development with Ultralytics by tracking, comparing, and optimizing your machine learning experiments.
 
-- [ClearML](https://clear.ml/): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
+- [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
 
 - [DVC](https://dvc.org/): Implement version control for your Ultralytics machine learning projects, synchronizing data, code, and models effectively.
 

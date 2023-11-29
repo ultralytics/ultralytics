@@ -154,10 +154,10 @@ def test_track_stream():
     """
     import yaml
 
+    video_url = 'https://ultralytics.com/assets/decelera_portrait_min.mov'
     model = YOLO(MODEL)
-    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96, save=True)
-    model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='bytetrack.yaml')
-    model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='botsort.yaml')
+    model.track(video_url, imgsz=160, tracker='bytetrack.yaml')
+    model.track(video_url, imgsz=160, tracker='botsort.yaml', save_frames=True)  # test frame saving also
 
     # Test Global Motion Compensation (GMC) methods
     for gmc in 'orb', 'sift', 'ecc':
@@ -167,7 +167,7 @@ def test_track_stream():
         data['gmc_method'] = gmc
         with open(tracker, 'w', encoding='utf-8') as f:
             yaml.safe_dump(data, f)
-        model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker=tracker)
+        model.track(video_url, imgsz=160, tracker=tracker)
 
 
 def test_val():
@@ -380,10 +380,10 @@ def test_cfg_init():
 
 def test_utils_init():
     """Test initialization utilities."""
-    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_actions_ci
+    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_action_running
 
     get_ubuntu_version()
-    is_github_actions_ci()
+    is_github_action_running()
     get_git_origin_url()
     get_git_branch()
 

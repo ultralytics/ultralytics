@@ -56,14 +56,6 @@ jobs:
       - name: Check environment
         run: |
           yolo checks
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
           pip list
       - name: Test HUB training
         shell: python
@@ -123,14 +115,6 @@ jobs:
       - name: Check environment
         run: |
           yolo checks
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
           pip list
       #      - name: Benchmark DetectionModel
       #        shell: bash
@@ -191,14 +175,6 @@ jobs:
       - name: Check environment
         run: |
           yolo checks
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
           pip list
       - name: Pytest tests
         shell: bash  # for Windows compatibility
@@ -228,14 +204,6 @@ jobs:
       - name: Check environment
         run: |
           yolo checks
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
           pip list
       - name: Pytest tests
         run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
@@ -276,13 +244,6 @@ jobs:
           pip install pytest 'coremltools>=7.0'
       - name: Check environment
         run: |
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
           conda list
       - name: Test CLI
         run: |

@@ -24,9 +24,9 @@ Note:
 - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
 
-import os
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 DOCS = Path(__file__).parent.resolve()
@@ -41,12 +41,12 @@ def build_docs():
 
     # Build the main documentation
     print(f'Building docs from {DOCS}')
-    os.system(f'mkdocs build -f {DOCS}/mkdocs.yml')
+    subprocess.run(f'mkdocs build -f {DOCS}/mkdocs.yml', check=True, shell=True)
 
     # Build other localized documentations
     for file in DOCS.glob('mkdocs_*.yml'):
         print(f'Building MkDocs site with configuration file: {file}')
-        os.system(f'mkdocs build -f {file}')
+        subprocess.run(f'mkdocs build -f {file}', check=True, shell=True)
     print(f'Site built at {SITE}')
 
 
@@ -83,6 +83,21 @@ def update_html_links():
     print(f'Total number of links updated: {total_updated_links}')
 
 
+def update_page_title(file_path: Path, new_title: str):
+    """Update the title of an HTML file."""
+
+    # Read the content of the file
+    with open(file_path, encoding='utf-8') as file:
+        content = file.read()
+
+    # Replace the existing title with the new title
+    updated_content = re.sub(r'<title>.*?</title>', f'<title>{new_title}</title>', content)
+
+    # Write the updated content back to the file
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(updated_content)
+
+
 def main():
     # Build the docs
     build_docs()
@@ -92,6 +107,9 @@ def main():
 
     # Show command to serve built website
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+
+    # Update titles
+    update_page_title(SITE / '404.html', new_title='Ultralytics Docs - Not Found')
 
 
 if __name__ == '__main__':

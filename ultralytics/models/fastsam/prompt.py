@@ -342,7 +342,7 @@ class FastSAMPrompt:
             max_idx = scores.argsort()
             max_idx = max_idx[-1]
             max_idx += sum(np.array(filter_id) <= int(max_idx))
-            self.results[0].masks.data = torch.tensor(np.array([ann['segmentation'] for ann in annotations]))
+            self.results[0].masks.data = torch.tensor(np.array([annotations[max_idx]['segmentation']]))
         return self.results
 
     def everything_prompt(self):

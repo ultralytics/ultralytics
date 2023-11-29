@@ -223,6 +223,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                                     |
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                                               |
 | `val`             | `True`   | validate/test during training                                                                  |
+| `plots`           | `False`  | save plots and images during train/val                                                         |
 
 ## Logging
 
@@ -236,7 +237,7 @@ To use a logger, select it from the dropdown menu in the code snippet above and 
 
 To use Comet:
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python
@@ -254,7 +255,7 @@ Remember to sign in to your Comet account on their website and get your API key.
 
 To use ClearML:
 
-!!! Example ""
+!!! Example
 
     === "Python"
         ```python
@@ -272,7 +273,7 @@ After running this script, you will need to sign in to your ClearML account on t
 
 To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb):
 
-!!! Example ""
+!!! Example
 
     === "CLI"
         ```bash
@@ -282,7 +283,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
 
 To use TensorBoard locally run the below command and view results at http://localhost:6006/.
 
-!!! Example ""
+!!! Example
 
     === "CLI"
         ```bash

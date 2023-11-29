@@ -204,4 +204,4 @@ Ultralytics 명령줄 인터페이스(CLI)는 Python 환경이 필요 없이 단
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI 가이드](/../usage/cli.md){ .md-button .md-button--primary}
+[CLI 가이드](/../usage/cli.md){ .md-button }

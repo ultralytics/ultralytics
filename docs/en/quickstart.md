@@ -205,7 +205,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     - `yolo predict model=yolov8n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
 
-[CLI Guide](usage/cli.md){ .md-button .md-button--primary}
+[CLI Guide](usage/cli.md){ .md-button }
 
 ## Use Ultralytics with Python
 

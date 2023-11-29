@@ -75,7 +75,7 @@ The example showcases the variety and complexity of the data in the Objects365 d
 
 If you use the Objects365 dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

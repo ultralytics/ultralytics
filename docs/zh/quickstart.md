@@ -203,7 +203,7 @@ Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI指南](/../usage/cli.md){ .md-button .md-button--primary}
+[CLI指南](/../usage/cli.md){ .md-button }
 
 ## 通过Python使用Ultralytics
 

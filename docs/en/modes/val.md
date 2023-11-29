@@ -38,7 +38,7 @@ These are the notable functionalities offered by YOLOv8's Val mode:
 
 Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes. See Arguments section below for a full list of export arguments.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -80,7 +80,6 @@ Validation settings for YOLO models refer to the various hyperparameters and con
 | `half`        | `True`  | use half precision (FP16)                                          |
 | `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
 | `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
-| `plots`       | `False` | show plots during training                                         |
+| `plots`       | `False` | save plots and images during train/val                             |
 | `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
-|

@@ -216,7 +216,7 @@ uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.m
 deepstream-app -c deepstream_app_config.txt
 ```
 
-<div align=center><img width=1000 src="https://files.seeedstudio.com/wiki/YOLOV5/FP32-yolov5s.gif"/></div>
+<div align=center><img width=1000 src="https://files.seeedstudio.com/wiki/YOLOV5/FP32-yolov5s.gif" alt="YOLOv5 with deepstream FP32"></div>
 
 The above result is running on **Jetson Xavier NX** with **FP32** and **YOLOv5s 640x640**. We can see that the **FPS** is around **30**.
 
@@ -299,7 +299,7 @@ network-mode=1
 deepstream-app -c deepstream_app_config.txt
 ```
 
-<div align=center><img width=1000  src="https://files.seeedstudio.com/wiki/YOLOV5/INT8-yolov5s.gif"/></div>
+<div align=center><img width=1000  src="https://files.seeedstudio.com/wiki/YOLOV5/INT8-yolov5s.gif" alt="YOLOv5 with deepstream INT8"></div>
 
 The above result is running on **Jetson Xavier NX** with **INT8** and **YOLOv5s 640x640**. We can see that the **FPS** is around **60**.
 

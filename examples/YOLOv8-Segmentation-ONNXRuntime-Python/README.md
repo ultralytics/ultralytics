@@ -43,7 +43,7 @@ python main.py --model-path <MODEL_PATH> --source <IMAGE_PATH>
 
 After running the command, you should see segmentation results similar to this:
 
-<img src="https://user-images.githubusercontent.com/51357717/279988626-eb74823f-1563-4d58-a8e4-0494025b7c9a.jpg" alt="Segmentation Demo" width="800"/>
+<img src="https://user-images.githubusercontent.com/51357717/279988626-eb74823f-1563-4d58-a8e4-0494025b7c9a.jpg" alt="Segmentation Demo" width="800">
 
 ## Advanced Usage
 

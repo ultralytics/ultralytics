@@ -62,7 +62,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         results = model.train(resume=True)
         ```
 
-[Train Examples](../modes/train.md){ .md-button .md-button--primary}
+[Train Examples](../modes/train.md){ .md-button }
 
 ## [Val](../modes/val.md)
 
@@ -90,7 +90,7 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
           model.val(data='coco128.yaml')
         ```
 
-[Val Examples](../modes/val.md){ .md-button .md-button--primary}
+[Val Examples](../modes/val.md){ .md-button }
 
 ## [Predict](../modes/predict.md)
 
@@ -158,7 +158,7 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
         result = result.numpy()
         ```
 
-[Predict Examples](../modes/predict.md){ .md-button .md-button--primary}
+[Predict Examples](../modes/predict.md){ .md-button }
 
 ## [Export](../modes/export.md)
 
@@ -186,7 +186,7 @@ Export mode is used for exporting a YOLOv8 model to a format that can be used fo
           model.export(format='onnx', device=0)
         ```
 
-[Export Examples](../modes/export.md){ .md-button .md-button--primary}
+[Export Examples](../modes/export.md){ .md-button }
 
 ## [Track](../modes/track.md)
 
@@ -209,7 +209,7 @@ Track mode is used for tracking objects in real-time using a YOLOv8 model. In th
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")
         ```
 
-[Track Examples](../modes/track.md){ .md-button .md-button--primary}
+[Track Examples](../modes/track.md){ .md-button }
 
 ## [Benchmark](../modes/benchmark.md)
 
@@ -228,7 +228,7 @@ or `accuracy_top5` metrics (for classification), and the inference time in milli
         benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
         ```
 
-[Benchmark Examples](../modes/benchmark.md){ .md-button .md-button--primary}
+[Benchmark Examples](../modes/benchmark.md){ .md-button }
 
 ## Using Trainers
 
@@ -259,4 +259,4 @@ or `accuracy_top5` metrics (for classification), and the inference time in milli
 
 You can easily customize Trainers to support custom tasks or explore R&D ideas. Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 
-[Customization tutorials](engine.md){ .md-button .md-button--primary}
+[Customization tutorials](engine.md){ .md-button }

@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
-from einops import Rearrange
+#from einops import Rearrange
 from einops.layers.torch import Rearrange
 
 from .conv import Conv

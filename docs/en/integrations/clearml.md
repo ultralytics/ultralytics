@@ -13,7 +13,7 @@ MLOps bridges the gap between creating and deploying machine learning models in 
 ## ClearML
 
 <p align="center">
-  <img width="640" src="https://clear.ml/wp-content/uploads/2023/06/DataOps@2x-1.png" alt="ClearML Overview">
+  <img width="100%" src="https://clear.ml/wp-content/uploads/2023/06/DataOps@2x-1.png" alt="ClearML Overview">
 </p>
 
 [ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy data visualization and analysis, advanced hyperparameter optimization algorithms, and robust model management for efficient deployment across various platforms.
@@ -119,24 +119,24 @@ By clicking on the URL link to the ClearML results page in the output of the usa
 #### Key Features of the ClearML Results Page
 
 - **Real-Time Metrics Tracking**
-  - Track critical metrics like loss, accuracy, and validation scores as they occur.
-  - Provides immediate feedback for timely model performance adjustments.
+    - Track critical metrics like loss, accuracy, and validation scores as they occur.
+    - Provides immediate feedback for timely model performance adjustments.
 
 - **Experiment Comparison**
-  - Compare different training runs side-by-side.
-  - Essential for hyperparameter tuning and identifying the most effective models.
+    - Compare different training runs side-by-side.
+    - Essential for hyperparameter tuning and identifying the most effective models.
 
 - **Detailed Logs and Outputs**
-  - Access comprehensive logs, graphical representations of metrics, and console outputs.
-  - Gain a deeper understanding of model behavior and issue resolution.
+    - Access comprehensive logs, graphical representations of metrics, and console outputs.
+    - Gain a deeper understanding of model behavior and issue resolution.
 
 - **Resource Utilization Monitoring**
-  - Monitor the utilization of computational resources, including CPU, GPU, and memory.
-  - Key to optimizing training efficiency and costs.
+    - Monitor the utilization of computational resources, including CPU, GPU, and memory.
+    - Key to optimizing training efficiency and costs.
 
 - **Model Artifacts Management**
-  - View, download, and share model artifacts like trained models and checkpoints.
-  - Enhances collaboration and streamlines model deployment and sharing.
+    - View, download, and share model artifacts like trained models and checkpoints.
+    - Enhances collaboration and streamlines model deployment and sharing.
 
 For a visual walkthrough of what the ClearML Results Page looks like, watch the video below:
 

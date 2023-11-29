@@ -6,6 +6,7 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+from dcn import DeformableConv2d
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
            'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv')
@@ -351,3 +352,25 @@ class Concat(nn.Module):
     def forward(self, x):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
+    
+
+class DfConv(nn.Module):
+    """Deformable convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)."""
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
+        """Initialize DfConv layer with given arguments including activation."""
+        super().__init__()
+        self.conv = DeformableConv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        """Apply deformable convolution, batch normalization, and activation to input tensor."""
+        return self.act(self.bn(self.conv(x)))
+
+def autopad(k, p=None, d=1):
+    """Calculate padding automatically."""
+    if p is None:  # same conv
+        p = ((k - 1) * d) // 2
+    return p

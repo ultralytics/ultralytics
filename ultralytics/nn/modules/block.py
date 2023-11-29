@@ -8,7 +8,7 @@ from torch.nn.parameter import Parameter
 
 from torchvision.ops import SqueezeExcitation
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, DepthwiseSeparableConv, SqueezeExcite
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, DfConv, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock
 from .transformer import CrossDATransformerBlock
 

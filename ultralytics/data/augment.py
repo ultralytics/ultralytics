@@ -821,7 +821,9 @@ class Albumentations:
             h, w = im.shape[:2]
             # convert denormalized segments to masks
             labels['instances'].denormalize(w, h)
-            masks = polygons2masks((h, w), labels['instances'].segments, color=1, downsample_ratio=1)
+            masks = None
+            if labels['instances'].segments.shape[0] > 0:
+                masks = polygons2masks((h, w), labels['instances'].segments, color=1, downsample_ratio=1)
             labels['instances'].convert_bbox('xywh')
             labels['instances'].normalize(w, h)
             bboxes = labels['instances'].bboxes
@@ -836,16 +838,20 @@ class Albumentations:
                 if len(new['class_labels']) > 0:  # skip update if no bbox in new im
                     labels['cls'] = np.array(new['class_labels'])
                     bboxes_new = np.array(new['bboxes'], dtype=np.float32)
-                    masks_new = np.array(new['masks'])[new['indices']]  # use bbox indices to find matching masks
-                    segments_new = masks2segments(masks_new, strategy='largest')
-                    non_empty = [s.shape[0] != 0 for s in segments_new]  # find non empty segments
-                    segments_out = [segment for segment, flag in zip(segments_new, non_empty) if flag]
-                    bboxes_out = bboxes_new[non_empty]
-                    if len(segments_out) > 0:
-                        segments_out = resample_segments(segments_out)
-                        segments_out = np.stack(segments_out, axis=0)
-                        segments_out /= (w, h)
-                    labels['instances'].update(bboxes=bboxes_out, segments=segments_out)
+                    if masks is None:
+                        labels['instances'].update(bboxes=bboxes_new)
+                    else:
+                        masks_new = np.array(new['masks'])[new['indices']]  # use bbox indices to find matching masks
+                        segments_new = masks2segments(masks_new, strategy='largest')
+                        non_empty = [s.shape[0] != 0 for s in segments_new]  # find non empty segments
+                        segments_out = [segment for segment, flag in zip(segments_new, non_empty) if flag]
+                        bboxes_out = bboxes_new[non_empty]
+                        if len(segments_out) > 0:
+                            segments_out = resample_segments(segments_out)
+                            segments_out = np.stack(segments_out, axis=0)
+                            segments_out /= (w, h)
+                        labels['instances'].update(bboxes=bboxes_out, segments=segments_out)
+
         return labels
 
 

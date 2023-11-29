@@ -110,7 +110,10 @@ jobs:
           pip install -e ".[export]" coverage --extra-index-url https://download.pytorch.org/whl/cpu
           # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
           # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
-          # yolo settings tensorboard=False
+
+          # Fix onnx2tf S3 calibration file download issues https://github.com/PINTO0309/onnx2tf/issues/545
+          pip install git+https://github.com/ultralytics/onnx2tf.git@main
+          
           yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |

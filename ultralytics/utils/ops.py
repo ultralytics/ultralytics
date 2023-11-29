@@ -272,6 +272,10 @@ def clip_boxes(boxes, shape):
       boxes (torch.Tensor): the bounding boxes to clip
       shape (tuple): the shape of the image
     """
+    device = boxes.device
+    mps = 'mps' in device.type  # Apple MPS
+    if mps:
+        boxes = boxes.cpu()
     if isinstance(boxes, torch.Tensor):  # faster individually
         boxes[..., 0].clamp_(0, shape[1])  # x1
         boxes[..., 1].clamp_(0, shape[0])  # y1
@@ -280,6 +284,8 @@ def clip_boxes(boxes, shape):
     else:  # np.array (faster grouped)
         boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
         boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
+        if mps:
+            boxes = boxes.to(device)
 
 
 def clip_coords(coords, shape):

@@ -65,6 +65,7 @@ if __name__ == "__main__":
     # Device setup
     device = torch.device("cpu")
     model = model.to(device)
+    model.eval()
 
     print("📝 Preparing dummy input...")
     # Create a dummy input using img_height_size and img_width_size from config.json

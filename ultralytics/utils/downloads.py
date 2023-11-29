@@ -161,9 +161,11 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
         files = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
         top_level_dirs = {Path(f).parts[0] for f in files}
 
-        if len(top_level_dirs) > 1 or not files[0].endswith('/'):  # zip has multiple files at top level
+        if len(top_level_dirs) > 1 or (len(files) > 1 and not files[0].endswith('/')):
+            # Zip has multiple files at top level
             path = extract_path = Path(path) / Path(file).stem  # i.e. ../datasets/coco8
-        else:  # zip has 1 top-level directory
+        else:
+            # Zip has 1 top-level directory
             extract_path = path  # i.e. ../datasets
             path = Path(path) / list(top_level_dirs)[0]  # i.e. ../datasets/coco8
 
@@ -338,11 +340,11 @@ def safe_download(url,
     if unzip and f.exists() and f.suffix in ('', '.zip', '.tar', '.gz'):
         from zipfile import is_zipfile
 
-        unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
+        unzip_dir = (dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir, progress=progress)  # unzip
         elif f.suffix in ('.tar', '.gz'):
-            LOGGER.info(f'Unzipping {f} to {unzip_dir.resolve()}...')
+            LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
             subprocess.run(['tar', 'xf' if f.suffix == '.tar' else 'xfz', f, '--directory', unzip_dir], check=True)
         if delete:
             f.unlink()  # remove zip

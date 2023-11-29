@@ -12,7 +12,7 @@ from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 
 __all__ = ('TransformerEncoderLayer', 'TransformerLayer', 'TransformerBlock', 'MLPBlock', 'LayerNorm2d', 'AIFI',
-           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'CrossDATransformerBlock')
+           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'DATransformerBlock')
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -143,6 +143,36 @@ class TransformerBlock(nn.Module):
         b, _, w, h = x.shape
         p = x.flatten(2).permute(2, 0, 1)
         return self.tr(p + self.linear(p)).permute(1, 2, 0).reshape(b, self.c2, w, h)
+    
+class DATransformerBlock(nn.Module):
+    """Vision Transformer with MSDeformAttn integration."""
+
+    def __init__(self, c1, c2, num_heads, num_layers, d_model=256, n_levels=4, n_heads=8, n_points=4):
+        super().__init__()
+        self.conv = None
+        if c1 != c2:
+            self.conv = Conv(c1, c2)
+        self.linear = nn.Linear(c2, c2)  # learnable position embedding
+        self.tr = nn.Sequential(*(TransformerLayer(c2, num_heads) for _ in range(num_layers)))
+        self.c2 = c2
+        self.ms_deform_attn = MSDeformAttn(d_model=d_model, n_levels=n_levels, n_heads=n_heads, n_points=n_points)
+
+    def forward(self, x, refer_bbox, value_shapes, value_mask=None):
+        if self.conv is not None:
+            x = self.conv(x)
+
+        b, _, w, h = x.shape
+        p = x.flatten(2).permute(2, 0, 1)  # Position embedding
+        p_embedded = self.linear(p)
+
+        # Apply MSDeformAttn here
+        attn_output = self.ms_deform_attn(p_embedded, refer_bbox, p_embedded, value_shapes, value_mask)
+        
+        # Pass the attention output through the transformer layers
+        tr_output = self.tr(attn_output).permute(1, 2, 0).reshape(b, self.c2, w, h)
+        
+        return tr_output
+
 
 
 class MLPBlock(nn.Module):

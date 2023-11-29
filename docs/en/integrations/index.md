@@ -20,7 +20,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
 
-- [DVC](https://dvc.org/): Implement version control for your Ultralytics machine learning projects, synchronizing data, code, and models effectively.
+- [DVC](dvc.md): Implement version control for your Ultralytics machine learning projects, synchronizing data, code, and models effectively.
 
 - [Ultralytics HUB](https://hub.ultralytics.com): Access and contribute to a community of pre-trained Ultralytics models.
 

@@ -14,7 +14,7 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'C2fHarDBlock')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -813,3 +813,43 @@ class C2fDA(nn.Module):
         # Continue with the rest of the C2f operations
         y.append(attn_output)
         return self.cv2(torch.cat(y, 1))
+    
+
+class C2fHarDBlock(nn.Module):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, growth_rate=32):
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.growth_rate = growth_rate
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+
+        # Define layers and links similar to HarDBlock
+        layers_ = []
+        self.links = []
+        out_channels = 2 * self.c
+
+        for i in range(n):
+            link, layer_out_ch = self.get_link(i, self.c, growth_rate)
+            self.links.append(link)
+            layers_.append(Bottleneck(layer_out_ch, self.c, shortcut, g))  # Use your Bottleneck definition
+            out_channels += self.c
+
+        self.cv2 = Conv(out_channels, c2, 1)  # Adjust output channels
+        self.m = nn.ModuleList(layers_)
+
+    def get_link(self, layer_idx, base_ch, growth_rate):
+        link = [max(0, layer_idx - 2), layer_idx - 1]
+        layer_out_ch = base_ch + len(link) * growth_rate
+        return link, layer_out_ch
+
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        for idx, m in enumerate(self.m):
+            link = self.links[idx]
+            x = torch.cat([y[l] for l in link], 1)
+            y.append(m(x))
+
+        return self.cv2(torch.cat(y[1:], 1))  # Skip the first chunk
+# Example usage
+#c1, c2 = 256, 512  # Example input/output channels
+#c2f_modified = C2fModified(c1, c2, n=4)
+

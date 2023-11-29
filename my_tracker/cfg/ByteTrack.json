@@ -21,7 +21,7 @@
 
   "proximity_thresh": 0.9,
   "appearance_thresh": 0.8,
-  "with_reid": true,
+  "with_reid": false,
   "reid_default": true,
   "weight_path": "ver12.pt",
 

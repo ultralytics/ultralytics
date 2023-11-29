@@ -11,12 +11,9 @@ from tqdm import tqdm
 
 from ultralytics.data.utils import exif_size, img2label_paths
 
-try:
-    from shapely.geometry import Polygon
-except:
-    from ultralytics.utils.checks import check_requirements
-
-    check_requirements('shapely')
+from ultralytics.utils.checks import check_requirements
+check_requirements('shapely')
+from shapely.geometry import Polygon
 
 
 def bbox_iof(polygon1, bbox2, eps=1e-6):

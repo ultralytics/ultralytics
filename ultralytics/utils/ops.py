@@ -179,10 +179,6 @@ def non_max_suppression(
     if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
 
-    device = prediction.device
-    mps = 'mps' in device.type  # Apple MPS
-    if mps:  # MPS not fully supported yet, convert tensors to CPU before NMS
-        prediction = prediction.cpu()
     bs = prediction.shape[0]  # batch size
     nc = nc or (prediction.shape[1] - 4)  # number of classes
     nm = prediction.shape[1] - nc - 4
@@ -256,8 +252,6 @@ def non_max_suppression(
         #         i = i[iou.sum(1) > 1]  # require redundancy
 
         output[xi] = x[i]
-        if mps:
-            output[xi] = output[xi].to(device)
         if (time.time() - t) > time_limit:
             LOGGER.warning(f'WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded')
             break  # time limit exceeded
@@ -282,6 +276,8 @@ def clip_boxes(boxes, shape):
         boxes[..., 1].clamp_(0, shape[0])  # y1
         boxes[..., 2].clamp_(0, shape[1])  # x2
         boxes[..., 3].clamp_(0, shape[0])  # y2
+        if mps:
+            boxes = boxes.to(device)
     else:  # np.array (faster grouped)
         boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
         boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2

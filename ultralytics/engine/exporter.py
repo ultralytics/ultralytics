@@ -663,6 +663,11 @@ class Exporter:
             import shutil
             shutil.rmtree(f)  # delete output folder
 
+        # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
+        onnx2tf_file = Path('calibration_image_sample_data_20x128x128x3_float32.npy')
+        if not onnx2tf_file.exists():
+            attempt_download_asset(f'{onnx2tf_file}.zip', unzip=True, delete=True)
+
         # Export to ONNX
         self.args.simplify = True
         f_onnx, _ = self.export_onnx()

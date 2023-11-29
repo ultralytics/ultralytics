@@ -28,7 +28,23 @@ GITHUB_ASSETS_STEMS = [Path(k).stem for k in GITHUB_ASSETS_NAMES]
 
 
 def is_url(url, check=True):
-    """Check if string is URL and check if URL exists."""
+    """
+    Validates if the given string is a URL and optionally checks if the URL exists online.
+
+    Args:
+        url (str): The string to be validated as a URL.
+        check (bool, optional): If True, performs an additional check to see if the URL exists online.
+            Defaults to True.
+
+    Returns:
+        bool: Returns True if the string is a valid URL. If 'check' is True, also returns True if the URL exists online.
+            Returns False otherwise.
+
+    Example:
+        ```python
+        valid = is_url("https://www.example.com")
+        ```
+    """
     with contextlib.suppress(Exception):
         url = str(url)
         result = parse.urlparse(url)
@@ -59,7 +75,6 @@ def delete_dsstore(path, files_to_delete=('.DS_Store', '__MACOSX')):
         ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
         are hidden system files and can cause issues when transferring files between different operating systems.
     """
-    # Delete Apple .DS_store files
     for file in files_to_delete:
         matches = list(Path(path).rglob(file))
         LOGGER.info(f'Deleting {file} files: {matches}')
@@ -275,9 +290,7 @@ def safe_download(url,
         path = safe_download(link)
         ```
     """
-
-    # Check if the URL is a Google Drive link
-    gdrive = url.startswith('https://drive.google.com/')
+    gdrive = url.startswith('https://drive.google.com/')  # check if the URL is a Google Drive link
     if gdrive:
         url, file = get_google_drive_file_info(url)
 
@@ -337,7 +350,24 @@ def safe_download(url,
 
 
 def get_github_assets(repo='ultralytics/assets', version='latest', retry=False):
-    """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""
+    """
+    Retrieve the specified version's tag and assets from a GitHub repository. If the version is not specified, the
+    function fetches the latest release assets.
+
+    Args:
+        repo (str, optional): The GitHub repository in the format 'owner/repo'. Defaults to 'ultralytics/assets'.
+        version (str, optional): The release version to fetch assets from. Defaults to 'latest'.
+        retry (bool, optional): Flag to retry the request in case of a failure. Defaults to False.
+
+    Returns:
+        tuple: A tuple containing the release tag and a list of asset names.
+
+    Example:
+        ```python
+        tag, assets = get_github_assets(repo='ultralytics/assets', version='latest')
+        ```
+    """
+
     if version != 'latest':
         version = f'tags/{version}'  # i.e. tags/v6.2
     url = f'https://api.github.com/repos/{repo}/releases/{version}'
@@ -348,14 +378,27 @@ def get_github_assets(repo='ultralytics/assets', version='latest', retry=False):
         LOGGER.warning(f'⚠️ GitHub assets check failure for {url}: {r.status_code} {r.reason}')
         return '', []
     data = r.json()
-    return data['tag_name'], [x['name'] for x in data['assets']]  # tag, assets
+    return data['tag_name'], [x['name'] for x in data['assets']]  # tag, assets i.e. ['yolov8n.pt', 'yolov8s.pt', ...]
 
 
-def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
+def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0', **kwargs):
     """
-    Attempt file download from GitHub release assets if not found locally.
+    Attempt to download a file from GitHub release assets if it is not found locally. The function checks for the file
+    locally first, then tries to download it from the specified GitHub repository release.
 
-    release = 'latest', 'v6.2', etc.
+    Args:
+        file (str | Path): The filename or file path to be downloaded.
+        repo (str, optional): The GitHub repository in the format 'owner/repo'. Defaults to 'ultralytics/assets'.
+        release (str, optional): The specific release version to be downloaded. Defaults to 'v0.0.0'.
+        **kwargs: Additional keyword arguments for the download process.
+
+    Returns:
+        str: The path to the downloaded file.
+
+    Example:
+        ```python
+        file_path = attempt_download_asset('yolov5s.pt', repo='ultralytics/assets', release='latest')
+        ```
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import
 
@@ -370,29 +413,47 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     else:
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
+        download_url = f'https://github.com/{repo}/releases/download'
         if str(file).startswith(('http:/', 'https:/')):  # download
             url = str(file).replace(':/', '://')  # Pathlib turns :// -> :/
             file = url2file(name)  # parse authentication https://url.com/file.txt?auth...
             if Path(file).is_file():
                 LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
             else:
-                safe_download(url=url, file=file, min_bytes=1E5)
+                safe_download(url=url, file=file, min_bytes=1E5, **kwargs)
 
         elif repo == GITHUB_ASSETS_REPO and name in GITHUB_ASSETS_NAMES:
-            safe_download(url=f'https://github.com/{repo}/releases/download/{release}/{name}', file=file, min_bytes=1E5)
+            safe_download(url=f'{download_url}/{release}/{name}', file=file, min_bytes=1E5, **kwargs)
 
         else:
             tag, assets = get_github_assets(repo, release)
             if not assets:
                 tag, assets = get_github_assets(repo)  # latest release
             if name in assets:
-                safe_download(url=f'https://github.com/{repo}/releases/download/{tag}/{name}', file=file, min_bytes=1E5)
+                safe_download(url=f'{download_url}/{tag}/{name}', file=file, min_bytes=1E5, **kwargs)
 
         return str(file)
 
 
 def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=1, retry=3):
-    """Downloads and unzips files concurrently if threads > 1, else sequentially."""
+    """
+    Downloads files from specified URLs to a given directory. Supports concurrent downloads if multiple threads are
+    specified.
+
+    Args:
+        url (str | list): The URL or list of URLs of the files to be downloaded.
+        dir (Path, optional): The directory where the files will be saved. Defaults to the current working directory.
+        unzip (bool, optional): Flag to unzip the files after downloading. Defaults to True.
+        delete (bool, optional): Flag to delete the zip files after extraction. Defaults to False.
+        curl (bool, optional): Flag to use curl for downloading. Defaults to False.
+        threads (int, optional): Number of threads to use for concurrent downloads. Defaults to 1.
+        retry (int, optional): Number of retries in case of download failure. Defaults to 3.
+
+    Example:
+        ```python
+        download('https://ultralytics.com/assets/example.zip', dir='path/to/dir', unzip=True)
+        ```
+    """
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory
     if threads > 1:

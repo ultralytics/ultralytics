@@ -11,6 +11,7 @@ import torch
 import torch.nn.functional as F
 import torchvision
 
+from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils import LOGGER
 
 
@@ -163,7 +164,7 @@ def make_divisible(x, divisor):
 
 def nms_rotated(boxes, scores, threshold=0.45):
     """
-    NMS for obbs, powered by probiou.
+    NMS for obbs, powered by probiou and fast-nms.
 
     Args:
         boxes (torch.Tensor): (N, 5), xywhr.
@@ -174,25 +175,11 @@ def nms_rotated(boxes, scores, threshold=0.45):
     """
     if len(boxes) == 0:
         return np.empty((0, ), dtype=np.int8)
-
-    from mmcv.ops import nms_rotated
-    return nms_rotated(boxes, scores, threshold)[1]
-    # from ultralytics.utils.metrics import batch_probiou
-    # sorted_idx = torch.argsort(scores)
-    # pick = torch.zeros_like(scores, dtype=torch.int64)
-    # ious = batch_probiou(boxes, boxes)
-    # counter = 0
-    # while len(sorted_idx) > 0:
-    #     i = sorted_idx[-1]
-    #     pick[counter] = i
-    #     counter += 1
-    #     other = sorted_idx[0:-1]
-    #     iou = ious[i, other]
-    #     # iou = batch_probiou(boxes[i][None], boxes[other]).squeeze(0)
-    #     sorted_idx = sorted_idx[torch.nonzero(iou <= threshold).squeeze(-1)]
-    #
-    # pick = pick[:counter].clone()
-    # return pick
+    sorted_idx = torch.argsort(scores, descending=True)
+    boxes = boxes[sorted_idx]
+    ious = batch_probiou(boxes, boxes).triu_(diagonal=1)
+    pick = torch.nonzero(ious.max(dim=0)[0] < threshold).squeeze_(-1)
+    return sorted_idx[pick]
 
 
 def non_max_suppression(

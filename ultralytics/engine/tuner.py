@@ -175,12 +175,12 @@ class Tuner:
             metrics = {}
             train_args = {**vars(self.args), **mutated_hyp}
             save_dir = get_save_dir(get_cfg(train_args))
+            weights_dir = save_dir / 'weights'
+            ckpt_file = weights_dir / ('best.pt' if (weights_dir / 'best.pt').exists() else 'last.pt')
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                weights_dir = save_dir / 'weights'
                 cmd = ['yolo', 'train', *(f'{k}={v}' for k, v in train_args.items())]
                 assert subprocess.run(cmd, check=True).returncode == 0, 'training failed'
-                ckpt_file = weights_dir / ('best.pt' if (weights_dir / 'best.pt').exists() else 'last.pt')
                 metrics = torch.load(ckpt_file)['train_metrics']
 
             except Exception as e:

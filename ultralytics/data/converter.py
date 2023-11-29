@@ -168,18 +168,18 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
     Notes:
         The directory structure assumed for the DOTA dataset:
             - DOTA
-                - images
-                    - train
-                    - val
-                - labels
-                    - train_original
-                    - val_original
+                ├─ images
+                │   ├─ train
+                │   └─ val
+                └─ labels
+                    ├─ train_original
+                    └─ val_original
 
-        After the function execution, the new labels will be saved in:
+        After execution, the function will organize the labels into:
             - DOTA
-                - labels
-                    - train
-                    - val
+                └─ labels
+                    ├─ train
+                    └─ val
     """
     dota_root_path = Path(dota_root_path)
 

@@ -75,7 +75,6 @@ def delete_dsstore(path, files_to_delete=('.DS_Store', '__MACOSX')):
         ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
         are hidden system files and can cause issues when transferring files between different operating systems.
     """
-    # Delete Apple .DS_store files
     for file in files_to_delete:
         matches = list(Path(path).rglob(file))
         LOGGER.info(f'Deleting {file} files: {matches}')
@@ -291,9 +290,7 @@ def safe_download(url,
         path = safe_download(link)
         ```
     """
-
-    # Check if the URL is a Google Drive link
-    gdrive = url.startswith('https://drive.google.com/')
+    gdrive = url.startswith('https://drive.google.com/')  # check if the URL is a Google Drive link
     if gdrive:
         url, file = get_google_drive_file_info(url)
 

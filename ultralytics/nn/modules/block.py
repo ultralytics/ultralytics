@@ -10,8 +10,7 @@ from torchvision.ops import SqueezeExcitation
 
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock
-from .transformer import DATransformerBlock
-from .transformer import DualTransformerBlock
+
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
@@ -456,7 +455,7 @@ class C3TR(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)
         self.m = TransformerBlock(c_, c_, 4, n)
-        
+
 
 class C3TR2(C3):
     """C3 module with DualTransformerBlock."""

@@ -113,7 +113,7 @@ jobs:
 
           # Fix onnx2tf S3 calibration file download issues https://github.com/PINTO0309/onnx2tf/issues/545
           pip install git+https://github.com/ultralytics/onnx2tf.git@main
-          
+
           yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |

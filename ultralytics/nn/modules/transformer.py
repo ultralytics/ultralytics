@@ -12,7 +12,7 @@ from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 
 __all__ = ('TransformerEncoderLayer', 'TransformerLayer', 'TransformerBlock', 'MLPBlock', 'LayerNorm2d', 'AIFI',
-           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP')
+           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'CrossDATransformerBlock')
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -407,3 +407,30 @@ class DeformableTransformerDecoder(nn.Module):
             refer_bbox = refined_bbox.detach() if self.training else refined_bbox
 
         return torch.stack(dec_bboxes), torch.stack(dec_cls)
+    
+
+class CrossDATransformerBlock(nn.Module):
+    """Vision Transformer dengan Deformable Cross Attention."""
+
+    def __init__(self, c1, c2, num_heads, num_layers, n_levels=4, n_points=4):
+        """Initialize a Transformer module dengan Deformable Cross Attention."""
+        super().__init__()
+        self.conv = None
+        if c1 != c2:
+            self.conv = Conv(c1, c2)
+        self.linear = nn.Linear(c2, c2)  # learnable position embedding
+
+        # Menggunakan DeformableTransformerDecoderLayer
+        decoder_layer = DeformableTransformerDecoderLayer(d_model=c2, n_heads=num_heads, n_levels=n_levels, n_points=n_points)
+        self.tr = nn.Sequential(*(decoder_layer for _ in range(num_layers)))
+        self.c2 = c2
+
+    def forward(self, x, refer_bbox, feats, shapes, padding_mask=None):
+        """Forward pass dengan Deformable Cross Attention."""
+        if self.conv is not None:
+            x = self.conv(x)
+        b, _, w, h = x.shape
+        p = x.flatten(2).permute(2, 0, 1)
+        pos = self.linear(p)
+        return self.tr(p + pos, refer_bbox, feats, shapes, padding_mask).permute(1, 2, 0).reshape(b, self.c2, w, h)
+

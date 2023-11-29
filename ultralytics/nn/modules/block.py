@@ -10,10 +10,11 @@ from torchvision.ops import SqueezeExcitation
 
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock
+from .transformer import CrossDATransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -737,4 +738,15 @@ class C2TR(nn.Module):
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+    
+
+class C3CTR(C3):
+    """C3 module with modified TransformerBlock that uses Deformable Cross Attention."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, num_heads=4, n_levels=4, n_points=4):
+        """Initialize C3Ghost module with TransformerBlock using Deformable Cross Attention."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)
+        self.m = CrossDATransformerBlock(c_, c_, num_heads, n, n_levels=n_levels, n_points=n_points)
+
 

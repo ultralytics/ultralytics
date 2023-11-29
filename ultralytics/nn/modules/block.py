@@ -337,14 +337,13 @@ class ResNetBlock(nn.Module):
     """ResNet block with standard convolution layers."""
 
     def __init__(self, c1, c2, s=1, e=4):
-        """Initialize convolution with given parameters. """
+        """Initialize convolution with given parameters."""
         super().__init__()
         self.conv1 = Conv(c1, c2, k=1, s=1, act=True)
         self.conv2 = Conv(c2, c2, k=3, s=s, p=1, act=True)
         self.conv3 = Conv(c2, e * c2, k=1, act=False)
-        self.shortcut = nn.Sequential(
-            Conv(c1, e * c2, k=1, s=s, act=False)
-        ) if s != 1 or c1 != e * c2 else nn.Sequential()
+        self.shortcut = nn.Sequential(Conv(c1, e *
+                                           c2, k=1, s=s, act=False)) if s != 1 or c1 != e * c2 else nn.Sequential()
 
     def forward(self, x):
         """Forward pass through the ResNet block."""
@@ -356,15 +355,13 @@ class ResNetLayer(nn.Module):
     """ResNet layer with multiple ResNet blocks."""
 
     def __init__(self, c1, c2, s=1, is_first=False, n=1, e=4):
-        """Initializes the ResNetLayer given arguments"""
+        """Initializes the ResNetLayer given arguments."""
         super().__init__()
         self.is_first = is_first
 
         if self.is_first:
-            self.layer = nn.Sequential(
-                Conv(c1, c2, k=7, s=2, p=3, act=True),
-                nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-            )
+            self.layer = nn.Sequential(Conv(c1, c2, k=7, s=2, p=3, act=True),
+                                       nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
         else:
             blocks = [ResNetBlock(c1, c2, s, e=e)]
             blocks.extend([ResNetBlock(e * c2, c2, 1, e=e) for _ in range(n - 1)])

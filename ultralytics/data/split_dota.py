@@ -1,24 +1,27 @@
-from ultralytics.data.utils import exif_size, img2label_paths
-from tqdm import tqdm
-from PIL import Image
-from pathlib import Path
-import numpy as np
+import itertools
+import os
 from glob import glob
 from math import ceil
-import os
-import itertools
+from pathlib import Path
+
 import cv2
+import numpy as np
+from PIL import Image
+from tqdm import tqdm
+
+from ultralytics.data.utils import exif_size, img2label_paths
 
 try:
     from shapely.geometry import Polygon
 except:
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements("shapely")
+    check_requirements('shapely')
 
 
 def bbox_iof(polygon1, bbox2, eps=1e-6):
-    """Calculate iofs between bbox1 and bbox2.
+    """
+    Calculate iofs between bbox1 and bbox2.
 
     Args:
         polygon1 (np.ndarray): Polygon coordinates, (n, 8).
@@ -34,7 +37,7 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
     wh = np.clip(rb - lt, 0, np.inf)
     h_overlaps = wh[..., 0] * wh[..., 1]
 
-    l, t, r, b = [bbox2[..., i] for i in range(4)]
+    l, t, r, b = (bbox2[..., i] for i in range(4))
     polygon2 = np.stack([l, t, r, t, r, b, l, b], axis=-1).reshape(-1, 4, 2)
 
     sg_polys1 = [Polygon(p) for p in polygon1]
@@ -52,7 +55,7 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
     return outputs
 
 
-def load_yolo_dota(data_root, split="train"):
+def load_yolo_dota(data_root, split='train'):
     """Load DOTA dataset.
     Args:
         data_root (str): Data root.
@@ -67,10 +70,10 @@ def load_yolo_dota(data_root, split="train"):
                     - train
                     - val
     """
-    assert split in ["train", "val"]
-    im_dir = os.path.join(data_root, f"images/{split}")
+    assert split in ['train', 'val']
+    im_dir = os.path.join(data_root, f'images/{split}')
     assert Path(im_dir).exists(), f"Can't find {im_dir}, please check your data root."
-    im_files = glob(os.path.join(data_root, f"images/{split}/*"))
+    im_files = glob(os.path.join(data_root, f'images/{split}/*'))
     lb_files = img2label_paths(im_files)
     annos = []
     for im_file, lb_file in zip(im_files, lb_files):
@@ -83,7 +86,8 @@ def load_yolo_dota(data_root, split="train"):
 
 
 def get_windows(im_size, crop_size=1024, gap=200, im_rate_thr=0.6, eps=0.01):
-    """Get the coordinates of windows.
+    """
+    Get the coordinates of windows.
 
     Args:
         im_size (tuple): Original image size, (h, w).
@@ -92,7 +96,7 @@ def get_windows(im_size, crop_size=1024, gap=200, im_rate_thr=0.6, eps=0.01):
         im_rate_thr (float): Threshold of windows areas divided by image ares.
     """
     h, w = im_size
-    assert crop_size > gap, f"invaild crop_size gap pair [{crop_size} {gap}]"
+    assert crop_size > gap, f'invaild crop_size gap pair [{crop_size} {gap}]'
     step = crop_size - gap
 
     xn = 1 if w <= crop_size else ceil((w - crop_size) / step + 1)
@@ -122,9 +126,9 @@ def get_windows(im_size, crop_size=1024, gap=200, im_rate_thr=0.6, eps=0.01):
 
 
 def get_window_obj(anno, iof_thr=0.7):
-    windows = get_windows(anno["ori_size"])
-    h, w = anno["ori_size"]
-    label = anno["label"]
+    windows = get_windows(anno['ori_size'])
+    h, w = anno['ori_size']
+    label = anno['label']
     if len(label):
         label[:, 1::2] *= w
         label[:, 2::2] *= h
@@ -154,15 +158,15 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
                     - train
                     - val
     """
-    im = cv2.imread(anno["filepath"])
-    name = Path(anno["filepath"]).stem
+    im = cv2.imread(anno['filepath'])
+    name = Path(anno['filepath']).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()
-        new_name = name + "__" + str(x_stop - x_start) + "__" + str(x_start) + "___" + str(y_start)
+        new_name = name + '__' + str(x_stop - x_start) + '__' + str(x_start) + '___' + str(y_start)
         patch_im = im[y_start:y_stop, x_start:x_stop]
         ph, pw = patch_im.shape[:2]
 
-        cv2.imwrite(os.path.join(im_dir, f"{new_name}.jpg"), patch_im)
+        cv2.imwrite(os.path.join(im_dir, f'{new_name}.jpg'), patch_im)
         label = window_objs[i]
         if len(label) == 0:
             continue
@@ -171,16 +175,16 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
         label[:, 1::2] /= pw
         label[:, 2::2] /= ph
 
-        with open(os.path.join(lb_dir, f"{new_name}.txt"), "w") as f:
+        with open(os.path.join(lb_dir, f'{new_name}.txt'), 'w') as f:
             for l in label:
-                formatted_coords = ["{:.6g}".format(coord) for coord in l[1:]]
+                formatted_coords = ['{:.6g}'.format(coord) for coord in l[1:]]
                 f.write(f"{int(l[0])} {' '.join(formatted_coords)}\n")
 
 
-def split_images_and_labels(data_root, save_dir, split="train"):
-    im_dir = Path(save_dir) / "images" / split
+def split_images_and_labels(data_root, save_dir, split='train'):
+    im_dir = Path(save_dir) / 'images' / split
     im_dir.mkdir(parents=True, exist_ok=True)
-    lb_dir = Path(save_dir) / "labels" / split
+    lb_dir = Path(save_dir) / 'labels' / split
     lb_dir.mkdir(parents=True, exist_ok=True)
 
     annos = load_yolo_dota(data_root, split=split)
@@ -190,37 +194,35 @@ def split_images_and_labels(data_root, save_dir, split="train"):
 
 
 def split_trainval(data_root, save_dir):
-    for split in ["train", "val"]:
+    for split in ['train', 'val']:
         split_images_and_labels(data_root, save_dir, split)
 
 
 def split_test(data_root, save_dir):
-    save_dir = Path(save_dir) / "images" / "test"
+    save_dir = Path(save_dir) / 'images' / 'test'
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    im_dir = Path(os.path.join(data_root, f"images/test"))
+    im_dir = Path(os.path.join(data_root, f'images/test'))
     assert im_dir.exists(), f"Can't find {str(im_dir)}, please check your data root."
-    im_files = glob(str(im_dir / "*"))
-    for im_file in tqdm(im_files, total=len(im_files), desc="test"):
+    im_files = glob(str(im_dir / '*'))
+    for im_file in tqdm(im_files, total=len(im_files), desc='test'):
         w, h = exif_size(Image.open(im_file))
         windows = get_windows((h, w))
         im = cv2.imread(im_file)
         name = Path(im_file).stem
         for window in windows:
             x_start, y_start, x_stop, y_stop = window.tolist()
-            new_name = (
-                name + "__" + str(x_stop - x_start) + "__" + str(x_start) + "___" + str(y_start)
-            )
+            new_name = (name + '__' + str(x_stop - x_start) + '__' + str(x_start) + '___' + str(y_start))
             patch_im = im[y_start:y_stop, x_start:x_stop]
-            cv2.imwrite(os.path.join(str(save_dir), f"{new_name}.jpg"), patch_im)
+            cv2.imwrite(os.path.join(str(save_dir), f'{new_name}.jpg'), patch_im)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     split_trainval(
-        data_root="DOTAv2",
-        save_dir="DOTAv2-split",
+        data_root='DOTAv2',
+        save_dir='DOTAv2-split',
     )
     split_test(
-        data_root="DOTAv2",
-        save_dir="DOTAv2-split",
+        data_root='DOTAv2',
+        save_dir='DOTAv2-split',
     )

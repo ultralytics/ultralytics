@@ -13,7 +13,7 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -719,3 +719,22 @@ class C2fx(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+    
+class C2TR(nn.Module):
+    """Modified version of C2f using TransformerBlock instead of Bottleneck."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        """Initialize CSP bottleneck layer with two convolutions and TransformerBlock."""
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        # Replace Bottleneck with TransformerBlock
+        self.m = nn.ModuleList(TransformerBlock(self.c, self.c, 4, n) for _ in range(n))
+
+    def forward(self, x):
+        """Forward pass through modified C2f layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+

@@ -496,18 +496,18 @@ class SimplifiedChannelAttention(nn.Module):
 
 # Implementasi DualTransformerBlock
 class DualTransformerBlock(nn.Module):
-    def __init__(self, in_dim, key_dim, value_dim, num_heads, num_layers):
+    def __init__(self, in_dim, key_dim, value_dim, head_count, num_layers):
         super().__init__()
         self.efficient_attn = SimplifiedEfficientAttention(in_dim, key_dim, value_dim)
         self.channel_attn = SimplifiedChannelAttention(in_dim)
-        self.transformer_layers = nn.Sequential(*(SimplifiedTransformerLayer(in_dim, num_heads) for _ in range(num_layers)))
+        self.transformer_layers = nn.Sequential(*(SimplifiedTransformerLayer(in_dim, head_count) for _ in range(num_layers)))
         self.norm = nn.LayerNorm(in_dim)
 
     def forward(self, x, H, W):
         x = self.norm(x)
-        x = Rearrange('b (h w) d -> b d h w', h=H, w=W)(x)
+        x = x.view(-1, in_dim, H, W)  # Ubah ke format (batch, channel, height, width)
         x = self.efficient_attn(x)
-        x = Rearrange('b d h w -> b (h w) d')(x)
+        x = x.view(-1, in_dim, H*W)  # Kembali ke format (batch, channel, height*width)
         x = self.channel_attn(x)
         x = self.transformer_layers(x)
         return x

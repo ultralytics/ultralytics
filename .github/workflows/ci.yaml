@@ -111,6 +111,11 @@ jobs:
           # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
           # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
           # yolo settings tensorboard=False
+
+          # Fix onnx2tf S3 bucket issues 
+          wget https://github.com/ultralytics/assets/releases/download/v0.0.0/calibration_image_sample_data_20x128x128x3_float32.npy.zip
+          unzip calibration_image_sample_data_20x128x128x3_float32.npy.zip
+
           yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |

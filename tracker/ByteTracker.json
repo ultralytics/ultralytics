@@ -31,8 +31,7 @@
 
     "standing_still": {
         "enabled": true,
-        "frame_window": 100,
-        "speed_threshold": 0.04
+        "speed_threshold": 0.05
     },
 
     "fast_approach": {

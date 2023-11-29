@@ -20,7 +20,6 @@ class ActionRecognizer:
         self.area_threshold = config["gathering"]["area_threshold"]
         # Standing still parameters
         self.ss_enabled = config["standing_still"]["enabled"]
-        self.ss_frame_window = config["standing_still"]["frame_window"]
         self.ss_speed_threshold = config["standing_still"]["speed_threshold"]
         # Fast approach parameters
         self.fa_enabled = config["fast_approach"]["enabled"]
@@ -166,27 +165,52 @@ class ActionRecognizer:
         return np.array(crowd_box)
 
     def recognize_standing_still(self, tracks):
+        # TODO: also controlled by sv.STrack.frame_stride
+        frame_stride = tracks[0].frame_stride
         ss_results = {}
         for track in tracks:
-            # TODO: maybe condition on seconds and not frames using average FPS of the video
-            if track.tracklet_len > self.ss_frame_window and track.class_ids == 0:
-                # TODO compute real speed with homograahy matrix
-                #pixel_speed = np.sqrt(np.sum(track.mean[4:6]**2))
-                pixel_speed = np.sqrt(np.sum(track.mean[4:]**2))
-                # TODO: condition on height and aspect ratio of the bounding box
-                if pixel_speed < self.ss_speed_threshold:
+            if track.tracklet_len > frame_stride and track.class_ids == 0:
+                pixel_s, pixel_a = self.differentiate(track)
+                if pixel_s < self.ss_speed_threshold:   # TODO: condition on acceleration?
                     ss_results[track.track_id] = track.tlbr
         return ss_results if len(ss_results.keys()) > 0 else None
+
+    def differentiate(self, track):
+
+        dif = (track.mean - track.prev_states[-1]) / track.frame_stride
+        if len(track.prev_states) > 1:
+            dif_prev = (track.prev_states[-1] - track.prev_states[-2]) / track.frame_stride
+        else:
+            dif_prev = dif
+        #dif_old = (track.mean - track.prev_states[-2]) / (track.frame_stride*2)
+        #dif_2 = (track.mean - 2*track.prev_states[-1] + track.prev_states[-2]) / (track.frame_stride**2)
+
+        # TODO: condition on height and aspect ratio of the bounding box is included in speed computation
+        #kalman_speed = np.sqrt(np.sum(track.mean[4:6] ** 2))
+        dif_speed = np.sqrt(np.sum(dif[:4] ** 2))
+        dif_prev_speed = np.sqrt(np.sum(dif_prev[:4] ** 2))
+        #dif_old_speed = np.sqrt(np.sum(dif_old[:2] ** 2))
+        pixel_s = (dif_speed + dif_prev_speed) / 2
+
+        # Acceleration
+        pixel_a = (dif_speed - dif_prev_speed) / track.frame_stride
+        #mean_acceleration = np.sqrt(np.sum((dif_2[:2]**2)))
+
+        # Normalize, not working, too low
+        #area = track.tlwh[2] * track.tlwh[3]
+        #pixel_s = pixel_s / np.sqrt(area)
+        #pixel_a = pixel_a / np.sqrt(area)
+
+        return pixel_s, pixel_a
 
     def recognize_fast_approach(self, tracks):
         fa_results = {}
         valid_classes = [0, 1, 2]   # personnel, car, truck
         interest_point = np.array([1080, 960])   # TODO: not hardcoded
         for track in tracks:
-            if track.class_ids in valid_classes:
-                # TODO compute real speed with homograahy matrix
-                pixel_speed = np.sqrt(np.sum(track.mean[4:]**2))
-                if pixel_speed > self.fa_speed_threshold and track.mean[1] > 0:
+            if track.class_ids in valid_classes and track.frame_id > 2:
+                pixel_s, pixel_a = self.differentiate(track)
+                if pixel_s > self.fa_speed_threshold and track.mean[5] > 0:
                     distace_to_interest_point = np.sqrt(np.sum((track.mean[0:2] - interest_point) ** 2))
                     if distace_to_interest_point < self.fa_distance_threshold:
                         fa_results[track.track_id] = track.tlbr

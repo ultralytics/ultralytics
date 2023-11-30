@@ -133,7 +133,7 @@ class LightConvB(nn.Module):
     def __init__(self, c1, c2, k=1, act=nn.ReLU()):
         """Initialize Conv layers with Batch Normalization and given arguments including activation."""
         super().__init__()
-        self.conv1 = Conv(c1, c2, 1, act=False)
+        self.conv1 = DWConv(c1, c2, 1, act=False)
         self.bn1 = nn.BatchNorm2d(c2)
         self.conv2 = DWConv(c2, c2, k, act=None)
         self.bn2 = nn.BatchNorm2d(c2)

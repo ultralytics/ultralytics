@@ -952,18 +952,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224, rect=False, mean=DEFAULT_MEAN, std=DEFAULT_STD):  # IMAGENET_MEAN, IMAGENET_STD
-    """Transforms to apply if albumentations not installed."""
-    if not isinstance(size, int):
-        raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
-    transforms = [ClassifyLetterBox(size, auto=True) if rect else CenterCrop(size), ToTensor()]
-    if any(mean) or any(std):
-        transforms.append(T.Normalize(mean, std, inplace=True))
-    return T.Compose(transforms)
-
-
-# Classification augmentations eval -----------------------------------------------------------------------------------------
-def classify_transforms_eval(
+def classify_transforms(
     size=224,
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
@@ -1008,31 +997,8 @@ def classify_transforms_eval(
     return T.Compose(tfl)
 
 
-def classify_transforms_noaug_train(
-    img_size=224,
-    interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
-    mean=DEFAULT_MEAN,
-    std=DEFAULT_STD,
-):
-    """
-    Classification transforms without augmentation for training.
-
-    Args:
-        img_size (int): image size
-        interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
-        mean (tuple): mean values of RGB channels
-        std (tuple): std values of RGB channels
-
-    Returns:
-        T.Compose: torchvision transforms
-    """
-    tfl = [T.Resize(img_size, interpolation=interpolation), T.CenterCrop(img_size)]
-    tfl += [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
-    return T.Compose(tfl)
-
-
 # Classification augmentations train ---------------------------------------------------------------------------------------
-def classify_transforms_train(
+def classify_augmentations(
     size=224,
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
@@ -1126,50 +1092,6 @@ def classify_transforms_train(
 def hsv2colorjitter(h, s, v):
     """Map HSV (hue, saturation, value) jitter into ColorJitter values (brightness, contrast, saturation, hue)"""
     return v, v, s, h
-
-
-def classify_albumentations(
-    augment=True,
-    size=224,
-    scale=(0.08, 1.0),
-    hflip=0.5,
-    vflip=0.0,
-    hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
-    hsv_s=0.7,  # image HSV-Saturation augmentation (fraction)
-    hsv_v=0.4,  # image HSV-Value augmentation (fraction)
-    mean=DEFAULT_MEAN,  # IMAGENET_MEAN
-    std=DEFAULT_STD,  # IMAGENET_STD
-    auto_aug=False,
-):
-    """YOLOv8 classification Albumentations (optional, only used if package is installed)."""
-    prefix = colorstr('albumentations: ')
-    try:
-        import albumentations as A
-        from albumentations.pytorch import ToTensorV2
-
-        check_version(A.__version__, '1.0.3', hard=True)  # version requirement
-        if augment:  # Resize and crop
-            T = [A.RandomResizedCrop(height=size, width=size, scale=scale)]
-            if auto_aug:
-                # TODO: implement AugMix, AutoAug & RandAug in albumentations
-                LOGGER.info(f'{prefix}auto augmentations are currently not supported')
-            else:
-                if hflip > 0:
-                    T += [A.HorizontalFlip(p=hflip)]
-                if vflip > 0:
-                    T += [A.VerticalFlip(p=vflip)]
-                if any((hsv_h, hsv_s, hsv_v)):
-                    T += [A.ColorJitter(*hsv2colorjitter(hsv_h, hsv_s, hsv_v))]  # brightness, contrast, saturation, hue
-        else:  # Use fixed crop for eval set (reproducibility)
-            T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
-        T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor
-        LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
-        return A.Compose(T)
-
-    except ImportError:  # package not installed, skip
-        pass
-    except Exception as e:
-        LOGGER.info(f'{prefix}{e}')
 
 
 class ClassifyLetterBox:

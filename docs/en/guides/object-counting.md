@@ -21,7 +21,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ## Real World Applications
 
-|                                                                           Logistics                                                                           |                                                                   Transportation                                                                    |
+|                                                                           Logistics                                                                           |                                                                     Aquaculture                                                                     |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/70e2d106-510c-4c6c-a57a-d34a765aa757) | ![Fish Counting in Sea using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/c60d047b-3837-435f-8d29-bb9fc95d2191) |
 |                                                    Conveyor Belt Packets Counting Using Ultralytics YOLOv8                                                    |                                                    Fish Counting in Sea using Ultralytics YOLOv8                                                    |

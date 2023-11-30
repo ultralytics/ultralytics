@@ -129,15 +129,16 @@ class LightConvB(nn.Module):
     """
     Light convolution with Batch Normalization.
     """
+    default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=1, act=nn.ReLU()):
+    def __init__(self, c1, c2, k=1, act=True):
         """Initialize Conv layers with Batch Normalization and given arguments including activation."""
         super().__init__()
         self.conv1 = DWConv(c1, c2, 1, act=False)
         self.bn1 = nn.BatchNorm2d(c2)
         self.conv2 = DWConv(c2, c2, k, act=None)
         self.bn2 = nn.BatchNorm2d(c2)
-        self.act = act if isinstance(act, nn.Module) else nn.Identity()
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
         """Apply 2 convolutions with Batch Normalization to input tensor."""

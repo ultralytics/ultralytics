@@ -109,8 +109,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
         boxes[..., [0, 2]] -= pad[0]  # x padding
         boxes[..., [1, 3]] -= pad[1]  # y padding
     boxes[..., :4] /= gain
-    clip_boxes(boxes, img0_shape)
-    return boxes
+    return clip_boxes(boxes, img0_shape)
 
 
 def make_divisible(x, divisor):
@@ -264,25 +263,21 @@ def clip_boxes(boxes, shape):
     Takes a list of bounding boxes and a shape (height, width) and clips the bounding boxes to the shape.
 
     Args:
-      boxes (torch.Tensor): the bounding boxes to clip
-      shape (tuple): the shape of the image
+        boxes (torch.Tensor): the bounding boxes to clip
+        shape (tuple): the shape of the image
+
+    Returns:
+        (torch.Tensor | numpy.ndarray): Clipped boxes
     """
-    device = boxes.device
-    mps = 'mps' in device.type  # Apple MPS
-    if mps:
-        boxes = boxes.cpu()
-    if isinstance(boxes, torch.Tensor):  # faster individually
-        boxes[..., 0].clamp_(0, shape[1])  # x1
-        boxes[..., 1].clamp_(0, shape[0])  # y1
-        boxes[..., 2].clamp_(0, shape[1])  # x2
-        boxes[..., 3].clamp_(0, shape[0])  # y2
-        if mps:
-            boxes = boxes.to(device)
+    if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
+        boxes[..., 0] = boxes[..., 0].clamp(0, shape[1])  # x1
+        boxes[..., 1] = boxes[..., 1].clamp(0, shape[0])  # y1
+        boxes[..., 2] = boxes[..., 2].clamp(0, shape[1])  # x2
+        boxes[..., 3] = boxes[..., 3].clamp(0, shape[0])  # y2
     else:  # np.array (faster grouped)
         boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
         boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
-        if mps:
-            boxes = boxes.to(device)
+    return boxes
 
 
 def clip_coords(coords, shape):
@@ -294,14 +289,15 @@ def clip_coords(coords, shape):
         shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
 
     Returns:
-        (None): The function modifies the input `coordinates` in place, by clipping each coordinate to the image boundaries.
+        (torch.Tensor | numpy.ndarray): Clipped coordinates
     """
-    if isinstance(coords, torch.Tensor):  # faster individually
-        coords[..., 0].clamp_(0, shape[1])  # x
-        coords[..., 1].clamp_(0, shape[0])  # y
+    if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
+        coords[..., 0] = coords[..., 0].clamp(0, shape[1])  # x
+        coords[..., 1] = coords[..., 1].clamp(0, shape[0])  # y
     else:  # np.array (faster grouped)
         coords[..., 0] = coords[..., 0].clip(0, shape[1])  # x
         coords[..., 1] = coords[..., 1].clip(0, shape[0])  # y
+    return coords
 
 
 def scale_image(masks, im0_shape, ratio_pad=None):
@@ -420,7 +416,7 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height, normalized) format
     """
     if clip:
-        clip_boxes(x, (h - eps, w - eps))  # warning: inplace clip
+        x = clip_boxes(x, (h - eps, w - eps))
     assert x.shape[-1] == 4, f'input shape last dimension expected 4 but input shape is {x.shape}'
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
     y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
@@ -742,7 +738,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
         coords[..., 1] -= pad[1]  # y padding
     coords[..., 0] /= gain
     coords[..., 1] /= gain
-    clip_coords(coords, img0_shape)
+    coords = clip_coords(coords, img0_shape)
     if normalize:
         coords[..., 0] /= img0_shape[1]  # width
         coords[..., 1] /= img0_shape[0]  # height

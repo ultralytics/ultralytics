@@ -521,9 +521,9 @@ def image():
 def test_classify_transforms_train(image, auto_augment, re_prob, force_color_jitter):
     import torchvision.transforms as T
 
-    from ultralytics.data.augment import classify_transforms_train
+    from ultralytics.data.augment import classify_augmentations
 
-    transform = classify_transforms_train(
+    transform = classify_augmentations(
         size=224,
         mean=(0.5, 0.5, 0.5),
         std=(0.5, 0.5, 0.5),

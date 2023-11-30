@@ -8,13 +8,13 @@ from torch.nn.parameter import Parameter
 
 from torchvision.ops import SqueezeExcitation
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, DepthwiseSeparableConv, SqueezeExcite
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, CombConv, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock
 
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'C2fHarDBlock')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -815,41 +815,67 @@ class C2fDA(nn.Module):
         return self.cv2(torch.cat(y, 1))
     
 
-class C2fHarDBlock(nn.Module):
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, growth_rate=32):
+class HarDBlock(nn.Module):
+    def get_link(self, layer, c1, gr, grmul):
+        if layer == 0:
+            return c1, 0, []
+        c2 = gr
+        link = []
+        for i in range(10):
+            dv = 2 ** i
+            if layer % dv == 0:
+                k = layer - dv
+                link.append(k)
+                if i > 0:
+                    c2 *= grmul
+        c2 = int(int(c2 + 1) / 2) * 2
+        inch = 0
+        for i in link:
+            ch, _, _ = self.get_link(i, c1, gr, grmul)
+            inch += ch
+        return c2, inch, link
+
+    def get_out_ch(self):
+        return self.out_channels
+
+    def __init__(self, c1, gr, grmul, n_layers, keepBase=False, residual_out=False, dwconv=False):
         super().__init__()
-        self.c = int(c2 * e)  # hidden channels
-        self.growth_rate = growth_rate
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-
-        # Define layers and links similar to HarDBlock
-        layers_ = []
+        self.keepBase = keepBase
         self.links = []
-        out_channels = 2 * self.c
-
-        for i in range(n):
-            link, layer_out_ch = self.get_link(i, self.c, growth_rate)
+        layers_ = []
+        self.out_channels = 0
+        for i in range(n_layers):
+            c2, inch, link = self.get_link(i + 1, c1, gr, grmul)
             self.links.append(link)
-            layers_.append(Bottleneck(layer_out_ch, self.c, shortcut, g))  # Use your Bottleneck definition
-            out_channels += self.c
 
-        self.cv2 = Conv(out_channels, c2, 1)  # Adjust output channels
-        self.m = nn.ModuleList(layers_)
+            if dwconv:
+                layers_.append(CombConv(inch, c2))  # Asumsi DWConv memiliki parameter yang sesuai
+            else:
+                layers_.append(Conv(inch, c2))    # Asumsi Conv memiliki parameter yang sesuai
 
-    def get_link(self, layer_idx, base_ch, growth_rate):
-        link = [max(0, layer_idx - 2), layer_idx - 1]
-        layer_out_ch = base_ch + len(link) * growth_rate
-        return link, layer_out_ch
+            if (i % 2 == 0) or (i == n_layers - 1):
+                self.out_channels += c2
+        self.layers = nn.ModuleList(layers_)
 
     def forward(self, x):
-        y = list(self.cv1(x).chunk(2, 1))
-        for idx, m in enumerate(self.m):
-            link = self.links[idx]
-            x = torch.cat([y[l] for l in link], 1)
-            y.append(m(x))
+        layers_ = [x]
 
-        return self.cv2(torch.cat(y[1:], 1))  # Skip the first chunk
-# Example usage
-#c1, c2 = 256, 512  # Example input/output channels
-#c2f_modified = C2fModified(c1, c2, n=4)
+        for layer in range(len(self.layers)):
+            link = self.links[layer]
+            tin = []
+            for i in link:
+                tin.append(layers_[i])
+            if len(tin) > 1:
+                x = torch.cat(tin, 1)
+            else:
+                x = tin[0]
+            out = self.layers[layer](x)
+            layers_.append(out)
 
+        t = len(layers_)
+        out_ = []
+        for i in range(t):
+            if (i == 0 and self.keepBase) or (i == t - 1) or (i % 2 == 1):
+                out_.append(layers_[i])
+        out = torch.cat(out_, 1)
+        return out

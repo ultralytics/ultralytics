@@ -9,7 +9,7 @@ import torch.nn as nn
 
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
-           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv')
+           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv')
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -354,4 +354,17 @@ class Concat(nn.Module):
         return torch.cat(x, self.d)
     
 
+class CombConv(nn.Module):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, bias=False, act=True):
+        super().__init__()
+        # Menggunakan Conv sebagai layer pertama
+        self.layer1 = Conv(c1, c2, k, s, p, g, d, act)
+
+        # Menggunakan DWConv sebagai layer kedua
+        # Perhatikan bahwa dalam DWConv, parameter c2 dan k mungkin tidak digunakan sesuai dengan definisi DWConv yang diberikan
+        self.layer2 = DWConv(c2, c2, k, s, d, act)
+
+    def forward(self, x):
+        # Mengaplikasikan layer1, kemudian layer2
+        return self.layer2(self.layer1(x))
 

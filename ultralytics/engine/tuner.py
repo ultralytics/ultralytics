@@ -186,6 +186,12 @@ class Tuner:
             except Exception as e:
                 LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}')
 
+                # If training failed, the metrics could may still have been saved.
+                if ckpt_file.exists():
+                    ckpt = torch.load(ckpt_file)
+                    if 'train_metrics' in ckpt: # this check may not be necessary.
+                        metrics = ckpt['train_metrics']
+
             # Save results and mutated_hyp to CSV
             fitness = metrics.get('fitness', 0.0)
             log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]

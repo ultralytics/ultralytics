@@ -890,13 +890,3 @@ class MBC2f(nn.Module):
         
         # Mengganti Bottleneck dengan MBConv
         self.m = nn.ModuleList(MBConv(self.c, self.c, shortcut=shortcut, g=g, k=((1, 3), (3, 1)), e=1.0) for _ in range(n))
-
-            def forward(self, x):
-        y = list(self.cv1(x).chunk(2, 1))
-        y.extend(m(y[-1]) for m in self.m)
-        return self.cv2(torch.cat(y, 1))
-
-    def forward_split(self, x):
-        y = list(self.cv1(x).split((self.c, self.c), 1))
-        y.extend(m(y[-1]) for m in self.m)
-        return self.cv2(torch.cat(y, 1))

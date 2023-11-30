@@ -168,7 +168,7 @@ class Tuner:
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / 'weights').mkdir(parents=True, exist_ok=True)
-        
+
         if self.args.fitness_file is not None:
             if not Path(self.args.fitness_file).exists():
                 LOGGER.warning(f'WARNING ❌️ fitness file {self.args.fitness_file} does not exist.')

@@ -12,8 +12,7 @@ from PIL import Image
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
 
-from .augment import (Compose, Format, Instances, LetterBox,
-                      classify_transforms, classify_augmentations, v8_transforms)
+from .augment import Compose, Format, Instances, LetterBox, classify_augmentations, classify_transforms, v8_transforms
 from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
@@ -228,17 +227,16 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
-        self.torch_transforms = classify_augmentations(
-            size=args.imgsz,
-            scale=scale,
-            hflip=args.fliplr,
-            vflip=args.flipud,
-            re_prob=args.random_erasing,
-            auto_augment=args.auto_augment,
-            hsv_h=args.hsv_h,
-            hsv_s=args.hsv_s,
-            hsv_v=args.hsv_v) if augment else classify_transforms(
-                size=args.imgsz, crop_percentage=args.crop_percentage)
+        self.torch_transforms = classify_augmentations(size=args.imgsz,
+                                                       scale=scale,
+                                                       hflip=args.fliplr,
+                                                       vflip=args.flipud,
+                                                       re_prob=args.random_erasing,
+                                                       auto_augment=args.auto_augment,
+                                                       hsv_h=args.hsv_h,
+                                                       hsv_s=args.hsv_s,
+                                                       hsv_v=args.hsv_v) if augment else classify_transforms(
+                                                           size=args.imgsz, crop_percentage=args.crop_percentage)
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""

@@ -1094,6 +1094,7 @@ def hsv2colorjitter(h, s, v):
     return v, v, s, h
 
 
+# NOTE: keep this class for backward compatibility
 class ClassifyLetterBox:
     """
     YOLOv8 LetterBox class for image preprocessing, designed to be part of a transformation pipeline, e.g.,
@@ -1144,6 +1145,7 @@ class ClassifyLetterBox:
         return im_out
 
 
+# NOTE: keep this class for backward compatibility
 class CenterCrop:
     """YOLOv8 CenterCrop class for image preprocessing, designed to be part of a transformation pipeline, e.g.,
     T.Compose([CenterCrop(size), ToTensor()]).
@@ -1170,6 +1172,7 @@ class CenterCrop:
         return cv2.resize(im[top:top + m, left:left + m], (self.w, self.h), interpolation=cv2.INTER_LINEAR)
 
 
+# NOTE: keep this class for backward compatibility
 class ToTensor:
     """YOLOv8 ToTensor class for image preprocessing, i.e., T.Compose([LetterBox(size), ToTensor()])."""
 

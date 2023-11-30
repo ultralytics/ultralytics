@@ -2,18 +2,19 @@
 
 import cv2
 
-from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.plotting import Annotator, colors
 
 check_requirements('shapely>=2.0.0')
+from collections import defaultdict
+
 from shapely.geometry import Polygon
 from shapely.geometry.point import Point
-
-from collections import defaultdict
 
 
 class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
+
     def __init__(self):
         """Initializes the Counter with default values for various tracking and counting parameters."""
 
@@ -31,7 +32,7 @@ class ObjectCounter:
         self.tf = None
         self.view_img = False
 
-        self.names = None   # Classes names
+        self.names = None  # Classes names
         self.annotator = None  # Annotator
 
         # Object counting Information
@@ -40,13 +41,18 @@ class ObjectCounter:
         self.counting_list = []
 
         # Tracks info
-        self.track_history = defaultdict(lambda: [])
+        self.track_history = defaultdict(list)
         self.track_thickness = 2
         self.draw_tracks = False
 
-
-    def set_args(self, classes_names, reg_pts, region_color=None,line_thickness=2,
-                 track_thickness=2, view_img=False, draw_tracks=False):
+    def set_args(self,
+                 classes_names,
+                 reg_pts,
+                 region_color=None,
+                 line_thickness=2,
+                 track_thickness=2,
+                 view_img=False,
+                 draw_tracks=False):
         """
         Configures the Counter's image, bounding box line thickness, and counting region points.
 
@@ -111,11 +117,13 @@ class ObjectCounter:
 
             # Draw Tracks
             track_line = self.track_history[track_id]
-            track_line.append((float((box[0]+box[2])/2), float((box[1]+box[3])/2)))
+            track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
             track_line.pop(0) if len(track_line) > 30 else None
 
             if self.draw_tracks:
-                self.annotator.draw_centroid_and_tracks(track_line, color=(0, 255, 0), track_thickness=self.track_thickness)
+                self.annotator.draw_centroid_and_tracks(track_line,
+                                                        color=(0, 255, 0),
+                                                        track_thickness=self.track_thickness)
 
             # Count objects
             if self.counting_region.contains(Point(track_line[-1])):
@@ -135,11 +143,13 @@ class ObjectCounter:
                                  {'region_points': self.reg_pts})
             cv2.imshow('Ultralytics YOLOv8 Object Counter', self.im0)
             # Break Window
-            if cv2.waitKey(1) & 0xFF == ord("q"):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 return
 
     def start_counting(self, im0, tracks):
-        """Main function to start the object counting process.
+        """
+        Main function to start the object counting process.
+
         Args:
             im0 (ndarray): Current frame from the video stream.
             tracks (list): List of tracks obtained from the object tracking process.

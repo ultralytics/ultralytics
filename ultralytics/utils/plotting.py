@@ -287,14 +287,24 @@ class Annotator:
         # Create a rounded rectangle for in_count
         cv2.rectangle(self.im, (text_x1 - 5, text_y - 5), (text_x1 + text_width + 7, text_y + t_size_in[1] + 7), color,
                       -1)
-        cv2.putText(self.im, str(in_count), (text_x1, text_y + t_size_in[1]), 0, tl / 2, txt_color, self.tf,
+        cv2.putText(self.im,
+                    str(in_count), (text_x1, text_y + t_size_in[1]),
+                    0,
+                    tl / 2,
+                    txt_color,
+                    self.tf,
                     lineType=cv2.LINE_AA)
 
         # Create a rounded rectangle for out_count
         cv2.rectangle(self.im, (text_x2 - 5, text_y - 5), (text_x2 + text_width + 7, text_y + t_size_out[1] + 7), color,
                       -1)
-        cv2.putText(self.im, str(out_count), (text_x2, text_y + t_size_out[1]), 0, tl / 2, txt_color,
-                    thickness=self.tf, lineType=cv2.LINE_AA)
+        cv2.putText(self.im,
+                    str(out_count), (text_x2, text_y + t_size_out[1]),
+                    0,
+                    tl / 2,
+                    txt_color,
+                    thickness=self.tf,
+                    lineType=cv2.LINE_AA)
 
     # AI GYM Annotator
     def estimate_pose_angle(self, a, b, c):
@@ -695,7 +705,7 @@ def plt_color_scatter(v, f, bins=20, cmap='viridis', alpha=0.8, edgecolors='none
     hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
     colors = [
         hist[min(np.digitize(v[i], xedges, right=True) - 1, hist.shape[0] - 1),
-        min(np.digitize(f[i], yedges, right=True) - 1, hist.shape[1] - 1)] for i in range(len(v))]
+             min(np.digitize(f[i], yedges, right=True) - 1, hist.shape[1] - 1)] for i in range(len(v))]
 
     # Scatter plot
     plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)

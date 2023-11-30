@@ -25,14 +25,20 @@ class Aigym:
         self.angle = None
         self.count = None
         self.stage = None
-        self.pose_type = "pushup"
+        self.pose_type = 'pushup'
         self.kpts_to_check = None
 
         # Visual Information
         self.view_img = False
         self.annotator = None
 
-    def set_args(self,kpts_to_check, line_thickness=2, view_img=False, pose_up_angle=145, pose_down_angle=90, pose_type="pullup"):
+    def set_args(self,
+                 kpts_to_check,
+                 line_thickness=2,
+                 view_img=False,
+                 pose_up_angle=145,
+                 pose_down_angle=90,
+                 pose_type='pullup'):
         """
         Configures the Aigym line_thickness, save image and view image parameters
         Args:
@@ -116,8 +122,9 @@ class Aigym:
 
         if self.view_img:
             cv2.imshow('Ultralytics YOLOv8 AI GYM', self.im0)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 return
+
 
 if __name__ == '__main__':
     Aigym()

@@ -4,7 +4,7 @@ description: Workouts Monitoring Using Ultralytics YOLOv8
 keywords: Ultralytics, YOLOv8, Object Detection, Pose Estimation, PushUps, PullUps, Ab workouts, Notebook, IPython Kernel, CLI, Python SDK
 ---
 
-# Workouts Monitoring using Ultralytics YOLOv8 🚀 
+# Workouts Monitoring using Ultralytics YOLOv8 🚀
 Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) enhances exercise assessment by accurately tracking key body landmarks and joints in real-time. This technology provides instant feedback on exercise form, tracks workout routines, and measures performance metrics, optimizing training sessions for users and trainers alike.
 
 ## Advantages of Workouts Monitoring?
@@ -50,7 +50,7 @@ while cap.isOpened():
 ### KeyPoints Map
 ![keyPoints Order Ultralytics YOLOv8 Pose](https://github.com/RizwanMunawar/ultralytics/assets/62513924/520059af-f961-433b-b2fb-7fe8c4336ee5)
 
-### Arguments `set_args` 
+### Arguments `set_args`
 | Name            | Type   | Default  | Description                                                                            |
 |-----------------|--------|----------|----------------------------------------------------------------------------------------|
 | kpts_to_check   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |

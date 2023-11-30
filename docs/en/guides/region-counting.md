@@ -4,7 +4,7 @@ description: Object Counting in Different Region using Ultralytics YOLOv8
 keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
 ---
 
-# Object Counting in Different Regions using Ultralytics YOLOv8 🚀 
+# Object Counting in Different Regions using Ultralytics YOLOv8 🚀
 
 
 ## What is Object Counting in Regions?
@@ -47,10 +47,10 @@ git clone https://github.com/ultralytics/ultralytics
 cd ultralytics/examples/YOLOv8-Region-Counter
 ```
 ### Step 2: Run Region Counting Using Ultralytics YOLOv8
-Execute the following basic commands for inference. 
+Execute the following basic commands for inference.
 
 ???+ tip "Region is Moveable"
-    
+
     During video playback, you can interactively move the region within the video by clicking and dragging using the left mouse button.
 
 ```bash

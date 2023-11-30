@@ -4,7 +4,7 @@ description: Object Counting Using Ultralytics YOLOv8
 keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
 ---
 
-# Object Counting using Ultralytics YOLOv8 🚀 
+# Object Counting using Ultralytics YOLOv8 🚀
 
 
 ## What is Object Counting?
@@ -36,8 +36,8 @@ model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
 counter = object_counter.ObjectCounter() # Init Object Counter
-region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)] 
-counter.set_args(view_img=True, reg_pts=region_points, 
+region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+counter.set_args(view_img=True, reg_pts=region_points,
                  classes_names=model.model.names, draw_tracks=True)
 
 while cap.isOpened():
@@ -53,7 +53,7 @@ while cap.isOpened():
     You can move the region anywhere in the frame by clicking on its edges
 
 
-### Optional Arguments `set_args` 
+### Optional Arguments `set_args`
 | Name            | Type    | Default                                          | Description                           |
 |-----------------|---------|--------------------------------------------------|---------------------------------------|
 | view_img        | `bool`  | `False`                                          | Display the frame with counts         |

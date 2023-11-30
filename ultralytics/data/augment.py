@@ -819,6 +819,8 @@ class Albumentations:
         cls = labels['cls']
         if len(cls):
             h, w = im.shape[:2]
+            # record whether instances were normalized before transform in order to restore later
+            normalized = labels['instances'].normalized
             # convert denormalized segments to masks
             labels['instances'].denormalize(w, h)
             masks = None
@@ -850,7 +852,13 @@ class Albumentations:
                             segments_out = resample_segments(segments_out)
                             segments_out = np.stack(segments_out, axis=0)
                             segments_out /= (w, h)
+                        else:
+                            segments_out = np.zeros((0, 1000, 2), dtype=np.float32)
                         labels['instances'].update(bboxes=bboxes_out, segments=segments_out)
+                if normalized:
+                    labels['instances'].normalize(w, h)
+                else:
+                    labels['instances'].denormalize(w, h)
 
         return labels
 

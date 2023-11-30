@@ -548,7 +548,7 @@ def xyxyxyxy2xywhr(corners):
         (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format of shape (n, 5).
     """
     is_torch = isinstance(corners, torch.Tensor)
-    points = corners.cpu().numpy() if is_torch else points
+    points = corners.cpu().numpy() if is_torch else corners
     points = points.reshape(len(corners), -1, 2)
     rboxes = []
     for pts in points:

@@ -701,10 +701,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args.insert(4, n)  # number of repeats
                 n = 1
         elif m is ResNetLayer:
-            if args[3] == True:
-                c2 = args[1]
-            else:
-                c2 = args[1] * 4
+            c2 = args[1] if args[3] else args[1] * 4
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
         elif m is Concat:

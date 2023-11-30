@@ -189,7 +189,7 @@ class Tuner:
                 # If training failed, the metrics could may still have been saved.
                 if ckpt_file.exists():
                     ckpt = torch.load(ckpt_file)
-                    if 'train_metrics' in ckpt: # this check may not be necessary.
+                    if 'train_metrics' in ckpt:  # this check may not be necessary.
                         metrics = ckpt['train_metrics']
 
             # Save results and mutated_hyp to CSV

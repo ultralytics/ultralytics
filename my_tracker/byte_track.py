@@ -6,7 +6,6 @@ import numpy as np
 import torch
 
 from supervision import Detections
-from supervision.tracker.byte_tracker.core import detections2boxes
 from ultralytics.utils.downloads import safe_download
 from .basetrack import BaseTrack, TrackState
 from .utils import matching

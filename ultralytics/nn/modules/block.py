@@ -14,7 +14,7 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -889,4 +889,28 @@ class C2fTA(nn.Module):
             y.append(self.triplet_attention(bottleneck_output))
 
         return self.cv2(torch.cat(y, 1))
+
+
+
+
+# C3x with Triplet Attention
+class C3xTA(C3):
+    """C3 module with cross-convolutions and Triplet attention."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize C3x instance with Triplet Attention."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.c_ = int(c2 * e)
+        self.m = nn.Sequential(*(Bottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+
+        # Tambahkan Triplet Attention
+        self.triplet_attention = TripletAttention()
+
+    def forward(self, x):
+        # Menerapkan bottleneck dengan cross-convolutions
+        y = self.m(x)
+        
+        # Menerapkan Triplet Attention
+        y = self.triplet_attention(y)
+        return y
 

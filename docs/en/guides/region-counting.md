@@ -20,7 +20,7 @@ Object counting in regions with [Ultralytics YOLOv8](https://github.com/ultralyt
   </iframe>
   <br>
   <strong>Watch:</strong> Ultralytics YOLOv8 Object Counting in Multiple & Moveable Regions
-</p>" 
+</p>
 
 ## Advantages of Object Counting in Regions?
 

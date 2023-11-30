@@ -69,7 +69,7 @@ from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
                                colorstr, get_default_args, yaml_save)
-from ultralytics.utils.checks import check_imgsz, check_requirements, check_version
+from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
@@ -450,12 +450,9 @@ class Exporter:
         f = Path(str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}'))
         f_ts = self.file.with_suffix('.torchscript')
 
-        pnnx_filename = 'pnnx.exe' if WINDOWS else 'pnnx'
-        if Path(pnnx_filename).is_file():
-            pnnx = pnnx_filename
-        elif (ROOT / pnnx_filename).is_file():
-            pnnx = ROOT / pnnx_filename
-        else:
+        name = Path('pnnx.exe' if WINDOWS else 'pnnx')  # PNNX filename
+        pnnx = name if name.is_file() else ROOT / name
+        if not pnnx.is_file():
             LOGGER.warning(
                 f'{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from '
                 'https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory '
@@ -465,12 +462,12 @@ class Exporter:
             asset = [x for x in assets if system in x][0] if assets else \
                 f'https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20230816-{system}.zip'  # fallback
             asset = attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
-            unzip_dir = Path(asset).with_suffix('')
-            pnnx = ROOT / pnnx_filename  # new location
-            (unzip_dir / pnnx_filename).rename(pnnx)  # move binary to ROOT
-            shutil.rmtree(unzip_dir)  # delete unzip dir
-            Path(asset).unlink()  # delete zip
-            pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
+            if check_is_path_safe(Path.cwd(), asset):  # avoid path traversal security vulnerability
+                unzip_dir = Path(asset).with_suffix('')
+                (unzip_dir / name).rename(pnnx)  # move binary to ROOT
+                shutil.rmtree(unzip_dir)  # delete unzip dir
+                Path(asset).unlink()  # delete zip
+                pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
 
         ncnn_args = [
             f'ncnnparam={f / "model.ncnn.param"}',
@@ -656,10 +653,20 @@ class Exporter:
             cmds='--extra-index-url https://pypi.ngc.nvidia.com')  # onnx_graphsurgeon only on NVIDIA
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
+        check_version(tf.__version__,
+                      '<=2.13.1',
+                      name='tensorflow',
+                      verbose=True,
+                      msg='https://github.com/ultralytics/ultralytics/issues/5161')
         f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if f.is_dir():
             import shutil
             shutil.rmtree(f)  # delete output folder
+
+        # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
+        onnx2tf_file = Path('calibration_image_sample_data_20x128x128x3_float32.npy')
+        if not onnx2tf_file.exists():
+            attempt_download_asset(f'{onnx2tf_file}.zip', unzip=True, delete=True)
 
         # Export to ONNX
         self.args.simplify = True

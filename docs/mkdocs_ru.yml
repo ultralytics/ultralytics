@@ -1,0 +1,213 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+site_name: Документация Ultralytics YOLOv8
+site_description: Изучите Ultralytics YOLOv8, передовую модель для обнаружения объектов и сегментации изображений в реальном времени, подходящую для различных приложений и аппаратных платформ.
+site_url: https://docs.ultralytics.com/ru/
+site_author: Ultralytics
+repo_url: https://github.com/ultralytics/ultralytics
+edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/ru/
+repo_name: ultralytics/ultralytics
+remote_name: https://github.com/ultralytics/docs
+docs_dir: 'ru/'  # where to find the markdown files
+site_dir: '../site/ru'  # where to publish to
+
+theme:
+  name: material
+  language: ru
+  custom_dir: overrides/
+  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
+  favicon: assets/favicon.ico
+  icon:
+    repo: fontawesome/brands/github
+  # font:  # disabled for faster page load times
+  #  text: Helvetica
+  #  code: Roboto Mono
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - navigation.top
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.prune
+    - navigation.footer
+    - navigation.tracking
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.indexes
+    - navigation.sections
+    - content.tabs.link  # all code tabs change simultaneously
+
+# Customization
+copyright: <a href="https://ultralytics.com" target="_blank">© 2023 Ultralytics Inc.</a> All rights reserved.
+extra:
+  # version:
+  #   provider: mike  #  version drop-down menu
+  robots: robots.txt
+  analytics:
+    provider: google
+    property: G-2M5EHKC0BH
+  alternate: # language drop-down
+    - name: 🇬🇧 English
+      link: /
+      lang: en
+    - name: 🇨🇳 简体中文
+      link: /zh/
+      lang: zh
+    - name: 🇰🇷 한국어
+      link: /ko/
+      lang: ko
+    - name: 🇯🇵 日本語
+      link: /ja/
+      lang: ja
+    - name: 🇷🇺 Русский
+      link: /ru/
+      lang: ru
+    - name: 🇩🇪 Deutsch
+      link: /de/
+      lang: de
+    - name: 🇫🇷 Français
+      link: /fr/
+      lang: fr
+    - name: 🇪🇸 Español
+      link: /es/
+      lang: es
+    - name: 🇵🇹 Português
+      link: /pt/
+      lang: pt
+    - name: 🇮🇳 हिन्दी
+      link: /hi/
+      lang: hi
+    - name: 🇸🇦 العربية
+      link: /ar/
+      lang: ar
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ultralytics
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/ultralytics/
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/ultralytics
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/ultralytics
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/ultralytics/ultralytics/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/ultralytics/
+    - icon: fontawesome/brands/discord
+      link: https://ultralytics.com/discord
+
+extra_css:
+  - stylesheets/style.css
+extra_javascript:
+  - javascript/extra.js
+
+markdown_extensions:
+  - admonition
+  - md_in_html
+  - tables
+  - attr_list
+  - def_list
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.snippets:
+      base_path: ./
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
+
+
+# Primary navigation ---------------------------------------------------------------------------------------------------
+nav:
+  - Главная:
+      - Главная: index.md
+      - Быстрый старт: quickstart.md
+      - Режимы:
+          - modes/index.md
+          - Обучение: modes/train.md
+          - Валидация: modes/val.md
+          - Прогнозирование: modes/predict.md
+          - Экспорт: modes/export.md
+          - Отслеживание: modes/track.md
+          - Бенчмаркинг: modes/benchmark.md
+      - Задачи:
+          - tasks/index.md
+          - Обнаружение: tasks/detect.md
+          - Сегментация: tasks/segment.md
+          - Классификация: tasks/classify.md
+          - Поза: tasks/pose.md
+  - Быстрый старт: quickstart.md
+  - Режимы:
+      - modes/index.md
+      - Обучение: modes/train.md
+      - Валидация: modes/val.md
+      - Прогнозирование: modes/predict.md
+      - Экспорт: modes/export.md
+      - Отслеживание: modes/track.md
+      - Бенчмаркинг: modes/benchmark.md
+  - Задачи:
+      - tasks/index.md
+      - Обнаружение: tasks/detect.md
+      - Сегментация: tasks/segment.md
+      - Классификация: tasks/classify.md
+      - Поза: tasks/pose.md
+  - Модели:
+      - models/index.md
+      - YOLOv3: models/yolov3.md
+      - YOLOv4: models/yolov4.md
+      - YOLOv5: models/yolov5.md
+      - YOLOv6: models/yolov6.md
+      - YOLOv7: models/yolov7.md
+      - YOLOv8: models/yolov8.md
+      - SAM (Segment Anything Model): models/sam.md
+      - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
+      - FastSAM (Fast Segment Anything Model): models/fast-sam.md
+      - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
+      - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
+  - Данные:
+      - datasets/index.md
+
+# Plugins including 301 redirects navigation ---------------------------------------------------------------------------
+plugins:
+  - search:
+      lang: ru
+  - ultralytics:
+      add_desc: False
+      add_image: True
+      add_share_buttons: True
+      default_image: https://github.com/ultralytics/ultralytics/assets/26833433/6d09221c-c52a-4234-9a5d-b862e93c6529

@@ -26,7 +26,7 @@ def coco91_to_coco80_class():
         None, 73, 74, 75, 76, 77, 78, 79, None]
 
 
-def coco80_to_coco91_class():  #
+def coco80_to_coco91_class():
     """
     Converts 80-index (val2014) to 91-index (paper).
     For details see https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/.
@@ -168,18 +168,18 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
     Notes:
         The directory structure assumed for the DOTA dataset:
             - DOTA
-                - images
-                    - train
-                    - val
-                - labels
-                    - train_original
-                    - val_original
+                ├─ images
+                │   ├─ train
+                │   └─ val
+                └─ labels
+                    ├─ train_original
+                    └─ val_original
 
-        After the function execution, the new labels will be saved in:
+        After execution, the function will organize the labels into:
             - DOTA
-                - labels
-                    - train
-                    - val
+                └─ labels
+                    ├─ train
+                    └─ val
     """
     dota_root_path = Path(dota_root_path)
 
@@ -198,7 +198,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         'small-vehicle': 10,
         'helicopter': 11,
         'roundabout': 12,
-        'soccer ball-field': 13,
+        'soccer-ball-field': 13,
         'swimming-pool': 14,
         'container-crane': 15,
         'airport': 16,

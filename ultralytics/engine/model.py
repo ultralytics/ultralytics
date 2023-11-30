@@ -9,7 +9,6 @@ from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, checks, emojis, yaml_load
-from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
 class Model(nn.Module):
@@ -88,10 +87,8 @@ class Model(nn.Module):
             return
 
         # Load or create new YOLO model
-        suffix = Path(model).suffix
-        if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
-            model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
-        if suffix in ('.yaml', '.yml'):
+        model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
+        if Path(model).suffix in ('.yaml', '.yml'):
             self._new(model, task)
         else:
             self._load(model, task)
@@ -105,7 +102,7 @@ class Model(nn.Module):
         """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
         from urllib.parse import urlsplit
         url = urlsplit(model)
-        return url.netloc and url.path and url.scheme in {'http', 'grfc'}
+        return url.netloc and url.path and url.scheme in {'http', 'grpc'}
 
     @staticmethod
     def is_hub_model(model):

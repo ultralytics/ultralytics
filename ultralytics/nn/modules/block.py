@@ -14,7 +14,7 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.

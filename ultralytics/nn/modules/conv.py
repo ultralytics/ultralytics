@@ -9,7 +9,7 @@ import torch.nn as nn
 
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
-           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv', 'LightConvB')
+           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv', 'LightConvB', 'LightChannelAttention', 'LightSpatialAttention', 'LightCBAM')
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -393,4 +393,55 @@ class CombConv(nn.Module):
     def forward(self, x):
         # Mengaplikasikan layer1, kemudian layer2
         return self.layer2(self.layer1(x))
+
+
+class LightChannelAttention(nn.Module):
+    """Channel-attention module using LightConvB."""
+
+    def __init__(self, channels: int):
+        """Initializes the class with LightConvB layers."""
+        super().__init__()
+        self.cv1 = LightConvB(channels, channels, k=(1, 3), act=None)  # Cross Convolution with kernel (1,3)
+        self.cv2 = LightConvB(channels, channels, k=(3, 1), act=None)  # Cross Convolution with kernel (3,1)
+        self.act = nn.Sigmoid()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Applies forward pass using LightConvB layers."""
+        x = self.cv1(self.pool(x))
+        x = self.cv2(x)
+        return x * self.act(x)
+
+class LightSpatialAttention(nn.Module):
+    """Spatial-attention module using LightConvB."""
+
+    def __init__(self):
+        """Initialize Spatial-attention module."""
+        super().__init__()
+        self.cv1 = LightConvB(2, 1, k=(1, 3), act=None)  # Cross Convolution with kernel (1,3)
+        self.cv2 = LightConvB(1, 1, k=(3, 1), act=None)  # Cross Convolution with kernel (3,1)
+        self.act = nn.Sigmoid()
+
+    def forward(self, x):
+        """Apply channel and spatial attention on input for feature recalibration."""
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        x_cat = torch.cat([avg_out, max_out], dim=1)
+        x_conv1 = self.cv1(x_cat)
+        x_conv2 = self.cv2(x_conv1)
+        return x * self.act(x_conv2)
+
+class LightCBAM(nn.Module):
+    """Convolutional Block Attention Module with Cross Convolution."""
+
+    def __init__(self, c1):
+        """Initialize CBAM with given input channel (c1) and kernel size."""
+        super().__init__()
+        self.channel_attention = LightChannelAttention(c1)
+        self.spatial_attention = LightSpatialAttention()
+
+    def forward(self, x):
+        """Applies the forward pass through CBAM module."""
+        return self.spatial_attention(self.channel_attention(x))
+
+# Ensure the DWConv class is also defined if used in LightConvB
 

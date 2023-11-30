@@ -123,6 +123,7 @@ def get_windows(im_size, crop_size=1024, gap=200, im_rate_thr=0.6, eps=0.01):
 
 
 def get_window_obj(anno, iof_thr=0.7):
+    """Get objects for each window."""
     windows = get_windows(anno['ori_size'])
     h, w = anno['ori_size']
     label = anno['label']
@@ -179,6 +180,22 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
 
 
 def split_images_and_labels(data_root, save_dir, split='train'):
+    """Split both images and labels.
+
+    NOTES:
+        The directory structure assumed for the DOTA dataset:
+            - data_root
+                - images
+                    - split
+                - labels
+                    - split
+        and the output directory structure is:
+            - save_dir
+                - images
+                    - split
+                - labels
+                    - split
+    """
     im_dir = Path(save_dir) / 'images' / split
     im_dir.mkdir(parents=True, exist_ok=True)
     lb_dir = Path(save_dir) / 'labels' / split
@@ -191,15 +208,47 @@ def split_images_and_labels(data_root, save_dir, split='train'):
 
 
 def split_trainval(data_root, save_dir):
+    """Split train and val set of DOTA.
+
+    NOTES:
+        The directory structure assumed for the DOTA dataset:
+            - data_root
+                - images
+                    - train
+                    - val
+                - labels
+                    - train
+                    - val
+        and the output directory structure is:
+            - save_dir
+                - images
+                    - train
+                    - val
+                - labels
+                    - train
+                    - val
+    """
     for split in ['train', 'val']:
         split_images_and_labels(data_root, save_dir, split)
 
 
 def split_test(data_root, save_dir):
+    """Split test set of DOTA, labels are not included within this set.
+
+    NOTES:
+        The directory structure assumed for the DOTA dataset:
+            - data_root
+                - images
+                    - test
+        and the output directory structure is:
+            - save_dir
+                - images
+                    - test
+    """
     save_dir = Path(save_dir) / 'images' / 'test'
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    im_dir = Path(os.path.join(data_root, f'images/test'))
+    im_dir = Path(os.path.join(data_root, 'images/test'))
     assert im_dir.exists(), f"Can't find {str(im_dir)}, please check your data root."
     im_files = glob(str(im_dir / '*'))
     for im_file in tqdm(im_files, total=len(im_files), desc='test'):

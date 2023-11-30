@@ -275,6 +275,8 @@ nav:
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md
+      - ClearML: integrations/clearml.md
+      - DVC: integrations/dvc.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md

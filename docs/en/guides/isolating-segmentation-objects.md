@@ -143,7 +143,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ### Object Isolation Options
 
-    !!! example ""
+   !!! Example ""
 
         === "Black Background Pixels"
 

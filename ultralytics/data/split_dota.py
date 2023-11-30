@@ -173,9 +173,9 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
         label[:, 2::2] /= ph
 
         with open(os.path.join(lb_dir, f'{new_name}.txt'), 'w') as f:
-            for l in label:
-                formatted_coords = ['{:.6g}'.format(coord) for coord in l[1:]]
-                f.write(f"{int(l[0])} {' '.join(formatted_coords)}\n")
+            for lb in label:
+                formatted_coords = ['{:.6g}'.format(coord) for coord in lb[1:]]
+                f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
 
 
 def split_images_and_labels(data_root, save_dir, split='train'):

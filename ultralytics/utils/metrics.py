@@ -231,7 +231,7 @@ class ConfusionMatrix:
                     self.matrix[dc, self.nc] += 1  # false positives
             return
         if detections is None:
-            gt_classes = labels.int()
+            gt_classes = labels[:, 0].int()
             for gc in gt_classes:
                 self.matrix[self.nc, gc] += 1  # background FN
             return

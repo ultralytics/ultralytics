@@ -93,11 +93,6 @@ class Tuner:
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
         self.tune_dir = get_save_dir(self.args, name='tune')
         self.tune_csv = self.tune_dir / 'tune_results.csv'
-        if self.args.fitness_file is not None:
-            if not Path(self.args.fitness_file).exists():
-                LOGGER.warning(f'WARNING ❌️ fitness file {self.args.fitness_file} does not exist.')
-            else:
-                shutil.copy(self.args.fitness_file, self.tune_csv)
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr('Tuner: ')
         callbacks.add_integration_callbacks(self)
@@ -173,6 +168,13 @@ class Tuner:
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / 'weights').mkdir(parents=True, exist_ok=True)
+        
+        if self.args.fitness_file is not None:
+            if not Path(self.args.fitness_file).exists():
+                LOGGER.warning(f'WARNING ❌️ fitness file {self.args.fitness_file} does not exist.')
+            else:
+                shutil.copy(self.args.fitness_file, self.tune_csv)
+
         for i in range(iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()

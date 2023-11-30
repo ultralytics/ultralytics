@@ -889,6 +889,7 @@ class MBC2f(nn.Module):
         self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
         
         # Mengganti Bottleneck dengan MBConv tanpa shortcut
-        self.m = nn.ModuleList(MBConv(self.c, self.c, g=g, k=((1, 3), (3, 1)), e=1.0) for _ in range(n))
+        self.m = nn.ModuleList(MBConv(self.c, self.c, g=g, k=((1, 3), (3, 1))) for _ in range(n))
+
 
     # ... (forward dan forward_split tetap sama)

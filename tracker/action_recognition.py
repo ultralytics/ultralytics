@@ -26,11 +26,12 @@ class ActionRecognizer:
         self.fa_distance_threshold = config["fast_approach"]["distance_threshold"]
         self.fa_speed_threshold = config["fast_approach"]["speed_threshold"]
 
-    def recognize_frame(self, tracks):
+    def recognize_frame(self, tracks, frame):
         """
         Recognizes actions in a frame.
         Args:
             tracks (list): list of detections in the frame (sv.STrack objects).
+            frame (np.array): frame to be annotated.
         """
         ar_results = {}
 
@@ -39,7 +40,7 @@ class ActionRecognizer:
         if self.ss_enabled:
             ar_results["standing_still"] = self.recognize_standing_still(tracks)
         if self.fa_enabled:
-            ar_results["fast_approach"] = self.recognize_fast_approach(tracks)
+            ar_results["fast_approach"] = self.recognize_fast_approach(tracks, frame)
 
         return ar_results
 
@@ -170,7 +171,7 @@ class ActionRecognizer:
         ss_results = {}
         for track in tracks:
             if track.tracklet_len > frame_stride and track.class_ids == 0:
-                pixel_s, pixel_a = self.differentiate(track)
+                pixel_s, pixel_a, _ = self.differentiate(track)
                 if pixel_s < self.ss_speed_threshold:   # TODO: condition on acceleration?
                     ss_results[track.track_id] = track.tlbr
         return ss_results if len(ss_results.keys()) > 0 else None
@@ -182,37 +183,38 @@ class ActionRecognizer:
             dif_prev = (track.prev_states[-1] - track.prev_states[-2]) / track.frame_stride
         else:
             dif_prev = dif
-        #dif_old = (track.mean - track.prev_states[-2]) / (track.frame_stride*2)
-        #dif_2 = (track.mean - 2*track.prev_states[-1] + track.prev_states[-2]) / (track.frame_stride**2)
 
-        # TODO: condition on height and aspect ratio of the bounding box is included in speed computation
-        #kalman_speed = np.sqrt(np.sum(track.mean[4:6] ** 2))
+        # Speed
         dif_speed = np.sqrt(np.sum(dif[:4] ** 2))
         dif_prev_speed = np.sqrt(np.sum(dif_prev[:4] ** 2))
-        #dif_old_speed = np.sqrt(np.sum(dif_old[:2] ** 2))
         pixel_s = (dif_speed + dif_prev_speed) / 2
 
         # Acceleration
         pixel_a = (dif_speed - dif_prev_speed) / track.frame_stride
-        #mean_acceleration = np.sqrt(np.sum((dif_2[:2]**2)))
 
-        # Normalize, not working, too low
-        #area = track.tlwh[2] * track.tlwh[3]
-        #pixel_s = pixel_s / np.sqrt(area)
-        #pixel_a = pixel_a / np.sqrt(area)
+        # Direction of movement
+        direction = dif[:2] + dif_prev[:2]
 
-        return pixel_s, pixel_a
+        return pixel_s, pixel_a, direction
 
-    def recognize_fast_approach(self, tracks):
-        fa_results = {}
+    def recognize_fast_approach(self, tracks, frame):
         valid_classes = [0, 1, 2]   # personnel, car, truck
-        interest_point = np.array([1080, 960])   # TODO: not hardcoded
+        interest_point = np.array([frame.shape[1]//2, frame.shape[0]])  # bottom center of the frame
+
+        fa_results = {}
         for track in tracks:
-            if track.class_ids in valid_classes and track.frame_id > 2:
-                pixel_s, pixel_a = self.differentiate(track)
-                if pixel_s > self.fa_speed_threshold and track.mean[5] > 0:
-                    distace_to_interest_point = np.sqrt(np.sum((track.mean[0:2] - interest_point) ** 2))
-                    if distace_to_interest_point < self.fa_distance_threshold:
+            if track.class_ids in valid_classes and track.frame_id > 1:
+                pixel_s, pixel_a, direction = self.differentiate(track)
+                if pixel_s > self.fa_speed_threshold and direction[1] > 0:
+                    # Distance between point of interest and bbox
+                    dx = max(abs(track.mean[0] - interest_point[0]) - track.mean[2] / 2, 0)
+                    dy = max(abs(track.mean[1] - interest_point[1]) - track.mean[3] / 2, 0)
+                    distace_to_interest_point = np.sqrt(dx ** 2 + dy ** 2)
+                    # Threshold determined the distance to the bottom of the frame
+                    if distace_to_interest_point < (interest_point[1]/self.fa_distance_threshold):
+                    # TODO: cars have bigger area, so they are considered to be closer to the interest point
+                    #distace_to_interest_point = np.sqrt(np.sum((track.mean[0:2] - interest_point) ** 2))/np.sqrt(track.tlwh[2] * track.tlwh[3])
+                    #if distace_to_interest_point < self.fa_distance_threshold:
                         fa_results[track.track_id] = track.tlbr
         return fa_results if len(fa_results.keys()) > 0 else None
 

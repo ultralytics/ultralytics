@@ -205,7 +205,7 @@ class VideoProcessor:
         else:
             detections, tracks = self.tracker.update_with_detections(detections, frame)
 
-        ar_results = self.action_recognizer.recognize_frame(tracks)
+        ar_results = self.action_recognizer.recognize_frame(tracks, frame)
 
         return self.annotate_frame(frame, detections, ar_results,  frame_number, fps)
 

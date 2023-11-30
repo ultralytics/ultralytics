@@ -116,19 +116,10 @@ class STrack(BaseTrack):
 
         self.score = new_track.score
 
-        if len(self.prev_states) == 0 or self.frame_id % self.frame_stride == 0:
+        if len(self.prev_states) < 2 or self.frame_id % self.frame_stride == 0:
             self.prev_states.append(self.mean)
         if len(self.prev_states) > 2:
             self.prev_states.pop(0)
-        """
-        if self.frame_id == 2:
-            self.prev_mean = self.mean
-            self.old_mean = self.mean
-        if self.frame_id % self.frame_stride == 0:
-            self.prev_mean = self.mean
-        if self.frame_id % (self.frame_stride*2+1) == 0:
-            self.old_mean = self.mean
-        """
 
     @property
     def tlwh(self):

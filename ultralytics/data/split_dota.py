@@ -180,7 +180,8 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
 
 
 def split_images_and_labels(data_root, save_dir, split='train'):
-    """Split both images and labels.
+    """
+    Split both images and labels.
 
     NOTES:
         The directory structure assumed for the DOTA dataset:
@@ -208,7 +209,8 @@ def split_images_and_labels(data_root, save_dir, split='train'):
 
 
 def split_trainval(data_root, save_dir):
-    """Split train and val set of DOTA.
+    """
+    Split train and val set of DOTA.
 
     NOTES:
         The directory structure assumed for the DOTA dataset:
@@ -233,7 +235,8 @@ def split_trainval(data_root, save_dir):
 
 
 def split_test(data_root, save_dir):
-    """Split test set of DOTA, labels are not included within this set.
+    """
+    Split test set of DOTA, labels are not included within this set.
 
     NOTES:
         The directory structure assumed for the DOTA dataset:

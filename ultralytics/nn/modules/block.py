@@ -14,7 +14,7 @@ from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -893,3 +893,38 @@ class MBC2f(nn.Module):
 
 
     # ... (forward dan forward_split tetap sama)
+
+
+
+##C2F with Triplet Attention
+class C2fTA(nn.Module):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, e=1.0) for _ in range(n))
+
+        # Menambahkan Triplet Attention
+        self.triplet_attention = TripletAttention()
+
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        
+        # Menerapkan Triplet Attention pada output dari setiap Bottleneck
+        for m in self.m:
+            bottleneck_output = m(y[-1])
+            y.append(self.triplet_attention(bottleneck_output))
+
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x):
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+
+        # Menerapkan Triplet Attention pada output dari setiap Bottleneck
+        for m in self.m:
+            bottleneck_output = m(y[-1])
+            y.append(self.triplet_attention(bottleneck_output))
+
+        return self.cv2(torch.cat(y, 1))
+

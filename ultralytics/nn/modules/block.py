@@ -882,11 +882,13 @@ class HarDBlock(nn.Module):
     
 
 class MBC2f(nn.Module):
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+    def __init__(self, c1, c2, n=1, g=1, e=0.5):
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
         
-        # Mengganti Bottleneck dengan MBConv
-        self.m = nn.ModuleList(MBConv(self.c, self.c, shortcut=shortcut, g=g, k=((1, 3), (3, 1)), e=1.0) for _ in range(n))
+        # Mengganti Bottleneck dengan MBConv tanpa shortcut
+        self.m = nn.ModuleList(MBConv(self.c, self.c, g=g, k=((1, 3), (3, 1)), e=1.0) for _ in range(n))
+
+    # ... (forward dan forward_split tetap sama)

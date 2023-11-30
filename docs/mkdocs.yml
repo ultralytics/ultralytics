@@ -265,9 +265,10 @@ nav:
       - Raspberry Pi: guides/raspberry-pi.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
-      - Projects:
+      - Real-World Projects:
           - Object Counting: guides/object-counting.md
           - Workouts Monitoring: guides/workouts-monitoring.md
+          - Objects Counting in Regions: guides/region-counting.md
   - Integrations:
       - integrations/index.md
       - Comet ML: integrations/comet.md

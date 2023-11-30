@@ -9,20 +9,22 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Trackin
 
 ## What is Object Counting?
 
-Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves accurately identification and counting specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and deep learning capabilities.
+Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and deep learning capabilities.
 
 
 ## Advantages of Object Counting?
 
-- **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, optimizing resource allocation in applications like inventory management.
+- **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, and optimizing resource allocation in applications like inventory management.
 - **Enhanced Security:** Object counting enhances security and surveillance by accurately tracking and counting entities, aiding in proactive threat detection.
 - **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, traffic management, and various other domains.
 
 
-## Real World Demos
-<p align="center">
-  <img width="1024" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/f1ef39b2-a67a-4c0e-952b-7dc313c7d562" alt="Workouts Monitoring">
-</p>
+## Real World Applications
+
+|                                                                           Logistics                                                                           |                                                                   Transportation                                                                    |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------:|
+| ![Conveyor Belt Packets Counting Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/70e2d106-510c-4c6c-a57a-d34a765aa757) | ![Fish Counting in Sea using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/c60d047b-3837-435f-8d29-bb9fc95d2191) |
+|                                                    Conveyor Belt Packets Counting Using Ultralytics YOLOv8                                                    |                                                    Fish Counting in Sea using Ultralytics YOLOv8                                                    |
 
 ## Example
 ```python
@@ -48,7 +50,7 @@ while cap.isOpened():
 
 ???+ tip "Region is Moveable"
 
-    You can move the region anywhere in frame by clicking on its edges
+    You can move the region anywhere in the frame by clicking on its edges
 
 
 ### Optional Arguments `set_args` 

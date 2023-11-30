@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Workouts Monitoring Using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Pose Estimation, Pushups, Pull ups, Ab workouts, Notebook, IPython Kernel, CLI, Python SDK
+keywords: Ultralytics, YOLOv8, Object Detection, Pose Estimation, PushUps, PullUps, Ab workouts, Notebook, IPython Kernel, CLI, Python SDK
 ---
 
 # Workouts Monitoring using Ultralytics YOLOv8 🚀 
@@ -15,10 +15,12 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 - **Health Awareness:** Early detection of patterns indicating health issues or overtraining.
 - **Informed Decisions:** Data-driven decisions for adjusting routines and setting realistic goals.
 
-## Real World Demos
-<p align="center">
-  <img width="1024" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/086419bf-6b34-40e8-88e1-422e3cbc113c" alt="Workouts Monitoring">
-</p>
+## Real World Applications
+
+|                                                  Workouts Monitoring                                                   |                                                  Workouts Monitoring                                                   |
+|:----------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------:|
+| ![PushUps Counting](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cf016a41-589f-420f-8a8c-2cc8174a16de) | ![PullUps Counting](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cb20f316-fac2-4330-8445-dcf5ffebe329) |
+|                                                    PushUps Counting                                                    |                                                    PullUps Counting                                                    |
 
 ## Example
 ```python
@@ -30,7 +32,7 @@ model = YOLO("yolov8n-pose.pt")
 cap = cv2.VideoCapture("path/to/video.mp4")
 
 gym_object = ai_gym.Aigym()  # init AI GYM module
-gym_object.set_args(line_thickness=2, view_img=True, pose_type="pushup")
+gym_object.set_args(line_thickness=2, view_img=True, pose_type="pushup", kpts_to_check=[6, 8, 10])
 
 frame_count = 0
 while cap.isOpened():
@@ -45,12 +47,15 @@ while cap.isOpened():
 
     "pushup", "pullup" and "abworkout" supported
 
+### KeyPoints Map
+![keyPoints Order Ultralytics YOLOv8 Pose](https://github.com/RizwanMunawar/ultralytics/assets/62513924/520059af-f961-433b-b2fb-7fe8c4336ee5)
 
-### Optional Arguments `set_args` 
-| Name            | Type   | Default  | Description                                                             |
-|-----------------|--------|----------|-------------------------------------------------------------------------|
-| view_img        | `bool` | `False`  | Display the frame with counts                                           |
-| line_thickness  | `int`  | `2`      | Increase the thickness of count value                                   |
-| pose_type       | `str`  | `pushup` | Pose that need to be monitored, "pullup" and "abworkout" also supported |
-| pose_up_angle   | `int`  | `145`    | Pose Up Angle value                                                     |
-| pose_down_angle | `int`  | `90`     | Pose Down Angle value                                                   |
+### Arguments `set_args` 
+| Name            | Type   | Default  | Description                                                                            |
+|-----------------|--------|----------|----------------------------------------------------------------------------------------|
+| kpts_to_check   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
+| view_img        | `bool` | `False`  | Display the frame with counts                                                          |
+| line_thickness  | `int`  | `2`      | Increase the thickness of count value                                                  |
+| pose_type       | `str`  | `pushup` | Pose that need to be monitored, "pullup" and "abworkout" also supported                |
+| pose_up_angle   | `int`  | `145`    | Pose Up Angle value                                                                    |
+| pose_down_angle | `int`  | `90`     | Pose Down Angle value                                                                  |

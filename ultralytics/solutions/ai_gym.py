@@ -26,21 +26,24 @@ class Aigym:
         self.count = None
         self.stage = None
         self.pose_type = "pushup"
+        self.kpts_to_check = None
 
         # Visual Information
         self.view_img = False
         self.annotator = None
 
-    def set_args(self, line_thickness=2, view_img=False, pose_up_angle=145, pose_down_angle=90, pose_type="pullup"):
+    def set_args(self,kpts_to_check, line_thickness=2, view_img=False, pose_up_angle=145, pose_down_angle=90, pose_type="pullup"):
         """
         Configures the Aigym line_thickness, save image and view image parameters
         Args:
+            kpts_to_check (list): 3 keypoints for counting
             line_thickness (int): Line thickness for bounding boxes.
             view_img (bool): display the im0
             pose_up_angle: Angle to set pose position up
             pose_down_angle: Angle to set pose position down
             pose_type: "pushup", "pullup" or "abworkout"
         """
+        self.kpts_to_check = kpts_to_check
         self.tf = line_thickness
         self.view_img = view_img
         self.poseup_angle = pose_up_angle
@@ -65,12 +68,16 @@ class Aigym:
 
         for ind, k in enumerate(reversed(self.keypoints)):
             if self.pose_type == 'pushup' or self.pose_type == 'pullup':
-                self.angle[ind] = self.annotator.estimate_pose_angle(k[5].cpu(), k[7].cpu(), k[9].cpu())
-                self.im0 = self.annotator.draw_specific_points(k, [5, 7, 9], shape=(640, 640), radius=10)
+                self.angle[ind] = self.annotator.estimate_pose_angle(k[int(self.kpts_to_check[0])].cpu(),
+                                                                     k[int(self.kpts_to_check[1])].cpu(),
+                                                                     k[int(self.kpts_to_check[2])].cpu())
+                self.im0 = self.annotator.draw_specific_points(k, self.kpts_to_check, shape=(640, 640), radius=10)
 
             if self.pose_type == 'abworkout':
-                self.angle[ind] = self.annotator.estimate_pose_angle(k[5].cpu(), k[11].cpu(), k[13].cpu())
-                self.im0 = self.annotator.draw_specific_points(k, [5, 11, 13], shape=(640, 640), radius=10)
+                self.angle[ind] = self.annotator.estimate_pose_angle(k[int(self.kpts_to_check[0])].cpu(),
+                                                                     k[int(self.kpts_to_check[1])].cpu(),
+                                                                     k[int(self.kpts_to_check[2])].cpu())
+                self.im0 = self.annotator.draw_specific_points(k, self.kpts_to_check, shape=(640, 640), radius=10)
                 if self.angle[ind] > self.poseup_angle:
                     self.stage[ind] = 'down'
                 if self.angle[ind] < self.posedown_angle and self.stage[ind] == 'down':
@@ -79,7 +86,7 @@ class Aigym:
                 self.annotator.plot_angle_and_count_and_stage(angle_text=self.angle[ind],
                                                               count_text=self.count[ind],
                                                               stage_text=self.stage[ind],
-                                                              center_kpt=k[11],
+                                                              center_kpt=k[int(self.kpts_to_check[1])],
                                                               line_thickness=self.tf)
 
             if self.pose_type == 'pushup':
@@ -91,7 +98,7 @@ class Aigym:
                 self.annotator.plot_angle_and_count_and_stage(angle_text=self.angle[ind],
                                                               count_text=self.count[ind],
                                                               stage_text=self.stage[ind],
-                                                              center_kpt=k[7],
+                                                              center_kpt=k[int(self.kpts_to_check[1])],
                                                               line_thickness=self.tf)
             if self.pose_type == 'pullup':
                 if self.angle[ind] > self.poseup_angle:
@@ -102,7 +109,7 @@ class Aigym:
                 self.annotator.plot_angle_and_count_and_stage(angle_text=self.angle[ind],
                                                               count_text=self.count[ind],
                                                               stage_text=self.stage[ind],
-                                                              center_kpt=k[7],
+                                                              center_kpt=k[int(self.kpts_to_check[1])],
                                                               line_thickness=self.tf)
 
             self.annotator.kpts(k, shape=(640, 640), radius=1, kpt_line=True)

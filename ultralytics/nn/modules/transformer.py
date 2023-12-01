@@ -13,7 +13,7 @@ from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 
 __all__ = ('TransformerEncoderLayer', 'TransformerLayer', 'TransformerBlock', 'MLPBlock', 'LayerNorm2d', 'AIFI',
-           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'DATransformerBlock', 'DualTransformerBlock')
+           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'DATransformerBlock', 'DualTransformerBlock', 'MSDATransformerLayer', 'TransformerBlock')
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -510,4 +510,33 @@ class DualTransformerBlock(nn.Module):
         x = self.channel_attn(x)
         x = self.transformer_layers(x)
         return x
+
+
+class MSDATransformerLayer(nn.Module):
+    def __init__(self, c, num_heads, n_levels=4, n_points=4):
+        super().__init__()
+        self.q = nn.Linear(c, c, bias=False)
+        self.k = nn.Linear(c, c, bias=False)
+        self.v = nn.Linear(c, c, bias=False)
+        self.deform_attn = MSDeformAttn(d_model=c, n_levels=n_levels, n_heads=num_heads, n_points=n_points)
+        self.fc1 = nn.Linear(c, c, bias=False)
+        self.fc2 = nn.Linear(c, c, bias=False)
+
+    def forward(self, x, refer_bbox, value_shapes, value_mask=None):
+        x = self.deform_attn(self.q(x), refer_bbox, self.v(x), value_shapes, value_mask) + x
+        return self.fc2(self.fc1(x)) + x
+
+class TransformerBlock(nn.Module):
+    def __init__(self, c1, c2, num_heads, num_layers, n_levels=4, n_points=4):
+        super().__init__()
+        self.conv = Conv(c1, c2) if c1 != c2 else nn.Identity()
+        self.linear = nn.Linear(c2, c2)  # learnable position embedding
+        self.tr = nn.Sequential(*(MSDATransformerLayer(c2, num_heads, n_levels, n_points) for _ in range(num_layers)))
+        self.c2 = c2
+
+    def forward(self, x, refer_bbox, value_shapes, value_mask=None):
+        x = self.conv(x)
+        b, _, w, h = x.shape
+        p = x.flatten(2).permute(2, 0, 1)
+        return self.tr(p + self.linear(p), refer_bbox, value_shapes, value_mask).permute(1, 2, 0).reshape(b, self.c2, w, h)
 

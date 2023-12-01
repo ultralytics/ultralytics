@@ -18,7 +18,7 @@ Example:
 """
 
 from .block import (C1, C2, C3, C3TR, DFL, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, GhostBottleneck,
-                    HGBlock, HGStem, Proto, RepC3, FusedMBConv, MBConv, SABottleneck, sa_layer, C3SA, LightC3x, C3xTR, C2HG, C3xHG, C2fx, C2TR, C3CTR, C2fDA, C3TR2, HarDBlock, MBC2f, C2fTA, C3xTA, LightC2f, LightBottleneck, BLightC2f)
+                    HGBlock, HGStem, Proto, RepC3, FusedMBConv, MBConv, SABottleneck, sa_layer, C3SA, LightC3x, C3xTR, C2HG, C3xHG, C2fx, C2TR, C3CTR, C2fDA, C3TR2, HarDBlock, MBC2f, C2fTA, C3xTA, LightC2f, LightBottleneck, BLightC2f, MSDAC3TR)
 from .conv import (CBAM, ChannelAttention, Concat, Conv, Conv2, ConvTranspose, DWConv, DWConvTranspose2d, Focus,
                    GhostConv, LightConv, RepConv, SpatialAttention, CombConv)
 from .head import Classify, Detect, Pose, RTDETRDecoder, Segment
@@ -32,4 +32,4 @@ __all__ = ('Conv', 'Conv2', 'LightConv', 'RepConv', 'DWConv', 'DWConvTranspose2d
            'Segment', 'Pose', 'Classify', 'TransformerEncoderLayer', 'RepC3', 'RTDETRDecoder', 'AIFI',
            'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 
            'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'FusedMBConv', 'MBConv', 
-           'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2fDA', 'C3TR2', 'HarDBlock', 'CombConv', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f', 'LightBottleneck', 'BLightC2f')
+           'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2fDA', 'C3TR2', 'HarDBlock', 'CombConv', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f', 'LightBottleneck', 'BLightC2f', 'MSDAC3TR')

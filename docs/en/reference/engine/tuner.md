@@ -9,6 +9,8 @@ keywords: Ultralytics, Tuner, YOLO, hyperparameter tuning, optimization, object 
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/tuner.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/tuner.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/engine/tuner.py) 🛠️. Thank you 🙏!
 
----
+<br><br>
+
 ## ::: ultralytics.engine.tuner.Tuner
+
 <br><br>

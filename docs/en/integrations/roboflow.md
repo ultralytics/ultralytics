@@ -27,20 +27,20 @@ Roboflow provides two services that can help you collect data for YOLOv8 models:
 Universe is an online repository with over 250,000 vision datasets totalling over 100 million images.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_universe.png" alt="Roboflow Universe" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_universe.png" alt="Roboflow Universe" width="800">
 </p>
 
 With a [free Roboflow account](https://app.roboflow.com/?ref=ultralytics), you can export any dataset available on Universe. To export a dataset, click the "Download this Dataset" button on any dataset.
 
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_dataset.png" alt="Roboflow Universe dataset export" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_dataset.png" alt="Roboflow Universe dataset export" width="800">
 </p>
 
 For YOLOv8, select "YOLOv8" as the export format:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_data_format.png" alt="Roboflow Universe dataset export" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_data_format.png" alt="Roboflow Universe dataset export" width="800">
 </p>
 
 Universe also has a page that aggregates all [public fine-tuned YOLOv8 models uploaded to Roboflow](https://universe.roboflow.com/search?q=model:yolov8). You can use this page to explore pre-trained models you can use for testing or [for automated data labeling](https://docs.roboflow.com/annotate/use-roboflow-annotate/model-assisted-labeling) or to prototype with [Roboflow inference](https://roboflow.com/inference?ref=ultralytics).
@@ -54,13 +54,13 @@ If you want to gather images yourself, try [Collect](https://github.com/roboflow
 To label data for a YOLOv8 object detection, instance segmentation, or classification model, first create a project in Roboflow.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_create_project.png" alt="Create a Roboflow project" width="400"/>
+<img src="https://media.roboflow.com/ultralytics/rf_create_project.png" alt="Create a Roboflow project" width="400">
 </p>
 
 Next, upload your images, and any pre-existing annotations you have from other tools ([using one of the 40+ supported import formats](https://roboflow.com/formats?ref=ultralytics)), into Roboflow.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_upload_data.png" alt="Upload images to Roboflow" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_upload_data.png" alt="Upload images to Roboflow" width="800">
 </p>
 
 Select the batch of images you have uploaded on the Annotate page to which you are taken after uploading images. Then, click "Start Annotating" to label images.
@@ -68,7 +68,7 @@ Select the batch of images you have uploaded on the Annotate page to which you a
 To label with bounding boxes, press the `B` key on your keyboard or click the box icon in the sidebar. Click on a point where you want to start your bounding box, then drag to create the box:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_annotate.png" alt="Annotating an image in Roboflow" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_annotate.png" alt="Annotating an image in Roboflow" width="800">
 </p>
 
 A pop-up will appear asking you to select a class for your annotation once you have created an annotation.
@@ -80,7 +80,7 @@ Roboflow offers a SAM-based label assistant with which you can label images fast
 To use the label assistant, click the cursor icon in the sidebar, SAM will be loaded for use in your project.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_annotate_interactive.png" alt="Annotating an image in Roboflow with SAM-powered label assist" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_annotate_interactive.png" alt="Annotating an image in Roboflow with SAM-powered label assist" width="800">
 </p>
 
 Hover over any object in the image and SAM will recommend an annotation. You can hover to find the right place to annotate, then click to create your annotation. To amend your annotation to be more or less specific, you can click inside or outside of the annotation SAM has created on the document.
@@ -88,7 +88,7 @@ Hover over any object in the image and SAM will recommend an annotation. You can
 You can also add tags to images from the Tags panel in the sidebar. You can apply tags to data from a particular area, taken from a specific camera, and more. You can then use these tags to search through data for images matching a tag and generate versions of a dataset with images that contain a particular tag or set of tags.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_tags.png" alt="Adding tags to an image in Roboflow" width="300"/>
+<img src="https://media.roboflow.com/ultralytics/rf_tags.png" alt="Adding tags to an image in Roboflow" width="300">
 </p>
 
 Models hosted on Roboflow can be used with Label Assist, an automated annotation tool that uses your YOLOv8 model to recommend annotations. To use Label Assist, first upload a YOLOv8 model to Roboflow (see instructions later in the guide). Then, click the magic wand icon in the left sidebar and select your model for use in Label Assist.
@@ -96,13 +96,13 @@ Models hosted on Roboflow can be used with Label Assist, an automated annotation
 Choose a model, then click "Continue" to enable Label Assist:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_label_assist.png" alt="Enabling Label Assist" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_label_assist.png" alt="Enabling Label Assist" width="800">
 </p>
 
 When you open new images for annotation, Label Assist will trigger and recommend annotations.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_label_assist.png" alt="ALabel Assist recommending an annotation" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_label_assist.png" alt="ALabel Assist recommending an annotation" width="800">
 </p>
 
 ## Dataset Management for YOLOv8
@@ -114,13 +114,13 @@ First, you can use dataset search to find images that meet a semantic text descr
 For example, the following text query finds images that contain people in a dataset:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_dataset_management.png" alt="Searching for an image" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_dataset_management.png" alt="Searching for an image" width="800">
 </p>
 
 You can narrow your search to images with a particular tag using the "Tags" selector:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_filter_by_tag.png" alt="Filter images by tag" width="350"/>
+<img src="https://media.roboflow.com/ultralytics/rf_filter_by_tag.png" alt="Filter images by tag" width="350">
 </p>
 
 Before you start training a model with your dataset, we recommend using Roboflow [Health Check](https://docs.roboflow.com/datasets/dataset-health-check), a web tool that provides an insight into your dataset and how you can improve the dataset prior to training a vision model.
@@ -128,7 +128,7 @@ Before you start training a model with your dataset, we recommend using Roboflow
 To use Health Check, click the "Health Check" sidebar link. A list of statistics will appear that show the average size of images in your dataset, class balance, a heatmap of where annotations are in your images, and more.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_dataset_health_check.png" alt="Roboflow Health Check analysis" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_dataset_health_check.png" alt="Roboflow Health Check analysis" width="800">
 </p>
 
 Health Check may recommend changes to help enhance dataset performance. For example, the class balance feature may show that there is an imbalance in labels that, if solved, may boost performance or your model.
@@ -138,19 +138,19 @@ Health Check may recommend changes to help enhance dataset performance. For exam
 To export your data, you will need a dataset version. A version is a state of your dataset frozen-in-time. To create a version, first click "Versions" in the sidebar. Then, click the "Create New Version" button. On this page, you will be able to choose augmentations and preprocessing steps to apply to your dataset:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_generate_dataset.png" alt="Creating a dataset version on Roboflow" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_generate_dataset.png" alt="Creating a dataset version on Roboflow" width="800">
 </p>
 
 For each augmentation you select, a pop-up will appear allowing you to tune the augmentation to your needs. Here is an example of tuning a brightness augmentation within specified parameters:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_augmentations.png" alt="Applying augmentations to a dataset" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_augmentations.png" alt="Applying augmentations to a dataset" width="800">
 </p>
 
 When your dataset version has been generated, you can export your data into a range of formats. Click the "Export Dataset" button on your dataset version page to export your data:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_export_data.png" alt="Exporting a dataset" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_export_data.png" alt="Exporting a dataset" width="800">
 </p>
 
 You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [YouTube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](https://docs.ultralytics.com/modes/train/).
@@ -181,7 +181,7 @@ When you run the code above, you will be asked to authenticate. Then, your model
 To test your model and find deployment instructions for supported SDKs, go to the "Deploy" tab in the Roboflow sidebar. At the top of this page, a widget will appear with which you can test your model. You can use your webcam for live testing or upload images or videos.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_test_project.png" alt="Running inference on an example image" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_test_project.png" alt="Running inference on an example image" width="800">
 </p>
 
 You can also use your uploaded model as a [labeling assistant](https://docs.roboflow.com/annotate/use-roboflow-annotate/model-assisted-labeling). This feature uses your trained model to recommend annotations on images uploaded to Roboflow.
@@ -195,13 +195,13 @@ Once you have uploaded a model to Roboflow, you can access our model evaluation 
 To access a confusion matrix, go to your model page on the Roboflow dashboard, then click "View Detailed Evaluation":
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_model_eval.png" alt="Start a Roboflow model evaluation" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_model_eval.png" alt="Start a Roboflow model evaluation" width="800">
 </p>
 
 A pop-up will appear showing a confusion matrix:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_confusion_matrix.png" alt="A confusion matrix" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_confusion_matrix.png" alt="A confusion matrix" width="800">
 </p>
 
 Hover over a box on the confusion matrix to see the value associated with the box. Click on a box to see images in the respective category. Click on an image to view the model predictions and ground truth data associated with that image.
@@ -209,7 +209,7 @@ Hover over a box on the confusion matrix to see the value associated with the bo
 For more insights, click Vector Analysis. This will show a scatter plot of the images in your dataset, calculated using CLIP. The closer images are in the plot, the more similar they are, semantically. Each image is represented as a dot with a color between white and red. The more red the dot, the worse the model performed.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_vector_analysis.png" alt="A vector analysis plot" width="800"/>
+<img src="https://media.roboflow.com/ultralytics/rf_vector_analysis.png" alt="A vector analysis plot" width="800">
 </p>
 
 You can use Vector Analysis to:
@@ -233,7 +233,7 @@ Want to learn more about using Roboflow for creating YOLOv8 models? The followin
 Below are a few of the many pieces of feedback we have received for using YOLOv8 and Roboflow together to create computer vision models.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_showcase_1.png" alt="Showcase image" width="500"/>
-<img src="https://media.roboflow.com/ultralytics/rf_showcase_2.png" alt="Showcase image" width="500"/>
-<img src="https://media.roboflow.com/ultralytics/rf_showcase_3.png" alt="Showcase image" width="500"/>
+<img src="https://media.roboflow.com/ultralytics/rf_showcase_1.png" alt="Showcase image" width="500">
+<img src="https://media.roboflow.com/ultralytics/rf_showcase_2.png" alt="Showcase image" width="500">
+<img src="https://media.roboflow.com/ultralytics/rf_showcase_3.png" alt="Showcase image" width="500">
 </p>

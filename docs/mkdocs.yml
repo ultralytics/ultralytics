@@ -265,6 +265,11 @@ nav:
       - Raspberry Pi: guides/raspberry-pi.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
+      - Real-World Projects:
+          - Object Counting: guides/object-counting.md
+          - Workouts Monitoring: guides/workouts-monitoring.md
+          - Objects Counting in Regions: guides/region-counting.md
+          - Security Alarm System: guides/security-alarm-system.md
   - Integrations:
       - integrations/index.md
       - Comet ML: integrations/comet.md
@@ -399,6 +404,9 @@ nav:
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
+      - solutions:
+          - ai_gym: reference/solutions/ai_gym.md
+          - object_counter: reference/solutions/object_counter.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

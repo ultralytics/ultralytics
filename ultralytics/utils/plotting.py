@@ -9,9 +9,9 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from torchvision.utils import draw_bounding_boxes
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
+from torchvision.utils import draw_bounding_boxes
 
 from ultralytics.utils import LOGGER, USER_CONFIG_DIR, TryExcept, ops, plt_settings, threaded
 
@@ -688,20 +688,22 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detec
         plt.close()
         np.save(str(f.with_suffix('.npy')), x[0].cpu().numpy())  # npy save
 
-def fast_bbox_draw(result,
-             w_name:bool=True,
-             conf:bool=True,
-             np_out:bool=False,
-             color_dict:dict=dict(), # indicies must match class names
-             lwidth:int=None,
-             font_size:int=None,
-             font:Path=USER_CONFIG_DIR / 'Arial.ttf',
-             ) -> torch.Tensor|np.ndarray:
+
+def fast_bbox_draw(
+    result,
+    w_name: bool = True,
+    conf: bool = True,
+    np_out: bool = False,
+    color_dict: dict = dict(),  # indicies must match class names
+    lwidth: int = None,
+    font_size: int = None,
+    font: Path = USER_CONFIG_DIR / 'Arial.ttf',
+) -> torch.Tensor | np.ndarray:
     """
-    Annotate using basic bounding boxes. Label positions are uncontrolled and may draw outside of image.
-    Fastest draw time with no names or confidence, including only confidence is faster than including only names.
-    Defaults include names and confidences, process time ~100ms for 300 boxes on 'bus.jpg' test image.
-    
+    Annotate using basic bounding boxes. Label positions are uncontrolled and may draw outside of image. Fastest draw
+    time with no names or confidence, including only confidence is faster than including only names. Defaults include
+    names and confidences, process time ~100ms for 300 boxes on 'bus.jpg' test image.
+
     Args:
         result (ultralytics.engine.results.Results): Detection results (bounding boxes only)
         w_name (bool): Draw detection class names. Default is `True`.
@@ -710,7 +712,7 @@ def fast_bbox_draw(result,
         lwidth (int): Line width for drawn bounding boxes, otherwise calculated from image size. Default is `None`
         font_size (int): Font size for labels (if any), otherwise cacluated from image size. Default is `None`.
         font (str|Path): Location or name of font to use for any drawn text. Defualt is 'Arial' font or default PIL.ImageFont if `font=None`.
-    
+
     Example:
         ```py
         from ultralytics import YOLO
@@ -725,35 +727,35 @@ def fast_bbox_draw(result,
         total = sum([int(r.boxes.cls.shape[0]) for r in res])
 
         anno_ims = [d for d in map(gpu_draw, res)] # full annotations, ~100 ms/image when tested on 60 images
-        
+
         from functools import partial
 
         p_draw = partial(gpu_draw, w_name=False, conf=False)
         box_only_ims = [d for d in map(p_draw, res)] # box only annotations, much faster ~7.5 ms/image when tested
         ```
     """
-    if isinstance(result.orig_img, np.ndarray): # otherwise assume Tensor has correct format
+    if isinstance(result.orig_img, np.ndarray):  # otherwise assume Tensor has correct format
         size = result.orig_img.shape[:2]
-        t_img = torch.from_numpy(result.orig_img).permute(2, 0, 1) # torch image with channel first
-    
-    if len(result) >=1:
+        t_img = torch.from_numpy(result.orig_img).permute(2, 0, 1)  # torch image with channel first
+
+    if len(result) >= 1:
         lwidth = lwidth or max(round(sum(size) / 2 * 0.003), 2)
-        
+
         idx = result.boxes.cls.to(int).tolist()
         labels, names, confs = [''] * len(idx), [''] * len(idx), [''] * len(idx)
         box_colors = [color_dict.get(i, colors(i)) for i in idx]
         font = font if font and (w_name or conf) else None
-        
+
         if w_name:
             names = [result.names.get(c) for c in idx]
             font = font if font or all([is_ascii(n) for n in names]) else check_font('Arial.Unicode.ttf')
-        
+
         if conf:
-            confs = [round(c,2) for c in result.boxes.conf.tolist()]
+            confs = [round(c, 2) for c in result.boxes.conf.tolist()]
 
         font_size = font_size or max(round(sum(size) / 2 * 0.035), 12) if font else None
-        labels = [f'{n} {c}' for n,c in zip(names,confs)]
-        
+        labels = [f'{n} {c}' for n, c in zip(names, confs)]
+
         drawn = draw_bounding_boxes(image=t_img,
                                     boxes=result.boxes.xyxy,
                                     labels=labels,
@@ -763,5 +765,5 @@ def fast_bbox_draw(result,
                                     font_size=font_size)
     else:
         drawn = t_img
-    
-    return drawn.permute(1,2,0) if not np_out else drawn.permute(1,2,0).numpy()
+
+    return drawn.permute(1, 2, 0) if not np_out else drawn.permute(1, 2, 0).numpy()

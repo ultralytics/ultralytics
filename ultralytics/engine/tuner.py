@@ -91,7 +91,7 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
-        self.args.exist_ok = True # If the project directory already exists, resume from last completed iteration.
+        self.args.exist_ok = True  # If the project directory already exists, resume from last completed iteration.
         self.tune_dir = get_save_dir(self.args, name='tune')
         self.tune_csv = self.tune_dir / 'tune_results.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -170,7 +170,8 @@ class Tuner:
         if self.tune_csv.exists():
             x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=',', skiprows=1)
             starting_iter = x.shape[0]
-            LOGGER.info(f'{self.prefix}Resuming hyperparameter tuning at {self.tune_dir} from iteration {starting_iter+1}')
+            LOGGER.info(
+                f'{self.prefix}Resuming hyperparameter tuning at {self.tune_dir} from iteration {starting_iter+1}')
 
         t0 = time.time()
         best_save_dir, best_metrics = None, None

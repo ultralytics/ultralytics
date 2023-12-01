@@ -694,7 +694,7 @@ def fast_bbox_draw(
     w_name: bool = True,
     conf: bool = True,
     np_out: bool = False,
-    color_dict: dict = dict(),  # indicies must match class names
+    color_dict: dict = dict(),  # indices must match class names
     lwidth: int = None,
     font_size: int = None,
     font: Path = USER_CONFIG_DIR / 'Arial.ttf',
@@ -708,10 +708,10 @@ def fast_bbox_draw(
         result (ultralytics.engine.results.Results): Detection results (bounding boxes only)
         w_name (bool): Draw detection class names. Default is `True`.
         conf (bool): Draw confidence of detections. Default is `True`.
-        color_dict (dict): Custom color dictionary, integer keys corresponding to class indicies, any missing are filled automatically. Default is `{}`
+        color_dict (dict): Custom color dictionary, integer keys corresponding to class indices, any missing are filled automatically. Default is `{}`
         lwidth (int): Line width for drawn bounding boxes, otherwise calculated from image size. Default is `None`
-        font_size (int): Font size for labels (if any), otherwise cacluated from image size. Default is `None`.
-        font (str|Path): Location or name of font to use for any drawn text. Defualt is 'Arial' font or default PIL.ImageFont if `font=None`.
+        font_size (int): Font size for labels (if any), otherwise calculated from image size. Default is `None`.
+        font (str|Path): Location or name of font to use for any drawn text. Default is 'Arial' font or default PIL.ImageFont if `font=None`.
 
     Example:
         ```py

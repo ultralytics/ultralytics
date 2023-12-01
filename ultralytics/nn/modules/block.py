@@ -982,14 +982,28 @@ class BLightC2f(nn.Module):
         return self.cv2(torch.cat(y, 1))
     
 
-class MSDAC3TR(C3):
+#class MSDAC3TR(C3):
     """C3 module with MSDATransformerBlock, which includes MSDeformAttn."""
 
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, num_heads=4, num_layers=1, n_levels=4, n_points=4):
+    #def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, num_heads=4, num_layers=1, n_levels=4, n_points=4):
         """Initialize MSDAC3TR module."""
+        #super().__init__(c1, c2, n, shortcut, g, e)
+        #c_ = int(c2 * e)
+        #self.m = MSDATransformerBlock(c_, c_, num_heads, num_layers, n_levels, n_points)
+        #self.m = MSDATransformerBlock(c_, c_, 4, n)
+
+
+class MSDAC3TR(C3):
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, num_heads=4, num_layers=1, n_levels=4, n_points=4):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)
-        #self.m = MSDATransformerBlock(c_, c_, num_heads, num_layers, n_levels, n_points)
-        self.m = MSDATransformerBlock(c_, c_, 4, n)
+        # Gunakan MSDATransformerBlock di sini
+        self.m = MSDATransformerBlock(c_, num_heads, n_levels, n_points)
+
+    def forward(self, x, refer_bbox=None, value_shapes=None, value_mask=None):
+        # Implementasi forward yang memanggil MSDATransformerBlock
+        x = super().forward(x)  # Panggil forward dari C3
+        # Pastikan refer_bbox dan value_shapes disediakan
+        return self.m(x, refer_bbox, value_shapes, value_mask)
 
 

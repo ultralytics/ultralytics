@@ -102,6 +102,8 @@ def on_fit_epoch_end(trainer):
                                         series='Epoch Time',
                                         value=trainer.epoch_time,
                                         iteration=trainer.epoch)
+        for k, v in trainer.metrics.items():
+            task.get_logger().report_scalar('train', k, v, iteration=trainer.epoch)
         if trainer.epoch == 0:
             from ultralytics.utils.torch_utils import model_info_for_loggers
             for k, v in model_info_for_loggers(trainer).items():

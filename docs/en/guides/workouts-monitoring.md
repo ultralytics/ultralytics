@@ -5,6 +5,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Pose Estimation, PushUps, PullU
 ---
 
 # Workouts Monitoring using Ultralytics YOLOv8 🚀
+
 Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) enhances exercise assessment by accurately tracking key body landmarks and joints in real-time. This technology provides instant feedback on exercise form, tracks workout routines, and measures performance metrics, optimizing training sessions for users and trainers alike.
 
 ## Advantages of Workouts Monitoring?
@@ -23,6 +24,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 |                                                    PushUps Counting                                                    |                                                    PullUps Counting                                                    |
 
 ## Example
+
 ```python
 from ultralytics import YOLO
 from ultralytics.solutions import ai_gym
@@ -48,9 +50,11 @@ while cap.isOpened():
     "pushup", "pullup" and "abworkout" supported
 
 ### KeyPoints Map
+
 ![keyPoints Order Ultralytics YOLOv8 Pose](https://github.com/RizwanMunawar/ultralytics/assets/62513924/520059af-f961-433b-b2fb-7fe8c4336ee5)
 
 ### Arguments `set_args`
+
 | Name            | Type   | Default  | Description                                                                            |
 |-----------------|--------|----------|----------------------------------------------------------------------------------------|
 | kpts_to_check   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |

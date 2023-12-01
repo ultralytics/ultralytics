@@ -6,7 +6,6 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Trackin
 
 # Object Counting in Different Regions using Ultralytics YOLOv8 🚀
 
-
 ## What is Object Counting in Regions?
 
 Object counting in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced computer vision. This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
@@ -28,15 +27,17 @@ Object counting in regions with [Ultralytics YOLOv8](https://github.com/ultralyt
 - **Efficiency Improvement:** Automated object counting enhances operational efficiency, providing real-time results and streamlining processes across different applications.
 - **Versatility and Application:** The versatility of object counting in regions makes it applicable across various domains, from manufacturing and surveillance to traffic monitoring, contributing to its widespread utility and effectiveness.
 
-
 ## Real World Applications
+
 |                                                                               Retail                                                                               |                                                                          Market Streets                                                                           |
 |:------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![People Counting in Different Region using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/5ab3bbd7-fd12-4849-928e-5f294d6c3fcf) | ![Crowd Counting in Different Region using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/e7c1aea7-474d-4d78-8d48-b50854ffe1ca) |
 |                                                    People Counting in Different Region using Ultralytics YOLOv8                                                    |                                                    Crowd Counting in Different Region using Ultralytics YOLOv8                                                    |
 
 ## Steps to Run
+
 ### Step 1: Install Required Libraries
+
 Begin by cloning the Ultralytics repository, installing dependencies, and navigating to the local directory using the provided commands in Step 2.
 
 ```bash
@@ -46,7 +47,9 @@ git clone https://github.com/ultralytics/ultralytics
 # Navigate to the local directory
 cd ultralytics/examples/YOLOv8-Region-Counter
 ```
+
 ### Step 2: Run Region Counting Using Ultralytics YOLOv8
+
 Execute the following basic commands for inference.
 
 ???+ tip "Region is Moveable"
@@ -71,6 +74,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 ```
 
 ### Optional Arguments
+
 | Name                 | Type   | Default      | Description                               |
 |----------------------|--------|--------------|-------------------------------------------|
 | `--source`           | `str`  | `None`       | Path to video file, for webcam 0          |

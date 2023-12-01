@@ -26,7 +26,9 @@ The Security Alarm System Project utilizing Ultralytics YOLOv8 integrates advanc
 </p>
 
 ### Code
+
 #### Import Libraries
+
 ```python
 import torch
 import numpy as np
@@ -40,11 +42,13 @@ from email.mime.text import MIMEText
 ```
 
 #### Set up the parameters of the message
+
 ???+ tip "Note"
 
     App Password Generation is necessary
 
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated password field as instructed.
+
 ```python
 password = ""
 from_email = "" # must match the email used to generate the password
@@ -52,6 +56,7 @@ to_email = ""  # receiver email
 ```
 
 #### Server creation and authentication
+
 ```python
 server = smtplib.SMTP('smtp.gmail.com: 587')
 server.starttls()
@@ -59,6 +64,7 @@ server.login(from_email, password)
 ```
 
 #### Email Send Function
+
 ```python
 def send_email(to_email, from_email, object_detected=1):
     message = MIMEMultipart()
@@ -73,6 +79,7 @@ def send_email(to_email, from_email, object_detected=1):
 ```
 
 #### Object Detection and Alert Sender
+
 ```python
 class ObjectDetection:
     def __init__(self, capture_index):
@@ -146,6 +153,7 @@ class ObjectDetection:
 ```
 
 #### Call the Object Detection class and Run the Inference
+
 ```python
 detector = ObjectDetection(capture_index=0)
 detector()
@@ -154,4 +162,5 @@ detector()
 That's it! When you execute the code, you'll receive a single notification on your email if any object is detected. The notification is sent immediately, not repeatedly. However, feel free to customize the code to suit your project requirements.
 
 #### Email Received Sample
+
 <img width="256" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/db79ccc6-aabd-4566-a825-b34e679c90f9" alt="Email Received Sample">

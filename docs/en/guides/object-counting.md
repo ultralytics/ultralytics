@@ -6,18 +6,15 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Trackin
 
 # Object Counting using Ultralytics YOLOv8 🚀
 
-
 ## What is Object Counting?
 
 Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and deep learning capabilities.
-
 
 ## Advantages of Object Counting?
 
 - **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, and optimizing resource allocation in applications like inventory management.
 - **Enhanced Security:** Object counting enhances security and surveillance by accurately tracking and counting entities, aiding in proactive threat detection.
 - **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, traffic management, and various other domains.
-
 
 ## Real World Applications
 
@@ -27,6 +24,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 |                                                    Conveyor Belt Packets Counting Using Ultralytics YOLOv8                                                    |                                                    Fish Counting in Sea using Ultralytics YOLOv8                                                    |
 
 ## Example
+
 ```python
 from ultralytics import YOLO
 from ultralytics.solutions import object_counter
@@ -52,8 +50,8 @@ while cap.isOpened():
 
     You can move the region anywhere in the frame by clicking on its edges
 
-
 ### Optional Arguments `set_args`
+
 | Name            | Type    | Default                                          | Description                           |
 |-----------------|---------|--------------------------------------------------|---------------------------------------|
 | view_img        | `bool`  | `False`                                          | Display the frame with counts         |

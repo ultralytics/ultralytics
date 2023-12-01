@@ -61,4 +61,4 @@ python detect.py --weights yolov5s.pt --source path/to/images  # run inference o
 python export.py --weights yolov5s.pt --include onnx coreml tflite  # export models to other formats
 ```
 
-<p align="center"><img width="1000" src="https://user-images.githubusercontent.com/26833433/142224770-6e57caaf-ac01-4719-987f-c37d1b6f401f.png"></p>
+<p align="center"><img width="1000" src="https://user-images.githubusercontent.com/26833433/142224770-6e57caaf-ac01-4719-987f-c37d1b6f401f.png" alt="GCP running Docker"></p>

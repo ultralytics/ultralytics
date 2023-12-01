@@ -695,7 +695,7 @@ def fast_bbox_draw(result,
              color_dict:dict=dict(), # indicies must match class names
              lwidth:int=None,
              font_size:int=None,
-             font:str|Path|None=USER_CONFIG_DIR / 'Arial.ttf',
+             font:Path=USER_CONFIG_DIR / 'Arial.ttf',
              ) -> torch.Tensor|np.ndarray:
     """
     Annotate using basic bounding boxes. Label positions are uncontrolled and may draw outside of image.

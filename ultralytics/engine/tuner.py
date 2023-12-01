@@ -91,6 +91,7 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
+        self.args.exist_ok = True # If the project directory already exists, resume from last completed iteration.
         self.tune_dir = get_save_dir(self.args, name='tune')
         self.tune_csv = self.tune_dir / 'tune_results.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -165,17 +166,16 @@ class Tuner:
            Ensure this path is set correctly in the Tuner instance.
         """
 
+        starting_iter = 0
+        if self.tune_csv.exists():
+            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=',', skiprows=1)
+            starting_iter = x.shape[0]
+            LOGGER.info(f'{self.prefix}Resuming hyperparameter tuning at {self.tune_dir} from iteration {starting_iter+1}')
+
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / 'weights').mkdir(parents=True, exist_ok=True)
-
-        if self.args.fitness_file is not None:
-            if not Path(self.args.fitness_file).exists():
-                LOGGER.warning(f'WARNING ❌️ fitness file {self.args.fitness_file} does not exist.')
-            else:
-                shutil.copy(self.args.fitness_file, self.tune_csv)
-
-        for i in range(iterations):
+        for i in range(starting_iter, iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
             LOGGER.info(f'{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}')

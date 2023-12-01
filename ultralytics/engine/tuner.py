@@ -180,8 +180,9 @@ class Tuner:
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
                 cmd = ['yolo', 'train', *(f'{k}={v}' for k, v in train_args.items())]
-                assert subprocess.run(cmd, check=True).returncode == 0, 'training failed'
+                return_code = subprocess.run(cmd, check=True).returncode
                 metrics = torch.load(ckpt_file)['train_metrics']
+                assert return_code == 0, 'training failed'
 
             except Exception as e:
                 LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}')

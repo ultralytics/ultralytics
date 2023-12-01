@@ -526,7 +526,7 @@ class MSDATransformerLayer(nn.Module):
         x = self.deform_attn(self.q(x), refer_bbox, self.v(x), value_shapes, value_mask) + x
         return self.fc2(self.fc1(x)) + x
 
-class TransformerBlock(nn.Module):
+class MSDATransformerBlock(nn.Module):
     def __init__(self, c1, c2, num_heads, num_layers, n_levels=4, n_points=4):
         super().__init__()
         self.conv = Conv(c1, c2) if c1 != c2 else nn.Identity()

@@ -998,7 +998,7 @@ class MSDAC3TR(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)
         # Gunakan MSDATransformerBlock di sini
-        self.m = MSDATransformerBlock(c_, num_heads, n_levels, n_points)
+        self.m = MSDATransformerBlock(c_, c_, num_heads, num_layers, n_levels, n_points)
 
     def forward(self, x, refer_bbox=None, value_shapes=None, value_mask=None):
         # Implementasi forward yang memanggil MSDATransformerBlock

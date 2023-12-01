@@ -698,7 +698,7 @@ def fast_bbox_draw(
     lwidth: int = None,
     font_size: int = None,
     font: Path = USER_CONFIG_DIR / 'Arial.ttf',
-) -> torch.Tensor | np.ndarray:
+):
     """
     Annotate using basic bounding boxes. Label positions are uncontrolled and may draw outside of image. Fastest draw
     time with no names or confidence, including only confidence is faster than including only names. Defaults include

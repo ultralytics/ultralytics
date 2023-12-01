@@ -14,7 +14,7 @@
 
   "track_high_thresh": 0.4,
   "track_low_thresh": 0.1,
-  "new_track_thresh": 0.4,
+  "new_track_thresh": 0.1,
   "track_buffer": 500,
   "match_thresh": 0.8,
   "frame_rate": 25,
@@ -25,7 +25,7 @@
   "reid_default": true,
   "weight_path": "ver12.pt",
 
-  "gmc_method": "sparseOptFlow",
+  "gmc_method": null,
   "ablation": "sparseOptFlow",
 
 

@@ -9,7 +9,7 @@ from tqdm import tqdm
 from my_tracker.byte_track import ByteTrack
 from my_tracker.action_recognition import ActionRecognizer
 from my_tracker.utils.cfg.parse_config import ConfigParser
-from my_tracker.utils.cfg.utils import FrameRateCounter, Timer
+from my_tracker.utils.timer.utils import FrameRateCounter, Timer
 from ultralytics import YOLO
 
 import supervision as sv

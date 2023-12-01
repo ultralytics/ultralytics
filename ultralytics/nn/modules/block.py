@@ -989,6 +989,7 @@ class MSDAC3TR(C3):
         """Initialize MSDAC3TR module."""
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)
-        self.m = MSDATransformerBlock(c_, c_, num_heads, num_layers, n_levels, n_points)
+        #self.m = MSDATransformerBlock(c_, c_, num_heads, num_layers, n_levels, n_points)
+        self.m = MSDATransformerBlock(c_, c_, 4, n)
 
 

@@ -1,12 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from collections import defaultdict
+
 import cv2
 
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
 check_requirements('shapely>=2.0.0')
-from collections import defaultdict
 
 from shapely.geometry import Polygon
 from shapely.geometry.point import Point

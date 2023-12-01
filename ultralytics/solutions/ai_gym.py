@@ -5,11 +5,11 @@ import cv2
 from ultralytics.utils.plotting import Annotator
 
 
-class Aigym:
+class AIGym:
     """A class to manage the gym steps of people in a real-time video stream based on their poses."""
 
     def __init__(self):
-        """Initializes the Aigym with default values for Visual and Image parameters."""
+        """Initializes the AIGym with default values for Visual and Image parameters."""
 
         # Image and line thickness
         self.im0 = None
@@ -36,17 +36,17 @@ class Aigym:
                  kpts_to_check,
                  line_thickness=2,
                  view_img=False,
-                 pose_up_angle=145,
-                 pose_down_angle=90,
+                 pose_up_angle=145.0,
+                 pose_down_angle=90.0,
                  pose_type='pullup'):
         """
-        Configures the Aigym line_thickness, save image and view image parameters
+        Configures the AIGym line_thickness, save image and view image parameters
         Args:
             kpts_to_check (list): 3 keypoints for counting
             line_thickness (int): Line thickness for bounding boxes.
             view_img (bool): display the im0
-            pose_up_angle: Angle to set pose position up
-            pose_down_angle: Angle to set pose position down
+            pose_up_angle (float): Angle to set pose position up
+            pose_down_angle (float): Angle to set pose position down
             pose_type: "pushup", "pullup" or "abworkout"
         """
         self.kpts_to_check = kpts_to_check
@@ -127,4 +127,4 @@ class Aigym:
 
 
 if __name__ == '__main__':
-    Aigym()
+    AIGym()

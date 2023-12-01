@@ -33,7 +33,7 @@ import cv2
 model = YOLO("yolov8n-pose.pt")
 cap = cv2.VideoCapture("path/to/video.mp4")
 
-gym_object = ai_gym.Aigym()  # init AI GYM module
+gym_object = ai_gym.AIGym()  # init AI GYM module
 gym_object.set_args(line_thickness=2, view_img=True, pose_type="pushup", kpts_to_check=[6, 8, 10])
 
 frame_count = 0

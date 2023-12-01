@@ -137,7 +137,7 @@ def select_device(device='', batch=0, newline=False, verbose=True):
         if n == 0:
             arg = 'cuda:0'
         else:
-            arg = f'cuda:{device[0]}'
+            arg = f'cuda:{devices[0]}'
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f'MPS ({get_cpu_info()})\n'

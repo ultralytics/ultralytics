@@ -34,10 +34,10 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ```py
     from ultralytics import YOLO
-   
+
     # Load a model
     model = YOLO('yolov8n-seg.pt')
-   
+
     # Run inference
     result = model.predict()
     ```

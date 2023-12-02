@@ -33,7 +33,7 @@ import cv2
 model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
-counter = object_counter.ObjectCounter() # Init Object Counter
+counter = object_counter.ObjectCounter()  # Init Object Counter
 region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 counter.set_args(view_img=True, reg_pts=region_points,
                  classes_names=model.names, draw_tracks=True)

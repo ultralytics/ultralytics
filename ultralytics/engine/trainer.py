@@ -32,7 +32,8 @@ from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
                                            strip_optimizer)
 
-T_CONVERT = {1:'seconds', 60:'minutes', 3600:'hours', 86400:'days'}
+T_CONVERT = {1: 'seconds', 60: 'minutes', 3600: 'hours', 86400: 'days'}
+
 
 class BaseTrainer:
     """
@@ -279,7 +280,8 @@ class BaseTrainer:
         self.time_stop = False
         if self.args.train_time > 0:
             self.train_time = self.args.train_time
-            t = [' '.join((f'{self.train_time / i:.3f}', d)) for i,d in T_CONVERT.items() if self.train_time / i > 1][-1]
+            t = [' '.join((f'{self.train_time / i:.3f}', d)) for i, d in T_CONVERT.items()
+                 if self.train_time / i > 1][-1]
             LOGGER.info(f'\n{colorstr("DURATION: ")}Training will be stopped in approximately {t}.')
         else:
             self.train_time = -1
@@ -398,7 +400,7 @@ class BaseTrainer:
             self.epoch_time_start = tnow
             self.run_callbacks('on_fit_epoch_end')
             self.time_stop = (tnow - self.train_time_start) >= self.train_time if self.train_time > 0 else False
-            torch.cuda.empty_cache() # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
+            torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -421,7 +423,9 @@ class BaseTrainer:
         self.run_callbacks('teardown')
 
         if self.time_stop:
-            LOGGER.info(f'\nTime threshold met, stopping at epoch {epoch} / {self.epochs} after {(time.time() - self.train_time_start) / 3600:.3f} hours')
+            LOGGER.info(
+                f'\nTime threshold met, stopping at epoch {epoch} / {self.epochs} after {(time.time() - self.train_time_start) / 3600:.3f} hours'
+            )
             # Reset training time limit to indefinite and re-save checkpoint
             self.args.train_time = self.train_time = -1
             self.save_model()

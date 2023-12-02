@@ -12,7 +12,7 @@ Other quickstart options for YOLOv5 include our [Colab Notebook](https://colab.r
 
 ## Step 1: AWS Console Sign-In
 
-Start by creating an account or signing into the AWS console at [https://aws.amazon.com/console/](https://aws.amazon.com/console/). Once logged in, select the **EC2** service to manage and set up your instances.
+Start by creating an account or signing in to the AWS console at [https://aws.amazon.com/console/](https://aws.amazon.com/console/). Once logged in, select the **EC2** service to manage and set up your instances.
 
 ![Console](https://user-images.githubusercontent.com/26833433/106323804-debddd00-622c-11eb-997f-b8217dc0e975.png)
 

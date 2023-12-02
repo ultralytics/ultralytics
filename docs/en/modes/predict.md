@@ -503,6 +503,8 @@ Here is a table for the `Boxes` class methods and properties, including their na
 
 For more details see the `Boxes` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Boxes).
 
+#ultralytics.engine.results.Boxes
+
 ### Masks
 
 `Masks` object can be used index, manipulate and convert masks to segments.

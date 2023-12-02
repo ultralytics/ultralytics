@@ -197,6 +197,8 @@ threading.Thread(target=run, args=[model1, 'https://ultralytics.com/images/bus.j
 To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively see our YOLOv5 [Train Custom Data Tutorial](https://docs.ultralytics.com/yolov5/tutorials/train_custom_data) for model training.
 
 ```python
+import torch
+
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', autoshape=False)  # load pretrained
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', autoshape=False, pretrained=False)  # load scratch
 ```
@@ -235,7 +237,7 @@ results = model(im)  # inference
 results.pandas().xyxy[0]  # Pandas DataFrame
 ```
 
-<details markdown>
+<details>
   <summary>Pandas Output (click to expand)</summary>
 
 ```python
@@ -276,7 +278,7 @@ results = model(ims)  # inference
 results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 ```
 
-<details markdown>
+<details>
   <summary>JSON Output (click to expand)</summary>
 
 ```json
@@ -327,6 +329,8 @@ results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 This example loads a custom 20-class [VOC](https://github.com/ultralytics/yolov5/blob/master/data/VOC.yaml)-trained YOLOv5s model `'best.pt'` with PyTorch Hub.
 
 ```python
+import torch
+
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='path/to/best.pt')  # local model
 model = torch.hub.load('path/to/yolov5', 'custom', path='path/to/best.pt', source='local')  # local repo
 ```
@@ -339,14 +343,16 @@ PyTorch Hub supports inference on most YOLOv5 export formats, including custom t
 💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)
 
 ```python
+import torch
+
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # PyTorch
-'yolov5s.torchscript')  # TorchScript
-'yolov5s.onnx')  # ONNX
-'yolov5s_openvino_model/')  # OpenVINO
-'yolov5s.engine')  # TensorRT
-'yolov5s.mlmodel')  # CoreML (macOS-only)
-'yolov5s.tflite')  # TFLite
-'yolov5s_paddle_model/')  # PaddlePaddle
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.torchscript')  # TorchScript
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.onnx')  # ONNX
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s_openvino_model/')  # OpenVINO
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.engine')  # TensorRT
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.mlmodel')  # CoreML (macOS-only)
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.tflite')  # TFLite
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s_paddle_model/')  # PaddlePaddle
 ```
 
 ## Supported Environments
@@ -354,10 +360,10 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # PyT
 Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
-- **Google Cloud**: [GCP Quickstart Guide](environments/google_cloud_quickstart_tutorial.md)
-- **Amazon**: [AWS Quickstart Guide](environments/aws_quickstart_tutorial.md)
-- **Azure**: [AzureML Quickstart Guide](environments/azureml_quickstart_tutorial.md)
-- **Docker**: [Docker Quickstart Guide](environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+- **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
+- **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
+- **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)
+- **Docker**: [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 ## Project Status
 

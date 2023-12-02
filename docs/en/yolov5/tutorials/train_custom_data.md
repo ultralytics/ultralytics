@@ -29,7 +29,7 @@ Creating a custom model to detect your objects is an iterative process of collec
 
 YOLOv5 models must be trained on labelled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
 
-<details open markdown>
+<details open>
 <summary>Use <a href="https://roboflow.com/?ref=ultralytics">Roboflow</a> to create your dataset in YOLO format 🌟</summary>
 
 !!! Warning
@@ -75,7 +75,7 @@ Export in `YOLOv5 Pytorch` format, then copy the snippet into your training scri
 Now continue with `2. Select a Model`.
 </details>
 
-<details markdown>
+<details>
 <summary>Or manually prepare your dataset</summary>
 
 ### 1.1 Create dataset.yaml
@@ -94,7 +94,7 @@ names:
   0: person
   1: bicycle
   2: car
-  ...
+  # ...
   77: teddy bear
   78: hair drier
   79: toothbrush
@@ -217,10 +217,10 @@ Once your model is trained you can use your best checkpoint `best.pt` to:
 Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
-- **Google Cloud**: [GCP Quickstart Guide](environments/google_cloud_quickstart_tutorial.md)
-- **Amazon**: [AWS Quickstart Guide](environments/aws_quickstart_tutorial.md)
-- **Azure**: [AzureML Quickstart Guide](environments/azureml_quickstart_tutorial.md)
-- **Docker**: [Docker Quickstart Guide](environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+- **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
+- **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
+- **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)
+- **Docker**: [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 ## Project Status
 

@@ -17,7 +17,7 @@ In addition to GCP, explore other accessible quickstart options for YOLOv5, like
 Let’s begin by creating a virtual machine that’s tuned for deep learning:
 
 1. Head over to the [GCP marketplace](https://console.cloud.google.com/marketplace/details/click-to-deploy-images/deeplearning) and select the **Deep Learning VM**.
-2. Opt for an **n1-standard-8** instance; it offers a balance of 8 vCPUs and 30 GB of memory, ideally suited for our needs.
+2. Opt for a **n1-standard-8** instance; it offers a balance of 8 vCPUs and 30 GB of memory, ideally suited for our needs.
 3. Next, select a GPU. This depends on your workload; even a basic one like the Tesla T4 will markedly accelerate your model training.
 4. Tick the box for 'Install NVIDIA GPU driver automatically on first startup?' for hassle-free setup.
 5. Allocate a 300 GB SSD Persistent Disk to ensure you don't bottleneck on I/O operations.

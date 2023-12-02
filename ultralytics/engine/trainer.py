@@ -394,8 +394,9 @@ class BaseTrainer:
             self.epoch_time = tnow - self.epoch_time_start
             self.epoch_time_start = tnow
             self.run_callbacks('on_fit_epoch_end')
-            self.stop = self.stop or (tnow - self.train_time_start) >= self.train_time if self.train_time > 0 else self.stop
-            torch.cuda.empty_cache() # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
+            self.stop = self.stop or (tnow -
+                                      self.train_time_start) >= self.train_time if self.train_time > 0 else self.stop
+            torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 
             # Early Stopping
             if RANK != -1:  # if DDP training

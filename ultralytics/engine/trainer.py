@@ -32,6 +32,7 @@ from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
                                            strip_optimizer)
 
+T_CONVERT = {1:'seconds', 60:'minutes', 3600:'hours', 86400:'days'}
 
 class BaseTrainer:
     """
@@ -275,9 +276,11 @@ class BaseTrainer:
             self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
+        self.time_stop = False
         if self.args.train_time > 0:
-            self.train_time = max(self.args.train_time, -1)
-            LOGGER.info(f'Training scheduled to conclude in approximately {self.train_time / 3600:.3f} hours.')
+            self.train_time = self.args.train_time
+            t = [' '.join((f'{self.train_time / i:.3f}', d)) for i,d in T_CONVERT.items() if self.train_time / i > 1][-1]
+            LOGGER.info(f'\n{colorstr("DURATION: ")}Training will be stopped in approximately {t}.')
         else:
             self.train_time = -1
         self.resume_training(ckpt)
@@ -394,9 +397,8 @@ class BaseTrainer:
             self.epoch_time = tnow - self.epoch_time_start
             self.epoch_time_start = tnow
             self.run_callbacks('on_fit_epoch_end')
-            self.stop = self.stop or (tnow -
-                                      self.train_time_start) >= self.train_time if self.train_time > 0 else self.stop
-            torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
+            self.time_stop = (tnow - self.train_time_start) >= self.train_time if self.train_time > 0 else False
+            torch.cuda.empty_cache() # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -404,10 +406,10 @@ class BaseTrainer:
                 dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
                 if RANK != 0:
                     self.stop = broadcast_list[0]
-            if self.stop:
+            if self.stop or self.time_stop:
                 break  # must break all DDP ranks
 
-        if RANK in (-1, 0):
+        if RANK in (-1, 0) and not self.time_stop:
             # Do final val with best.pt
             LOGGER.info(f'\n{epoch - self.start_epoch + 1} epochs completed in '
                         f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
@@ -417,6 +419,13 @@ class BaseTrainer:
             self.run_callbacks('on_train_end')
         torch.cuda.empty_cache()
         self.run_callbacks('teardown')
+
+        if self.time_stop:
+            LOGGER.info(f'\nTime threshold met, stopping at epoch {epoch} / {self.epochs} after {(time.time() - self.train_time_start) / 3600:.3f} hours')
+            # Reset training time limit to indefinite and re-save checkpoint
+            self.args.train_time = self.train_time = -1
+            self.save_model()
+            self.run_callbacks('on_model_save')
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
@@ -580,7 +589,7 @@ class BaseTrainer:
                 resume = True
                 self.args = get_cfg(ckpt_args)
                 self.args.model = str(last)  # reinstate model
-                for k in 'imgsz', 'batch':  # allow arg updates to reduce memory on resume if crashed due to CUDA OOM
+                for k in 'imgsz', 'batch', 'train_time':  # allow arg updates to reduce memory on resume if crashed due to CUDA OOM
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 

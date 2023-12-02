@@ -66,6 +66,18 @@ With just a few commands, YOLOv5 allows you to train custom object detection mod
 
 ![Terminal command image illustrating model training on a GCP Deep Learning VM](https://user-images.githubusercontent.com/26833433/142223900-275e5c9e-e2b5-43f7-a21c-35c4ca7de87c.png)
 
+## Allocate Swap Space (optional)
+
+For those dealing with hefty datasets, consider amplifying your GCP instance with an additional 64GB of swap memory:
+
+```bash
+sudo fallocate -l 64G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+free -h  # confirm the memory increment
+```
+
 ### Concluding Thoughts
 
 Congratulations! You are now empowered to harness the capabilities of YOLOv5 with the computational prowess of Google Cloud Platform. This combination provides scalability, efficiency, and versatility for your object detection tasks. Whether for personal projects, academic research, or industrial applications, you have taken a pivotal step into the world of AI and machine learning on the cloud.

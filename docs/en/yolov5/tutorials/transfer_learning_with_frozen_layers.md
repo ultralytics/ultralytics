@@ -21,7 +21,7 @@ pip install -r requirements.txt  # install
 All layers that match the train.py `freeze` list in train.py will be frozen by setting their gradients to zero before training starts.
 
 ```python
- # Freeze
+# Freeze
 freeze = [f'model.{x}.' for x in range(freeze)]  # layers to freeze
 for k, v in model.named_parameters():
     v.requires_grad = True  # train all layers

@@ -5,7 +5,7 @@ keywords: Ultralytics, Contributor License Agreement, Open Source Software, Cont
 
 # Ultralytics Individual Contributor License Agreement
 
-Thank you for your interest in contributing to open source software projects (“Projects”) made available by Ultralytics SE or its affiliates (“Ultralytics”). This Individual Contributor License Agreement (“Agreement”) sets out the terms governing any source code, object code, bug fixes, configuration changes, tools, specifications, documentation, data, materials, feedback, information or other works of authorship that you submit or have submitted, in any form and in any manner, to Ultralytics in respect of any of the Projects (collectively “Contributions”). If you have any questions respecting this Agreement, please contact hello@ultralytics.com.
+Thank you for your interest in contributing to open source software projects (“Projects”) made available by Ultralytics SE or its affiliates (“Ultralytics”). This Individual Contributor License Agreement (“Agreement”) sets out the terms governing any source code, object code, bug fixes, configuration changes, tools, specifications, documentation, data, materials, feedback, information or other works of authorship that you submit or have submitted, in any form and in any manner, to Ultralytics in respect of any Projects (collectively “Contributions”). If you have any questions respecting this Agreement, please contact hello@ultralytics.com.
 
 You agree that the following terms apply to all of your past, present and future Contributions. Except for the licenses granted in this Agreement, you retain all of your right, title and interest in and to your Contributions.
 
@@ -24,7 +24,7 @@ You agree that the following terms apply to all of your past, present and future
 **Disclaimer.** To the fullest extent permitted under applicable law, your Contributions are provided on an "asis"
 basis, without any warranties or conditions, express or implied, including, without limitation, any implied warranties or conditions of non-infringement, merchantability or fitness for a particular purpose. You are not required to provide support for your Contributions, except to the extent you desire to provide support.
 
-**No Obligation.** You acknowledge that Ultralytics is under no obligation to use or incorporate your Contributions into any of the Projects. The decision to use or incorporate your Contributions into any of the Projects will be made at the sole discretion of Ultralytics or its authorized delegates ..
+**No Obligation.** You acknowledge that Ultralytics is under no obligation to use or incorporate your Contributions into any of the Projects. The decision to use or incorporate your Contributions into any of the Projects will be made at the sole discretion of Ultralytics or its authorized delegates.
 
 **Disputes.** This Agreement shall be governed by and construed in accordance with the laws of the State of New York, United States of America, without giving effect to its principles or rules regarding conflicts of laws, other than such principles directing application of New York law. The parties hereby submit to venue in, and jurisdiction of the courts located in New York, New York for purposes relating to this Agreement. In the event that any of the provisions of this Agreement shall be held by a court or other tribunal of competent jurisdiction to be unenforceable, the remaining portions hereof shall remain in full force and effect.
 

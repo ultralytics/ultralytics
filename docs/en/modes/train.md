@@ -181,7 +181,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training                    |
-| `train_time`      | `-1`     | time specified in seconds, after which stops training, current epoch first will complete first |
+| `train_time`      | `-1`     | wait time in seconds to stop training, resets to `-1` (no limit) after stopping                |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                                  |
 | `imgsz`           | `640`    | size of input images as integer                                                                |
 | `save`            | `True`   | save train checkpoints and predict results                                                     |

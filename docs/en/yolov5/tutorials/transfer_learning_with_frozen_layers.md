@@ -36,48 +36,25 @@ To see a list of module names:
 for k, v in model.named_parameters():
     print(k)
 
-# Output
-model
-.0.conv.conv.weight
-model
-.0.conv.bn.weight
-model
-.0.conv.bn.bias
-model
-.1.conv.weight
-model
-.1.bn.weight
-model
-.1.bn.bias
-model
-.2.cv1.conv.weight
-model
-.2.cv1.bn.weight
+"""Output:
+model.0.conv.conv.weight
+model.0.conv.bn.weight
+model.0.conv.bn.bias
+model.1.conv.weight
+model.1.bn.weight
+model.1.bn.bias
+model.2.cv1.conv.weight
+model.2.cv1.bn.weight
 ...
-model
-.23.m
-.0.cv2.bn.weight
-model
-.23.m
-.0.cv2.bn.bias
-model
-.24.m
-.0.weight
-model
-.24.m
-.0.bias
-model
-.24.m
-.1.weight
-model
-.24.m
-.1.bias
-model
-.24.m
-.2.weight
-model
-.24.m
-.2.bias
+model.23.m.0.cv2.bn.weight
+model.23.m.0.cv2.bn.bias
+model.24.m.0.weight
+model.24.m.0.bias
+model.24.m.1.weight
+model.24.m.1.bias
+model.24.m.2.weight
+model.24.m.2.bias
+"""
 ```
 
 Looking at the model architecture we can see that the model backbone is layers 0-9:
@@ -140,14 +117,8 @@ python train.py --freeze 24
 
 We train YOLOv5m on VOC on both of the above scenarios, along with a default model (no freezing), starting from the official COCO pretrained `--weights yolov5m.pt`:
 
-```python
-train.py - -batch
-48 - -weights
-yolov5m.pt - -data
-voc.yaml - -epochs
-50 - -cache - -img
-512 - -hyp
-hyp.finetune.yaml
+```bash
+train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --img 512 --hyp hyp.finetune.yaml
 ```
 
 ### Accuracy Comparison

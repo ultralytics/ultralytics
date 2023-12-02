@@ -18,7 +18,7 @@ Object counting in regions with [Ultralytics YOLOv8](https://github.com/ultralyt
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLOv8 Object Counting in Multiple & Moveable Regions
+  <strong>Watch:</strong> Ultralytics YOLOv8 Object Counting in Multiple & Movable Regions
 </p>
 
 ## Advantages of Object Counting in Regions?
@@ -52,7 +52,7 @@ cd ultralytics/examples/YOLOv8-Region-Counter
 
 Execute the following basic commands for inference.
 
-???+ tip "Region is Moveable"
+???+ tip "Region is Movable"
 
     During video playback, you can interactively move the region within the video by clicking and dragging using the left mouse button.
 

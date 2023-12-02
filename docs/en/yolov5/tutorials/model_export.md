@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv5, model export, PyTorch, TorchScript, ONNX, OpenVIN
 
 # TFLite, ONNX, CoreML, TensorRT Export
 
-📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats. UPDATED 8 December 2022.
+📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.
 
 ## Before You Start
 

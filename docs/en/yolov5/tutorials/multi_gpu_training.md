@@ -4,7 +4,7 @@ description: Learn how to train datasets on single or multiple GPUs using YOLOv5
 keywords: YOLOv5, multi-GPU Training, YOLOv5 training, deep learning, machine learning, object detection, Ultralytics
 ---
 
-📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s). UPDATED 25 December 2022.
+📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s).
 
 ## Before You Start
 

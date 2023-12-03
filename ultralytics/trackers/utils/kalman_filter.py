@@ -229,7 +229,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         covariance = np.diag(np.square(std))
         return mean, covariance
 
-    def predict(self, mean, covariance):
+    def predict(self, mean, covariance) -> tuple[np.ndarray, np.ndarray]:
         """
         Run Kalman filter prediction step.
 
@@ -254,7 +254,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         return mean, covariance
 
-    def project(self, mean, covariance):
+    def project(self, mean, covariance) -> tuple[np.ndarray, np.ndarray]:
         """
         Project state distribution to measurement space.
 
@@ -274,7 +274,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         covariance = np.linalg.multi_dot((self._update_mat, covariance, self._update_mat.T))
         return mean, covariance + innovation_cov
 
-    def multi_predict(self, mean, covariance):
+    def multi_predict(self, mean, covariance) -> tuple[np.ndarray, np.ndarray]:
         """
         Run Kalman filter prediction step (Vectorized version).
 
@@ -303,7 +303,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         return mean, covariance
 
-    def update(self, mean, covariance, measurement):
+    def update(self, mean, covariance, measurement) -> tuple[np.ndarray, np.ndarray]:
         """
         Run Kalman filter correction step.
 

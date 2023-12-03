@@ -30,7 +30,7 @@ class KalmanFilterXYAH:
         self._std_weight_position = 1. / 20
         self._std_weight_velocity = 1. / 160
 
-    def initiate(self, measurement: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def initiate(self, measurement: np.ndarray) -> tuple:
         """
         Create track from unassociated measurement.
 
@@ -53,7 +53,7 @@ class KalmanFilterXYAH:
         covariance = np.diag(np.square(std))
         return mean, covariance
 
-    def predict(self, mean: np.ndarray, covariance: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def predict(self, mean: np.ndarray, covariance: np.ndarray) -> tuple:
         """
         Run Kalman filter prediction step.
 
@@ -78,7 +78,7 @@ class KalmanFilterXYAH:
 
         return mean, covariance
 
-    def project(self, mean: np.ndarray, covariance: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def project(self, mean: np.ndarray, covariance: np.ndarray) -> tuple:
         """
         Project state distribution to measurement space.
 
@@ -98,13 +98,13 @@ class KalmanFilterXYAH:
         covariance = np.linalg.multi_dot((self._update_mat, covariance, self._update_mat.T))
         return mean, covariance + innovation_cov
 
-    def multi_predict(self, mean: np.ndarray, covariance: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def multi_predict(self, mean: np.ndarray, covariance: np.ndarray) -> tuple:
         """
         Run Kalman filter prediction step (Vectorized version).
 
         Args:
             mean (ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
-            covariance (ndarray): The Nx8x8 dimensional covariance matrix of the object states at the previous time step.
+            covariance (ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
             tuple[ndarray, ndarray]: Returns the mean vector and covariance matrix of the predicted state. Unobserved
@@ -128,7 +128,7 @@ class KalmanFilterXYAH:
         return mean, covariance
 
     def update(self, mean: np.ndarray, covariance: np.ndarray,
-               measurement: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+               measurement: np.ndarray) -> tuple:
         """
         Run Kalman filter correction step.
 
@@ -167,7 +167,7 @@ class KalmanFilterXYAH:
         Args:
             mean (ndarray): Mean vector over the state distribution (8 dimensional).
             covariance (ndarray): Covariance of the state distribution (8x8 dimensional).
-            measurements (ndarray): An Nx4 dimensional matrix of N measurements, each in format (x, y, a, h) where (x, y)
+            measurements (ndarray): An Nx4 matrix of N measurements, each in format (x, y, a, h) where (x, y)
                 is the bounding box center position, a the aspect ratio, and h the height.
             only_position (bool, optional): If True, distance computation is done with respect to the bounding box
                 center position only. Defaults to False.
@@ -205,13 +205,12 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
     observation of the state space (linear observation model).
     """
 
-    def initiate(self, measurement: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def initiate(self, measurement: np.ndarray) -> tuple:
         """
         Create track from unassociated measurement.
 
         Args:
-            measurement (ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width w, and height
-                h.
+            measurement (ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and height.
 
         Returns:
             tuple[ndarray, ndarray]: Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional) of
@@ -229,7 +228,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         covariance = np.diag(np.square(std))
         return mean, covariance
 
-    def predict(self, mean, covariance) -> tuple[np.ndarray, np.ndarray]:
+    def predict(self, mean, covariance) -> tuple:
         """
         Run Kalman filter prediction step.
 
@@ -254,7 +253,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         return mean, covariance
 
-    def project(self, mean, covariance) -> tuple[np.ndarray, np.ndarray]:
+    def project(self, mean, covariance) -> tuple:
         """
         Project state distribution to measurement space.
 
@@ -274,13 +273,13 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         covariance = np.linalg.multi_dot((self._update_mat, covariance, self._update_mat.T))
         return mean, covariance + innovation_cov
 
-    def multi_predict(self, mean, covariance) -> tuple[np.ndarray, np.ndarray]:
+    def multi_predict(self, mean, covariance) -> tuple:
         """
         Run Kalman filter prediction step (Vectorized version).
 
         Args:
             mean (ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
-            covariance (ndarray): The Nx8x8 dimensional covariance matrix of the object states at the previous time step.
+            covariance (ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
             tuple[ndarray, ndarray]: Returns the mean vector and covariance matrix of the predicted state. Unobserved
@@ -303,15 +302,15 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         return mean, covariance
 
-    def update(self, mean, covariance, measurement) -> tuple[np.ndarray, np.ndarray]:
+    def update(self, mean, covariance, measurement) -> tuple:
         """
         Run Kalman filter correction step.
 
         Args:
             mean (ndarray): The predicted state's mean vector (8 dimensional).
             covariance (ndarray): The state's covariance matrix (8x8 dimensional).
-            measurement (ndarray): The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center position,
-                w the width, and h the height of the bounding box.
+            measurement (ndarray): The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center 
+            position, w the width, and h the height of the bounding box.
 
         Returns:
             tuple[ndarray, ndarray]: Returns the measurement-corrected state distribution.

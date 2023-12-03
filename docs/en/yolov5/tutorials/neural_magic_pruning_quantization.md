@@ -146,7 +146,7 @@ url = 'http://0.0.0.0:5543/predict/from_files'
 resp = requests.post(url=url, files=files)
 
 # response is returned in JSON
-annotations = json.loads(resp.text) # dictionary of annotation results
+annotations = json.loads(resp.text)  # dictionary of annotation results
 bounding_boxes = annotations["boxes"]
 labels = annotations["labels"]
 ```

@@ -13,7 +13,7 @@ backbone:
   - [-1, 6, HGBlock, [48, 128, 3]]  # stage 1
 
   - [-1, 1, DWConv, [128, 3, 2, 1, False]]  # 2-P3/8
-  - [-1, 6, HGBlock, [96, 512, 3]]   # stage 2
+  - [-1, 6, HGBlock, [96, 512, 3]]  # stage 2
 
   - [-1, 1, DWConv, [512, 3, 2, 1, False]]  # 4-P3/16
   - [-1, 6, HGBlock, [192, 1024, 5, True, False]]  # cm, c2, k, light, shortcut
@@ -26,25 +26,25 @@ backbone:
 head:
   - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]]  # 10 input_proj.2
   - [-1, 1, AIFI, [1024, 8]]
-  - [-1, 1, Conv, [256, 1, 1]]   # 12, Y5, lateral_convs.0
+  - [-1, 1, Conv, [256, 1, 1]]  # 12, Y5, lateral_convs.0
 
   - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
   - [7, 1, Conv, [256, 1, 1, None, 1, 1, False]]  # 14 input_proj.1
   - [[-2, -1], 1, Concat, [1]]
   - [-1, 3, RepC3, [256]]  # 16, fpn_blocks.0
-  - [-1, 1, Conv, [256, 1, 1]]   # 17, Y4, lateral_convs.1
+  - [-1, 1, Conv, [256, 1, 1]]  # 17, Y4, lateral_convs.1
 
   - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
   - [3, 1, Conv, [256, 1, 1, None, 1, 1, False]]  # 19 input_proj.0
   - [[-2, -1], 1, Concat, [1]]  # cat backbone P4
-  - [-1, 3, RepC3, [256]]    # X3 (21), fpn_blocks.1
+  - [-1, 3, RepC3, [256]]  # X3 (21), fpn_blocks.1
 
-  - [-1, 1, Conv, [256, 3, 2]]   # 22, downsample_convs.0
+  - [-1, 1, Conv, [256, 3, 2]]  # 22, downsample_convs.0
   - [[-1, 17], 1, Concat, [1]]  # cat Y4
-  - [-1, 3, RepC3, [256]]    # F4 (24), pan_blocks.0
+  - [-1, 3, RepC3, [256]]  # F4 (24), pan_blocks.0
 
-  - [-1, 1, Conv, [256, 3, 2]]   # 25, downsample_convs.1
+  - [-1, 1, Conv, [256, 3, 2]]  # 25, downsample_convs.1
   - [[-1, 12], 1, Concat, [1]]  # cat Y5
-  - [-1, 3, RepC3, [256]]    # F5 (27), pan_blocks.1
+  - [-1, 3, RepC3, [256]]  # F5 (27), pan_blocks.1
 
   - [[21, 24, 27], 1, RTDETRDecoder, [nc]]  # Detect(P3, P4, P5)

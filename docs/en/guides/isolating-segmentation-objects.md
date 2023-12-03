@@ -30,11 +30,16 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ---
 
-1. Load a model and run `predict()` method on a source.
+2. Load a model and run `predict()` method on a source.
 
     ```py
-    m = YOLO('yolov8n-seg.pt')
-    res = m.predict()
+    from ultralytics import YOLO
+
+    # Load a model
+    model = YOLO('yolov8n-seg.pt')
+
+    # Run inference
+    result = model.predict()
     ```
 
    ??? question "No Prediction Arguments?"
@@ -48,11 +53,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         This is helpful for rapid testing with the `predict()` method.
 
-   For additional information about Segmentation Models, visit the [Segment Task](../tasks/segment.md/#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
+   For additional information about Segmentation Models, visit the [Segment Task](../tasks/segment.md#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
 
     ---
 
-1. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
+3. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ``` { .py .annotate }
     # (2) Iterate detection results (helpful for multiple images)
@@ -67,8 +72,8 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ```
 
-    1. To learn more about working with detection results, see [Boxes Section for Predict Mode](../modes/predict.md/#boxes).
-    2. To learn more about `predict()` results see [Working with Results for Predict Mode](../modes/predict.md/#working-with-results)
+    1. To learn more about working with detection results, see [Boxes Section for Predict Mode](../modes/predict.md#boxes).
+    2. To learn more about `predict()` results see [Working with Results for Predict Mode](../modes/predict.md#working-with-results)
 
    ??? info "For-Loop"
 
@@ -76,7 +81,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ---
 
-1. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
+4. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
    ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
     ``` { .py .annotate }
@@ -100,7 +105,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ```
 
-    1. For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md/#masks).
+    1. For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md#masks).
 
     2. Here, the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
 
@@ -110,13 +115,13 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     <summary> Expand to understand what is happening when defining the <code>contour</code> variable.</summary>
     <p>
 
-    - `c.masks.xy` :: Provides the coordinates of the mask contour points in the format  `(x, y)`. For more details, refer to the [Masks Section from Predict Mode](../modes/predict.md/#masks).
+    - `c.masks.xy` :: Provides the coordinates of the mask contour points in the format  `(x, y)`. For more details, refer to the [Masks Section from Predict Mode](../modes/predict.md#masks).
 
     - `.pop()` :: As `masks.xy` is a list containing a single element, this element is extracted using the `pop()` method.
 
     - `.astype(np.int32)` :: Using `masks.xy` will return with a data type of `float32`, but this won't be compatible with the OpenCV `drawContours()` function, so this will change the data type to `int32` for compatibility.
 
-    - `.reshape(-1, 1, 2)` :: Reformats the data into the required shape of of `[N, 1, 2]` where `N` is the number of contour points, with each point represented by a single entry `1`, and the entry is composed of `2` values. The `-1` denotes that the number of values along this dimension is flexible.
+    - `.reshape(-1, 1, 2)` :: Reformats the data into the required shape of `[N, 1, 2]` where `N` is the number of contour points, with each point represented by a single entry `1`, and the entry is composed of `2` values. The `-1` denotes that the number of values along this dimension is flexible.
 
     </details>
     <p></p>
@@ -139,7 +144,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ---
 
-1. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+5. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
    ### Object Isolation Options
 
@@ -252,7 +257,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ---
 
-1. <u>What to do next is entirely left to the you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
+6. <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
@@ -314,6 +319,6 @@ for r in res:
 1. The line populating `contour` is combined into a single line here, where it was split to multiple above.
 2. {==What goes here is up to you!==}
 3. See [Predict Mode](../modes/predict.md) for additional information.
-4. See [Segment Task](../tasks/segment.md/#models) for more information.
-5. Learn more about [Working with Results](../modes/predict.md/#working-with-results)
-6. Learn more about [Segmentation Mask Results](../modes/predict.md/#masks)
+4. See [Segment Task](../tasks/segment.md#models) for more information.
+5. Learn more about [Working with Results](../modes/predict.md#working-with-results)
+6. Learn more about [Segmentation Mask Results](../modes/predict.md#masks)

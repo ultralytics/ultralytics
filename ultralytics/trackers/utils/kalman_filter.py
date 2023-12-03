@@ -39,7 +39,7 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional) of
+            (tuple[ndarray, ndarray]): Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional) of
                 the new track. Unobserved velocities are initialized to 0 mean.
         """
         mean_pos = measurement
@@ -62,7 +62,7 @@ class KalmanFilterXYAH:
             covariance (ndarray): The 8x8 dimensional covariance matrix of the object state at the previous time step.
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the mean vector and covariance matrix of the predicted state. Unobserved
+            (tuple[ndarray, ndarray]): Returns the mean vector and covariance matrix of the predicted state. Unobserved
                 velocities are initialized to 0 mean.
         """
         std_pos = [
@@ -87,7 +87,7 @@ class KalmanFilterXYAH:
             covariance (ndarray): The state's covariance matrix (8x8 dimensional).
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the projected mean and covariance matrix of the given state estimate.
+            (tuple[ndarray, ndarray]): Returns the projected mean and covariance matrix of the given state estimate.
         """
         std = [
             self._std_weight_position * mean[3], self._std_weight_position * mean[3], 1e-1,
@@ -107,7 +107,7 @@ class KalmanFilterXYAH:
             covariance (ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the mean vector and covariance matrix of the predicted state. Unobserved
+            (tuple[ndarray, ndarray]): Returns the mean vector and covariance matrix of the predicted state. Unobserved
                 velocities are initialized to 0 mean.
         """
         std_pos = [
@@ -138,7 +138,7 @@ class KalmanFilterXYAH:
                 position, a the aspect ratio, and h the height of the bounding box.
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the measurement-corrected state distribution.
+            (tuple[ndarray, ndarray]): Returns the measurement-corrected state distribution.
         """
         projected_mean, projected_cov = self.project(mean, covariance)
 
@@ -212,7 +212,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             measurement (ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and height.
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional) of
+            (tuple[ndarray, ndarray]): Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional) of
                 the new track. Unobserved velocities are initialized to 0 mean.
         """
         mean_pos = measurement
@@ -236,7 +236,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             covariance (ndarray): The 8x8 dimensional covariance matrix of the object state at the previous time step.
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the mean vector and covariance matrix of the predicted state. Unobserved
+            (tuple[ndarray, ndarray]): Returns the mean vector and covariance matrix of the predicted state. Unobserved
                 velocities are initialized to 0 mean.
         """
         std_pos = [
@@ -261,7 +261,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             covariance (ndarray): The state's covariance matrix (8x8 dimensional).
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the projected mean and covariance matrix of the given state estimate.
+            (tuple[ndarray, ndarray]): Returns the projected mean and covariance matrix of the given state estimate.
         """
         std = [
             self._std_weight_position * mean[2], self._std_weight_position * mean[3],
@@ -281,7 +281,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             covariance (ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the mean vector and covariance matrix of the predicted state. Unobserved
+            (tuple[ndarray, ndarray]): Returns the mean vector and covariance matrix of the predicted state. Unobserved
                 velocities are initialized to 0 mean.
         """
         std_pos = [
@@ -312,6 +312,6 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 position, w the width, and h the height of the bounding box.
 
         Returns:
-            tuple[ndarray, ndarray]: Returns the measurement-corrected state distribution.
+            (tuple[ndarray, ndarray]): Returns the measurement-corrected state distribution.
         """
         return super().update(mean, covariance, measurement)

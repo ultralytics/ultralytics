@@ -89,7 +89,7 @@ class GMC:
             detections (list): List of detections to be used in the processing.
 
         Returns:
-            np.array: Processed frame.
+            (np.array): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -115,7 +115,7 @@ class GMC:
             detections (list): List of detections to be used in the processing.
 
         Returns:
-            np.array: Processed frame.
+            (np.array): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -162,7 +162,7 @@ class GMC:
             detections (list): List of detections to be used in the processing.
 
         Returns:
-            np.array: Processed frame.
+            (np.array): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -301,7 +301,7 @@ class GMC:
             detections (list): List of detections to be used in the processing.
 
         Returns:
-            np.array: Processed frame.
+            (np.array): Processed frame.
 
         Examples:
             >>> gmc = GMC()

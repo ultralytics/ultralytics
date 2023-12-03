@@ -67,7 +67,7 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
         btracks (list[STrack] | list[np.ndarray]): List of tracks 'b' or bounding boxes.
 
     Returns:
-        np.ndarray: Cost matrix computed based on IoU.
+        (np.ndarray): Cost matrix computed based on IoU.
     """
 
     if (len(atracks) > 0 and isinstance(atracks[0], np.ndarray)) \
@@ -96,7 +96,7 @@ def embedding_distance(tracks: list, detections: list, metric: str = 'cosine') -
         metric (str, optional): Metric for distance computation. Defaults to 'cosine'.
 
     Returns:
-        np.ndarray: Cost matrix computed based on embeddings.
+        (np.ndarray): Cost matrix computed based on embeddings.
     """
 
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
@@ -119,7 +119,7 @@ def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray:
         detections (list[BaseTrack]): List of detections with scores.
 
     Returns:
-        np.ndarray: Fused similarity matrix.
+        (np.ndarray): Fused similarity matrix.
     """
 
     if cost_matrix.size == 0:

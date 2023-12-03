@@ -114,8 +114,8 @@ def convert_coco(labels_dir='../coco/annotations/',
                 if box[2] <= 0 or box[3] <= 0:  # if w <= 0 and h <= 0
                     continue
 
-                cls = coco80[ann['category_id'] - 1] if cls91to80 else ann['category_id'] - 1  # class
-                box = [cls] + box.tolist()
+                cls_ = coco80[ann['category_id'] - 1] if cls91to80 else ann['category_id'] - 1  # class
+                box = [cls_] + box.tolist()
                 if box not in bboxes:
                     bboxes.append(box)
                     if use_segments and ann.get('segmentation') is not None:
@@ -128,7 +128,7 @@ def convert_coco(labels_dir='../coco/annotations/',
                         else:
                             s = [j for i in ann['segmentation'] for j in i]  # all segments concatenated
                             s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                        s = [cls] + s
+                        s = [cls_] + s
                         segments.append(s)
                     if use_keypoints and ann.get('keypoints') is not None:
                         keypoints.append(box + (np.array(ann['keypoints']).reshape(-1, 3) /

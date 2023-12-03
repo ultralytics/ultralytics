@@ -35,7 +35,7 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
     det_results = det_model(data, stream=True, device=device)
 
     for result in det_results:
-        class_ids = result.boxes.cls.int().tolist()  # noqa
+        class_ids = result.boxes.cls_.int().tolist()  # noqa
         if len(class_ids):
             boxes = result.boxes.xyxy  # Boxes object for bbox outputs
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)

@@ -41,9 +41,9 @@ class BOTrack(STrack):
     """
     shared_kalman = KalmanFilterXYWH()
 
-    def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
+    def __init__(self, tlwh, score, cls_, feat=None, feat_history=50):
         """Initialize YOLOv8 object with temporal parameters, such as feature history, alpha and current features."""
-        super().__init__(tlwh, score, cls)
+        super().__init__(tlwh, score, cls_)
 
         self.smooth_feat = None
         self.curr_feat = None
@@ -163,15 +163,15 @@ class BOTSORT(BYTETracker):
         """Returns an instance of KalmanFilterXYWH for object tracking."""
         return KalmanFilterXYWH()
 
-    def init_track(self, dets, scores, cls, img=None):
+    def init_track(self, dets, scores, cls_, img=None):
         """Initialize track with detections, scores, and classes."""
         if len(dets) == 0:
             return []
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder.inference(img, dets)
-            return [BOTrack(xyxy, s, c, f) for (xyxy, s, c, f) in zip(dets, scores, cls, features_keep)]  # detections
+            return [BOTrack(xyxy, s, c, f) for (xyxy, s, c, f) in zip(dets, scores, cls_, features_keep)]  # detections
         else:
-            return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]  # detections
+            return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls_)]  # detections
 
     def get_dists(self, tracks, detections):
         """Get distances between tracks and detections using IoU and (optionally) ReID embeddings."""

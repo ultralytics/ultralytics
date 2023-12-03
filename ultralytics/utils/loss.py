@@ -202,7 +202,7 @@ class v8DetectionLoss:
                                               target_scores_sum, fg_mask)
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.cls  # cls gain
+        loss[1] *= self.hyp.cls_ # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
@@ -278,7 +278,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.box  # seg gain
-        loss[2] *= self.hyp.cls  # cls gain
+        loss[2] *= self.hyp.cls_ # cls gain
         loss[3] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
@@ -439,7 +439,7 @@ class v8PoseLoss(v8DetectionLoss):
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain
-        loss[3] *= self.hyp.cls  # cls gain
+        loss[3] *= self.hyp.cls_ # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)

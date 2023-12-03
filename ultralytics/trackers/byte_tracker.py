@@ -43,7 +43,7 @@ class STrack(BaseTrack):
 
     shared_kalman = KalmanFilterXYAH()
 
-    def __init__(self, tlwh, score, cls):
+    def __init__(self, tlwh, score, cls_):
         """Initialize new STrack instance."""
         self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float32)
         self.kalman_filter = None
@@ -52,7 +52,7 @@ class STrack(BaseTrack):
 
         self.score = score
         self.tracklet_len = 0
-        self.cls = cls
+        self.cls_ = cls_
         self.idx = tlwh[-1]
 
     def predict(self):
@@ -120,7 +120,7 @@ class STrack(BaseTrack):
         if new_id:
             self.track_id = self.next_id()
         self.score = new_track.score
-        self.cls = new_track.cls
+        self.cls_ = new_track.cls_
         self.idx = new_track.idx
 
     def update(self, new_track, frame_id):
@@ -141,7 +141,7 @@ class STrack(BaseTrack):
         self.is_activated = True
 
         self.score = new_track.score
-        self.cls = new_track.cls
+        self.cls_ = new_track.cls_
         self.idx = new_track.idx
 
     def convert_coords(self, tlwh):
@@ -247,7 +247,7 @@ class BYTETracker:
         bboxes = results.xyxy
         # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
-        cls = results.cls
+        cls_ = results.cls_
 
         remain_inds = scores > self.args.track_high_thresh
         inds_low = scores > self.args.track_low_thresh
@@ -258,8 +258,8 @@ class BYTETracker:
         dets = bboxes[remain_inds]
         scores_keep = scores[remain_inds]
         scores_second = scores[inds_second]
-        cls_keep = cls[remain_inds]
-        cls_second = cls[inds_second]
+        cls_keep = cls_[remain_inds]
+        cls_second = cls_[inds_second]
 
         detections = self.init_track(dets, scores_keep, cls_keep, img)
         # Add newly detected tracklets to tracked_stracks
@@ -347,16 +347,16 @@ class BYTETracker:
         if len(self.removed_stracks) > 1000:
             self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
         return np.asarray(
-            [x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] for x in self.tracked_stracks if x.is_activated],
+            [x.tlbr.tolist() + [x.track_id, x.score, x.cls_, x.idx] for x in self.tracked_stracks if x.is_activated],
             dtype=np.float32)
 
     def get_kalmanfilter(self):
         """Returns a Kalman filter object for tracking bounding boxes."""
         return KalmanFilterXYAH()
 
-    def init_track(self, dets, scores, cls, img=None):
+    def init_track(self, dets, scores, cls_, img=None):
         """Initialize object tracking with detections and scores using STrack algorithm."""
-        return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
+        return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls_)] if len(dets) else []  # detections
 
     def get_dists(self, tracks, detections):
         """Calculates the distance between tracks and detections using IOU and fuses scores."""

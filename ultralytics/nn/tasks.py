@@ -269,12 +269,12 @@ class DetectionModel(BaseModel):
     def _descale_pred(p, flips, scale, img_size, dim=1):
         """De-scale predictions following augmented inference (inverse operation)."""
         p[:, :4] /= scale  # de-scale
-        x, y, wh, cls = p.split((1, 1, 2, p.shape[dim] - 4), dim)
+        x, y, wh, cls_ = p.split((1, 1, 2, p.shape[dim] - 4), dim)
         if flips == 2:
             y = img_size[0] - y  # de-flip ud
         elif flips == 3:
             x = img_size[1] - x  # de-flip lr
-        return torch.cat((x, y, wh, cls), dim)
+        return torch.cat((x, y, wh, cls_), dim)
 
     def _clip_augmented(self, y):
         """Clip YOLO augmented inference tails."""

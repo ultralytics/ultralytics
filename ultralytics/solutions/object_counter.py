@@ -107,14 +107,14 @@ class ObjectCounter:
 
     def extract_and_process_tracks(self, tracks):
         boxes = tracks[0].boxes.xyxy.cpu()
-        clss = tracks[0].boxes.cls.cpu().tolist()
+        clss = tracks[0].boxes.cls_.cpu().tolist()
         track_ids = tracks[0].boxes.id.int().cpu().tolist()
 
         self.annotator = Annotator(self.im0, self.tf, self.names)
         self.annotator.draw_region(reg_pts=self.reg_pts, color=(0, 255, 0))
 
-        for box, track_id, cls in zip(boxes, track_ids, clss):
-            self.annotator.box_label(box, label=self.names[cls], color=colors(int(cls), True))  # Draw bounding box
+        for box, track_id, cls_ in zip(boxes, track_ids, clss):
+            self.annotator.box_label(box, label=self.names[cls_], color=colors(int(cls_), True))  # Draw bounding box
 
             # Draw Tracks
             track_line = self.track_history[track_id]

@@ -262,17 +262,17 @@ class Mosaic(BaseMixTransform):
         """Return labels with mosaic border instances clipped."""
         if len(mosaic_labels) == 0:
             return {}
-        cls = []
+        cls_ = []
         instances = []
         imgsz = self.imgsz * 2  # mosaic imgsz
         for labels in mosaic_labels:
-            cls.append(labels['cls'])
+            cls_.append(labels['cls'])
             instances.append(labels['instances'])
         final_labels = {
             'im_file': mosaic_labels[0]['im_file'],
             'ori_shape': mosaic_labels[0]['ori_shape'],
             'resized_shape': (imgsz, imgsz),
-            'cls': np.concatenate(cls, 0),
+            'cls': np.concatenate(cls_, 0),
             'instances': Instances.concatenate(instances, axis=0),
             'mosaic_border': self.border}  # final_labels
         final_labels['instances'].clip(imgsz, imgsz)
@@ -482,7 +482,7 @@ class RandomPerspective:
         labels.pop('ratio_pad', None)  # do not need ratio pad
 
         img = labels['img']
-        cls = labels['cls']
+        cls_ = labels['cls']
         instances = labels.pop('instances')
         # Make sure the coord formats are right
         instances.convert_bbox(format='xyxy')
@@ -515,7 +515,7 @@ class RandomPerspective:
                                 box2=new_instances.bboxes.T,
                                 area_thr=0.01 if len(segments) else 0.10)
         labels['instances'] = new_instances[i]
-        labels['cls'] = cls[i]
+        labels['cls'] = cls_[i]
         labels['img'] = img
         labels['resized_shape'] = img.shape[:2]
         return labels
@@ -744,7 +744,7 @@ class CopyPaste:
             2. This method modifies the input dictionary 'labels' in place.
         """
         im = labels['img']
-        cls = labels['cls']
+        cls_ = labels['cls']
         h, w = im.shape[:2]
         instances = labels.pop('instances')
         instances.convert_bbox(format='xyxy')
@@ -762,7 +762,7 @@ class CopyPaste:
             indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
             n = len(indexes)
             for j in random.sample(list(indexes), k=round(self.p * n)):
-                cls = np.concatenate((cls, cls[[j]]), axis=0)
+                cls_ = np.concatenate((cls_, cls_[[j]]), axis=0)
                 instances = Instances.concatenate((instances, ins_flip[[j]]), axis=0)
                 cv2.drawContours(im_new, instances.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
 
@@ -771,7 +771,7 @@ class CopyPaste:
             im[i] = result[i]
 
         labels['img'] = im
-        labels['cls'] = cls
+        labels['cls'] = cls_
         labels['instances'] = instances
         return labels
 
@@ -814,14 +814,14 @@ class Albumentations:
     def __call__(self, labels):
         """Generates object detections and returns a dictionary with detection results."""
         im = labels['img']
-        cls = labels['cls']
+        cls_ = labels['cls']
         if len(cls):
             labels['instances'].convert_bbox('xywh')
             labels['instances'].normalize(*im.shape[:2][::-1])
             bboxes = labels['instances'].bboxes
             # TODO: add supports of segments and keypoints
             if self.transform and random.random() < self.p:
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
+                new = self.transform(image=im, bboxes=bboxes, class_labels=cls_)  # transformed
                 if len(new['class_labels']) > 0:  # skip update if no bbox in new im
                     labels['img'] = new['image']
                     labels['cls'] = np.array(new['class_labels'])
@@ -867,7 +867,7 @@ class Format:
         """Return formatted image, classes, bounding boxes & keypoints to be used by 'collate_fn'."""
         img = labels.pop('img')
         h, w = img.shape[:2]
-        cls = labels.pop('cls')
+        cls_ = labels.pop('cls')
         instances = labels.pop('instances')
         instances.convert_bbox(format=self.bbox_format)
         instances.denormalize(w, h)
@@ -875,7 +875,7 @@ class Format:
 
         if self.return_mask:
             if nl:
-                masks, instances, cls = self._format_segments(instances, cls, w, h)
+                masks, instances, cls_ = self._format_segments(instances, cls_, w, h)
                 masks = torch.from_numpy(masks)
             else:
                 masks = torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio,
@@ -884,7 +884,7 @@ class Format:
         if self.normalize:
             instances.normalize(w, h)
         labels['img'] = self._format_img(img)
-        labels['cls'] = torch.from_numpy(cls) if nl else torch.zeros(nl)
+        labels['cls'] = torch.from_numpy(cls_) if nl else torch.zeros(nl)
         labels['bboxes'] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels['keypoints'] = torch.from_numpy(instances.keypoints)
@@ -901,18 +901,18 @@ class Format:
         img = torch.from_numpy(img)
         return img
 
-    def _format_segments(self, instances, cls, w, h):
+    def _format_segments(self, instances, cls_, w, h):
         """Convert polygon points to bitmap."""
         segments = instances.segments
         if self.mask_overlap:
             masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
             masks = masks[None]  # (640, 640) -> (1, 640, 640)
             instances = instances[sorted_idx]
-            cls = cls[sorted_idx]
+            cls_ = cls_[sorted_idx]
         else:
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
 
-        return masks, instances, cls
+        return masks, instances, cls_
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):

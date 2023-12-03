@@ -386,7 +386,7 @@ class Annotator:
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
 @plt_settings()
-def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
+def plot_labels(boxes, cls_, names=(), save_dir=Path(''), on_plot=None):
     """Plot training labels including class histograms and box statistics."""
     import pandas as pd
     import seaborn as sn
@@ -397,7 +397,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
     # Plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
-    nc = int(cls.max() + 1)  # number of classes
+    nc = int(cls_.max() + 1)  # number of classes
     boxes = boxes[:1000000]  # limit to 1M boxes
     x = pd.DataFrame(boxes, columns=['x', 'y', 'width', 'height'])
 
@@ -408,7 +408,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
     # Matplotlib labels
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
-    y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
+    y = ax[0].hist(cls_, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
     for i in range(nc):
         y[2].patches[i].set_color([x / 255 for x in colors(i)])
     ax[0].set_ylabel('instances')
@@ -424,8 +424,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
     boxes[:, 0:2] = 0.5  # center
     boxes = ops.xywh2xyxy(boxes) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
-    for cls, box in zip(cls[:500], boxes[:500]):
-        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
+    for cls_i, box in zip(cls_[:500], boxes[:500]):
+        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls_i))  # plot
     ax[1].imshow(img)
     ax[1].axis('off')
 
@@ -491,7 +491,7 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
 @threaded
 def plot_images(images,
                 batch_idx,
-                cls,
+                cls_,
                 bboxes=np.zeros(0, dtype=np.float32),
                 masks=np.zeros(0, dtype=np.uint8),
                 kpts=np.zeros((0, 51), dtype=np.float32),
@@ -502,8 +502,8 @@ def plot_images(images,
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
-    if isinstance(cls, torch.Tensor):
-        cls = cls.cpu().numpy()
+    if isinstance(cls_, torch.Tensor):
+        cls_ = cls_.cpu().numpy()
     if isinstance(bboxes, torch.Tensor):
         bboxes = bboxes.cpu().numpy()
     if isinstance(masks, torch.Tensor):
@@ -545,9 +545,9 @@ def plot_images(images,
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
             annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
-        if len(cls) > 0:
+        if len(cls_) > 0:
             idx = batch_idx == i
-            classes = cls[idx].astype('int')
+            classes = cls_[idx].astype('int')
 
             if len(bboxes):
                 boxes = ops.xywh2xyxy(bboxes[idx, :4]).T
@@ -773,9 +773,9 @@ def output_to_target(output, max_det=300):
     """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
-        box, conf, cls = o[:max_det, :6].cpu().split((4, 1, 1), 1)
+        box, conf, cls_ = o[:max_det, :6].cpu().split((4, 1, 1), 1)
         j = torch.full((conf.shape[0], 1), i)
-        targets.append(torch.cat((j, cls, ops.xyxy2xywh(box), conf), 1))
+        targets.append(torch.cat((j, cls_, ops.xyxy2xywh(box), conf), 1))
     targets = torch.cat(targets, 0).numpy()
     return targets[:, 0], targets[:, 1], targets[:, 2:]
 

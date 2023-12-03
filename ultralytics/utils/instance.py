@@ -124,7 +124,7 @@ class Bboxes:
         return len(self.bboxes)
 
     @classmethod
-    def concatenate(cls, boxes_list: List['Bboxes'], axis=0) -> 'Bboxes':
+    def concatenate(cls_, boxes_list: List['Bboxes'], axis=0) -> 'Bboxes':
         """
         Concatenate a list of Bboxes objects into a single Bboxes object.
 
@@ -141,12 +141,12 @@ class Bboxes:
         """
         assert isinstance(boxes_list, (list, tuple))
         if not boxes_list:
-            return cls(np.empty(0))
+            return cls_(np.empty(0))
         assert all(isinstance(box, Bboxes) for box in boxes_list)
 
         if len(boxes_list) == 1:
             return boxes_list[0]
-        return cls(np.concatenate([b.bboxes for b in boxes_list], axis=axis))
+        return cls_(np.concatenate([b.bboxes for b in boxes_list], axis=axis))
 
     def __getitem__(self, index) -> 'Bboxes':
         """
@@ -377,7 +377,7 @@ class Instances:
         return len(self.bboxes)
 
     @classmethod
-    def concatenate(cls, instances_list: List['Instances'], axis=0) -> 'Instances':
+    def concatenate(cls_, instances_list: List['Instances'], axis=0) -> 'Instances':
         """
         Concatenates a list of Instances objects into a single Instances object.
 
@@ -396,7 +396,7 @@ class Instances:
         """
         assert isinstance(instances_list, (list, tuple))
         if not instances_list:
-            return cls(np.empty(0))
+            return cls_(np.empty(0))
         assert all(isinstance(instance, Instances) for instance in instances_list)
 
         if len(instances_list) == 1:
@@ -409,7 +409,7 @@ class Instances:
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
         cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
+        return cls_(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
 
     @property
     def bboxes(self):

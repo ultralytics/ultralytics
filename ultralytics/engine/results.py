@@ -235,13 +235,13 @@ class Results(SimpleClass):
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
                 im_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
                     2, 0, 1).flip(0).contiguous() / 255
-            idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
+            idx = pred_boxes.cls_ if pred_boxes else range(len(pred_masks))
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
-                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                c, conf, id = int(d.cls_), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
@@ -269,8 +269,8 @@ class Results(SimpleClass):
         if probs is not None:
             log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
         if boxes:
-            for c in boxes.cls.unique():
-                n = (boxes.cls == c).sum()  # detections per class
+            for c in boxes.cls_.unique():
+                n = (boxes.cls_ == c).sum()  # detections per class
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
         return log_string
 
@@ -293,7 +293,7 @@ class Results(SimpleClass):
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
-                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                c, conf, id = int(d.cls_), float(d.conf), None if d.id is None else int(d.id.item())
                 line = (c, *d.xywhn.view(-1))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
@@ -323,7 +323,7 @@ class Results(SimpleClass):
         for d in self.boxes:
             save_one_box(d.xyxy,
                          self.orig_img.copy(),
-                         file=Path(save_dir) / self.names[int(d.cls)] / f'{Path(file_name).stem}.jpg',
+                         file=Path(save_dir) / self.names[int(d.cls_)] / f'{Path(file_name).stem}.jpg',
                          BGR=True)
 
     def tojson(self, normalize=False):
@@ -371,7 +371,7 @@ class Boxes(BaseTensor):
     Attributes:
         xyxy (torch.Tensor | numpy.ndarray): The boxes in xyxy format.
         conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
-        cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
+        cls_ (torch.Tensor | numpy.ndarray): The class values of the boxes.
         id (torch.Tensor | numpy.ndarray): The track IDs of the boxes (if available).
         xywh (torch.Tensor | numpy.ndarray): The boxes in xywh format.
         xyxyn (torch.Tensor | numpy.ndarray): The boxes in xyxy format normalized by original image size.
@@ -406,7 +406,7 @@ class Boxes(BaseTensor):
         return self.data[:, -2]
 
     @property
-    def cls(self):
+    def cls_(self):
         """Return the class values of the boxes."""
         return self.data[:, -1]
 

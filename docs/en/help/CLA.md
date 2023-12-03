@@ -5,7 +5,7 @@ keywords: Ultralytics, Contributor License Agreement, Open Source Software, Cont
 
 # Ultralytics Individual Contributor License Agreement
 
-Thank you for your interest in contributing to open source software projects (“Projects”) made available by Ultralytics SE or its affiliates (“Ultralytics”). This Individual Contributor License Agreement (“Agreement”) sets out the terms governing any source code, object code, bug fixes, configuration changes, tools, specifications, documentation, data, materials, feedback, information or other works of authorship that you submit or have submitted, in any form and in any manner, to Ultralytics in respect of any Projects (collectively “Contributions”). If you have any questions respecting this Agreement, please contact hello@ultralytics.com.
+Thank you for your interest in contributing to open source software projects (“Projects”) made available by Ultralytics Inc. (“Ultralytics”). This Individual Contributor License Agreement (“Agreement”) sets out the terms governing any source code, object code, bug fixes, configuration changes, tools, specifications, documentation, data, materials, feedback, information or other works of authorship that you submit or have submitted, in any form and in any manner, to Ultralytics in respect of any Projects (collectively “Contributions”). If you have any questions respecting this Agreement, please contact hello@ultralytics.com.
 
 You agree that the following terms apply to all of your past, present and future Contributions. Except for the licenses granted in this Agreement, you retain all of your right, title and interest in and to your Contributions.
 

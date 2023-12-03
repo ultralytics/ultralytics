@@ -815,7 +815,7 @@ class Albumentations:
         """Generates object detections and returns a dictionary with detection results."""
         im = labels['img']
         cls_ = labels['cls']
-        if len(cls):
+        if len(cls_):
             labels['instances'].convert_bbox('xywh')
             labels['instances'].normalize(*im.shape[:2][::-1])
             bboxes = labels['instances'].bboxes

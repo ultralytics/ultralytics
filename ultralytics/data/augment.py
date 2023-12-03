@@ -818,9 +818,9 @@ class Albumentations:
         cls = labels['cls']
         if len(cls):
             h, w = im.shape[:2]
-            # record whether instances were normalized before transform in order to restore later
+            # Remember if instances are normalized before transform to restore later
             normalized = labels['instances'].normalized
-            # convert denormalized segments to masks
+            # Convert denormalized segments to masks
             labels['instances'].denormalize(w, h)
             masks = None
             if labels['instances'].segments.shape[0] > 0:

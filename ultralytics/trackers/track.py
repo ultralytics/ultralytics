@@ -1,5 +1,3 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-
 from functools import partial
 from pathlib import Path
 
@@ -11,10 +9,11 @@ from ultralytics.utils.checks import check_yaml
 from .bot_sort import BOTSORT
 from .byte_tracker import BYTETracker
 
+# A mapping of tracker types to corresponding tracker classes
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 
-def on_predict_start(predictor, persist=False):
+def on_predict_start(predictor: object, persist: bool = False) -> None:
     """
     Initialize trackers for object tracking during prediction.
 
@@ -27,10 +26,13 @@ def on_predict_start(predictor, persist=False):
     """
     if hasattr(predictor, 'trackers') and persist:
         return
+
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
-    assert cfg.tracker_type in ['bytetrack', 'botsort'], \
-        f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
+
+    if cfg.tracker_type not in ['bytetrack', 'botsort']:
+        raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
+
     trackers = []
     for _ in range(predictor.dataset.bs):
         tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
@@ -38,8 +40,14 @@ def on_predict_start(predictor, persist=False):
     predictor.trackers = trackers
 
 
-def on_predict_postprocess_end(predictor, persist=False):
-    """Postprocess detected boxes and update with object tracking."""
+def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
+    """
+    Postprocess detected boxes and update with object tracking.
+
+    Args:
+        predictor (object): The predictor object containing the predictions.
+        persist (bool, optional): Whether to persist the trackers if they already exist. Defaults to False.
+    """
     bs = predictor.dataset.bs
     path, im0s = predictor.batch[:2]
 
@@ -58,7 +66,7 @@ def on_predict_postprocess_end(predictor, persist=False):
         predictor.results[i].update(boxes=torch.as_tensor(tracks[:, :-1]))
 
 
-def register_tracker(model, persist):
+def register_tracker(model: object, persist: bool) -> None:
     """
     Register tracking callbacks to the model for object tracking during prediction.
 

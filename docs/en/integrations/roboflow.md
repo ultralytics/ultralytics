@@ -83,7 +83,7 @@ To use the label assistant, click the cursor icon in the sidebar, SAM will be lo
 <img src="https://media.roboflow.com/ultralytics/rf_annotate_interactive.png" alt="Annotating an image in Roboflow with SAM-powered label assist" width="800">
 </p>
 
-Hover over any object in the image and SAM will recommend an annotation. You can hover to find the right place to annotate, then click to create your annotation. To amend your annotation to be more or less specific, you can click inside or outside of the annotation SAM has created on the document.
+Hover over any object in the image and SAM will recommend an annotation. You can hover to find the right place to annotate, then click to create your annotation. To amend your annotation to be more or less specific, you can click inside or outside the annotation SAM has created on the document.
 
 You can also add tags to images from the Tags panel in the sidebar. You can apply tags to data from a particular area, taken from a specific camera, and more. You can then use these tags to search through data for images matching a tag and generate versions of a dataset with images that contain a particular tag or set of tags.
 

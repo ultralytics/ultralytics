@@ -54,7 +54,7 @@ names:
   0: person
   1: bicycle
   2: car
-  ...
+  # ...
   77: teddy bear
   78: hair drier
   79: toothbrush

@@ -1,12 +1,12 @@
 ---
 comments: true
 description: A step-by-step guide on integrating Ultralytics YOLOv8 with Triton Inference Server for scalable and high-performance deep learning inference deployments.
-keywords: YOLOv8, Triton Inference Server, ONNX, Deep Learning Deployment, Scalable Inference, Ultralytics, NVIDIA, Object Detection, Cloud Inferencing
+keywords: YOLOv8, Triton Inference Server, ONNX, Deep Learning Deployment, Scalable Inference, Ultralytics, NVIDIA, Object Detection, Cloud Inference
 ---
 
 # Triton Inference Server with Ultralytics YOLOv8
 
-The [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inferencing solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultralytics YOLOv8 with Triton Inference Server allows you to deploy scalable, high-performance deep learning inference workloads. This guide provides steps to set up and test the integration.
+The [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultralytics YOLOv8 with Triton Inference Server allows you to deploy scalable, high-performance deep learning inference workloads. This guide provides steps to set up and test the integration.
 
 <p align="center">
   <br>
@@ -25,7 +25,7 @@ Triton Inference Server is designed to deploy a variety of AI models in producti
 
 - Serving multiple models from a single server instance.
 - Dynamic model loading and unloading without server restart.
-- Ensemble inferencing, allowing multiple models to be used together to achieve results.
+- Ensemble inference, allowing multiple models to be used together to achieve results.
 - Model versioning for A/B testing and rolling updates.
 
 ## Prerequisites

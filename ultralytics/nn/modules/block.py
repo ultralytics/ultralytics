@@ -339,16 +339,15 @@ class ResNetBlock(nn.Module):
     def __init__(self, c1, c2, s=1, e=4):
         """Initialize convolution with given parameters."""
         super().__init__()
-        self.conv1 = Conv(c1, c2, k=1, s=1, act=True)
-        self.conv2 = Conv(c2, c2, k=3, s=s, p=1, act=True)
-        self.conv3 = Conv(c2, e * c2, k=1, act=False)
-        self.shortcut = nn.Sequential(Conv(c1, e *
-                                           c2, k=1, s=s, act=False)) if s != 1 or c1 != e * c2 else nn.Sequential()
+        c3 = e * c2
+        self.cv1 = Conv(c1, c2, k=1, s=1, act=True)
+        self.cv2 = Conv(c2, c2, k=3, s=s, p=1, act=True)
+        self.cv3 = Conv(c2, c3, k=1, act=False)
+        self.shortcut = nn.Sequential(Conv(c1, c3, k=1, s=s, act=False)) if s != 1 or c1 != c3 else nn.Identity()
 
     def forward(self, x):
         """Forward pass through the ResNet block."""
-        out = F.relu(self.conv3(self.conv2(self.conv1(x))) + self.shortcut(x))
-        return out
+        return F.relu(self.cv3(self.cv2(self.cv1(x))) + self.shortcut(x))
 
 
 class ResNetLayer(nn.Module):

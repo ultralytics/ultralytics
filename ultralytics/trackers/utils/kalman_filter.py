@@ -174,7 +174,7 @@ class KalmanFilterXYAH:
                 squared Euclidean distance and 'maha' for the squared Mahalanobis distance. Defaults to 'maha'.
 
         Returns:
-            ndarray: Returns an array of length N, where the i-th element contains the squared distance between
+            (np.ndarray): Returns an array of length N, where the i-th element contains the squared distance between
                 (mean, covariance) and `measurements[i]`.
         """
         mean, covariance = self.project(mean, covariance)
@@ -309,7 +309,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             mean (ndarray): The predicted state's mean vector (8 dimensional).
             covariance (ndarray): The state's covariance matrix (8x8 dimensional).
             measurement (ndarray): The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center
-            position, w the width, and h the height of the bounding box.
+                position, w the width, and h the height of the bounding box.
 
         Returns:
             tuple[ndarray, ndarray]: Returns the measurement-corrected state distribution.

@@ -803,9 +803,8 @@ class Albumentations:
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0)]  # transforms
-            self.transform = A.Compose(T,
-                                       bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels',
-                                                                                             'indices']))
+            bbox_params = A.BboxParams(format='yolo', label_fields=['class_labels', 'indices'])
+            self.transform = A.Compose(T, bbox_params=bbox_params)
 
             LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
         except ImportError:  # package not installed, skip

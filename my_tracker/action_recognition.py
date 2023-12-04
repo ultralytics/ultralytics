@@ -15,16 +15,19 @@ text_padding = 7
 class ActionRecognizer:
     def __init__(self, config):
         # Gathering parameters
-        self.gathering_enabled = config["gathering"]["enabled"]
-        self.distance_threshold = config["gathering"]["distance_threshold"]
-        self.area_threshold = config["gathering"]["area_threshold"]
+        self.g_enabled = config["gather"]["enabled"]
+        self.g_distance_threshold = config["gather"]["distance_threshold"]
+        self.g_area_threshold = config["gather"]["area_threshold"]
         # Standing still parameters
-        self.ss_enabled = config["standing_still"]["enabled"]
-        self.ss_speed_threshold = config["standing_still"]["speed_threshold"]
+        self.ss_enabled = config["stand_still"]["enabled"]
+        self.ss_speed_threshold = config["stand_still"]["speed_threshold"]
         # Fast approach parameters
-        self.fa_enabled = config["fast_approaching"]["enabled"]
-        self.fa_distance_threshold = config["fast_approaching"]["distance_threshold"]
-        self.fa_speed_threshold = config["fast_approaching"]["speed_threshold"]
+        self.fa_enabled = config["fast_approach"]["enabled"]
+        self.fa_distance_threshold = config["fast_approach"]["distance_threshold"]
+        self.fa_speed_threshold = config["fast_approach"]["speed_threshold"]
+        # Suddenly running parameters
+        self.sr_enabled = config["suddenly_run"]["enabled"]
+        self.sr_acceleration_threshold = config["suddenly_run"]["acceleration_threshold"]
 
     def recognize_frame(self, tracks, frame):
         """
@@ -35,13 +38,16 @@ class ActionRecognizer:
         """
         ar_results = {}
 
-        if self.gathering_enabled:
-            ar_results["gathering"] = self.recognize_gathering(tracks)
+        if self.g_enabled:
+            ar_results["gather"] = self.recognize_gather(tracks)
         if self.ss_enabled:
-            ar_results["standing_still"] = self.recognize_standing_still(tracks)
+            ar_results["stand_still"] = self.recognize_stand_still(tracks)
         if self.fa_enabled:
             ar_results["fast_approach"] = self.recognize_fast_approach(tracks, frame)
+        if self.sr_enabled:
+            ar_results["suddenly_run"] = self.recognize_suddenly_run(tracks)
 
+        # TODO: merge individual actions so that we only loop and annotate once
         return ar_results
 
     def annotate(self, frame, ar_results):
@@ -53,19 +59,22 @@ class ActionRecognizer:
         Returns:
             frame (np.array): annotated frame.
         """
-        if self.gathering_enabled:
-            frame = self.annotate_gathering(frame, ar_results["gathering"])
+        if self.g_enabled:
+            frame = self.annotate_gather(frame, ar_results["gather"])
 
         # TODO: merge individual actions so that we only loop and annotate once
         if self.ss_enabled:
-            frame = self.annotate_standing_still(frame, ar_results["standing_still"])
+            frame = self.annotate_stand_still(frame, ar_results["stand_still"])
 
         if self.fa_enabled:
             frame = self.annotate_fast_approach(frame, ar_results["fast_approach"])
 
+        if self.sr_enabled:
+            frame = self.annotate_suddenly_run(frame, ar_results["suddenly_run"])
+
         return frame
 
-    def recognize_gathering(self, tracks):
+    def recognize_gather(self, tracks):
         """
         Recognizes gatherings in a frame by computing the normalized euclidean distance between all pairs of detections
         and conditioning pairs to have similar areas. Then, it finds the independent chains in the graph and computes
@@ -87,8 +96,8 @@ class ActionRecognizer:
                 distance, a1, a2 = self.compute_ned(det1, det2)
 
                 # If distance is below threshold and the ratio between the areas is within the threshold add pair
-                if distance <= self.distance_threshold and \
-                        (self.area_threshold <= a1/a2 <= (1/self.area_threshold)):
+                if distance <= self.g_distance_threshold and \
+                        (self.g_area_threshold <= a1/a2 <= (1/self.g_area_threshold)):
                     pairs.append([i, j])
 
         # Find independent chains in the graph
@@ -165,20 +174,20 @@ class ActionRecognizer:
         # TODO maybe add more space to the bounding box, not narrow it down to the crowd
         return np.array(crowd_box)
 
-    def recognize_standing_still(self, tracks):
+    def recognize_stand_still(self, tracks):
         # TODO: also controlled by sv.STrack.frame_stride
         frame_stride = tracks[0].frame_stride
         ss_results = {}
         for track in tracks:
             if track.tracklet_len > frame_stride and track.class_ids == 0:
-                pixel_s, pixel_a, _ = self.differentiate(track)
+                pixel_s, pixel_a, _ = self.get_motion_descriptors(track)
                 if pixel_s < self.ss_speed_threshold:   # TODO: condition on acceleration?
                     ss_results[track.track_id] = track.tlbr
         return ss_results if len(ss_results.keys()) > 0 else None
 
-    def differentiate(self, track):
+    def get_motion_descriptors(self, track):
 
-        dif = (track.mean - track.prev_states[-1]) / track.frame_stride
+        """dif = (track.mean - track.prev_states[-1]) / track.frame_stride
         if len(track.prev_states) > 1:
             dif_prev = (track.prev_states[-1] - track.prev_states[-2]) / track.frame_stride
         else:
@@ -190,12 +199,40 @@ class ActionRecognizer:
         pixel_s = (dif_speed + dif_prev_speed) / 2
 
         # Acceleration
-        pixel_a = (dif_speed - dif_prev_speed) / track.frame_stride
+        pixel_a = abs(dif_speed - dif_prev_speed) / track.frame_stride
 
         # Direction of movement
-        direction = dif[:2] + dif_prev[:2]
+        direction = dif[:2] + dif_prev[:2]"""
 
-        return pixel_s, pixel_a, direction
+        ##########################################
+        # MEAN SPEED
+        ##########################################
+        states = track.prev_states + [track.mean]
+        X = []
+        Y = []
+        for state in states:
+            X.append(state[0])
+            Y.append(state[1])
+        X = np.array(X)
+        Y = np.array(Y)
+
+        dX = np.diff(X)
+        dY = np.diff(Y)
+        distance = np.sqrt(dX**2 + dY**2)
+
+        # Speed
+        speeds = distance / track.frame_stride
+        avg_speed = np.mean(speeds)
+        # Acceleration
+        # TODO: we should use instant acceleration, not average, speeds[-3:]?
+        acceleration = np.diff(speeds[-2:]) / track.frame_stride
+        avg_acceleration = np.mean(acceleration)
+        # Direction of movement in Y axis
+        direction = np.mean(np.sign(dY))
+        #angles = np.arctan2(dY, dX)
+        #direction = np.degrees(np.mean(angles))
+
+        return avg_speed, avg_acceleration, direction
 
     def recognize_fast_approach(self, tracks, frame):
         valid_classes = [0, 1, 2]   # personnel, car, truck
@@ -204,8 +241,8 @@ class ActionRecognizer:
         fa_results = {}
         for track in tracks:
             if track.class_ids in valid_classes and track.frame_id > 1:
-                pixel_s, pixel_a, direction = self.differentiate(track)
-                if pixel_s > self.fa_speed_threshold and direction[1] > 0:
+                pixel_s, pixel_a, direction = self.get_motion_descriptors(track)
+                if pixel_s > self.fa_speed_threshold and direction > 0:
                     # Distance between point of interest and bbox
                     dx = max(abs(track.mean[0] - interest_point[0]) - track.mean[2] / 2, 0)
                     dy = max(abs(track.mean[1] - interest_point[1]) - track.mean[3] / 2, 0)
@@ -218,8 +255,18 @@ class ActionRecognizer:
                         fa_results[track.track_id] = track.tlbr
         return fa_results if len(fa_results.keys()) > 0 else None
 
+    def recognize_suddenly_run(self, tracks):
+        sr_results = {}
+        for track in tracks:
+            if track.class_ids == 0 and track.frame_id > 1:
+                # TODO: we should use instant acceleration, not average
+                pixel_s, pixel_a, direction = self.get_motion_descriptors(track)
+                if pixel_a > self.sr_acceleration_threshold:
+                    sr_results[track.track_id] = track.tlbr
+        return sr_results if len(sr_results.keys()) > 0 else None
+
     @staticmethod
-    def annotate_gathering(frame, crowd_results):
+    def annotate_gather(frame, crowd_results):
         """
         Annotates the frame with the results of the gathering recognition. Draws a bounding box around each crowd. Text
         is placed on the bottom right corner of the bounding box.
@@ -280,7 +327,7 @@ class ActionRecognizer:
         return frame
 
     @staticmethod
-    def annotate_standing_still(frame, ss_results):
+    def annotate_stand_still(frame, ss_results):
         if ss_results is not None:
             for idx, bbox in ss_results.items():
                 x1, y1, x2, y2 = bbox.astype(int)
@@ -330,6 +377,50 @@ class ActionRecognizer:
                 x1, y1, x2, y2 = bbox.astype(int)
 
                 text = f"FA"
+                text_width, text_height = cv2.getTextSize(
+                    text=text,
+                    fontFace=font,
+                    fontScale=font_scale,
+                    thickness=font_thickness,
+                )[0]
+
+                # Text must be top right corner of the bounding box of the crowd but outside the frame
+                text_x = x2 - text_padding - text_width
+                text_y = y2 + text_padding + text_height
+
+                text_background_x2 = x2
+                text_background_x1 = x2 - 2 * text_padding - text_width
+
+                text_background_y1 = y2
+                text_background_y2 = y2 + 2 * text_padding + text_height
+
+                cv2.rectangle(
+                    img=frame,
+                    pt1=(text_background_x1, text_background_y1),
+                    pt2=(text_background_x2, text_background_y2),
+                    color=background_color,
+                    thickness=cv2.FILLED,
+                )
+                cv2.putText(
+                    img=frame,
+                    text=text,
+                    org=(text_x, text_y),
+                    fontFace=font,
+                    fontScale=font_scale,
+                    color=text_color,
+                    thickness=font_thickness,
+                    lineType=cv2.LINE_AA,
+                )
+
+        return frame
+
+    @staticmethod
+    def annotate_suddenly_run(frame, sr_results):
+        if sr_results is not None:
+            for idx, bbox in sr_results.items():
+                x1, y1, x2, y2 = bbox.astype(int)
+
+                text = f"SR"
                 text_width, text_height = cv2.getTextSize(
                     text=text,
                     fontFace=font,

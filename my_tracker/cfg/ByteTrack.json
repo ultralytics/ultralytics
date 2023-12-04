@@ -2,9 +2,9 @@
   "name": "ByteTrack",
 
   "source_weights_path": "./../inference_tools/models/detector_best.pt",
-  "source_video_path": "./data/fa2.mp4",
+  "source_video_path": "./data/example2.mp4",
 
-  "device": "mps",
+  "device": "cpu",
   "video_stride": 1,
 
   "img_size": 640,
@@ -32,23 +32,29 @@
   "save_dir": "./outputs/",
   "save_results": false,
   "display": true,
+
   "action_recognition": {
 
-    "gathering": {
-      "enabled": true,
+    "gather": {
+      "enabled": false,
       "distance_threshold": 1.5,
       "area_threshold": 0.5
     },
 
-    "standing_still": {
+    "stand_still": {
         "enabled": true,
         "speed_threshold": 0.05
     },
 
-    "fast_approaching": {
+    "fast_approach": {
         "enabled": true,
         "distance_threshold": 3,
         "speed_threshold": 0.8
+    },
+
+    "suddenly_run": {
+        "enabled": true,
+        "acceleration_threshold": 0.015
     }
   }
 }

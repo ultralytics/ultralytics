@@ -76,7 +76,18 @@ class STrack(BaseTrack):
 
         # Action recognition: widow of previous states
         self.prev_states = []
-        self.frame_stride = 100
+        self.speed_buffer_len = 5
+        self.frame_stride = 30
+
+        # Action recognition: EMA speed
+        """
+        self.prev_state = None
+        self.EMA_alpha = 0.3
+        self.EMA_speed = None
+        self.prev_EMA_speed = None
+        self.EMA_accel = None
+        self.prev_EMA_accel = None
+        """
 
     def update_features(self, feat):
         feat /= np.linalg.norm(feat)
@@ -197,10 +208,25 @@ class STrack(BaseTrack):
         self.cls = new_track.cls
         self.idx = new_track.idx
 
-        if len(self.prev_states) < 2 or self.frame_id % self.frame_stride == 0:
+        if len(self.prev_states) < self.speed_buffer_len or self.frame_id % self.frame_stride == 0:
             self.prev_states.append(self.mean)
-        if len(self.prev_states) > 2:
+        if len(self.prev_states) > self.speed_buffer_len:
             self.prev_states.pop(0)
+
+        '''
+        if self.prev_state is None:
+            self.prev_state = self.mean
+
+        speed = np.linalg.norm(self.mean[:2] - self.prev_state[:2])
+
+        if self.EMA_speed is None:
+            self.EMA_speed = speed
+        else:
+            self.EMA_speed = self.EMA_alpha * speed + (1 - self.EMA_alpha) * self.prev_EMA_speed
+
+        self.prev_EMA_speed = self.EMA_speed
+        self.prev_state = self.mean
+        '''
 
     def convert_coords(self, tlwh):
         """Convert a bounding box's top-left-width-height format to its x-y-angle-height equivalent."""

@@ -76,7 +76,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
             i = results.index(None)  # first fail index
             if b >= batch_sizes[i]:  # y intercept above failure point
                 b = batch_sizes[max(i - 1, 0)]  # select prior safe point
-        if b < 1 or b > 1024:  # b outside of safe range
+        if b < 1 or (b > 1024 and fraction==0.6): # b outside of safe range - and conservative mode is on
             b = batch_size
             LOGGER.info(f'{prefix}WARNING ⚠️ CUDA anomaly detected, using default batch-size {batch_size}.')
 

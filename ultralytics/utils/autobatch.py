@@ -63,7 +63,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     LOGGER.info(f'{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {a:.2f}G allocated, {f:.2f}G free')
 
     # Profile batch sizes
-    batch_sizes = [1, 2, 4, 8, 16]
+    batch_sizes = [1, 2, 4, 8, 16, 32]
     try:
         img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
         results = profile(img, model, n=3, device=device)
@@ -79,7 +79,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
         if b < 1 or (b > 1024 and fraction==0.6): # b outside of safe range - and conservative mode is on
             b = batch_size
             LOGGER.info(f"b is {b}. fraction is {fraction}.")
-            LOGGER.info(f'{prefix}WARNING ⚠️ CUDA anomaly detected, using default batch-size {batch_size}.')
+            LOGGER.info(f'{prefix} MARTIN EDITING THIS WARNING ⚠️ CUDA anomaly detected, using default batch-size {batch_size}.')
 
         fraction = (np.polyval(p, b) + r + a) / t  # actual fraction predicted
         LOGGER.info(f'{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅')

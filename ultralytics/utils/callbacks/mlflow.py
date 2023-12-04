@@ -128,7 +128,7 @@ def on_train_end(trainer):
     if mlflow:
         mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
         for f in trainer.save_dir.glob('*'):  # log all other files in save_dir
-            if f.suffix in {'.png', '.jpg', '.csv', '.pt', '.yaml'}:
+            if f.suffix in {'.png', '.jpg', '.csv', '.pt', '.yaml', '.json'}:
                 mlflow.log_artifact(str(f))
 
         mlflow.end_run()

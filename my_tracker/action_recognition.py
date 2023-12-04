@@ -22,9 +22,9 @@ class ActionRecognizer:
         self.ss_enabled = config["standing_still"]["enabled"]
         self.ss_speed_threshold = config["standing_still"]["speed_threshold"]
         # Fast approach parameters
-        self.fa_enabled = config["fast_approach"]["enabled"]
-        self.fa_distance_threshold = config["fast_approach"]["distance_threshold"]
-        self.fa_speed_threshold = config["fast_approach"]["speed_threshold"]
+        self.fa_enabled = config["fast_approaching"]["enabled"]
+        self.fa_distance_threshold = config["fast_approaching"]["distance_threshold"]
+        self.fa_speed_threshold = config["fast_approaching"]["speed_threshold"]
 
     def recognize_frame(self, tracks, frame):
         """

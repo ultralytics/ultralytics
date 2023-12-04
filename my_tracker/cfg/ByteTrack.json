@@ -1,8 +1,8 @@
 {
   "name": "ByteTrack",
 
-  "source_weights_path": "/Users/johnny/Projects/models/detector_best.pt",
-  "source_video_path": "/Users/johnny/Projects/new_samples/output.mp4",
+  "source_weights_path": "./../inference_tools/models/detector_best.pt",
+  "source_video_path": "./data/fa2.mp4",
 
   "device": "mps",
   "video_stride": 1,
@@ -29,7 +29,7 @@
   "ablation": "sparseOptFlow",
 
 
-  "save_dir": "/Users/johnny/Projects/small-fast-detector/tracker/outputs/",
+  "save_dir": "./outputs/",
   "save_results": false,
   "display": true,
   "action_recognition": {
@@ -42,8 +42,13 @@
 
     "standing_still": {
         "enabled": true,
-        "frame_window": 100,
-        "speed_threshold": 0.04
+        "speed_threshold": 0.05
+    },
+
+    "fast_approaching": {
+        "enabled": true,
+        "distance_threshold": 3,
+        "speed_threshold": 0.8
     }
   }
 }

@@ -170,8 +170,7 @@ class VideoProcessor:
         detections = sv.Detections.from_ultralytics(results)
         detections, tracks = self.tracker.update(detections, frame)
 
-        # ar_results = self.action_recognizer.recognize_frame(tracks)
-        ar_results = None
+        ar_results = self.action_recognizer.recognize_frame(tracks, frame)
 
         return self.annotate_frame(frame, detections, ar_results,  frame_number, fps)
 
@@ -184,7 +183,7 @@ class VideoProcessor:
                   zip(detections.tracker_id, detections.class_id, detections.confidence)]
         annotated_frame = self.trace_annotator.annotate(annotated_frame, detections)
         annotated_frame = self.box_annotator.annotate(annotated_frame, detections, labels)
-        # annotated_frame = self.action_recognizer.annotate(annotated_frame, crowd_detections)
+        annotated_frame = self.action_recognizer.annotate(annotated_frame, crowd_detections)
         cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 

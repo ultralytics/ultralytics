@@ -74,6 +74,10 @@ class STrack(BaseTrack):
 
         self.alpha = 0.9
 
+        # Action recognition: widow of previous states
+        self.prev_states = []
+        self.frame_stride = 100
+
     def update_features(self, feat):
         feat /= np.linalg.norm(feat)
         self.curr_feat = feat
@@ -192,6 +196,11 @@ class STrack(BaseTrack):
         self.score = new_track.score
         self.cls = new_track.cls
         self.idx = new_track.idx
+
+        if len(self.prev_states) < 2 or self.frame_id % self.frame_stride == 0:
+            self.prev_states.append(self.mean)
+        if len(self.prev_states) > 2:
+            self.prev_states.pop(0)
 
     def convert_coords(self, tlwh):
         """Convert a bounding box's top-left-width-height format to its x-y-angle-height equivalent."""
@@ -459,12 +468,14 @@ class ByteTrack:
         # Create Detections object
         detections = Detections(xyxy=xyxy, class_id=class_ids, tracker_id=tracker_ids, confidence=confidences)
 
+        """
         # Prepare tracks array
         tracks = np.asarray(
             [[*track.tlbr, track.track_id, track.score, track.cls, track.idx] for track in activated_tracks],
             dtype=np.float32) if activated_tracks else np.empty((0, 8), dtype=np.float32)
+        """
 
-        return detections, tracks
+        return detections, activated_tracks
 
     def get_kalmanfilter(self):
         """Returns a Kalman filter object for tracking bounding boxes."""

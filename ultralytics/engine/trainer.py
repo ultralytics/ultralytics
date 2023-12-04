@@ -243,8 +243,10 @@ class BaseTrainer:
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
 
         # Batch size
-        if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
+        if self.batch_size == -1 and RANK == -1:  # single-GPU only, conservative 60% VRAM estimate of best batch size
             self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
+        if self.batch_size == -2 and RANK == -1:  # single-GPU only, optimistic 90% VRAM estimate of best batch size
+            self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp, fraction=0.90)
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)

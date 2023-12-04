@@ -27,7 +27,7 @@ YOLOv5 introduces some minor changes compared to its predecessors:
 
 To test the speed of `SPP` and `SPPF`, the following code can be used:
 
-<details markdown>
+<details>
 <summary>SPP vs SPPF speed profiling example (click to open)</summary>
 
 ```python

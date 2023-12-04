@@ -51,7 +51,7 @@ from email.mime.text import MIMEText
 
 ```python
 password = ""
-from_email = "" # must match the email used to generate the password
+from_email = ""  # must match the email used to generate the password
 to_email = ""  # receiver email
 ```
 
@@ -108,7 +108,7 @@ class ObjectDetection:
         text = f'FPS: {int(fps)}'
         text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2)[0]
         gap = 10
-        cv2.rectangle(im0, (20 - gap, 70 - text_size[1] - gap), (20 + text_size[0] + gap, 70 + gap), (255, 255, 255),-1)
+        cv2.rectangle(im0, (20 - gap, 70 - text_size[1] - gap), (20 + text_size[0] + gap, 70 + gap), (255, 255, 255), -1)
         cv2.putText(im0, text, (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 2)
 
     def plot_bboxes(self, results, im0):
@@ -135,7 +135,7 @@ class ObjectDetection:
             results = self.predict(im0)
             im0, class_ids = self.plot_bboxes(results, im0)
 
-            if len(class_ids) > 0: # Only send email If not sent before
+            if len(class_ids) > 0:  # Only send email If not sent before
                 if not self.email_sent:
                     send_email(to_email, from_email, len(class_ids))
                     self.email_sent = True

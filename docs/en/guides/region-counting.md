@@ -18,7 +18,7 @@ Object counting in regions with [Ultralytics YOLOv8](https://github.com/ultralyt
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLOv8 Object Counting in Multiple & Moveable Regions
+  <strong>Watch:</strong> Ultralytics YOLOv8 Object Counting in Multiple & Movable Regions
 </p>
 
 ## Advantages of Object Counting in Regions?
@@ -52,7 +52,7 @@ cd ultralytics/examples/YOLOv8-Region-Counter
 
 Execute the following basic commands for inference.
 
-???+ tip "Region is Moveable"
+???+ tip "Region is Movable"
 
     During video playback, you can interactively move the region within the video by clicking and dragging using the left mouse button.
 
@@ -75,12 +75,12 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 
 ### Optional Arguments
 
-| Name                 | Type   | Default      | Description                               |
-|----------------------|--------|--------------|-------------------------------------------|
-| `--source`           | `str`  | `None`       | Path to video file, for webcam 0          |
-| `--line_thickness`   | `int`  | `2`          | Bounding Box thickness                    |
-| `--save-img`         | `bool` | `False`      | Save the predicted video/image            |
-| `--weights`          | `str`  | `yolov8n.pt` | Weights file path                         |
-| `--classes`          | `list` | `None`       | Detect specific classes i.e --classes 0 2 |
-| `--region-thickness` | `int`  | `2`          | Region Box thickness                      |
-| `--track-thickness`  | `int`  | `2`          | Tracking line thickness                   |
+| Name                 | Type   | Default      | Description                                |
+|----------------------|--------|--------------|--------------------------------------------|
+| `--source`           | `str`  | `None`       | Path to video file, for webcam 0           |
+| `--line_thickness`   | `int`  | `2`          | Bounding Box thickness                     |
+| `--save-img`         | `bool` | `False`      | Save the predicted video/image             |
+| `--weights`          | `str`  | `yolov8n.pt` | Weights file path                          |
+| `--classes`          | `list` | `None`       | Detect specific classes i.e. --classes 0 2 |
+| `--region-thickness` | `int`  | `2`          | Region Box thickness                       |
+| `--track-thickness`  | `int`  | `2`          | Tracking line thickness                    |

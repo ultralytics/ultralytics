@@ -159,6 +159,7 @@ class ObjectCounter:
         if tracks[0].boxes.id is None:
             return
         self.extract_and_process_tracks(tracks)
+        return self.im0
 
 
 if __name__ == '__main__':

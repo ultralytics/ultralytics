@@ -511,7 +511,7 @@ def image():
 
 
 @pytest.mark.parametrize(
-    'auto_augment, re_prob, force_color_jitter',
+    'auto_augment, erasing, force_color_jitter',
     [
         (None, 0.0, False),
         ('randaugment', 0.5, True),

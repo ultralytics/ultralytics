@@ -1003,15 +1003,11 @@ class MSDAC3x(C3):
     """Modified C3 module with MSDATransformerBlock."""
 
     def __init__(self, c1, c2, num_heads, num_layers, n_levels=4, n_points=4, n=1, shortcut=True, g=1, e=0.5):
-        """Initialize the modified C3 instance."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
-
-        # Mengganti Bottleneck dengan MSDATransformerBlock
         self.m = nn.Sequential(*(MSDATransformerBlock(self.c_, self.c_, num_heads, num_layers, n_levels, n_points) for _ in range(n)))
 
     def forward(self, x, refer_bbox, value_shapes, value_mask=None):
-        """Forward pass through the modified C3 module."""
         x1 = self.cv1(x)
         x_transformed = self.m(x1, refer_bbox, value_shapes, value_mask) if self.m else x1
         return self.cv3(torch.cat((x_transformed, self.cv2(x)), 1))

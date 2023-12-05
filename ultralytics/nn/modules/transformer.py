@@ -534,16 +534,15 @@ class MSDATransformerBlock(nn.Module):
         super().__init__()
         self.conv = Conv(c1, c2) if c1 != c2 else nn.Identity()
         self.linear = nn.Linear(c2, c2)  # learnable position embedding
-        # Gantikan TransformerLayer dengan MSDATransformerBlock
-        self.tr = nn.Sequential(*(MSDATransformerBlock(c2, num_heads, n_levels, n_points) for _ in range(num_layers)))
+        self.tr = nn.Sequential(*(MSDATransformerLayer(c2, num_heads, n_levels, n_points) for _ in range(num_layers)))
         self.c2 = c2
 
     def forward(self, x, refer_bbox, value_shapes, value_mask=None):
-        if self.conv is not None:
+        if isinstance(self.conv, nn.Module):
             x = self.conv(x)
         b, _, w, h = x.shape
         p = x.flatten(2).permute(2, 0, 1)
-        # Pastikan refer_bbox dan value_shapes disediakan atau dihitung
         x = self.tr(p + self.linear(p), refer_bbox, value_shapes, value_mask)
         return x.permute(1, 2, 0).reshape(b, self.c2, w, h)
+
 

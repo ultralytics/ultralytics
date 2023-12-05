@@ -8,13 +8,13 @@ from torch.nn.parameter import Parameter
 
 from torchvision.ops import SqueezeExcitation
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, CombConv, LightConvB, DepthwiseSeparableConv, SqueezeExcite
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, CombConv, LightConvB, QConv, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock, MSDATransformerBlock
 
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3TR')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3TR', 'QC2f')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -1007,3 +1007,18 @@ class MSDAC3TR(C3):
         return self.m(x, refer_bbox, value_shapes, value_mask)
 
 
+class QC2f(nn.Module):
+    """ Modified C2f with Quantum Convolution """
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, n_qubits=4, backend=None, shots=1024):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.qconv = QConv(n_qubits, backend, shots)  # Quantum convolution layer
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g) for _ in range(n))
+
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        y.append(self.qconv(y[-1]))  # Apply quantum convolution here
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))

@@ -6,10 +6,12 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+from qiskit_machine_learning.neural_networks import TorchConnector
+from qiskit_machine_learning.circuit.library import ZZFeatureMap, RealAmplitudes
 
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
-           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv', 'LightConvB', 'LightChannelAttention', 'LightSpatialAttention', 'LightCBAM')
+           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv', 'LightConvB', 'LightChannelAttention', 'LightSpatialAttention', 'LightCBAM', 'QConv')
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -444,4 +446,19 @@ class LightCBAM(nn.Module):
         return self.spatial_attention(self.channel_attention(x))
 
 # Ensure the DWConv class is also defined if used in LightConvB
+
+class QConv(nn.Module):
+    """ Quantum Convolutional Layer """
+    def __init__(self, n_qubits, backend, shots):
+        super(QuantumConv, self).__init__()
+        self.n_qubits = n_qubits
+        self.feature_map = ZZFeatureMap(n_qubits)
+        self.var_form = RealAmplitudes(n_qubits, reps=1)
+        self.qcircuit = TorchConnector(self.feature_map.compose(self.var_form))
+        self.backend = backend
+        self.shots = shots
+
+    def forward(self, x):
+        # Quantum convolution logic
+        return self.qcircuit(x, self.backend, self.shots)
 

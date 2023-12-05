@@ -32,6 +32,7 @@ keywords: Ultralytics, YOLOv8, Objekterkennung, Bildsegmentierung, maschinelles 
   <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Auf Gradient ausführen"></a>
   <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="In Colab öffnen"></a>
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="In Kaggle öffnen"></a>
+  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?style=flat&logo=discord&label=Ultralytics%20Discord"></a>
 </div>
 
 Wir stellen [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) vor, die neueste Version des renommierten Echtzeit-Modells zur Objekterkennung und Bildsegmentierung. YOLOv8 basiert auf den neuesten Erkenntnissen im Bereich Deep Learning und Computer Vision und bietet eine unvergleichliche Leistung hinsichtlich Geschwindigkeit und Genauigkeit. Sein optimiertes Design macht es für verschiedene Anwendungen geeignet und leicht an verschiedene Hardwareplattformen anpassbar, von Edge-Geräten bis hin zu Cloud-APIs.

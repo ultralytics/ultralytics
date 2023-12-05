@@ -32,6 +32,7 @@ keywords: Ultralytics, YOLOv8, обнаружение объектов, сегм
   <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Запустить на Gradient"></a>
   <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Открыть в Colab"></a>
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Открыть в Kaggle"></a>
+  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?style=flat&logo=discord&label=Ultralytics%20Discord"></a>
 </div>
 
 Представляем [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) — последнюю версию знаменитой модели для обнаружения объектов в реальном времени и сегментации изображений. YOLOv8 основан на передовом прогрессе в области глубокого обучения и компьютерного зрения и предлагает непревзойденную производительность в отношении скорости и точности. Его оптимизированная конструкция делает его подходящим для различных приложений и легко адаптируемым к различным аппаратным платформам, от устройств на краю сети до облачных API.

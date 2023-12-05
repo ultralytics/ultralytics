@@ -32,6 +32,7 @@ keywords: Ultralytics، YOLOv8، كشف الكائنات، تجزئة الصور
   <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
   <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?style=flat&logo=discord&label=Ultralytics%20Discord"></a>
 </div>
 
 يتم تقديم [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) ، أحدث إصدار من نموذج كشف الكائنات وتجزئة الصور المشهورة للوقت الفعلي. يعتمد YOLOv8 على التطورات المتقدمة في التعلم العميق والرؤية الحاسوبية ، ويقدم أداءً فائقًا من حيث السرعة والدقة. يجعل التصميم البسيط له مناسبًا لمختلف التطبيقات وقابلًا للتكيف بسهولة مع منصات الأجهزة المختلفة ، من الأجهزة الحافة إلى واجهات برمجة التطبيقات في السحابة.

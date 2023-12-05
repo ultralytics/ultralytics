@@ -37,7 +37,7 @@ def is_url(url, check=True):
             Defaults to True.
 
     Returns:
-        bool: Returns True if the string is a valid URL. If 'check' is True, also returns True if the URL exists online.
+        (bool): Returns True if the string is a valid URL. If 'check' is True, also returns True if the URL exists online.
             Returns False otherwise.
 
     Example:
@@ -362,7 +362,7 @@ def get_github_assets(repo='ultralytics/assets', version='latest', retry=False):
         retry (bool, optional): Flag to retry the request in case of a failure. Defaults to False.
 
     Returns:
-        tuple: A tuple containing the release tag and a list of asset names.
+        (tuple): A tuple containing the release tag and a list of asset names.
 
     Example:
         ```python
@@ -392,10 +392,10 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0', **
         file (str | Path): The filename or file path to be downloaded.
         repo (str, optional): The GitHub repository in the format 'owner/repo'. Defaults to 'ultralytics/assets'.
         release (str, optional): The specific release version to be downloaded. Defaults to 'v0.0.0'.
-        **kwargs: Additional keyword arguments for the download process.
+        **kwargs (dict): Additional keyword arguments for the download process.
 
     Returns:
-        str: The path to the downloaded file.
+        (str): The path to the downloaded file.
 
     Example:
         ```python

@@ -9,7 +9,7 @@ import torch.nn as nn
 
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
-           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv', 'LightConvB', 'LightChannelAttention', 'LightSpatialAttention', 'LightCBAM', 'QConv')
+           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv', 'LightConvB', 'LightChannelAttention', 'LightSpatialAttention', 'LightCBAM', 'QConv', 'LightDSConv')
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -460,3 +460,26 @@ class QConv(nn.Module):
         # Quantum convolution logic
         return self.qcircuit(x, self.backend, self.shots)
 
+
+class LightDSConv(nn.Module):
+    """
+    Light convolution with Batch Normalization.
+    """
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, k=1, act=True):
+        """Initialize Conv layers with Batch Normalization and given arguments including activation."""
+        super().__init__()
+        self.conv1 = DWConv(c1, c2, 1, act=False)
+        self.bn1 = nn.BatchNorm2d(c2)
+        self.conv2 = DepthwiseSeparableConv(c2, c2, k, act=None)
+        self.bn2 = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        """Apply 2 convolutions with Batch Normalization to input tensor."""
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        return self.act(x)

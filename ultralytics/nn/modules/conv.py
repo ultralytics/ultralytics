@@ -6,8 +6,6 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
-from qiskit_machine_learning.neural_networks import TorchConnector
-from qiskit_machine_learning.circuit.library import ZZFeatureMap, RealAmplitudes
 
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',

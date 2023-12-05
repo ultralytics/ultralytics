@@ -31,7 +31,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         from ultralytics import YOLO
         from ultralytics.solutions import ai_gym
         import cv2
-        
+
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         if not cap.isOpened():
@@ -43,7 +43,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
                             view_img=True,
                             pose_type="pushup",
                             kpts_to_check=[6, 8, 10])
-        
+
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
@@ -59,7 +59,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         from ultralytics import YOLO
         from ultralytics.solutions import ai_gym
         import cv2
-        
+
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         if not cap.isOpened():
@@ -70,13 +70,13 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
                                        cv2.VideoWriter_fourcc(*'mp4v'),
                                        int(cap.get(5)),
                                        (int(cap.get(3)), int(cap.get(4))))
-        
+
         gym_object = ai_gym.AIGym()  # init AI GYM module
         gym_object.set_args(line_thickness=2,
                             view_img=True,
                             pose_type="pushup",
                             kpts_to_check=[6, 8, 10])
-        
+
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
@@ -86,7 +86,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
             results = model.predict(im0, verbose=False)
             im0 = gym_object.start_counting(im0, results, frame_count)
             video_writer.write(im0)
-        
+
         video_writer.release()
         ```
 

@@ -29,12 +29,7 @@ class Heatmap:
         self.track_ids = None
         self.clss = None
 
-    def set_args(self,
-                 imw,
-                 imh,
-                 colormap=cv2.COLORMAP_JET,
-                 heatmap_alpha=0.5,
-                 view_img=False):
+    def set_args(self, imw, imh, colormap=cv2.COLORMAP_JET, heatmap_alpha=0.5, view_img=False):
         """
         Configures the heatmap colormap, width, height and display parameters.
 
@@ -69,7 +64,7 @@ class Heatmap:
 
     def generate_heatmap(self, im0, tracks):
         """
-        Generate heatmap based on tracking data
+        Generate heatmap based on tracking data.
 
         Args:
             im0 (nd array): Image
@@ -82,22 +77,18 @@ class Heatmap:
             self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += 1
 
         # Normalize, apply colormap to heatmap and combine with original image
-        heatmap_normalized = cv2.normalize(self.heatmap, None,
-                                           0, 255, cv2.NORM_MINMAX)
-        heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8),
-                                            self.colormap)
-        im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha,
-                                           heatmap_colored, self.heatmap_alpha, 0)
+        heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
+        heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.colormap)
+        im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 
         if self.view_img:
             self.display_frames(im0_with_heatmap)
 
         return im0_with_heatmap
 
-
     def display_frames(self, im0_with_heatmap):
         """
-        Display heatmap
+        Display heatmap.
 
         Args:
             im0_with_heatmap (nd array): Original Image with heatmap
@@ -105,7 +96,6 @@ class Heatmap:
         cv2.imshow('Ultralytics Heatmap', im0_with_heatmap)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             return
-
 
 
 if __name__ == '__main__':

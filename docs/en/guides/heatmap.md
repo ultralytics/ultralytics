@@ -32,7 +32,7 @@ A heatmap with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/)
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
         import cv2
-        
+
         model = YOLO("yolov8s.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         if not cap.isOpened():
@@ -44,22 +44,22 @@ A heatmap with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/)
                              imw=cap.get(4),  # should same as im0 width
                              imh=cap.get(3),  # should same as im0 height
                              view_img=True)
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
-            if not success: 
+            if not success:
                 exit(0)
             results = model.track(im0, persist=True)
             frame = heatmap_obj.generate_heatmap(im0, tracks=results)
 
         ```
-    
+
     === "Heatmap with Specific Classes"
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
         import cv2
-        
+
         model = YOLO("yolov8s.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         if not cap.isOpened():
@@ -73,12 +73,12 @@ A heatmap with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/)
                              imw=cap.get(4),  # should same as im0 width
                              imh=cap.get(3),  # should same as im0 height
                              view_img=True)
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
-            if not success: 
+            if not success:
                 exit(0)
-            results = model.track(im0, persist=True, 
+            results = model.track(im0, persist=True,
                                   classes=classes_for_heatmap)
             frame = heatmap_obj.generate_heatmap(im0, tracks=results)
 
@@ -89,7 +89,7 @@ A heatmap with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/)
         from ultralytics import YOLO
         import heatmap
         import cv2
-        
+
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         if not cap.isOpened():
@@ -100,21 +100,21 @@ A heatmap with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/)
                                        cv2.VideoWriter_fourcc(*'mp4v'),
                                        int(cap.get(5)),
                                        (int(cap.get(3)), int(cap.get(4))))
-        
+
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
                              imw=cap.get(4),  # should same as im0 width
                              imh=cap.get(3),  # should same as im0 height
                              view_img=True)
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
-            if not success: 
+            if not success:
                 exit(0)
             results = model.track(im0, persist=True)
             frame = heatmap_obj.generate_heatmap(im0, tracks=results)
             video_writer.write(im0)
-        
+
         video_writer.release()
         ```
 

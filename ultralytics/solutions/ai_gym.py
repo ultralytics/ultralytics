@@ -127,5 +127,6 @@ class AIGym:
 
         return self.im0
 
+
 if __name__ == '__main__':
     AIGym()

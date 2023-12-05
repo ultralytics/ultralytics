@@ -16,6 +16,20 @@ from .encoders import ImageEncoderViT, PromptEncoder
 
 
 class Sam(nn.Module):
+    """
+    Sam (Segment Anything Model) is designed for object segmentation tasks. It uses image encoders to generate image
+    embeddings, and prompt encoders to encode various types of input prompts. These embeddings are then used by the mask
+    decoder to predict object masks.
+
+    Attributes:
+        mask_threshold (float): Threshold value for mask prediction.
+        image_format (str): Format of the input image, default is 'RGB'.
+        image_encoder (ImageEncoderViT): The backbone used to encode the image into embeddings.
+        prompt_encoder (PromptEncoder): Encodes various types of input prompts.
+        mask_decoder (MaskDecoder): Predicts object masks from the image and prompt embeddings.
+        pixel_mean (List[float]): Mean pixel values for image normalization.
+        pixel_std (List[float]): Standard deviation values for image normalization.
+    """
     mask_threshold: float = 0.0
     image_format: str = 'RGB'
 
@@ -28,18 +42,19 @@ class Sam(nn.Module):
         pixel_std: List[float] = (58.395, 57.12, 57.375)
     ) -> None:
         """
-        SAM predicts object masks from an image and input prompts.
+        Initialize the Sam class to predict object masks from an image and input prompts.
 
         Note:
             All forward() operations moved to SAMPredictor.
 
         Args:
-          image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings that allow for
-            efficient mask prediction.
-          prompt_encoder (PromptEncoder): Encodes various types of input prompts.
-          mask_decoder (MaskDecoder): Predicts masks from the image embeddings and encoded prompts.
-          pixel_mean (list(float)): Mean values for normalizing pixels in the input image.
-          pixel_std (list(float)): Std values for normalizing pixels in the input image.
+            image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings.
+            prompt_encoder (PromptEncoder): Encodes various types of input prompts.
+            mask_decoder (MaskDecoder): Predicts masks from the image embeddings and encoded prompts.
+            pixel_mean (List[float], optional): Mean values for normalizing pixels in the input image. Defaults to
+                (123.675, 116.28, 103.53).
+            pixel_std (List[float], optional): Std values for normalizing pixels in the input image. Defaults to
+                (58.395, 57.12, 57.375).
         """
         super().__init__()
         self.image_encoder = image_encoder

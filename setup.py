@@ -12,6 +12,12 @@ README = (PARENT / 'README.md').read_text(encoding='utf-8')
 
 
 def get_version():
+    """
+    Retrieve the version number from the 'ultralytics/__init__.py' file.
+
+    Returns:
+        (str): The version number extracted from the '__version__' attribute in the 'ultralytics/__init__.py' file.
+    """
     file = PARENT / 'ultralytics/__init__.py'
     return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(encoding='utf-8'), re.M)[1]
 
@@ -24,7 +30,7 @@ def parse_requirements(file_path: Path):
         file_path (str | Path): Path to the requirements.txt file.
 
     Returns:
-        List[str]: List of parsed requirements.
+        (List[str]): List of parsed requirements.
     """
 
     requirements = []
@@ -62,17 +68,19 @@ setup(
         'dev': [
             'ipython',
             'check-manifest',
+            'pre-commit',
             'pytest',
             'pytest-cov',
             'coverage',
             'mkdocs-material',
             'mkdocstrings[python]',
             'mkdocs-redirects',  # for 301 redirects
-            'mkdocs-ultralytics-plugin>=0.0.27',  # for meta descriptions and images, dates and authors
+            'mkdocs-ultralytics-plugin>=0.0.34',  # for meta descriptions and images, dates and authors
         ],
         'export': [
-            'coremltools>=7.0.b1',
+            'coremltools>=7.0',
             'openvino-dev>=2023.0',
+            'tensorflow<=2.13.1',  # TF bug https://github.com/ultralytics/ultralytics/issues/5161
             'tensorflowjs',  # automatically installs tensorflow
         ], },
     classifiers=[

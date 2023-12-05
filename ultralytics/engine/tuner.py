@@ -31,32 +31,32 @@ from ultralytics.utils.plotting import plot_tune_results
 
 class Tuner:
     """
-     Class responsible for hyperparameter tuning of YOLO models.
+    Class responsible for hyperparameter tuning of YOLO models.
 
-     The class evolves YOLO model hyperparameters over a given number of iterations
-     by mutating them according to the search space and retraining the model to evaluate their performance.
+    The class evolves YOLO model hyperparameters over a given number of iterations
+    by mutating them according to the search space and retraining the model to evaluate their performance.
 
-     Attributes:
-         space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
-         tune_dir (Path): Directory where evolution logs and results will be saved.
-         tune_csv (Path): Path to the CSV file where evolution logs are saved.
+    Attributes:
+        space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
+        tune_dir (Path): Directory where evolution logs and results will be saved.
+        tune_csv (Path): Path to the CSV file where evolution logs are saved.
 
-     Methods:
-         _mutate(hyp: dict) -> dict:
-             Mutates the given hyperparameters within the bounds specified in `self.space`.
+    Methods:
+        _mutate(hyp: dict) -> dict:
+            Mutates the given hyperparameters within the bounds specified in `self.space`.
 
-         __call__():
-             Executes the hyperparameter evolution across multiple iterations.
+        __call__():
+            Executes the hyperparameter evolution across multiple iterations.
 
-     Example:
-         Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
-         ```python
-         from ultralytics import YOLO
+    Example:
+        Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+        ```python
+        from ultralytics import YOLO
 
-         model = YOLO('yolov8n.pt')
-         model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
-         ```
-     """
+        model = YOLO('yolov8n.pt')
+        model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+        ```
+    """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):
         """
@@ -175,13 +175,14 @@ class Tuner:
             metrics = {}
             train_args = {**vars(self.args), **mutated_hyp}
             save_dir = get_save_dir(get_cfg(train_args))
+            weights_dir = save_dir / 'weights'
+            ckpt_file = weights_dir / ('best.pt' if (weights_dir / 'best.pt').exists() else 'last.pt')
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                weights_dir = save_dir / 'weights'
                 cmd = ['yolo', 'train', *(f'{k}={v}' for k, v in train_args.items())]
-                assert subprocess.run(cmd, check=True).returncode == 0, 'training failed'
-                ckpt_file = weights_dir / ('best.pt' if (weights_dir / 'best.pt').exists() else 'last.pt')
+                return_code = subprocess.run(cmd, check=True).returncode
                 metrics = torch.load(ckpt_file)['train_metrics']
+                assert return_code == 0, 'training failed'
 
             except Exception as e:
                 LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}')

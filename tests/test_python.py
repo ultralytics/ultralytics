@@ -518,7 +518,7 @@ def image():
         ('augmix', 0.2, False),
         ('autoaugment', 0.0, True), ],
 )
-def test_classify_transforms_train(image, auto_augment, re_prob, force_color_jitter):
+def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
     import torchvision.transforms as T
 
     from ultralytics.data.augment import classify_augmentations
@@ -536,7 +536,7 @@ def test_classify_transforms_train(image, auto_augment, re_prob, force_color_jit
         hsv_s=0.4,
         hsv_v=0.4,
         force_color_jitter=force_color_jitter,
-        re_prob=re_prob,
+        erasing=erasing,
         interpolation=T.InterpolationMode.BILINEAR,
     )
 

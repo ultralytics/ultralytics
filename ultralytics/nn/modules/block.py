@@ -14,7 +14,7 @@ from .transformer import TransformerBlock, MSDATransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3TR', 'QC2f')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -980,31 +980,6 @@ class BLightC2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
-
-#class MSDAC3TR(C3):
-    """C3 module with MSDATransformerBlock, which includes MSDeformAttn."""
-
-    #def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, num_heads=4, num_layers=1, n_levels=4, n_points=4):
-        """Initialize MSDAC3TR module."""
-        #super().__init__(c1, c2, n, shortcut, g, e)
-        #c_ = int(c2 * e)
-        #self.m = MSDATransformerBlock(c_, c_, num_heads, num_layers, n_levels, n_points)
-        #self.m = MSDATransformerBlock(c_, c_, 4, n)
-
-
-class MSDAC3TR(C3):
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, num_heads=4, num_layers=1, n_levels=4, n_points=4):
-        super().__init__(c1, c2, n, shortcut, g, e)
-        c_ = int(c2 * e)
-        # Gunakan MSDATransformerBlock di sini
-        self.m = MSDATransformerBlock(c_, c_, num_heads, num_layers, n_levels, n_points)
-
-    def forward(self, x, refer_bbox=None, value_shapes=None, value_mask=None):
-        # Implementasi forward yang memanggil MSDATransformerBlock
-        x = super().forward(x)  # Panggil forward dari C3
-        # Pastikan refer_bbox dan value_shapes disediakan
-        return self.m(x, refer_bbox, value_shapes, value_mask)
 
 
 class QC2f(nn.Module):
@@ -1022,3 +997,21 @@ class QC2f(nn.Module):
         y.append(self.qconv(y[-1]))  # Apply quantum convolution here
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+    
+
+class MSDAC3x(C3):
+    """Modified C3 module with MSDATransformerBlock."""
+
+    def __init__(self, c1, c2, num_heads, num_layers, n_levels=4, n_points=4, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize the modified C3 instance."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.c_ = int(c2 * e)
+
+        # Mengganti Bottleneck dengan MSDATransformerBlock
+        self.m = nn.Sequential(*(MSDATransformerBlock(self.c_, self.c_, num_heads, num_layers, n_levels, n_points) for _ in range(n)))
+
+    def forward(self, x, refer_bbox, value_shapes, value_mask=None):
+        """Forward pass through the modified C3 module."""
+        x1 = self.cv1(x)
+        x_transformed = self.m(x1, refer_bbox, value_shapes, value_mask) if self.m else x1
+        return self.cv3(torch.cat((x_transformed, self.cv2(x)), 1))

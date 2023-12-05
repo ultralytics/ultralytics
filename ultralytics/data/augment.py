@@ -1081,7 +1081,10 @@ def classify_augmentations(
     if not disable_color_jitter:
         secondary_tfl += [T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h)]
 
-    final_tfl = [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)), T.RandomErasing(p=erasing, inplace=True)]
+    final_tfl = [
+        T.ToTensor(),
+        T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+        T.RandomErasing(p=erasing, inplace=True)]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 

@@ -231,7 +231,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
                                                        scale=scale,
                                                        hflip=args.fliplr,
                                                        vflip=args.flipud,
-                                                       re_prob=args.random_erasing,
+                                                       erasing=args.erasing,
                                                        auto_augment=args.auto_augment,
                                                        hsv_h=args.hsv_h,
                                                        hsv_s=args.hsv_s,

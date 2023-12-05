@@ -20,7 +20,7 @@ from .utils import polygons2masks, polygons2masks_overlap
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
-DEFAULT_CROP_PERCENTAGE = 0.875
+DEFAULT_CROP_PERCENTAGE = 1.0
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
@@ -967,7 +967,7 @@ def classify_transforms(
         mean (tuple): mean values of RGB channels
         std (tuple): std values of RGB channels
         interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
-        crop_percentage (float): percentage of image to crop. default is 0.875.
+        crop_percentage (float): percentage of image to crop. default is 1.0.
 
     Returns:
         T.Compose: torchvision transforms
@@ -1011,7 +1011,7 @@ def classify_augmentations(
     hsv_s=0.4,  # image HSV-Saturation augmentation (fraction)
     hsv_v=0.4,  # image HSV-Value augmentation (fraction)
     force_color_jitter=False,
-    re_prob=0.,
+    erasing=0.,
     interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
 ):
     """
@@ -1031,7 +1031,7 @@ def classify_augmentations(
         hsv_v (float): image HSV-Value augmentation (fraction)
         contrast (float): image contrast augmentation (fraction)
         force_color_jitter (bool): force to apply color jitter even if auto augment is enabled
-        re_prob (float): probability of random erasing
+        erasing (float): probability of random erasing
         interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
 
     Returns:
@@ -1081,17 +1081,9 @@ def classify_augmentations(
     if not disable_color_jitter:
         secondary_tfl += [T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h)]
 
-    final_tfl = []
-    final_tfl += [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
-    if re_prob > 0.:
-        final_tfl.append(T.RandomErasing(p=re_prob, inplace=True))
+    final_tfl = [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)), T.RandomErasing(p=erasing, inplace=True)]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
-
-
-def hsv2colorjitter(h, s, v):
-    """Map HSV (hue, saturation, value) jitter into ColorJitter values (brightness, contrast, saturation, hue)"""
-    return v, v, s, h
 
 
 # NOTE: keep this class for backward compatibility

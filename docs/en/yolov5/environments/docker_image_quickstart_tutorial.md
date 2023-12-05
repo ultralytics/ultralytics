@@ -8,7 +8,7 @@ keywords: YOLOv5, Docker, Ultralytics, Image Detection, YOLOv5 Docker Image, Doc
 
 This tutorial will guide you through the process of setting up and running YOLOv5 in a Docker container.
 
-You can also explore other quickstart options for YOLOv5, such as our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>, [GCP Deep Learning VM](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial), and [Amazon AWS](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial). *Updated: 21 April 2023*.
+You can also explore other quickstart options for YOLOv5, such as our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>, [GCP Deep Learning VM](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial), and [Amazon AWS](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial).
 
 ## Prerequisites
 
@@ -55,10 +55,17 @@ sudo docker run --ipc=host -it --gpus all ultralytics/yolov5:latest
 Now you can train, test, detect, and export YOLOv5 models within the running Docker container:
 
 ```bash
-python train.py  # train a model
-python val.py --weights yolov5s.pt  # validate a model for Precision, Recall, and mAP
-python detect.py --weights yolov5s.pt --source path/to/images  # run inference on images and videos
-python export.py --weights yolov5s.pt --include onnx coreml tflite  # export models to other formats
+# Train a model on your data
+python train.py
+
+# Validate the trained model for Precision, Recall, and mAP
+python val.py --weights yolov5s.pt
+
+# Run inference using the trained model on your images or videos
+python detect.py --weights yolov5s.pt --source path/to/images
+
+# Export the trained model to other formats for deployment
+python export.py --weights yolov5s.pt --include onnx coreml tflite
 ```
 
 <p align="center"><img width="1000" src="https://user-images.githubusercontent.com/26833433/142224770-6e57caaf-ac01-4719-987f-c37d1b6f401f.png" alt="GCP running Docker"></p>

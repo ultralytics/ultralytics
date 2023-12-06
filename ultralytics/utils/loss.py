@@ -101,8 +101,18 @@ class KeypointLoss(nn.Module):
         kpt_loss_factor = (torch.sum(kpt_mask != 0) + torch.sum(kpt_mask == 0)) / (torch.sum(kpt_mask != 0) + 1e-9)
         # e = d / (2 * (area * self.sigmas) ** 2 + 1e-9)  # from formula
         e = d / (2 * self.sigmas) ** 2 / (area + 1e-9) / 2  # from cocoeval
-        return kpt_loss_factor * ((1 - torch.exp(-e)) * kpt_mask).mean()
-
+        if pred_kpts.shape[-1] == 3:
+            kpt_mask = gt_kpts[..., 2]
+            occluded_factor = 0.3
+            kpt_loss_factor = (torch.sum(kpt_mask == 2) + torch.sum(kpt_mask == 1) * occluded_factor + torch.sum(kpt_mask == 0))\
+                              / (torch.sum(kpt_mask == 2) + torch.sum(kpt_mask == 1) * occluded_factor + 1e-9)
+            kpt_weight = kpt_mask.clone()
+            kpt_weight[kpt_weight==1] = occluded_factor
+            kpt_weight[kpt_weight==2] = 1
+            return kpt_loss_factor * ((1 - torch.exp(-e)) * kpt_weight).mean()
+        else:
+            return kpt_loss_factor * ((1 - torch.exp(-e)) * kpt_mask).mean()
+#if pred_kpt.shape[-1] == 3: occluded_mask = gt_kpt[..., 2] == 1
 
 class v8DetectionLoss:
     """Criterion class for computing training losses."""

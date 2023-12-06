@@ -254,7 +254,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ??? question "What if I want the cropped object **including** the background?"
 
-            This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
+        This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
 
     ---
 

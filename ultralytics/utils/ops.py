@@ -50,6 +50,7 @@ class Profile(contextlib.ContextDecorator):
         self.t += self.dt  # accumulate dt
 
     def __str__(self):
+        """Returns a human-readable string representing the accumulated elapsed time in the profiler."""
         return f'Elapsed time is {self.t} s'
 
     def time(self):
@@ -108,8 +109,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
         boxes[..., [0, 2]] -= pad[0]  # x padding
         boxes[..., [1, 3]] -= pad[1]  # y padding
     boxes[..., :4] /= gain
-    clip_boxes(boxes, img0_shape)
-    return boxes
+    return clip_boxes(boxes, img0_shape)
 
 
 def make_divisible(x, divisor):
@@ -178,10 +178,6 @@ def non_max_suppression(
     if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
 
-    device = prediction.device
-    mps = 'mps' in device.type  # Apple MPS
-    if mps:  # MPS not fully supported yet, convert tensors to CPU before NMS
-        prediction = prediction.cpu()
     bs = prediction.shape[0]  # batch size
     nc = nc or (prediction.shape[1] - 4)  # number of classes
     nm = prediction.shape[1] - nc - 4
@@ -255,8 +251,6 @@ def non_max_suppression(
         #         i = i[iou.sum(1) > 1]  # require redundancy
 
         output[xi] = x[i]
-        if mps:
-            output[xi] = output[xi].to(device)
         if (time.time() - t) > time_limit:
             LOGGER.warning(f'WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded')
             break  # time limit exceeded
@@ -269,17 +263,21 @@ def clip_boxes(boxes, shape):
     Takes a list of bounding boxes and a shape (height, width) and clips the bounding boxes to the shape.
 
     Args:
-      boxes (torch.Tensor): the bounding boxes to clip
-      shape (tuple): the shape of the image
+        boxes (torch.Tensor): the bounding boxes to clip
+        shape (tuple): the shape of the image
+
+    Returns:
+        (torch.Tensor | numpy.ndarray): Clipped boxes
     """
-    if isinstance(boxes, torch.Tensor):  # faster individually
-        boxes[..., 0].clamp_(0, shape[1])  # x1
-        boxes[..., 1].clamp_(0, shape[0])  # y1
-        boxes[..., 2].clamp_(0, shape[1])  # x2
-        boxes[..., 3].clamp_(0, shape[0])  # y2
+    if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
+        boxes[..., 0] = boxes[..., 0].clamp(0, shape[1])  # x1
+        boxes[..., 1] = boxes[..., 1].clamp(0, shape[0])  # y1
+        boxes[..., 2] = boxes[..., 2].clamp(0, shape[1])  # x2
+        boxes[..., 3] = boxes[..., 3].clamp(0, shape[0])  # y2
     else:  # np.array (faster grouped)
         boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
         boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
+    return boxes
 
 
 def clip_coords(coords, shape):
@@ -291,19 +289,20 @@ def clip_coords(coords, shape):
         shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
 
     Returns:
-        (None): The function modifies the input `coordinates` in place, by clipping each coordinate to the image boundaries.
+        (torch.Tensor | numpy.ndarray): Clipped coordinates
     """
-    if isinstance(coords, torch.Tensor):  # faster individually
-        coords[..., 0].clamp_(0, shape[1])  # x
-        coords[..., 1].clamp_(0, shape[0])  # y
+    if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
+        coords[..., 0] = coords[..., 0].clamp(0, shape[1])  # x
+        coords[..., 1] = coords[..., 1].clamp(0, shape[0])  # y
     else:  # np.array (faster grouped)
         coords[..., 0] = coords[..., 0].clip(0, shape[1])  # x
         coords[..., 1] = coords[..., 1].clip(0, shape[0])  # y
+    return coords
 
 
 def scale_image(masks, im0_shape, ratio_pad=None):
     """
-    Takes a mask, and resizes it to the original image size
+    Takes a mask, and resizes it to the original image size.
 
     Args:
         masks (np.ndarray): resized and padded masks/images, [h, w, num]/[h, w, 3].
@@ -323,8 +322,8 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
-    top, left = int(pad[1]), int(pad[0])  # y, x
-    bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
+    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))  # y, x
+    bottom, right = (int(round(im1_shape[0] - pad[1] + 0.1)), int(round(im1_shape[1] - pad[0] + 0.1)))
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
@@ -403,8 +402,8 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
 
 def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     """
-    Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height, normalized) format.
-    x, y, width and height are normalized to image dimensions
+    Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height, normalized) format. x, y,
+    width and height are normalized to image dimensions.
 
     Args:
         x (np.ndarray | torch.Tensor): The input bounding box coordinates in (x1, y1, x2, y2) format.
@@ -417,7 +416,7 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height, normalized) format
     """
     if clip:
-        clip_boxes(x, (h - eps, w - eps))  # warning: inplace clip
+        x = clip_boxes(x, (h - eps, w - eps))
     assert x.shape[-1] == 4, f'input shape last dimension expected 4 but input shape is {x.shape}'
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
     y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
@@ -445,7 +444,7 @@ def xywh2ltwh(x):
 
 def xyxy2ltwh(x):
     """
-    Convert nx4 bounding boxes from [x1, y1, x2, y2] to [x1, y1, w, h], where xy1=top-left, xy2=bottom-right
+    Convert nx4 bounding boxes from [x1, y1, x2, y2] to [x1, y1, w, h], where xy1=top-left, xy2=bottom-right.
 
     Args:
         x (np.ndarray | torch.Tensor): The input tensor with the bounding boxes coordinates in the xyxy format
@@ -461,7 +460,7 @@ def xyxy2ltwh(x):
 
 def ltwh2xywh(x):
     """
-    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
+    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center.
 
     Args:
         x (torch.Tensor): the input tensor
@@ -544,7 +543,7 @@ def xywhr2xyxyxyxy(center):
 
 def ltwh2xyxy(x):
     """
-    It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right.
 
     Args:
         x (np.ndarray | torch.Tensor): the input image
@@ -616,8 +615,8 @@ def crop_mask(masks, boxes):
 
 def process_mask_upsample(protos, masks_in, bboxes, shape):
     """
-    Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
-    quality but is slower.
+    Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher quality
+    but is slower.
 
     Args:
         protos (torch.Tensor): [mask_dim, mask_h, mask_w]
@@ -703,8 +702,8 @@ def scale_masks(masks, shape, padding=True):
     if padding:
         pad[0] /= 2
         pad[1] /= 2
-    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
-    bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
+    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
+    bottom, right = (int(round(mh - pad[1] + 0.1)), int(round(mw - pad[0] + 0.1)))
     masks = masks[..., top:bottom, left:right]
 
     masks = F.interpolate(masks, shape, mode='bilinear', align_corners=False)  # NCHW
@@ -713,7 +712,7 @@ def scale_masks(masks, shape, padding=True):
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False, padding=True):
     """
-    Rescale segment coordinates (xy) from img1_shape to img0_shape
+    Rescale segment coordinates (xy) from img1_shape to img0_shape.
 
     Args:
         img1_shape (tuple): The shape of the image that the coords are from.
@@ -739,7 +738,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
         coords[..., 1] -= pad[1]  # y padding
     coords[..., 0] /= gain
     coords[..., 1] /= gain
-    clip_coords(coords, img0_shape)
+    coords = clip_coords(coords, img0_shape)
     if normalize:
         coords[..., 0] /= img0_shape[1]  # width
         coords[..., 1] /= img0_shape[0]  # height

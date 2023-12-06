@@ -12,6 +12,17 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 ![Ultralytics YOLOv8](https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png)
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/Na0HvJ4hkk0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLOv8 Model Overview
+</p>
+
 ## Key Features
 
 - **Advanced Backbone and Neck Architectures:** YOLOv8 employs state-of-the-art backbone and neck architectures, resulting in improved feature extraction and object detection performance.

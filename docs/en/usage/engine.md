@@ -66,7 +66,7 @@ class CustomTrainer(DetectionTrainer):
 # callback to upload model weights
 def log_model(trainer):
     last_weight_path = trainer.last
-    ...
+    print(last_weight_path)
 
 
 trainer = CustomTrainer(overrides={...})

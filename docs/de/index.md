@@ -28,11 +28,11 @@ keywords: Ultralytics, YOLOv8, Objekterkennung, Bildsegmentierung, maschinelles 
   <a href="https://codecov.io/github/ultralytics/ultralytics"><img src="https://codecov.io/github/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY" alt="Ultralytics Code Coverage"></a>
   <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLOv8 Zitation"></a>
   <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Ziehungen"></a>
+  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&label=Ultralytics%20Discord&labelColor=white"></a>
   <br>
   <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Auf Gradient ausführen"></a>
   <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="In Colab öffnen"></a>
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="In Kaggle öffnen"></a>
-  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?style=flat&logo=discord&label=Ultralytics%20Discord"></a>
 </div>
 
 Wir stellen [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) vor, die neueste Version des renommierten Echtzeit-Modells zur Objekterkennung und Bildsegmentierung. YOLOv8 basiert auf den neuesten Erkenntnissen im Bereich Deep Learning und Computer Vision und bietet eine unvergleichliche Leistung hinsichtlich Geschwindigkeit und Genauigkeit. Sein optimiertes Design macht es für verschiedene Anwendungen geeignet und leicht an verschiedene Hardwareplattformen anpassbar, von Edge-Geräten bis hin zu Cloud-APIs.

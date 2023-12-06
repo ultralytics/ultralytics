@@ -28,11 +28,11 @@ keywords: Ultralytics, YOLOv8, detecção de objetos, segmentação de imagens, 
   <a href="https://codecov.io/github/ultralytics/ultralytics"><img src="https://codecov.io/github/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY" alt="Cobertura de Código da Ultralytics"></a>
   <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Citação do YOLOv8"></a>
   <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Contagem de Pulls no Docker"></a>
+  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&label=Ultralytics%20Discord&labelColor=white"></a>
   <br>
   <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Executar no Gradient"></a>
   <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Abrir no Colab"></a>
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Abrir no Kaggle"></a>
-  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?style=flat&logo=discord&label=Ultralytics%20Discord"></a>
 </div>
 
 Apresentamos o [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), a mais recente versão do aclamado modelo de detecção de objetos em tempo real e segmentação de imagens. O YOLOv8 é baseado nos mais recentes avanços do aprendizado profundo e visão computacional, oferecendo um desempenho sem paralelo em termos de velocidade e precisão. Seu design simplificado o torna adequado para várias aplicações e facilmente adaptável a diferentes plataformas de hardware, desde dispositivos de borda até APIs na nuvem.

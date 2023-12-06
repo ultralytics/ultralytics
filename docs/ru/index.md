@@ -28,11 +28,11 @@ keywords: Ultralytics, YOLOv8, обнаружение объектов, сегм
   <a href="https://codecov.io/github/ultralytics/ultralytics"><img src="https://codecov.io/github/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY" alt="Покрытие кода Ultralytics"></a>
   <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Цитирование YOLOv8"></a>
   <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Загрузки Docker"></a>
+  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&label=Ultralytics%20Discord&labelColor=white"></a>
   <br>
   <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Запустить на Gradient"></a>
   <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Открыть в Colab"></a>
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Открыть в Kaggle"></a>
-  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?style=flat&logo=discord&label=Ultralytics%20Discord"></a>
 </div>
 
 Представляем [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) — последнюю версию знаменитой модели для обнаружения объектов в реальном времени и сегментации изображений. YOLOv8 основан на передовом прогрессе в области глубокого обучения и компьютерного зрения и предлагает непревзойденную производительность в отношении скорости и точности. Его оптимизированная конструкция делает его подходящим для различных приложений и легко адаптируемым к различным аппаратным платформам, от устройств на краю сети до облачных API.

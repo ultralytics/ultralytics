@@ -28,11 +28,11 @@ keywords: Ultralytics, YOLOv8, detección de objetos, segmentación de imágenes
   <a href="https://codecov.io/github/ultralytics/ultralytics"><img src="https://codecov.io/github/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY" alt="Cobertura de código de Ultralytics"></a>
   <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Cita de YOLOv8"></a>
   <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Descargas de Docker"></a>
+  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&label=Ultralytics%20Discord&labelColor=white"></a>
   <br>
   <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Ejecutar en Gradient"></a>
   <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Abrir en Colab"></a>
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Abrir en Kaggle"></a>
-  <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?style=flat&logo=discord&label=Ultralytics%20Discord"></a>
 </div>
 
 Presentamos [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), la última versión del aclamado modelo para detección de objetos y segmentación de imágenes en tiempo real. YOLOv8 está construido sobre avances de vanguardia en aprendizaje profundo y visión por computadora, ofreciendo un rendimiento sin paralelo en términos de velocidad y precisión. Su diseño simplificado lo hace adecuado para varias aplicaciones y fácilmente adaptable a diferentes plataformas de hardware, desde dispositivos de borde hasta API en la nube.

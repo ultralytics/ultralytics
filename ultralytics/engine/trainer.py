@@ -573,8 +573,21 @@ class BaseTrainer:
                 resume = True
                 self.args = get_cfg(ckpt_args)
                 self.args.model = str(last)  # reinstate model
-                for k in "image_weights", "v5loader", "fl_gamma":
+                for k in "image_weights", "v5loader", "fl_gamma": # remove obsolete args
                     delattr(self.args, k)
+                for k, v in {
+                    "line_thickness": "line_width",
+                }.items(): # renamed args
+                    if hasattr(self.args, k):
+                        setattr(self.args, v, getattr(self.args, k))
+                        delattr(self.args, k)
+                for k, v in {
+                    "hide_labels": "show_labels",
+                    "hide_conf": "show_conf",
+                }.items(): # negation renamed args
+                    if hasattr(self.args, k):
+                        setattr(self.args, v, not getattr(self.args, k))
+                        delattr(self.args, k)
                 for k in 'imgsz', 'batch', 'cache', 'epochs':  # allow arg updates to reduce memory on resume if crashed due to CUDA OOM
                     if k in overrides:
                         setattr(self.args, k, overrides[k])

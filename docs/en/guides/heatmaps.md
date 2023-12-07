@@ -114,7 +114,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
             if not success:
                 exit(0)
             results = model.track(im0, persist=True)
-            frame = heatmap_obj.generate_heatmap(im0, tracks=results)
+            im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
             video_writer.write(im0)
 
         video_writer.release()

@@ -33,7 +33,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         gym_object = ai_gym.AIGym()  # init AI GYM module
         gym_object.set_args(line_thickness=2,
@@ -59,7 +59,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         video_writer = cv2.VideoWriter("workouts.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),

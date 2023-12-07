@@ -37,7 +37,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
@@ -63,7 +63,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         classes_for_heatmap = [0, 2]
 
@@ -91,7 +91,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
@@ -125,7 +125,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")  # Video file Path, webcam 0
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         # Region for object counting
         count_reg_pts = [(20, 400), (1080, 404), (1080, 360), (20, 360)]

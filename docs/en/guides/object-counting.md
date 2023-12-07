@@ -33,7 +33,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         counter = object_counter.ObjectCounter()  # Init Object Counter
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
@@ -58,7 +58,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         classes_to_count = [0, 2]
         counter = object_counter.ObjectCounter()  # Init Object Counter
@@ -86,7 +86,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        print("Error reading video file") and exit(0) if not cap.isOpened() else None
+        assert cap.isOpened(), "Error reading video file"
 
         video_writer = cv2.VideoWriter("object_counting.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),

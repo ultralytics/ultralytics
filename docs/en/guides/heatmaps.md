@@ -170,31 +170,31 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 | `iou`     | `float` | `0.5`          | IOU Threshold                                               |
 | `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
 
+### Heatmap COLORMAPs
 
-### Heatmap COLORMAPS
-| Colormap Name                   | Description                                                   |
-|---------------------------------|---------------------------------------------------------------|
-| `cv::COLORMAP_AUTUMN`           | Autumn color map                                              |
-| `cv::COLORMAP_BONE`             | Bone color map                                                |
-| `cv::COLORMAP_JET`              | Jet color map                                                 |
-| `cv::COLORMAP_WINTER`           | Winter color map                                              |
-| `cv::COLORMAP_RAINBOW`          | Rainbow color map                                             |
-| `cv::COLORMAP_OCEAN`            | Ocean color map                                               |
-| `cv::COLORMAP_SUMMER`           | Summer color map                                              |
-| `cv::COLORMAP_SPRING`           | Spring color map                                              |
-| `cv::COLORMAP_COOL`             | Cool color map                                                |
-| `cv::COLORMAP_HSV`              | HSV (Hue, Saturation, Value) color map                        |
-| `cv::COLORMAP_PINK`             | Pink color map                                                |
-| `cv::COLORMAP_HOT`              | Hot color map                                                 |
-| `cv::COLORMAP_PARULA`           | Parula color map                                              |
-| `cv::COLORMAP_MAGMA`            | Magma color map                                               |
-| `cv::COLORMAP_INFERNO`          | Inferno color map                                             |
-| `cv::COLORMAP_PLASMA`           | Plasma color map                                              |
-| `cv::COLORMAP_VIRIDIS`          | Viridis color map                                             |
-| `cv::COLORMAP_CIVIDIS`          | Cividis color map                                             |
-| `cv::COLORMAP_TWILIGHT`         | Twilight color map                                            |
-| `cv::COLORMAP_TWILIGHT_SHIFTED` | Shifted Twilight color map                                    |
-| `cv::COLORMAP_TURBO`            | Turbo color map                                               |
-| `cv::COLORMAP_DEEPGREEN`        | Deep Green color map                                          |
+| Colormap Name                   | Description                            |
+|---------------------------------|----------------------------------------|
+| `cv::COLORMAP_AUTUMN`           | Autumn color map                       |
+| `cv::COLORMAP_BONE`             | Bone color map                         |
+| `cv::COLORMAP_JET`              | Jet color map                          |
+| `cv::COLORMAP_WINTER`           | Winter color map                       |
+| `cv::COLORMAP_RAINBOW`          | Rainbow color map                      |
+| `cv::COLORMAP_OCEAN`            | Ocean color map                        |
+| `cv::COLORMAP_SUMMER`           | Summer color map                       |
+| `cv::COLORMAP_SPRING`           | Spring color map                       |
+| `cv::COLORMAP_COOL`             | Cool color map                         |
+| `cv::COLORMAP_HSV`              | HSV (Hue, Saturation, Value) color map |
+| `cv::COLORMAP_PINK`             | Pink color map                         |
+| `cv::COLORMAP_HOT`              | Hot color map                          |
+| `cv::COLORMAP_PARULA`           | Parula color map                       |
+| `cv::COLORMAP_MAGMA`            | Magma color map                        |
+| `cv::COLORMAP_INFERNO`          | Inferno color map                      |
+| `cv::COLORMAP_PLASMA`           | Plasma color map                       |
+| `cv::COLORMAP_VIRIDIS`          | Viridis color map                      |
+| `cv::COLORMAP_CIVIDIS`          | Cividis color map                      |
+| `cv::COLORMAP_TWILIGHT`         | Twilight color map                     |
+| `cv::COLORMAP_TWILIGHT_SHIFTED` | Shifted Twilight color map             |
+| `cv::COLORMAP_TURBO`            | Turbo color map                        |
+| `cv::COLORMAP_DEEPGREEN`        | Deep Green color map                   |
 
 These colormaps are commonly used for visualizing data with different color representations.

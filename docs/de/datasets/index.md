@@ -8,7 +8,7 @@ keywords: Computer Vision, Datensätze, Ultralytics, YOLO, Objekterkennung, Inst
 
 Ultralytics bietet Unterstützung für verschiedene Datensätze an, um Computervisionsaufgaben wie Erkennung, Instanzsegmentierung, Posenschätzung, Klassifizierung und Verfolgung mehrerer Objekte zu erleichtern. Unten finden Sie eine Liste der wichtigsten Ultralytics-Datensätze, gefolgt von einer Zusammenfassung jeder Computervisionsaufgabe und den jeweiligen Datensätzen.
 
-!!! note
+!!! Note "Hinweis"
 
     🚧 Unsere mehrsprachige Dokumentation befindet sich derzeit im Aufbau und wir arbeiten intensiv an deren Verbesserung. Vielen Dank für Ihre Geduld! 🙏
 
@@ -104,7 +104,7 @@ Das Bereitstellen eines neuen Datensatzes umfasst mehrere Schritte, um sicherzus
 
 ### Beispielcode zum Optimieren und Zippen eines Datensatzes
 
-!!! example "Optimieren und Zippen eines Datensatzes"
+!!! Example "Optimieren und Zippen eines Datensatzes"
 
     === "Python"
 

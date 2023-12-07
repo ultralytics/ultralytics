@@ -41,7 +41,7 @@ Las siguientes son algunas características notables del modo Entrenamiento de Y
 - **Configuración de Hiperparámetros:** La opción de modificar hiperparámetros a través de archivos de configuración YAML o argumentos CLI.
 - **Visualización y Monitoreo:** Seguimiento en tiempo real de métricas de entrenamiento y visualización del proceso de aprendizaje para una mejor comprensión.
 
-!!! consejo "Consejo"
+!!! Tip "Consejo"
 
     * Los conjuntos de datos de YOLOv8 como COCO, VOC, ImageNet y muchos otros se descargan automáticamente en el primer uso, es decir, `yolo train data=coco.yaml`
 
@@ -49,7 +49,7 @@ Las siguientes son algunas características notables del modo Entrenamiento de Y
 
 Entrena YOLOv8n en el conjunto de datos COCO128 durante 100 épocas con un tamaño de imagen de 640. El dispositivo de entrenamiento se puede especificar usando el argumento `device`. Si no se pasa ningún argumento, se usará la GPU `device=0` si está disponible; de lo contrario, se usará `device=cpu`. Consulta la sección de Argumentos a continuación para una lista completa de argumentos de entrenamiento.
 
-!!! ejemplo "Ejemplo de Entrenamiento con una sola GPU y CPU"
+!!! Example "Ejemplo de Entrenamiento con una sola GPU y CPU"
 
     El dispositivo se determina automáticamente. Si hay una GPU disponible, se usará; de lo contrario, el entrenamiento comenzará en la CPU.
 
@@ -84,7 +84,7 @@ Entrena YOLOv8n en el conjunto de datos COCO128 durante 100 épocas con un tama�
 
 El entrenamiento Multi-GPU permite una utilización más eficiente de los recursos de hardware disponibles, distribuyendo la carga de entrenamiento en varias GPUs. Esta característica está disponible tanto a través de la API de Python como de la interfaz de línea de comandos. Para habilitar el entrenamiento Multi-GPU, especifica los IDs de los dispositivos GPU que deseas usar.
 
-!!! ejemplo "Ejemplo de Entrenamiento Multi-GPU"
+!!! Example "Ejemplo de Entrenamiento Multi-GPU"
 
     Para entrenar con 2 GPUs, dispositivos CUDA 0 y 1, usa los siguientes comandos. Amplía a GPUs adicionales según sea necesario.
 
@@ -113,7 +113,7 @@ Con el soporte para los chips Apple M1 y M2 integrados en los modelos Ultralytic
 
 Para habilitar el entrenamiento en chips Apple M1 y M2, debes especificar 'mps' como tu dispositivo al iniciar el proceso de entrenamiento. A continuación se muestra un ejemplo de cómo podrías hacer esto en Python y a través de la línea de comandos:
 
-!!! ejemplo "Ejemplo de Entrenamiento MPS"
+!!! Example "Ejemplo de Entrenamiento MPS"
 
     === "Python"
 
@@ -148,7 +148,7 @@ Para usar un registrador, selecciónalo en el menú desplegable en el fragmento 
 
 Para usar Comet:
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
         ```python
@@ -166,7 +166,7 @@ Recuerda iniciar sesión en tu cuenta de Comet en su sitio web y obtener tu clav
 
 Para usar ClearML:
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "Python"
         ```python
@@ -184,7 +184,7 @@ Después de ejecutar este script, necesitarás iniciar sesión en tu cuenta de C
 
 Para usar TensorBoard en [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb):
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "CLI"
         ```bash
@@ -194,7 +194,7 @@ Para usar TensorBoard en [Google Colab](https://colab.research.google.com/github
 
 Para usar TensorBoard localmente, ejecuta el siguiente comando y visualiza los resultados en http://localhost:6006/.
 
-!!! ejemplo ""
+!!! Example "Ejemplo"
 
     === "CLI"
         ```bash

@@ -5,7 +5,7 @@ keywords: Ultralytics, Data Augmentation, BaseTransform, MixUp, RandomHSV, Lette
 
 # Reference for `ultralytics/data/augment.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/augment.py) 🛠️. Thank you 🙏!
 

@@ -58,7 +58,7 @@ Le traceur par défaut est BoT-SORT.
 
 Pour exécuter le traceur sur des flux vidéo, utilisez un modèle Detect, Segment ou Pose formé tel que YOLOv8n, YOLOv8n-seg et YOLOv8n-pose.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -97,7 +97,7 @@ Comme on peut le voir dans l'utilisation ci-dessus, le suivi est disponible pour
 
 La configuration du suivi partage des propriétés avec le mode Prédiction, telles que `conf`, `iou`, et `show`. Pour des configurations supplémentaires, référez-vous à la page [Predict](https://docs.ultralytics.com/modes/predict/) du modèle.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -120,7 +120,7 @@ La configuration du suivi partage des propriétés avec le mode Prédiction, tel
 
 Ultralytics vous permet également d'utiliser un fichier de configuration de traceur modifié. Pour cela, faites simplement une copie d'un fichier de configuration de traceur (par exemple, `custom_tracker.yaml`) à partir de [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) et modifiez toute configuration (à l'exception du `tracker_type`) selon vos besoins.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -147,7 +147,7 @@ Pour une liste complète des arguments de suivi, référez-vous à la page [ultr
 
 Voici un script Python utilisant OpenCV (`cv2`) et YOLOv8 pour exécuter le suivi d'objet sur des images vidéo. Ce script suppose toujours que vous avez déjà installé les packages nécessaires (`opencv-python` et `ultralytics`). L'argument `persist=True` indique au traceur que l'image ou la trame actuelle est la suivante dans une séquence et s'attend à ce que les pistes de l'image précédente soient présentes dans l'image actuelle.
 
-!!! exemple "Boucle for streaming avec suivi"
+!!! Example "Boucle for streaming avec suivi"
 
     ```python
     import cv2

@@ -23,7 +23,7 @@ keywords: YOLOv8, Ultralytics, 物体検出, 事前訓練済みモデル, トレ
   <strong>視聴する:</strong> Ultralyticsの事前訓練済みYOLOv8モデルによる物体検出。
 </p>
 
-!!! tip "ヒント"
+!!! Tip "ヒント"
 
     YOLOv8 Detectモデルは、デフォルトのYOLOv8モデル、つまり`yolov8n.pt`であり、[COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)で事前訓練されています。
 
@@ -50,7 +50,7 @@ keywords: YOLOv8, Ultralytics, 物体検出, 事前訓練済みモデル, トレ
 
 YOLOv8nを画像サイズ640でCOCO128データセットに対して100エポックでトレーニングします。使用可能な引数の完全なリストについては、[設定](/../usage/cfg.md)ページをご覧ください。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 
@@ -86,7 +86,7 @@ YOLO検出データセットの形式の詳細は、[データセットガイド
 
 トレーニングされたYOLOv8nモデルの精度をCOCO128データセットで検証します。引数は不要で、モデルはトレーニングの`data`と引数をモデル属性として保持しています。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 
@@ -115,7 +115,7 @@ YOLO検出データセットの形式の詳細は、[データセットガイド
 
 トレーニングされたYOLOv8nモデルを使用して画像の予測を実行します。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 
@@ -142,7 +142,7 @@ YOLO検出データセットの形式の詳細は、[データセットガイド
 
 YOLOv8nモデルをONNX、CoreMLなどの異なるフォーマットにエクスポートします。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 

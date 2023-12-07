@@ -32,7 +32,7 @@ YOLOv5 models must be trained on labelled data in order to learn classes of obje
 <details open markdown>
 <summary>Use <a href="https://roboflow.com/?ref=ultralytics">Roboflow</a> to create your dataset in YOLO format 🌟</summary>
 
-!!! note
+!!! Note
 
     Roboflow users can use Ultralytics under the [AGPL license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) or can request an [Enterprise license](https://ultralytics.com/license) directly from Ultralytics. Be aware that Roboflow does not provide Ultralytics licenses, and it is the responsibility of the user to ensure appropriate licensing.
 
@@ -141,11 +141,11 @@ Train a YOLOv5s model on COCO128 by specifying dataset, batch-size, image size a
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
 ```
 
-!!! tip "Tip"
+!!! Tip "Tip"
 
     💡 Add `--cache ram` or `--cache disk` to speed up training (requires significant RAM/disk resources).
 
-!!! tip "Tip"
+!!! Tip "Tip"
 
     💡 Always train from a local dataset. Mounted or network drives like Google Drive will be very slow.
 

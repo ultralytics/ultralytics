@@ -30,7 +30,7 @@ You can download our [COCO8](https://github.com/ultralytics/hub/blob/main/exampl
 
 The dataset YAML is the same standard YOLOv5 and YOLOv8 YAML format.
 
-!!! example "coco8.yaml"
+!!! Example "coco8.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"
@@ -92,7 +92,7 @@ Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) on y
 
 ## Share Dataset
 
-!!! info "Info"
+!!! Info "Info"
 
     Ultralytics HUB's sharing functionality provides a convenient way to share datasets with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
 

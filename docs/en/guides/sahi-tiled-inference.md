@@ -167,7 +167,7 @@ That's it! Now you're equipped to use YOLOv8 with SAHI for both standard and sli
 
 If you use SAHI in your research or development work, please cite the original SAHI paper and acknowledge the authors:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

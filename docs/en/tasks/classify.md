@@ -12,7 +12,7 @@ Image classification is the simplest of the three tasks and involves classifying
 
 The output of an image classifier is a single class label and a confidence score. Image classification is useful when you need to know only what class an image belongs to and don't need to know where objects of that class are located or what their exact shape is.
 
-!!! tip "Tip"
+!!! Tip "Tip"
 
     YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
@@ -40,7 +40,7 @@ YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose model
 
 Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -77,7 +77,7 @@ YOLO classification dataset format can be found in detail in the [Dataset Guide]
 
 Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -104,7 +104,7 @@ Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument
 
 Use a trained YOLOv8n-cls model to run predictions on images.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -131,7 +131,7 @@ See full `predict` mode details in the [Predict](https://docs.ultralytics.com/mo
 
 Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

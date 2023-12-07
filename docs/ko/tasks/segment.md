@@ -23,7 +23,7 @@ keywords: yolov8, 인스턴스 세그멘테이션, Ultralytics, COCO 데이터�
   <strong>시청하기:</strong> Python에서 사전 훈련된 Ultralytics YOLOv8 모델로 세그멘테이션 실행.
 </p>
 
-!!! tip "팁"
+!!! Tip "팁"
 
     YOLOv8 Segment 모델은 '-seg' 접미사를 사용하며 즉, `yolov8n-seg.pt`와 같이 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) 데이터셋에 사전 훈련되어 있습니다.
 
@@ -50,7 +50,7 @@ keywords: yolov8, 인스턴스 세그멘테이션, Ultralytics, COCO 데이터�
 
 COCO128-seg 데이터셋에서 이미지 크기 640으로 YOLOv8n-seg을 100 에포크 동안 훈련합니다. 가능한 모든 인자 목록은 [설정](/../usage/cfg.md) 페이지에서 확인할 수 있습니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "파이썬"
 
@@ -86,7 +86,7 @@ YOLO 세그멘테이션 데이터셋 형식은 [데이터셋 가이드](../../..
 
 COCO128-seg 데이터셋에서 훈련된 YOLOv8n-seg 모델의 정확도를 검증합니다. 모델은 훈련할 때의 `data`와 인자를 모델 속성으로 기억하기 때문에 별도의 인자를 전달할 필요가 없습니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "파이썬"
 
@@ -119,7 +119,7 @@ COCO128-seg 데이터셋에서 훈련된 YOLOv8n-seg 모델의 정확도를 검�
 
 훈련된 YOLOv8n-seg 모델을 사용하여 이미지에 대한 예측을 실행합니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "파이썬"
 
@@ -146,7 +146,7 @@ COCO128-seg 데이터셋에서 훈련된 YOLOv8n-seg 모델의 정확도를 검�
 
 ONNX, CoreML 등과 같은 다른 형식으로 YOLOv8n-seg 모델을 수출합니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "파이썬"
 

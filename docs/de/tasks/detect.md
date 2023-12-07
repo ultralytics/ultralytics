@@ -23,7 +23,7 @@ Die Ausgabe eines Objekterkenners ist eine Menge von Begrenzungsrahmen, die die 
   <strong>Sehen Sie:</strong> Objekterkennung mit vortrainiertem Ultralytics YOLOv8 Modell.
 </p>
 
-!!! tip "Tipp"
+!!! Tip "Tipp"
 
     YOLOv8 Detect Modelle sind die Standard YOLOv8 Modelle, zum Beispiel `yolov8n.pt`, und sind vortrainiert auf dem [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)-Datensatz.
 
@@ -50,7 +50,7 @@ Hier werden die vortrainierten YOLOv8 Detect Modelle gezeigt. Detect, Segment un
 
 YOLOv8n auf dem COCO128-Datensatz für 100 Epochen bei Bildgröße 640 trainieren. Für eine vollständige Liste verfügbarer Argumente siehe die [Konfigurationsseite](/../usage/cfg.md).
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -86,7 +86,7 @@ Das Datenformat für YOLO-Erkennungsdatensätze finden Sie detailliert im [Datas
 
 Genauigkeit des trainierten YOLOv8n-Modells auf dem COCO128-Datensatz validieren. Es müssen keine Argumente übergeben werden, da das `modell` seine Trainingsdaten und Argumente als Modellattribute beibehält.
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -115,7 +115,7 @@ Genauigkeit des trainierten YOLOv8n-Modells auf dem COCO128-Datensatz validieren
 
 Ein trainiertes YOLOv8n-Modell verwenden, um Vorhersagen auf Bildern durchzuführen.
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -142,7 +142,7 @@ Volle Details über den `predict`-Modus finden Sie auf der [Predict-Seite](https
 
 Ein YOLOv8n-Modell in ein anderes Format wie ONNX, CoreML usw. exportieren.
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 

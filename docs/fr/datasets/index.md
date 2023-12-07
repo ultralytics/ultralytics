@@ -8,7 +8,7 @@ keywords: vision par ordinateur, ensembles de données, Ultralytics, YOLO, déte
 
 Ultralytics fournit un soutien pour divers ensembles de données pour faciliter les tâches de vision par ordinateur telles que la détection, la segmentation d'instance, l'estimation de la pose, la classification et le suivi multi-objets. Ci-dessous se trouve une liste des principaux ensembles de données Ultralytics, suivie d'un résumé de chaque tâche de vision par ordinateur et des ensembles de données respectifs.
 
-!!! note
+!!! Note "Note"
 
     🚧 Notre documentation multilingue est actuellement en cours de construction et nous travaillons dur pour l'améliorer. Merci de votre patience ! 🙏
 
@@ -104,7 +104,7 @@ Contribuer un nouvel ensemble de données implique plusieurs étapes pour s'assu
 
 ### Exemple de Code pour Optimiser et Zipper un Ensemble de Données
 
-!!! exemple "Optimiser et Zipper un Ensemble de Données"
+!!! Example "Optimiser et Zipper un Ensemble de Données"
 
     === "Python"
 

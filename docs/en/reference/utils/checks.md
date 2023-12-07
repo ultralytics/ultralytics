@@ -5,7 +5,7 @@ keywords: Ultralytics, utility checks, ASCII, check_version, pip_update, check_p
 
 # Reference for `ultralytics/utils/checks.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/checks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/checks.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/checks.py) 🛠️. Thank you 🙏!
 

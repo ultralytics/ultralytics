@@ -5,7 +5,7 @@ keywords: Ultralytics, YOLO, PoseTrainer, pose training, AI modeling, custom dat
 
 # Reference for `ultralytics/models/yolo/pose/train.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/pose/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/pose/train.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/pose/train.py) 🛠️. Thank you 🙏!
 

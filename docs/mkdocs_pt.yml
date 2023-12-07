@@ -100,6 +100,12 @@ extra:
     - name: 🇵🇹 Português
       link: /pt/
       lang: pt
+    - name: 🇮🇳 हिन्दी
+      link: /hi/
+      lang: hi
+    - name: 🇸🇦 العربية
+      link: /ar/
+      lang: ar
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics

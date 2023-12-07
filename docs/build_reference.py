@@ -48,7 +48,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     edit = f'https://github.com/ultralytics/ultralytics/edit/main/{module_path}.py'
     title_content = (
         f'# Reference for `{module_path}.py`\n\n'
-        f'!!! note\n\n'
+        f'!!! Note\n\n'
         f'    This file is available at [{url}]({url}). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n'
     )
     md_content = [f'---\n## ::: {module_name}.{class_name}\n<br><br>\n' for class_name in classes]

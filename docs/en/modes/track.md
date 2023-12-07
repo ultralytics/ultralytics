@@ -58,7 +58,7 @@ The default tracker is BoT-SORT.
 
 To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLOv8n, YOLOv8n-seg and YOLOv8n-pose.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -97,7 +97,7 @@ As can be seen in the above usage, tracking is available for all Detect, Segment
 
 Tracking configuration shares properties with Predict mode, such as `conf`, `iou`, and `show`. For further configurations, refer to the [Predict](../modes/predict.md#inference-arguments) model page.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -120,7 +120,7 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
 
 Ultralytics also allows you to use a modified tracker configuration file. To do this, simply make a copy of a tracker config file (for example, `custom_tracker.yaml`) from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify any configurations (except the `tracker_type`) as per your needs.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -147,7 +147,7 @@ For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/tr
 
 Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
-!!! example "Streaming for-loop with tracking"
+!!! Example "Streaming for-loop with tracking"
 
     ```python
     import cv2
@@ -195,7 +195,7 @@ Visualizing object tracks over consecutive frames can provide valuable insights 
 
 In the following example, we demonstrate how to utilize YOLOv8's tracking capabilities to plot the movement of detected objects across multiple video frames. This script involves opening a video file, reading it frame by frame, and utilizing the YOLO model to identify and track various objects. By retaining the center points of the detected bounding boxes and connecting them, we can draw lines that represent the paths followed by the tracked objects.
 
-!!! example "Plotting tracks over multiple video frames"
+!!! Example "Plotting tracks over multiple video frames"
 
     ```python
     from collections import defaultdict
@@ -272,7 +272,7 @@ The `daemon=True` parameter in `threading.Thread` means that these threads will 
 
 Finally, after all threads have completed their task, the windows displaying the results are closed using `cv2.destroyAllWindows()`.
 
-!!! example "Streaming for-loop with tracking"
+!!! Example "Streaming for-loop with tracking"
 
     ```python
     import threading

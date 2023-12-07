@@ -39,7 +39,7 @@ keywords: YOLO, YOLOv8, Ultralytics, 모델 내보내기, ONNX, TensorRT, CoreML
 - **최적화된 추론:** 내보낸 모델들은 더 빠른 추론 시간을 위해 최적화되어 있습니다.
 - **튜토리얼 비디오:** 원활한 내보내기 경험을 위한 심도 있는 가이드 및 튜토리얼.
 
-!!! 팁 "팁"
+!!! Tip "팁"
 
     * CPU 속도 향상을 위해 ONNX 또는 OpenVINO로 내보내세요.
     * GPU 속도 향상을 위해 TensorRT로 내보내세요.

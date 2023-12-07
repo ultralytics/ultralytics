@@ -12,7 +12,7 @@ Multi-Object Detector doesn't need standalone training and directly supports pre
 
 ## Usage
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

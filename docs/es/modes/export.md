@@ -39,7 +39,7 @@ Aquí tienes algunas de las funcionalidades destacadas:
 - **Inferencia Optimizada:** Los modelos exportados están optimizados para tiempos de inferencia más rápidos.
 - **Vídeos Tutoriales:** Guías y tutoriales en profundidad para una experiencia de exportación fluida.
 
-!!! tip "Consejo"
+!!! Tip "Consejo"
 
     * Exporta a ONNX u OpenVINO para acelerar la CPU hasta 3 veces.
     * Exporta a TensorRT para acelerar la GPU hasta 5 veces.
@@ -48,7 +48,7 @@ Aquí tienes algunas de las funcionalidades destacadas:
 
 Exporta un modelo YOLOv8n a un formato diferente como ONNX o TensorRT. Consulta la sección Argumentos más abajo para una lista completa de argumentos de exportación.
 
-!!! example ""
+!!! Example "Ejemplo"
 
     === "Python"
 

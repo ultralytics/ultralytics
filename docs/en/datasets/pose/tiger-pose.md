@@ -19,7 +19,7 @@ and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 A YAML (Yet Another Markup Language) file serves as the means to specify the configuration details of a dataset. It encompasses crucial data such as file paths, class definitions, and other pertinent information. Specifically, for the `tiger-pose.yaml` file, you can check [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
 
-!!! example "ultralytics/cfg/datasets/tiger-pose.yaml"
+!!! Example "ultralytics/cfg/datasets/tiger-pose.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/tiger-pose.yaml"
@@ -29,7 +29,7 @@ A YAML (Yet Another Markup Language) file serves as the means to specify the con
 
 To train a YOLOv8n-pose model on the Tiger-Pose dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
+!!! Example "Train Example"
 
     === "Python"
 
@@ -62,7 +62,7 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
 
 ## Inference Example
 
-!!! example "Inference Example"
+!!! Example "Inference Example"
 
     === "Python"
 

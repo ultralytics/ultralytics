@@ -39,7 +39,7 @@ keywords: YOLO, YOLOv8, Ultralytics, 模型导出, ONNX, TensorRT, CoreML, Tenso
 - **优化推理：** 导出的模型针对更快的推理时间进行优化。
 - **教学视频：** 提供深入指导和教学，确保流畅的导出体验。
 
-!!! 提示 "提示"
+!!! Tip "提示"
 
     * 导出到 ONNX 或 OpenVINO，以实现高达 3 倍的 CPU 加速。
     * 导出到 TensorRT，以实现高达 5 倍的 GPU 加速。
@@ -48,7 +48,7 @@ keywords: YOLO, YOLOv8, Ultralytics, 模型导出, ONNX, TensorRT, CoreML, Tenso
 
 将 YOLOv8n 模型导出为 ONNX 或 TensorRT 等不同格式。查看下面的参数部分，了解完整的导出参数列表。
 
-!!! 示例 ""
+!!! Example "示例"
 
     === "Python"
 

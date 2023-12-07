@@ -23,7 +23,7 @@ Das Ergebnis eines Pose-Schätzungsmodells ist eine Gruppe von Punkten, die die 
   <strong>Ansehen:</strong> Pose-Schätzung mit Ultralytics YOLOv8.
 </p>
 
-!!! Tipp "Tipp"
+!!! Tip "Tipp"
 
     YOLOv8 _pose_-Modelle verwenden den Suffix `-pose`, z. B. `yolov8n-pose.pt`. Diese Modelle sind auf dem [COCO-Schlüsselpunkte](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml)-Datensatz trainiert und für eine Vielzahl von Pose-Schätzungsaufgaben geeignet.
 
@@ -51,7 +51,7 @@ Hier werden vortrainierte YOLOv8 Pose-Modelle gezeigt. Erkennungs-, Segmentierun
 
 Trainieren Sie ein YOLOv8-Pose-Modell auf dem COCO128-Pose-Datensatz.
 
-!!! Beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -87,7 +87,7 @@ Das YOLO-Pose-Datensatzformat finden Sie detailliert im [Datensatz-Leitfaden](..
 
 Die Genauigkeit des trainierten YOLOv8n-Pose-Modells auf dem COCO128-Pose-Datensatz validieren. Es müssen keine Argumente übergeben werden, da das `Modell` seine Trainings`daten` und Argumente als Modellattribute beibehält.
 
-!!! Beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -116,7 +116,7 @@ Die Genauigkeit des trainierten YOLOv8n-Pose-Modells auf dem COCO128-Pose-Datens
 
 Ein trainiertes YOLOv8n-Pose-Modell verwenden, um Vorhersagen auf Bildern zu machen.
 
-!!! Beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -143,7 +143,7 @@ Vollständige `predict`-Modusdetails finden Sie auf der [Vorhersage](https://doc
 
 Ein YOLOv8n-Pose-Modell in ein anderes Format wie ONNX, CoreML usw. exportieren.
 
-!!! Beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 

@@ -78,7 +78,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 3. **Export Annotations**: Convert these annotations into the YOLO *.txt file format which Ultralytics supports.
 
-4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `train/` and `val/` top-level directories, and within each, an `images/` and `labels/` sub-directory.
+4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `train/` and `val/` top-level directories, and within each, an `images/` and `labels/` subdirectory.
 
     ```
     dataset/
@@ -100,7 +100,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 ### Example Code to Optimize and Zip a Dataset
 
-!!! example "Optimize and Zip a Dataset"
+!!! Example "Optimize and Zip a Dataset"
 
     === "Python"
 

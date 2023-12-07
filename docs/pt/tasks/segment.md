@@ -23,7 +23,7 @@ A saída de um modelo de segmentação de instâncias é um conjunto de máscara
   <strong>Assista:</strong> Executar Segmentação com o Modelo Treinado Ultralytics YOLOv8 em Python.
 </p>
 
-!!! tip "Dica"
+!!! Tip "Dica"
 
     Modelos YOLOv8 Segment usam o sufixo `-seg`, ou seja, `yolov8n-seg.pt` e são pré-treinados no [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
@@ -50,7 +50,7 @@ Os modelos Segment pré-treinados do YOLOv8 estão mostrados aqui. Os modelos De
 
 Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com tamanho de imagem 640. Para uma lista completa de argumentos disponíveis, consulte a página [Configuração](/../usage/cfg.md).
 
-!!! example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -86,7 +86,7 @@ O formato do conjunto de dados de segmentação YOLO pode ser encontrado em deta
 
 Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-seg. Não é necessário passar nenhum argumento, pois o `modelo` retém seus `dados` de treino e argumentos como atributos do modelo.
 
-!!! example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -119,7 +119,7 @@ Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-s
 
 Use um modelo YOLOv8n-seg treinado para realizar previsões em imagens.
 
-!!! example ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -146,7 +146,7 @@ Veja detalhes completos do modo `predict` na página [Prever](https://docs.ultra
 
 Exporte um modelo YOLOv8n-seg para um formato diferente como ONNX, CoreML, etc.
 
-!!! example ""
+!!! Example "Exemplo"
 
     === "Python"
 

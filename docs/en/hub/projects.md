@@ -44,7 +44,7 @@ Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) insi
 
 ## Share Project
 
-!!! info "Info"
+!!! Info "Info"
 
     Ultralytics HUB's sharing functionality provides a convenient way to share projects with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
 
@@ -68,7 +68,7 @@ Set the general access to "Unlisted" and click **Save**.
 
 ![Ultralytics HUB screenshot of the Share Project dialog with an arrow pointing to the dropdown and one to the Save button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_share_project_3.jpg)
 
-!!! warning "Warning"
+!!! Warning "Warning"
 
     When changing the general access of a project, the general access of the models inside the project will be changed as well.
 
@@ -108,7 +108,7 @@ Navigate to the Project page of the project you want to delete, open the project
 
     ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Delete option of one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_delete_project_2.jpg)
 
-!!! warning "Warning"
+!!! Warning "Warning"
 
     When deleting a project, the models inside the project will be deleted as well.
 

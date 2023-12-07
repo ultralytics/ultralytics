@@ -50,7 +50,7 @@ YOLOv8 的预测模式被设计为强大且多功能，包括以下特性：
 
 Ultralytics YOLO 模型在进行推理时返回一个 Python `Results` 对象列表，或者当传入 `stream=True` 时，返回一个内存高效的 Python `Results` 对象生成器：
 
-!!! 示例 "预测"
+!!! Example "预测"
 
     === "使用 `stream=False` 返回列表"
         ```python
@@ -92,7 +92,7 @@ Ultralytics YOLO 模型在进行推理时返回一个 Python `Results` 对象列
 
 YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括静态图像、视频流和各种数据格式。表格还表示了每种来源是否可以在流式模式下使用，使用参数 `stream=True` ✅。流式模式对于处理视频或实时流非常有利，因为它创建了结果的生成器，而不是将所有帧加载到内存。
 
-!!! 提示 "提示"
+!!! Tip "提示"
 
     使用 `stream=True` 处理长视频或大型数据集来高效地管理内存。当 `stream=False` 时，所有帧或数据点的结果都将存储在内存中，这可能很快导致内存不足错误。相对地，`stream=True` 使用生成器，只保留当前帧或数据点的结果在内存中，显著减少了内存消耗，防止内存不足问题。
 
@@ -115,7 +115,7 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
 
 下面为每种来源类型使用代码的示例：
 
-!!! 示例 "预测来源"
+!!! Example "预测来源"
 
     === "图像"
         对图像文件进行推理。
@@ -327,7 +327,7 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
 
 `model.predict()` 在推理时接受多个参数，可以用来覆盖默认值：
 
-!!! 示例
+!!! Example "示例"
 
     ```python
     from ultralytics import YOLO
@@ -373,11 +373,20 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 ### 图像
 
-以下表格包含有效的Ultralytics图像格式。
+下表包含了Ultralytics支持的有效图像格式。
 
-| 图像后缀名 | 示例预测命令 | 参考链接 | |
-
-----------------|-----------------------------------------|-------------------------------------------------------------------------------| | .bmp | `yolo predict source=image.bmp`         | [Microsoft BMP文件格式](https://en.wikipedia.org/wiki/BMP_file_format)        | | .dng | `yolo predict source=image.dng`         | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) | | .jpeg | `yolo predict source=image.jpeg`        | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    | | .jpg | `yolo predict source=image.jpg`         | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    | | .mpo | `yolo predict source=image.mpo`         | [多图像对象](https://fileinfo.com/extension/mpo)                              | | .png | `yolo predict source=image.png`         | [便携式网络图形](https://en.wikipedia.org/wiki/PNG)                           | | .tif | `yolo predict source=image.tif`         | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                        | | .tiff | `yolo predict source=image.tiff`        | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                        | | .webp | `yolo predict source=image.webp`        | [WebP](https://en.wikipedia.org/wiki/WebP)                                    | | .pfm | `yolo predict source=image.pfm`         | [便携式浮点图](https://en.wikipedia.org/wiki/Netpbm#File_formats)             |
+| 图像后缀  | 示例预测命令                           | 参考链接                                                                          |
+|-------|----------------------------------|-------------------------------------------------------------------------------|
+| .bmp  | `yolo predict source=image.bmp`  | [Microsoft BMP文件格式](https://en.wikipedia.org/wiki/BMP_file_format)            |
+| .dng  | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
+| .jpeg | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .jpg  | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .mpo  | `yolo predict source=image.mpo`  | [多图像对象](https://fileinfo.com/extension/mpo)                                   |
+| .png  | `yolo predict source=image.png`  | [便携式网络图形](https://en.wikipedia.org/wiki/PNG)                                  |
+| .tif  | `yolo predict source=image.tif`  | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                                |
+| .tiff | `yolo predict source=image.tiff` | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                                |
+| .webp | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
+| .pfm  | `yolo predict source=image.pfm`  | [便携式浮点映射](https://en.wikipedia.org/wiki/Netpbm#File_formats)                  |
 
 ### 视频
 
@@ -402,7 +411,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 所有Ultralytics的`predict()`调用都将返回一个`Results`对象列表：
 
-!!! 示例 "结果"
+!!! Example "结果"
 
     ```python
     from ultralytics import YOLO
@@ -454,7 +463,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 `Boxes`对象可用于索引、操作和转换边界框到不同格式。
 
-!!! 示例 "边界框（Boxes）"
+!!! Example "边界框（Boxes）"
 
     ```python
     from ultralytics import YOLO
@@ -465,14 +474,12 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
     # 在图片上运行推理
     results = model('bus.jpg')
 
-# results列表
-
     # 查看结果
     for r in results:
         print(r.boxes)  # 打印包含检测边界框的Boxes对象
     ```
 
-以下是`Boxes`类方法和属性的表格，包括它们的名称、类型和描述：
+以下是`Boxes`类方法和属性的表格，包括它们的名称、类型和description:
 
 | 名称        | 类型                  | 描述                      |
 |-----------|---------------------|-------------------------|
@@ -494,7 +501,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 `Masks`对象可用于索引、操作和将掩码转换为分段。
 
-!!! 示例 "掩码（Masks）"
+!!! Example "掩码（Masks）"
 
     ```python
     from ultralytics import YOLO
@@ -510,7 +517,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
         print(r.masks)  # 打印包含检测到的实例掩码的Masks对象
     ```
 
-以下是`Masks`类方法和属性的表格，包括它们的名称、类型和描述：
+以下是`Masks`类方法和属性的表格，包括它们的名称、类型和description:
 
 | 名称        | 类型                  | 描述                   |
 |-----------|---------------------|----------------------|
@@ -527,7 +534,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 `Keypoints` 对象可以用于索引、操作和规范化坐标。
 
-!!! 示例 "关键点"
+!!! Example "关键点"
 
     ```python
     from ultralytics import YOLO
@@ -543,7 +550,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
         print(r.keypoints)  # 打印包含检测到的关键点的Keypoints对象
     ```
 
-以下是`Keypoints`类方法和属性的表格，包括它们的名称、类型和描述：
+以下是`Keypoints`类方法和属性的表格，包括它们的名称、类型和description:
 
 | 名称        | 类型                 | 描述                        |
 |-----------|--------------------|---------------------------|
@@ -561,7 +568,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 `Probs` 对象可以用于索引，获取分类的 `top1` 和 `top5` 索引和分数。
 
-!!! 示例 "概率"
+!!! Example "概率"
 
     ```python
     from ultralytics import YOLO
@@ -596,7 +603,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 您可以使用`Result`对象的`plot()`方法来可视化预测结果。它会将`Results`对象中包含的所有预测类型（框、掩码、关键点、概率等）绘制到一个numpy数组上，然后可以显示或保存。
 
-!!! 示例 "绘制"
+!!! Example "绘制"
 
     ```python
     from PIL import Image
@@ -640,7 +647,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 在多线程应用中使用YOLO模型时，重要的是为每个线程实例化单独的模型对象，或使用线程本地存储来防止冲突：
 
-!!! 示例 "线程安全推理"
+!!! Example "线程安全推理"
 
     在每个线程内实例化单个模型以实现线程安全的推理：
     ```python
@@ -664,7 +671,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 以下是使用OpenCV（`cv2`）和YOLOv8在视频帧上运行推理的Python脚本。此脚本假设您已经安装了必要的包（`opencv-python`和`ultralytics`）。
 
-!!! 示例 "流媒体for循环"
+!!! Example "流媒体for循环"
 
     ```python
     import cv2

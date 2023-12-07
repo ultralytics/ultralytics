@@ -8,7 +8,7 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
 
 欢迎来到 Ultralytics 的模型文档！我们支持多种模型，每种模型都针对特定任务进行了优化，如[对象检测](/../tasks/detect.md)、[实例分割](/../tasks/segment.md)、[图像分类](/../tasks/classify.md)、[姿态估计](/../tasks/pose.md)和[多对象追踪](/../modes/track.md)。如果您有兴趣将您的模型架构贡献给 Ultralytics，请查看我们的[贡献指南](/../help/contributing.md)。
 
-!!! note
+!!! Note "笔记"
 
     Ultralytics 团队正忙于将文档翻译成多种语言。本页面上的链接目前可能会导向英文文档页面，因为我们正在努力扩展多语言文档支持。感谢您的耐心等待 🙏！
 
@@ -41,7 +41,7 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
 
 ## 入门：使用示例
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 

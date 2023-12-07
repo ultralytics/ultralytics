@@ -12,7 +12,7 @@ Bildklassifizierung ist die einfachste der drei Aufgaben und besteht darin, ein 
 
 Die Ausgabe eines Bildklassifizierers ist ein einzelnes Klassenlabel und eine Vertrauenspunktzahl. Bildklassifizierung ist nützlich, wenn Sie nur wissen müssen, zu welcher Klasse ein Bild gehört, und nicht wissen müssen, wo sich Objekte dieser Klasse befinden oder wie ihre genaue Form ist.
 
-!!! tip "Tipp"
+!!! Tip "Tipp"
 
     YOLOv8 Classify-Modelle verwenden den Suffix `-cls`, z.B. `yolov8n-cls.pt` und sind auf [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) vortrainiert.
 
@@ -39,7 +39,7 @@ Hier werden vortrainierte YOLOv8 Classify-Modelle gezeigt. Detect-, Segment- und
 
 Trainieren Sie das YOLOv8n-cls-Modell auf dem MNIST160-Datensatz für 100 Epochen bei Bildgröße 64. Eine vollständige Liste der verfügbaren Argumente finden Sie auf der Seite [Konfiguration](/../usage/cfg.md).
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -76,7 +76,7 @@ Das Datenformat für YOLO-Klassifizierungsdatensätze finden Sie im Detail im [D
 
 Validieren Sie die Genauigkeit des trainierten YOLOv8n-cls-Modells auf dem MNIST160-Datensatz. Kein Argument muss übergeben werden, da das `modell` seine Trainings`daten` und Argumente als Modellattribute behält.
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -103,7 +103,7 @@ Validieren Sie die Genauigkeit des trainierten YOLOv8n-cls-Modells auf dem MNIST
 
 Verwenden Sie ein trainiertes YOLOv8n-cls-Modell, um Vorhersagen auf Bildern durchzuführen.
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -130,7 +130,7 @@ Vollständige Details zum `predict`-Modus finden Sie auf der Seite [Vorhersage](
 
 Exportieren Sie ein YOLOv8n-cls-Modell in ein anderes Format wie ONNX, CoreML usw.
 
-!!! example ""
+!!! Example "Beispiel"
 
     === "Python"
 

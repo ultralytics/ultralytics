@@ -32,7 +32,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 ### SAM prediction example
 
-!!! example "Segment with prompts"
+!!! Example "Segment with prompts"
 
     Segment image with given prompts.
 
@@ -54,7 +54,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
         ```
 
-!!! example "Segment everything"
+!!! Example "Segment everything"
 
     Segment the whole image.
 
@@ -82,7 +82,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 - The logic here is to segment the whole image if you don't pass any prompts(bboxes/points/masks).
 
-!!! example "SAMPredictor example"
+!!! Example "SAMPredictor example"
 
     This way you can set image once and run prompts inference multiple times without running image encoder multiple times.
 
@@ -131,11 +131,11 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 ## Operating Modes
 
-| Mode       | Supported          |
-|------------|--------------------|
-| Inference  | :heavy_check_mark: |
-| Validation | :x:                |
-| Training   | :x:                |
+| Mode       | Supported |
+|------------|-----------|
+| Inference  | ✅         |
+| Validation | ❌         |
+| Training   | ❌         |
 
 ## SAM comparison vs YOLOv8
 
@@ -152,7 +152,7 @@ This comparison shows the order-of-magnitude differences in the model sizes and 
 
 Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
-!!! example ""
+!!! Example ""
 
     === "Python"
         ```python
@@ -187,7 +187,7 @@ Auto-annotation is a key feature of SAM, allowing users to generate a [segmentat
 
 To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
-!!! example ""
+!!! Example ""
 
     === "Python"
         ```python
@@ -212,7 +212,7 @@ Auto-annotation with pre-trained models can dramatically cut down the time and e
 
 If you find SAM useful in your research or development work, please consider citing our paper:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

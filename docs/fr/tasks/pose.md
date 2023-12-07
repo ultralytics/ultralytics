@@ -42,7 +42,7 @@ Les [Modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/
 
 Entraînez un modèle YOLOv8-pose sur le jeu de données COCO128-pose.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -78,7 +78,7 @@ Le format du jeu de données YOLO pose peut être trouvé en détail dans le [Gu
 
 Validez la précision du modèle YOLOv8n-pose entraîné sur le jeu de données COCO128-pose. Aucun argument n'est nécessaire car le `modèle` conserve ses données d'entraînement et arguments en tant qu'attributs du modèle.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -107,7 +107,7 @@ Validez la précision du modèle YOLOv8n-pose entraîné sur le jeu de données 
 
 Utilisez un modèle YOLOv8n-pose entraîné pour exécuter des prédictions sur des images.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -134,7 +134,7 @@ Consultez les détails complets du mode `predict` sur la page [Prédire](https:/
 
 Exportez un modèle YOLOv8n Pose dans un autre format tel que ONNX, CoreML, etc.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 

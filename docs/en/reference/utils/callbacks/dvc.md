@@ -5,7 +5,7 @@ keywords: Ultralytics, YOLO, callbacks, logger, training, pretraining, machine l
 
 # Reference for `ultralytics/utils/callbacks/dvc.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/dvc.py) 🛠️. Thank you 🙏!
 

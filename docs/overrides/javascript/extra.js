@@ -59,3 +59,11 @@ if (autoThemeInput) {
     }
   });
 }
+
+// Add iframe navigation
+window.onhashchange = function() {
+    window.parent.postMessage({
+        type: 'navigation',
+        hash: window.location.pathname + window.location.search + window.location.hash
+    }, '*');
+};

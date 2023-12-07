@@ -30,7 +30,7 @@ The Global Wheat Head Dataset is widely used for training and evaluating deep le
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Global Wheat Head Dataset, the `GlobalWheat2020.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml).
 
-!!! example "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
+!!! Example "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
@@ -40,7 +40,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the Global Wheat Head Dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
+!!! Example "Train Example"
 
     === "Python"
 
@@ -75,7 +75,7 @@ The example showcases the variety and complexity of the data in the Global Wheat
 
 If you use the Global Wheat Head Dataset in your research or development work, please cite the following paper:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

@@ -23,7 +23,7 @@ La sortie d'un détecteur d'objets est un ensemble de boîtes englobantes qui en
   <strong>Regardez :</strong> Détection d'Objets avec le Modèle Pré-entraîné Ultralytics YOLOv8.
 </p>
 
-!!! tip "Conseil"
+!!! Tip "Conseil"
 
     Les modèles Detect YOLOv8 sont les modèles YOLOv8 par défaut, c.-à-d. `yolov8n.pt` et sont pré-entraînés sur le jeu de données [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
@@ -50,7 +50,7 @@ Les modèles pré-entraînés Detect YOLOv8 sont présentés ici. Les modèles D
 
 Entraînez le modèle YOLOv8n sur le jeu de données COCO128 pendant 100 époques à la taille d'image de 640. Pour une liste complète des arguments disponibles, consultez la page [Configuration](/../usage/cfg.md).
 
-!!! example ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -86,7 +86,7 @@ Le format des jeux de données de détection YOLO est détaillé dans le [Guide 
 
 Validez la précision du modèle YOLOv8n entraîné sur le jeu de données COCO128. Aucun argument n'est nécessaire puisque le `modèle` conserve ses `données` d'entraînement et arguments en tant qu'attributs du modèle.
 
-!!! example ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -115,7 +115,7 @@ Validez la précision du modèle YOLOv8n entraîné sur le jeu de données COCO1
 
 Utilisez un modèle YOLOv8n entraîné pour exécuter des prédictions sur des images.
 
-!!! example ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -142,7 +142,7 @@ Consultez les détails complets du mode `predict` sur la page [Prédire](https:/
 
 Exportez un modèle YOLOv8n dans un format différent tel que ONNX, CoreML, etc.
 
-!!! example ""
+!!! Example "Exemple"
 
     === "Python"
 

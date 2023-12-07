@@ -41,7 +41,7 @@ YOLOv8のトレーニングモードを選択するいくつかの魅力的な�
 - **ハイパーパラメータの設定：** YAML設定ファイルやCLI引数を通じてハイパーパラメータを変更するオプション。
 - **可視化とモニタリング：** トレーニング指標のリアルタイム追跡と学習プロセスの可視化により、より良い洞察を得ます。
 
-!!! tip "ヒント"
+!!! Tip "ヒント"
 
     * YOLOv8のデータセット、例えばCOCO、VOC、ImageNetなどは、最初の使用時に自動的にダウンロードされます。例：`yolo train data=coco.yaml`
 
@@ -49,7 +49,7 @@ YOLOv8のトレーニングモードを選択するいくつかの魅力的な�
 
 COCO128データセットでYOLOv8nを100エポック、画像サイズ640でトレーニングする。トレーニングデバイスは、`device`引数を使って指定できます。引数が渡されない場合、利用可能であればGPU `device=0`が、そうでなければ`device=cpu`が利用されます。全てのトレーニング引数のリストは以下の引数セクションを参照してください。
 
-!!! example "シングルGPUとCPUトレーニング例"
+!!! Example "シングルGPUとCPUトレーニング例"
 
     デバイスは自動的に決定されます。GPUが利用可能であればそれが使用され、そうでなければCPUでトレーニングが開始されます。
 
@@ -84,7 +84,7 @@ COCO128データセットでYOLOv8nを100エポック、画像サイズ640でト
 
 マルチGPUトレーニングは、利用可能なハードウェアリソースをより効率的に活用するために、トレーニングの負荷を複数のGPUに分散させることを可能にします。この機能はPython APIとコマンドラインインターフェィスの両方を通じて利用できます。マルチGPUトレーニングを有効にするには、使用したいGPUデバイスIDを指定します。
 
-!!! example "マルチGPUトレーニング例"
+!!! Example "マルチGPUトレーニング例"
 
     2つのGPUを使ってトレーニングするには、CUDAデバイス0と1を使い以下のコマンドを使用します。必要に応じて追加のGPUに拡張します。
 
@@ -113,7 +113,7 @@ AppleのM1およびM2チップに対するサポートがUltralyticsのYOLOモ�
 
 AppleのM1およびM2チップでのトレーニングを有効にするには、トレーニングプロセスを開始する際に`mps`をデバイスとして指定する必要があります。以下はPythonおよびコマンドラインでこれを行う例です：
 
-!!! example "MPSトレーニング例"
+!!! Example "MPSトレーニング例"
 
     === "Python"
 
@@ -148,7 +148,7 @@ YOLOv8モデルをトレーニングする際、モデルのパフォーマン�
 
 Cometを使用するには：
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
         ```python
@@ -166,7 +166,7 @@ Cometアカウントにサインインし、APIキーを取得してください
 
 ClearMLを使用するには：
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
         ```python
@@ -184,7 +184,7 @@ ClearMLを使用するには：
 
 [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)でTensorBoardを使用するには：
 
-!!! example ""
+!!! Example "例"
 
     === "CLI"
         ```bash
@@ -194,7 +194,7 @@ ClearMLを使用するには：
 
 TensorBoardをローカルで使用する場合は、http://localhost:6006/ で結果を確認できます。
 
-!!! example ""
+!!! Example "例"
 
     === "CLI"
         ```bash

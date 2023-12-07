@@ -23,7 +23,7 @@ keywords: Ultralytics, YOLO, YOLOv8, ポーズ推定, キーポイント検出, 
   <strong>視聴:</strong> Ultralytics YOLOv8によるポーズ推定。
 </p>
 
-!!! tip "ヒント"
+!!! Tip "ヒント"
 
     YOLOv8 _pose_ モデルは `-pose` サフィックスを使用します。例：`yolov8n-pose.pt`。これらのモデルは [COCOキーポイント](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) データセットでトレーニングされ、多様なポーズ推定タスクに適しています。
 
@@ -51,7 +51,7 @@ YOLOv8事前トレーニング済みポーズモデルはこちらです。Detec
 
 COCO128-poseデータセットでYOLOv8-poseモデルをトレーニングします。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 
@@ -87,7 +87,7 @@ YOLOポーズデータセットフォーマットの詳細は、[データセッ
 
 COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデルの精度を検証します。引数は必要なく、`model`にはトレーニング`data`と引数がモデル属性として保持されます。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 
@@ -116,7 +116,7 @@ COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデ�
 
 トレーニング済みのYOLOv8n-poseモデルを使用して画像を予測します。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 
@@ -143,7 +143,7 @@ COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデ�
 
 YOLOv8n PoseモデルをONNX、CoreMLなどの異なるフォーマットにエクスポートします。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 

@@ -34,7 +34,7 @@ The MNIST dataset is widely used for training and evaluating deep learning model
 
 To train a CNN model on the MNIST dataset for 100 epochs with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
+!!! Example "Train Example"
 
     === "Python"
 
@@ -69,7 +69,7 @@ If you use the MNIST dataset in your
 
 research or development work, please cite the following paper:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

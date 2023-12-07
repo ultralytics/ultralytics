@@ -23,7 +23,7 @@ keywords: YOLOv8, Ultralytics, 객체 감지, 사전 훈련된 모델, 훈련, �
   <strong>시청하기:</strong> 사전 훈련된 Ultralytics YOLOv8 모델로 객체 감지하기.
 </p>
 
-!!! tip "팁"
+!!! Tip "팁"
 
     YOLOv8 Detect 모델들은 기본 YOLOv8 모델이며 예를 들어 `yolov8n.pt` 이 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) 데이터셋에서 사전 훈련되었습니다.
 
@@ -50,7 +50,7 @@ keywords: YOLOv8, Ultralytics, 객체 감지, 사전 훈련된 모델, 훈련, �
 
 COCO128 데이터셋에서 이미지 크기 640으로 YOLOv8n 모델을 100 에포크 동안 훈련합니다. 가능한 모든 인수에 대한 목록은 [설정](/../usage/cfg.md) 페이지에서 확인할 수 있습니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 
@@ -86,7 +86,7 @@ YOLO 감지 데이터셋 형식은 [데이터셋 가이드](../../../datasets/de
 
 COCO128 데이터셋에서 훈련된 YOLOv8n 모델의 정확도를 검증합니다. `model`은 훈련 시의 `data`와 인수를 모델 속성으로 보존하기 때문에 인수를 전달할 필요가 없습니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 
@@ -115,7 +115,7 @@ COCO128 데이터셋에서 훈련된 YOLOv8n 모델의 정확도를 검증합니
 
 훈련된 YOLOv8n 모델을 사용하여 이미지에 대한 예측을 수행합니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 
@@ -142,7 +142,7 @@ COCO128 데이터셋에서 훈련된 YOLOv8n 모델의 정확도를 검증합니
 
 YOLOv8n 모델을 ONNX, CoreML 등과 같은 다른 형식으로 내보냅니다.
 
-!!! example ""
+!!! Example "예제"
 
     === "Python"
 

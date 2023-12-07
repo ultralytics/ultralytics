@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLOv8, Erkennung, Segmentierung, Klassifizierung, Pose-S
 
 YOLOv8 ist ein KI-Framework, das mehrere Aufgaben im Bereich der Computer Vision **unterstützt**. Das Framework kann für die [Erkennung](detect.md), [Segmentierung](segment.md), [Klassifizierung](classify.md) und die [Pose](pose.md)-Schätzung verwendet werden. Jede dieser Aufgaben hat ein unterschiedliches Ziel und Anwendungsgebiete.
 
-!!! Hinweis
+!!! Note "Hinweis"
 
     🚧 Unsere mehrsprachigen Dokumentation befindet sich derzeit im Aufbau und wir arbeiten hart daran, sie zu verbessern. Danke für Ihre Geduld! 🙏
 

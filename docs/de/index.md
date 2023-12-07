@@ -38,7 +38,7 @@ Wir stellen [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/u
 
 Erkunden Sie die YOLOv8-Dokumentation, eine umfassende Ressource, die Ihnen helfen soll, seine Funktionen und Fähigkeiten zu verstehen und zu nutzen. Ob Sie ein erfahrener Machine-Learning-Praktiker sind oder neu in diesem Bereich, dieses Hub zielt darauf ab, das Potenzial von YOLOv8 in Ihren Projekten zu maximieren
 
-!!! note
+!!! Note "Hinweis"
 
     🚧 Unsere mehrsprachige Dokumentation wird derzeit entwickelt und wir arbeiten intensiv an ihrer Verbesserung. Wir danken für Ihre Geduld! 🙏
 

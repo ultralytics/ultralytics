@@ -12,7 +12,7 @@ keywords: Ultralytics, YOLOv8, 图像分类, 预训练模型, YOLOv8n-cls, 训�
 
 图像分类器的输出是单个类别标签和一个置信度分数。当您只需要知道一幅图像属于哪个类别、而不需要知道该类别对象的位置或它们的确切形状时，图像分类非常有用。
 
-!!! tip "提示"
+!!! Tip "提示"
 
     YOLOv8分类模型使用`-cls`后缀，即`yolov8n-cls.pt`，并预先训练在[ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml)上。
 
@@ -39,7 +39,7 @@ keywords: Ultralytics, YOLOv8, 图像分类, 预训练模型, YOLOv8n-cls, 训�
 
 在MNIST160数据集上训练YOLOv8n-cls模型100个时期，图像尺寸为64。有关可用参数的完整列表，请参见[配置](/../usage/cfg.md)页面。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -76,7 +76,7 @@ YOLO分类数据集的格式详情请参见[数据集指南](/../datasets/classi
 
 在MNIST160数据集上验证训练好的YOLOv8n-cls模型准确性。不需要传递任何参数，因为`model`保留了它的训练`data`和参数作为模型属性。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -103,7 +103,7 @@ YOLO分类数据集的格式详情请参见[数据集指南](/../datasets/classi
 
 使用训练过的YOLOv8n-cls模型对图像进行预测。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 
@@ -130,7 +130,7 @@ YOLO分类数据集的格式详情请参见[数据集指南](/../datasets/classi
 
 将YOLOv8n-cls模型导出为其他格式，如ONNX、CoreML等。
 
-!!! example ""
+!!! Example "示例"
 
     === "Python"
 

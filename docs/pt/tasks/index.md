@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLOv8, Detecção, Segmentação, Classificação, Estim
 
 YOLOv8 é um framework de IA que suporta múltiplas tarefas de **visão computacional**. O framework pode ser usado para realizar [detecção](detect.md), [segmentação](segment.md), [classificação](classify.md) e estimativa de [pose](pose.md). Cada uma dessas tarefas tem um objetivo e caso de uso diferente.
 
-!!! note
+!!! Note "Nota"
 
     🚧 Nossa documentação multilíngue está atualmente em construção e estamos trabalhando para aprimorá-la. Agradecemos sua paciência! 🙏
 

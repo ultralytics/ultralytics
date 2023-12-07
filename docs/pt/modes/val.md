@@ -30,7 +30,7 @@ Estas são as funcionalidades notáveis oferecidas pelo modo Val do YOLOv8:
 - **API em Python e CLI:** Escolha entre a interface de linha de comando ou API em Python com base na sua preferência de validação.
 - **Compatibilidade de Dados:** Funciona perfeitamente com conjuntos de dados usados durante a fase de treinamento, bem como conjuntos de dados personalizados.
 
-!!! tip "Dica"
+!!! Tip "Dica"
 
     * Os modelos YOLOv8 lembram automaticamente suas configurações de treinamento, então você pode validar um modelo no mesmo tamanho de imagem e no conjunto de dados original facilmente com apenas `yolo val model=yolov8n.pt` ou `model('yolov8n.pt').val()`
 
@@ -38,7 +38,7 @@ Estas são as funcionalidades notáveis oferecidas pelo modo Val do YOLOv8:
 
 Validar a precisão do modelo YOLOv8n treinado no conjunto de dados COCO128. Nenhum argumento precisa ser passado, pois o `model` retém os dados de treinamento e argumentos como atributos do modelo. Veja a seção de Argumentos abaixo para uma lista completa dos argumentos de exportação.
 
-!!! example ""
+!!! Example "Exemplo"
 
     === "Python"
 

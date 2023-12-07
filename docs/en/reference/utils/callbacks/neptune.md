@@ -5,7 +5,7 @@ keywords: Ultralytics, Neptune callbacks, on_train_epoch_end, on_val_end, _log_p
 
 # Reference for `ultralytics/utils/callbacks/neptune.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/neptune.py) 🛠️. Thank you 🙏!
 

@@ -50,7 +50,7 @@ Les [modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/
 
 Entraînez YOLOv8n-seg sur le jeu de données COCO128-seg pendant 100 époques à la taille d'image 640. Pour une liste complète des arguments disponibles, consultez la page [Configuration](/../usage/cfg.md).
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -87,7 +87,7 @@ Le format des données de segmentation YOLO peut être trouvé en détail dans l
 Validez la précision du modèle YOLOv8n-seg entraîné sur le jeu de données COCO128-seg. Aucun argument n'est nécessaire car le `modèle`
 conserve ses données de formation et ses arguments comme attributs du modèle.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -120,7 +120,7 @@ conserve ses données de formation et ses arguments comme attributs du modèle.
 
 Utilisez un modèle YOLOv8n-seg entraîné pour effectuer des prédictions sur des images.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 
@@ -147,7 +147,7 @@ Voir les détails complets du mode `predict` sur la page [Predict](https://docs.
 
 Exportez un modèle YOLOv8n-seg vers un format différent comme ONNX, CoreML, etc.
 
-!!! exemple ""
+!!! Example "Exemple"
 
     === "Python"
 

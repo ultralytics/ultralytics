@@ -39,7 +39,7 @@ keywords: YOLO, YOLOv8, Ultralytics, モデルエキスポート, ONNX, TensorRT
 - **最適化推論:** より高速な推論のために最適化されたエキスポートモデル。
 - **チュートリアル動画:** スムーズなエキスポート体験のための詳細なガイドとチュートリアル。
 
-!!! tip "ヒント"
+!!! Tip "ヒント"
 
     * ONNXまたはOpenVINOへのエキスポートで最大3倍のCPU速度アップ。
     * TensorRTへのエキスポートで最大5倍のGPU速度アップ。
@@ -48,7 +48,7 @@ keywords: YOLO, YOLOv8, Ultralytics, モデルエキスポート, ONNX, TensorRT
 
 YOLOv8nモデルをONNXやTensorRTなどの異なるフォーマットにエキスポートします。エキスポート引数のフルリストについては、以下のArgumentsセクションをご覧ください。
 
-!!! example ""
+!!! Example "例"
 
     === "Python"
 

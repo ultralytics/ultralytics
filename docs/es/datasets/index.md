@@ -8,7 +8,7 @@ keywords: visión por computadora, conjuntos de datos, Ultralytics, YOLO, detecc
 
 Ultralytics brinda soporte para varios conjuntos de datos para facilitar tareas de visión por computadora como detección, segmentación de instancias, estimación de poses, clasificación y seguimiento de múltiples objetos. A continuación se presenta una lista de los principales conjuntos de datos de Ultralytics, seguido por un resumen de cada tarea de visión por computadora y los respectivos conjuntos de datos.
 
-!!! note
+!!! Note "Nota"
 
     🚧 Nuestra documentación multilingüe está actualmente en construcción y estamos trabajando arduamente para mejorarla. ¡Gracias por su paciencia! 🙏
 
@@ -104,7 +104,7 @@ Contribuir con un nuevo conjunto de datos implica varios pasos para garantizar q
 
 ### Código de Ejemplo para Optimizar y Comprimir un Conjunto de Datos
 
-!!! example "Optimizar y Comprimir un Conjunto de Datos"
+!!! Example "Optimizar y Comprimir un Conjunto de Datos"
 
     === "Python"
 

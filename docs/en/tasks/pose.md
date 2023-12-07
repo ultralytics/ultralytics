@@ -24,7 +24,7 @@ The output of a pose estimation model is a set of points that represent the keyp
   <strong>Watch:</strong> Pose Estimation with Ultralytics YOLOv8.
 </p>
 
-!!! tip "Tip"
+!!! Tip "Tip"
 
     YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
 
@@ -54,7 +54,7 @@ YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models ar
 
 Train a YOLOv8-pose model on the COCO128-pose dataset.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -91,7 +91,7 @@ YOLO pose dataset format can be found in detail in the [Dataset Guide](../datase
 Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model`
 retains it's training `data` and arguments as model attributes.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -120,7 +120,7 @@ retains it's training `data` and arguments as model attributes.
 
 Use a trained YOLOv8n-pose model to run predictions on images.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -147,7 +147,7 @@ See full `predict` mode details in the [Predict](https://docs.ultralytics.com/mo
 
 Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

@@ -106,7 +106,7 @@ The JSON list contains information about the detected objects, their coordinates
 
 YOLO detection models, such as `yolov8n.pt`, can return JSON responses from local inference, CLI API inference, and Python API inference. All of these methods produce the same JSON response format.
 
-!!! example "Detect Model JSON Response"
+!!! Example "Detect Model JSON Response"
 
     === "Local"
         ```python
@@ -200,7 +200,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
 
 YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses from local inference, CLI API inference, and Python API inference. All of these methods produce the same JSON response format.
 
-!!! example "Segment Model JSON Response"
+!!! Example "Segment Model JSON Response"
 
     === "Local"
         ```python
@@ -337,7 +337,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
 
 YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from local inference, CLI API inference, and Python API inference. All of these methods produce the same JSON response format.
 
-!!! example "Pose Model JSON Response"
+!!! Example "Pose Model JSON Response"
 
     === "Local"
         ```python

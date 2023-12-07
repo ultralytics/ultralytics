@@ -13,7 +13,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 [Смотрите: Оценка позы с Ultralytics YOLOv8.](https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ)
 
-!!! tip "Совет"
+!!! Tip "Совет"
 
     Модели _pose_ YOLOv8 используют суффикс `-pose`, т.е. `yolov8n-pose.pt`. Эти модели обучены на наборе данных [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) и подходят для различных задач оценки позы.
 
@@ -41,7 +41,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 Обучите модель YOLOv8-pose на наборе данных COCO128-pose.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -78,7 +78,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 Проверьте точность обученной модели YOLOv8n-pose на наборе данных COCO128-pose. Аргументы не нужны, так как `model`
 запоминает свои `data` и аргументы как атрибуты модели.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -107,7 +107,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 Используйте обученную модель YOLOv8n-pose для выполнения предсказаний на изображениях.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -134,7 +134,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 Экспортируйте модель YOLOv8n Pose в другой формат, такой как ONNX, CoreML и т.д.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 

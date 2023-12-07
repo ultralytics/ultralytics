@@ -5,7 +5,7 @@ keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, S
 
 # Reference for `ultralytics/nn/modules/block.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/block.py) 🛠️. Thank you 🙏!
 

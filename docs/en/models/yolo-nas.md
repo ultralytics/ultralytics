@@ -44,7 +44,7 @@ The following examples show how to use YOLO-NAS models with the `ultralytics` pa
 
 In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
-!!! example ""
+!!! Example ""
 
     This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
 
@@ -94,11 +94,11 @@ The YOLO-NAS models are primarily designed for object detection tasks. You can d
 
 The YOLO-NAS models support both inference and validation modes, allowing you to predict and validate results with ease. Training mode, however, is currently not supported.
 
-| Mode       | Supported          |
-|------------|--------------------|
-| Inference  | :heavy_check_mark: |
-| Validation | :heavy_check_mark: |
-| Training   | :x:                |
+| Mode       | Supported |
+|------------|-----------|
+| Inference  | ✅         |
+| Validation | ✅         |
+| Training   | ❌         |
 
 Harness the power of the YOLO-NAS models to drive your object detection tasks to new heights of performance and speed.
 
@@ -106,7 +106,7 @@ Harness the power of the YOLO-NAS models to drive your object detection tasks to
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

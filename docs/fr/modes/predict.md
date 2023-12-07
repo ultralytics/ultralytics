@@ -50,7 +50,7 @@ Le mode de prédiction YOLOv8 est conçu pour être robuste et polyvalent, avec 
 
 Les modèles YOLO d'Ultralytics renvoient soit une liste d'objets `Results` Python, soit un générateur Python efficace en termes de mémoire d'objets `Results` lorsque `stream=True` est passé au modèle pendant l'inférence :
 
-!!! exemple "Prédire"
+!!! Example "Prédire"
 
     === "Renvoie une liste avec `stream=False`"
         ```python
@@ -115,7 +115,7 @@ YOLOv8 peut traiter différents types de sources d'entrée pour l'inférence, co
 
 Ci-dessous des exemples de code pour utiliser chaque type de source :
 
-!!! exemple "Sources de prédiction"
+!!! Example "Sources de prédiction"
 
     === "image"
         Exécutez une inférence sur un fichier image.

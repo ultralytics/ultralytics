@@ -12,7 +12,7 @@ keywords: Ultralytics, YOLOv8, 이미지 분류, 사전 훈련된 모델, YOLOv8
 
 이미지 분류기의 출력은 단일 클래스 라벨과 신뢰도 점수입니다. 이미지 분류는 클래스의 이미지만 알고 싶고 해당 클래스의 객체가 어디에 위치하고 있는지 또는 그 정확한 형태가 무엇인지 알 필요가 없을 때 유용합니다.
 
-!!! 팁 "팁"
+!!! Tip "팁"
 
     YOLOv8 분류 모델은 `-cls` 접미사를 사용합니다. 예: `yolov8n-cls.pt`이며, [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml)에서 사전 훈련되었습니다.
 
@@ -39,7 +39,7 @@ keywords: Ultralytics, YOLOv8, 이미지 분류, 사전 훈련된 모델, YOLOv8
 
 YOLOv8n-cls 모델을 MNIST160 데이터셋에서 100 에포크 동안 학습시키고 이미지 크기는 64로 설정합니다. 가능한 모든 인자는 [설정](/../usage/cfg.md) 페이지에서 확인할 수 있습니다.
 
-!!! 예제 ""
+!!! Example "예제"
 
     === "Python"
 
@@ -76,7 +76,7 @@ YOLO 분류 데이터셋 형식은 [데이터셋 가이드](../../../datasets/cl
 
 학습된 YOLOv8n-cls 모델의 정확도를 MNIST160 데이터셋에서 검증합니다. `model`은 모델 속성으로 훈련 시 `data` 및 인자를 유지하므로 추가 인자를 전달할 필요가 없습니다.
 
-!!! 예제 ""
+!!! Example "예제"
 
     === "Python"
 
@@ -103,7 +103,7 @@ YOLO 분류 데이터셋 형식은 [데이터셋 가이드](../../../datasets/cl
 
 학습된 YOLOv8n-cls 모델을 사용하여 이미지에 대한 예측을 실행합니다.
 
-!!! 예제 ""
+!!! Example "예제"
 
     === "Python"
 
@@ -130,7 +130,7 @@ YOLO 분류 데이터셋 형식은 [데이터셋 가이드](../../../datasets/cl
 
 YOLOv8n-cls 모델을 ONNX, CoreML 등과 같은 다른 형식으로 내보냅니다.
 
-!!! 예제 ""
+!!! Example "예제"
 
     === "Python"
 

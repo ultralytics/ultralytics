@@ -23,7 +23,7 @@ keywords: YOLOv8, Ultralytics, обнаружение объектов, пред
   <strong>Смотрите:</strong> Обнаружение объектов с предобученной моделью Ultralytics YOLOv8.
 </p>
 
-!!! tip "Совет"
+!!! Tip "Совет"
 
     YOLOv8 Detect модели являются стандартными моделями YOLOv8, то есть `yolov8n.pt`, и предобучены на [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
@@ -50,7 +50,7 @@ keywords: YOLOv8, Ultralytics, обнаружение объектов, пред
 
 Обучите модель YOLOv8n на датасете COCO128 в течение 100 эпох с размером изображения 640. Полный список доступных аргументов см. на странице [Конфигурация](/../usage/cfg.md).
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -86,7 +86,7 @@ keywords: YOLOv8, Ultralytics, обнаружение объектов, пред
 
 Проверьте точность обученной модели YOLOv8n на датасете COCO128. Необходимо передать аргументы, поскольку `model` сохраняет свои `data` и аргументы обучения как атрибуты модели.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -115,7 +115,7 @@ keywords: YOLOv8, Ultralytics, обнаружение объектов, пред
 
 Используйте обученную модель YOLOv8n для выполнения предсказаний на изображениях.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 
@@ -142,7 +142,7 @@ keywords: YOLOv8, Ultralytics, обнаружение объектов, пред
 
 Экспортируйте модель YOLOv8n в другой формат, такой как ONNX, CoreML и др.
 
-!!! example ""
+!!! Example "Пример"
 
     === "Python"
 

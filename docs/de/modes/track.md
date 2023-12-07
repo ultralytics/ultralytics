@@ -58,7 +58,7 @@ Der Standardtracker ist BoT-SORT.
 
 Um den Tracker auf Videostreams auszuführen, verwenden Sie ein trainiertes Erkennungs-, Segmentierungs- oder Posierungsmodell wie YOLOv8n, YOLOv8n-seg und YOLOv8n-pose.
 
-!!! beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -97,7 +97,7 @@ Wie in der obigen Nutzung zu sehen ist, ist die Verfolgung für alle Detect-, Se
 
 Die Tracking-Konfiguration teilt Eigenschaften mit dem Predict-Modus, wie `conf`, `iou` und `show`. Für weitere Konfigurationen siehe die Seite des [Predict](https://docs.ultralytics.com/modes/predict/)-Modells.
 
-!!! beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -120,7 +120,7 @@ Die Tracking-Konfiguration teilt Eigenschaften mit dem Predict-Modus, wie `conf`
 
 Ultralytics ermöglicht es Ihnen auch, eine modifizierte Tracker-Konfigurationsdatei zu verwenden. Hierfür kopieren Sie einfach eine Tracker-Konfigurationsdatei (zum Beispiel `custom_tracker.yaml`) von [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) und ändern jede Konfiguration (außer dem `tracker_type`), wie es Ihren Bedürfnissen entspricht.
 
-!!! beispiel ""
+!!! Example "Beispiel"
 
     === "Python"
 
@@ -147,7 +147,7 @@ Für eine umfassende Liste der Tracking-Argumente siehe die Seite [ultralytics/c
 
 Hier ist ein Python-Skript, das OpenCV (`cv2`) und YOLOv8 verwendet, um Objektverfolgung in Videoframes durchzuführen. Dieses Skript setzt voraus, dass Sie die notwendigen Pakete (`opencv-python` und `ultralytics`) bereits installiert haben. Das Argument `persist=True` teilt dem Tracker mit, dass das aktuelle Bild oder Frame das nächste in einer Sequenz ist und Tracks aus dem vorherigen Bild im aktuellen Bild erwartet werden.
 
-!!! beispiel "Streaming-For-Schleife mit Tracking"
+!!! Example "Streaming-For-Schleife mit Tracking"
 
     ```python
     import cv2

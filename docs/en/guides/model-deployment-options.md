@@ -1,6 +1,6 @@
 ---
 comments: true
-Description: A guide to help determine which deployment option to choose for your YOLOv8 model, including essential considerations.
+description: A guide to help determine which deployment option to choose for your YOLOv8 model, including essential considerations.
 keywords: YOLOv8, Deployment, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TensorFlow, Export
 ---
 

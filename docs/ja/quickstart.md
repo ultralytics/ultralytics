@@ -8,7 +8,7 @@ keywords: Ultralyticsインストール, pipインストールUltralytics, Docke
 
 Ultralyticsはpip、conda、Dockerを含むさまざまなインストール方法を提供しています。最新の安定版リリースである`ultralytics` pipパッケージを通じてYOLOv8をインストールするか、最新バージョンを取得するために[Ultralytics GitHubリポジトリ](https://github.com/ultralytics/ultralytics)をクローンします。Dockerは、ローカルインストールを回避し、孤立したコンテナ内でパッケージを実行するために使用できます。
 
-!!! example "インストール"
+!!! Example "インストール"
 
     === "Pipでのインストール（推奨）"
         pipを使用して`ultralytics`パッケージをインストールするか、`pip install -U ultralytics`を実行して既存のインストールをアップデートします。`ultralytics`パッケージの詳細については、Python Package Index（PyPI）を参照してください: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/)。
@@ -39,7 +39,7 @@ Ultralyticsはpip、conda、Dockerを含むさまざまなインストール方�
         conda install -c conda-forge ultralytics
         ```
 
-        !!! note
+        !!! Note "ノート"
 
             CUDA環境でインストールする場合、パッケージマネージャーが競合を解決できるようにするため、`ultralytics`、`pytorch`、`pytorch-cuda`を同じコマンドで一緒にインストールするのがベストプラクティスです。または、CPU専用の`pytorch`パッケージに必要な場合は上書きするように`pytorch-cuda`を最後にインストールします。
             ```bash
@@ -89,7 +89,7 @@ Ultralyticsはpip、conda、Dockerを含むさまざまなインストール方�
   <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
 </p>
 
-!!! tip "ヒント"
+!!! Tip "ヒント"
 
     PyTorchの要件はオペレーティングシステムとCUDAの要件によって異なるため、[https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally)に従って最初にPyTorchをインストールすることをお勧めします。
 
@@ -101,7 +101,7 @@ Ultralyticsはpip、conda、Dockerを含むさまざまなインストール方�
 
 Ultralyticsコマンドラインインターフェース（CLI）を使用すると、Python環境がなくても単一の行のコマンドを簡単に実行できます。CLIはカスタマイズもPythonコードも必要ありません。単純にすべてのタスクを`yolo`コマンドでターミナルから実行することができます。コマンドラインからYOLOv8を使用する方法について詳しくは、[CLIガイド](/../usage/cli.md)を参照してください。
 
-!!! example
+!!! Example "例"
 
     === "構文"
 
@@ -155,7 +155,7 @@ Ultralyticsコマンドラインインターフェース（CLI）を使用する
         yolo cfg
         ```
 
-!!! warning "警告"
+!!! Warning "警告"
 
     引数は`arg=val`ペアとして渡され、`=`記号で分割され、ペア間にスペース` `が必要です。引数のプレフィックスに`--`や引数間にカンマ`,`を使用しないでください。
 
@@ -171,7 +171,7 @@ YOLOv8のPythonインターフェースを使用すると、Pythonプロジェ�
 
 たとえば、ユーザーはモデルをロードして、トレーニングし、検証セットでのパフォーマンスを評価し、ONNX形式にエクスポートするまでの一連の処理を数行のコードで行うことができます。YOLOv8をPythonプロジェクトで使用する方法について詳しくは、[Pythonガイド](/../usage/python.md)を参照してください。
 
-!!! example
+!!! Example "例"
 
     ```python
     from ultralytics import YOLO

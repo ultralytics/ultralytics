@@ -58,7 +58,7 @@ O rastreador padrão é o BoT-SORT.
 
 Para executar o rastreador em fluxos de vídeo, use um modelo Detect, Segment ou Pose treinado, como YOLOv8n, YOLOv8n-seg e YOLOv8n-pose.
 
-!!! exemplo ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -97,7 +97,7 @@ Como pode ser visto no uso acima, o rastreamento está disponível para todos os
 
 A configuração de rastreamento compartilha propriedades com o modo Predict, como `conf`, `iou`, e `show`. Para mais configurações, consulte a página de [Predict](https://docs.ultralytics.com/modes/predict/) model page.
 
-!!! exemplo ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -120,7 +120,7 @@ A configuração de rastreamento compartilha propriedades com o modo Predict, co
 
 A Ultralytics também permite que você use um arquivo de configuração de rastreador modificado. Para fazer isso, simplesmente faça uma cópia de um arquivo de configuração de rastreador (por exemplo, `custom_tracker.yaml`) de [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) e modifique quaisquer configurações (exceto `tracker_type`) conforme suas necessidades.
 
-!!! exemplo ""
+!!! Example "Exemplo"
 
     === "Python"
 
@@ -147,7 +147,7 @@ Para uma lista completa de argumentos de rastreamento, consulte a página [ultra
 
 Aqui está um script em Python usando OpenCV (`cv2`) e YOLOv8 para executar rastreamento de objetos em quadros de vídeo. Este script ainda pressupõe que você já instalou os pacotes necessários (`opencv-python` e `ultralytics`). O argumento `persist=True` indica ao rastreador que a imagem ou quadro atual é o próximo de uma sequência e que espera rastreamentos da imagem anterior na imagem atual.
 
-!!! exemplo "Loop de fluxo com rastreamento"
+!!! Example "Loop de fluxo com rastreamento"
 
     ```python
     import cv2

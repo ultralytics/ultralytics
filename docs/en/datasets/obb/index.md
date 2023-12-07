@@ -32,7 +32,7 @@ An example of a `*.txt` label file for the above image, which contains an object
 
 To train a model using these OBB formats:
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 
@@ -69,7 +69,7 @@ For those looking to introduce their own datasets with oriented bounding boxes, 
 
 Transitioning labels from the DOTA dataset format to the YOLO OBB format can be achieved with this script:
 
-!!! example ""
+!!! Example ""
 
     === "Python"
 

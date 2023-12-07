@@ -51,7 +51,7 @@ TODO
 
 You can use YOLOv3 for object detection tasks using the Ultralytics repository. The following is a sample code snippet showing how to use YOLOv3 model for inference:
 
-!!! example ""
+!!! Example ""
 
     This example provides simple inference code for YOLOv3. For more options including handling inference results see [Predict](../modes/predict.md) mode. For using YOLOv3 with additional modes see [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md).
 
@@ -91,7 +91,7 @@ You can use YOLOv3 for object detection tasks using the Ultralytics repository. 
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository:
 
-!!! note ""
+!!! Note ""
 
     === "BibTeX"
 

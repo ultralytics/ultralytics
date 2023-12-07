@@ -130,23 +130,23 @@ The prediction settings for YOLO models encompass a range of hyperparameters and
 
 Inference arguments:
 
-| Name              | Type           | Default                | Description                                                                |
-|-------------------|----------------|------------------------|----------------------------------------------------------------------------|
-| `source`          | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
-| `conf`            | `float`        | `0.25`                 | object confidence threshold for detection                                  |
-| `iou`             | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
-| `imgsz`           | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                       |
-| `half`            | `bool`         | `False`                | use half precision (FP16)                                                  |
-| `device`          | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                   |
-| `max_det`         | `int`          | `300`                  | maximum number of detections per image                                     |
-| `vid_stride`      | `bool`         | `False`                | video frame-rate stride                                                    |
-| `stream_buffer`   | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False) |
-| `visualize`       | `bool`         | `False`                | visualize model features                                                   |
-| `augment`         | `bool`         | `False`                | apply image augmentation to prediction sources                             |
-| `agnostic_nms`    | `bool`         | `False`                | class-agnostic NMS                                                         |
-| `retina_masks`    | `bool`         | `False`                | use high-resolution segmentation masks                                     |
-| `classes`         | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
-| `crop_percentage` | `float`        | `1.0`                  | image crop percentage for classification evaluation/inference (0-1)        |
+| Name            | Type           | Default                | Description                                                                |
+|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
+| `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
+| `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
+| `imgsz`         | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                       |
+| `half`          | `bool`         | `False`                | use half precision (FP16)                                                  |
+| `device`        | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                   |
+| `max_det`       | `int`          | `300`                  | maximum number of detections per image                                     |
+| `vid_stride`    | `bool`         | `False`                | video frame-rate stride                                                    |
+| `stream_buffer` | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False) |
+| `visualize`     | `bool`         | `False`                | visualize model features                                                   |
+| `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
+| `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
+| `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
+| `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+| `crop_fraction` | `float`        | `1.0`                  | image crop fraction for classification evaluation/inference (0-1)        |
 
 Visualization arguments:
 
@@ -185,7 +185,7 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 | `plots`       | `False` | save plots and images during train/val                             |
 | `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
-| `crop_percentage`| `1.0` | image crop percentage for classification evaluation/inference (0-1)|
+| `crop_fraction`| `1.0` | image crop fraction for classification evaluation/inference (0-1)|
 
 [Val Guide](../modes/val.md){ .md-button }
 
@@ -213,24 +213,24 @@ Export settings for YOLO models encompass configurations and options related to 
 
 Augmentation settings for YOLO models refer to the various transformations and modifications applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each transformation is applied, and the presence of additional features such as masks or multiple labels per box. Other factors that may affect the augmentation process include the size and composition of the original dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
 
-| Key               | Value           | Description                                                                    |
-|-------------------|-----------------|--------------------------------------------------------------------------------|
-| `hsv_h`           | `0.015`         | image HSV-Hue augmentation (fraction)                                          |
-| `hsv_s`           | `0.7`           | image HSV-Saturation augmentation (fraction)                                   |
-| `hsv_v`           | `0.4`           | image HSV-Value augmentation (fraction)                                        |
-| `degrees`         | `0.0`           | image rotation (+/- deg)                                                       |
-| `translate`       | `0.1`           | image translation (+/- fraction)                                               |
-| `scale`           | `0.5`           | image scale (+/- gain)                                                         |
-| `shear`           | `0.0`           | image shear (+/- deg)                                                          |
-| `perspective`     | `0.0`           | image perspective (+/- fraction), range 0-0.001                                |
-| `flipud`          | `0.0`           | image flip up-down (probability)                                               |
-| `fliplr`          | `0.5`           | image flip left-right (probability)                                            |
-| `mosaic`          | `1.0`           | image mosaic (probability)                                                     |
-| `mixup`           | `0.0`           | image mixup (probability)                                                      |
-| `copy_paste`      | `0.0`           | segment copy-paste (probability)                                               |
-| `auto_augment`    | `'randaugment'` | auto augmentation policy for classification (randaugment, autoaugment, augmix) |
-| `erasing`         | `0.4`           | probability o random erasing during classification training (0-1) training     |
-| `crop_percentage` | `1.0`           | image crop percentage for classification evaluation/inference (0-1)            |
+| Key             | Value           | Description                                                                    |
+|-----------------|-----------------|--------------------------------------------------------------------------------|
+| `hsv_h`         | `0.015`         | image HSV-Hue augmentation (fraction)                                          |
+| `hsv_s`         | `0.7`           | image HSV-Saturation augmentation (fraction)                                   |
+| `hsv_v`         | `0.4`           | image HSV-Value augmentation (fraction)                                        |
+| `degrees`       | `0.0`           | image rotation (+/- deg)                                                       |
+| `translate`     | `0.1`           | image translation (+/- fraction)                                               |
+| `scale`         | `0.5`           | image scale (+/- gain)                                                         |
+| `shear`         | `0.0`           | image shear (+/- deg)                                                          |
+| `perspective`   | `0.0`           | image perspective (+/- fraction), range 0-0.001                                |
+| `flipud`        | `0.0`           | image flip up-down (probability)                                               |
+| `fliplr`        | `0.5`           | image flip left-right (probability)                                            |
+| `mosaic`        | `1.0`           | image mosaic (probability)                                                     |
+| `mixup`         | `0.0`           | image mixup (probability)                                                      |
+| `copy_paste`    | `0.0`           | segment copy-paste (probability)                                               |
+| `auto_augment`  | `'randaugment'` | auto augmentation policy for classification (randaugment, autoaugment, augmix) |
+| `erasing`       | `0.4`           | probability o random erasing during classification training (0-1) training     |
+| `crop_fraction` | `1.0`           | image crop fraction for classification evaluation/inference (0-1)              |
 
 ## Logging, checkpoints, plotting and file management
 

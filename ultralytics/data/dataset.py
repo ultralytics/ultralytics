@@ -236,7 +236,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
                                                        hsv_h=args.hsv_h,
                                                        hsv_s=args.hsv_s,
                                                        hsv_v=args.hsv_v) if augment else classify_transforms(
-                                                           size=args.imgsz, crop_percentage=args.crop_percentage)
+                                                           size=args.imgsz, crop_fraction=args.crop_fraction)
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""

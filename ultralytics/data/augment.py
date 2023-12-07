@@ -20,7 +20,7 @@ from .utils import polygons2masks, polygons2masks_overlap
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
-DEFAULT_CROP_PERCENTAGE = 1.0
+DEFAULT_CROP_FTACTION = 1.0
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
@@ -957,7 +957,7 @@ def classify_transforms(
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
     interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
-    crop_percentage: float = DEFAULT_CROP_PERCENTAGE,
+    crop_fraction: float = DEFAULT_CROP_FTACTION,
 ):
     """
     Classification transforms for evaluation/inference. Inspired by timm/data/transforms_factory.py.
@@ -967,7 +967,7 @@ def classify_transforms(
         mean (tuple): mean values of RGB channels
         std (tuple): std values of RGB channels
         interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
-        crop_percentage (float): percentage of image to crop. default is 1.0.
+        crop_fraction (float): fraction of image to crop. default is 1.0.
 
     Returns:
         T.Compose: torchvision transforms
@@ -975,9 +975,9 @@ def classify_transforms(
 
     if isinstance(size, (tuple, list)):
         assert len(size) == 2
-        scale_size = tuple([math.floor(x / crop_percentage) for x in size])
+        scale_size = tuple([math.floor(x / crop_fraction) for x in size])
     else:
-        scale_size = math.floor(size / crop_percentage)
+        scale_size = math.floor(size / crop_fraction)
         scale_size = (scale_size, scale_size)
 
     # aspect ratio is preserved, crops center within image, no borders are added, image is lost

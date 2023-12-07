@@ -4,7 +4,7 @@
   "source_weights_path": "./../inference_tools/models/detector_best.pt",
   "source_video_path": "./data/example2.mp4",
 
-  "device": "cpu",
+  "device": "mps",
   "video_stride": 1,
 
   "img_size": 640,
@@ -15,7 +15,7 @@
   "track_high_thresh": 0.4,
   "track_low_thresh": 0.1,
   "new_track_thresh": 0.1,
-  "track_buffer": 500,
+  "track_buffer": 1000,
   "match_thresh": 0.8,
   "frame_rate": 25,
 
@@ -55,6 +55,13 @@
     "suddenly_run": {
         "enabled": true,
         "acceleration_threshold": 0.015
+    },
+
+    "overstep_boundary": {
+      "enabled": true,
+      "line": [0, 1200, 1920, 1200],
+      "direction": "down",
+      "distance_threshold": 0
     }
   }
 }

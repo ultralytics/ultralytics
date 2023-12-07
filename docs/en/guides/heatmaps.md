@@ -66,7 +66,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         print("Error reading video file") and exit(0) if not cap.isOpened() else None
 
         classes_for_heatmap = [0, 2]
-        # Heatmap Init
+        
+        # Heatmap init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
                              imw=cap.get(4),  # should same as im0 width

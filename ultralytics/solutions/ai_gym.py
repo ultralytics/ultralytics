@@ -125,6 +125,8 @@ class AIGym:
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 return
 
+        return self.im0
+
 
 if __name__ == '__main__':
     AIGym()

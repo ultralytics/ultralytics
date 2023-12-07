@@ -4,13 +4,15 @@ import cv2
 import numpy as np
 
 from ultralytics.utils.checks import check_requirements
+
 check_requirements('shapely>=2.0.0')
+
+from collections import defaultdict
 
 from shapely.geometry import Polygon
 from shapely.geometry.point import Point
-from ultralytics.utils.plotting import Annotator
 
-from collections import defaultdict
+from ultralytics.utils.plotting import Annotator
 
 
 class Heatmap:
@@ -49,7 +51,6 @@ class Heatmap:
         self.count_reg_color = (0, 255, 0)
         self.region_thickness = 5
 
-
     def set_args(self,
                  imw,
                  imh,
@@ -80,21 +81,18 @@ class Heatmap:
         self.heatmap_alpha = heatmap_alpha
         self.view_img = view_img
 
-        self.heatmap = np.zeros((int(self.imw), int(self.imh)),
-                                dtype=np.float32)  # Heatmap new frame
+        self.heatmap = np.zeros((int(self.imw), int(self.imh)), dtype=np.float32)  # Heatmap new frame
 
         if count_reg_pts is not None:
-            self.track_history = defaultdict(lambda: [])
+            self.track_history = defaultdict(list)
             self.count_reg_pts = count_reg_pts
             self.count_region = Polygon(self.count_reg_pts)
 
-        self.count_txt_thickness = count_txt_thickness    # Counting text thickness
+        self.count_txt_thickness = count_txt_thickness  # Counting text thickness
         self.count_reg_color = count_reg_color
         self.region_thickness = region_thickness
 
-
-    def extract_results(self,
-                        tracks):
+    def extract_results(self, tracks):
         """
         Extracts results from the provided data.
 
@@ -105,10 +103,7 @@ class Heatmap:
         self.clss = tracks[0].boxes.cls.cpu().tolist()
         self.track_ids = tracks[0].boxes.id.int().cpu().tolist()
 
-
-    def generate_heatmap(self,
-                         im0,
-                         tracks):
+    def generate_heatmap(self, im0, tracks):
         """
         Generate heatmap based on tracking data.
 
@@ -158,14 +153,12 @@ class Heatmap:
             outcount_label = 'OutCount : ' + f'{self.out_counts}'
             self.annotator.count_labels(in_count=incount_label, out_count=outcount_label)
 
-        im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored,
-                                           self.heatmap_alpha, 0)
+        im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 
         if self.view_img:
             self.display_frames(im0_with_heatmap)
 
         return im0_with_heatmap
-
 
     def display_frames(self, im0_with_heatmap):
         """

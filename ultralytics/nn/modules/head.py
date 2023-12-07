@@ -40,7 +40,9 @@ class Detect(nn.Module):
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):
-        """Concatenates and returns predicted bounding boxes and class probabilities.
+        """
+        Concatenates and returns predicted bounding boxes and class probabilities.
+
         If training:
             returns a dictionary containing the box and class head outputs.
         If export:
@@ -49,8 +51,8 @@ class Detect(nn.Module):
         """
         box_head = [self.cv2[i](xi) for i, xi in enumerate(x)]
         cls_head = [self.cv3[i](xi) for i, xi in enumerate(x)]
-        heads = {"box_head": box_head, "cls_head": cls_head}
-        
+        heads = {'box_head': box_head, 'cls_head': cls_head}
+
         if self.training:
             return heads
 

@@ -165,17 +165,18 @@ class v8DetectionLoss:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         heads = preds[1] if isinstance(preds, tuple) else preds
-        
-        pred_distri = torch.cat([xi.flatten(2) for xi in heads["box_head"]], 2)
-        pred_scores = torch.cat([xi.flatten(2) for xi in heads["cls_head"]], 2)
+
+        pred_distri = torch.cat([xi.flatten(2) for xi in heads['box_head']], 2)
+        pred_scores = torch.cat([xi.flatten(2) for xi in heads['cls_head']], 2)
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
-        imgsz = torch.tensor(heads["box_head"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
-        anchor_points, stride_tensor = make_anchors(heads["box_head"], self.stride, 0.5)
+        imgsz = torch.tensor(heads['box_head'][0].shape[2:], device=self.device,
+                             dtype=dtype) * self.stride[0]  # image size (h,w)
+        anchor_points, stride_tensor = make_anchors(heads['box_head'], self.stride, 0.5)
 
         # Targets
         targets = torch.cat((batch['batch_idx'].view(-1, 1), batch['cls'].view(-1, 1), batch['bboxes']), 1)
@@ -221,11 +222,11 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Calculate and return the loss for the YOLO model."""
         loss = torch.zeros(4, device=self.device)  # box, cls, dfl
         heads, pred_masks, proto = preds if len(preds) == 3 else preds[1]
-        
+
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
-        
-        pred_distri = torch.cat([xi.flatten(2) for xi in heads["box_head"]], 2)
-        pred_scores = torch.cat([xi.flatten(2) for xi in heads["cls_head"]], 2)
+
+        pred_distri = torch.cat([xi.flatten(2) for xi in heads['box_head']], 2)
+        pred_scores = torch.cat([xi.flatten(2) for xi in heads['cls_head']], 2)
 
         # B, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
@@ -233,8 +234,9 @@ class v8SegmentationLoss(v8DetectionLoss):
         pred_masks = pred_masks.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
-        imgsz = torch.tensor(heads["box_head"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
-        anchor_points, stride_tensor = make_anchors(heads["box_head"], self.stride, 0.5)
+        imgsz = torch.tensor(heads['box_head'][0].shape[2:], device=self.device,
+                             dtype=dtype) * self.stride[0]  # image size (h,w)
+        anchor_points, stride_tensor = make_anchors(heads['box_head'], self.stride, 0.5)
 
         # Targets
         try:
@@ -393,9 +395,9 @@ class v8PoseLoss(v8DetectionLoss):
         """Calculate the total loss and detach it."""
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         heads, pred_kpts = preds if isinstance(preds[0], dict) else preds[1]
-        
-        pred_distri = torch.cat([xi.flatten(2) for xi in heads["box_head"]], 2)
-        pred_scores = torch.cat([xi.flatten(2) for xi in heads["cls_head"]], 2)
+
+        pred_distri = torch.cat([xi.flatten(2) for xi in heads['box_head']], 2)
+        pred_scores = torch.cat([xi.flatten(2) for xi in heads['cls_head']], 2)
 
         # B, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
@@ -403,8 +405,9 @@ class v8PoseLoss(v8DetectionLoss):
         pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
-        imgsz = torch.tensor(heads["box_head"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
-        anchor_points, stride_tensor = make_anchors(heads["box_head"], self.stride, 0.5)
+        imgsz = torch.tensor(heads['box_head'][0].shape[2:], device=self.device,
+                             dtype=dtype) * self.stride[0]  # image size (h,w)
+        anchor_points, stride_tensor = make_anchors(heads['box_head'], self.stride, 0.5)
 
         # Targets
         batch_size = pred_scores.shape[0]

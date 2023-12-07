@@ -504,34 +504,28 @@ class ActionRecognizer:
                 return True
         return False"""
 
-    def is_overstep_boundary(self, track, frame):
-        frame_width, frame_height = frame.shape[1], frame.shape[0]
-        bbox = track.tlbr
-        bx_center, by_center = (bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2  # Centro de la bounding box
-
-        # Crear la región de interés basada en la dirección y la línea
-        if self.osb_direction == "down":
-            region = [0, self.osb_line[1], frame_width,
-                      frame_height - self.osb_line[1]]  # Toda la región debajo de la línea
-        elif self.osb_direction == "up":
-            region = [0, 0, frame_width, self.osb_line[1]]  # Toda la región por encima de la línea
-        else:
-            raise ValueError(f"Unknown boundary direction: {self.osb_direction}")
-
-        # Verificar si el centro de la bbox está dentro de la región
-        return self.within_bbox((bx_center, by_center), region)
-
     @staticmethod
-    def within_bbox(pt, bbox):
+    def within_region(pt, bbox):
         x, y = pt
         return bbox[0] <= x <= bbox[0] + bbox[2] and bbox[1] <= y <= bbox[1] + bbox[3]
 
     def recognize_overstep_boundary(self, tracks, frame):
+        # Create region of interest
+        frame_width, frame_height = frame.shape[1], frame.shape[0]
+        if self.osb_direction == "down":
+            region = [0, self.osb_line[1], frame_width,
+                      frame_height - self.osb_line[1]]
+        elif self.osb_direction == "up":
+            region = [0, 0, frame_width, self.osb_line[1]]
+        else:
+            raise ValueError(f"Unknown boundary direction: {self.osb_direction}")
+
         osb_results = {}
         for track in tracks:
             # Check if the bbox crosses the boundary line
-            if self.is_overstep_boundary(track, frame):
-                osb_results[track.track_id] = track.tlbr
+            if track.class_ids == 0:
+                if self.within_region(track.mean[:2], region):
+                    osb_results[track.track_id] = track.tlbr
         return osb_results if len(osb_results.keys()) > 0 else None
 
     @staticmethod

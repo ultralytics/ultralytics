@@ -129,7 +129,8 @@ class Heatmap:
                 # Store tracking hist
                 track_line = self.track_history[track_id]
                 track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
-                track_line.pop(0) if len(track_line) > 30 else None
+                if len(track_line) > 30:
+                    track_line.pop(0)
 
                 # Count objects
                 if self.count_region.contains(Point(track_line[-1])):

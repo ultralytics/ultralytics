@@ -445,6 +445,8 @@ class RandomPerspective:
         xy = xy[:, :2] / xy[:, 2:3]
         segments = xy.reshape(n, -1, 2)
         bboxes = np.stack([segment2box(xy, self.size[0], self.size[1]) for xy in segments], 0)
+        segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
+        segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
         return bboxes, segments
 
     def apply_keypoints(self, keypoints, M):
@@ -894,6 +896,7 @@ class Format:
         if self.return_obb:
             labels['bboxes'] = xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(
                 instances.segments) else torch.zeros((0, 5))
+            # labels['bboxes'] = torch.from_numpy(instances.segments)
         # Then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)

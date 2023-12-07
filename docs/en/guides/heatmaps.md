@@ -98,7 +98,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
                                        int(cap.get(5)),
                                        (int(cap.get(3)), int(cap.get(4))))
 
-        # Heatmap Init
+        # Heatmap init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
                              imw=cap.get(4),  # should same as im0 width

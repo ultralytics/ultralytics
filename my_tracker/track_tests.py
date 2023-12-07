@@ -1,6 +1,7 @@
 import argparse
 import csv
 import os
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 import cv2
 import numpy as np

@@ -587,7 +587,7 @@ class BaseTrainer:
                     if hasattr(self.args, k):
                         setattr(self.args, v, not getattr(self.args, k))
                         delattr(self.args, k)
-                for k in 'imgsz', 'batch', 'cache', 'epochs':  # allow arg updates to reduce memory on resume if crashed due to CUDA OOM
+                for k in 'imgsz', 'batch', 'cache', 'epochs', 'copy_paste', 'mixup', 'perspective', 'shear', 'degrees':  # allow arg updates to reduce memory on resume if crashed due to CUDA OOM
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 

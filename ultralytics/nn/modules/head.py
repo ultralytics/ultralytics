@@ -40,29 +40,30 @@ class Detect(nn.Module):
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
-        if self.training:
-            for i in range(self.nl):
-                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-            return x
-
-        shape = x[0].shape  # BCHW
-
+        """Concatenates and returns predicted bounding boxes and class probabilities.
+        If training:
+            returns a dictionary containing the box and class head outputs.
+        If export:
+            returns the concatenated predictions for box and class head outputs.
+        If not training or export, returns both as a tuple.
+        """
         box_head = [self.cv2[i](xi) for i, xi in enumerate(x)]
         cls_head = [self.cv3[i](xi) for i, xi in enumerate(x)]
+        heads = {"box_head": box_head, "cls_head": cls_head}
+        
+        if self.training:
+            return heads
+
+        shape = x[0].shape  # BCHW
 
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(box_head, self.stride, 0.5))
             self.shape = shape
 
-        box_head = torch.cat([xi.view(shape[0], self.reg_max * 4, -1) for xi in box_head], 2)
-        cls_head = torch.cat([xi.view(shape[0], self.nc, -1) for xi in cls_head], 2)
+        box = torch.cat([xi.flatten(2) for xi in box_head], 2)
+        cls = torch.cat([xi.flatten(2) for xi in cls_head], 2)
 
-        if self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
-            self.shape = shape
-
-        dbox = dist2bbox(self.dfl(box_head), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+        dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
 
         if self.export and self.format in ('tflite', 'edgetpu'):
             # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
@@ -73,8 +74,8 @@ class Detect(nn.Module):
             img_size = torch.tensor([img_w, img_h, img_w, img_h], device=dbox.device).reshape(1, 4, 1)
             dbox /= img_size
 
-        y = torch.cat((dbox, cls_head.sigmoid()), 1)
-        return y if self.export else (y, x)
+        y = torch.cat((dbox, cls.sigmoid()), 1)
+        return y if self.export else (y, heads)
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""

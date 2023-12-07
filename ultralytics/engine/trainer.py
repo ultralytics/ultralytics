@@ -574,7 +574,8 @@ class BaseTrainer:
                 self.args = get_cfg(ckpt_args)
                 self.args.model = str(last)  # reinstate model
                 for k in 'image_weights', 'v5loader', 'fl_gamma':  # remove obsolete args
-                    delattr(self.args, k)
+                    if hasattr(self.args, k):
+                        delattr(self.args, k)
                 for k, v in {
                         'line_thickness': 'line_width', }.items():  # renamed args
                     if hasattr(self.args, k):

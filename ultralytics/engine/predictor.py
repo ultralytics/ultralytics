@@ -345,9 +345,10 @@ class BasePredictor:
         else:  # 'video' or 'stream'
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[idx] != save_path:  # new video
-                Path(frames_path).mkdir(parents=True, exist_ok=True)
-                self.vid_path[idx] = save_path
-                self.vid_frame[idx] = 0
+                if self.args.save_frames:
+                    Path(frames_path).mkdir(parents=True, exist_ok=True)
+                    self.vid_path[idx] = save_path
+                    self.vid_frame[idx] = 0
                 if isinstance(self.vid_writer[idx], cv2.VideoWriter):
                     self.vid_writer[idx].release()  # release previous video writer
                 if vid_cap:  # video
@@ -363,8 +364,9 @@ class BasePredictor:
             self.vid_writer[idx].write(im0)
 
             # Write frame
-            cv2.imwrite(f'{frames_path}{self.vid_frame[idx]}.jpg', im0)
-            self.vid_frame[idx] += 1
+            if self.args.save_frames:
+                cv2.imwrite(f'{frames_path}{self.vid_frame[idx]}.jpg', im0)
+                self.vid_frame[idx] += 1
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

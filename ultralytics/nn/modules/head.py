@@ -45,9 +45,9 @@ class Detect(nn.Module):
             for i in range(self.nl):
                 x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
             return x
-        
+
         shape = x[0].shape  # BCHW
-        
+
         box_head = [self.cv2[i](xi) for i, xi in enumerate(x)]
         cls_head = [self.cv3[i](xi) for i, xi in enumerate(x)]
 
@@ -57,7 +57,7 @@ class Detect(nn.Module):
 
         box_head = torch.cat([xi.view(shape[0], self.reg_max * 4, -1) for xi in box_head], 2)
         cls_head = torch.cat([xi.view(shape[0], self.nc, -1) for xi in cls_head], 2)
-        
+
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape

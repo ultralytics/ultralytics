@@ -237,9 +237,9 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
             // FP16
             rawData = cv::Mat(signalResultNum, strideNum, CV_16F, output);
             rawData.convertTo(rawData, CV_32F);
-        }       
+        }
         //Note:
-        //ultralytics add transpose operator to the ouptut of yolob8.which make yolov8/v5/v7 has same shape 
+        //ultralytics add transpose operator to the ouptut of yolob8.which make yolov8/v5/v7 has same shape
         //https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
         //rowData = rowData.t();
 
@@ -296,7 +296,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         {
             std::cout << "[YOLO_V8(CPU)]: " << pre_process_time << "ms pre-process, " << process_time << "ms inference, " << post_process_time << "ms post-process." << std::endl;
         }
-#endif // benchmark		
+#endif // benchmark
 
         break;
     }

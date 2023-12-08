@@ -159,16 +159,16 @@ void DetectTest()
     params.cudaEnable = true;
 
     // GPU FP32 inference
-    params.modelType = YOLO_DETECT_V8;    
+    params.modelType = YOLO_DETECT_V8;
     // GPU FP16 inference
     //Note: change fp16 onnx model
     //params.modelType = YOLO_DETECT_V8_HALF;
-    
+
 #else
     // CPU inference
     params.modelType = YOLO_DETECT_V8;
     params.cudaEnable = false;
-    
+
 #endif
     yoloDetector->CreateSession(params);
     Detector(yoloDetector);

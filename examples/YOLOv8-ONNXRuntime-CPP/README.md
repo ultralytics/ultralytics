@@ -14,8 +14,8 @@ This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX
 - Supports FP32 and FP16 CUDA acceleration.
 
 ## Note :coffee:
-1.~~This repository should also work for YOLOv5, which needs a permute operator for the output of the YOLOv5 model, but this has not been implemented yet.~~
-Benefit for ultralytics's latest release,a `Transpose` op is added to the Yolov8 model,while make v8 and v5 has the same output shape.Therefore,you can inference your yolov5/v7/v8 via this project.
+
+1.~~This repository should also work for YOLOv5, which needs a permute operator for the output of the YOLOv5 model, but this has not been implemented yet.~~ Benefit for ultralytics's latest release,a `Transpose` op is added to the Yolov8 model,while make v8 and v5 has the same output shape.Therefore,you can inference your yolov5/v7/v8 via this project.
 
 ## Exporting YOLOv8 Models 📦
 
@@ -33,12 +33,12 @@ model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
 
 Alternatively, you can use the following command for exporting the model in the terminal
 
-
 ```bash
 yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx imgsz=640,640
 ```
 
 ## Exporting YOLOv8 FP16 Models 📦
+
 ```python
 import onnx
 from onnxconverter_common import float16
@@ -47,7 +47,6 @@ model = onnx.load(R'YOUR_ONNX_PATH')
 model_fp16 = float16.convert_float_to_float16(model)
 onnx.save(model_fp16, R'YOUR_FP16_ONNX_PATH')
 ```
-
 
 ## Download COCO.yaml file 📂
 

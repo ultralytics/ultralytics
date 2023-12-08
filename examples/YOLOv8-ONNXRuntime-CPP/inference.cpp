@@ -239,7 +239,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
             rawData.convertTo(rawData, CV_32F);
         }
         //Note:
-        //ultralytics add transpose operator to the ouptut of yolob8.which make yolov8/v5/v7 has same shape
+        //ultralytics add transpose operator to the output of yolob8.which make yolov8/v5/v7 has same shape
         //https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
         //rowData = rowData.t();
 

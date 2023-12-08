@@ -2,9 +2,9 @@
 
 Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).
 
-[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)  [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg?branch=gh-pages)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
+[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)  [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
 
-### Install Ultralytics package
+## Install Ultralytics package
 
 [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
@@ -32,7 +32,7 @@ This will install the ultralytics package and its dependencies in developer mode
 
 Note that you may need to use the pip3 command instead of pip if you have multiple versions of Python installed on your system.
 
-### Building and Serving Locally
+## Building and Serving Locally
 
 The `mkdocs serve` command is used to build and serve a local version of the MkDocs documentation site. It is typically used during the development and testing phase of a documentation project.
 
@@ -52,7 +52,36 @@ While the site is being served, you can make changes to the documentation files 
 
 To stop the serve command and terminate the local server, you can use the `CTRL+C` keyboard shortcut.
 
-### Deploying Your Documentation Site
+## Building and Serving Multi-Language
+
+For multi-language MkDocs sites use the following additional steps:
+
+1. Add all new language *.md files to git commit: `git add docs/**/*.md -f`
+2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
+
+    ```bash
+    # Remove existing /site directory
+    rm -rf site
+
+    # Loop through all *.yml files in the docs directory
+    mkdocs build -f docs/mkdocs.yml
+    for file in docs/mkdocs_*.yml; do
+      echo "Building MkDocs site with configuration file: $file"
+      mkdocs build -f "$file"
+    done
+    ```
+
+3. Preview in web browser with:
+
+    ```bash
+    cd site
+    python -m http.server
+    open http://localhost:8000  # on macOS
+    ```
+
+Note the above steps are combined into the Ultralytics [build_docs.py](https://github.com/ultralytics/ultralytics/blob/main/docs/build_docs.py) script.
+
+## Deploying Your Documentation Site
 
 To deploy your MkDocs documentation site, you will need to choose a hosting provider and a deployment method. Some popular options include GitHub Pages, GitLab Pages, and Amazon S3.
 

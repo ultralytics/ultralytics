@@ -26,7 +26,7 @@ def coco91_to_coco80_class():
         None, 73, 74, 75, 76, 77, 78, 79, None]
 
 
-def coco80_to_coco91_class():  #
+def coco80_to_coco91_class():
     """
     Converts 80-index (val2014) to 91-index (paper).
     For details see https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/.
@@ -118,22 +118,21 @@ def convert_coco(labels_dir='../coco/annotations/',
                 box = [cls] + box.tolist()
                 if box not in bboxes:
                     bboxes.append(box)
-                if use_segments and ann.get('segmentation') is not None:
-                    if len(ann['segmentation']) == 0:
-                        segments.append([])
-                        continue
-                    elif len(ann['segmentation']) > 1:
-                        s = merge_multi_segment(ann['segmentation'])
-                        s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
-                    else:
-                        s = [j for i in ann['segmentation'] for j in i]  # all segments concatenated
-                        s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                    s = [cls] + s
-                    if s not in segments:
+                    if use_segments and ann.get('segmentation') is not None:
+                        if len(ann['segmentation']) == 0:
+                            segments.append([])
+                            continue
+                        elif len(ann['segmentation']) > 1:
+                            s = merge_multi_segment(ann['segmentation'])
+                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
+                        else:
+                            s = [j for i in ann['segmentation'] for j in i]  # all segments concatenated
+                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
+                        s = [cls] + s
                         segments.append(s)
-                if use_keypoints and ann.get('keypoints') is not None:
-                    keypoints.append(box + (np.array(ann['keypoints']).reshape(-1, 3) /
-                                            np.array([w, h, 1])).reshape(-1).tolist())
+                    if use_keypoints and ann.get('keypoints') is not None:
+                        keypoints.append(box + (np.array(ann['keypoints']).reshape(-1, 3) /
+                                                np.array([w, h, 1])).reshape(-1).tolist())
 
             # Write
             with open((fn / f).with_suffix('.txt'), 'a') as file:
@@ -168,18 +167,18 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
     Notes:
         The directory structure assumed for the DOTA dataset:
             - DOTA
-                - images
-                    - train
-                    - val
-                - labels
-                    - train_original
-                    - val_original
+                ├─ images
+                │   ├─ train
+                │   └─ val
+                └─ labels
+                    ├─ train_original
+                    └─ val_original
 
-        After the function execution, the new labels will be saved in:
+        After execution, the function will organize the labels into:
             - DOTA
-                - labels
-                    - train
-                    - val
+                └─ labels
+                    ├─ train
+                    └─ val
     """
     dota_root_path = Path(dota_root_path)
 

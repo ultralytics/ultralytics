@@ -225,53 +225,51 @@ def plt_settings(rcparams=None, backend='Agg'):
 
 
 def set_logging(name=LOGGING_NAME, verbose=True):
-    """Sets up logging for the given name."""
-    rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
-    level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            name: {
-                'format': '%(message)s'}},
-        'handlers': {
-            name: {
-                'class': 'logging.StreamHandler',
-                'formatter': name,
-                'level': level}},
-        'loggers': {
-            name: {
-                'level': level,
-                'handlers': [name],
-                'propagate': False}}})
+    """Sets up logging for the given name with UTF-8 encoding support."""
+    level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
+
+    # Configure the console (stdout) encoding to UTF-8
+    formatter = logging.Formatter('%(message)s')  # Default formatter
+    if WINDOWS and sys.stdout.encoding != 'utf-8':
+        try:
+            if hasattr(sys.stdout, 'reconfigure'):
+                sys.stdout.reconfigure(encoding='utf-8')
+            elif hasattr(sys.stdout, 'buffer'):
+                import io
+                sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+            else:
+                sys.stdout.encoding = 'utf-8'
+        except Exception as e:
+            print(f'Creating custom formatter for non UTF-8 environments due to {e}')
+
+            class CustomFormatter(logging.Formatter):
+
+                def format(self, record):
+                    return emojis(super().format(record))
+
+            formatter = CustomFormatter('%(message)s')  # Use CustomFormatter to eliminate UTF-8 output as last recourse
+
+    # Create and configure the StreamHandler
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(level)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(stream_handler)
+    logger.propagate = False
+    return logger
+
+
+# Set logger
+LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
+for logger in 'sentry_sdk', 'urllib3.connectionpool':
+    logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=''):
     """Return platform-dependent emoji-safe version of string."""
     return string.encode().decode('ascii', 'ignore') if WINDOWS else string
-
-
-class EmojiFilter(logging.Filter):
-    """
-    A custom logging filter class for removing emojis in log messages.
-
-    This filter is particularly useful for ensuring compatibility with Windows terminals that may not support the
-    display of emojis in log messages.
-    """
-
-    def filter(self, record):
-        """Filter logs by emoji unicode characters on windows."""
-        record.msg = emojis(record.msg)
-        return super().filter(record)
-
-
-# Set logger
-set_logging(LOGGING_NAME, verbose=VERBOSE)  # run before defining LOGGER
-LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
-if WINDOWS:  # emoji-safe logging
-    LOGGER.addFilter(EmojiFilter())
-for logger in 'sentry_sdk', 'urllib3.connectionpool':
-    logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
 class ThreadingLocked:
@@ -520,14 +518,14 @@ def is_pytest_running():
     return ('PYTEST_CURRENT_TEST' in os.environ) or ('pytest' in sys.modules) or ('pytest' in Path(sys.argv[0]).stem)
 
 
-def is_github_actions_ci() -> bool:
+def is_github_action_running() -> bool:
     """
-    Determine if the current environment is a GitHub Actions CI Python runner.
+    Determine if the current environment is a GitHub Actions runner.
 
     Returns:
-        (bool): True if the current environment is a GitHub Actions CI Python runner, False otherwise.
+        (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
-    return 'GITHUB_ACTIONS' in os.environ and 'RUNNER_OS' in os.environ and 'RUNNER_TOOL_CACHE' in os.environ
+    return 'GITHUB_ACTIONS' in os.environ and 'GITHUB_WORKFLOW' in os.environ and 'RUNNER_OS' in os.environ
 
 
 def is_git_dir():
@@ -932,7 +930,7 @@ WEIGHTS_DIR = Path(SETTINGS['weights_dir'])  # global weights directory
 RUNS_DIR = Path(SETTINGS['runs_dir'])  # global runs directory
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
     'Docker' if is_docker() else platform.system()
-TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
+TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches

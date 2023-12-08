@@ -9,7 +9,7 @@ from .conv import Conv, DWConv, GhostConv, LightConv, RepConv
 from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
-           'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3')
+           'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3', 'ResNetLayer')
 
 
 class DFL(nn.Module):
@@ -331,3 +331,41 @@ class BottleneckCSP(nn.Module):
         y1 = self.cv3(self.m(self.cv1(x)))
         y2 = self.cv2(x)
         return self.cv4(self.act(self.bn(torch.cat((y1, y2), 1))))
+
+
+class ResNetBlock(nn.Module):
+    """ResNet block with standard convolution layers."""
+
+    def __init__(self, c1, c2, s=1, e=4):
+        """Initialize convolution with given parameters."""
+        super().__init__()
+        c3 = e * c2
+        self.cv1 = Conv(c1, c2, k=1, s=1, act=True)
+        self.cv2 = Conv(c2, c2, k=3, s=s, p=1, act=True)
+        self.cv3 = Conv(c2, c3, k=1, act=False)
+        self.shortcut = nn.Sequential(Conv(c1, c3, k=1, s=s, act=False)) if s != 1 or c1 != c3 else nn.Identity()
+
+    def forward(self, x):
+        """Forward pass through the ResNet block."""
+        return F.relu(self.cv3(self.cv2(self.cv1(x))) + self.shortcut(x))
+
+
+class ResNetLayer(nn.Module):
+    """ResNet layer with multiple ResNet blocks."""
+
+    def __init__(self, c1, c2, s=1, is_first=False, n=1, e=4):
+        """Initializes the ResNetLayer given arguments."""
+        super().__init__()
+        self.is_first = is_first
+
+        if self.is_first:
+            self.layer = nn.Sequential(Conv(c1, c2, k=7, s=2, p=3, act=True),
+                                       nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+        else:
+            blocks = [ResNetBlock(c1, c2, s, e=e)]
+            blocks.extend([ResNetBlock(e * c2, c2, 1, e=e) for _ in range(n - 1)])
+            self.layer = nn.Sequential(*blocks)
+
+    def forward(self, x):
+        """Forward pass through the ResNet layer."""
+        return self.layer(x)

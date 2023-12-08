@@ -16,7 +16,7 @@ updates:
       - dependencies
 
   - package-ecosystem: github-actions
-    directory: "/"
+    directory: "/.github/workflows"
     schedule:
       interval: weekly
       time: "04:00"

@@ -77,7 +77,7 @@ class BaseValidator:
         self.args = get_cfg(overrides=args)
         self.dataloader = dataloader
         self.pbar = pbar
-        self.model = None
+        self.stride = None
         self.data = None
         self.device = None
         self.batch_i = None
@@ -146,6 +146,7 @@ class BaseValidator:
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
             if not pt:
                 self.args.rect = False
+            self.stride = model.stride  # used in get_dataloader() for padding
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()

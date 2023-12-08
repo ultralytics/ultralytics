@@ -653,10 +653,20 @@ class Exporter:
             cmds='--extra-index-url https://pypi.ngc.nvidia.com')  # onnx_graphsurgeon only on NVIDIA
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
+        check_version(tf.__version__,
+                      '<=2.13.1',
+                      name='tensorflow',
+                      verbose=True,
+                      msg='https://github.com/ultralytics/ultralytics/issues/5161')
         f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if f.is_dir():
             import shutil
             shutil.rmtree(f)  # delete output folder
+
+        # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
+        onnx2tf_file = Path('calibration_image_sample_data_20x128x128x3_float32.npy')
+        if not onnx2tf_file.exists():
+            attempt_download_asset(f'{onnx2tf_file}.zip', unzip=True, delete=True)
 
         # Export to ONNX
         self.args.simplify = True

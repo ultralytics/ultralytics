@@ -16,7 +16,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-message: |
-            👋 Hello @${{ github.actor }}, thank you for submitting a YOLOv8 🚀 PR! To allow your work to be integrated as seamlessly as possible, we advise you to:
+            👋 Hello @${{ github.actor }}, thank you for submitting an Ultralytics YOLOv8 🚀 PR! To allow your work to be integrated as seamlessly as possible, we advise you to:
 
             - ✅ Verify your PR is **up-to-date** with `ultralytics/ultralytics` `main` branch. If your PR is behind you can update your code by clicking the 'Update branch' button or by running `git pull` and `git merge main` locally.
             - ✅ Verify all YOLOv8 Continuous Integration (CI) **checks are passing**.
@@ -26,7 +26,7 @@ jobs:
             See our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for details and let us know if you have any questions!
 
           issue-message: |
-            👋 Hello @${{ github.actor }}, thank you for your interest in YOLOv8 🚀! We recommend a visit to the [YOLOv8 Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.
+            👋 Hello @${{ github.actor }}, thank you for your interest in Ultralytics YOLOv8 🚀! We recommend a visit to the [Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.
 
             If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/) to help us debug it.
 

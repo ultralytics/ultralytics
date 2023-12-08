@@ -101,7 +101,7 @@ class AutoBackend(nn.Module):
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != 'cpu'  # use CUDA
-        if cuda and not any([nn_module, pt, jit, engine]):  # GPU dataloader formats
+        if cuda and not any([nn_module, pt, jit, engine, onnx]):  # GPU dataloader formats
             device = torch.device('cpu')
             cuda = False
 
@@ -476,7 +476,7 @@ class AutoBackend(nn.Module):
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != 'cpu' or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
-            for _ in range(2 if self.jit else 1):  #
+            for _ in range(2 if self.jit else 1):
                 self.forward(im)  # warmup
 
     @staticmethod
@@ -509,6 +509,6 @@ class AutoBackend(nn.Module):
         else:
             from urllib.parse import urlsplit
             url = urlsplit(p)
-            triton = url.netloc and url.path and url.scheme in {'http', 'grfc'}
+            triton = url.netloc and url.path and url.scheme in {'http', 'grpc'}
 
         return types + [triton]

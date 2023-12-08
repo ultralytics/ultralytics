@@ -259,9 +259,9 @@ class Annotator:
         return np.asarray(self.im)
 
     # Object Counting Annotator
-    def draw_region(self, reg_pts=None, color=(0, 255, 0)):
+    def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         # Draw region line
-        cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=self.tf + 2)
+        cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
         # Draw region line

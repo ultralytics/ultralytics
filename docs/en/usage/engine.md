@@ -6,6 +6,17 @@ keywords: Ultralytics, YOLO, trainer engines, BaseTrainer, DetectionTrainer, cus
 
 Both the Ultralytics YOLO command-line and Python interfaces are simply a high-level abstraction on the base engine executors. Let's take a look at the Trainer engine.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=104"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Advanced Customization
+</p>
+
 ## BaseTrainer
 
 BaseTrainer contains the generic boilerplate training routine. It can be customized for any task based over overriding the required functions or operations as long the as correct formats are followed. For example, you can support your own custom model and dataloader by just overriding these functions:

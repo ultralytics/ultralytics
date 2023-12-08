@@ -78,3 +78,11 @@ keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, S
 ## ::: ultralytics.nn.modules.block.BottleneckCSP
 
 <br><br>
+
+## ::: ultralytics.nn.modules.block.ResNetBlock
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.ResNetLayer
+
+<br><br>

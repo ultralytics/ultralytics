@@ -20,16 +20,16 @@ class Heatmap:
     def __init__(self):
         """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
 
-        # Visual Information
+        # Visual information
         self.annotator = None
         self.view_img = False
 
-        # Image Information
+        # Image information
         self.imw = None
         self.imh = None
         self.im0 = None
 
-        # Heatmap Colormap and heatmap np array
+        # Heatmap colormap and heatmap np array
         self.colormap = None
         self.heatmap = None
         self.heatmap_alpha = 0.5
@@ -40,7 +40,7 @@ class Heatmap:
         self.clss = None
         self.track_history = None
 
-        # Counting Info
+        # Counting info
         self.count_reg_pts = None
         self.count_region = None
         self.in_counts = 0
@@ -160,7 +160,8 @@ class Heatmap:
 
         return im0_with_heatmap
 
-    def display_frames(self, im0_with_heatmap):
+    @staticmethod
+    def display_frames(im0_with_heatmap):
         """
         Display heatmap.
 

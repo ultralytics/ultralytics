@@ -38,7 +38,7 @@ class RTDETR(Model):
             raise NotImplementedError('RT-DETR only supports creating from *.pt, *.yaml, or *.yml files.')
         super().__init__(model=model, task='detect')
 
-     @staticmethod
+    @staticmethod
     def create_rtdetr_detection_model():
         # Configures and returns an instance of RTDETRDetectionModel
         return RTDETRDetectionModel(quantize=True)

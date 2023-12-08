@@ -6,6 +6,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+from torch.cuda.amp import autocast, GradScaler 
 
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
                                     Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d,
@@ -372,106 +373,53 @@ class ClassificationModel(BaseModel):
 
 
 class RTDETRDetectionModel(DetectionModel):
-    """
-    RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
-
-    This class is responsible for constructing the RTDETR architecture, defining loss functions, and facilitating both
-    the training and inference processes. RTDETR is an object detection and tracking model that extends from the
-    DetectionModel base class.
-
-    Attributes:
-        cfg (str): The configuration file path or preset string. Default is 'rtdetr-l.yaml'.
-        ch (int): Number of input channels. Default is 3 (RGB).
-        nc (int, optional): Number of classes for object detection. Default is None.
-        verbose (bool): Specifies if summary statistics are shown during initialization. Default is True.
-
-    Methods:
-        init_criterion: Initializes the criterion used for loss calculation.
-        loss: Computes and returns the loss during training.
-        predict: Performs a forward pass through the network and returns the output.
-    """
-
-    def __init__(self, cfg='rtdetr-l.yaml', ch=3, nc=None, verbose=True):
-        """
-        Initialize the RTDETRDetectionModel.
-
-        Args:
-            cfg (str): Configuration file name or path.
-            ch (int): Number of input channels.
-            nc (int, optional): Number of classes. Defaults to None.
-            verbose (bool, optional): Print additional information during initialization. Defaults to True.
-        """
+    def __init__(self, cfg='rtdetr-l.yaml', ch=3, nc=None, verbose=True, use_amp=False, quantize=False):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+        self.use_amp = use_amp
+        if self.use_amp:
+            self.scaler = GradScaler()
+        if quantize:
+            self.quantize_model()
 
     def init_criterion(self):
-        """Initialize the loss criterion for the RTDETRDetectionModel."""
         from ultralytics.models.utils.loss import RTDETRDetectionLoss
-
         return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 
     def loss(self, batch, preds=None):
-        """
-        Compute the loss for the given batch of data.
-
-        Args:
-            batch (dict): Dictionary containing image and label data.
-            preds (torch.Tensor, optional): Precomputed model predictions. Defaults to None.
-
-        Returns:
-            (tuple): A tuple containing the total loss and main three losses in a tensor.
-        """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
 
         img = batch['img']
-        # NOTE: preprocess gt_bbox and gt_labels to list.
         bs = len(img)
-        batch_idx = batch['batch_idx']
-        gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
         targets = {
-            'cls': batch['cls'].to(img.device, dtype=torch.long).view(-1),
-            'bboxes': batch['bboxes'].to(device=img.device),
-            'batch_idx': batch_idx.to(img.device, dtype=torch.long).view(-1),
-            'gt_groups': gt_groups}
+            'cls': batch['cls'].view(-1),
+            'bboxes': batch['bboxes'],
+            'batch_idx': batch['batch_idx'].view(-1),
+            'gt_groups': [(batch['batch_idx'] == i).sum().item() for i in range(bs)]}
 
-        preds = self.predict(img, batch=targets) if preds is None else preds
+        preds = preds if preds is not None else self.predict(img, batch=targets)
         dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
-        if dn_meta is None:
-            dn_bboxes, dn_scores = None, None
-        else:
-            dn_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta['dn_num_split'], dim=2)
-            dn_scores, dec_scores = torch.split(dec_scores, dn_meta['dn_num_split'], dim=2)
+        dn_bboxes, dn_scores = (None, None) if dn_meta is None else torch.split(dec_bboxes, dn_meta['dn_num_split'], dim=2)
 
-        dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
+        dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
 
-        loss = self.criterion((dec_bboxes, dec_scores),
-                              targets,
-                              dn_bboxes=dn_bboxes,
-                              dn_scores=dn_scores,
-                              dn_meta=dn_meta)
-        # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
-        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']],
-                                                   device=img.device)
+        loss = self.criterion((dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta)
+        return sum(loss.values()), torch.stack([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
 
+    @torch.no_grad()  # Disable autograd for inference
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False):
-        """
-        Perform a forward pass through the model.
+        if self.use_amp:
+            with autocast():
+                return self._forward(x, profile, visualize, batch)
+        else:
+            return self._forward(x, profile, visualize, batch)
 
-        Args:
-            x (torch.Tensor): The input tensor.
-            profile (bool, optional): If True, profile the computation time for each layer. Defaults to False.
-            visualize (bool, optional): If True, save feature maps for visualization. Defaults to False.
-            batch (dict, optional): Ground truth data for evaluation. Defaults to None.
-            augment (bool, optional): If True, perform data augmentation during inference. Defaults to False.
-
-        Returns:
-            (torch.Tensor): Model's output tensor.
-        """
+    def _forward(self, x, profile, visualize, batch):
         y, dt = [], []  # outputs
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer
-                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
             if profile:
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
@@ -481,6 +429,19 @@ class RTDETRDetectionModel(DetectionModel):
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
         return x
+
+    def quantize_model(self):
+        #quantization engine
+        torch.backends.quantized.engine = 'qnnpack'
+
+        #Convert model to use quantized weights
+        self.model = torch.quantization.quantize_dynamic(
+            self.model, {torch.nn.Linear}, dtype=torch.qint8
+        )
+        return self
+
+
+
 
 
 class Ensemble(nn.ModuleList):

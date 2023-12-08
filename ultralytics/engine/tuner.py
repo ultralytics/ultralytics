@@ -65,8 +65,7 @@ class Tuner:
         Args:
             args (dict, optional): Configuration for hyperparameter evolution.
         """
-        self.args = get_cfg(overrides=args)
-        self.space = {  # key: (min, max, gain(optional))
+        self.space = args.pop('space', None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
             'lr0': (1e-5, 1e-1),
             'lrf': (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
@@ -90,6 +89,7 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
+        self.args = get_cfg(overrides=args)
         self.tune_dir = get_save_dir(self.args, name='tune')
         self.tune_csv = self.tune_dir / 'tune_results.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

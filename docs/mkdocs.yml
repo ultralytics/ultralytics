@@ -145,9 +145,9 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.snippets:
       base_path: ./
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+#  - pymdownx.emoji:
+#      emoji_index: !!python/name:material.extensions.emoji.twemoji
+#      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -408,6 +408,7 @@ nav:
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
           - object_counter: reference/solutions/object_counter.md
+          - heatmap: reference/solutions/heatmap.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

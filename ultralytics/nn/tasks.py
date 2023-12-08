@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-from torch.cuda.amp import autocast, GradScaler 
+from torch.cuda.amp import GradScaler, autocast
 
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
                                     Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d,
@@ -373,6 +373,7 @@ class ClassificationModel(BaseModel):
 
 
 class RTDETRDetectionModel(DetectionModel):
+
     def __init__(self, cfg='rtdetr-l.yaml', ch=3, nc=None, verbose=True, use_amp=False, quantize=False):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
         self.use_amp = use_amp
@@ -399,12 +400,17 @@ class RTDETRDetectionModel(DetectionModel):
 
         preds = preds if preds is not None else self.predict(img, batch=targets)
         dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
-        dn_bboxes, dn_scores = (None, None) if dn_meta is None else torch.split(dec_bboxes, dn_meta['dn_num_split'], dim=2)
+        dn_bboxes, dn_scores = (None,
+                                None) if dn_meta is None else torch.split(dec_bboxes, dn_meta['dn_num_split'], dim=2)
 
         dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
 
-        loss = self.criterion((dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta)
+        loss = self.criterion((dec_bboxes, dec_scores),
+                              targets,
+                              dn_bboxes=dn_bboxes,
+                              dn_scores=dn_scores,
+                              dn_meta=dn_meta)
         return sum(loss.values()), torch.stack([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
 
     @torch.no_grad()  # Disable autograd for inference
@@ -435,13 +441,8 @@ class RTDETRDetectionModel(DetectionModel):
         torch.backends.quantized.engine = 'qnnpack'
 
         #Convert model to use quantized weights
-        self.model = torch.quantization.quantize_dynamic(
-            self.model, {torch.nn.Linear}, dtype=torch.qint8
-        )
+        self.model = torch.quantization.quantize_dynamic(self.model, {torch.nn.Linear}, dtype=torch.qint8)
         return self
-
-
-
 
 
 class Ensemble(nn.ModuleList):

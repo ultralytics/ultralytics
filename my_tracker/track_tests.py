@@ -59,7 +59,7 @@ class VideoProcessor:
             5: "boat",
         }
 
-        self.action_recognizer = ActionRecognizer(config["action_recognition"])
+        self.action_recognizer = ActionRecognizer(config["action_recognition"], self.video_info)
 
     def process_video(self):
         print(f"Processing video: {os.path.basename(self.source_video_path)} ...")
@@ -171,7 +171,7 @@ class VideoProcessor:
         detections = sv.Detections.from_ultralytics(results)
         detections, tracks = self.tracker.update(detections, frame)
 
-        ar_results = self.action_recognizer.recognize_frame(tracks, frame)
+        ar_results = self.action_recognizer.recognize_frame(tracks)
 
         return self.annotate_frame(frame, detections, ar_results,  frame_number, fps)
 

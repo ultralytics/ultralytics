@@ -38,6 +38,11 @@ class RTDETR(Model):
             raise NotImplementedError('RT-DETR only supports creating from *.pt, *.yaml, or *.yml files.')
         super().__init__(model=model, task='detect')
 
+     @staticmethod
+    def create_rtdetr_detection_model():
+        # Configures and returns an instance of RTDETRDetectionModel
+        return RTDETRDetectionModel(quantize=True)
+
     @property
     def task_map(self) -> dict:
         """
@@ -51,4 +56,4 @@ class RTDETR(Model):
                 'predictor': RTDETRPredictor,
                 'validator': RTDETRValidator,
                 'trainer': RTDETRTrainer,
-                'model': RTDETRDetectionModel}}
+                'model': self.create_rtdetr_detection_model()}}

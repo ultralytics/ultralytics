@@ -8,10 +8,11 @@ import cv2
 import numpy as np
 import torch
 import torchvision
+import torchvision.transforms as T
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
 
-from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
+from .augment import Compose, Format, Instances, LetterBox, ClassifyLetterBox, classify_albumentations, classify_transforms, v8_transforms
 from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
@@ -226,10 +227,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
         self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
+        self.pre_album_transforms = T.Compose([ClassifyLetterBox(size=args.imgsz)])
         self.album_transforms = classify_albumentations(
-            augment=augment,
-            size=args.imgsz,
-            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
             hflip=args.fliplr,
             vflip=args.flipud,
             hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
@@ -251,6 +250,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         else:  # read image
             im = cv2.imread(f)  # BGR
         if self.album_transforms:
+            im = self.pre_album_transforms(im)  # Letterbox
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         else:
             sample = self.torch_transforms(im)

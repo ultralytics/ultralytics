@@ -254,7 +254,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         else:
             sample = self.torch_transforms(im)
-        return {'img': sample, 'cls': j}
+        return {'img': sample, 'cls': j, 'name': f}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

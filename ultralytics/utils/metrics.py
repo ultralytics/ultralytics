@@ -1036,10 +1036,17 @@ class ClassifyMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.task = 'classify'
 
-    def process(self, targets, pred):
+    def process(self, targets, pred, img_names):
         """Target classes and predicted classes."""
         pred, targets = torch.cat(pred), torch.cat(targets)
+        img_names = [im_n for row in img_names for im_n in row]
         correct = (targets[:, None] == pred).float()
+        wrong_im_ind = [i for i in range(len(correct[:, 0])) if not correct[i][0]]
+        wrong_ims = [img_names[i] for i in wrong_im_ind]
+        wrong_ims_path = Path(wrong_ims[0]).parent + "/wrong_ims.txt"
+        with open(wrong_ims_path, "w") as fo:
+            for wi in wrong_ims:
+                fo.write(wi + "\n")
         acc = torch.stack((correct[:, 0], correct.max(1).values), dim=1)  # (top1, top5) accuracy
         self.top1, self.top5 = acc.mean(0).tolist()
 

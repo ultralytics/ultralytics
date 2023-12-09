@@ -230,12 +230,12 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         if (modelType == YOLO_DETECT_V8)
         {
             // FP32
-            rawData = cv::Mat(signalResultNum, strideNum, CV_32F, output);
+            rawData = cv::Mat(strideNum, signalResultNum, CV_32F, output);
         }
         else
         {
             // FP16
-            rawData = cv::Mat(signalResultNum, strideNum, CV_16F, output);
+            rawData = cv::Mat(strideNum, signalResultNum, CV_16F, output);
             rawData.convertTo(rawData, CV_32F);
         }
         //Note:

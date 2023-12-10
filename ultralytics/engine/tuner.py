@@ -56,6 +56,14 @@ class Tuner:
         model = YOLO('yolov8n.pt')
         model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
         ```
+
+        Tune with custom search space.
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO('yolov8n.pt')
+        model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
+        ```
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):
@@ -67,7 +75,7 @@ class Tuner:
         """
         self.space = args.pop('space', None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
-            'lr0': (1e-5, 1e-1),
+            'lr0': (1e-5, 1e-1),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
             'lrf': (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
             'momentum': (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
             'weight_decay': (0.0, 0.001),  # optimizer weight decay 5e-4

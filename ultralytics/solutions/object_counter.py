@@ -48,7 +48,7 @@ class ObjectCounter:
         self.track_thickness = 2
         self.draw_tracks = False
 
-        # check if environment support imshow
+        # Check if environment support imshow
         self.env_check = check_imshow(warn=True)
 
     def set_args(self,

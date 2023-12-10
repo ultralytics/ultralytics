@@ -13,6 +13,8 @@ check_requirements('shapely>=2.0.0')
 from shapely.geometry import Polygon
 from shapely.geometry.point import Point
 
+from ultralytics.utils.checks import check_imshow
+
 
 class Heatmap:
     """A class to draw heatmaps in real-time video stream based on their tracks."""
@@ -49,6 +51,9 @@ class Heatmap:
         self.count_txt_thickness = 0
         self.count_reg_color = (0, 255, 0)
         self.region_thickness = 5
+
+        # check if environment support imshow
+        self.env_check = check_imshow(warn=True)
 
     def set_args(self,
                  imw,
@@ -155,7 +160,7 @@ class Heatmap:
 
         im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 
-        if self.view_img:
+        if self.env_check and self.view_img:
             self.display_frames(im0_with_heatmap)
 
         return im0_with_heatmap

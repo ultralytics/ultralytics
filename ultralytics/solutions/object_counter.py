@@ -12,6 +12,8 @@ check_requirements('shapely>=2.0.0')
 from shapely.geometry import Polygon
 from shapely.geometry.point import Point
 
+from ultralytics.utils.checks import check_imshow
+
 
 class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
@@ -45,6 +47,9 @@ class ObjectCounter:
         self.track_history = defaultdict(list)
         self.track_thickness = 2
         self.draw_tracks = False
+
+        # check if environment support imshow
+        self.env_check = check_imshow(warn=True)
 
     def set_args(self,
                  classes_names,
@@ -136,7 +141,7 @@ class ObjectCounter:
                     else:
                         self.in_counts += 1
 
-        if self.view_img:
+        if self.env_check and self.view_img:
             incount_label = 'InCount : ' + f'{self.in_counts}'
             outcount_label = 'OutCount : ' + f'{self.out_counts}'
             self.annotator.count_labels(in_count=incount_label, out_count=outcount_label)

@@ -129,10 +129,10 @@ class Mosaic(BaseMixTransform):
         n (int, optional): The grid size, either 4 (for 2x2) or 9 (for 3x3).
     """
 
-    def __init__(self, dataset, imgsz=640, p=1.0, n=3):
+    def __init__(self, dataset, imgsz=640, p=1.0, n=4):
         """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, f'The probability should be in range [0, 1], but got {p}.'
-        assert n in (3, 4, 9), 'grid must be equal to 3, 4 or 9.'
+        assert n in (4, 9), 'grid must be equal to 4 or 9.'
         super().__init__(dataset=dataset, p=p)
         self.dataset = dataset
         self.imgsz = imgsz
@@ -150,7 +150,7 @@ class Mosaic(BaseMixTransform):
         """Apply mixup transformation to the input image and labels."""
         assert labels.get('rect_shape', None) is None, 'rect and mosaic are mutually exclusive.'
         assert len(labels.get('mix_labels', [])), 'There are no other images for mosaic augment.'
-        return self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
+        return self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels) #This code is modified for mosaic3 method.
 
     def _mosaic3(self, labels):
         """Create a 1x3 image mosaic."""

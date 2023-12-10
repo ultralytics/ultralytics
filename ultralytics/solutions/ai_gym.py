@@ -33,7 +33,7 @@ class AIGym:
         self.view_img = False
         self.annotator = None
 
-        # check if environment support imshow
+        # Check if environment support imshow
         self.env_check = check_imshow(warn=True)
 
     def set_args(self,

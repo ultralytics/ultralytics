@@ -52,7 +52,7 @@ class Heatmap:
         self.count_reg_color = (0, 255, 0)
         self.region_thickness = 5
 
-        # check if environment support imshow
+        # Check if environment support imshow
         self.env_check = check_imshow(warn=True)
 
     def set_args(self,

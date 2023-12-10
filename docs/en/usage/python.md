@@ -8,6 +8,17 @@ keywords: YOLOv8, Ultralytics, Python, object detection, segmentation, classific
 
 Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help you seamlessly integrate YOLOv8 into your Python projects for object detection, segmentation, and classification. Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLOv8 into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=58"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Python
+</p>
+
 For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code.
 
 !!! Example "Python"

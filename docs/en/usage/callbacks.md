@@ -8,6 +8,17 @@ keywords: Ultralytics, YOLO, callbacks guide, training callback, validation call
 
 Ultralytics framework supports callbacks as entry points in strategic stages of train, val, export, and predict modes. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object depending on the operation type. All properties of these objects can be found in Reference section of the docs.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=67"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Callbacks
+</p>
+
 ## Examples
 
 ### Returning additional information with Prediction

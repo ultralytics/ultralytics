@@ -5,15 +5,13 @@ from collections import defaultdict
 import cv2
 import numpy as np
 
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
 check_requirements('shapely>=2.0.0')
 
 from shapely.geometry import Polygon
 from shapely.geometry.point import Point
-
-from ultralytics.utils.checks import check_imshow
 
 
 class Heatmap:

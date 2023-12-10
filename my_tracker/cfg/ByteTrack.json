@@ -1,8 +1,8 @@
 {
   "name": "ByteTrack",
 
-  "source_weights_path": "/Users/johnny/Projects/models/detector_best.pt",
-  "source_video_path": "/Users/johnny/Projects/old_samples/4/personnel_fast_approaching1.mp4",
+  "source_weights_path": "./../inference_tools/models/detector_best.pt",
+  "source_video_path": "./data/example1.mp4",
 
   "device": "mps",
   "video_stride": 1,
@@ -36,7 +36,7 @@
   "action_recognition": {
 
     "gather": {
-      "enabled": false,
+      "enabled": true,
       "distance_threshold": 1.5,
       "area_threshold": 0.5
     },
@@ -56,9 +56,11 @@
         "enabled": true,
         "acceleration_threshold": 0.015
     },
+
     "overstep_boundary": {
       "enabled": true,
-      "line": [0, 1200, 1920, 1200],
+      "draw": true,
+      "line": [0, 700, 1920, 700],
       "direction": "down",
       "distance_threshold": 0
     }

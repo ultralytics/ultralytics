@@ -13,7 +13,8 @@ text_padding = 7
 
 
 class ActionRecognizer:
-    def __init__(self, config):
+    def __init__(self, config, video_info):
+        self.video_info = video_info
         # Gathering parameters
         self.g_enabled = config["gather"]["enabled"]
         self.g_distance_threshold = config["gather"]["distance_threshold"]
@@ -28,34 +29,49 @@ class ActionRecognizer:
         # Suddenly running parameters
         self.sr_enabled = config["suddenly_run"]["enabled"]
         self.sr_acceleration_threshold = config["suddenly_run"]["acceleration_threshold"]
-
+        # Overstep boundary parameters
         self.osb_enabled = config["overstep_boundary"]["enabled"]
+        self.osb_draw = config["overstep_boundary"]["draw"]
         self.osb_line = config["overstep_boundary"]["line"]  # Coords: [x1, y1, x2, y2]
         self.osb_direction = config["overstep_boundary"]["direction"]  # "up" or "down"
         self.osb_distance_threshold = config["overstep_boundary"]["distance_threshold"]
 
-    def recognize_frame(self, tracks, frame):
+    def recognize_frame(self, tracks):
         """
         Recognizes actions in a frame.
         Args:
             tracks (list): list of detections in the frame (sv.STrack objects).
             frame (np.array): frame to be annotated.
         """
+        group_results = {}
+        individual_results = {}
         ar_results = {}
 
         if self.g_enabled:
-            ar_results["gather"] = self.recognize_gather(tracks)
+            group_results["gather"] = self.recognize_gather(tracks)
         if self.ss_enabled:
-            ar_results["stand_still"] = self.recognize_stand_still(tracks)
+            individual_results["SS"] = self.recognize_stand_still(tracks)
         if self.fa_enabled:
-            ar_results["fast_approach"] = self.recognize_fast_approach(tracks, frame)
+            individual_results["FA"] = self.recognize_fast_approach(tracks)
         if self.sr_enabled:
-            ar_results["suddenly_run"] = self.recognize_suddenly_run(tracks)
+            individual_results["SR"] = self.recognize_suddenly_run(tracks)
         if self.osb_enabled:
-            ar_results["overstepboundry"] = self.recognize_overstep_boundary(tracks, frame)
+            individual_results["OB"] = self.recognize_overstep_boundary(tracks)
 
-        # TODO: merge individual actions so that we only loop and annotate once
+        ar_results['individual'] = self.merge_individual_actions(individual_results)
+        ar_results['group'] = group_results if len(group_results) > 0 else None
+
         return ar_results
+
+    def merge_individual_actions(self, individual_results):
+        merged_results = {}
+        for action, results in individual_results.items():
+            if results is not None:
+                for track_id, bbox in results.items():
+                    if track_id not in merged_results:
+                        merged_results[track_id] = {'bbox': bbox, 'actions': []}
+                    merged_results[track_id]['actions'].append(action)
+        return merged_results if len(merged_results) > 0 else None
 
     def annotate(self, frame, ar_results):
         """
@@ -66,22 +82,53 @@ class ActionRecognizer:
         Returns:
             frame (np.array): annotated frame.
         """
-        if self.g_enabled:
-            frame = self.annotate_gather(frame, ar_results["gather"])
+        if self.osb_draw:
+            cv2.line(frame, self.osb_line[:2], self.osb_line[2:], (0, 255, 0), thickness=2)
+        if self.g_enabled and ar_results["group"] is not None:
+            frame = self.annotate_gather(frame, ar_results["group"]["gather"])
+        if ar_results["individual"] is not None:
+            frame = self.annotate_individual_actions(frame, ar_results["individual"])
+        return frame
 
-        # TODO: merge individual actions so that we only loop and annotate once
-        if self.ss_enabled:
-            frame = self.annotate_stand_still(frame, ar_results["stand_still"])
+    def annotate_individual_actions(self, frame, results):
+        for track_id, data in results.items():
+            x1, y1, x2, y2 = data['bbox'].astype(int)
 
-        if self.fa_enabled:
-            frame = self.annotate_fast_approach(frame, ar_results["fast_approach"])
+            text = ','.join(data['actions'])
+            text_width, text_height = cv2.getTextSize(
+                text=text,
+                fontFace=font,
+                fontScale=font_scale,
+                thickness=font_thickness,
+            )[0]
 
-        if self.sr_enabled:
-            frame = self.annotate_suddenly_run(frame, ar_results["suddenly_run"])
+            # Text must be top right corner of the bounding box of the crowd but outside the frame
+            text_x = x2 - text_padding - text_width
+            text_y = y2 + text_padding + text_height
 
-        if self.osb_enabled:
-            frame = self.annotate_overstep_boundary(frame, ar_results["overstepboundry"])
+            text_background_x2 = x2
+            text_background_x1 = x2 - 2 * text_padding - text_width
 
+            text_background_y1 = y2
+            text_background_y2 = y2 + 2 * text_padding + text_height
+
+            cv2.rectangle(
+                img=frame,
+                pt1=(text_background_x1, text_background_y1),
+                pt2=(text_background_x2, text_background_y2),
+                color=background_color,
+                thickness=cv2.FILLED,
+            )
+            cv2.putText(
+                img=frame,
+                text=text,
+                org=(text_x, text_y),
+                fontFace=font,
+                fontScale=font_scale,
+                color=text_color,
+                thickness=font_thickness,
+                lineType=cv2.LINE_AA,
+            )
         return frame
 
     def recognize_gather(self, tracks):
@@ -107,7 +154,7 @@ class ActionRecognizer:
 
                 # If distance is below threshold and the ratio between the areas is within the threshold add pair
                 if distance <= self.g_distance_threshold and \
-                        (self.g_area_threshold <= a1 / a2 <= (1 / self.g_area_threshold)):
+                        (self.g_area_threshold <= a1/a2 <= (1/self.g_area_threshold)):
                     pairs.append([i, j])
 
         # Find independent chains in the graph
@@ -142,7 +189,7 @@ class ActionRecognizer:
         a1 = det1.tlwh[2] * det1.tlwh[3]
         a2 = det2.tlwh[2] * det2.tlwh[3]
         mean_area = (a1 + a2) / 2
-        return distance / np.sqrt(mean_area), a1, a2
+        return distance/np.sqrt(mean_area), a1, a2
 
     @staticmethod
     def get_independent_chains(pairs):
@@ -193,7 +240,7 @@ class ActionRecognizer:
         for track in tracks:
             if track.tracklet_len > frame_stride and track.class_ids == 0:
                 pixel_s, pixel_a, _ = self.get_motion_descriptors(track)
-                if pixel_s < self.ss_speed_threshold:  # TODO: condition on acceleration?
+                if pixel_s < self.ss_speed_threshold:   # TODO: condition on acceleration?
                     ss_results[track.track_id] = track.tlbr
         return ss_results if len(ss_results.keys()) > 0 else None
 
@@ -230,7 +277,7 @@ class ActionRecognizer:
 
         dX = np.diff(X)
         dY = np.diff(Y)
-        distance = np.sqrt(dX ** 2 + dY ** 2)
+        distance = np.sqrt(dX**2 + dY**2)
 
         # Speed
         speeds = distance / track.frame_stride
@@ -246,9 +293,9 @@ class ActionRecognizer:
 
         return avg_speed, avg_acceleration, direction
 
-    def recognize_fast_approach(self, tracks, frame):
-        valid_classes = [0, 1, 2]  # personnel, car, truck
-        interest_point = np.array([frame.shape[1] // 2, frame.shape[0]])  # bottom center of the frame
+    def recognize_fast_approach(self, tracks):
+        valid_classes = [0, 1, 2]   # personnel, car, truck
+        interest_point = np.array([self.video_info.resolution_wh[0]//2, self.video_info.resolution_wh[1]])  # bottom center of the frame
 
         fa_results = {}
         for track in tracks:
@@ -260,10 +307,10 @@ class ActionRecognizer:
                     dy = max(abs(track.mean[1] - interest_point[1]) - track.mean[3] / 2, 0)
                     distace_to_interest_point = np.sqrt(dx ** 2 + dy ** 2)
                     # Threshold determined the distance to the bottom of the frame
-                    if distace_to_interest_point < (interest_point[1] / self.fa_distance_threshold):
-                        # TODO: cars have bigger area, so they are considered to be closer to the interest point
-                        # distace_to_interest_point = np.sqrt(np.sum((track.mean[0:2] - interest_point) ** 2))/np.sqrt(track.tlwh[2] * track.tlwh[3])
-                        # if distace_to_interest_point < self.fa_distance_threshold:
+                    if distace_to_interest_point < (interest_point[1]/self.fa_distance_threshold):
+                    # TODO: cars have bigger area, so they are considered to be closer to the interest point
+                    #distace_to_interest_point = np.sqrt(np.sum((track.mean[0:2] - interest_point) ** 2))/np.sqrt(track.tlwh[2] * track.tlwh[3])
+                    #if distace_to_interest_point < self.fa_distance_threshold:
                         fa_results[track.track_id] = track.tlbr
         return fa_results if len(fa_results.keys()) > 0 else None
 
@@ -300,139 +347,7 @@ class ActionRecognizer:
                     thickness=2,
                 )
 
-                text = f"G #{idx + 1}"
-                text_width, text_height = cv2.getTextSize(
-                    text=text,
-                    fontFace=font,
-                    fontScale=font_scale,
-                    thickness=font_thickness,
-                )[0]
-
-                # Text must be top right corner of the bounding box of the crowd but outside the frame
-                text_x = x2 - text_padding - text_width
-                text_y = y2 + text_padding + text_height
-
-                text_background_x2 = x2
-                text_background_x1 = x2 - 2 * text_padding - text_width
-
-                text_background_y1 = y2
-                text_background_y2 = y2 + 2 * text_padding + text_height
-
-                cv2.rectangle(
-                    img=frame,
-                    pt1=(text_background_x1, text_background_y1),
-                    pt2=(text_background_x2, text_background_y2),
-                    color=background_color,
-                    thickness=cv2.FILLED,
-                )
-                cv2.putText(
-                    img=frame,
-                    text=text,
-                    org=(text_x, text_y),
-                    fontFace=font,
-                    fontScale=font_scale,
-                    color=text_color,
-                    thickness=font_thickness,
-                    lineType=cv2.LINE_AA,
-                )
-
-        return frame
-
-    @staticmethod
-    def annotate_stand_still(frame, ss_results):
-        if ss_results is not None:
-            for idx, bbox in ss_results.items():
-                x1, y1, x2, y2 = bbox.astype(int)
-
-                text = f"SS"
-                text_width, text_height = cv2.getTextSize(
-                    text=text,
-                    fontFace=font,
-                    fontScale=font_scale,
-                    thickness=font_thickness,
-                )[0]
-
-                # Text must be top right corner of the bounding box of the crowd but outside the frame
-                text_x = x2 - text_padding - text_width
-                text_y = y2 + text_padding + text_height
-
-                text_background_x2 = x2
-                text_background_x1 = x2 - 2 * text_padding - text_width
-
-                text_background_y1 = y2
-                text_background_y2 = y2 + 2 * text_padding + text_height
-
-                cv2.rectangle(
-                    img=frame,
-                    pt1=(text_background_x1, text_background_y1),
-                    pt2=(text_background_x2, text_background_y2),
-                    color=background_color,
-                    thickness=cv2.FILLED,
-                )
-                cv2.putText(
-                    img=frame,
-                    text=text,
-                    org=(text_x, text_y),
-                    fontFace=font,
-                    fontScale=font_scale,
-                    color=text_color,
-                    thickness=font_thickness,
-                    lineType=cv2.LINE_AA,
-                )
-
-        return frame
-
-    @staticmethod
-    def annotate_fast_approach(frame, fa_results):
-        if fa_results is not None:
-            for idx, bbox in fa_results.items():
-                x1, y1, x2, y2 = bbox.astype(int)
-
-                text = f"FA"
-                text_width, text_height = cv2.getTextSize(
-                    text=text,
-                    fontFace=font,
-                    fontScale=font_scale,
-                    thickness=font_thickness,
-                )[0]
-
-                # Text must be top right corner of the bounding box of the crowd but outside the frame
-                text_x = x2 - text_padding - text_width
-                text_y = y2 + text_padding + text_height
-
-                text_background_x2 = x2
-                text_background_x1 = x2 - 2 * text_padding - text_width
-
-                text_background_y1 = y2
-                text_background_y2 = y2 + 2 * text_padding + text_height
-
-                cv2.rectangle(
-                    img=frame,
-                    pt1=(text_background_x1, text_background_y1),
-                    pt2=(text_background_x2, text_background_y2),
-                    color=background_color,
-                    thickness=cv2.FILLED,
-                )
-                cv2.putText(
-                    img=frame,
-                    text=text,
-                    org=(text_x, text_y),
-                    fontFace=font,
-                    fontScale=font_scale,
-                    color=text_color,
-                    thickness=font_thickness,
-                    lineType=cv2.LINE_AA,
-                )
-
-        return frame
-
-    @staticmethod
-    def annotate_suddenly_run(frame, sr_results):
-        if sr_results is not None:
-            for idx, bbox in sr_results.items():
-                x1, y1, x2, y2 = bbox.astype(int)
-
-                text = f"SR"
+                text = f"G #{idx+1}"
                 text_width, text_height = cv2.getTextSize(
                     text=text,
                     fontFace=font,
@@ -504,34 +419,28 @@ class ActionRecognizer:
                 return True
         return False"""
 
-    def is_overstep_boundary(self, track, frame):
-        frame_width, frame_height = frame.shape[1], frame.shape[0]
-        bbox = track.tlbr
-        bx_center, by_center = (bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2  # Centro de la bounding box
-
-        # Crear la región de interés basada en la dirección y la línea
-        if self.osb_direction == "down":
-            region = [0, self.osb_line[1], frame_width,
-                      frame_height - self.osb_line[1]]  # Toda la región debajo de la línea
-        elif self.osb_direction == "up":
-            region = [0, 0, frame_width, self.osb_line[1]]  # Toda la región por encima de la línea
-        else:
-            raise ValueError(f"Unknown boundary direction: {self.osb_direction}")
-
-        # Verificar si el centro de la bbox está dentro de la región
-        return self.within_bbox((bx_center, by_center), region)
-
     @staticmethod
-    def within_bbox(pt, bbox):
+    def within_region(pt, bbox):
         x, y = pt
         return bbox[0] <= x <= bbox[0] + bbox[2] and bbox[1] <= y <= bbox[1] + bbox[3]
 
-    def recognize_overstep_boundary(self, tracks, frame):
+    def recognize_overstep_boundary(self, tracks):
+        # Create region of interest
+        frame_width, frame_height = self.video_info.resolution_wh
+        if self.osb_direction == "down":
+            region = [0, self.osb_line[1], frame_width,
+                      frame_height - self.osb_line[1]]
+        elif self.osb_direction == "up":
+            region = [0, 0, frame_width, self.osb_line[1]]
+        else:
+            raise ValueError(f"Unknown boundary direction: {self.osb_direction}")
+
         osb_results = {}
         for track in tracks:
             # Check if the bbox crosses the boundary line
-            if self.is_overstep_boundary(track, frame):
-                osb_results[track.track_id] = track.tlbr
+            if track.class_ids == 0:
+                if self.within_region(track.mean[:2], region):
+                    osb_results[track.track_id] = track.tlbr
         return osb_results if len(osb_results.keys()) > 0 else None
 
     @staticmethod

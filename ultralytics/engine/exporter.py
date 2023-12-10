@@ -64,7 +64,7 @@ import torch
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.nn.autobackend import check_class_names
+from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
@@ -172,6 +172,8 @@ class Exporter:
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
 
         # Checks
+        if not hasattr(model, 'names'):
+            model.names = default_class_names()
         model.names = check_class_names(model.names)
         if self.args.half and onnx and self.device.type == 'cpu':
             LOGGER.warning('WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0')

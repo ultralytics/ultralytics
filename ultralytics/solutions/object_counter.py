@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import cv2
 
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
 check_requirements('shapely>=2.0.0')
@@ -45,6 +45,9 @@ class ObjectCounter:
         self.track_history = defaultdict(list)
         self.track_thickness = 2
         self.draw_tracks = False
+
+        # Check if environment support imshow
+        self.env_check = check_imshow(warn=True)
 
     def set_args(self,
                  classes_names,
@@ -136,7 +139,7 @@ class ObjectCounter:
                     else:
                         self.in_counts += 1
 
-        if self.view_img:
+        if self.env_check and self.view_img:
             incount_label = 'InCount : ' + f'{self.in_counts}'
             outcount_label = 'OutCount : ' + f'{self.out_counts}'
             self.annotator.count_labels(in_count=incount_label, out_count=outcount_label)

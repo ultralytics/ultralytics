@@ -69,7 +69,7 @@ If you use the MNIST dataset in your
 
 research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

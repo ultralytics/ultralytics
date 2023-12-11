@@ -73,7 +73,7 @@ The example showcases the variety and complexity of the data in the VisDrone dat
 
 If you use the VisDrone dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

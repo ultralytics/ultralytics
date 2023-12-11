@@ -40,34 +40,34 @@ Esta guía completa tiene como objetivo proporcionarte una visión general y con
 
 El modo Entrenar se utiliza para entrenar un modelo YOLOv8 en un conjunto de datos personalizado. En este modo, el modelo se entrena utilizando el conjunto de datos y los hiperparámetros especificados. El proceso de entrenamiento implica optimizar los parámetros del modelo para que pueda predecir con precisión las clases y ubicaciones de los objetos en una imagen.
 
-[Ejemplos de Entrenamiento](train.md){ .md-button .md-button--primary}
+[Ejemplos de Entrenamiento](train.md){ .md-button }
 
 ## [Validar (Val)](val.md)
 
 El modo Validar se usa para validar un modelo YOLOv8 después de haber sido entrenado. En este modo, el modelo se evalúa en un conjunto de validación para medir su precisión y rendimiento de generalización. Este modo se puede usar para ajustar los hiperparámetros del modelo y mejorar su rendimiento.
 
-[Ejemplos de Validación](val.md){ .md-button .md-button--primary}
+[Ejemplos de Validación](val.md){ .md-button }
 
 ## [Predecir (Predict)](predict.md)
 
 El modo Predecir se utiliza para realizar predicciones usando un modelo YOLOv8 entrenado en imágenes o videos nuevos. En este modo, el modelo se carga desde un archivo de punto de control, y el usuario puede proporcionar imágenes o videos para realizar inferencias. El modelo predice las clases y ubicaciones de los objetos en las imágenes o videos de entrada.
 
-[Ejemplos de Predicción](predict.md){ .md-button .md-button--primary}
+[Ejemplos de Predicción](predict.md){ .md-button }
 
 ## [Exportar (Export)](export.md)
 
 El modo Exportar se utiliza para exportar un modelo YOLOv8 a un formato que se pueda usar para la implementación. En este modo, el modelo se convierte a un formato que puede ser utilizado por otras aplicaciones de software o dispositivos de hardware. Este modo es útil al implementar el modelo en entornos de producción.
 
-[Ejemplos de Exportación](export.md){ .md-button .md-button--primary}
+[Ejemplos de Exportación](export.md){ .md-button }
 
 ## [Seguir (Track)](track.md)
 
 El modo Seguir se usa para rastrear objetos en tiempo real utilizando un modelo YOLOv8. En este modo, el modelo se carga desde un archivo de punto de control, y el usuario puede proporcionar un flujo de video en vivo para realizar seguimiento de objetos en tiempo real. Este modo es útil para aplicaciones como sistemas de vigilancia o coches autónomos.
 
-[Ejemplos de Seguimiento](track.md){ .md-button .md-button--primary}
+[Ejemplos de Seguimiento](track.md){ .md-button }
 
 ## [Benchmark (Benchmark)](benchmark.md)
 
 El modo Benchmark se utiliza para perfilar la velocidad y precisión de varios formatos de exportación de YOLOv8. Los benchmarks proporcionan información sobre el tamaño del formato de exportación, sus métricas de `mAP50-95` (para detección de objetos, segmentación y pose) o métricas de `accuracy_top5` (para clasificación), y el tiempo de inferencia en milisegundos por imagen a través de varios formatos de exportación como ONNX, OpenVINO, TensorRT y otros. Esta información puede ayudar a los usuarios a elegir el formato de exportación óptimo para su caso de uso específico, basado en sus requerimientos de velocidad y precisión.
 
-[Ejemplos de Benchmarking](benchmark.md){ .md-button .md-button--primary}
+[Ejemplos de Benchmarking](benchmark.md){ .md-button }

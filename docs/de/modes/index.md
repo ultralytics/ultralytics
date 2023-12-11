@@ -40,35 +40,35 @@ Dieser umfassende Leitfaden soll Ihnen einen Überblick und praktische Einblicke
 
 Der Trainingsmodus wird verwendet, um ein YOLOv8-Modell mit einem angepassten Datensatz zu trainieren. In diesem Modus wird das Modell mit dem angegebenen Datensatz und den Hyperparametern trainiert. Der Trainingsprozess beinhaltet die Optimierung der Modellparameter, damit es die Klassen und Standorte von Objekten in einem Bild genau vorhersagen kann.
 
-[Trainingsbeispiele](train.md){ .md-button .md-button--primary}
+[Trainingsbeispiele](train.md){ .md-button }
 
 ## [Validieren](val.md)
 
 Der Validierungsmodus wird genutzt, um ein YOLOv8-Modell nach dem Training zu bewerten. In diesem Modus wird das Modell auf einem Validierungsset getestet, um seine Genauigkeit und Generalisierungsleistung zu messen. Dieser Modus kann verwendet werden, um die Hyperparameter des Modells für eine bessere Leistung zu optimieren.
 
-[Validierungsbeispiele](val.md){ .md-button .md-button--primary}
+[Validierungsbeispiele](val.md){ .md-button }
 
 ## [Vorhersagen](predict.md)
 
 Der Vorhersagemodus wird verwendet, um mit einem trainierten YOLOv8-Modell Vorhersagen für neue Bilder oder Videos zu treffen. In diesem Modus wird das Modell aus einer Checkpoint-Datei geladen, und der Benutzer kann Bilder oder Videos zur Inferenz bereitstellen. Das Modell sagt die Klassen und Standorte von Objekten in den Eingabebildern oder -videos voraus.
 
-[Vorhersagebeispiele](predict.md){ .md-button .md-button--primary}
+[Vorhersagebeispiele](predict.md){ .md-button }
 
 ## [Exportieren](export.md)
 
 Der Exportmodus wird verwendet, um ein YOLOv8-Modell in ein Format zu exportieren, das für die Bereitstellung verwendet werden kann. In diesem Modus wird das Modell in ein Format konvertiert, das von anderen Softwareanwendungen oder Hardwaregeräten verwendet werden kann. Dieser Modus ist nützlich, wenn das Modell in Produktionsumgebungen eingesetzt wird.
 
-[Exportbeispiele](export.md){ .md-button .md-button--primary}
+[Exportbeispiele](export.md){ .md-button }
 
 ## [Verfolgen](track.md)
 
 Der Trackingmodus wird zur Echtzeitverfolgung von Objekten mit einem YOLOv8-Modell verwendet. In diesem Modus wird das Modell aus einer Checkpoint-Datei geladen, und der Benutzer kann einen Live-Videostream für das Echtzeitobjekttracking bereitstellen. Dieser Modus ist nützlich für Anwendungen wie Überwachungssysteme oder selbstfahrende Autos.
 
-[Trackingbeispiele](track.md){ .md-button .md-button--primary}
+[Trackingbeispiele](track.md){ .md-button }
 
 ## [Benchmarking](benchmark.md)
 
 Der Benchmark-Modus wird verwendet, um die Geschwindigkeit und Genauigkeit verschiedener Exportformate für YOLOv8 zu profilieren. Die Benchmarks liefern Informationen über die Größe des exportierten Formats, seine `mAP50-95`-Metriken (für Objekterkennung, Segmentierung und Pose)
 oder `accuracy_top5`-Metriken (für Klassifizierung) und die Inferenzzeit in Millisekunden pro Bild für verschiedene Exportformate wie ONNX, OpenVINO, TensorRT und andere. Diese Informationen können den Benutzern dabei helfen, das optimale Exportformat für ihren spezifischen Anwendungsfall basierend auf ihren Anforderungen an Geschwindigkeit und Genauigkeit auszuwählen.
 
-[Benchmarkbeispiele](benchmark.md){ .md-button .md-button--primary}
+[Benchmarkbeispiele](benchmark.md){ .md-button }

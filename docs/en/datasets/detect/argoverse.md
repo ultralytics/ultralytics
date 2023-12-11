@@ -80,7 +80,7 @@ The example showcases the variety and complexity of the data in the Argoverse da
 
 If you use the Argoverse dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

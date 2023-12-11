@@ -12,6 +12,18 @@ keywords: Ultralytics, YOLOv8, benchmarking, speed profiling, accuracy profiling
 
 Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLOv8 serves this purpose by providing a robust framework for assessing the speed and accuracy of your model across a range of export formats.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?start=105"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics Modes Tutorial: Benchmark
+</p>
+
+
 ## Why Is Benchmarking Crucial?
 
 - **Informed Decisions:** Gain insights into the trade-offs between speed and accuracy.
@@ -41,7 +53,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a full list of export arguments.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

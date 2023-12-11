@@ -61,7 +61,7 @@ The example showcases the diversity and complexity of the objects in the Caltech
 
 If you use the Caltech-256 dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

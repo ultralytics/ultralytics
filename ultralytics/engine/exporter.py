@@ -64,7 +64,7 @@ import torch
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.nn.autobackend import check_class_names
+from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
@@ -172,6 +172,8 @@ class Exporter:
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
 
         # Checks
+        if not hasattr(model, 'names'):
+            model.names = default_class_names()
         model.names = check_class_names(model.names)
         if self.args.half and onnx and self.device.type == 'cpu':
             LOGGER.warning('WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0')
@@ -677,6 +679,11 @@ class Exporter:
         if f.is_dir():
             import shutil
             shutil.rmtree(f)  # delete output folder
+
+        # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
+        onnx2tf_file = Path('calibration_image_sample_data_20x128x128x3_float32.npy')
+        if not onnx2tf_file.exists():
+            attempt_download_asset(f'{onnx2tf_file}.zip', unzip=True, delete=True)
 
         # Export to ONNX
         self.args.simplify = True

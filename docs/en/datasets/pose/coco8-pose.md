@@ -62,7 +62,7 @@ The example showcases the variety and complexity of the images in the COCO8-Pose
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
 
-!!! Note ""
+!!! Quote ""
 
     === "BibTeX"
 

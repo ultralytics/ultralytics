@@ -8,6 +8,17 @@ keywords: YOLOv8, Ultralytics, Python, object detection, segmentation, classific
 
 Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help you seamlessly integrate YOLOv8 into your Python projects for object detection, segmentation, and classification. Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLOv8 into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=58"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Python
+</p>
+
 For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code.
 
 !!! Example "Python"
@@ -62,7 +73,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         results = model.train(resume=True)
         ```
 
-[Train Examples](../modes/train.md){ .md-button .md-button--primary}
+[Train Examples](../modes/train.md){ .md-button }
 
 ## [Val](../modes/val.md)
 
@@ -90,7 +101,7 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
           model.val(data='coco128.yaml')
         ```
 
-[Val Examples](../modes/val.md){ .md-button .md-button--primary}
+[Val Examples](../modes/val.md){ .md-button }
 
 ## [Predict](../modes/predict.md)
 
@@ -158,7 +169,7 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
         result = result.numpy()
         ```
 
-[Predict Examples](../modes/predict.md){ .md-button .md-button--primary}
+[Predict Examples](../modes/predict.md){ .md-button }
 
 ## [Export](../modes/export.md)
 
@@ -186,7 +197,7 @@ Export mode is used for exporting a YOLOv8 model to a format that can be used fo
           model.export(format='onnx', device=0)
         ```
 
-[Export Examples](../modes/export.md){ .md-button .md-button--primary}
+[Export Examples](../modes/export.md){ .md-button }
 
 ## [Track](../modes/track.md)
 
@@ -209,7 +220,7 @@ Track mode is used for tracking objects in real-time using a YOLOv8 model. In th
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")
         ```
 
-[Track Examples](../modes/track.md){ .md-button .md-button--primary}
+[Track Examples](../modes/track.md){ .md-button }
 
 ## [Benchmark](../modes/benchmark.md)
 
@@ -228,7 +239,7 @@ or `accuracy_top5` metrics (for classification), and the inference time in milli
         benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
         ```
 
-[Benchmark Examples](../modes/benchmark.md){ .md-button .md-button--primary}
+[Benchmark Examples](../modes/benchmark.md){ .md-button }
 
 ## Using Trainers
 
@@ -259,4 +270,4 @@ or `accuracy_top5` metrics (for classification), and the inference time in milli
 
 You can easily customize Trainers to support custom tasks or explore R&D ideas. Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 
-[Customization tutorials](engine.md){ .md-button .md-button--primary}
+[Customization tutorials](engine.md){ .md-button }

@@ -51,7 +51,7 @@ YOLOv8 pretrained Detect models are shown here. Detect, Segment and Pose models 
 
 Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -87,7 +87,7 @@ YOLO detection dataset format can be found in detail in the [Dataset Guide](../d
 
 Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -116,7 +116,7 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
 
 Use a trained YOLOv8n model to run predictions on images.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -143,7 +143,7 @@ See full `predict` mode details in the [Predict](https://docs.ultralytics.com/mo
 
 Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

@@ -54,7 +54,7 @@ YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models ar
 
 Train a YOLOv8-pose model on the COCO128-pose dataset.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -91,7 +91,7 @@ YOLO pose dataset format can be found in detail in the [Dataset Guide](../datase
 Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model`
 retains it's training `data` and arguments as model attributes.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -120,7 +120,7 @@ retains it's training `data` and arguments as model attributes.
 
 Use a trained YOLOv8n-pose model to run predictions on images.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 
@@ -147,7 +147,7 @@ See full `predict` mode details in the [Predict](https://docs.ultralytics.com/mo
 
 Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
-!!! Example ""
+!!! Example
 
     === "Python"
 

@@ -76,9 +76,9 @@ CFG_INT_KEYS = ('epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic'
                 'line_width', 'workspace', 'nbs', 'save_period', 'max_ncalib_imgs')
 CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'rect', 'cos_lr', 'overlap_mask', 'val',
                  'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf', 'save_crop',
-                 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks', 'boxes', 'keras',
-                 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile', 'separate_outputs', 'export_hw_optimized', 
-                 'uint8_io_dtype')
+                 'save_frames', 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks',
+                 'show_boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile',
+                 'separate_outputs', 'export_hw_optimized', 'uint8_io_dtype')
 
 
 def cfg2dict(cfg):
@@ -170,6 +170,9 @@ def _handle_deprecation(custom):
     """Hardcoded function to handle deprecated config keys."""
 
     for key in custom.copy().keys():
+        if key == 'boxes':
+            deprecation_warn(key, 'show_boxes')
+            custom['show_boxes'] = custom.pop('boxes')
         if key == 'hide_labels':
             deprecation_warn(key, 'show_labels')
             custom['show_labels'] = custom.pop('hide_labels') == 'False'

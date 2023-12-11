@@ -537,7 +537,7 @@ def ltwh2xywh(x):
 def xyxyxyxy2xywhr(corners):
     """
     Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation]. Rotation values are
-    expected in degrees from -180 to +180.
+    expected in degrees from 0 to 90.
 
     Args:
         corners (numpy.ndarray | torch.Tensor): Input corners of shape (n, 8).
@@ -550,7 +550,7 @@ def xyxyxyxy2xywhr(corners):
     points = points.reshape(len(corners), -1, 2)
     rboxes = []
     for pts in points:
-        # NOTE: Have to use cv2.minAreaRect to get accurate xywhr,
+        # NOTE: Use cv2.minAreaRect to get accurate xywhr,
         # especially some objects are cut off by augmentations in dataloader.
         (x, y), (w, h), angle = cv2.minAreaRect(pts)
         rboxes.append([x, y, w, h, angle / 180 * np.pi])
@@ -562,7 +562,7 @@ def xyxyxyxy2xywhr(corners):
 def xywhr2xyxyxyxy(center):
     """
     Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4]. Rotation values should
-    be in degrees from -180 to +180.
+    be in degrees from 0 to 90.
 
     Args:
         center (numpy.ndarray | torch.Tensor): Input data in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).

@@ -44,9 +44,7 @@ div.highlight {
   max-width: 1440px;
 }
 
-/* Language dropdown selector (default is shorter 200px in length) */
-/* Not working as activates on hover under icon area
-body .md-select__inner {
-    max-height: 500px !important;
+/* Set language dropdown maximum height to screen height */
+.md-header .md-select:hover .md-select__inner {
+  max-height: 75vh;
 }
-*/

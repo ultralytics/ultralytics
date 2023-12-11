@@ -32,8 +32,8 @@ This table presents the available models with their specific pre-trained weights
 
 | Model Type | Pre-trained Weights | Tasks Supported                              | Inference | Validation | Training | Export |
 |------------|---------------------|----------------------------------------------|-----------|------------|----------|--------|
-| SAM base   | `sam_b.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
-| SAM large  | `sam_l.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| SAM base   | `sam_b.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM large  | `sam_l.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 

@@ -1043,7 +1043,7 @@ class ClassifyMetrics(SimpleClass):
         correct = (targets[:, None] == pred).float()
         wrong_im_ind = [i for i in range(len(correct[:, 0])) if not correct[i][0]]
         wrong_ims = [img_names[i] for i in wrong_im_ind]
-        wrong_ims_path = Path(wrong_ims[0]).parent + "/wrong_ims.txt"
+        wrong_ims_path = str(Path(wrong_ims[0]).parent) + "/wrong_ims.txt"
         with open(wrong_ims_path, "w") as fo:
             for wi in wrong_ims:
                 fo.write(wi + "\n")

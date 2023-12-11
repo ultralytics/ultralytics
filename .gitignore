@@ -165,6 +165,6 @@ pnnx*
 /ultralytics/assets/
 
 # My space
-Cls_UTKFace_Gender
+Cls_UTKFace_*
 *.jpg
-nk_*
+my_ws_*

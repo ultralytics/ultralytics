@@ -561,18 +561,6 @@ class v8OBBLoss(v8DetectionLoss):
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl).to(self.device)
 
-    def regularize_boxes(self, boxes, start_angle=math.pi / -2):
-        """Regularize bboxes to range [-π/2, π/2]."""
-        x, y, w, h, t = boxes.unbind(dim=-1)
-        # swap edge and angle if h >= w
-        condition = w > h
-        w_ = torch.where(condition, w, h)
-        h_ = torch.where(condition, h, w)
-        t = torch.where(condition, t, t + math.pi / 2)
-        t = ((t - start_angle) % math.pi) + start_angle
-        boxes = torch.stack([x, y, w_, h_, t], dim=-1)
-        return boxes
-
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocesses the target counts and matches with the input batch size to output a tensor."""
         if targets.shape[0] == 0:
@@ -588,7 +576,6 @@ class v8OBBLoss(v8DetectionLoss):
                 if n:
                     bboxes = targets[matches, 2:]
                     bboxes[..., :4].mul_(scale_tensor)
-                    # bboxes = self.regularize_boxes(bboxes)
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 

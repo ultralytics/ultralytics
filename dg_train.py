@@ -55,5 +55,5 @@ if __name__ == '__main__':
     print(kwargs)
     results = model.train(**kwargs)
 
-    # Evaluate the model's performance on the validation set
-    results = model.val(**kwargs)
+    # # Evaluate the model's performance on the validation set
+    # results = model.val(**kwargs)

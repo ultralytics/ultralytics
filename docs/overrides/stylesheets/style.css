@@ -46,5 +46,5 @@ div.highlight {
 
 /* Set language dropdown maximum height to screen height */
 .md-header .md-select:hover .md-select__inner {
-  max-height: 100vh;
+  max-height: 75vh;
 }

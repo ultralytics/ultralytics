@@ -123,7 +123,7 @@ class OBBValidator(DetectionValidator):
             for d in data:
                 image_id = d['image_id']
                 score = d['score']
-                classname = self.names[d['category_id']].replace(" ", "-")
+                classname = self.names[d['category_id']].replace(' ', '-')
 
                 lines = '{} {} {} {} {} {} {} {} {} {}\n'.format(
                     image_id,
@@ -167,7 +167,7 @@ class OBBValidator(DetectionValidator):
 
                 b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)
                 for x in torch.cat([b, bbox[:, 5:7]], dim=-1).tolist():
-                    classname = self.names[int(x[-1])].replace(" ", "-")
+                    classname = self.names[int(x[-1])].replace(' ', '-')
                     poly = [round(i, 3) for i in x[:-2]]
                     score = round(x[-2], 3)
 

@@ -119,11 +119,11 @@ class OBBValidator(DetectionValidator):
             pred_txt.mkdir(parents=True, exist_ok=True)
             data = json.load(open(pred_json))
             # Save split results
-            LOGGER.info(f'Saving predictions with DOTA format by {pred_json}...')
+            LOGGER.info(f'Saving predictions with DOTA format to {str(pred_txt)}...')
             for d in data:
                 image_id = d['image_id']
                 score = d['score']
-                classname = self.names[d['category_id']]
+                classname = self.names[d['category_id']].replace(" ", "-")
 
                 lines = '{} {} {} {} {} {} {} {} {} {}\n'.format(
                     image_id,
@@ -144,7 +144,7 @@ class OBBValidator(DetectionValidator):
             pred_merged_txt = self.save_dir / 'predictions_merged_txt'  # predictions
             pred_merged_txt.mkdir(parents=True, exist_ok=True)
             merged_results = defaultdict(list)
-            LOGGER.info(f'Saving merged predictions with DOTA format by {pred_json}...')
+            LOGGER.info(f'Saving merged predictions with DOTA format to {str(pred_merged_txt)}...')
             for d in data:
                 image_id = d['image_id'].split('__')[0]
                 pattern = re.compile(r'\d+___\d+')
@@ -167,7 +167,7 @@ class OBBValidator(DetectionValidator):
 
                 b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)
                 for x in torch.cat([b, bbox[:, 5:7]], dim=-1).tolist():
-                    classname = self.names[int(x[-1])]
+                    classname = self.names[int(x[-1])].replace(" ", "-")
                     poly = [round(i, 3) for i in x[:-2]]
                     score = round(x[-2], 3)
 

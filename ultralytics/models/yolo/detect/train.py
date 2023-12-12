@@ -1,11 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import math
+import random
 from copy import copy
 
-import torch.nn as nn
 import numpy as np
-import random
-import math
+import torch.nn as nn
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
@@ -59,17 +59,13 @@ class DetectionTrainer(BaseTrainer):
         batch['img'] = batch['img'].to(self.device, non_blocking=True).float() / 255
         if self.args.multi_scale:
             imgs = batch['img']
-            sz = (
-                random.randrange(self.args.imgsz * 0.5, self.args.imgsz * 1.5 + self.stride)
-                // self.stride
-                * self.stride
-            )  # size
+            sz = (random.randrange(self.args.imgsz * 0.5, self.args.imgsz * 1.5 + self.stride) // self.stride *
+                  self.stride)  # size
             sf = sz / max(imgs.shape[2:])  # scale factor
             if sf != 1:
-                ns = [
-                    math.ceil(x * sf / self.stride) * self.stride for x in imgs.shape[2:]
-                ]  # new shape (stretched to gs-multiple)
-                imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
+                ns = [math.ceil(x * sf / self.stride) * self.stride
+                      for x in imgs.shape[2:]]  # new shape (stretched to gs-multiple)
+                imgs = nn.functional.interpolate(imgs, size=ns, mode='bilinear', align_corners=False)
             batch['img'] = imgs
         return batch
 

@@ -3,10 +3,9 @@
 from pathlib import Path
 
 import torch
-import os
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import ops
+from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.metrics import OBBMetrics, batch_probiou
 from ultralytics.utils.plotting import output_to_rotated_target, plot_images
 
@@ -104,8 +103,8 @@ class OBBValidator(DetectionValidator):
         for i, (r, b) in enumerate(zip(rbox.tolist(), poly.tolist())):
             self.jdict.append({
                 'image_id': image_id,
-                'category_id': self.class_map[int(predn[i, 5])],
-                'score': round(predn[i, 4], 5),
+                'category_id': self.class_map[int(predn[i, 5].item())],
+                'score': round(predn[i, 4].item(), 5),
                 'rbox': [round(x, 3) for x in r],
                 'poly': [round(x, 3) for x in b]})
 
@@ -119,13 +118,14 @@ class OBBValidator(DetectionValidator):
             pred_txt.mkdir(parents=True, exist_ok=True)
             data = json.load(open(pred_json, "r"))
             # Save split results
+            LOGGER.info(f'Saving predictions with DOTA format by {pred_json}...')
             for d in data:
-                img_name = d["file_name"]
+                image_id = d["image_id"]
                 score = d["score"]
                 classname = self.names[d["category_id"]]
 
                 lines = "%s %s %s %s %s %s %s %s %s %s\n" % (
-                    img_name,
+                    image_id,
                     score,
                     d["poly"][0],
                     d["poly"][1],
@@ -136,13 +136,14 @@ class OBBValidator(DetectionValidator):
                     d["poly"][6],
                     d["poly"][7],
                 )
-                with open(str(pred_txt / "Task1_" + classname) + ".txt", "a") as f:
+                with open(str(pred_txt / f"Task1_{classname}") + ".txt", "a") as f:
                     f.writelines(lines)
             # Save merged results, this could result slightly lower map than using official merging script,
             # because of the probiou calculation.
-            pred_merged_txt = self.save_dir / 'predictions_txt'  # predictions
+            pred_merged_txt = self.save_dir / 'predictions_merged_txt'  # predictions
             pred_merged_txt.mkdir(parents=True, exist_ok=True)
             merged_results = defaultdict(list)
+            LOGGER.info(f'Saving merged predictions with DOTA format by {pred_json}...')
             for d in data:
                 image_id = d["image_id"].split("__")[0]
                 pattern = re.compile(r"\d+___\d+")
@@ -181,7 +182,7 @@ class OBBValidator(DetectionValidator):
                         poly[6],
                         poly[7],
                     )
-                    with open(str(pred_merged_txt / "Task1_" + classname) + ".txt", "a") as f:
+                    with open(str(pred_merged_txt / f"Task1_{classname}") + ".txt", "a") as f:
                         f.writelines(lines)
 
         return stats

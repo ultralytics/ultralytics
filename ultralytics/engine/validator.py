@@ -100,6 +100,12 @@ class BaseValidator:
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+        self.batch: Tensor
+        self.val_ae = False
+
+        self.trainer: "SegmentationTrainer"
+        self.model: "SegmentationModel"
+
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
@@ -158,11 +164,19 @@ class BaseValidator:
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
+            print(f"validating batch {batch_i}")
+
+
             self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
             # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
+
+            # Callback
+            # self.batch: Tensor = batch
+            # self.run_callbacks('during_validation')
+            # batch = self.batch
 
             # Inference
             with dt[1]:

@@ -9,6 +9,7 @@ Usage:
 import math
 import os
 import subprocess
+import sys
 import time
 import warnings
 from copy import deepcopy
@@ -136,6 +137,9 @@ class BaseTrainer:
         self.csv = self.save_dir / 'results.csv'
         self.plot_idx = [0, 1, 2]
 
+        self.batch: Tensor
+        self.batch_counter = 1
+
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         if RANK in (-1, 0):
@@ -187,7 +191,7 @@ class BaseTrainer:
                 ddp_cleanup(self, str(file))
 
         else:
-            self._do_train(world_size)
+            self._do_train(model, world_size)
 
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
@@ -279,7 +283,9 @@ class BaseTrainer:
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks('on_pretrain_routine_end')
 
-    def _do_train(self, world_size=1):
+    # Change - add model as parameter model: "SegmentationModel",
+    # @profile
+    def _do_train(self,  world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
             self._setup_ddp(world_size)
@@ -334,71 +340,95 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    self.loss, self.loss_items = self.model(batch)
-                    if RANK != -1:
-                        self.loss *= world_size
-                    self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
-                        else self.loss_items
 
-                # Backward
-                self.scaler.scale(self.loss).backward()
+                    # Add actual callback
+                    self.batch: Tensor = batch
+                    self.run_callbacks('during_training')
+                    self.batch_counter = self.batch_counter + 1
 
-                # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
-                if ni - last_opt_step >= self.accumulate:
-                    self.optimizer_step()
-                    last_opt_step = ni
+                # Comment for validation generation
 
-                # Log
-                mem = f'{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G'  # (GB)
-                loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
-                losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
-                if RANK in (-1, 0):
-                    pbar.set_description(
-                        ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
-                        (f'{epoch + 1}/{self.epochs}', mem, *losses, batch['cls'].shape[0], batch['img'].shape[-1]))
-                    self.run_callbacks('on_batch_end')
-                    if self.args.plots and ni in self.plot_idx:
-                        self.plot_training_samples(batch, ni)
-
-                self.run_callbacks('on_train_batch_end')
-
-            self.lr = {f'lr/pg{ir}': x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
-
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore')  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
-                self.scheduler.step()
-            self.run_callbacks('on_train_epoch_end')
-
-            if RANK in (-1, 0):
-
-                # Validation
-                self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
-                final_epoch = (epoch + 1 == self.epochs) or self.stopper.possible_stop
-
-                if self.args.val or final_epoch:
-                    self.metrics, self.fitness = self.validate()
-                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
-                self.stop = self.stopper(epoch + 1, self.fitness)
-
-                # Save model
-                if self.args.save or (epoch + 1 == self.epochs):
-                    self.save_model()
-                    self.run_callbacks('on_model_save')
-
-            tnow = time.time()
-            self.epoch_time = tnow - self.epoch_time_start
-            self.epoch_time_start = tnow
-            self.run_callbacks('on_fit_epoch_end')
-            torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
-
-            # Early Stopping
-            if RANK != -1:  # if DDP training
-                broadcast_list = [self.stop if RANK == 0 else None]
-                dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                if RANK != 0:
-                    self.stop = broadcast_list[0]
-            if self.stop:
-                break  # must break all DDP ranks
+                #    # sys.exit(0)
+                #    batch = self.batch
+                #
+                #     # Run model with updated batch
+                #     self.loss, self.loss_items = self.model(batch)
+                #
+                #     if RANK != -1:
+                #         self.loss *= world_size
+                #     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
+                #         else self.loss_items
+                #
+                # # # Original
+                # # # Forward
+                # # with torch.cuda.amp.autocast(self.amp):
+                # #     batch = self.preprocess_batch(batch)
+                # #     self.loss, self.loss_items = self.model(batch)
+                # #     if RANK != -1:
+                # #         self.loss *= world_size
+                # #     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
+                # #         else self.loss_items
+                #
+                #
+                # # Backward
+                # self.scaler.scale(self.loss).backward()
+                #
+                # # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
+                # if ni - last_opt_step >= self.accumulate:
+                #     self.optimizer_step()
+                #     last_opt_step = ni
+                #
+                # # Log
+                # mem = f'{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G'  # (GB)
+                # loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
+                # losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
+                # if RANK in (-1, 0):
+                #     pbar.set_description(
+                #         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
+                #         (f'{epoch + 1}/{self.epochs}', mem, *losses, batch['cls'].shape[0], batch['img'].shape[-1]))
+                #     self.run_callbacks('on_batch_end')
+                #     if self.args.plots and ni in self.plot_idx:
+                #         self.plot_training_samples(batch, ni)
+                #
+                # self.run_callbacks('on_train_batch_end')
+            #
+            # self.lr = {f'lr/pg{ir}': x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
+            #
+            # with warnings.catch_warnings():
+            #     warnings.simplefilter('ignore')  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
+            #     self.scheduler.step()
+            # self.run_callbacks('on_train_epoch_end')
+            #
+            # if RANK in (-1, 0):
+            #
+            #     # Validation
+            #     self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
+            #     final_epoch = (epoch + 1 == self.epochs) or self.stopper.possible_stop
+            #
+            #     if self.args.val or final_epoch:
+            #         self.metrics, self.fitness = self.validate()
+            #     self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
+            #     self.stop = self.stopper(epoch + 1, self.fitness)
+            #
+            #     # Save model
+            #     if self.args.save or (epoch + 1 == self.epochs):
+            #         self.save_model()
+            #         self.run_callbacks('on_model_save')
+            #
+            # tnow = time.time()
+            # self.epoch_time = tnow - self.epoch_time_start
+            # self.epoch_time_start = tnow
+            # self.run_callbacks('on_fit_epoch_end')
+            # torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
+            #
+            # # Early Stopping
+            # if RANK != -1:  # if DDP training
+            #     broadcast_list = [self.stop if RANK == 0 else None]
+            #     dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
+            #     if RANK != 0:
+            #         self.stop = broadcast_list[0]
+            # if self.stop:
+            #     break  # must break all DDP ranks
 
         if RANK in (-1, 0):
             # Do final val with best.pt

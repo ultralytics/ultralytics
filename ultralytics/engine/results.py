@@ -636,3 +636,15 @@ class OBB(BaseTensor):
     def xyxyxyxy(self):
         """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
         return ops.xywhr2xyxyxyxy(self.xywhr)
+
+    @property
+    @lru_cache(maxsize=2)
+    def hboxes(self):
+        """Return the horizontal boxes in xyxy format, (N, 4)."""
+        # This way to fit both torch and numpy version
+        x1 = self.xyxyxyxy[..., 0].min(1).values
+        x2 = self.xyxyxyxy[..., 0].max(1).values
+        y1 = self.xyxyxyxy[..., 1].min(1).values
+        y2 = self.xyxyxyxy[..., 1].max(1).values
+        xyxy = [x1, y1, x2, y2]
+        return  np.stack(xyxy, axis=-1) if isinstance(self.data, np.ndarray) else torch.stack(xyxy, dim=-1)

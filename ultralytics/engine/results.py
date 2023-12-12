@@ -639,7 +639,7 @@ class OBB(BaseTensor):
 
     @property
     @lru_cache(maxsize=2)
-    def hboxes(self):
+    def xyxy(self):
         """Return the horizontal boxes in xyxy format, (N, 4)."""
         # This way to fit both torch and numpy version
         x1 = self.xyxyxyxy[..., 0].min(1).values

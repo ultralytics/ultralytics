@@ -25,7 +25,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
     """
     if predictor.args.task == 'obb':
-        raise NotImplementedError(f"ERROR ❌ OBB task does not support track mode!")
+        raise NotImplementedError(f'ERROR ❌ OBB task does not support track mode!')
     if hasattr(predictor, 'trackers') and persist:
         return
 

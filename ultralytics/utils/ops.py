@@ -292,6 +292,7 @@ def non_max_suppression(
         scores = x[:, 4]  # scores
         if rotated:
             boxes = torch.cat((x[:, :4], x[:, -2:-1]), dim=-1)  # concat with angle
+            boxes[:, :2] += c
             i = nms_rotated(boxes, scores, iou_thres)
         else:
             boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class)

@@ -401,7 +401,10 @@ class Exporter:
                                     compress_to_fp16=self.args.half)  # export
 
         if self.args.int8:
-            assert self.args.data, "INT8 export requires a data argument for calibration, i.e. 'data=coco8.yaml'"
+            if not self.args.data:
+                self.args.data = DEFAULT_CFG.data or 'coco8.yaml'
+                LOGGER.warning(f"WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
+                               f"Using default 'data={self.args.data}'.")
             check_requirements('nncf>=2.5.0')
             import nncf
 

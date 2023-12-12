@@ -111,6 +111,7 @@ class BaseTrainer:
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolov8n -> yolov8n.pt
         try:
             if self.args.task == 'classify':
+                print('\n\n\n\nclassify flag')
                 self.data = check_cls_dataset(self.args.data)
             elif self.args.data.split('.')[-1] in ('yaml', 'yml') or self.args.task in ('detect', 'segment', 'pose'):
                 self.data = check_det_dataset(self.args.data)

@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import torch
+import os
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import ops
@@ -31,6 +32,12 @@ class OBBValidator(DetectionValidator):
         self.process = None
         self.args.task = 'obb'
         self.metrics = OBBMetrics(save_dir=self.save_dir, plot=True, on_plot=self.on_plot)
+
+    def init_metrics(self, model):
+        """Initialize evaluation metrics for YOLO."""
+        super().init_metrics(model)
+        val = self.data.get(self.args.split, '')  # validation path
+        self.is_dota = isinstance(val, str) and 'DOTA' in val  # is COCO
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
@@ -92,15 +99,89 @@ class OBBValidator(DetectionValidator):
         """Serialize YOLO predictions to COCO json format."""
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xywhr2xyxyxyxy(torch.cat([predn[:, :4], predn[:, -1:]], dim=-1)).view(-1, 8)
-        for p, b in zip(predn.tolist(), box.tolist()):
+        rbox = torch.cat([predn[:, :4], predn[:, -1:]], dim=-1)
+        poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
+        for i, (r, b) in enumerate(zip(rbox.tolist(), poly.tolist())):
             self.jdict.append({
                 'image_id': image_id,
-                'category_id': self.class_map[int(p[5])],
-                'bbox': [round(x, 3) for x in b],
-                'score': round(p[4], 5),
-                'file_name': stem})
+                'category_id': self.class_map[int(predn[i, 5])],
+                'score': round(predn[i, 4], 5),
+                'rbox': [round(x, 3) for x in r],
+                'poly': [round(x, 3) for x in b]})
 
     def eval_json(self, stats):
         """Evaluates YOLO output in JSON format and returns performance statistics."""
+        if self.args.save_json and self.is_dota and len(self.jdict):
+            from collections import defaultdict
+            import json, re
+            pred_json = self.save_dir / 'predictions.json'  # predictions
+            pred_txt = self.save_dir / 'predictions_txt'  # predictions
+            pred_txt.mkdir(parents=True, exist_ok=True)
+            data = json.load(open(pred_json, "r"))
+            # Save split results
+            for d in data:
+                img_name = d["file_name"]
+                score = d["score"]
+                classname = self.names[d["category_id"]]
+
+                lines = "%s %s %s %s %s %s %s %s %s %s\n" % (
+                    img_name,
+                    score,
+                    d["poly"][0],
+                    d["poly"][1],
+                    d["poly"][2],
+                    d["poly"][3],
+                    d["poly"][4],
+                    d["poly"][5],
+                    d["poly"][6],
+                    d["poly"][7],
+                )
+                with open(str(pred_txt / "Task1_" + classname) + ".txt", "a") as f:
+                    f.writelines(lines)
+            # Save merged results, this could result slightly lower map than using official merging script,
+            # because of the probiou calculation.
+            pred_merged_txt = self.save_dir / 'predictions_txt'  # predictions
+            pred_merged_txt.mkdir(parents=True, exist_ok=True)
+            merged_results = defaultdict(list)
+            for d in data:
+                image_id = d["image_id"].split("__")[0]
+                pattern = re.compile(r"\d+___\d+")
+                x, y = [int(c) for c in re.findall(pattern, d["image_id"])[0].split("___")]
+                bbox, score, cls = d["rbox"], d["score"], d["category_id"]
+                bbox[0] += x
+                bbox[1] += y
+                bbox.extend([score, cls])
+                merged_results[image_id].append(bbox)
+            for image_id, bbox in merged_results.items():
+                bbox = torch.tensor(bbox)
+                max_wh = torch.max(bbox[:, :2]).item() * 2
+                c = bbox[:, 6:7] * max_wh  # classes
+                scores = bbox[:, 5]  # scores
+                b = bbox[:, :5].clone()
+                b[:, :2] += c
+                # 0.3 could get results close to the ones from official merging script, even slightly better.
+                i = ops.nms_rotated(b, scores, 0.3)
+                bbox = bbox[i]
+
+                b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)
+                for x in torch.cat([b, bbox[:, 5:7]], dim=-1).tolist():
+                    classname = self.names[int(x[-1])]
+                    poly = [round(i, 3) for i in x[:-2]]
+                    score = round(x[-2], 3)
+
+                    lines = "%s %s %s %s %s %s %s %s %s %s\n" % (
+                        image_id,
+                        score,
+                        poly[0],
+                        poly[1],
+                        poly[2],
+                        poly[3],
+                        poly[4],
+                        poly[5],
+                        poly[6],
+                        poly[7],
+                    )
+                    with open(str(pred_merged_txt / "Task1_" + classname) + ".txt", "a") as f:
+                        f.writelines(lines)
+
         return stats

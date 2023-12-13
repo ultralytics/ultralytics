@@ -83,8 +83,8 @@ def segment2box(segment, width=640, height=640):
 
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True, xywh=False):
     """
-    Rescales bounding boxes (in the format of xyxy by default) from the shape of the image they were originally specified in
-    (img1_shape) to the shape of a different image (img0_shape).
+    Rescales bounding boxes (in the format of xyxy by default) from the shape of the image they were originally
+    specified in (img1_shape) to the shape of a different image (img0_shape).
 
     Args:
         img1_shape (tuple): The shape of the image that the bounding boxes are for, in the format of (height, width).

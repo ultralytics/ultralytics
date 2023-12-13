@@ -81,8 +81,8 @@ class OBBValidator(DetectionValidator):
 
     def _prepare_pred(self, pred, pbatch):
         predn = pred.clone()
-        ops.scale_boxes(pbatch['imgsz'], predn[:, :4], pbatch['ori_shape'],
-                                ratio_pad=pbatch['ratio_pad'], xywh=True)  # native-space pred
+        ops.scale_boxes(pbatch['imgsz'], predn[:, :4], pbatch['ori_shape'], ratio_pad=pbatch['ratio_pad'],
+                        xywh=True)  # native-space pred
         return predn
 
     def plot_predictions(self, batch, preds, ni):

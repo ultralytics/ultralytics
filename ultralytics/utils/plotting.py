@@ -572,7 +572,7 @@ def plot_images(images,
                         boxes[:, :4] *= scale
                 boxes[:, 0] += x
                 boxes[:, 1] += y
-                is_obb = boxes.shape[-1] == 5   # xywhr
+                is_obb = boxes.shape[-1] == 5  # xywhr
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]

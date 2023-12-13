@@ -561,44 +561,27 @@ def plot_images(images,
             classes = cls[idx].astype('int')
             labels = confs is None
 
-            if len(bboxes) and bboxes.shape[-1] == 4:
-                boxes = ops.xywh2xyxy(bboxes[idx, :4]).T
-                conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
-
-                if boxes.shape[1]:
-                    if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
-                        boxes[[0, 2]] *= w  # scale to pixels
-                        boxes[[1, 3]] *= h
-                    elif scale < 1:  # absolute coords need scale if image scales
-                        boxes *= scale
-                boxes[[0, 2]] += x
-                boxes[[1, 3]] += y
-                for j, box in enumerate(boxes.T.tolist()):
-                    c = classes[j]
-                    color = colors(c)
-                    c = names.get(c, c) if names else c
-                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
-                        label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
-                        annotator.box_label(box, label, color=color)
-            elif len(bboxes) and bboxes.shape[-1] == 5:
-                # TODO: Clean code reduplication
-                boxes = ops.xywhr2xyxyxyxy(bboxes[idx])
+            if len(bboxes):
+                boxes = bboxes[idx]
                 conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
                 if len(boxes):
-                    if boxes.max() <= 1.1:  # if normalized with tolerance 0.1
-                        boxes[..., 0] *= w  # scale to pixels
-                        boxes[..., 1] *= h
+                    if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
+                        boxes[:, [0, 2]] *= w  # scale to pixels
+                        boxes[:, [1, 3]] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
                         boxes *= scale
-                boxes[..., 0] += x
-                boxes[..., 1] += y
-                for j, box in enumerate(boxes.astype(np.int64).tolist()):
+                boxes[:, 0] += x
+                boxes[:, 1] += y
+                is_obb = boxes.shape[-1] == 5   # xywhr
+                final_boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
+                for j, box in enumerate(final_boxes.astype(np.int64).tolist()):
                     c = classes[j]
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
-                        annotator.box_label(box, label, color=color, rotated=True)
+                        annotator.box_label(box, label, color=color, rotated=is_obb)
+
             elif len(classes):
                 for c in classes:
                     color = colors(c)

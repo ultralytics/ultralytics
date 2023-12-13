@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# DOTA 2.0 dataset https://captain-whu.github.io/DOTA/index.html for object detection in aerial images by Wuhan University
+# DOTA 1.5 dataset https://captain-whu.github.io/DOTA/index.html for object detection in aerial images by Wuhan University
 # Example usage: yolo train model=yolov8n-obb.pt data=DOTAv2.yaml
 # parent
 # ├── ultralytics
@@ -32,4 +32,4 @@ names:
   15: container crane
 
 # Download script/URL (optional)
-download: https://github.com/ultralytics/yolov5/releases/download/v1.0/DOTAv2.zip
+download: https://github.com/ultralytics/yolov5/releases/download/v1.0/DOTAv1.5.zip

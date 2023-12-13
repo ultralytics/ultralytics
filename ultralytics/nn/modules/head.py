@@ -140,6 +140,12 @@ class OBB(Detect):
         """Decode rotated bounding boxes."""
         return dist2rbox(self.dfl(bboxes), self.angle, self.anchors.unsqueeze(0), dim=1) * self.strides
 
+    def bias_init(self):
+        """Initialize Detect() biases, WARNING: requires stride availability."""
+        super().bias_init()
+        for c in self.cv4:
+            c[-1].bias.data[:] = 0.0
+
 
 class Pose(Detect):
     """YOLOv8 Pose head for keypoints models."""

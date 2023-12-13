@@ -145,9 +145,9 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.snippets:
       base_path: ./
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+#  - pymdownx.emoji:
+#      emoji_index: !!python/name:material.extensions.emoji.twemoji
+#      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -271,6 +271,8 @@ nav:
           - Objects Counting in Regions: guides/region-counting.md
           - Security Alarm System: guides/security-alarm-system.md
           - Heatmaps: guides/heatmaps.md
+          - Segmentation in Bounding Box Shape: guides/segbbox.md
+          - VisionEye Mapping: guides/vision-eye.md
   - Integrations:
       - integrations/index.md
       - Comet ML: integrations/comet.md

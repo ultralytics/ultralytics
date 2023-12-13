@@ -384,24 +384,18 @@ class Annotator:
                     line_thickness)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
-        """Function for drawing segmented object in bounding box shape"""
-        cv2.polylines(self.im, [np.int32([mask])], isClosed=True,
-                      color=mask_color, thickness=2)
+        """Function for drawing segmented object in bounding box shape."""
+        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
 
-        label = f"Track ID: {track_label}" if track_label else det_label
-        text_size, _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX,
-                                       0.7, 1)
-        cv2.rectangle(self.im,
-                      (int(mask[0][0]) - text_size[0] // 2 - 5, int(mask[0][1]) - text_size[1] - 5),
+        label = f'Track ID: {track_label}' if track_label else det_label
+        text_size, _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 1)
+        cv2.rectangle(self.im, (int(mask[0][0]) - text_size[0] // 2 - 5, int(mask[0][1]) - text_size[1] - 5),
                       (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)), (255, 0, 255), -1)
-        cv2.putText(self.im, label,
-                    (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7,
-                    (255, 255, 255), 2)
+        cv2.putText(self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
-    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255),
-                  thickness=2, pins_radius=10):
-        """Function for pinpoint human-vision eye mapping and plotting"""
+    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
+        """Function for pinpoint human-vision eye mapping and plotting."""
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
         cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
         cv2.circle(self.im, center_bbox, pins_radius, color, -1)

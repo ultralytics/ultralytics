@@ -789,6 +789,12 @@ class Exporter:
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
         f_pb = str(self.file.with_suffix('.pb'))  # *.pb path
 
+        quantization = ''
+        if self.args.int8:
+            quantization = '--quantize_uint8'
+        elif self.args.half:
+            quantization = '--quantize_float16'
+
         gd = tf.Graph().as_graph_def()  # TF GraphDef
         with open(f_pb, 'rb') as file:
             gd.ParseFromString(file.read())
@@ -796,7 +802,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
         with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
-            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{fpb_}" "{f_}"'
+            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
             LOGGER.info(f"{prefix} running '{cmd}'")
             subprocess.run(cmd, shell=True)
 

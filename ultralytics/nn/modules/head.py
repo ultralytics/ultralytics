@@ -144,6 +144,7 @@ class OBB(Detect):
         """Initialize Detect() biases, WARNING: requires stride availability."""
         super().bias_init()
         for c in self.cv4:
+            nn.init.normal_(c[-1].weight, 0, 0.01)
             c[-1].bias.data[:] = 0.0
 
 

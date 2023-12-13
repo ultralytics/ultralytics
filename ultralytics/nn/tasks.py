@@ -58,6 +58,31 @@ class BaseModel(nn.Module):
             return self._predict_augment(x)
         return self._predict_once(x, profile, visualize)
 
+    def embed(self, x, embed_from=-1, augment=False):
+        """
+        Perform a forward pass through the network.
+        Args:
+            x (torch.Tensor): The input tensor to the model.
+            embed_from (int): The index of the layer to embed the output from, defaults to None. Accepts -ve indexing.
+        Returns:
+            (torch.Tensor): The last output of the model.
+        """
+        print("embed_from", embed_from)
+        y, dt = [], []  # outputs
+        if augment:
+            x = self._predict_augment(x)
+        for idx, m in enumerate(self.model):
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            x = m(x)  # run
+            if embed_from > 0 and idx + 1 == embed_from:
+                return x
+            elif embed_from < 0 and idx + 1 == len(self.model) + embed_from:
+                return x
+            y.append(x if m.i in self.save else None)  # save output
+        
+        raise ValueError(f'embed_from={embed_from} is out of range. ')
+    
     def _predict_once(self, x, profile=False, visualize=False):
         """
         Perform a forward pass through the network.

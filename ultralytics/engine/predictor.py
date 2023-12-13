@@ -135,7 +135,11 @@ class BasePredictor:
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
         return self.model(im, augment=self.args.augment, visualize=visualize)
-
+    
+    def run_embed(self, im, *args, **kwargs):
+        """Returns embeddings for a given image using the specified model and arguments."""
+        return self.model.embed(im, *args, **kwargs)
+    
     def pre_transform(self, im):
         """
         Pre-transform input image before inference.
@@ -376,3 +380,65 @@ class BasePredictor:
     def add_callback(self, event: str, func):
         """Add callback."""
         self.callbacks[event].append(func)
+
+    def embed(self, source=None, model=None, stream=False, *args, **kwargs):
+        """Performs inference on an image or stream."""
+        self.stream = stream
+        if stream:
+            return self.stream_embedding(source, model, *args, **kwargs)
+        else:
+            return list(self.stream_embedding(source, model, *args, **kwargs))  # merge list of Result into one
+        
+    @smart_inference_mode()
+    def stream_embedding(self, source=None, model=None, *args, **kwargs):
+        """Streams real-time inference on camera feed and saves results to file."""
+        def postprocess_embeds(embedding):
+            import torch.nn.functional as F
+
+            embedding = F.adaptive_avg_pool2d(embedding, 2).flatten(1)
+            return embedding
+        
+        if self.args.verbose:
+            LOGGER.info('')
+
+        # Setup model
+        if not self.model:
+            self.setup_model(model)
+
+        # Setup source every time predict is called
+        self.setup_source(source if source is not None else self.args.source)
+
+        # Warmup model
+        if not self.done_warmup:
+            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
+            self.done_warmup = True
+
+        self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
+        for batch in self.dataset:
+            self.batch = batch
+            _, im0s, _, s = batch
+
+            # Preprocess
+            with profilers[0]:
+                im = self.preprocess(im0s)
+
+            # Inference
+            with profilers[1]:
+                embeds = self.run_embed(im, *args, **kwargs)
+            
+            # Postprocess
+            with profilers[2]:
+                embeds = postprocess_embeds(embeds)
+
+            yield from embeds
+
+            # Print time (inference-only)
+            if self.args.verbose:
+                LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
+
+
+        # Print results
+        if self.args.verbose and self.seen:
+            t = tuple(x.t / self.seen * 1E3 for x in profilers)  # speeds per image
+            LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
+                        f'{(1, 3, *im.shape[2:])}' % t)

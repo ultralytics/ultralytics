@@ -238,6 +238,36 @@ class Model(nn.Module):
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
+    def embed(self, source=None, stream=False, predictor=None, **kwargs):
+        """
+        Perform embedding using the YOLO model.
+
+        Args:
+            source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
+                Accepts all source types accepted by the YOLO model.
+            stream (bool): Whether to stream the predictions or not. Defaults to False.
+            predictor (BasePredictor): Customized predictor.
+            **kwargs : Additional keyword arguments passed to the predictor.
+                Check the 'configuration' section in the documentation for all available options.
+
+        Returns:
+            (List[ultralytics.engine.results.Results]): The prediction results.
+        """
+        if source is None:
+            source = ASSETS
+            LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
+
+        args = {**self.overrides, **kwargs, 'mode': 'embed'}  # highest priority args on the right
+
+        if not self.predictor:
+            self.predictor = (predictor or self._smart_load('predictor'))(overrides=args, _callbacks=self.callbacks)
+            self.predictor.setup_model(model=self.model)
+        else:  # only update args if predictor is already setup
+            self.predictor.args = get_cfg(self.predictor.args, args)
+            if 'project' in args or 'name' in args:
+                self.predictor.save_dir = get_save_dir(self.predictor.args)
+        return self.predictor.embed(source=source, stream=stream)
+
     def track(self, source=None, stream=False, persist=False, **kwargs):
         """
         Perform object tracking on the input source using the registered trackers.
@@ -325,7 +355,7 @@ class Model(nn.Module):
         checks.check_pip_update_available()
 
         overrides = yaml_load(checks.check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
-        custom = {'data': TASK2DATA[self.task]}  # method defaults
+        custom = {'data': DEFAULT_CFG_DICT['data'] or TASK2DATA[self.task]}  # method defaults
         args = {**overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
         if args.get('resume'):
             args['resume'] = self.ckpt_path

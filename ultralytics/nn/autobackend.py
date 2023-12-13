@@ -459,6 +459,33 @@ class AutoBackend(nn.Module):
         else:
             return self.from_numpy(y)
 
+    def embed(self, im, augment=False, visualize=False):
+        """
+        Runs inference on the YOLOv8 MultiBackend model.
+
+        Args:
+            im (torch.Tensor): The image tensor to perform inference on.
+            augment (bool): whether to perform data augmentation during inference, defaults to False
+            visualize (bool): whether to visualize the output predictions, defaults to False
+
+        Returns:
+            (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
+        """
+        b, ch, h, w = im.shape  # batch, channel, height, width
+        if self.fp16 and im.dtype != torch.float16:
+            im = im.half()  # to FP16
+        if self.nhwc:
+            im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
+
+        if self.pt or self.nn_module:  # PyTorch
+            y = self.model.embed(im, augment=augment, visualize=visualize) if augment or visualize else self.model.embed(im)
+        else:
+            raise NotImplementedError('YOLO embed is currently supported only for pytorch models.')
+        if isinstance(y, (list, tuple)):
+            return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
+        else:
+            return self.from_numpy(y)
+
     def from_numpy(self, x):
         """
         Convert a numpy array to a tensor.

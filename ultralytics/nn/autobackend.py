@@ -478,7 +478,8 @@ class AutoBackend(nn.Module):
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
 
         if self.pt or self.nn_module:  # PyTorch
-            y = self.model.embed(im, augment=augment, visualize=visualize) if augment or visualize else self.model.embed(im)
+            y = self.model.embed(im, augment=augment,
+                                 visualize=visualize) if augment or visualize else self.model.embed(im)
         else:
             raise NotImplementedError('YOLO embed is currently supported only for pytorch models.')
         if isinstance(y, (list, tuple)):

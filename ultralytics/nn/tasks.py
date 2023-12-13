@@ -61,13 +61,14 @@ class BaseModel(nn.Module):
     def embed(self, x, embed_from=-1, augment=False):
         """
         Perform a forward pass through the network.
+
         Args:
             x (torch.Tensor): The input tensor to the model.
             embed_from (int): The index of the layer to embed the output from, defaults to None. Accepts -ve indexing.
         Returns:
             (torch.Tensor): The last output of the model.
         """
-        print("embed_from", embed_from)
+        print('embed_from', embed_from)
         y, dt = [], []  # outputs
         if augment:
             x = self._predict_augment(x)
@@ -80,9 +81,9 @@ class BaseModel(nn.Module):
             elif embed_from < 0 and idx + 1 == len(self.model) + embed_from:
                 return x
             y.append(x if m.i in self.save else None)  # save output
-        
+
         raise ValueError(f'embed_from={embed_from} is out of range. ')
-    
+
     def _predict_once(self, x, profile=False, visualize=False):
         """
         Perform a forward pass through the network.

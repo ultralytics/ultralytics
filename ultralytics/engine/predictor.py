@@ -135,11 +135,11 @@ class BasePredictor:
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
         return self.model(im, augment=self.args.augment, visualize=visualize)
-    
+
     def run_embed(self, im, *args, **kwargs):
         """Returns embeddings for a given image using the specified model and arguments."""
         return self.model.embed(im, *args, **kwargs)
-    
+
     def pre_transform(self, im):
         """
         Pre-transform input image before inference.
@@ -388,16 +388,17 @@ class BasePredictor:
             return self.stream_embedding(source, model, *args, **kwargs)
         else:
             return list(self.stream_embedding(source, model, *args, **kwargs))  # merge list of Result into one
-        
+
     @smart_inference_mode()
     def stream_embedding(self, source=None, model=None, *args, **kwargs):
         """Streams real-time inference on camera feed and saves results to file."""
+
         def postprocess_embeds(embedding):
             import torch.nn.functional as F
 
             embedding = F.adaptive_avg_pool2d(embedding, 2).flatten(1)
             return embedding
-        
+
         if self.args.verbose:
             LOGGER.info('')
 
@@ -425,7 +426,7 @@ class BasePredictor:
             # Inference
             with profilers[1]:
                 embeds = self.run_embed(im, *args, **kwargs)
-            
+
             # Postprocess
             with profilers[2]:
                 embeds = postprocess_embeds(embeds)
@@ -435,7 +436,6 @@ class BasePredictor:
             # Print time (inference-only)
             if self.args.verbose:
                 LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
-
 
         # Print results
         if self.args.verbose and self.seen:

@@ -24,7 +24,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     from ultralytics import YOLO
     ```
 
-   ???+ tip "Ultralytics Install"
+    ???+ tip "Ultralytics Install"
 
         See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
 
@@ -42,7 +42,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     result = model.predict()
     ```
 
-   ??? question "No Prediction Arguments?"
+    ??? question "No Prediction Arguments?"
 
         Without specifying a source, the example images from the library will be used:
 
@@ -53,7 +53,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         This is helpful for rapid testing with the `predict()` method.
 
-   For additional information about Segmentation Models, visit the [Segment Task](../tasks/segment.md#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
+    For additional information about Segmentation Models, visit the [Segment Task](../tasks/segment.md#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
 
     ---
 
@@ -75,7 +75,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     1. To learn more about working with detection results, see [Boxes Section for Predict Mode](../modes/predict.md#boxes).
     2. To learn more about `predict()` results see [Working with Results for Predict Mode](../modes/predict.md#working-with-results)
 
-   ??? info "For-Loop"
+    ??? info "For-Loop"
 
         A single image will only iterate the first loop once. A single image with only a single detection will iterate each loop _only_ once.
 
@@ -83,7 +83,8 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 4. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
-   ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
+    ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
+
     ``` { .py .annotate }
     # Create binary mask
     b_mask = np.zeros(img.shape[:2], np.uint8)
@@ -146,9 +147,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 5. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
-   ### Object Isolation Options
+    ### Object Isolation Options
 
-   !!! Example ""
+    !!! example ""
 
         === "Black Background Pixels"
 
@@ -251,7 +252,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
                     - Finally the image region for the bounding box is cropped using index slicing, where the bounds are set using the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
 
-   ??? question "What if I want the cropped object **including** the background?"
+    ??? question "What if I want the cropped object **including** the background?"
 
         This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
 
@@ -261,7 +262,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
-   ??? example "Example Final Step"
+    ??? example "Example Final Step"
 
         ```py
         # Save isolated object to file

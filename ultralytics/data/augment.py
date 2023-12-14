@@ -163,7 +163,42 @@ class Mosaic(BaseMixTransform):
         """Apply mixup transformation to the input image and labels."""
         assert labels.get('rect_shape', None) is None, 'rect and mosaic are mutually exclusive.'
         assert len(labels.get('mix_labels', [])), 'There are no other images for mosaic augment.'
-        return self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
+        return self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(
+            labels)  # This code is modified for mosaic3 method.
+
+    def _mosaic3(self, labels):
+        """Create a 1x3 image mosaic."""
+        mosaic_labels = []
+        s = self.imgsz
+        for i in range(3):
+            labels_patch = labels if i == 0 else labels['mix_labels'][i - 1]
+            # Load image
+            img = labels_patch['img']
+            h, w = labels_patch.pop('resized_shape')
+
+            # Place img in img3
+            if i == 0:  # center
+                img3 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 3 tiles
+                h0, w0 = h, w
+                c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
+            elif i == 1:  # right
+                c = s + w0, s, s + w0 + w, s + h
+            elif i == 2:  # left
+                c = s - w, s + h0 - h, s, s + h0
+
+            padw, padh = c[:2]
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+
+            img3[y1:y2, x1:x2] = img[y1 - padh:, x1 - padw:]  # img3[ymin:ymax, xmin:xmax]
+            # hp, wp = h, w  # height, width previous for next iteration
+
+            # Labels assuming imgsz*2 mosaic size
+            labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])
+            mosaic_labels.append(labels_patch)
+        final_labels = self._cat_labels(mosaic_labels)
+
+        final_labels['img'] = img3[-self.border[0]:self.border[0], -self.border[1]:self.border[1]]
+        return final_labels
 
     def _mosaic4(self, labels):
         """Create a 2x2 image mosaic."""

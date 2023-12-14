@@ -155,8 +155,7 @@ cargo run --release -- --help
 
 ### Classification
 
-Running dynamic shape ONNX model on `CPU` with image size `--height 224 --width 224`.
-Saving plotted image in `runs` directory.
+Running dynamic shape ONNX model on `CPU` with image size `--height 224 --width 224`. Saving plotted image in `runs` directory.
 
 ```
 cargo run --release -- --model ../assets/weights/yolov8m-cls-dyn.onnx --source ../assets/images/dog.jpg --height 224 --width 224 --plot --profile

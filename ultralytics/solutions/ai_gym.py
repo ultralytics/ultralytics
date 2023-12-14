@@ -2,6 +2,7 @@
 
 import cv2
 
+from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator
 
 
@@ -31,6 +32,9 @@ class AIGym:
         # Visual Information
         self.view_img = False
         self.annotator = None
+
+        # Check if environment support imshow
+        self.env_check = check_imshow(warn=True)
 
     def set_args(self,
                  kpts_to_check,
@@ -120,7 +124,7 @@ class AIGym:
 
             self.annotator.kpts(k, shape=(640, 640), radius=1, kpt_line=True)
 
-        if self.view_img:
+        if self.env_check and self.view_img:
             cv2.imshow('Ultralytics YOLOv8 AI GYM', self.im0)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 return

@@ -109,7 +109,6 @@ def test_predict_img():
 def test_embed():
     model = YOLO(MODEL)
     seg_model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
-    im = cv2.imread(str(SOURCE))
 
     batch = [
     str(SOURCE),  # filename

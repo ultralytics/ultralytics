@@ -68,7 +68,7 @@ class BaseModel(nn.Module):
         Returns:
             (torch.Tensor): The last output of the model.
         """
-        y, dt = [], []  # outputs
+        y = []  # outputs
         if augment:
             x = self._predict_augment(x)
         embeddings = []

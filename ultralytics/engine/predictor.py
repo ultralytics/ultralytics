@@ -398,9 +398,9 @@ class BasePredictor:
 
             x1, x2, x3 = embedding
             # Avg pool and flatten
-            x1 = F.adaptive_avg_pool2d(x1, (1,1)).flatten(1)
-            x2 = F.adaptive_avg_pool2d(x2, (1,1)).flatten(1)
-            x3 = F.adaptive_avg_pool2d(x3, (1,1)).flatten(1)
+            x1 = F.adaptive_avg_pool2d(x1, (1, 1)).flatten(1)
+            x2 = F.adaptive_avg_pool2d(x2, (1, 1)).flatten(1)
+            x3 = F.adaptive_avg_pool2d(x3, (1, 1)).flatten(1)
 
             # Stack the tensors
             output = torch.cat((x1, x2, x3), dim=1)
@@ -434,7 +434,6 @@ class BasePredictor:
             # Inference
             with profilers[1]:
                 embeds = self.run_embed(im, *args, **kwargs)
-
 
             # Postprocess
             with profilers[2]:

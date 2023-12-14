@@ -389,8 +389,8 @@ class Annotator:
 
         label = f'Track ID: {track_label}' if track_label else det_label
         text_size, _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 1)
-        cv2.rectangle(self.im, (int(mask[0][0]) - text_size[0] // 2 - 5, int(mask[0][1]) - text_size[1] - 5),
-                      (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)), (255, 0, 255), -1)
+        cv2.rectangle(self.im, (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
+                      (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)), mask_color, -1)
         cv2.putText(self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 

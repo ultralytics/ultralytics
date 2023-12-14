@@ -1,12 +1,12 @@
 ---
 comments: true
-description: VisionEye View using Ultralytics YOLOv8
+description: VisionEye View Object Mapping using Ultralytics YOLOv8
 keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, VisionEye, Computer Vision, Notebook, IPython Kernel, CLI, Python SDK
 ---
 
-# VisionEye View Mapping using Ultralytics YOLOv8 🚀
+# VisionEye View Object Mapping using Ultralytics YOLOv8 🚀
 
-## What is VisionEye Mapping?
+## What is VisionEye Object Mapping?
 
 [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) VisionEye offers the capability for computers to identify and pinpoint objects, simulating the observational precision of the human eye. This functionality enables computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
 
@@ -22,15 +22,15 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 </p>
 
 ## Samples
-|                                                                    VisionEye View                                                                     |                                                                    VisionEye View With Object Tracking                                                                     |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| ![VisionEye View Mapping using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d593acc-2e37-41b0-ad0e-92b4ffae6647) | ![VisionEye View Mapping with Object Tracking using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/fcd85952-390f-451e-8fb0-b82e943af89c) |
-|                                                    VisionEye View Mapping using Ultralytics YOLOv8                                                    |                                                    VisionEye View Mapping with Object Tracking using Ultralytics YOLOv8                                                    |
+|                                                                        VisionEye View                                                                        |                                                                        VisionEye View With Object Tracking                                                                        |
+|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| ![VisionEye View Object Mapping using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d593acc-2e37-41b0-ad0e-92b4ffae6647) | ![VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/fcd85952-390f-451e-8fb0-b82e943af89c) |
+|                                                    VisionEye View Object Mapping using Ultralytics YOLOv8                                                    |                                                    VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8                                                    |
 
 
-!!! Example "VisionEye Mapping using YOLOv8"
+!!! Example "VisionEye Object Mapping using YOLOv8"
 
-    === "VisionEye Mapping"
+    === "VisionEye Object Mapping"
         ```python
         import cv2
         from ultralytics import YOLO
@@ -67,7 +67,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
                 break
         ```
 
-    === "VisionEye Mapping with Object Tracking"
+    === "VisionEye Object Mapping with Object Tracking"
         ```python
         import cv2
         from ultralytics import YOLO

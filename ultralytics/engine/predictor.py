@@ -396,8 +396,16 @@ class BasePredictor:
         def postprocess_embeds(embedding):
             import torch.nn.functional as F
 
-            embedding = F.adaptive_avg_pool2d(embedding, 2).flatten(1)
-            return embedding
+            x1, x2, x3 = embedding
+            # Avg pool and flatten
+            x1 = F.adaptive_avg_pool2d(x1, (1,1)).flatten(1)
+            x2 = F.adaptive_avg_pool2d(x2, (1,1)).flatten(1)
+            x3 = F.adaptive_avg_pool2d(x3, (1,1)).flatten(1)
+
+            # Stack the tensors
+            output = torch.cat((x1, x2, x3), dim=1)
+
+            return output
 
         if self.args.verbose:
             LOGGER.info('')
@@ -426,6 +434,7 @@ class BasePredictor:
             # Inference
             with profilers[1]:
                 embeds = self.run_embed(im, *args, **kwargs)
+
 
             # Postprocess
             with profilers[2]:

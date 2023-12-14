@@ -34,6 +34,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -193,6 +194,18 @@ class BasePredictor:
         """Post-processes predictions for an image and returns them."""
         return preds
 
+    def postprocess_embeds(self, embeds):
+        x1, x2, x3 = embeds
+        # Avg pool and flatten
+        x1 = F.adaptive_avg_pool2d(x1, (1,1)).flatten(1)
+        x2 = F.adaptive_avg_pool2d(x2, (1,1)).flatten(1)
+        x3 = F.adaptive_avg_pool2d(x3, (1,1)).flatten(1)
+
+        # Stack the tensors
+        output = torch.cat((x1, x2, x3), dim=1)
+
+        return output
+
     def __call__(self, source=None, model=None, stream=False, *args, **kwargs):
         """Performs inference on an image or stream."""
         self.stream = stream
@@ -200,6 +213,14 @@ class BasePredictor:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+    
+    def embed(self, source=None, model=None, stream=False, *args, **kwargs):
+        """Performs inference on an image or stream."""
+        self.stream = stream
+        if stream:
+            return self.stream_inference(source, model, embed=True *args, **kwargs)
+        else:
+            return list(self.stream_inference(source, model, embed=True, *args, **kwargs))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
         """
@@ -230,7 +251,7 @@ class BasePredictor:
         self.vid_frame = [None] * self.dataset.bs
 
     @smart_inference_mode()
-    def stream_inference(self, source=None, model=None, *args, **kwargs):
+    def stream_inference(self, source=None, model=None, embed=False, *args, **kwargs):
         """Streams real-time inference on camera feed and saves results to file."""
         if self.args.verbose:
             LOGGER.info('')
@@ -266,32 +287,34 @@ class BasePredictor:
 
                 # Inference
                 with profilers[1]:
-                    preds = self.inference(im, *args, **kwargs)
+                    preds = self.inference(im, *args, **kwargs) if embed is None else self.run_embed(im, *args, **kwargs)
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess(preds, im, im0s)
+                    self.results = self.postprocess(preds, im, im0s) if embed is None else self.postprocess_embeds(preds)
 
                 self.run_callbacks('on_predict_postprocess_end')
-                # Visualize, save, write results
-                n = len(im0s)
-                for i in range(n):
-                    self.seen += 1
-                    self.results[i].speed = {
-                        'preprocess': profilers[0].dt * 1E3 / n,
-                        'inference': profilers[1].dt * 1E3 / n,
-                        'postprocess': profilers[2].dt * 1E3 / n}
-                    p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
-                    p = Path(p)
 
-                    if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s += self.write_results(i, self.results, (p, im, im0))
-                    if self.args.save or self.args.save_txt:
-                        self.results[i].save_dir = self.save_dir.__str__()
-                    if self.args.show and self.plotted_img is not None:
-                        self.show(p)
-                    if self.args.save and self.plotted_img is not None:
-                        self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+                # Visualize, save, write results if embeddings are not being computed
+                if embed is None:
+                    n = len(im0s)
+                    for i in range(n):
+                        self.seen += 1
+                        self.results[i].speed = {
+                            'preprocess': profilers[0].dt * 1E3 / n,
+                            'inference': profilers[1].dt * 1E3 / n,
+                            'postprocess': profilers[2].dt * 1E3 / n}
+                        p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
+                        p = Path(p)
+
+                        if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
+                            s += self.write_results(i, self.results, (p, im, im0))
+                        if self.args.save or self.args.save_txt:
+                            self.results[i].save_dir = self.save_dir.__str__()
+                        if self.args.show and self.plotted_img is not None:
+                            self.show(p)
+                        if self.args.save and self.plotted_img is not None:
+                            self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
                 self.run_callbacks('on_predict_batch_end')
                 yield from self.results
@@ -309,7 +332,8 @@ class BasePredictor:
             t = tuple(x.t / self.seen * 1E3 for x in profilers)  # speeds per image
             LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *im.shape[2:])}' % t)
-        if self.args.save or self.args.save_txt or self.args.save_crop:
+        
+        if self.args.save or self.args.save_txt or self.args.save_crop and embed is None:
             nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
@@ -380,74 +404,3 @@ class BasePredictor:
     def add_callback(self, event: str, func):
         """Add callback."""
         self.callbacks[event].append(func)
-
-    def embed(self, source=None, model=None, stream=False, *args, **kwargs):
-        """Performs inference on an image or stream."""
-        self.stream = stream
-        if stream:
-            return self.stream_embedding(source, model, *args, **kwargs)
-        else:
-            return list(self.stream_embedding(source, model, *args, **kwargs))  # merge list of Result into one
-
-    @smart_inference_mode()
-    def stream_embedding(self, source=None, model=None, *args, **kwargs):
-        """Streams real-time inference on camera feed and saves results to file."""
-
-        def postprocess_embeds(embedding):
-            import torch.nn.functional as F
-
-            x1, x2, x3 = embedding
-            # Avg pool and flatten
-            x1 = F.adaptive_avg_pool2d(x1, (1,1)).flatten(1)
-            x2 = F.adaptive_avg_pool2d(x2, (1,1)).flatten(1)
-            x3 = F.adaptive_avg_pool2d(x3, (1,1)).flatten(1)
-
-            # Stack the tensors
-            output = torch.cat((x1, x2, x3), dim=1)
-
-            return output
-
-        if self.args.verbose:
-            LOGGER.info('')
-
-        # Setup model
-        if not self.model:
-            self.setup_model(model)
-
-        # Setup source every time predict is called
-        self.setup_source(source if source is not None else self.args.source)
-
-        # Warmup model
-        if not self.done_warmup:
-            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
-            self.done_warmup = True
-
-        self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
-        for batch in self.dataset:
-            self.batch = batch
-            _, im0s, _, s = batch
-
-            # Preprocess
-            with profilers[0]:
-                im = self.preprocess(im0s)
-
-            # Inference
-            with profilers[1]:
-                embeds = self.run_embed(im, *args, **kwargs)
-
-
-            # Postprocess
-            with profilers[2]:
-                embeds = postprocess_embeds(embeds)
-
-            yield from embeds
-
-            # Print time (inference-only)
-            if self.args.verbose:
-                LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
-
-        # Print results
-        if self.args.verbose and self.seen:
-            t = tuple(x.t / self.seen * 1E3 for x in profilers)  # speeds per image
-            LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
-                        f'{(1, 3, *im.shape[2:])}' % t)

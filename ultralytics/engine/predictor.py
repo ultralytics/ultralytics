@@ -197,9 +197,9 @@ class BasePredictor:
     def postprocess_embeds(self, embeds):
         x1, x2, x3 = embeds
         # Avg pool and flatten
-        x1 = F.adaptive_avg_pool2d(x1, (1,1)).flatten(1)
-        x2 = F.adaptive_avg_pool2d(x2, (1,1)).flatten(1)
-        x3 = F.adaptive_avg_pool2d(x3, (1,1)).flatten(1)
+        x1 = F.adaptive_avg_pool2d(x1, (1, 1)).flatten(1)
+        x2 = F.adaptive_avg_pool2d(x2, (1, 1)).flatten(1)
+        x3 = F.adaptive_avg_pool2d(x3, (1, 1)).flatten(1)
 
         # Stack the tensors
         output = torch.cat((x1, x2, x3), dim=1)
@@ -213,14 +213,15 @@ class BasePredictor:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
-    
+
     def embed(self, source=None, model=None, stream=False, *args, **kwargs):
         """Performs inference on an image or stream."""
         self.stream = stream
         if stream:
-            return self.stream_inference(source, model, embed=True *args, **kwargs)
+            return self.stream_inference(source, model, embed=True * args, **kwargs)
         else:
-            return list(self.stream_inference(source, model, embed=True, *args, **kwargs))  # merge list of Result into one
+            return list(self.stream_inference(source, model, embed=True, *args,
+                                              **kwargs))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
         """
@@ -287,11 +288,13 @@ class BasePredictor:
 
                 # Inference
                 with profilers[1]:
-                    preds = self.inference(im, *args, **kwargs) if embed is None else self.run_embed(im, *args, **kwargs)
+                    preds = self.inference(im, *args, **kwargs) if embed is None else self.run_embed(
+                        im, *args, **kwargs)
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess(preds, im, im0s) if embed is None else self.postprocess_embeds(preds)
+                    self.results = self.postprocess(preds, im,
+                                                    im0s) if embed is None else self.postprocess_embeds(preds)
 
                 self.run_callbacks('on_predict_postprocess_end')
 
@@ -332,7 +335,7 @@ class BasePredictor:
             t = tuple(x.t / self.seen * 1E3 for x in profilers)  # speeds per image
             LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *im.shape[2:])}' % t)
-        
+
         if self.args.save or self.args.save_txt or self.args.save_crop and embed is None:
             nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''

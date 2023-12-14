@@ -79,7 +79,7 @@ class BaseModel(nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if idx in embed_from:
                 embeddings.append(x)
-    
+
         return embeddings
 
     def _predict_once(self, x, profile=False, visualize=False):

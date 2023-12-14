@@ -106,6 +106,24 @@ def test_predict_img():
     results = pose_model(t, imgsz=32)
     assert len(results) == t.shape[0]
 
+def test_embed():
+    model = YOLO(MODEL)
+    seg_model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
+    im = cv2.imread(str(SOURCE))
+
+    batch = [
+    str(SOURCE),  # filename
+    Path(SOURCE),  # Path
+    'https://ultralytics.com/images/zidane.jpg' if ONLINE else SOURCE,  # URI
+    cv2.imread(str(SOURCE)),  # OpenCV
+    Image.open(SOURCE),  # PIL
+    np.zeros((320, 640, 3))]  # numpy
+
+    embed = model.embed(batch, imgsz=32)
+    embed_seg = seg_model.embed(batch, imgsz=32)
+    assert len(embed) == len(batch)  # multiple sources in a batch
+    assert embed[0].shape == embed_seg[0].shape
+
 
 def test_predict_grey_and_4ch():
     """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images."""

@@ -288,13 +288,13 @@ class BasePredictor:
 
                 # Inference
                 with profilers[1]:
-                    preds = self.inference(im, *args, **kwargs) if embed is None else self.run_embed(
+                    preds = self.inference(im, *args, **kwargs) if not embed else self.run_embed(
                         im, *args, **kwargs)
 
                 # Postprocess
                 with profilers[2]:
                     self.results = self.postprocess(preds, im,
-                                                    im0s) if embed is None else self.postprocess_embeds(preds)
+                                                    im0s) if not embed else self.postprocess_embeds(preds)
 
                 self.run_callbacks('on_predict_postprocess_end')
 

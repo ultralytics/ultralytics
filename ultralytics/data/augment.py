@@ -920,7 +920,6 @@ class Format:
                 masks = torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio,
                                     img.shape[1] // self.mask_ratio)
             labels['masks'] = masks
-            labels['segments'] = torch.from_numpy(instances.segments)
         if self.normalize:
             instances.normalize(w, h)
         labels['img'] = self._format_img(img)

@@ -263,11 +263,10 @@ def non_max_suppression(
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
         scores = x[:, 4]  # scores
         if rotated:
-            boxes = torch.cat((x[:, :4], x[:, -2:-1]), dim=-1)  # concat with angle
-            boxes[:, :2] += c
+            boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -2:-1]), dim=-1)  # xywhr
             i = nms_rotated(boxes, scores, iou_thres)
         else:
-            boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class)
+            boxes = x[:, :4] + c  # boxes (offset by class)
             i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
         i = i[:max_det]  # limit detections
 

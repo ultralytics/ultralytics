@@ -226,7 +226,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
+        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect, mean=args.mean, std=args.std)
         self.pre_album_transforms = T.Compose([ClassifyLetterBox(size=args.imgsz)])
         self.album_transforms = classify_albumentations(
             hflip=args.fliplr,
@@ -234,8 +234,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
             hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
             hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
+            mean=args.mean,  # IMAGENET_MEAN
+            std=args.std,  # IMAGENET_STD
             auto_aug=False) if augment else None
 
     def __getitem__(self, i):

@@ -137,10 +137,6 @@ class BasePredictor:
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
         return self.model(im, augment=self.args.augment, visualize=visualize, *args, **kwargs)
 
-    def run_embed(self, im, *args, **kwargs):
-        """Returns embeddings for a given image using the specified model and arguments."""
-        return self.model(im, *args, **kwargs)
-
     def pre_transform(self, im):
         """
         Pre-transform input image before inference.
@@ -241,7 +237,7 @@ class BasePredictor:
         self.vid_frame = [None] * self.dataset.bs
 
     @smart_inference_mode()
-    def stream_inference(self, source=None, model=None, embed=False, *args, **kwargs):
+    def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Streams real-time inference on camera feed and saves results to file."""
         if self.args.verbose:
             LOGGER.info('')
@@ -286,25 +282,26 @@ class BasePredictor:
                 self.run_callbacks('on_predict_postprocess_end')
 
                 # Visualize, save, write results if embeddings are not being computed
-                if not self.embed:
-                    n = len(im0s)
-                    for i in range(n):
-                        self.seen += 1
-                        self.results[i].speed = {
-                            'preprocess': profilers[0].dt * 1E3 / n,
-                            'inference': profilers[1].dt * 1E3 / n,
-                            'postprocess': profilers[2].dt * 1E3 / n}
-                        p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
-                        p = Path(p)
+                n = len(im0s)
+                for i in range(n):
+                    if self.embed:
+                        continue
+                    self.seen += 1
+                    self.results[i].speed = {
+                        'preprocess': profilers[0].dt * 1E3 / n,
+                        'inference': profilers[1].dt * 1E3 / n,
+                        'postprocess': profilers[2].dt * 1E3 / n}
+                    p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
+                    p = Path(p)
 
-                        if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                            s += self.write_results(i, self.results, (p, im, im0))
-                        if self.args.save or self.args.save_txt:
-                            self.results[i].save_dir = self.save_dir.__str__()
-                        if self.args.show and self.plotted_img is not None:
-                            self.show(p)
-                        if self.args.save and self.plotted_img is not None:
-                            self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+                    if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
+                        s += self.write_results(i, self.results, (p, im, im0))
+                    if self.args.save or self.args.save_txt:
+                        self.results[i].save_dir = self.save_dir.__str__()
+                    if self.args.show and self.plotted_img is not None:
+                        self.show(p)
+                    if self.args.save and self.plotted_img is not None:
+                        self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
                 self.run_callbacks('on_predict_batch_end')
                 yield from self.results
@@ -323,7 +320,7 @@ class BasePredictor:
             LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *im.shape[2:])}' % t)
 
-        if self.args.save or self.args.save_txt or self.args.save_crop and embed is None:
+        if self.args.save or self.args.save_txt or self.args.save_crop and not self.embed:
             nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")

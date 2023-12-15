@@ -313,7 +313,7 @@ class BasePredictor:
             nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             if embed:
-                LOGGER.warning("WARNING ⚠️ embed mode would directly return embeddings, "
+                LOGGER.warning('WARNING ⚠️ embed mode would directly return embeddings, '
                                "args like `save/save_txt/save_crop` won't work as expected!")
             else:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")

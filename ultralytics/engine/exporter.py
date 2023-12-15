@@ -796,8 +796,9 @@ class Exporter:
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
+        quantization = '--quantize_float16' if self.args.half else '--quantize_uint8' if self.args.int8 else ''
         with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
-            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{fpb_}" "{f_}"'
+            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
             LOGGER.info(f"{prefix} running '{cmd}'")
             subprocess.run(cmd, shell=True)
 

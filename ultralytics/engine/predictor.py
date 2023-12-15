@@ -277,7 +277,8 @@ class BasePredictor:
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess(preds, im, im0s) if not self.embed else self.postprocess_embeds(preds)
+                    self.results = self.postprocess(preds, im,
+                                                    im0s) if not self.embed else self.postprocess_embeds(preds)
 
                 self.run_callbacks('on_predict_postprocess_end')
 

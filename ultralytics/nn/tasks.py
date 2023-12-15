@@ -55,7 +55,8 @@ class BaseModel(nn.Module):
             (torch.Tensor): The last output of the model.
         """
         if augment and len(embed_from):
-            LOGGER.warning("WARNING ⚠️ `embed_from` won't work with `augment`, forcing running inference with `augment`!")
+            LOGGER.warning(
+                "WARNING ⚠️ `embed_from` won't work with `augment`, forcing running inference with `augment`!")
         if augment:
             return self._predict_augment(x)
         return self._predict_once(x, profile, visualize, embed_from)
@@ -82,7 +83,7 @@ class BaseModel(nn.Module):
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
             if return_embed and m.i == max(embed_from):
-                break   # no need to do extra running
+                break  # no need to do extra running
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
         return [y[i] for i in embed_from] if len(embed_from) else x

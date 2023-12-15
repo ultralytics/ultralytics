@@ -346,7 +346,7 @@ class AutoBackend(nn.Module):
             (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
         """
         if len(embed_from):
-            assert self.pt or self.nn_module, "Only pytorch model support embedding mode!"
+            assert self.pt or self.nn_module, 'Only pytorch model support embedding mode!'
 
         _, _, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:

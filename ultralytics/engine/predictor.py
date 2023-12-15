@@ -192,6 +192,7 @@ class BasePredictor:
 
     def postprocess_embeds(self, embeds):
         """Pose-processes for embeddings."""
+        assert isinstance(embeds, list)
         output = []
         for x in embeds:
             output.append(F.adaptive_avg_pool2d(x, (1, 1)).flatten(1))
@@ -277,8 +278,7 @@ class BasePredictor:
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess(preds, im,
-                                                    im0s) if not self.embed else self.postprocess_embeds(preds)
+                    self.results = self.postprocess_embeds(preds) if self.embed else self.postprocess(preds, im, im0s)
 
                 self.run_callbacks('on_predict_postprocess_end')
                 # Visualize, save, write results if embeddings are not being computed

@@ -273,9 +273,9 @@ class BasePredictor:
                 # Visualize, save, write results if embeddings are not being computed
                 n = len(im0s)
                 for i in range(n):
+                    self.seen += 1
                     if embed:
                         continue
-                    self.seen += 1
                     self.results[i].speed = {
                         'preprocess': profilers[0].dt * 1E3 / n,
                         'inference': profilers[1].dt * 1E3 / n,

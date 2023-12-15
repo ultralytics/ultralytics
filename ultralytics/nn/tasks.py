@@ -51,6 +51,7 @@ class BaseModel(nn.Module):
             profile (bool):  Print the computation time of each layer if True, defaults to False.
             visualize (bool): Save the feature maps of the model if True, defaults to False.
             augment (bool): Augment image during prediction, defaults to False.
+            embed_from (List[int]): The layer indices of extracted feature maps, it's for embed mode.
 
         Returns:
             (torch.Tensor): The last output of the model.

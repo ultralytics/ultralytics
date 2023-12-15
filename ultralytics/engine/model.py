@@ -247,6 +247,8 @@ class Model(nn.Module):
                 Accepts all source types accepted by the YOLO model.
             stream (bool): Whether to stream the predictions or not. Defaults to False.
             predictor (BasePredictor): Customized predictor.
+            embed_from (List[int]): The layer indices of extracted feature maps, by default it's
+                the last layer from each level of yolov8 FPN.
             **kwargs : Additional keyword arguments passed to the predictor.
                 Check the 'configuration' section in the documentation for all available options.
 

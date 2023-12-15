@@ -341,6 +341,7 @@ class AutoBackend(nn.Module):
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): whether to perform data augmentation during inference, defaults to False
             visualize (bool): whether to visualize the output predictions, defaults to False
+            embed_from (List[int]): The layer indices of extracted feature maps, it's for embed mode.
 
         Returns:
             (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)

@@ -41,26 +41,26 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
         import cv2
-        
+
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         counter = object_counter.ObjectCounter()  # Init Object Counter
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         counter.set_args(view_img=True,
                           reg_pts=region_points,
                           classes_names=model.names,
                           draw_tracks=True)
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")     
+              print("Information!!! -> Empty frame or Video Processing Finished!!!")
               break
             tracks = model.track(im0, persist=True, show=False)
             im0 = counter.start_counting(im0, tracks)
-          
+
         cv2.destroyAllWindows()
         ```
 
@@ -69,11 +69,11 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
         import cv2
-        
+
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         classes_to_count = [0, 2]
         counter = object_counter.ObjectCounter()  # Init Object Counter
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
@@ -81,16 +81,16 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
                           reg_pts=region_points,
                           classes_names=model.names,
                           draw_tracks=True)
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")     
+              print("Information!!! -> Empty frame or Video Processing Finished!!!")
               break
             tracks = model.track(im0, persist=True, show=False,
                                  classes=classes_to_count)
             im0 = counter.start_counting(im0, tracks)
-          
+
         cv2.destroyAllWindows()
         ```
 
@@ -99,32 +99,32 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
         import cv2
-        
+
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         video_writer = cv2.VideoWriter("object_counting.avi",
                                         cv2.VideoWriter_fourcc(*'mp4v'),
                                         int(cap.get(5)),
                                         (int(cap.get(3)), int(cap.get(4))))
-        
+
         counter = object_counter.ObjectCounter()  # Init Object Counter
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         counter.set_args(view_img=True,
                           reg_pts=region_points,
                           classes_names=model.names,
                           draw_tracks=True)
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                print("Information!!! -> Empty frame or Video Processing Finished!!!")     
+                print("Information!!! -> Empty frame or Video Processing Finished!!!")
                 break
             tracks = model.track(im0, persist=True, show=False)
             im0 = counter.start_counting(im0, tracks)
             video_writer.write(im0)
-        
+
         video_writer.release()
         cv2.destroyAllWindows()
         ```

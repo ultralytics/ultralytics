@@ -60,7 +60,8 @@ Two Types of instance segmentation by Ultralytics YOLOv8.
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
+        
+        out.release()
         cap.release()
         cv2.destroyAllWindows()
 
@@ -105,6 +106,7 @@ Two Types of instance segmentation by Ultralytics YOLOv8.
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
+        out.release()
         cap.release()
         cv2.destroyAllWindows()
         ```

@@ -65,6 +65,10 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+        
+        out.release()
+        cap.release()
+        cv2.destroyAllWindows()
         ```
 
     === "VisionEye Object Mapping with Object Tracking"
@@ -101,6 +105,10 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+        
+        out.release()
+        cap.release()
+        cv2.destroyAllWindows()
         ```
 
 ### `visioneye` Arguments

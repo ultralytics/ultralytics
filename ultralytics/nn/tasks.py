@@ -482,6 +482,7 @@ class RTDETRDetectionModel(DetectionModel):
         if len(embed_from):
             LOGGER.warning("WARNING ⚠️ RTDETR inference has not supported embed mode yet!")
         y, dt = [], []  # outputs
+        return_embed = len(embed_from) > 0
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -489,8 +490,13 @@ class RTDETRDetectionModel(DetectionModel):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
+            if return_embed and m.i == max(embed_from):
+                break  # no need to do extra running
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
+        if return_embed:
+            return torch.cat([F.adaptive_avg_pool2d(y[i], (1, 1)).flatten(1)
+                          for i in embed_from], dim=1)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
         return x

@@ -257,7 +257,8 @@ class Model(nn.Module):
             source = ASSETS
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
 
-        args = {**self.overrides, **kwargs, 'mode': 'embed'}  # highest priority args on the right
+        custom = {'save': False}  # method defaults
+        args = {**self.overrides, **custom, **kwargs, 'mode': 'embed'}  # highest priority args on the right
 
         if not self.predictor:
             self.predictor = (predictor or self._smart_load('predictor'))(overrides=args, _callbacks=self.callbacks)

@@ -309,10 +309,13 @@ class BasePredictor:
             LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *im.shape[2:])}' % t)
 
-        if (self.args.save or self.args.save_txt or self.args.save_crop) and not embed:
+        if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
-            LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
+            if embed:
+                LOGGER.warning("WARNING ⚠️ embed mode would directly return embeddings, args like `save/save_txt/save_crop` won't work as expected!")
+            else:
+                LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks('on_predict_end')
 

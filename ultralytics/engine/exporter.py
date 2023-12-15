@@ -403,7 +403,7 @@ class Exporter:
         if self.args.int8:
             if not self.args.data:
                 self.args.data = DEFAULT_CFG.data or 'coco8.yaml'
-                LOGGER.warning(f"WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
+                LOGGER.warning(f"{prefix} WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                                f"Using default 'data={self.args.data}'.")
             check_requirements('nncf>=2.5.0')
             import nncf
@@ -417,6 +417,9 @@ class Exporter:
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
             data = check_det_dataset(self.args.data)
             dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
+            n = len(dataset)
+            if n < 300:
+                LOGGER.warning(f'{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.')
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
             ignored_scope = nncf.IgnoredScope(types=['Multiply', 'Subtract', 'Sigmoid'])  # ignore operation
             quantized_ov_model = nncf.quantize(ov_model,

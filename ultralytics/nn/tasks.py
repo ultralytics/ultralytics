@@ -478,9 +478,9 @@ class RTDETRDetectionModel(DetectionModel):
             (torch.Tensor): Model's output tensor.
         """
         if augment:
-            LOGGER.warning("WARNING ⚠️ RTDETR inference has not supported `augment` arg yet!")
+            LOGGER.warning('WARNING ⚠️ RTDETR inference has not supported `augment` arg yet!')
         if len(embed_from):
-            LOGGER.warning("WARNING ⚠️ RTDETR inference has not supported embed mode yet!")
+            LOGGER.warning('WARNING ⚠️ RTDETR inference has not supported embed mode yet!')
         y, dt = [], []  # outputs
         return_embed = len(embed_from) > 0
         for m in self.model[:-1]:  # except the head part
@@ -495,8 +495,7 @@ class RTDETRDetectionModel(DetectionModel):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
         if return_embed:
-            return torch.cat([F.adaptive_avg_pool2d(y[i], (1, 1)).flatten(1)
-                          for i in embed_from], dim=1)
+            return torch.cat([F.adaptive_avg_pool2d(y[i], (1, 1)).flatten(1) for i in embed_from], dim=1)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
         return x

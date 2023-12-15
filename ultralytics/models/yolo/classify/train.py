@@ -40,8 +40,12 @@ class ClassificationTrainer(BaseTrainer):
 
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""
-        self.model.names = self.data['names']
-
+        # print(f'self.model.names: {self.model.names}')
+        # print(f'self.data: {self.data}')
+        # print('\n'*10)
+        # self.model.names = self.data['names']
+        pass
+    
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
         model = ClassificationModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)

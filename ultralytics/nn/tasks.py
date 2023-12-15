@@ -87,7 +87,8 @@ class BaseModel(nn.Module):
                 break  # no need to do extra running
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-        return torch.cat([F.adaptive_avg_pool2d(y[i], (1, 1)).flatten(1) for i in embed_from], dim=1) if len(embed_from) else x
+        return torch.cat([F.adaptive_avg_pool2d(y[i], (1, 1)).flatten(1)
+                          for i in embed_from], dim=1) if len(embed_from) else x
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""

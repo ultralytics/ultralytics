@@ -41,7 +41,7 @@ class BaseModel(nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)
 
-    def predict(self, x, profile=False, visualize=False, augment=False):
+    def predict(self, x, profile=False, visualize=False, augment=False, embed_from=[]):
         """
         Perform a forward pass through the network.
 
@@ -54,35 +54,13 @@ class BaseModel(nn.Module):
         Returns:
             (torch.Tensor): The last output of the model.
         """
+        if augment and len(embed_from):
+            LOGGER.warning("WARNING ⚠️ `embed_from` won't work with `augment`, forcing running inference with `augment`!")
         if augment:
             return self._predict_augment(x)
-        return self._predict_once(x, profile, visualize)
+        return self._predict_once(x, profile, visualize, embed_from)
 
-    def embed(self, x, embed_from=[15, 18, 21], augment=False):
-        """
-        Perform a forward pass through the network.
-
-        Args:
-            x (torch.Tensor): The input tensor to the model.
-            embed_from (int): The index of the layer to embed the output from, defaults to None. Accepts -ve indexing.
-        Returns:
-            (torch.Tensor): The last output of the model.
-        """
-        y = []  # outputs
-        if augment:
-            x = self._predict_augment(x)
-        embeddings = []
-        for idx, m in enumerate(self.model):
-            if m.f != -1:  # if not from previous layer
-                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
-            x = m(x)  # run
-            y.append(x if m.i in self.save else None)  # save output
-            if idx in embed_from:
-                embeddings.append(x)
-
-        return embeddings
-
-    def _predict_once(self, x, profile=False, visualize=False):
+    def _predict_once(self, x, profile=False, visualize=False, embed_from=[]):
         """
         Perform a forward pass through the network.
 
@@ -95,6 +73,7 @@ class BaseModel(nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
+        return_embed = len(embed_from) > 0
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -102,9 +81,11 @@ class BaseModel(nn.Module):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
+            if return_embed and m.i == max(embed_from):
+                break   # no need to do extra running
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-        return x
+        return [y[i] for i in embed_from] if len(embed_from) else x
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""

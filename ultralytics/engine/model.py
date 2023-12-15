@@ -238,7 +238,7 @@ class Model(nn.Module):
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
-    def embed(self, source=None, stream=False, predictor=None, **kwargs):
+    def embed(self, source=None, stream=False, predictor=None, embed_from=[15, 18, 21], **kwargs):
         """
         Perform embedding using the YOLO model.
 
@@ -266,7 +266,7 @@ class Model(nn.Module):
             self.predictor.args = get_cfg(self.predictor.args, args)
             if 'project' in args or 'name' in args:
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
-        return self.predictor.embed(source=source, stream=stream)
+        return self.predictor(source=source, stream=stream, embed_from=embed_from)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):
         """

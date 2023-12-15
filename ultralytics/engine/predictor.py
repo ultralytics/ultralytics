@@ -135,11 +135,11 @@ class BasePredictor:
         """Runs inference on a given image using the specified model and arguments."""
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
-        return self.model(im, augment=self.args.augment, visualize=visualize)
+        return self.model(im, augment=self.args.augment, visualize=visualize, *args, **kwargs)
 
     def run_embed(self, im, *args, **kwargs):
         """Returns embeddings for a given image using the specified model and arguments."""
-        return self.model.embed(im, *args, **kwargs)
+        return self.model(im, *args, **kwargs)
 
     def pre_transform(self, im):
         """
@@ -195,33 +195,22 @@ class BasePredictor:
         return preds
 
     def postprocess_embeds(self, embeds):
-        x1, x2, x3 = embeds
-        # Avg pool and flatten
-        x1 = F.adaptive_avg_pool2d(x1, (1, 1)).flatten(1)
-        x2 = F.adaptive_avg_pool2d(x2, (1, 1)).flatten(1)
-        x3 = F.adaptive_avg_pool2d(x3, (1, 1)).flatten(1)
-
-        # Stack the tensors
-        output = torch.cat((x1, x2, x3), dim=1)
+        """Pose-processes for embeddings."""
+        output = []
+        for x in embeds:
+            output.append(F.adaptive_avg_pool2d(x, (1, 1)).flatten(1))
+        output = torch.cat(output, dim=1)
 
         return output
 
     def __call__(self, source=None, model=None, stream=False, *args, **kwargs):
         """Performs inference on an image or stream."""
         self.stream = stream
+        self.embed = len(kwargs.get('embed_from', [])) > 0
         if stream:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
-
-    def embed(self, source=None, model=None, stream=False, *args, **kwargs):
-        """Performs inference on an image or stream."""
-        self.stream = stream
-        if stream:
-            return self.stream_inference(source, model, embed=True * args, **kwargs)
-        else:
-            return list(self.stream_inference(source, model, embed=True, *args,
-                                              **kwargs))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
         """
@@ -288,16 +277,16 @@ class BasePredictor:
 
                 # Inference
                 with profilers[1]:
-                    preds = self.inference(im, *args, **kwargs) if not embed else self.run_embed(im, *args, **kwargs)
+                    preds = self.inference(im, *args, **kwargs)
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess(preds, im, im0s) if not embed else self.postprocess_embeds(preds)
+                    self.results = self.postprocess(preds, im, im0s) if not self.embed else self.postprocess_embeds(preds)
 
                 self.run_callbacks('on_predict_postprocess_end')
 
                 # Visualize, save, write results if embeddings are not being computed
-                if embed is None:
+                if not self.embed:
                     n = len(im0s)
                     for i in range(n):
                         self.seen += 1

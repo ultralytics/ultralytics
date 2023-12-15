@@ -190,16 +190,6 @@ class BasePredictor:
         """Post-processes predictions for an image and returns them."""
         return preds
 
-    def postprocess_embeds(self, embeds):
-        """Pose-processes for embeddings."""
-        assert isinstance(embeds, list)
-        output = []
-        for x in embeds:
-            output.append(F.adaptive_avg_pool2d(x, (1, 1)).flatten(1))
-        output = torch.cat(output, dim=1)
-
-        return output
-
     def __call__(self, source=None, model=None, stream=False, *args, **kwargs):
         """Performs inference on an image or stream."""
         self.stream = stream
@@ -278,7 +268,7 @@ class BasePredictor:
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess_embeds(preds) if self.embed else self.postprocess(preds, im, im0s)
+                    self.results = preds if self.embed else self.postprocess(preds, im, im0s)
 
                 self.run_callbacks('on_predict_postprocess_end')
                 # Visualize, save, write results if embeddings are not being computed

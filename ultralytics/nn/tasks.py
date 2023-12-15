@@ -463,7 +463,7 @@ class RTDETRDetectionModel(DetectionModel):
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']],
                                                    device=img.device)
 
-    def predict(self, x, profile=False, visualize=False, batch=None, augment=False):
+    def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed_from=[]):
         """
         Perform a forward pass through the model.
 
@@ -477,6 +477,10 @@ class RTDETRDetectionModel(DetectionModel):
         Returns:
             (torch.Tensor): Model's output tensor.
         """
+        if augment:
+            LOGGER.warning("WARNING ⚠️ RTDETR inference has not supported `augment` arg yet!")
+        if len(embed_from):
+            LOGGER.warning("WARNING ⚠️ RTDETR inference has not supported embed mode yet!")
         y, dt = [], []  # outputs
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer

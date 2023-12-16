@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
-from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, CBAM, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost,
+from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost,
                                     C3x, Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv,
                                     DWConvTranspose2d, Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, RepC3,
                                     RepConv, ResNetLayer, RTDETRDecoder, Segment)
@@ -694,8 +694,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 n = 1
         elif m is AIFI:
             args = [ch[f], *args]
-        elif m is CBAM:
-            args = [ch[f], *args[0:]]
         elif m in (HGStem, HGBlock):
             c1, cm, c2 = ch[f], args[0], args[1]
             args = [c1, cm, c2, *args[2:]]

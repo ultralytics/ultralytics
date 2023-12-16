@@ -251,7 +251,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         else:  # read image
             im = cv2.imread(f)  # BGR
         if not im:
-            print("Error: The item is null. Skipping item...")
+            print('Error: The item is null. Skipping item...')
             del self.samples[i]
             return None
         if self.album_transforms:

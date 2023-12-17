@@ -198,6 +198,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
 
     Args:
         root (str): Dataset path.
+        torch_transforms (callable): Optional torchvision transforms applied to the dataset.
 
     Attributes:
         cache_ram (bool): True if images should be cached in RAM, False otherwise.
@@ -207,7 +208,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
     """
 
-    def __init__(self, root, args, augment=False, cache=False, prefix=''):
+    def __init__(self, root, args, augment=False, cache=False, prefix='', torch_transforms = None):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 

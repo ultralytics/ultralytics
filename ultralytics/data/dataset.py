@@ -225,7 +225,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        # self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
+        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
         # self.album_transforms = classify_albumentations(
         #     augment=augment,
         #     size=args.imgsz,
@@ -253,9 +253,10 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         # if self.album_transforms:
         #     sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         # else:
-        #     sample = self.torch_transforms(im)
-        # return {'img': sample, 'cls': j}
-        return {'img': im, 'cls': j}
+            # sample = self.torch_transforms(im)
+        sample = self.torch_transforms(im)
+        return {'img': sample, 'cls': j}
+        # return {'img': im, 'cls': j}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

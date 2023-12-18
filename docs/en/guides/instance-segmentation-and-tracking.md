@@ -8,8 +8,9 @@ keywords: Ultralytics, YOLOv8, Instance Segmentation, Object Detection, Object T
 
 ## What is Instance Segmentation?
 
-[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) Instance segmentation involves identifying and outlining individual objects in an image, providing a detailed understanding of spatial distribution. Unlike semantic segmentation, it uniquely labels and precisely delineates each object, crucial for tasks like object detection and medical imaging.
-Two Types of instance segmentation by Ultralytics YOLOv8.
+[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) instance segmentation involves identifying and outlining individual objects in an image, providing a detailed understanding of spatial distribution. Unlike semantic segmentation, it uniquely labels and precisely delineates each object, crucial for tasks like object detection and medical imaging.
+
+There are two types of instance segmentation tracking available in the Ultralytics package:
 
 - **Instance Segmentation with Class Objects:** Each class object is assigned a unique color for clear visual separation.
 
@@ -21,7 +22,6 @@ Two Types of instance segmentation by Ultralytics YOLOv8.
 |:---------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![Ultralytics Instance Segmentation](https://github.com/RizwanMunawar/ultralytics/assets/62513924/d4ad3499-1f33-4871-8fbc-1be0b2643aa2) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/2e5c38cc-fd5c-4145-9682-fa94ae2010a0) |
 |                                                  Ultralytics Instance Segmentation 😍                                                   |                                                  Ultralytics Instance Segmentation with Object Tracking 🔥                                                   |
-
 
 !!! Example "Instance Segmentation and Tracking"
 

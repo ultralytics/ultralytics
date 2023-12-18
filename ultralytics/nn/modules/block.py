@@ -8,13 +8,13 @@ from torch.nn.parameter import Parameter
 
 from torchvision.ops import SqueezeExcitation
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, CombConv, LightConvB, QConv, LightDSConv, DepthwiseSeparableConv, SqueezeExcite
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, CombConv, LightConvB, QConv, LightDSConv, AsymmetricConv, AsymmetricDWConvLightConv, AsymmetricDWConv, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock, MSDATransformerBlock
 
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 'LightDSConv', 'LightDSConvC2f')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 'LightDSConv', 'LightDSConvC2f', 'AsymmetricLightC2f')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -1037,3 +1037,97 @@ class LightDSConvC2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+    
+
+
+class AsymmetricLightC2f(nn.Module):
+    """Modified C2f with asymmetric bottleneck."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        """Initialize AsymmetricLightC2f with asymmetric bottleneck."""
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = AsymmetricConv(c1, 2 * self.c)  # Use Asymmetric Convolution
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        
+        # Use AsymmetricBottleneck
+        self.m = nn.ModuleList(AsymmetricBottleneck(self.c, self.c, shortcut, g, e=1.0) for _ in range(n))
+
+    def forward(self, x):
+        """Forward pass through AsymmetricLightC2f layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x):
+        """Forward pass using split() instead of chunk()."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+
+class AsymmetricBottleneck(nn.Module):
+    """Bottleneck with Asymmetric Convolution."""
+
+    def __init__(self, c1, c2, shortcut=True, g=1, e=0.5):
+        """Initializes a bottleneck module with asymmetric convolution."""
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+
+        # Replace standard convolutions with asymmetric convolutions
+        self.cv1 = AsymmetricConv(c1, c_, act=False)
+        self.cv2 = AsymmetricConv(c_, c2, act=True)
+
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        """Forward pass applies asymmetric convolutions to the input data."""
+        y = self.cv2(self.cv1(x))
+        return x + y if self.add else y
+    
+
+
+class AsymmetricLightBottleneck(nn.Module):
+    """Bottleneck with Asymmetric Depth-wise Convolution."""
+
+    def __init__(self, c1, c2, shortcut=True, g=1, e=0.5):
+        """Initializes a bottleneck module with asymmetric depth-wise convolution."""
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        
+        # Replace standard convolutions with asymmetric depth-wise convolutions
+        self.cv1 = AsymmetricDWConv(c1, c_, act=False)
+        self.cv2 = AsymmetricDWConv(c_, c2, act=True)
+
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        """Forward pass applies asymmetric depth-wise convolutions to the input data."""
+        y = self.cv2(self.cv1(x))
+        return x + y if self.add else y
+
+
+class AsymmetricLightC2f(nn.Module):
+    """Modified C2f with LightConvB and AsymmetricBottleneck."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        """Initialize ModifiedC2f with LightConvB and AsymmetricBottleneck."""
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+
+        # Replace the first convolution with LightConvB
+        self.cv1 = AsymmetricDWConvLightConv(c1, 2 * self.c, act=True)
+
+        # Replace the second convolution with standard Convolution
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+
+        # Use AsymmetricBottleneck
+        self.m = nn.ModuleList(AsymmetricLightBottleneck(self.c, self.c, shortcut, g, e=1.0) for _ in range(n))
+
+    def forward(self, x):
+        """Forward pass through ModifiedC2f layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+

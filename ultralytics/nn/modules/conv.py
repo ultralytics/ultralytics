@@ -9,7 +9,7 @@ import torch.nn as nn
 
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
-           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv', 'LightConvB', 'LightChannelAttention', 'LightSpatialAttention', 'LightCBAM', 'QConv', 'LightDSConv')
+           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'SqueezeExcite', 'DepthwiseSeparableConv', 'CombConv', 'LightConvB', 'LightChannelAttention', 'LightSpatialAttention', 'LightCBAM', 'QConv', 'LightDSConv', 'AsymmetricDWConv', 'AsymmetricDWConvLightConv', 'AsymmetricConv')
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -77,6 +77,21 @@ class Conv(nn.Module):
     def forward_fuse(self, x):
         """Perform transposed convolution of 2D data."""
         return self.act(self.conv(x))
+
+
+class AsymmetricConv(nn.Module):
+    """Asymmetric Convolution."""
+    
+    def __init__(self, c1, c2, s=1, act=True):
+        """Initialize Asymmetric Convolution with given parameters."""
+        super().__init__()
+        self.conv3x1 = Conv(c1, c2, (3, 1), s, act=False)
+        self.conv1x3 = Conv(c2, c2, (1, 3), s, act=act)
+
+    def forward(self, x):
+        x = self.conv3x1(x)
+        x = self.conv1x3(x)
+        return x
 
 
 class Conv2(Conv):
@@ -147,6 +162,42 @@ class LightConvB(nn.Module):
         x = self.conv2(x)
         x = self.bn2(x)
         return self.act(x)
+    
+    
+class AsymmetricDWConv(nn.Module):
+    """Asymmetric Depth-wise Convolution."""
+    
+    def __init__(self, c1, c2, act=True):
+        """Initialize asymmetric depth-wise convolution with given parameters."""
+        super().__init__()
+        # 3x1 followed by 1x3 convolutions
+        self.conv3x1 = DWConv(c1, c2, (3, 1), act=False)
+        self.conv1x3 = DWConv(c2, c2, (1, 3), act=act)
+
+    def forward(self, x):
+        x = self.conv3x1(x)
+        x = self.conv1x3(x)
+        return x
+
+class AsymmetricDWConvLightConv(nn.Module):
+    """
+    Light convolution with Batch Normalization using asymmetric convolution.
+    """
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, act=True):
+        """Initialize asymmetric conv layers with Batch Normalization and given arguments including activation."""
+        super().__init__()
+        self.asymmetric_conv = AsymmetricDWConv(c1, c2, act=False)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        """Apply asymmetric convolution with Batch Normalization to input tensor."""
+        x = self.asymmetric_conv(x)
+        x = self.bn(x)
+        return self.act(x)
+
 
 
 class DWConv(Conv):

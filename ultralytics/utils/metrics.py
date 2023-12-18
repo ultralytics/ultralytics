@@ -185,7 +185,7 @@ def _get_covariance_matrix(boxes):
     )
 
 
-def probiou(obb1, obb2, eps=1e-7):
+def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     """
     Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
 
@@ -211,7 +211,15 @@ def probiou(obb1, obb2, eps=1e-7):
     bd = t1 + t2 + t3
     bd = torch.clamp(bd, eps, 100.0)
     hd = torch.sqrt(1.0 - torch.exp(-bd) + eps)
-    return 1 - hd
+    iou = 1 - hd
+    if CIoU:
+        w1, h1 = obb1[..., 2:4].split(1, dim=-1)
+        w2, h2 = obb2[..., 2:4].split(1, dim=-1)
+        v = (4 / math.pi ** 2) * (torch.atan(w2 / h2) - torch.atan(w1 / h1)).pow(2)
+        with torch.no_grad():
+            alpha = v / (v - iou + (1 + eps))
+        return iou - v * alpha  # CIoU
+    return iou
 
 
 def batch_probiou(obb1, obb2, eps=1e-7):

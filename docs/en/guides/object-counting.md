@@ -56,7 +56,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")
+              print("Video frame is empty or video processing has been successfully completed.")
               break
             tracks = model.track(im0, persist=True, show=False)
             im0 = counter.start_counting(im0, tracks)
@@ -85,7 +85,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")
+              print("Video frame is empty or video processing has been successfully completed.")
               break
             tracks = model.track(im0, persist=True, show=False,
                                  classes=classes_to_count)
@@ -119,7 +119,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                print("Information!!! -> Empty frame or Video Processing Finished!!!")
+                print("Video frame is empty or video processing has been successfully completed.")
                 break
             tracks = model.track(im0, persist=True, show=False)
             im0 = counter.start_counting(im0, tracks)

@@ -48,6 +48,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
         while True:
             ret, im0 = cap.read()
             if not ret:
+                print("Video frame is empty or video processing has been successfully completed.")
                 break
 
             results = model.predict(im0)
@@ -88,6 +89,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
         while True:
             ret, im0 = cap.read()
             if not ret:
+                print("Video frame is empty or video processing has been successfully completed.")
                 break
 
             results = model.track(im0, persist=True)

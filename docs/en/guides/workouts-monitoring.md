@@ -45,7 +45,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")
+              print("Video frame is empty or video processing has been successfully completed.")
               break
             frame_count += 1
             results = model.predict(im0, verbose=False)
@@ -79,7 +79,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")
+              print("Video frame is empty or video processing has been successfully completed.")
               break
             frame_count += 1
             results = model.predict(im0, verbose=False)

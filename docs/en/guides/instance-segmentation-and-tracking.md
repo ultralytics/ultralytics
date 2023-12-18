@@ -42,6 +42,7 @@ Two Types of instance segmentation by Ultralytics YOLOv8.
         while True:
             ret, im0 = cap.read()
             if not ret:
+                print("Video frame is empty or video processing has been successfully completed.")
                 break
 
             results = model.predict(im0)
@@ -87,6 +88,7 @@ Two Types of instance segmentation by Ultralytics YOLOv8.
         while True:
             ret, im0 = cap.read()
             if not ret:
+                print("Video frame is empty or video processing has been successfully completed.")
                 break
 
             results = model.track(im0, persist=True)

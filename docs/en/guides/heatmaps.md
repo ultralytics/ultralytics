@@ -49,7 +49,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")
+              print("Video frame is empty or video processing has been successfully completed.")
               break
 
             results = model.track(im0, persist=True)
@@ -80,7 +80,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")
+              print("Video frame is empty or video processing has been successfully completed.")
               break
             results = model.track(im0, persist=True, classes=classes_for_heatmap)
             im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
@@ -114,7 +114,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")
+              print("Video frame is empty or video processing has been successfully completed.")
               break
             results = model.track(im0, persist=True)
             im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
@@ -149,7 +149,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Information!!! -> Empty frame or Video Processing Finished!!!")
+              print("Video frame is empty or video processing has been successfully completed.")
               break
             results = model.track(im0, persist=True)
             im0 = heatmap_obj.generate_heatmap(im0, tracks=results)

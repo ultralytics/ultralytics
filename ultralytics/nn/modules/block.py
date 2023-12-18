@@ -14,7 +14,7 @@ from .transformer import TransformerBlock, MSDATransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 'LightDSConv', 'LightDSConvC2f', 'AsymmetricLightC2f')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 'LightDSConv', 'LightDSConvC2f', 'AsymmetricLightC2f','AsymmetricLightBottleneckC2f')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -1108,7 +1108,7 @@ class AsymmetricLightBottleneck(nn.Module):
         return x + y if self.add else y
 
 
-class AsymmetricLightC2f(nn.Module):
+class AsymmetricLightBottleneckC2f(nn.Module):
     """Modified C2f with LightConvB and AsymmetricBottleneck."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):

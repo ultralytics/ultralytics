@@ -42,9 +42,10 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
-                              imw=cap.get(4),  # should same as cap width
-                              imh=cap.get(3),  # should same as cap height
-                              view_img=True)
+                             imw=cap.get(4),  # should same as cap width
+                             imh=cap.get(3),  # should same as cap height
+                             view_img=True,
+                             decay_factor=0.99)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -183,17 +184,18 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 ### Arguments `set_args`
 
-| Name                | Type           | Default         | Description                     |
-|---------------------|----------------|-----------------|---------------------------------|
-| view_img            | `bool`         | `False`         | Display the frame with heatmap  |
-| colormap            | `cv2.COLORMAP` | `None`          | cv2.COLORMAP for heatmap        |
-| imw                 | `int`          | `None`          | Width of Heatmap                |
-| imh                 | `int`          | `None`          | Height of Heatmap               |
-| heatmap_alpha       | `float`        | `0.5`           | Heatmap alpha value             |
-| count_reg_pts       | `list`         | `None`          | Object counting region points   |
-| count_txt_thickness | `int`          | `2`             | Count values text size          |
-| count_reg_color     | `tuple`        | `(255, 0, 255)` | Counting region color           |
-| region_thickness    | `int`          | `5`             | Counting region thickness value |
+| Name                | Type           | Default         | Description                                               |
+|---------------------|----------------|-----------------|-----------------------------------------------------------|
+| view_img            | `bool`         | `False`         | Display the frame with heatmap                            |
+| colormap            | `cv2.COLORMAP` | `None`          | cv2.COLORMAP for heatmap                                  |
+| imw                 | `int`          | `None`          | Width of Heatmap                                          |
+| imh                 | `int`          | `None`          | Height of Heatmap                                         |
+| heatmap_alpha       | `float`        | `0.5`           | Heatmap alpha value                                       |
+| count_reg_pts       | `list`         | `None`          | Object counting region points                             |
+| count_txt_thickness | `int`          | `2`             | Count values text size                                    |
+| count_reg_color     | `tuple`        | `(255, 0, 255)` | Counting region color                                     |
+| region_thickness    | `int`          | `5`             | Counting region thickness value                           |
+| decay_factor        | `float`        | `0.99`          | Decay factor for heatmap area removal after specific time |
 
 ### Arguments `model.track`
 

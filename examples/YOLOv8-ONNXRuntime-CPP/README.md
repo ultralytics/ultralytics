@@ -13,6 +13,10 @@ This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX
 - Faster than OpenCV's DNN inference on both CPU and GPU.
 - Supports FP32 and FP16 CUDA acceleration.
 
+## Note :coffee:
+
+1.~~This repository should also work for YOLOv5, which needs a permute operator for the output of the YOLOv5 model, but this has not been implemented yet.~~ Benefit for ultralytics's latest release,a `Transpose` op is added to the Yolov8 model,while make v8 and v5 has the same output shape.Therefore,you can inference your yolov5/v7/v8 via this project.
+
 ## Exporting YOLOv8 Models 📦
 
 To export YOLOv8 models, use the following Python script:
@@ -31,6 +35,17 @@ Alternatively, you can use the following command for exporting the model in the 
 
 ```bash
 yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx imgsz=640,640
+```
+
+## Exporting YOLOv8 FP16 Models 📦
+
+```python
+import onnx
+from onnxconverter_common import float16
+
+model = onnx.load(R'YOUR_ONNX_PATH')
+model_fp16 = float16.convert_float_to_float16(model)
+onnx.save(model_fp16, R'YOUR_FP16_ONNX_PATH')
 ```
 
 ## Download COCO.yaml file 📂
@@ -79,16 +94,15 @@ make
 ## Usage 🚀
 
 ```c++
-// CPU inference
-DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {imgsz_w, imgsz_h}, 0.1, 0.5, false};
-// GPU inference
-DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {imgsz_w, imgsz_h}, 0.1, 0.5, true};
-// Load your image
-cv::Mat img = cv::imread(img_path);
-// Init Inference Session
-char* ret = yoloDetector->CreateSession(params);
-
-ret = yoloDetector->RunSession(img, res);
+//change your param as you like
+//Pay attention to your device and the onnx model type(fp32 or fp16)
+DL_INIT_PARAM params;
+params.rectConfidenceThreshold = 0.1;
+params.iouThreshold = 0.5;
+params.modelPath = "yolov8n.onnx";
+params.imgSize = { 640, 640 };
+params.cudaEnable = true;
+params.modelType = YOLO_DETECT_V8;
+yoloDetector->CreateSession(params);
+Detector(yoloDetector);
 ```
-
-This repository should also work for YOLOv5, which needs a permute operator for the output of the YOLOv5 model, but this has not been implemented yet.

@@ -40,6 +40,14 @@ def check_class_names(names):
     return names
 
 
+def default_class_names(data=None):
+    """Applies default class names to an input YAML file or returns numerical class names."""
+    if data:
+        with contextlib.suppress(Exception):
+            return yaml_load(check_yaml(data))['names']
+    return {i: f'class{i}' for i in range(999)}  # return default if above errors
+
+
 class AutoBackend(nn.Module):
     """
     Handles dynamic backend selection for running inference using Ultralytics YOLO models.
@@ -101,7 +109,7 @@ class AutoBackend(nn.Module):
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != 'cpu'  # use CUDA
-        if cuda and not any([nn_module, pt, jit, engine]):  # GPU dataloader formats
+        if cuda and not any([nn_module, pt, jit, engine, onnx]):  # GPU dataloader formats
             device = torch.device('cpu')
             cuda = False
 
@@ -315,7 +323,7 @@ class AutoBackend(nn.Module):
 
         # Check names
         if 'names' not in locals():  # names missing
-            names = self._apply_default_class_names(data)
+            names = default_class_names(data)
         names = check_class_names(names)
 
         # Disable gradients
@@ -478,13 +486,6 @@ class AutoBackend(nn.Module):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):
                 self.forward(im)  # warmup
-
-    @staticmethod
-    def _apply_default_class_names(data):
-        """Applies default class names to an input YAML file or returns numerical class names."""
-        with contextlib.suppress(Exception):
-            return yaml_load(check_yaml(data))['names']
-        return {i: f'class{i}' for i in range(999)}  # return default if above errors
 
     @staticmethod
     def _model_type(p='path/to/model.pt'):

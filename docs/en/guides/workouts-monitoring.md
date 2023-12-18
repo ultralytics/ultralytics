@@ -45,10 +45,13 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
             frame_count += 1
             results = model.predict(im0, verbose=False)
             im0 = gym_object.start_counting(im0, results, frame_count)
+
+        cv2.destroyAllWindows()
         ```
 
     === "Workouts Monitoring with Save Output"
@@ -62,9 +65,9 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         assert cap.isOpened(), "Error reading video file"
 
         video_writer = cv2.VideoWriter("workouts.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                        cv2.VideoWriter_fourcc(*'mp4v'),
+                                        int(cap.get(5)),
+                                        (int(cap.get(3)), int(cap.get(4))))
 
         gym_object = ai_gym.AIGym()  # init AI GYM module
         gym_object.set_args(line_thickness=2,
@@ -76,12 +79,14 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
             frame_count += 1
             results = model.predict(im0, verbose=False)
             im0 = gym_object.start_counting(im0, results, frame_count)
             video_writer.write(im0)
 
+        cv2.destroyAllWindows()
         video_writer.release()
         ```
 

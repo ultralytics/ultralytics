@@ -119,10 +119,10 @@ def test_embed():
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3))]  # numpy
 
-    embed = model.embed(batch, imgsz=32)
-    embed_seg = seg_model.embed(batch, imgsz=32)
-    assert len(embed) == len(batch)  # multiple sources in a batch
-    assert embed[0].shape == embed_seg[0].shape
+    results = model.embed(batch, imgsz=32)
+    results_seg = seg_model.embed(batch, imgsz=32)
+    assert len(results) == len(results_seg) == len(batch) # multiple sources in a batch
+    assert results[0].embeddings.shape == results_seg[0].embeddings.shape
 
 
 def test_predict_grey_and_4ch():

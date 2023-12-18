@@ -43,6 +43,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, co
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
+from .results import Results
 
 STREAM_WARNING = """
 WARNING ⚠️ inference results will accumulate in RAM unless `stream=True` is passed, causing potential out-of-memory
@@ -267,7 +268,7 @@ class BasePredictor:
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = preds if embed else self.postprocess(preds, im, im0s)
+                    self.results = [Results(embeddings=pred) for pred in preds]  if embed else self.postprocess(preds, im, im0s)
 
                 self.run_callbacks('on_predict_postprocess_end')
                 # Visualize, save, write results if embeddings are not being computed

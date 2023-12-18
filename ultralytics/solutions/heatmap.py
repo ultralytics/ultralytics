@@ -50,6 +50,9 @@ class Heatmap:
         self.count_reg_color = (0, 255, 0)
         self.region_thickness = 5
 
+        # Decay factor
+        self.decay_factor = 0.99
+
         # Check if environment support imshow
         self.env_check = check_imshow(warn=True)
 
@@ -62,7 +65,8 @@ class Heatmap:
                  count_reg_pts=None,
                  count_txt_thickness=2,
                  count_reg_color=(255, 0, 255),
-                 region_thickness=5):
+                 region_thickness=5,
+                 decay_factor=0.99):
         """
         Configures the heatmap colormap, width, height and display parameters.
 
@@ -76,6 +80,7 @@ class Heatmap:
             count_txt_thickness (int): Text thickness for object counting display
             count_reg_color (RGB color): Color of object counting region
             region_thickness (int): Object counting Region thickness
+            decay_factor (float): value for removing heatmap area after object passed
         """
         self.imw = imw
         self.imh = imh
@@ -93,6 +98,7 @@ class Heatmap:
         self.count_txt_thickness = count_txt_thickness  # Counting text thickness
         self.count_reg_color = count_reg_color
         self.region_thickness = region_thickness
+        self.decay_factor = decay_factor
 
     def extract_results(self, tracks):
         """
@@ -117,6 +123,7 @@ class Heatmap:
         if tracks[0].boxes.id is None:
             return self.im0
 
+        self.heatmap *= self.decay_factor  # decay factor
         self.extract_results(tracks)
         self.annotator = Annotator(self.im0, self.count_txt_thickness, None)
 

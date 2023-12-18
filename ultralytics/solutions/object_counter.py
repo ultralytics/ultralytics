@@ -139,10 +139,11 @@ class ObjectCounter:
                     else:
                         self.in_counts += 1
 
+        incount_label = 'InCount : ' + f'{self.in_counts}'
+        outcount_label = 'OutCount : ' + f'{self.out_counts}'
+        self.annotator.count_labels(in_count=incount_label, out_count=outcount_label)
+
         if self.env_check and self.view_img:
-            incount_label = 'InCount : ' + f'{self.in_counts}'
-            outcount_label = 'OutCount : ' + f'{self.out_counts}'
-            self.annotator.count_labels(in_count=incount_label, out_count=outcount_label)
             cv2.namedWindow('Ultralytics YOLOv8 Object Counter')
             cv2.setMouseCallback('Ultralytics YOLOv8 Object Counter', self.mouse_event_for_region,
                                  {'region_points': self.reg_pts})

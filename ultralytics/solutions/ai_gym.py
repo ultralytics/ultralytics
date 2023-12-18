@@ -62,7 +62,7 @@ class AIGym:
 
     def start_counting(self, im0, results, frame_count):
         """
-        function used to count the gym steps
+        Function used to count the gym steps
         Args:
             im0 (ndarray): Current frame from the video stream.
             results: Pose estimation data

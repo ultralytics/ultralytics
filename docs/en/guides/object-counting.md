@@ -10,6 +10,17 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Trackin
 
 Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and deep learning capabilities.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Object Counting using Ultralytics YOLOv8
+</p>
+
 ## Advantages of Object Counting?
 
 - **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, and optimizing resource allocation in applications like inventory management.
@@ -38,16 +49,19 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter = object_counter.ObjectCounter()  # Init Object Counter
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         counter.set_args(view_img=True,
-                         reg_pts=region_points,
-                         classes_names=model.names,
-                         draw_tracks=True)
+                          reg_pts=region_points,
+                          classes_names=model.names,
+                          draw_tracks=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
             tracks = model.track(im0, persist=True, show=False)
             im0 = counter.start_counting(im0, tracks)
+
+        cv2.destroyAllWindows()
         ```
 
     === "Object Counting with Specific Classes"
@@ -64,18 +78,20 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter = object_counter.ObjectCounter()  # Init Object Counter
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         counter.set_args(view_img=True,
-                         reg_pts=region_points,
-                         classes_names=model.names,
-                         draw_tracks=True)
+                          reg_pts=region_points,
+                          classes_names=model.names,
+                          draw_tracks=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
-            tracks = model.track(im0, persist=True,
-                                show=False,
-                                classes=classes_to_count)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
+            tracks = model.track(im0, persist=True, show=False,
+                                 classes=classes_to_count)
             im0 = counter.start_counting(im0, tracks)
+
+        cv2.destroyAllWindows()
         ```
 
     === "Object Counting with Save Output"
@@ -89,26 +105,28 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         assert cap.isOpened(), "Error reading video file"
 
         video_writer = cv2.VideoWriter("object_counting.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                        cv2.VideoWriter_fourcc(*'mp4v'),
+                                        int(cap.get(5)),
+                                        (int(cap.get(3)), int(cap.get(4))))
 
         counter = object_counter.ObjectCounter()  # Init Object Counter
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         counter.set_args(view_img=True,
-                         reg_pts=region_points,
-                         classes_names=model.names,
-                         draw_tracks=True)
+                          reg_pts=region_points,
+                          classes_names=model.names,
+                          draw_tracks=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
             tracks = model.track(im0, persist=True, show=False)
             im0 = counter.start_counting(im0, tracks)
             video_writer.write(im0)
 
         video_writer.release()
+        cv2.destroyAllWindows()
         ```
 
 ???+ tip "Region is Movable"

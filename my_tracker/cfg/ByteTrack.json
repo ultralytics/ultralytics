@@ -7,7 +7,7 @@
   "device": "mps",
   "video_stride": 1,
 
-  "img_size": 1920,
+  "img_size": 640,
   "conf_threshold": 0.1,
   "iou_threshold": 0.8,
   "max_det": 50,
@@ -31,7 +31,7 @@
 
   "save_dir": "./outputs/",
   "save_results": false,
-  "display": false,
+  "display": true,
 
   "action_recognition": {
 

@@ -28,7 +28,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
     heatmap_alpha value should be in range (0.0 - 1.0)
 
 !!! Example "Heatmap Example"
-
+    
     === "Heatmap"
         ```python
         from ultralytics import YOLO
@@ -42,8 +42,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
-                              imw=cap.get(4),  # should same as im0 width
-                              imh=cap.get(3),  # should same as im0 height
+                              imw=cap.get(4),  # should same as cap width
+                              imh=cap.get(3),  # should same as cap height
                               view_img=True)
 
         while cap.isOpened():
@@ -56,6 +56,29 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
             im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
 
         cv2.destroyAllWindows()
+        ```
+        
+    === "Heatmap with im0"
+        ```python
+        from ultralytics import YOLO
+        from ultralytics.solutions import heatmap
+        import cv2
+        
+        model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
+        
+        im0 = cv2.imread("path/to/image.png")  # path to image file
+        
+        # Heatmap Init
+        heatmap_obj = heatmap.Heatmap()
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_JET,
+                             imw=im0.shape[0],  # should same as im0 width
+                             imh=im0.shape[1],  # should same as im0 height
+                             view_img=True)
+        
+        
+        results = model.track(im0, persist=True)
+        im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
+        cv2.imwrite("ultralytics_output.png", im0)
         ```
 
     === "Heatmap with Specific Classes"
@@ -73,8 +96,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
-                              imw=cap.get(4),  # should same as im0 width
-                              imh=cap.get(3),  # should same as im0 height
+                              imw=cap.get(4),  # should same as cap width
+                              imh=cap.get(3),  # should same as cap height
                               view_img=True)
 
         while cap.isOpened():
@@ -107,8 +130,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
-                             imw=cap.get(4),  # should same as im0 width
-                             imh=cap.get(3),  # should same as im0 height
+                             imw=cap.get(4),  # should same as cap width
+                             imh=cap.get(3),  # should same as cap height
                              view_img=True)
 
         while cap.isOpened():
@@ -141,8 +164,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_JET,
-                              imw=cap.get(4),  # should same as im0 width
-                              imh=cap.get(3),  # should same as im0 height
+                              imw=cap.get(4),  # should same as cap width
+                              imh=cap.get(3),  # should same as cap height
                               view_img=True,
                               count_reg_pts=count_reg_pts)
 

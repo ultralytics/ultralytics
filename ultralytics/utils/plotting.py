@@ -345,20 +345,17 @@ class Annotator:
         font_scale = 0.6 + (line_thickness / 10.0)
 
         # Draw angle
-        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, cv2.FONT_HERSHEY_SIMPLEX, font_scale,
-                                                                   line_thickness)
+        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, font_scale, line_thickness)
         angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
         angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
         angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (line_thickness * 2))
         cv2.rectangle(self.im, angle_background_position, (angle_background_position[0] + angle_background_size[0],
                                                            angle_background_position[1] + angle_background_size[1]),
                       (255, 255, 255), -1)
-        cv2.putText(self.im, angle_text, angle_text_position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0, 0, 0),
-                    line_thickness)
+        cv2.putText(self.im, angle_text, angle_text_position, 0, font_scale, (0, 0, 0), line_thickness)
 
         # Draw Counts
-        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, cv2.FONT_HERSHEY_SIMPLEX, font_scale,
-                                                                   line_thickness)
+        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, font_scale, line_thickness)
         count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
         count_background_position = (angle_background_position[0],
                                      angle_background_position[1] + angle_background_size[1] + 5)
@@ -367,12 +364,10 @@ class Annotator:
         cv2.rectangle(self.im, count_background_position, (count_background_position[0] + count_background_size[0],
                                                            count_background_position[1] + count_background_size[1]),
                       (255, 255, 255), -1)
-        cv2.putText(self.im, count_text, count_text_position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0, 0, 0),
-                    line_thickness)
+        cv2.putText(self.im, count_text, count_text_position, 0, font_scale, (0, 0, 0), line_thickness)
 
         # Draw Stage
-        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, cv2.FONT_HERSHEY_SIMPLEX, font_scale,
-                                                                   line_thickness)
+        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, font_scale, line_thickness)
         stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
         stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
         stage_background_size = (stage_text_width + 10, stage_text_height + 10)
@@ -380,8 +375,25 @@ class Annotator:
         cv2.rectangle(self.im, stage_background_position, (stage_background_position[0] + stage_background_size[0],
                                                            stage_background_position[1] + stage_background_size[1]),
                       (255, 255, 255), -1)
-        cv2.putText(self.im, stage_text, stage_text_position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0, 0, 0),
-                    line_thickness)
+        cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+
+    def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
+        """Function for drawing segmented object in bounding box shape."""
+        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
+
+        label = f'Track ID: {track_label}' if track_label else det_label
+        text_size, _ = cv2.getTextSize(label, 0, 0.7, 1)
+        cv2.rectangle(self.im, (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
+                      (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)), mask_color, -1)
+        cv2.putText(self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255),
+                    2)
+
+    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
+        """Function for pinpoint human-vision eye mapping and plotting."""
+        center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+        cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
+        cv2.circle(self.im, center_bbox, pins_radius, color, -1)
+        cv2.line(self.im, center_point, center_bbox, color, thickness)
 
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395

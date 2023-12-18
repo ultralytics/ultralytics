@@ -784,8 +784,8 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr('TensorFlow.js:')):
         """YOLOv8 TensorFlow.js export."""
-        # JAX bug requiring install constraints in https://github.com/google/jax/issues/18978
-        check_requirements(['jax<=0.4.21', 'jaxlib<=0.4.21', 'tensorflowjs'])
+        # JAX bug requiring install constraint !=0.4.22 in https://github.com/google/jax/issues/18978
+        check_requirements('tensorflowjs')
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 

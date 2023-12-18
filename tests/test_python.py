@@ -121,7 +121,7 @@ def test_embed():
 
     results = model.embed(batch, imgsz=32)
     results_seg = seg_model.embed(batch, imgsz=32)
-    assert len(results) == len(results_seg) == len(batch) # multiple sources in a batch
+    assert len(results) == len(results_seg) == len(batch)  # multiple sources in a batch
     assert results[0].embeddings.shape == results_seg[0].embeddings.shape
 
 

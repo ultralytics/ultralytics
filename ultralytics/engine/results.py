@@ -89,7 +89,15 @@ class Results(SimpleClass):
         _keys (tuple): A tuple of attribute names for non-empty attributes.
     """
 
-    def __init__(self, orig_img=None, path=None, names=None, boxes=None, masks=None, probs=None, keypoints=None, embeddings=None) -> None:
+    def __init__(self,
+                 orig_img=None,
+                 path=None,
+                 names=None,
+                 boxes=None,
+                 masks=None,
+                 probs=None,
+                 keypoints=None,
+                 embeddings=None) -> None:
         """Initialize the Results class."""
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2] if orig_img is not None else None

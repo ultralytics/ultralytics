@@ -464,7 +464,7 @@ class Exporter:
                 _, assets = get_github_assets(repo='pnnx/pnnx', retry=True)
                 url = [x for x in assets if any(s in x for s in system)][0]
             except Exception as e:
-                url = f'https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20231127-{system[0]}.zip'
+                url = f'https://github.com/pnnx/pnnx/releases/download/20231127/pnnx-20231127-{system[0]}.zip'
                 LOGGER.warning(f'{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}')
             asset = attempt_download_asset(url, repo='pnnx/pnnx', release='latest')
             if check_is_path_safe(Path.cwd(), asset):  # avoid path traversal security vulnerability

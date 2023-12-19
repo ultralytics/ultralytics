@@ -17,8 +17,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch import distributed as dist
-from torch import nn, optim
+from torch import distributed as dist, nn, optim
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -189,6 +188,14 @@ class BaseTrainer:
         else:
             self._do_train(world_size)
 
+    def _setup_scheduler(self):
+        """Initialize training learning rate scheduler"""
+        if self.args.cos_lr:
+            self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
+        else:
+            self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
+        self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
+
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
@@ -269,11 +276,7 @@ class BaseTrainer:
                                               decay=weight_decay,
                                               iterations=iterations)
         # Scheduler
-        if self.args.cos_lr:
-            self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
-        else:
-            self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
-        self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
+        self._setup_scheduler()
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
@@ -374,12 +377,7 @@ class BaseTrainer:
                 self.run_callbacks('on_train_batch_end')
 
             self.lr = {f'lr/pg{ir}': x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
-
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore')  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
-                self.scheduler.step()
             self.run_callbacks('on_train_epoch_end')
-
             if RANK in (-1, 0):
                 final_epoch = epoch + 1 == self.epochs
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
@@ -397,9 +395,17 @@ class BaseTrainer:
                     self.save_model()
                     self.run_callbacks('on_model_save')
 
+            # Scheduler
             t = time.time()
             self.epoch_time = t - self.epoch_time_start
             self.epoch_time_start = t
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
+                if self.args.time:
+                    self.epochs = self.args.epochs = (time.time() - self.train_time_start) / self.epoch_time
+                    self._setup_scheduler()
+                    self.scheduler.last_epoch = self.epoch  # do not move
+                self.scheduler.step()
             self.run_callbacks('on_fit_epoch_end')
             torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 

@@ -194,7 +194,9 @@ class BasePredictor:
     def postprocess_embed(self, preds, img, orig_imgs):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
-        results = [Results(orig_imgs[i], path=self.batch[0][i], names=self.model.names, embeddings=pred) for i, pred in enumerate(preds)]
+        results = [
+            Results(orig_imgs[i], path=self.batch[0][i], names=self.model.names, embeddings=pred)
+            for i, pred in enumerate(preds)]
         return results
 
     def __call__(self, source=None, model=None, stream=False, *args, **kwargs):

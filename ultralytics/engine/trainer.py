@@ -350,8 +350,8 @@ class BaseTrainer:
 
                     # Timed stopping
                     if self.args.time:
-                        self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
-                        if self.stop:  # training time exceeded
+                        if (time.time() - self.train_time_start) > (self.args.time * 3600):  # training time exceeded
+                            self.stop = True
                             break
 
                 # Log
@@ -384,6 +384,8 @@ class BaseTrainer:
                     self.metrics, self.fitness = self.validate()
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
                 self.stop |= self.stopper(epoch + 1, self.fitness)
+                if self.args.time:
+                    self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
                 # Save model
                 if self.args.save or final_epoch:

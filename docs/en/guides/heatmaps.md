@@ -42,17 +42,44 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
-                             imw=cap.get(4),  # should same as im0 width
-                             imh=cap.get(3),  # should same as im0 height
-                             view_img=True)
+                             imw=cap.get(4),  # should same as cap width
+                             imh=cap.get(3),  # should same as cap height
+                             view_img=True,
+                             decay_factor=0.99)
 
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
+
             results = model.track(im0, persist=True)
             im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
 
+        cv2.destroyAllWindows()
+        ```
+
+    === "Heatmap with im0"
+        ```python
+        from ultralytics import YOLO
+        from ultralytics.solutions import heatmap
+        import cv2
+
+        model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
+
+        im0 = cv2.imread("path/to/image.png")  # path to image file
+
+        # Heatmap Init
+        heatmap_obj = heatmap.Heatmap()
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_JET,
+                             imw=im0.shape[0],  # should same as im0 width
+                             imh=im0.shape[1],  # should same as im0 height
+                             view_img=True)
+
+
+        results = model.track(im0, persist=True)
+        im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
+        cv2.imwrite("ultralytics_output.png", im0)
         ```
 
     === "Heatmap with Specific Classes"
@@ -70,17 +97,19 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
-                             imw=cap.get(4),  # should same as im0 width
-                             imh=cap.get(3),  # should same as im0 height
-                             view_img=True)
+                              imw=cap.get(4),  # should same as cap width
+                              imh=cap.get(3),  # should same as cap height
+                              view_img=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
             results = model.track(im0, persist=True, classes=classes_for_heatmap)
             im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
 
+        cv2.destroyAllWindows()
         ```
 
     === "Heatmap with Save Output"
@@ -102,18 +131,21 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_CIVIDIS,
-                             imw=cap.get(4),  # should same as im0 width
-                             imh=cap.get(3),  # should same as im0 height
+                             imw=cap.get(4),  # should same as cap width
+                             imh=cap.get(3),  # should same as cap height
                              view_img=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
-            results = model.track(im0, persist=True, classes=classes_for_heatmap)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
+            results = model.track(im0, persist=True)
             im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
             video_writer.write(im0)
 
+        video_writer.release()
+        cv2.destroyAllWindows()
         ```
 
     === "Heatmap with Object Counting"
@@ -133,32 +165,37 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_JET,
-                             imw=cap.get(4),  # should same as im0 width
-                             imh=cap.get(3),  # should same as im0 height
-                             view_img=True,
-                             count_reg_pts=count_reg_pts)
+                              imw=cap.get(4),  # should same as cap width
+                              imh=cap.get(3),  # should same as cap height
+                              view_img=True,
+                              count_reg_pts=count_reg_pts)
 
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
             results = model.track(im0, persist=True)
             im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
+
+        cv2.destroyAllWindows()
+
         ```
 
 ### Arguments `set_args`
 
-| Name                | Type           | Default         | Description                     |
-|---------------------|----------------|-----------------|---------------------------------|
-| view_img            | `bool`         | `False`         | Display the frame with heatmap  |
-| colormap            | `cv2.COLORMAP` | `None`          | cv2.COLORMAP for heatmap        |
-| imw                 | `int`          | `None`          | Width of Heatmap                |
-| imh                 | `int`          | `None`          | Height of Heatmap               |
-| heatmap_alpha       | `float`        | `0.5`           | Heatmap alpha value             |
-| count_reg_pts       | `list`         | `None`          | Object counting region points   |
-| count_txt_thickness | `int`          | `2`             | Count values text size          |
-| count_reg_color     | `tuple`        | `(255, 0, 255)` | Counting region color           |
-| region_thickness    | `int`          | `5`             | Counting region thickness value |
+| Name                | Type           | Default         | Description                                               |
+|---------------------|----------------|-----------------|-----------------------------------------------------------|
+| view_img            | `bool`         | `False`         | Display the frame with heatmap                            |
+| colormap            | `cv2.COLORMAP` | `None`          | cv2.COLORMAP for heatmap                                  |
+| imw                 | `int`          | `None`          | Width of Heatmap                                          |
+| imh                 | `int`          | `None`          | Height of Heatmap                                         |
+| heatmap_alpha       | `float`        | `0.5`           | Heatmap alpha value                                       |
+| count_reg_pts       | `list`         | `None`          | Object counting region points                             |
+| count_txt_thickness | `int`          | `2`             | Count values text size                                    |
+| count_reg_color     | `tuple`        | `(255, 0, 255)` | Counting region color                                     |
+| region_thickness    | `int`          | `5`             | Counting region thickness value                           |
+| decay_factor        | `float`        | `0.99`          | Decay factor for heatmap area removal after specific time |
 
 ### Arguments `model.track`
 

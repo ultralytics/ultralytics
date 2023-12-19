@@ -603,9 +603,10 @@ class adderConv(nn.Module):
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         super().__init__()
         # Menggunakan adder2d
-        self.conv = adder.adder2d(c1, c2, kernel_size=k, stride=s, padding=autopad(k, p), bias=False)
+        self.conv = adder2d(c1, c2, kernel_size=k, stride=s, padding=autopad(k, p), bias=False)
         self.bn = nn.BatchNorm2d(c2)
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
         return self.act(self.bn(self.conv(x)))
+

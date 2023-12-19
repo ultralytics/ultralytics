@@ -17,7 +17,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch import distributed as dist, nn, optim
+from torch import distributed as dist
+from torch import nn, optim
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -189,7 +190,7 @@ class BaseTrainer:
             self._do_train(world_size)
 
     def _setup_scheduler(self):
-        """Initialize training learning rate scheduler"""
+        """Initialize training learning rate scheduler."""
         if self.args.cos_lr:
             self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
         else:

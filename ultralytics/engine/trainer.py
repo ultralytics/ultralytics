@@ -285,13 +285,12 @@ class BaseTrainer:
             self._setup_ddp(world_size)
         self._setup_train(world_size)
 
-        self.epoch_time = None
-        self.epoch_time_start = time.time()
-        self.train_time_start = time.time()
         nb = len(self.train_loader)  # number of batches
         nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1  # warmup iterations
         last_opt_step = -1
-        time_exceeded = False
+        self.epoch_time = None
+        self.epoch_time_start = time.time()
+        self.train_time_start = time.time()
         self.run_callbacks('on_train_start')
         LOGGER.info(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
                     f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
@@ -349,9 +348,11 @@ class BaseTrainer:
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
+
+                    # Timed stopping
                     if self.args.time:
-                        time_exceeded = (time.time() - self.train_time_start) > (self.args.time * 3600)
-                        if time_exceeded:
+                        self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
+                        if self.stop:  # training time exceeded
                             break
 
                 # Log
@@ -380,10 +381,10 @@ class BaseTrainer:
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
 
                 # Validation
-                if self.args.val or final_epoch or self.stopper.possible_stop or time_exceeded:
+                if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                     self.metrics, self.fitness = self.validate()
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
-                self.stop = self.stopper(epoch + 1, self.fitness) or time_exceeded
+                self.stop |= self.stopper(epoch + 1, self.fitness)
 
                 # Save model
                 if self.args.save or final_epoch:
@@ -398,10 +399,8 @@ class BaseTrainer:
 
             # Early Stopping
             if RANK != -1:  # if DDP training
-                broadcast_list = [self.stop if RANK == 0 else None]
-                dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                if RANK != 0:
-                    self.stop = broadcast_list[0]
+                self.stop = torch.tensor(self.stop, dtype=torch.bool)  # broadcast 'stop' to all ranks
+                dist.broadcast(self.stop, src=0)
             if self.stop:
                 break  # must break all DDP ranks
 

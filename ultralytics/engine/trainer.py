@@ -407,6 +407,7 @@ class BaseTrainer:
                     self.epochs = self.args.epochs = math.ceil(self.args.time * 3600 / mean_epoch_time)
                     self._setup_scheduler()
                     self.scheduler.last_epoch = self.epoch  # do not move
+                    self.stop |= epoch >= self.epochs  # stop if exceeded epochs
                 self.scheduler.step()
             self.run_callbacks('on_fit_epoch_end')
             torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors

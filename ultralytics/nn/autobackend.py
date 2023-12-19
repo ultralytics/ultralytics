@@ -149,7 +149,7 @@ class AutoBackend(nn.Module):
                 metadata = json.loads(extra_files['config.txt'], object_hook=lambda x: dict(x.items()))
         elif dnn:  # ONNX OpenCV DNN
             LOGGER.info(f'Loading {w} for ONNX OpenCV DNN inference...')
-            check_requirements('opencv-python>=4.5.4')
+            check_requirements('opencv-python-headless>=4.5.4')
             net = cv2.dnn.readNetFromONNX(w)
         elif onnx:  # ONNX Runtime
             LOGGER.info(f'Loading {w} for ONNX Runtime inference...')

@@ -403,7 +403,7 @@ class BaseTrainer:
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
                 if self.args.time:
-                    mean_epoch_time = (epoch - self.start_epoch + 1) / (t - self.train_time_start)
+                    mean_epoch_time = (t - self.train_time_start) / (epoch - self.start_epoch + 1)
                     self.epochs = self.args.epochs = math.ceil(self.args.time * 3600 / mean_epoch_time)
                     self._setup_scheduler()
                     self.scheduler.last_epoch = self.epoch  # do not move

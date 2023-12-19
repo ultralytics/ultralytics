@@ -17,8 +17,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch import distributed as dist
-from torch import nn, optim
+from torch import distributed as dist, nn, optim
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -399,8 +398,9 @@ class BaseTrainer:
 
             # Early Stopping
             if RANK != -1:  # if DDP training
-                self.stop = torch.tensor(self.stop, dtype=torch.bool, device='cuda')  # broadcast 'stop' to all ranks
-                dist.broadcast(self.stop, src=0)
+                broadcast_list = [self.stop if RANK == 0 else None]
+                dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
+                self.stop = broadcast_list[0]
             if self.stop:
                 break  # must break all DDP ranks
 

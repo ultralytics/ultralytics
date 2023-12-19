@@ -212,7 +212,7 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     bd = torch.clamp(bd, eps, 100.0)
     hd = torch.sqrt(1.0 - torch.exp(-bd) + eps)
     iou = 1 - hd
-    if CIoU:
+    if CIoU:  # only include the wh aspect ratio part
         w1, h1 = obb1[..., 2:4].split(1, dim=-1)
         w2, h2 = obb2[..., 2:4].split(1, dim=-1)
         v = (4 / math.pi ** 2) * (torch.atan(w2 / h2) - torch.atan(w1 / h1)).pow(2)

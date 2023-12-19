@@ -255,7 +255,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
         """Iou calculation for rotated bounding boxes."""
-        return probiou(gt_bboxes, pd_bboxes, CIoU=True).squeeze(-1).clamp_(0)
+        return probiou(gt_bboxes, pd_bboxes).squeeze(-1).clamp_(0)
 
     @staticmethod
     def select_candidates_in_gts(xy_centers, gt_bboxes):

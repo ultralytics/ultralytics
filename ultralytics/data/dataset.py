@@ -208,7 +208,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
     """
 
-    def __init__(self, root, args, augment=False, cache=False, prefix='', torch_transforms = None):
+    def __init__(self, root, args, augment=False, cache=False, prefix='', image_transforms = None):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -226,7 +226,12 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
+        if image_transforms is None:
+            LOGGER.info(f"-Using default image transformations")
+            self.image_transforms = classify_transforms(args.imgsz, rect=args.rect)
+        else :
+            LOGGER.info(f"+Using custom image transformations: {image_transforms}")
+            self.image_transforms = image_transforms
         # self.album_transforms = classify_albumentations(
         #     augment=augment,
         #     size=args.imgsz,
@@ -239,7 +244,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         #     mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
         #     std=(1.0, 1.0, 1.0),  # IMAGENET_STD
         #     auto_aug=False) if augment else None
-
+        
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
@@ -255,7 +260,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         #     sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         # else:
             # sample = self.torch_transforms(im)
-        sample = self.torch_transforms(im)
+        sample = self.image_transforms(im)
         return {'img': sample, 'cls': j}
         # return {'img': im, 'cls': j}
 

@@ -29,14 +29,14 @@ class ClassificationTrainer(BaseTrainer):
         ```
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, image_transforms=None, label_transforms=None):
         """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
         if overrides is None:
             overrides = {}
         overrides['task'] = 'classify'
         if overrides.get('imgsz') is None:
             overrides['imgsz'] = 224
-        super().__init__(cfg, overrides, _callbacks)
+        super().__init__(cfg, overrides, _callbacks, image_transforms, label_transforms)
 
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""
@@ -82,9 +82,10 @@ class ClassificationTrainer(BaseTrainer):
 
         return ckpt
 
-    def build_dataset(self, img_path, mode='train', batch=None, torch_transforms=None):
+    def build_dataset(self, img_path, mode='train', batch=None):
         """Creates a ClassificationDataset instance given an image path, and mode (train/test etc.)."""
-        return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train', prefix=mode, torch_transforms=torch_transforms)
+        return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train', prefix=mode, 
+        image_transforms=self.image_transforms)
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
@@ -95,9 +96,9 @@ class ClassificationTrainer(BaseTrainer):
         # Attach inference transforms
         if mode != 'train':
             if is_parallel(self.model):
-                self.model.module.transforms = loader.dataset.torch_transforms
+                self.model.module.transforms = loader.dataset.image_transforms
             else:
-                self.model.transforms = loader.dataset.torch_transforms
+                self.model.transforms = loader.dataset.image_transforms
         return loader
 
     def preprocess_batch(self, batch):

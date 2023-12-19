@@ -191,6 +191,12 @@ class BasePredictor:
         """Post-processes predictions for an image and returns them."""
         return preds
 
+    def postprocess_embed(self, preds, img, orig_imgs):
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+        results = [Results(orig_imgs[i], path=self.batch[0][i], names=self.model.names, embeddings=pred) for i, pred in enumerate(preds)]
+        return results
+
     def __call__(self, source=None, model=None, stream=False, *args, **kwargs):
         """Performs inference on an image or stream."""
         self.stream = stream
@@ -231,6 +237,7 @@ class BasePredictor:
     def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Streams real-time inference on camera feed and saves results to file."""
         embed = len(kwargs.get('embed_from', [])) > 0
+        postprocess = self.postprocess_embed if embed else self.postprocess
         if self.args.verbose:
             LOGGER.info('')
 
@@ -269,8 +276,7 @@ class BasePredictor:
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = [Results(embeddings=pred)
-                                    for pred in preds] if embed else self.postprocess(preds, im, im0s)
+                    self.results = postprocess(preds, im, im0s)
 
                 self.run_callbacks('on_predict_postprocess_end')
                 # Visualize, save, write results if embeddings are not being computed

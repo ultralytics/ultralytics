@@ -351,8 +351,12 @@ class BaseTrainer:
 
                     # Timed stopping
                     if self.args.time:
-                        if (time.time() - self.train_time_start) > (self.args.time * 3600):  # training time exceeded
-                            self.stop = True
+                        self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
+                        if RANK != -1:  # if DDP training
+                            broadcast_list = [self.stop if RANK == 0 else None]
+                            dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
+                            self.stop = broadcast_list[0]
+                        if self.stop:  # training time exceeded
                             break
 
                 # Log

@@ -8,13 +8,18 @@ from torch.nn.parameter import Parameter
 
 from torchvision.ops import SqueezeExcitation
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, CombConv, LightConvB, QConv, LightDSConv, AsymmetricConv, AsymmetricDWConvLightConv, AsymmetricDWConv, DepthwiseSeparableConv, SqueezeExcite
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, CombConv, LightConvB, QConv, LightDSConv, AsymmetricConv, AsymmetricDWConvLightConv, AsymmetricDWConv, adderConv, adder, adder2d, DepthwiseSeparableConv, SqueezeExcite
 from .transformer import TransformerBlock, MSDATransformerBlock
 
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
            'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 'LightDSConv', 'LightDSConvC2f', 'AsymmetricLightC2f','AsymmetricLightBottleneckC2f', 'C3xAsymmetricLightBottleneck')
+           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 
+           'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 
+           'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 
+           'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 
+           'LightDSConv', 'LightDSConvC2f', 'AsymmetricLightC2f','AsymmetricLightBottleneckC2f', 
+           'C3xAsymmetricLightBottleneck', 'adderBottleneck', 'adderC2f')
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.
@@ -1141,4 +1146,32 @@ class C3xAsymmetricLightBottleneck(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
         self.m = nn.Sequential(*(AsymmetricLightBottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+
+
+class adderBottleneck(nn.Module):
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = adderConv(c1, c_, k[0], 1)  # Menggunakan kelas Conv yang telah dimodifikasi
+        self.cv2 = adderConv(c_, c2, k[1], 1, g=g)  # Menggunakan kelas Conv yang telah dimodifikasi
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
+    
+
+class adderC2f(nn.Module):
+    # Implementasi C2f dengan adderConv
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList([adderBottleneck(self.c, self.c, shortcut, g, e=1.0) for _ in range(n)])
+
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
 

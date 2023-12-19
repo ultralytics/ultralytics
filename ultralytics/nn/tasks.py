@@ -13,7 +13,8 @@ from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottlenec
                                     RTDETRDecoder, Segment, FusedMBConv, MBConv, SABottleneck, sa_layer, C3SA, LightC3x, C3xTR, 
                                     LightConv, C2HG, C3xHG, C2fx, C2TR, C3CTR, C2fDA, C3TR2, HarDBlock, MBC2f, 
                                     C2fTA, C3xTA, LightC2f, LightBottleneck, BLightC2f, MSDAC3x, QConv, LightDSConvC2f, 
-                                    AsymmetricConv, AsymmetricDWConvLightConv, AsymmetricDWConv, AsymmetricLightC2f, AsymmetricLightBottleneckC2f, C3xAsymmetricLightBottleneck)
+                                    AsymmetricConv, AsymmetricDWConvLightConv, AsymmetricDWConv, AsymmetricLightC2f, AsymmetricLightBottleneckC2f, 
+                                    C3xAsymmetricLightBottleneck, adderC2f)
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
@@ -690,7 +691,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                  FusedMBConv, SABottleneck, C3SA, LightC3x, C3xTR, LightConv, C2HG, C3xHG, 
                  C2fx, C2TR, C3CTR, C2fDA, C3, C3TR2, HarDBlock, MBC2f, C2fTA, C3xTA, LightC2f, 
                  LightBottleneck, BLightC2f, MSDAC3x, QConv, LightDSConvC2f,
-                 AsymmetricLightC2f, AsymmetricLightBottleneckC2f, C3xAsymmetricLightBottleneck):
+                 AsymmetricLightC2f, AsymmetricLightBottleneckC2f, C3xAsymmetricLightBottleneck, adderC2f):
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)

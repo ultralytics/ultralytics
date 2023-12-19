@@ -480,8 +480,6 @@ class RTDETRDetectionModel(DetectionModel):
         """
         if augment:
             LOGGER.warning('WARNING ⚠️ RTDETR inference has not supported `augment` arg yet!')
-        if len(embed_from):
-            LOGGER.warning('WARNING ⚠️ RTDETR inference has not supported embed mode yet!')
         y, dt = [], []  # outputs
         return_embed = len(embed_from) > 0
         for m in self.model[:-1]:  # except the head part

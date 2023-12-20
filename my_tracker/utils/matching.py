@@ -89,6 +89,13 @@ def iou_distance(atracks, btracks):
         ious = bbox_ioa(np.ascontiguousarray(atlbrs, dtype=np.float32),
                         np.ascontiguousarray(btlbrs, dtype=np.float32),
                         iou=True)
+        # TODO: ideally, we should only match detections with their own class
+        # Create a mask for different class IDs more efficiently
+        class_ids_a = np.array([track.class_ids for track in atracks])
+        class_ids_b = np.array([track.class_ids for track in btracks])
+        class_mask = (class_ids_a[:, None] != class_ids_b[None, :]).astype(np.float32)
+        ious *= (1 - class_mask)  # Element-wise multiplication to zero out IoUs for different classes
+
     return 1 - ious  # cost matrix
 
 

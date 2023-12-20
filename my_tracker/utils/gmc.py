@@ -5,7 +5,7 @@ import numpy as np
 
 from ultralytics.utils import LOGGER
 
-
+# TODO: Not working properly
 class GMC:
     """
     Generalized Motion Compensation (GMC) class for tracking and object detection in video frames.

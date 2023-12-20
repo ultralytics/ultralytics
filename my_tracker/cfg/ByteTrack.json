@@ -2,7 +2,7 @@
   "name": "ByteTrack",
 
   "source_weights_path": "./../inference_tools/models/detector_best.pt",
-  "source_video_path": "./data/test1.mp4",
+  "source_video_path": "./data/test2.mp4",
 
   "device": "mps",
   "video_stride": 1,

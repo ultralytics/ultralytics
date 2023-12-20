@@ -1,6 +1,6 @@
 ﻿# YOLOv8 LibTorch Inference C++
 
-This example demonstrates how to perform inference using YOLOv8 models in C++ with Libtorch API.
+This example demonstrates how to perform inference using YOLOv8 models in C++ with LibTorch API.
 
 ## Dependencies
 

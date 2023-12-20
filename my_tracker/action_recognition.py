@@ -4,6 +4,9 @@ import cv2
 import networkx as nx
 import numpy as np
 
+from shapely.geometry import Point, Polygon
+
+
 font = cv2.FONT_HERSHEY_SIMPLEX
 font_scale = 0.4
 font_thickness = 1
@@ -15,6 +18,7 @@ text_padding = 7
 class ActionRecognizer:
     def __init__(self, config, video_info):
         self.video_info = video_info
+        self.speed_projection = np.array(config["speed_projection"])
         # Gathering parameters
         self.g_enabled = config["gather"]["enabled"]
         self.g_distance_threshold = config["gather"]["distance_threshold"]
@@ -24,17 +28,20 @@ class ActionRecognizer:
         self.ss_speed_threshold = config["stand_still"]["speed_threshold"]
         # Fast approach parameters
         self.fa_enabled = config["fast_approach"]["enabled"]
+        self.fa_draw = config["fast_approach"]["draw"]
         self.fa_distance_threshold = config["fast_approach"]["distance_threshold"]
         self.fa_speed_threshold = config["fast_approach"]["speed_threshold"]
+        self.interest_point = np.array([self.video_info.resolution_wh[0]//2, self.video_info.resolution_wh[1]]) # bottom center of the frame
+        self.trigger_radius = self.interest_point[1]/self.fa_distance_threshold
         # Suddenly running parameters
         self.sr_enabled = config["suddenly_run"]["enabled"]
-        self.sr_acceleration_threshold = config["suddenly_run"]["acceleration_threshold"]
+        self.sr_speed_threshold = config["suddenly_run"]["speed_threshold"]
         # Overstep boundary parameters
         self.osb_enabled = config["overstep_boundary"]["enabled"]
         self.osb_draw = config["overstep_boundary"]["draw"]
-        self.osb_line = config["overstep_boundary"]["line"]  # Coords: [x1, y1, x2, y2]
-        self.osb_direction = config["overstep_boundary"]["direction"]  # "up" or "down"
-        self.osb_distance_threshold = config["overstep_boundary"]["distance_threshold"]
+        self.osb_line = config["overstep_boundary"]["line"]  # Coords: [xl, yl, xr, yr]
+        self.osb_region = self.init_region(osb_line=self.osb_line,
+                                           osb_direction=config["overstep_boundary"]["region"])
 
     def recognize_frame(self, tracks):
         """
@@ -82,7 +89,10 @@ class ActionRecognizer:
         Returns:
             frame (np.array): annotated frame.
         """
-        if self.osb_draw:
+        if self.fa_draw and self.fa_enabled:
+            cv2.circle(frame, tuple(self.interest_point), int(self.trigger_radius), (0, 255, 0), thickness=2)
+
+        if self.osb_draw and self.osb_enabled:
             cv2.line(frame, self.osb_line[:2], self.osb_line[2:], (0, 255, 0), thickness=2)
         if self.g_enabled and ar_results["group"] is not None:
             frame = self.annotate_gather(frame, ar_results["group"]["gather"])
@@ -141,6 +151,9 @@ class ActionRecognizer:
         Returns:
             results (dict): dictionary containing the results of the action recognition.
         """
+        if not tracks:
+            return None
+
         pairs = []
         # Iterate over all pairs of detections
         for i, j in combinations(range(len(tracks)), 2):
@@ -148,7 +161,7 @@ class ActionRecognizer:
             det2 = tracks[int(j)]
 
             # If both detections are people proceed to computation
-            # TODO: maybe constrain on speed?
+            # TODO: maybe constrain on speed or time interval of Gbox existing, individual existence isn't useful, crowd should have similar speeds?
             if (det1.class_ids == 0) and (det2.class_ids == 0):
                 distance, a1, a2 = self.compute_ned(det1, det2)
 
@@ -220,97 +233,54 @@ class ActionRecognizer:
         Returns:
             crowd_box (list): list containing the coordinates of the bounding box of the crowd.
         """
-        # TODO: optimize this
         # Get the coordinates of the bounding boxes of the detections in the crowd
         crowd_boxes = [tracks[i].tlbr for i in crowd]
-        # Compute the bounding box of the crowd
-        crowd_box = [min([box[0] for box in crowd_boxes]),
-                     min([box[1] for box in crowd_boxes]),
-                     max([box[2] for box in crowd_boxes]),
-                     max([box[3] for box in crowd_boxes])]
-        # TODO maybe add more space to the bounding box, not narrow it down to the crowd
+        # Compute the bounding box of the crowd with margin for individual actions
+        crowd_box = [min([box[0] for box in crowd_boxes])-text_padding*4,
+                     min([box[1] for box in crowd_boxes])-text_padding*4,
+                     max([box[2] for box in crowd_boxes])+text_padding*4,
+                     max([box[3] for box in crowd_boxes])+text_padding*4]
         return np.array(crowd_box)
 
     def recognize_stand_still(self, tracks):
-        # TODO: also controlled by sv.STrack.frame_stride
-        if not tracks:  # Verificar si la lista de tracks está vacía
+        if not tracks:
             return None
         frame_stride = tracks[0].frame_stride
         ss_results = {}
         for track in tracks:
             if track.tracklet_len > frame_stride and track.class_ids == 0:
-                pixel_s, pixel_a, _ = self.get_motion_descriptors(track)
-                if pixel_s < self.ss_speed_threshold:   # TODO: condition on acceleration?
+                pixel_s, _ = self.get_motion_descriptors(track)
+                if pixel_s < self.ss_speed_threshold:
                     ss_results[track.track_id] = track.tlbr
         return ss_results if len(ss_results.keys()) > 0 else None
 
     def get_motion_descriptors(self, track):
-
-        """dif = (track.mean - track.prev_states[-1]) / track.frame_stride
-        if len(track.prev_states) > 1:
-            dif_prev = (track.prev_states[-1] - track.prev_states[-2]) / track.frame_stride
-        else:
-            dif_prev = dif
-
-        # Speed
-        dif_speed = np.sqrt(np.sum(dif[:4] ** 2))
-        dif_prev_speed = np.sqrt(np.sum(dif_prev[:4] ** 2))
-        pixel_s = (dif_speed + dif_prev_speed) / 2
-
-        # Acceleration
-        pixel_a = abs(dif_speed - dif_prev_speed) / track.frame_stride
-
-        # Direction of movement
-        direction = dif[:2] + dif_prev[:2]"""
-
-        ##########################################
-        # MEAN SPEED
-        ##########################################
-        states = track.prev_states + [track.mean]
-        X = []
-        Y = []
-        for state in states:
-            X.append(state[0])
-            Y.append(state[1])
-        X = np.array(X)
-        Y = np.array(Y)
-
-        dX = np.diff(X)
-        dY = np.diff(Y)
-        distance = np.sqrt(dX**2 + dY**2)
-
-        # Speed
-        speeds = distance / track.frame_stride
-        avg_speed = np.mean(speeds)
-        # Acceleration
-        # TODO: we should use instant acceleration, not average, speeds[-3:]?
-        acceleration = np.diff(speeds[-2:]) / track.frame_stride
-        avg_acceleration = np.mean(acceleration)
-        # Direction of movement in Y axis
-        direction = np.mean(np.sign(dY))
-        # angles = np.arctan2(dY, dX)
-        # direction = np.degrees(np.mean(angles))
-
-        return avg_speed, avg_acceleration, direction
+        # track.prev_states[-1] is most recent state
+        states = np.array(track.prev_states + [track.mean])
+        # Compute differences between states for x and y coordinates and multiply by speed projection weights
+        increments = np.diff(states[:, :2], axis=0) * self.speed_projection
+        # Area normalizer
+        a = np.sqrt(track.tlwh[2] * track.tlwh[3])
+        # Average speed
+        # TODO: right now its using whole sequence, for instant speed use only last 2 states. I sequence is too long?
+        avg_speed = np.mean(np.sqrt(np.sum(increments ** 2, axis=1))) / (track.frame_stride * a)
+        # Sign of the increments in Y axis
+        direction = np.mean(np.sign(increments[:, 1]))
+        return avg_speed, direction
 
     def recognize_fast_approach(self, tracks):
-        valid_classes = [0, 1, 2]   # personnel, car, truck
-        interest_point = np.array([self.video_info.resolution_wh[0]//2, self.video_info.resolution_wh[1]])  # bottom center of the frame
-
+        valid_classes = [0]  # TODO: should also include car and truck, different thresholds? v*X
         fa_results = {}
         for track in tracks:
             if track.class_ids in valid_classes and track.frame_id > 1:
-                pixel_s, pixel_a, direction = self.get_motion_descriptors(track)
+                pixel_s, direction = self.get_motion_descriptors(track)
                 if pixel_s > self.fa_speed_threshold and direction > 0:
+                    # TODO: if not circular region, then check if any point of bbox is inside polygon
                     # Distance between point of interest and bbox
-                    dx = max(abs(track.mean[0] - interest_point[0]) - track.mean[2] / 2, 0)
-                    dy = max(abs(track.mean[1] - interest_point[1]) - track.mean[3] / 2, 0)
+                    dx = max(abs(track.mean[0] - self.interest_point[0]) - track.mean[2] / 2, 0)
+                    dy = max(abs(track.mean[1] - self.interest_point[1]) - track.mean[3] / 2, 0)
                     distace_to_interest_point = np.sqrt(dx ** 2 + dy ** 2)
-                    # Threshold determined the distance to the bottom of the frame
-                    if distace_to_interest_point < (interest_point[1]/self.fa_distance_threshold):
-                    # TODO: cars have bigger area, so they are considered to be closer to the interest point
-                    #distace_to_interest_point = np.sqrt(np.sum((track.mean[0:2] - interest_point) ** 2))/np.sqrt(track.tlwh[2] * track.tlwh[3])
-                    #if distace_to_interest_point < self.fa_distance_threshold:
+                    if distace_to_interest_point < self.trigger_radius:
                         fa_results[track.track_id] = track.tlbr
         return fa_results if len(fa_results.keys()) > 0 else None
 
@@ -318,9 +288,10 @@ class ActionRecognizer:
         sr_results = {}
         for track in tracks:
             if track.class_ids == 0 and track.frame_id > 1:
-                # TODO: we should use instant acceleration, not average
-                pixel_s, pixel_a, direction = self.get_motion_descriptors(track)
-                if pixel_a > self.sr_acceleration_threshold:
+                # TODO: instead of kalman use motion descriptors but only for the last 2 data points, trying to solve overlapping bboxes issue
+                weighted_instant_speed = np.sqrt(np.sum((track.mean[4:6] * self.speed_projection) ** 2))
+                a = np.sqrt(track.tlwh[2] * track.tlwh[3])
+                if weighted_instant_speed/a > self.sr_speed_threshold:
                     sr_results[track.track_id] = track.tlbr
         return sr_results if len(sr_results.keys()) > 0 else None
 
@@ -355,7 +326,6 @@ class ActionRecognizer:
                     thickness=font_thickness,
                 )[0]
 
-                # Text must be top right corner of the bounding box of the crowd but outside the frame
                 text_x = x2 - text_padding - text_width
                 text_y = y2 + text_padding + text_height
 
@@ -385,63 +355,48 @@ class ActionRecognizer:
 
         return frame
 
-
-    """def is_overstep_boundary(self, track):
-        bbox = track.tlbr
-        x1, y1, x2, y2 = bbox
-        bx_center, by_center = (x1 + x2) / 2, (y1 + y2) / 2
-
-        # Check if prev_states has at least one element
-        if not track.prev_states or len(track.prev_states) < 1:
-            return False
-
-        _,_, movement_direction = self.get_motion_descriptors(track)
-
-        # Calculate the cross product to determine the side of the line on which the bbox is located.
-        lx1, ly1, lx2, ly2 = self.osb_line
-        line_vec = np.array([lx2 - lx1, ly2 - ly1])
-        bbox_vec = np.array([bx_center - lx1, by_center - ly1])
-        cross_product = np.cross(line_vec, bbox_vec)
-
-        # Verify if the bbox has crossed the line based on the configured address
-        crossed = False
-        if self.osb_direction == "up":
-            crossed = cross_product < 0
-        elif self.osb_direction == "down":
-            crossed = cross_product > 0
-        else:
-            raise ValueError(f"Unknown boundary direction: {self.osb_direction}")
-
-        # Check if the object is moving in the desired direction and is close to the line.
-        if crossed:
-            if ((self.osb_direction == "down" and movement_direction > 0) or
-                    (self.osb_direction == "up" and movement_direction < 0)):
-                return True
-        return False"""
-
-    @staticmethod
-    def within_region(pt, bbox):
-        x, y = pt
-        return bbox[0] <= x <= bbox[0] + bbox[2] and bbox[1] <= y <= bbox[1] + bbox[3]
-
     def recognize_overstep_boundary(self, tracks):
-        # Create region of interest
-        frame_width, frame_height = self.video_info.resolution_wh
-        if self.osb_direction == "down":
-            region = [0, self.osb_line[1], frame_width,
-                      frame_height - self.osb_line[1]]
-        elif self.osb_direction == "up":
-            region = [0, 0, frame_width, self.osb_line[1]]
-        else:
-            raise ValueError(f"Unknown boundary direction: {self.osb_direction}")
-
         osb_results = {}
         for track in tracks:
             # Check if the bbox crosses the boundary line
             if track.class_ids == 0:
-                if self.within_region(track.mean[:2], region):
+                # TODO: use CM or Lower Center or something else?
+                if self.osb_region.contains(Point(track.mean[:2])):
                     osb_results[track.track_id] = track.tlbr
         return osb_results if len(osb_results.keys()) > 0 else None
+
+    def init_region(self, osb_line, osb_direction):
+        # Check line coords follows left to right direction [xl, yl, xr, yr]
+        assert osb_line[0] <= osb_line[2], "Line coords must follow left to right direction"
+
+        frame_width, frame_height = self.video_info.resolution_wh
+
+        # Create region of interest, defined as [X_tl, X_tr, X_bl, X_br]
+        if osb_direction == "bottom":
+            X_tl = np.array([0, osb_line[1]])
+            X_tr = np.array([frame_width, osb_line[3]])
+            X_bl = np.array([0, frame_height])
+            X_br = np.array([frame_width, frame_height])
+
+        elif osb_direction == "top":
+            X_tl = np.array([0, 0])
+            X_tr = np.array([frame_width, 0])
+            X_bl = np.array([0, osb_line[1]])
+            X_br = np.array([frame_width, osb_line[3]])
+
+        elif osb_direction == "left":
+            X_tl = np.array([0, 0])
+            X_tr = np.array([osb_line[0], 0])
+            X_bl = np.array([0, frame_height])
+            X_br = np.array([osb_line[2], frame_height])
+
+        elif osb_direction == "right":
+            X_tl = np.array([osb_line[0], 0])
+            X_tr = np.array([frame_width, 0])
+            X_bl = np.array([osb_line[2], frame_height])
+            X_br = np.array([frame_width, frame_height])
+
+        return Polygon([X_tl, X_tr, X_br, X_bl])
 
     @staticmethod
     def annotate_overstep_boundary(frame, osb_results):

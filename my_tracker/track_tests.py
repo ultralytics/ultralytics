@@ -1,6 +1,8 @@
 import argparse
 import csv
 import os
+import subprocess
+
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 import cv2
@@ -12,10 +14,33 @@ from my_tracker.action_recognition import ActionRecognizer
 from my_tracker.utils.cfg.parse_config import ConfigParser
 from my_tracker.utils.timer.utils import FrameRateCounter, Timer
 from ultralytics import YOLO
-
+import imageio
 import supervision as sv
 
 COLORS = sv.ColorPalette.default()
+
+def convert_video_to_gif(video_path, gif_path, fps=25):
+    """
+    Convert a video file to a GIF.
+    :param video_path: Path to the video file.
+    :param gif_path: Path where the GIF should be saved.
+    :param fps: Frames per second for the GIF.
+    """
+    """reader = imageio.get_reader(video_path)
+    with imageio.get_writer(gif_path, fps=fps) as writer:
+        for frame in reader:
+            writer.append_data(frame)
+    print(f"Saved GIF to {gif_path}")"""
+    command = [
+        'ffmpeg',
+        '-i', video_path,  # Input file
+        '-vf', f'fps={fps}',  # Set frame rate
+        '-f', 'gif',  # Set format to GIF
+        gif_path  # Output file
+    ]
+    subprocess.run(command, check=True)
+    print(f"Saved GIF to {gif_path}")
+
 
 
 class VideoProcessor:
@@ -88,7 +113,7 @@ class VideoProcessor:
                 for i, frame in enumerate(pbar := tqdm(frame_generator, total=self.video_info.total_frames)):
                     pbar.set_description(f"[FPS: {fps_counter.value():.2f}] ")
                     if i % self.video_stride == 0:
-                        annotated_frame = self.process_frame(frame)
+                        annotated_frame = self.process_frame(frame, i, fps_counter.value())
                         sink.write_frame(annotated_frame)
 
                         # Store results
@@ -103,6 +128,8 @@ class VideoProcessor:
                                 data_dict["y2"].append(track.tlbr[3])
 
                         fps_counter.step()
+            gif_path = self.target_video_path.replace('.mp4', '.gif')
+            convert_video_to_gif(self.target_video_path, gif_path)
 
         else:
 
@@ -151,12 +178,14 @@ class VideoProcessor:
         print(f"Total time: {time_taken}")
         print(f"Average FPS: {avg_fps:.2f}")
 
+
         # Save datadict in csv
         if self.save_results:
             with open(self.csv_path, "w") as f:
                 w = csv.writer(f)
                 w.writerow(data_dict.keys())
                 w.writerows(zip(*data_dict.values()))
+
 
     def process_frame(self, frame: np.ndarray, frame_number: int, fps: float) -> np.ndarray:
         results = self.model(

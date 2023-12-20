@@ -2,7 +2,7 @@
   "name": "ByteTrack",
 
   "source_weights_path": "./../inference_tools/models/detector_best.pt",
-  "source_video_path": "./data/example1.mp4",
+  "source_video_path": "./data/test2.mp4",
 
   "device": "mps",
   "video_stride": 1,
@@ -12,11 +12,11 @@
   "iou_threshold": 0.8,
   "max_det": 50,
 
-  "track_high_thresh": 0.4,
-  "track_low_thresh": 0.1,
+  "track_high_thresh": 0.7,
+  "track_low_thresh": 0.4,
   "new_track_thresh": 0.1,
-  "track_buffer": 1000,
-  "match_thresh": 0.8,
+  "track_buffer": 125,
+  "match_thresh": 0.95,
   "frame_rate": 25,
 
   "proximity_thresh": 0.9,
@@ -25,44 +25,49 @@
   "reid_default": true,
   "weight_path": "ver12.pt",
 
-  "gmc_method": null,
+  "gmc_method": "sparseOptFlow",
   "ablation": "sparseOptFlow",
-
 
   "save_dir": "./outputs/",
   "save_results": false,
   "display": true,
 
   "action_recognition": {
+    "speed_projection": [0.7, 1.5],
+    "_comment": "x and y weights, should be homography matrix",
 
     "gather": {
       "enabled": true,
-      "distance_threshold": 1.5,
-      "area_threshold": 0.5
+      "distance_threshold": 1.0,
+      "area_threshold": 0.5,
+      "_comment": "d=1.5 leaves to much room for L/M"
     },
 
     "stand_still": {
         "enabled": true,
-        "speed_threshold": 0.05
+        "speed_threshold": 0.001,
+        "_comment": "s=0.001 is ok for now"
     },
 
     "fast_approach": {
         "enabled": true,
-        "distance_threshold": 3,
-        "speed_threshold": 0.8
+        "draw": true,
+        "distance_threshold": 4,
+        "speed_threshold": 0.004,
+        "_comment": "s=0.005 leaves a bit of room"
     },
 
     "suddenly_run": {
         "enabled": true,
-        "acceleration_threshold": 0.015
+        "speed_threshold": 0.025,
+        "_comment": "s>=0.03 is ok for diagonal and horizontal, vertical could be 0.02"
     },
 
     "overstep_boundary": {
       "enabled": true,
       "draw": true,
-      "line": [0, 700, 1920, 700],
-      "direction": "down",
-      "distance_threshold": 0
+      "line": [0, 0, 1920, 1080],
+      "region": "top"
     }
   }
 }

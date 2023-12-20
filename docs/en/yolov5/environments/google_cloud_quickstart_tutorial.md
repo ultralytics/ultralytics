@@ -23,7 +23,7 @@ Let’s begin by creating a virtual machine that’s tuned for deep learning:
 5. Allocate a 300 GB SSD Persistent Disk to ensure you don't bottleneck on I/O operations.
 6. Hit 'Deploy' and let GCP do its magic in provisioning your custom Deep Learning VM.
 
-This VM comes loaded with a treasure trove of preinstalled tools and frameworks, including the [Anaconda](https://docs.anaconda.com/anaconda/packages/pkg-docs/) Python distribution, which conveniently bundles all the necessary dependencies for YOLOv5.
+This VM comes loaded with a treasure trove of preinstalled tools and frameworks, including the [Anaconda](https://www.anaconda.com/) Python distribution, which conveniently bundles all the necessary dependencies for YOLOv5.
 
 ![GCP Marketplace illustration of setting up a Deep Learning VM](https://user-images.githubusercontent.com/26833433/105811495-95863880-5f61-11eb-841d-c2f2a5aa0ffe.png)
 

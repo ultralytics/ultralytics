@@ -19,6 +19,8 @@ import supervision as sv
 
 COLORS = sv.ColorPalette.default()
 
+
+# TODO: move to utils
 def convert_video_to_gif(video_path, gif_path, fps=25):
     """
     Convert a video file to a GIF.
@@ -40,7 +42,6 @@ def convert_video_to_gif(video_path, gif_path, fps=25):
     ]
     subprocess.run(command, check=True)
     print(f"Saved GIF to {gif_path}")
-
 
 
 class VideoProcessor:
@@ -128,8 +129,10 @@ class VideoProcessor:
                                 data_dict["y2"].append(track.tlbr[3])
 
                         fps_counter.step()
-            gif_path = self.target_video_path.replace('.mp4', '.gif')
-            convert_video_to_gif(self.target_video_path, gif_path)
+
+            # TODO: must be specified in config
+            # gif_path = self.target_video_path.replace('.mp4', '.gif')
+            # imageio.convert_video_to_gif(self.target_video_path, gif_path)
 
         else:
 

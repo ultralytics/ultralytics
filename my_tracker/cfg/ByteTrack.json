@@ -2,22 +2,22 @@
   "name": "ByteTrack",
 
   "source_weights_path": "./../inference_tools/models/detector_best.pt",
-  "source_video_path": "./data/test2.mp4",
+  "source_video_path": "./data/test1.mp4",
 
   "device": "mps",
   "video_stride": 1,
 
   "img_size": 640,
-  "conf_threshold": 0.1,
-  "iou_threshold": 0.8,
+  "conf_threshold": 0.2,
+  "iou_threshold": 0.4,
   "max_det": 50,
 
-  "track_high_thresh": 0.7,
-  "track_low_thresh": 0.4,
-  "new_track_thresh": 0.1,
-  "track_buffer": 125,
-  "match_thresh": 0.95,
-  "frame_rate": 25,
+  "track_high_thresh": 0.4,
+  "track_low_thresh": 0.2,
+  "new_track_thresh": 0.5,
+  "track_buffer": 60,
+  "match_thresh": 0.98,
+  "frame_rate": 30,
 
   "proximity_thresh": 0.9,
   "appearance_thresh": 0.8,
@@ -25,7 +25,7 @@
   "reid_default": true,
   "weight_path": "ver12.pt",
 
-  "gmc_method": "sparseOptFlow",
+  "gmc_method": null,
   "ablation": "sparseOptFlow",
 
   "save_dir": "./outputs/",
@@ -53,7 +53,7 @@
         "enabled": true,
         "draw": true,
         "distance_threshold": 4,
-        "speed_threshold": 0.004,
+        "speed_threshold": 0.005,
         "_comment": "s=0.005 leaves a bit of room"
     },
 

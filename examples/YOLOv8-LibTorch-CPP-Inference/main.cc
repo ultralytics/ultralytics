@@ -77,7 +77,7 @@ torch::Tensor xywh2xyxy(const torch::Tensor& x) {
 }
 
 
-// reference: https://github.com/pytorch/vision/blob/main/torchvision/csrc/ops/cpu/nms_kernel.cpp
+// Reference: https://github.com/pytorch/vision/blob/main/torchvision/csrc/ops/cpu/nms_kernel.cpp
 torch::Tensor nms(const torch::Tensor& bboxes, const torch::Tensor& scores, float iou_threshold) {
     if (bboxes.numel() == 0)
         return torch::empty({0}, bboxes.options().dtype(torch::kLong));
@@ -202,7 +202,7 @@ torch::Tensor scale_boxes(const std::vector<int>& img1_shape, torch::Tensor& box
 
 
 int main() {
-    // device
+    // Device
     torch::Device device(torch::cuda::is_available() ? torch::kCUDA :torch::kCPU);
 
     // Note that in this example the classes are hard-coded
@@ -233,15 +233,15 @@ int main() {
         image_tensor = image_tensor.unsqueeze(0);
         std::vector<torch::jit::IValue> inputs {image_tensor};
 
-        // inference
+        // Inference
         torch::Tensor output = yolo_model.forward(inputs).toTensor().cpu();
 
-        // nms
+        // NMS
         auto keep = non_max_supperession(output)[0];
         auto boxes = keep.index({Slice(), Slice(None, 4)});
         keep.index_put_({Slice(), Slice(None, 4)}, scale_boxes({input_image.rows, input_image.cols}, boxes, {image.rows, image.cols}));
 
-        // show the results
+        // Show the results
         for (int i = 0; i < keep.size(0); i++) {
             int x1 = keep[i][0].item().toFloat();
             int y1 = keep[i][1].item().toFloat();

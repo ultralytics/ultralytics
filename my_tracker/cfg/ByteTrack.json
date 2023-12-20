@@ -29,8 +29,8 @@
   "ablation": "sparseOptFlow",
 
   "save_dir": "./outputs/",
-  "save_results": false,
-  "display": true,
+  "save_results": true,
+  "display": false,
 
   "action_recognition": {
     "speed_projection": [0.7, 1.5],
@@ -44,23 +44,23 @@
     },
 
     "stand_still": {
-        "enabled": true,
-        "speed_threshold": 0.001,
-        "_comment": "s=0.001 is ok for now"
+      "enabled": true,
+      "speed_threshold": 0.001,
+      "_comment": "s=0.001 is ok for now"
     },
 
     "fast_approach": {
-        "enabled": true,
-        "draw": true,
-        "distance_threshold": 4,
-        "speed_threshold": 0.005,
-        "_comment": "s=0.005 leaves a bit of room"
+      "enabled": true,
+      "draw": true,
+      "distance_threshold": 4,
+      "speed_threshold": 0.005,
+      "_comment": "s=0.005 leaves a bit of room"
     },
 
     "suddenly_run": {
-        "enabled": true,
-        "speed_threshold": 0.025,
-        "_comment": "s>=0.03 is ok for diagonal and horizontal, vertical could be 0.02"
+      "enabled": true,
+      "speed_threshold": 0.025,
+      "_comment": "s>=0.03 is ok for diagonal and horizontal, vertical could be 0.02"
     },
 
     "overstep_boundary": {

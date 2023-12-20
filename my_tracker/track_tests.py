@@ -119,7 +119,7 @@ class VideoProcessor:
 
                         # Store results
                         if self.save_results:
-                            for track in self.tracker.tracked_tracks:
+                            for track in self.tracker.tracked_stracks:
                                 data_dict["frame_id"].append(track.frame_id)
                                 data_dict["tracker_id"].append(track.track_id)
                                 data_dict["class_id"].append(track.class_ids)
@@ -147,7 +147,7 @@ class VideoProcessor:
 
                     # Store results
                     if self.save_results:
-                        for track in self.tracker.tracked_tracks:
+                        for track in self.tracker.tracked_stracks:
                             data_dict["frame_id"].append(track.frame_id)
                             data_dict["tracker_id"].append(track.track_id)
                             data_dict["class_id"].append(track.class_ids)

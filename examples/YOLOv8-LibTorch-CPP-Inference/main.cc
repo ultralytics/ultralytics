@@ -45,7 +45,7 @@ float letterbox(cv::Mat &input_image, cv::Mat &output_image, const std::vector<i
     int left = std::round(padw - 0.1);
     int right = std::round(padw + 0.1);
 
-    cv::resize(input_image, output_image, 
+    cv::resize(input_image, output_image,
                cv::Size(new_shape_w, new_shape_h),
                0, 0, cv::INTER_AREA);
 

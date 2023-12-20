@@ -61,7 +61,7 @@ class ObjectCounter:
                  draw_tracks=False,
                  track_color=(0, 255, 0),
                  line_dist_thresh=15,
-                 count_txt_size=2):
+                 count_txt_size=1):
         """
         Configures the Counter's image, bounding box line thickness, and counting region points.
 

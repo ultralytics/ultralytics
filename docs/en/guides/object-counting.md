@@ -36,86 +36,31 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 !!! Example "Object Counting Example"
 
-    === "Object Counting"
+    === "Object Counting with Region"
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
         import cv2
-
+        
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-
-        counter = object_counter.ObjectCounter()  # Init Object Counter
-        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-        counter.set_args(view_img=True,
-                          reg_pts=region_points,
-                          classes_names=model.names,
-                          draw_tracks=True)
-
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-              print("Video frame is empty or video processing has been successfully completed.")
-              break
-            tracks = model.track(im0, persist=True, show=False)
-            im0 = counter.start_counting(im0, tracks)
-
-        cv2.destroyAllWindows()
-        ```
-
-    === "Object Counting with Specific Classes"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import object_counter
-        import cv2
-
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-
-        classes_to_count = [0, 2]
-        counter = object_counter.ObjectCounter()  # Init Object Counter
-        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-        counter.set_args(view_img=True,
-                          reg_pts=region_points,
-                          classes_names=model.names,
-                          draw_tracks=True)
-
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-              print("Video frame is empty or video processing has been successfully completed.")
-              break
-            tracks = model.track(im0, persist=True, show=False,
-                                 classes=classes_to_count)
-            im0 = counter.start_counting(im0, tracks)
-
-        cv2.destroyAllWindows()
-        ```
-
-    === "Object Counting with Save Output"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import object_counter
-        import cv2
-
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-
+        
+        # Video Writer
         video_writer = cv2.VideoWriter("object_counting.avi",
-                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                        int(cap.get(5)),
-                                        (int(cap.get(3)), int(cap.get(4))))
-
-        counter = object_counter.ObjectCounter()  # Init Object Counter
+                                       cv2.VideoWriter_fourcc(*'mp4v'),
+                                       int(cap.get(5)),
+                                       (int(cap.get(3)), int(cap.get(4))))
+        
+        # Init Object Counter
+        counter = object_counter.ObjectCounter()
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         counter.set_args(view_img=True,
-                          reg_pts=region_points,
-                          classes_names=model.names,
-                          draw_tracks=True)
-
+                         reg_pts=region_points,
+                         classes_names=model.names,
+                         draw_tracks=True,
+                         count_txt_size=1)
+        
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
@@ -124,9 +69,94 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
             tracks = model.track(im0, persist=True, show=False)
             im0 = counter.start_counting(im0, tracks)
             video_writer.write(im0)
-
+        
+        cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
+
+        ```
+
+    === "Object Counting with Line"
+        ```python
+        from ultralytics import YOLO
+        from ultralytics.solutions import object_counter
+        import cv2
+        
+        model = YOLO("yolov8n.pt")
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        
+        # Video Writer
+        video_writer = cv2.VideoWriter("object_counting.avi",
+                                       cv2.VideoWriter_fourcc(*'mp4v'),
+                                       int(cap.get(5)),
+                                       (int(cap.get(3)), int(cap.get(4))))
+        
+        # Init Object Counter
+        counter = object_counter.ObjectCounter()
+        line_points = [(20, 400), (1260, 400)]
+        counter.set_args(view_img=True,
+                         reg_pts=line_points,
+                         classes_names=model.names,
+                         draw_tracks=True,
+                         count_txt_size=1)
+        
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            tracks = model.track(im0, persist=True, show=False)
+            im0 = counter.start_counting(im0, tracks)
+            video_writer.write(im0)
+        
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+
+        ```
+
+    === "Object Counting with Specific Classes"
+        ```python
+        from ultralytics import YOLO
+        from ultralytics.solutions import object_counter
+        import cv2
+        
+        model = YOLO("yolov8n.pt")
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        
+        classes_to_count = [0, 2]  # list of classes to count
+        
+        # Video Writer
+        video_writer = cv2.VideoWriter("object_counting.avi",
+                                       cv2.VideoWriter_fourcc(*'mp4v'),
+                                       int(cap.get(5)),
+                                       (int(cap.get(3)), int(cap.get(4))))
+        
+        # Init Object Counter
+        counter = object_counter.ObjectCounter()
+        line_points = [(20, 400), (1260, 400)]
+        counter.set_args(view_img=True,
+                         reg_pts=line_points,
+                         classes_names=model.names,
+                         draw_tracks=True,
+                         count_txt_size=1)
+        
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            tracks = model.track(im0, persist=True, show=False,
+                                 classes=classes_to_count)
+            im0 = counter.start_counting(im0, tracks)
+            video_writer.write(im0)
+        
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+
         ```
 
 ???+ tip "Region is Movable"
@@ -135,15 +165,18 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Optional Arguments `set_args`
 
-| Name            | Type    | Default                                          | Description                           |
-|-----------------|---------|--------------------------------------------------|---------------------------------------|
-| view_img        | `bool`  | `False`                                          | Display the frame with counts         |
-| line_thickness  | `int`   | `2`                                              | Increase the thickness of count value |
-| reg_pts         | `list`  | `(20, 400), (1080, 404), (1080, 360), (20, 360)` | Region Area Points                    |
-| classes_names   | `dict`  | `model.model.names`                              | Classes Names Dict                    |
-| region_color    | `tuple` | `(0, 255, 0)`                                    | Region Area Color                     |
-| track_thickness | `int`   | `2`                                              | Tracking line thickness               |
-| draw_tracks     | `bool`  | `False`                                          | Draw Tracks lines                     |
+| Name             | Type    | Default                                          | Description                                   |
+|------------------|---------|--------------------------------------------------|-----------------------------------------------|
+| view_img         | `bool`  | `False`                                          | Display the frame with counts                 |
+| line_thickness   | `int`   | `2`                                              | Increase the thickness of count value         |
+| reg_pts          | `list`  | `(20, 400), (1080, 404), (1080, 360), (20, 360)` | Region Area Points                            |
+| classes_names    | `dict`  | `model.model.names`                              | Classes Names Dict                            |
+| region_color     | `tuple` | `(0, 255, 0)`                                    | Region Area Color                             |
+| track_thickness  | `int`   | `2`                                              | Tracking line thickness                       |
+| draw_tracks      | `bool`  | `False`                                          | Draw Tracks lines                             |
+| track_color      | `tuple` | `(0, 255, 0)`                                    | color for every track line                    |
+| line_dist_thresh | `int`   | `15`                                             | Euclidean Distance threshold for line counter |
+| count_txt_size   | `int`   | `2`                                              | Count Data text size for display              |
 
 ### Arguments `model.track`
 
@@ -155,3 +188,4 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 | `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
 | `iou`     | `float` | `0.5`          | IOU Threshold                                               |
 | `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
+| `verbose` | `bool`  | `True`         | Display the object tracking results                         |

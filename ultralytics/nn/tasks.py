@@ -57,7 +57,7 @@ class BaseModel(nn.Module):
         """
         if augment:
             return self._predict_augment(x)
-        return self._predict_once(x, profile=profile, visualize=visualize, embed=embed)
+        return self._predict_once(x, profile, visualize, embed)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """
@@ -73,7 +73,7 @@ class BaseModel(nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
-        save = (self.save + embed) if embed else self.save
+        save = self.save + (embed or [])
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -459,7 +459,7 @@ class RTDETRDetectionModel(DetectionModel):
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']],
                                                    device=img.device)
 
-    def predict(self, x, profile=False, visualize=False, batch=None, augment=False):
+    def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
         """
         Perform a forward pass through the model.
 
@@ -469,22 +469,26 @@ class RTDETRDetectionModel(DetectionModel):
             visualize (bool, optional): If True, save feature maps for visualization. Defaults to False.
             batch (dict, optional): Ground truth data for evaluation. Defaults to None.
             augment (bool, optional): If True, perform data augmentation during inference. Defaults to False.
+            embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
             (torch.Tensor): Model's output tensor.
         """
         y, dt = [], []  # outputs
+        save = self.save + (embed or [])
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
-            y.append(x if m.i in self.save else None)  # save output
+            y.append(x if m.i in save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
+        if embed:
+            return x, [y[i] for i in embed]
         return x
 
 

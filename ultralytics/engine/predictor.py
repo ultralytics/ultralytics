@@ -284,7 +284,7 @@ class BasePredictor:
                     p = Path(p)
 
                     if self.args.embed:
-                        self.results[i].embeddings = F.adaptive_avg_pool2d(embeddings[i], (1, 1)).squeeze()
+                        self.results[i].embeddings = [F.adaptive_avg_pool2d(x[i], (1, 1)).squeeze() for x in embeddings]
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                         s += self.write_results(i, self.results, (p, im, im0))
                     if self.args.save or self.args.save_txt:

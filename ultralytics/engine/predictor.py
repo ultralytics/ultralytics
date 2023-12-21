@@ -305,10 +305,6 @@ class BasePredictor:
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
             self.vid_writer[-1].release()  # release final video writer
 
-        # Return embeddings
-        if self.args.embed:
-            return
-
         # Print results
         if self.args.verbose and self.seen:
             t = tuple(x.t / self.seen * 1E3 for x in profilers)  # speeds per image

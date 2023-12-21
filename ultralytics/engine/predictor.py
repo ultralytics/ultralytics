@@ -34,7 +34,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -265,8 +264,7 @@ class BasePredictor:
                 with profilers[1]:
                     preds = self.inference(im, *args, **kwargs)
                     if self.args.embed:
-                        embeddings = torch.cat([F.adaptive_avg_pool2d(x, (1, 1)).squeeze() for x in preds])
-                        yield from [embeddings]
+                        yield from [preds]
                         continue
 
                 # Postprocess

@@ -83,9 +83,9 @@ class BaseModel(nn.Module):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
-                embeddings.append(x)
+                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze())  # flatten
                 if m.i == embed[-1]:
-                    return embeddings
+                    return torch.cat(embeddings)
         return x
 
     def _predict_augment(self, x):
@@ -486,9 +486,9 @@ class RTDETRDetectionModel(DetectionModel):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
-                embeddings.append(x)
+                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze())  # flatten
                 if m.i == embed[-1]:
-                    return embeddings
+                    return torch.cat(embeddings)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
         return x

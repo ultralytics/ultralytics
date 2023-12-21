@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
-import sys
 import cv2
 
 from ultralytics.utils.checks import check_imshow, check_requirements
@@ -23,10 +22,11 @@ class ObjectCounter:
         self.selected_point = None
 
         # Region & Line Information
-        self.reg_pts = None
+        self.reg_pts = [(20, 400), (1260, 400)]
         self.line_dist_thresh = 15
         self.counting_region = None
         self.region_color = (255, 0, 255)
+        self.region_thickness = 5
 
         # Image and annotation Information
         self.im0 = None
@@ -40,7 +40,9 @@ class ObjectCounter:
         self.in_counts = 0
         self.out_counts = 0
         self.counting_list = []
-        self.count_txt_size = 2,
+        self.count_txt_thickness = 0
+        self.count_txt_color = (0, 0, 0)
+        self.count_color = (255, 255, 255)
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -54,52 +56,61 @@ class ObjectCounter:
     def set_args(self,
                  classes_names,
                  reg_pts,
-                 region_color=(255, 0, 255),
+                 count_reg_color=(255, 0, 255),
                  line_thickness=2,
                  track_thickness=2,
                  view_img=False,
                  draw_tracks=False,
+                 count_txt_thickness=2,
+                 count_txt_color=(0, 0, 0),
+                 count_color=(255, 255, 255),
                  track_color=(0, 255, 0),
-                 line_dist_thresh=15,
-                 count_txt_size=1):
+                 region_thickness=5,
+                 line_dist_thresh=15):
         """
         Configures the Counter's image, bounding box line thickness, and counting region points.
-
         Args:
             line_thickness (int): Line thickness for bounding boxes.
             view_img (bool): Flag to control whether to display the video stream.
             reg_pts (list): Initial list of points defining the counting region.
             classes_names (dict): Classes names
-            region_color (tuple): color for region line
             track_thickness (int): Track thickness
             draw_tracks (Bool): draw tracks
-            track_color (tuple): color for tracks
+            count_txt_thickness (int): Text thickness for object counting display
+            count_txt_color (RGB color): count text color value
+            count_color (RGB color): count text background color value
+            count_reg_color (RGB color): Color of object counting region
+            track_color (RGB color): color for tracks
+            region_thickness (int): Object counting Region thickness
             line_dist_thresh (int): Euclidean Distance threshold for line counter
-            count_txt_size (int): Object counting text size
         """
         self.tf = line_thickness
         self.view_img = view_img
         self.track_thickness = track_thickness
         self.draw_tracks = draw_tracks
-        self.reg_pts = reg_pts
 
         # Region and line selection
-        if len(self.reg_pts) == 2:
+        if len(reg_pts) == 2:
             print("Line Counter Initiated.")
+            self.reg_pts = reg_pts
             self.counting_region = LineString(self.reg_pts)
-        elif len(self.reg_pts) == 4:
+        elif len(reg_pts) == 4:
             print("Region Counter Initiated.")
+            self.reg_pts = reg_pts
             self.counting_region = Polygon(self.reg_pts)
         else:
             print("Invalid Region points provided, region_points can be 2 or 4")
-            sys.exit(0)
-            return
+            print("Using Line Counter Now")
+            self.counting_region = LineString(self.reg_pts)
 
         self.names = classes_names
-        self.region_color = region_color
         self.track_color = track_color
+        self.count_txt_thickness = count_txt_thickness
+        self.count_txt_color = count_txt_color
+        self.count_color = count_color
+        self.region_color = count_reg_color
+        self.region_thickness = region_thickness
         self.line_dist_thresh = line_dist_thresh
-        self.count_txt_size = count_txt_size
 
     def mouse_event_for_region(self, event, x, y, flags, params):
         """
@@ -138,12 +149,14 @@ class ObjectCounter:
 
         # Annotator Init and region drawing
         self.annotator = Annotator(self.im0, self.tf, self.names)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color)
+        self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color,
+                                   thickness=self.region_thickness)
 
         # Extract tracks
         for box, track_id, cls in zip(boxes, track_ids, clss):
-            self.annotator.box_label(box, label=self.names[cls],
+            self.annotator.box_label(box, label=str(track_id)+":"+self.names[cls],
                                      color=colors(int(cls), True))  # Draw bounding box
+
 
             # Draw Tracks
             track_line = self.track_history[track_id]
@@ -178,10 +191,11 @@ class ObjectCounter:
                         else:
                             self.in_counts += 1
 
-        incount_label = 'InCount : ' + f'{self.in_counts}'
+        incount_label = 'In Count : ' + f'{self.in_counts}'
         outcount_label = 'OutCount : ' + f'{self.out_counts}'
         self.annotator.count_labels(in_count=incount_label, out_count=outcount_label,
-                                    count_txt_size=self.count_txt_size)
+                                    count_txt_size=self.count_txt_thickness,
+                                    txt_color=self.count_txt_color, color=self.count_color)
 
         if self.env_check and self.view_img:
             cv2.namedWindow('Ultralytics YOLOv8 Object Counter')
@@ -189,8 +203,8 @@ class ObjectCounter:
                 cv2.setMouseCallback('Ultralytics YOLOv8 Object Counter', self.mouse_event_for_region,
                                      {'region_points': self.reg_pts})
             cv2.imshow('Ultralytics YOLOv8 Object Counter', self.im0)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):  # break window
+            # Break Window
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 return
 
     def start_counting(self, im0, tracks):

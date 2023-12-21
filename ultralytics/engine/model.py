@@ -94,8 +94,15 @@ class Model(nn.Module):
             self._load(model, task)
 
     def __call__(self, source=None, stream=False, **kwargs):
-        """Calls the 'predict' function with given arguments to perform object detection."""
+        """Calls the predict() method with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
+
+    def embed(self, source=None, stream=False, **kwargs):
+        """Calls the predict() method and returns concatenated embeddings."""
+        import torch
+        if not kwargs.get('embed'):
+            kwargs['embed'] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
+        return torch.stack([torch.cat(r.embeddings) for r in self.predict(source, stream, **kwargs)])
 
     @staticmethod
     def is_triton_model(model):

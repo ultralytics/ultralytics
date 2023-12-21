@@ -84,7 +84,7 @@ class BaseModel(nn.Module):
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
                 embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze())  # flatten
-                if m.i == embed[-1]:
+                if m.i == max(embed):
                     return torch.cat(embeddings)
         return x
 
@@ -487,7 +487,7 @@ class RTDETRDetectionModel(DetectionModel):
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
                 embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze())  # flatten
-                if m.i == embed[-1]:
+                if m.i == max(embed):
                     return torch.cat(embeddings)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference

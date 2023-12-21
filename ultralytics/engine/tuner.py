@@ -56,6 +56,14 @@ class Tuner:
         model = YOLO('yolov8n.pt')
         model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
         ```
+
+        Tune with custom search space.
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO('yolov8n.pt')
+        model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
+        ```
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):
@@ -65,10 +73,9 @@ class Tuner:
         Args:
             args (dict, optional): Configuration for hyperparameter evolution.
         """
-        self.args = get_cfg(overrides=args)
-        self.space = {  # key: (min, max, gain(optional))
+        self.space = args.pop('space', None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
-            'lr0': (1e-5, 1e-1),
+            'lr0': (1e-5, 1e-1),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
             'lrf': (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
             'momentum': (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
             'weight_decay': (0.0, 0.001),  # optimizer weight decay 5e-4
@@ -90,6 +97,7 @@ class Tuner:
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
             'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
+        self.args = get_cfg(overrides=args)
         self.tune_dir = get_save_dir(self.args, name='tune')
         self.tune_csv = self.tune_dir / 'tune_results.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

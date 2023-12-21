@@ -23,7 +23,6 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 | ![PushUps Counting](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cf016a41-589f-420f-8a8c-2cc8174a16de) | ![PullUps Counting](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cb20f316-fac2-4330-8445-dcf5ffebe329) |
 |                                                    PushUps Counting                                                    |                                                    PullUps Counting                                                    |
 
-
 !!! Example "Workouts Monitoring Example"
 
     === "Workouts Monitoring"
@@ -34,9 +33,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        if not cap.isOpened():
-            print("Error reading video file")
-            exit(0)
+        assert cap.isOpened(), "Error reading video file"
 
         gym_object = ai_gym.AIGym()  # init AI GYM module
         gym_object.set_args(line_thickness=2,
@@ -48,10 +45,13 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
             frame_count += 1
             results = model.predict(im0, verbose=False)
             im0 = gym_object.start_counting(im0, results, frame_count)
+
+        cv2.destroyAllWindows()
         ```
 
     === "Workouts Monitoring with Save Output"
@@ -62,14 +62,12 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-        if not cap.isOpened():
-            print("Error reading video file")
-            exit(0)
+        assert cap.isOpened(), "Error reading video file"
 
         video_writer = cv2.VideoWriter("workouts.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                        cv2.VideoWriter_fourcc(*'mp4v'),
+                                        int(cap.get(5)),
+                                        (int(cap.get(3)), int(cap.get(4))))
 
         gym_object = ai_gym.AIGym()  # init AI GYM module
         gym_object.set_args(line_thickness=2,
@@ -81,12 +79,14 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                exit(0)
+              print("Video frame is empty or video processing has been successfully completed.")
+              break
             frame_count += 1
             results = model.predict(im0, verbose=False)
             im0 = gym_object.start_counting(im0, results, frame_count)
             video_writer.write(im0)
 
+        cv2.destroyAllWindows()
         video_writer.release()
         ```
 

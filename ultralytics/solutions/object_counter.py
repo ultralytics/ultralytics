@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
+
 import cv2
 
 from ultralytics.utils.checks import check_imshow, check_requirements
@@ -8,7 +9,7 @@ from ultralytics.utils.plotting import Annotator, colors
 
 check_requirements('shapely>=2.0.0')
 
-from shapely.geometry import Polygon, LineString, Point
+from shapely.geometry import LineString, Point, Polygon
 
 
 class ObjectCounter:
@@ -69,6 +70,7 @@ class ObjectCounter:
                  line_dist_thresh=15):
         """
         Configures the Counter's image, bounding box line thickness, and counting region points.
+
         Args:
             line_thickness (int): Line thickness for bounding boxes.
             view_img (bool): Flag to control whether to display the video stream.
@@ -91,16 +93,16 @@ class ObjectCounter:
 
         # Region and line selection
         if len(reg_pts) == 2:
-            print("Line Counter Initiated.")
+            print('Line Counter Initiated.')
             self.reg_pts = reg_pts
             self.counting_region = LineString(self.reg_pts)
         elif len(reg_pts) == 4:
-            print("Region Counter Initiated.")
+            print('Region Counter Initiated.')
             self.reg_pts = reg_pts
             self.counting_region = Polygon(self.reg_pts)
         else:
-            print("Invalid Region points provided, region_points can be 2 or 4")
-            print("Using Line Counter Now")
+            print('Invalid Region points provided, region_points can be 2 or 4')
+            print('Using Line Counter Now')
             self.counting_region = LineString(self.reg_pts)
 
         self.names = classes_names
@@ -149,19 +151,16 @@ class ObjectCounter:
 
         # Annotator Init and region drawing
         self.annotator = Annotator(self.im0, self.tf, self.names)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color,
-                                   thickness=self.region_thickness)
+        self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness)
 
         # Extract tracks
         for box, track_id, cls in zip(boxes, track_ids, clss):
-            self.annotator.box_label(box, label=str(track_id)+":"+self.names[cls],
+            self.annotator.box_label(box, label=str(track_id) + ':' + self.names[cls],
                                      color=colors(int(cls), True))  # Draw bounding box
-
 
             # Draw Tracks
             track_line = self.track_history[track_id]
-            track_line.append((float((box[0] + box[2]) / 2),
-                               float((box[1] + box[3]) / 2)))
+            track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
             if len(track_line) > 30:
                 track_line.pop(0)
 
@@ -193,9 +192,11 @@ class ObjectCounter:
 
         incount_label = 'In Count : ' + f'{self.in_counts}'
         outcount_label = 'OutCount : ' + f'{self.out_counts}'
-        self.annotator.count_labels(in_count=incount_label, out_count=outcount_label,
+        self.annotator.count_labels(in_count=incount_label,
+                                    out_count=outcount_label,
                                     count_txt_size=self.count_txt_thickness,
-                                    txt_color=self.count_txt_color, color=self.count_color)
+                                    txt_color=self.count_txt_color,
+                                    color=self.count_color)
 
         if self.env_check and self.view_img:
             cv2.namedWindow('Ultralytics YOLOv8 Object Counter')

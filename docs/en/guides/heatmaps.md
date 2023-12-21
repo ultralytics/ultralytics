@@ -39,17 +39,17 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
         import cv2
-        
+
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
                                        int(cap.get(5)),
                                        (int(cap.get(3)), int(cap.get(4))))
-        
+
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
@@ -57,21 +57,21 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
                              imh=cap.get(3),  # should same as cap width
                              view_img=True,
                              shape="circle")
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
             tracks = model.track(im0, persist=True, show=False)
-        
+
             im0 = heatmap_obj.generate_heatmap(im0, tracks)
             video_writer.write(im0)
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-                
+
         ```
 
     === "Line Counting"
@@ -79,19 +79,19 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
         import cv2
-        
+
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
                                        int(cap.get(5)),
                                        (int(cap.get(3)), int(cap.get(4))))
-        
+
         line_points = [(256, 409), (694, 532)]  # line for object counting
-        
+
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
@@ -100,17 +100,17 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
                              view_img=True,
                              shape="circle",
                              count_reg_pts=line_points)
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
             tracks = model.track(im0, persist=True, show=False)
-        
+
             im0 = heatmap_obj.generate_heatmap(im0, tracks)
             video_writer.write(im0)
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
@@ -121,20 +121,20 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
         import cv2
-        
+
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
                                        int(cap.get(5)),
                                        (int(cap.get(3)), int(cap.get(4))))
-        
+
         # Define region points
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-        
+
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
@@ -143,22 +143,22 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
                              view_img=True,
                              shape="circle",
                              count_reg_pts=region_points)
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
             tracks = model.track(im0, persist=True, show=False)
-        
+
             im0 = heatmap_obj.generate_heatmap(im0, tracks)
             video_writer.write(im0)
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
         ```
-    
+
     === "Im0"
         ```python
         from ultralytics import YOLO
@@ -188,19 +188,19 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
         import cv2
-        
+
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
                                        int(cap.get(5)),
                                        (int(cap.get(3)), int(cap.get(4))))
-        
+
         classes_for_heatmap = [0, 2]  # classes for heatmap
-        
+
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
@@ -208,7 +208,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
                              imh=cap.get(3),  # should same as cap width
                              view_img=True,
                              shape="circle")
-        
+
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
@@ -216,10 +216,10 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
                 break
             tracks = model.track(im0, persist=True, show=False,
                                  classes=classes_for_heatmap)
-        
+
             im0 = heatmap_obj.generate_heatmap(im0, tracks)
             video_writer.write(im0)
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()

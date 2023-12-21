@@ -267,8 +267,7 @@ class Annotator:
             color (tuple): Region Color value
             thickness (int): Region area thickness value
         """
-        cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)],
-                      isClosed=True, color=color, thickness=thickness)
+        cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
         """
@@ -279,14 +278,10 @@ class Annotator:
             track_thickness (int): track line thickness value
         """
         points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-        cv2.polylines(self.im, [points], isClosed=False,
-                      color=color,thickness=track_thickness)
-        cv2.circle(self.im,
-                   (int(track[-1][0]), int(track[-1][1])),
-                   track_thickness * 2, color, -1)
+        cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
+        cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def count_labels(self, in_count=0, out_count=0, count_txt_size=2,
-                     color=(255, 255, 255), txt_color=(0, 0, 0)):
+    def count_labels(self, in_count=0, out_count=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
         Plot counts for object counter
         Args:
@@ -312,16 +307,26 @@ class Annotator:
         text_y = max(t_size_in[1], t_size_out[1])
 
         # Create a rounded rectangle for in_count
-        cv2.rectangle(self.im, (text_x1 - 5, text_y - 5),
-                      (text_x1 + text_width + 7, text_y + t_size_in[1] + 7), color, -1)
-        cv2.putText(self.im, str(in_count), (text_x1, text_y + t_size_in[1]),
-                    0, tl / 2, txt_color, self.tf, lineType=cv2.LINE_AA)
+        cv2.rectangle(self.im, (text_x1 - 5, text_y - 5), (text_x1 + text_width + 7, text_y + t_size_in[1] + 7), color,
+                      -1)
+        cv2.putText(self.im,
+                    str(in_count), (text_x1, text_y + t_size_in[1]),
+                    0,
+                    tl / 2,
+                    txt_color,
+                    self.tf,
+                    lineType=cv2.LINE_AA)
 
         # Create a rounded rectangle for out_count
-        cv2.rectangle(self.im, (text_x2 - 5, text_y - 5),
-                      (text_x2 + text_width + 7, text_y + t_size_out[1] + 7), color, -1)
-        cv2.putText(self.im, str(out_count), (text_x2, text_y + t_size_out[1]),
-                    0, tl / 2, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
+        cv2.rectangle(self.im, (text_x2 - 5, text_y - 5), (text_x2 + text_width + 7, text_y + t_size_out[1] + 7), color,
+                      -1)
+        cv2.putText(self.im,
+                    str(out_count), (text_x2, text_y + t_size_out[1]),
+                    0,
+                    tl / 2,
+                    txt_color,
+                    thickness=self.tf,
+                    lineType=cv2.LINE_AA)
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
@@ -343,6 +348,7 @@ class Annotator:
     def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2):
         """
         Draw specific keypoints for gym steps counting.
+
         Args:
             keypoints (list): list of keypoints data to be plotted
             indices (list): keypoints ids list to be plotted
@@ -359,14 +365,13 @@ class Annotator:
                         conf = k[2]
                         if conf < 0.5:
                             continue
-                    cv2.circle(self.im, (int(x_coord), int(y_coord)),
-                               radius,(0, 255, 0), -1, lineType=cv2.LINE_AA)
+                    cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
         return self.im
 
-    def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text,
-                                       center_kpt, line_thickness=2):
+    def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, line_thickness=2):
         """
         Plot the pose angle, count value and step stage.
+
         Args:
             angle_text (str): angle value for workout monitoring
             count_text (str): counts value for workout monitoring
@@ -374,87 +379,67 @@ class Annotator:
             center_kpt (int): centroid pose index for workout monitoring
             line_thickness (int): thickness for text display
         """
-        angle_text, count_text, stage_text = (f' {angle_text:.2f}', 'Steps : ' +
-                                              f'{count_text}', f' {stage_text}')
+        angle_text, count_text, stage_text = (f' {angle_text:.2f}', 'Steps : ' + f'{count_text}', f' {stage_text}')
         font_scale = 0.6 + (line_thickness / 10.0)
 
         # Draw angle
-        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0,
-                                                                   font_scale, line_thickness)
+        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, font_scale, line_thickness)
         angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
-        angle_background_position = (angle_text_position[0],
-                                     angle_text_position[1] - angle_text_height - 5)
-        angle_background_size = (angle_text_width + 2 * 5,
-                                 angle_text_height + 2 * 5 + (line_thickness * 2))
-        cv2.rectangle(self.im, angle_background_position,
-                      (angle_background_position[0] + angle_background_size[0],
-                       angle_background_position[1] + angle_background_size[1]),
+        angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
+        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (line_thickness * 2))
+        cv2.rectangle(self.im, angle_background_position, (angle_background_position[0] + angle_background_size[0],
+                                                           angle_background_position[1] + angle_background_size[1]),
                       (255, 255, 255), -1)
-        cv2.putText(self.im, angle_text, angle_text_position, 0,
-                    font_scale, (0, 0, 0), line_thickness)
+        cv2.putText(self.im, angle_text, angle_text_position, 0, font_scale, (0, 0, 0), line_thickness)
 
         # Draw Counts
-        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0,
-                                                                   font_scale, line_thickness)
-        count_text_position = (angle_text_position[0],
-                               angle_text_position[1] + angle_text_height + 20)
+        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, font_scale, line_thickness)
+        count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
         count_background_position = (angle_background_position[0],
-                                     angle_background_position[1] +
-                                     angle_background_size[1] + 5)
-        count_background_size = (count_text_width + 10, count_text_height + 10
-                                 + (line_thickness * 2))
+                                     angle_background_position[1] + angle_background_size[1] + 5)
+        count_background_size = (count_text_width + 10, count_text_height + 10 + (line_thickness * 2))
 
-        cv2.rectangle(self.im, count_background_position,
-                      (count_background_position[0] + count_background_size[0],
-                       count_background_position[1] + count_background_size[1]),
+        cv2.rectangle(self.im, count_background_position, (count_background_position[0] + count_background_size[0],
+                                                           count_background_position[1] + count_background_size[1]),
                       (255, 255, 255), -1)
-        cv2.putText(self.im, count_text, count_text_position, 0,
-                    font_scale, (0, 0, 0), line_thickness)
+        cv2.putText(self.im, count_text, count_text_position, 0, font_scale, (0, 0, 0), line_thickness)
 
         # Draw Stage
-        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0,
-                                                                   font_scale, line_thickness)
-        stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) +
-                               angle_text_height + count_text_height + 40)
-        stage_background_position = (stage_text_position[0], stage_text_position[1] -
-                                     stage_text_height - 5)
+        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, font_scale, line_thickness)
+        stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
+        stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
         stage_background_size = (stage_text_width + 10, stage_text_height + 10)
 
-        cv2.rectangle(self.im, stage_background_position,
-                      (stage_background_position[0] + stage_background_size[0],
-                       stage_background_position[1] + stage_background_size[1]),
+        cv2.rectangle(self.im, stage_background_position, (stage_background_position[0] + stage_background_size[0],
+                                                           stage_background_position[1] + stage_background_size[1]),
                       (255, 255, 255), -1)
-        cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale,
-                    (0, 0, 0), line_thickness)
+        cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale, (0, 0, 0), line_thickness)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
         """
         Function for drawing segmented object in bounding box shape.
+
         Args:
             mask (list): masks data list for instance segmentation area plotting
             mask_color (tuple): mask foreground color
             det_label (str): Detection label text
             track_label (str): Tracking label text
         """
-        cv2.polylines(self.im, [np.int32([mask])], isClosed=True,
-                      color=mask_color, thickness=2)
+        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
 
         label = f'Track ID: {track_label}' if track_label else det_label
         text_size, _ = cv2.getTextSize(label, 0, 0.7, 1)
 
-        cv2.rectangle(self.im,
-                      (int(mask[0][0]) - text_size[0] // 2 - 10,int(mask[0][1]) - text_size[1] - 10),
+        cv2.rectangle(self.im, (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
                       (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)), mask_color, -1)
 
-        cv2.putText(self.im, label,
-                    (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0,
-                    0.7, (255, 255, 255),2)
+        cv2.putText(self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255),
+                    2)
 
-
-    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255),
-                  thickness=2, pins_radius=10):
+    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
         """
         Function for pinpoint human-vision eye mapping and plotting.
+
         Args:
             box (list): Bounding box coordinates
             center_point (tuple): center point for vision eye view

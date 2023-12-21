@@ -10,20 +10,19 @@ from ultralytics.utils.plotting import Annotator
 
 check_requirements('shapely>=2.0.0')
 
-from shapely.geometry import Polygon, LineString, Point
+from shapely.geometry import LineString, Point, Polygon
 
 
 class Heatmap:
     """A class to draw heatmaps in real-time video stream based on their tracks."""
 
     def __init__(self):
-        """Initializes the heatmap class with default values for Visual, Image, track,
-        count and heatmap parameters."""
+        """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
 
         # Visual information
         self.annotator = None
         self.view_img = False
-        self.shape = "circle"
+        self.shape = 'circle'
 
         # Image information
         self.imw = None
@@ -76,7 +75,7 @@ class Heatmap:
                  region_thickness=5,
                  line_dist_thresh=15,
                  decay_factor=0.99,
-                 shape="circle"):
+                 shape='circle'):
         """
         Configures the heatmap colormap, width, height and display parameters.
 
@@ -106,18 +105,18 @@ class Heatmap:
         if count_reg_pts is not None:
 
             if len(count_reg_pts) == 2:
-                print("Line Counter Initiated.")
+                print('Line Counter Initiated.')
                 self.count_reg_pts = count_reg_pts
                 self.counting_region = LineString(count_reg_pts)
 
             elif len(count_reg_pts) == 4:
-                print("Region Counter Initiated.")
+                print('Region Counter Initiated.')
                 self.count_reg_pts = count_reg_pts
                 self.counting_region = Polygon(self.count_reg_pts)
 
             else:
-                print("Region or line points Invalid, 2 or 4 points supported")
-                print("Using Line Counter Now")
+                print('Region or line points Invalid, 2 or 4 points supported')
+                print('Using Line Counter Now')
                 self.counting_region = Polygon([(20, 400), (1260, 400)])  # dummy points
 
         # Heatmap new frame
@@ -133,14 +132,15 @@ class Heatmap:
         self.shape = shape
 
         # shape of heatmap, if not selected
-        if self.shape not in ["circle", "rect"]:
+        if self.shape not in ['circle', 'rect']:
             print("Unknown shape value provided, 'circle' & 'rect' supported")
-            print("Using Circular shape now")
-            self.shape = "circle"
+            print('Using Circular shape now')
+            self.shape = 'circle'
 
     def extract_results(self, tracks):
         """
         Extracts results from the provided data.
+
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
         """
@@ -151,6 +151,7 @@ class Heatmap:
     def generate_heatmap(self, im0, tracks):
         """
         Generate heatmap based on tracking data.
+
         Args:
             im0 (nd array): Image
             tracks (list): List of tracks obtained from the object tracking process.
@@ -172,7 +173,7 @@ class Heatmap:
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
 
-                if self.shape == "circle":
+                if self.shape == 'circle':
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
@@ -187,8 +188,7 @@ class Heatmap:
 
                 # Store tracking hist
                 track_line = self.track_history[track_id]
-                track_line.append((float((box[0] + box[2]) / 2),
-                                   float((box[1] + box[3]) / 2)))
+                track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
                 if len(track_line) > 30:
                     track_line.pop(0)
 
@@ -214,7 +214,7 @@ class Heatmap:
         else:
             for box, cls in zip(self.boxes, self.clss):
 
-                if self.shape == "circle":
+                if self.shape == 'circle':
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
@@ -228,10 +228,8 @@ class Heatmap:
                     self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += 2
 
         # Normalize, apply colormap to heatmap and combine with original image
-        heatmap_normalized = cv2.normalize(self.heatmap, None, 0,
-                                           255, cv2.NORM_MINMAX)
-        heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8),
-                                            self.colormap)
+        heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
+        heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.colormap)
 
         if self.count_reg_pts is not None:
             incount_label = 'InCount : ' + f'{self.in_counts}'
@@ -242,8 +240,7 @@ class Heatmap:
                                         txt_color=self.count_txt_color,
                                         color=self.count_color)
 
-        im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha,
-                                           heatmap_colored, self.heatmap_alpha, 0)
+        im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 
         if self.env_check and self.view_img:
             self.display_frames(im0_with_heatmap)

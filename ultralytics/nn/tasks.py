@@ -72,19 +72,20 @@ class BaseModel(nn.Module):
         Returns:
             (torch.Tensor): The last output of the model.
         """
-        y, dt = [], []  # outputs
-        save = self.save + (embed or [])
+        y, dt, embeddings = [], [], []  # outputs
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
-            y.append(x if m.i in save else None)  # save output
+            y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-        if embed:
-            return x, [y[i] for i in embed]
+            if embed and m.i in embed:
+                embeddings.append(x)
+                if m.i == embed[-1]:
+                    return embeddings
         return x
 
     def _predict_augment(self, x):
@@ -474,21 +475,22 @@ class RTDETRDetectionModel(DetectionModel):
         Returns:
             (torch.Tensor): Model's output tensor.
         """
-        y, dt = [], []  # outputs
-        save = self.save + (embed or [])
+        y, dt, embeddings = [], [], []  # outputs
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
-            y.append(x if m.i in save else None)  # save output
+            y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if embed and m.i in embed:
+                embeddings.append(x)
+                if m.i == embed[-1]:
+                    return embeddings
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
-        if embed:
-            return x, [y[i] for i in embed]
         return x
 
 

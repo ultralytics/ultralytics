@@ -265,7 +265,9 @@ class BasePredictor:
                 with profilers[1]:
                     preds = self.inference(im, *args, **kwargs)
                     if self.args.embed:
-                        preds, embeddings = preds
+                        embeddings = torch.cat([F.adaptive_avg_pool2d(x, (1, 1)).squeeze() for x in preds])
+                        yield from [embeddings]
+                        continue
 
                 # Postprocess
                 with profilers[2]:
@@ -283,8 +285,6 @@ class BasePredictor:
                     p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
                     p = Path(p)
 
-                    if self.args.embed:
-                        self.results[i].embeddings = [F.adaptive_avg_pool2d(x[i], (1, 1)).squeeze() for x in embeddings]
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                         s += self.write_results(i, self.results, (p, im, im0))
                     if self.args.save or self.args.save_txt:
@@ -304,6 +304,10 @@ class BasePredictor:
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
             self.vid_writer[-1].release()  # release final video writer
+
+        # Return embeddings
+        if self.args.embed:
+            return
 
         # Print results
         if self.args.verbose and self.seen:

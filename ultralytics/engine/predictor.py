@@ -34,6 +34,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -134,7 +135,7 @@ class BasePredictor:
         """Runs inference on a given image using the specified model and arguments."""
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
-        return self.model(im, augment=self.args.augment, visualize=visualize)
+        return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
     def pre_transform(self, im):
         """
@@ -263,6 +264,8 @@ class BasePredictor:
                 # Inference
                 with profilers[1]:
                     preds = self.inference(im, *args, **kwargs)
+                    if self.args.embed:
+                        preds, embeddings = preds
 
                 # Postprocess
                 with profilers[2]:
@@ -280,6 +283,8 @@ class BasePredictor:
                     p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
                     p = Path(p)
 
+                    if self.args.embed:
+                        self.results[i].embeddings = F.adaptive_avg_pool2d(embeddings[i], (1, 1)).squeeze()
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                         s += self.write_results(i, self.results, (p, im, im0))
                     if self.args.save or self.args.save_txt:

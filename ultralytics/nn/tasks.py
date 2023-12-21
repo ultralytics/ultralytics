@@ -41,7 +41,7 @@ class BaseModel(nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)
 
-    def predict(self, x, profile=False, visualize=False, augment=False):
+    def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
         """
         Perform a forward pass through the network.
 
@@ -50,15 +50,16 @@ class BaseModel(nn.Module):
             profile (bool):  Print the computation time of each layer if True, defaults to False.
             visualize (bool): Save the feature maps of the model if True, defaults to False.
             augment (bool): Augment image during prediction, defaults to False.
+            embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
             (torch.Tensor): The last output of the model.
         """
         if augment:
             return self._predict_augment(x)
-        return self._predict_once(x, profile, visualize)
+        return self._predict_once(x, profile=profile, visualize=visualize, embed=embed)
 
-    def _predict_once(self, x, profile=False, visualize=False):
+    def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """
         Perform a forward pass through the network.
 
@@ -66,20 +67,24 @@ class BaseModel(nn.Module):
             x (torch.Tensor): The input tensor to the model.
             profile (bool):  Print the computation time of each layer if True, defaults to False.
             visualize (bool): Save the feature maps of the model if True, defaults to False.
+            embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
             (torch.Tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
+        save = (self.save + embed) if embed else self.save
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
-            y.append(x if m.i in self.save else None)  # save output
+            y.append(x if m.i in save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
+        if embed:
+            return x, [y[i] for i in embed]
         return x
 
     def _predict_augment(self, x):

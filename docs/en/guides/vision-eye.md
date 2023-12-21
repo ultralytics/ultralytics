@@ -10,17 +10,6 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 
 [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) VisionEye offers the capability for computers to identify and pinpoint objects, simulating the observational precision of the human eye. This functionality enables computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
 
-<p align="center">
-  <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/in6xF7KgF7Q"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> VisionEye Mapping using Ultralytics YOLOv8
-</p>
-
 ## Samples
 
 |                                                                        VisionEye View                                                                        |                                                                        VisionEye View With Object Tracking                                                                        |

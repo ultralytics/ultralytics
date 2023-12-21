@@ -511,3 +511,19 @@ def test_model_tune():
     """Tune YOLO model for performance."""
     YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
     YOLO('yolov8n-cls.pt').tune(data='imagenet10', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
+
+
+def test_model_embeddings():
+    """Test YOLO model embeddings."""
+    batch = [
+        str(SOURCE),  # filename
+        Path(SOURCE),  # Path
+        'https://ultralytics.com/images/zidane.jpg' if ONLINE else SOURCE,  # URI
+        cv2.imread(str(SOURCE)),  # OpenCV
+        Image.open(SOURCE),  # PIL
+        np.zeros((320, 640, 3))]  # numpy
+
+    results = YOLO(MODEL).embed(batch, imgsz=32)
+    results_seg = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt').embed(batch, imgsz=32)
+    assert len(results) == len(results_seg) == len(batch)  # multiple sources in a batch
+    assert results[0].shape == results_seg[0].shape

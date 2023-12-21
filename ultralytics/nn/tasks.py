@@ -83,9 +83,10 @@ class BaseModel(nn.Module):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
-                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze())  # flatten
+                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze((2, 3)))  # flatten
                 if m.i == max(embed):
-                    return torch.cat(embeddings)
+                    y = torch.unbind(torch.cat(embeddings, 1), dim=0)
+                    return [y] if len(y) == 1 else y
         return x
 
     def _predict_augment(self, x):
@@ -476,7 +477,7 @@ class RTDETRDetectionModel(DetectionModel):
             (torch.Tensor): Model's output tensor.
         """
         y, dt, embeddings = [], [], []  # outputs
-        for m in self.model[:-1]:  # except the head part
+        for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
@@ -486,9 +487,10 @@ class RTDETRDetectionModel(DetectionModel):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
-                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze())  # flatten
+                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze((2, 3)))  # flatten
                 if m.i == max(embed):
-                    return torch.cat(embeddings)
+                    y = torch.unbind(torch.cat(embeddings, 1), dim=0)
+                    return [y] if len(y) == 1 else y
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
         return x

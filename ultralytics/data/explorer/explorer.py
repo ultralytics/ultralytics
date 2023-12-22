@@ -17,7 +17,7 @@ from ultralytics.utils.checks import check_requirements
 
 from .utils import sanitize_batch
 
-check_requirements("lancedb")
+check_requirements('lancedb')
 import lancedb
 
 

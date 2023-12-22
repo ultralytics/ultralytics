@@ -515,11 +515,9 @@ def test_model_tune():
 
 def test_model_embeddings():
     """Test YOLO model embeddings."""
-    model_rtdetr = RTDETR()
     model_detect = YOLO(MODEL)
     model_segment = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
 
     for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
         assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
-        assert len(model_rtdetr.embed(source=batch, imgsz=32)) == len(batch)

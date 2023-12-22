@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import glob
 import hashlib
 import json
 import os
@@ -14,6 +15,7 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
+import yaml
 from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
@@ -298,13 +300,15 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Download (optional)
     extract_dir = ''
-    if zipfile.is_zipfile(file) or is_tarfile(file):
+    if isinstance(file, str) and file.startswith('clearml://'):
+        data = get_clearml_dataset(file)
+    elif zipfile.is_zipfile(file) or is_tarfile(file):
         new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
         file = find_dataset_yaml(DATASETS_DIR / new_dir)
         extract_dir, autodownload = file.parent, False
 
-    # Read YAML
-    data = yaml_load(file, append_filename=True)  # dictionary
+        # Read YAML
+        data = yaml_load(file, append_filename=True)  # dictionary
 
     # Checks
     for k in 'train', 'val':

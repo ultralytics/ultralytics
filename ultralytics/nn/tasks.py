@@ -85,8 +85,7 @@ class BaseModel(nn.Module):
             if embed and m.i in embed:
                 embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max(embed):
-                    y = torch.unbind(torch.cat(embeddings, 1), dim=0)
-                    return [y] if len(y) == 1 else y
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
 
     def _predict_augment(self, x):
@@ -489,8 +488,7 @@ class RTDETRDetectionModel(DetectionModel):
             if embed and m.i in embed:
                 embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max(embed):
-                    y = torch.unbind(torch.cat(embeddings, 1), dim=0)
-                    return [y] if len(y) == 1 else y
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
         return x

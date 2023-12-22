@@ -16,8 +16,7 @@ from .utils import sanitize_batch
 
 check_requirements("lancedb")
 import lancedb
-import pydantic
-from lancedb.pydantic import LanceModel, Vector
+import duckdb
 
 
 class ExplorerDataset(YOLODataset):
@@ -150,3 +149,18 @@ class Explorer:
 
         query = self.table.query(embeds).limit(limit).to_arrow()
         return query
+
+    def sql_query(self, query):
+        """
+        Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
+
+        Args:
+            query (str): SQL query to run.
+        
+        Returns:
+            An arrow table containing the results.
+        """
+        if self.table is None:
+            raise ValueError("Table is not created. Please create the table first.")
+        
+        return self.table.to_lance.to_table(filter=query).to_arrow()

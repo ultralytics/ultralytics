@@ -300,13 +300,14 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Download (optional)
     extract_dir = ''
+    data = {}
     if isinstance(file, str) and file.startswith('clearml://'):
         data = get_clearml_dataset(file)
     elif zipfile.is_zipfile(file) or is_tarfile(file):
         new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
         file = find_dataset_yaml(DATASETS_DIR / new_dir)
         extract_dir, autodownload = file.parent, False
-
+    if len(data) == 0:
         # Read YAML
         data = yaml_load(file, append_filename=True)  # dictionary
 

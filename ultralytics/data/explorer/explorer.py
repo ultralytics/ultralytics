@@ -16,7 +16,6 @@ from .utils import sanitize_batch
 
 check_requirements("lancedb")
 import lancedb
-import duckdb
 
 
 class ExplorerDataset(YOLODataset):

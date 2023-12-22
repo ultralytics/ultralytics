@@ -260,19 +260,41 @@ class Annotator:
 
     # Object Counting Annotator
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
-        # Draw region line
+        """
+        Draw region line
+        Args:
+            reg_pts (list): Region Points (for line 2 points, for region 4 points)
+            color (tuple): Region Color value
+            thickness (int): Region area thickness value
+        """
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
-        # Draw region line
+        """
+        Draw centroid point and track trails
+        Args:
+            track (list): object tracking points for trails display
+            color (tuple): tracks line color
+            track_thickness (int): track line thickness value
+        """
         points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def count_labels(self, in_count=0, out_count=0, color=(255, 255, 255), txt_color=(0, 0, 0)):
+    def count_labels(self, in_count=0, out_count=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
+        """
+        Plot counts for object counter
+        Args:
+            in_count (int): in count value
+            out_count (int): out count value
+            count_txt_size (int): text size for counts display
+            color (tuple): background color of counts display
+            txt_color (tuple): text color of counts display
+        """
+        self.tf = count_txt_size
         tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
         tf = max(tl - 1, 1)
-        gap = int(24 * tl)  # Calculate the gap between in_count and out_count based on line_thickness
+        gap = int(24 * tl)  # gap between in_count and out_count based on line_thickness
 
         # Get text size for in_count and out_count
         t_size_in = cv2.getTextSize(str(in_count), 0, fontScale=tl / 2, thickness=tf)[0]
@@ -306,14 +328,13 @@ class Annotator:
                     thickness=self.tf,
                     lineType=cv2.LINE_AA)
 
-    # AI GYM Annotator
-    def estimate_pose_angle(self, a, b, c):
+    @staticmethod
+    def estimate_pose_angle(a, b, c):
         """Calculate the pose angle for object
         Args:
             a (float) : The value of pose point a
             b (float): The value of pose point b
             c (float): The value o pose point c
-
         Returns:
             angle (degree): Degree value of angle between three points
         """
@@ -325,7 +346,15 @@ class Annotator:
         return angle
 
     def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2):
-        """Draw specific keypoints for gym steps counting."""
+        """
+        Draw specific keypoints for gym steps counting.
+
+        Args:
+            keypoints (list): list of keypoints data to be plotted
+            indices (list): keypoints ids list to be plotted
+            shape (tuple): imgsz for model inference
+            radius (int): Keypoint radius value
+        """
         nkpts, ndim = keypoints.shape
         nkpts == 17 and ndim == 3
         for i, k in enumerate(keypoints):
@@ -340,8 +369,17 @@ class Annotator:
         return self.im
 
     def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, line_thickness=2):
-        """Plot the pose angle, count value and step stage."""
-        angle_text, count_text, stage_text = f' {angle_text:.2f}', 'Steps : ' + f'{count_text}', f' {stage_text}'
+        """
+        Plot the pose angle, count value and step stage.
+
+        Args:
+            angle_text (str): angle value for workout monitoring
+            count_text (str): counts value for workout monitoring
+            stage_text (str): stage decision for workout monitoring
+            center_kpt (int): centroid pose index for workout monitoring
+            line_thickness (int): thickness for text display
+        """
+        angle_text, count_text, stage_text = (f' {angle_text:.2f}', 'Steps : ' + f'{count_text}', f' {stage_text}')
         font_scale = 0.6 + (line_thickness / 10.0)
 
         # Draw angle
@@ -378,18 +416,38 @@ class Annotator:
         cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale, (0, 0, 0), line_thickness)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
-        """Function for drawing segmented object in bounding box shape."""
+        """
+        Function for drawing segmented object in bounding box shape.
+
+        Args:
+            mask (list): masks data list for instance segmentation area plotting
+            mask_color (tuple): mask foreground color
+            det_label (str): Detection label text
+            track_label (str): Tracking label text
+        """
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
 
         label = f'Track ID: {track_label}' if track_label else det_label
         text_size, _ = cv2.getTextSize(label, 0, 0.7, 1)
+
         cv2.rectangle(self.im, (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
                       (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)), mask_color, -1)
+
         cv2.putText(self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255),
                     2)
 
     def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
-        """Function for pinpoint human-vision eye mapping and plotting."""
+        """
+        Function for pinpoint human-vision eye mapping and plotting.
+
+        Args:
+            box (list): Bounding box coordinates
+            center_point (tuple): center point for vision eye view
+            color (tuple): object centroid and line color value
+            pin_color (tuple): visioneye point color value
+            thickness (int): int value for line thickness
+            pins_radius (int): visioneye point radius value
+        """
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
         cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
         cv2.circle(self.im, center_bbox, pins_radius, color, -1)

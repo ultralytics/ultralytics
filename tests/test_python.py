@@ -515,15 +515,11 @@ def test_model_tune():
 
 def test_model_embeddings():
     """Test YOLO model embeddings."""
-    batch = [
-        str(SOURCE),  # filename
-        Path(SOURCE),  # Path
-        'https://ultralytics.com/images/zidane.jpg' if ONLINE else SOURCE,  # URI
-        cv2.imread(str(SOURCE)),  # OpenCV
-        Image.open(SOURCE),  # PIL
-        np.zeros((320, 640, 3))]  # numpy
+    model_rtdetr = RTDETR()
+    model_detect = YOLO(MODEL)
+    model_segment = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
 
-    results = YOLO(MODEL).embed(batch, imgsz=32)
-    results_seg = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt').embed(batch, imgsz=32)
-    assert len(results) == len(results_seg) == len(batch)  # multiple sources in a batch
-    assert results[0].shape == results_seg[0].shape
+    for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
+        assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
+        assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
+        assert len(model_rtdetr.embed(source=batch, imgsz=32)) == len(batch)

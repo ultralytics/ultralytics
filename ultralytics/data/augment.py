@@ -986,7 +986,7 @@ def classify_transforms(size=224, rect=False, mean=(0.0, 0.0, 0.0), std=(1.0, 1.
     """Transforms to apply if albumentations not installed."""
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
-    transforms = [ClassifyLetterBox(size), ToTensor()]
+    transforms = [ClassifyLetterBox(size, auto=True) if rect else CenterCrop(size), ToTensor()]
     if any(mean) or any(std):
         transforms.append(T.Normalize(mean, std, inplace=True))
     return T.Compose(transforms)
@@ -998,6 +998,9 @@ def hsv2colorjitter(h, s, v):
 
 
 def classify_albumentations(
+        augment=True,
+        size=224,
+        scale=(0.08, 1.0),
         hflip=0.5,
         vflip=0.0,
         hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
@@ -1014,17 +1017,20 @@ def classify_albumentations(
         from albumentations.pytorch import ToTensorV2
 
         check_version(A.__version__, '1.0.3', hard=True)  # version requirement
-        T = []
-        if auto_aug:
-            # TODO: implement AugMix, AutoAug & RandAug in albumentations
-            LOGGER.info(f'{prefix}auto augmentations are currently not supported')
-        else:
-            if hflip > 0:
-                T += [A.HorizontalFlip(p=hflip)]
-            if vflip > 0:
-                T += [A.VerticalFlip(p=vflip)]
-            if any((hsv_h, hsv_s, hsv_v)):
-                T += [A.ColorJitter(*hsv2colorjitter(hsv_h, hsv_s, hsv_v))]  # brightness, contrast, saturation, hue
+        if augment:  # Resize and crop
+            T = [A.RandomResizedCrop(height=size, width=size, scale=scale)]
+            if auto_aug:
+                # TODO: implement AugMix, AutoAug & RandAug in albumentations
+                LOGGER.info(f'{prefix}auto augmentations are currently not supported')
+            else:
+                if hflip > 0:
+                    T += [A.HorizontalFlip(p=hflip)]
+                if vflip > 0:
+                    T += [A.VerticalFlip(p=vflip)]
+                if any((hsv_h, hsv_s, hsv_v)):
+                    T += [A.ColorJitter(*hsv2colorjitter(hsv_h, hsv_s, hsv_v))]  # brightness, contrast, saturation, hue
+        else:  # Use fixed crop for eval set (reproducibility)
+            T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
         T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor
         LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
         return A.Compose(T)

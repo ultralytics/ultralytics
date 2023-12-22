@@ -3,7 +3,6 @@ from typing import List
 
 import cv2
 import numpy as np
-import pandas as pd
 import pyarrow as pa
 import torch
 from tqdm import tqdm
@@ -88,12 +87,6 @@ class Explorer:
         self.choice_set = choice_set
 
         dataset = ExplorerDataset(img_path=choice_set, data=data_info, augment=False, cache=False)
-
-        # Use first batch to create the table schema
-        batches = self._yeild_batches(dataset,
-                                      data_info,
-                                      self.model,
-                                      exclude_keys=['img', 'ratio_pad', 'resized_shape', 'ori_shape', 'batch_idx'])
 
         # Create the table schema
         schema = pa.schema([

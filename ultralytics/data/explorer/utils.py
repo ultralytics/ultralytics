@@ -1,6 +1,3 @@
-from typing import List
-
-
 def sanitize_batch(batch, dataset_info):
     batch['cls'] = batch['cls'].flatten().int().tolist()
     box_cls_pair = sorted(zip(batch['bboxes'].tolist(), batch['cls']), key=lambda x: x[1])

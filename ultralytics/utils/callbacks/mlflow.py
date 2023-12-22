@@ -32,7 +32,9 @@ try:
 
     assert hasattr(mlflow, '__version__')  # verify package is not directory
     from pathlib import Path
+
     PREFIX = colorstr('MLflow: ')
+    SANITIZE = lambda x: {k.replace('(', '').replace(')', ''): float(v) for k, v in x.items()}
 
 except (ImportError, AssertionError):
     mlflow = None
@@ -81,11 +83,18 @@ def on_pretrain_routine_end(trainer):
                        f'{PREFIX}WARNING ⚠️ Not tracking this run')
 
 
+def on_train_epoch_end(trainer):
+    """Log training metrics at the end of each train epoch to MLflow."""
+    if mlflow:
+        mlflow.log_metrics(metrics=SANITIZE(trainer.label_loss_items(trainer.tloss, prefix='train')),
+                           step=trainer.epoch)
+        mlflow.log_metrics(metrics=SANITIZE(trainer.lr), step=trainer.epoch)
+
+
 def on_fit_epoch_end(trainer):
     """Log training metrics at the end of each fit epoch to MLflow."""
     if mlflow:
-        sanitized_metrics = {k.replace('(', '').replace(')', ''): float(v) for k, v in trainer.metrics.items()}
-        mlflow.log_metrics(metrics=sanitized_metrics, step=trainer.epoch)
+        mlflow.log_metrics(metrics=SANITIZE(trainer.metrics), step=trainer.epoch)
 
 
 def on_train_end(trainer):

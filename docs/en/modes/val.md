@@ -12,6 +12,17 @@ keywords: Ultralytics, YOLO Docs, YOLOv8, validation, model evaluation, hyperpar
 
 Validation is a critical step in the machine learning pipeline, allowing you to assess the quality of your trained models. Val mode in Ultralytics YOLOv8 provides a robust suite of tools and metrics for evaluating the performance of your object detection models. This guide serves as a complete resource for understanding how to effectively use the Val mode to ensure that your models are both accurate and reliable.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?start=47"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics Modes Tutorial: Validation
+</p>
+
 ## Why Validate with Ultralytics YOLO?
 
 Here's why using YOLOv8's Val mode is advantageous:
@@ -80,7 +91,6 @@ Validation settings for YOLO models refer to the various hyperparameters and con
 | `half`        | `True`  | use half precision (FP16)                                          |
 | `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
 | `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
-| `plots`       | `False` | show plots during training                                         |
+| `plots`       | `False` | save plots and images during train/val                             |
 | `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
-|

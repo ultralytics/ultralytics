@@ -9,10 +9,12 @@ keywords: Ultralytics, TrackState, BaseTrack, Ultralytics tracker, Ultralytics d
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/basetrack.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/basetrack.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/trackers/basetrack.py) 🛠️. Thank you 🙏!
 
----
-## ::: ultralytics.trackers.basetrack.TrackState
 <br><br>
 
----
+## ::: ultralytics.trackers.basetrack.TrackState
+
+<br><br>
+
 ## ::: ultralytics.trackers.basetrack.BaseTrack
+
 <br><br>

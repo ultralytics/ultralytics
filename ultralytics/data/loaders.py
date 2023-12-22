@@ -67,11 +67,16 @@ class LoadStreams:
         self.mode = 'stream'
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
+
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
-        self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.imgs, self.fps, self.frames, self.threads, self.shape = [[]] * n, [0] * n, [0] * n, [None] * n, [[]] * n
+        self.fps = [0] * n  # frames per second
+        self.frames = [0] * n
+        self.threads = [None] * n
         self.caps = [None] * n  # video capture objects
+        self.imgs = [[] for _ in range(n)]  # images
+        self.shape = [[] for _ in range(n)]  # image shapes
+        self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '

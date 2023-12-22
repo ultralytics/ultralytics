@@ -52,6 +52,7 @@ Then, you can initialize your Comet project. Comet will automatically detect the
 
 ```python
 import comet_ml
+
 comet_ml.init(project_name="comet-example-yolov8-coco128")
 ```
 

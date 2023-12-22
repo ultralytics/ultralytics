@@ -8,6 +8,17 @@ keywords: Ultralytics, YOLO, callbacks guide, training callback, validation call
 
 Ultralytics framework supports callbacks as entry points in strategic stages of train, val, export, and predict modes. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object depending on the operation type. All properties of these objects can be found in Reference section of the docs.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=67"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Callbacks
+</p>
+
 ## Examples
 
 ### Returning additional information with Prediction
@@ -15,15 +26,19 @@ Ultralytics framework supports callbacks as entry points in strategic stages of 
 In this example, we want to return the original frame with each result object. Here's how we can do that
 
 ```python
+from ultralytics import YOLO
+
+
 def on_predict_batch_end(predictor):
     # Retrieve the batch data
-    _, im0s, _, _ = predictor.batch
+    _, image, _, _ = predictor.batch
 
-    # Ensure that im0s is a list
-    im0s = im0s if isinstance(im0s, list) else [im0s]
+    # Ensure that image is a list
+    image = image if isinstance(image, list) else [image]
 
     # Combine the prediction results with the corresponding frames
-    predictor.results = zip(predictor.results, im0s)
+    predictor.results = zip(predictor.results, image)
+
 
 # Create a YOLO model instance
 model = YOLO(f'yolov8n.pt')
@@ -32,7 +47,7 @@ model = YOLO(f'yolov8n.pt')
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 
 # Iterate through the results and frames
-for (result, frame) in model.track/predict():
+for (result, frame) in model.predict():  # or model.track()
     pass
 ```
 

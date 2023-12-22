@@ -10,20 +10,20 @@ First of all, thank you for your interest in contributing to Ultralytics open-so
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [Pull Requests](#pull-requests)
+1. [Code of Conduct](#code-of-conduct)
+2. [Contributing via Pull Requests](#contributing-via-pull-requests)
     - [CLA Signing](#cla-signing)
     - [Google-Style Docstrings](#google-style-docstrings)
     - [GitHub Actions CI Tests](#github-actions-ci-tests)
-- [Bug Reports](#bug-reports)
-    - [Minimum Reproducible Example](#minimum-reproducible-example)
-- [License and Copyright](#license-and-copyright)
+3. [Reporting Bugs](#reporting-bugs)
+4. [License](#license)
+5. [Conclusion](#conclusion)
 
 ## Code of Conduct
 
 All contributors are expected to adhere to the [Code of Conduct](code_of_conduct.md) to ensure a welcoming and inclusive environment for everyone.
 
-## Pull Requests
+## Contributing via Pull Requests
 
 We welcome contributions in the form of pull requests. To make the review process smoother, please follow these guidelines:
 
@@ -43,7 +43,11 @@ We welcome contributions in the form of pull requests. To make the review proces
 
 Before we can accept your pull request, you need to sign a [Contributor License Agreement (CLA)](CLA.md). This is a legal document stating that you agree to the terms of contributing to the Ultralytics YOLO repositories. The CLA ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
 
-To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR.
+To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR and add a comment in your PR saying:
+
+```
+I have read the CLA Document and I sign the CLA
+```
 
 ### Google-Style Docstrings
 
@@ -73,4 +77,20 @@ def example_function(arg1: int, arg2: int) -> bool:
 
 ### GitHub Actions CI Tests
 
-Before your pull request can be merged, all GitHub Actions Continuous Integration (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure that your changes meet the quality standards of the project. Make sure to review the output of the GitHub Actions and fix any issues
+Before your pull request can be merged, all GitHub Actions [Continuous Integration](CI.md) (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure that your changes meet the quality standards of the project. Make sure to review the output of the GitHub Actions and fix any issues
+
+## Reporting Bugs
+
+We appreciate bug reports as they play a crucial role in maintaining the project's quality. When reporting bugs it is important to provide a [Minimum Reproducible Example](minimum_reproducible_example.md): a clear, concise code example that replicates the issue. This helps in quick identification and resolution of the bug.
+
+## License
+
+Ultralytics embraces the GNU Affero General Public License v3.0 (AGPL-3.0) for its repositories, promoting openness, transparency, and collaborative enhancement in software development. This strong copyleft license ensures that all users and developers retain the freedom to use, modify, and share the software. It fosters community collaboration, ensuring that any improvements remain accessible to all.
+
+Users and developers are encouraged to familiarize themselves with the terms of AGPL-3.0 to contribute effectively and ethically to the Ultralytics open-source community.
+
+## Conclusion
+
+Thank you for your interest in contributing to Ultralytics' open-source YOLO projects. Your participation is crucial in shaping the future of our software and fostering a community of innovation and collaboration. Whether you're improving code, reporting bugs, or suggesting features, your contributions make a significant impact.
+
+We're eager to see your ideas in action and appreciate your commitment to advancing object detection technology. Let's continue to grow and innovate together in this exciting open-source journey. Happy coding! 🚀🌟

@@ -10,6 +10,17 @@ keywords: Ultralytics, YOLOv8, Advanced Data Visualization, Heatmap Technology, 
 
 A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) transforms complex data into a vibrant, color-coded matrix. This visual tool employs a spectrum of colors to represent varying data values, where warmer hues indicate higher intensities and cooler tones signify lower values. Heatmaps excel in visualizing intricate data patterns, correlations, and anomalies, offering an accessible and engaging approach to data interpretation across diverse domains.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/4ezde5-nZZw"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Heatmaps using Ultralytics YOLOv8
+</p>
+
 ## Why Choose Heatmaps for Data Analysis?
 
 - **Intuitive Data Distribution Visualization:** Heatmaps simplify the comprehension of data concentration and distribution, converting complex datasets into easy-to-understand visual formats.

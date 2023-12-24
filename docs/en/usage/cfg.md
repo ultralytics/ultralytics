@@ -6,6 +6,17 @@ keywords: YOLOv8, settings, hyperparameters, YOLO CLI commands, YOLO tasks, YOLO
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings and hyperparameters can affect the model's behavior at various stages of the model development process, including training, validation, and prediction.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=87"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Configuration
+</p>
+
 Ultralytics commands use the following syntax:
 
 !!! Example
@@ -77,6 +88,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                              |
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
+| `time`            | `None`   | number of hours to train for, overrides epochs if supplied                                     |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training                    |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                                  |
 | `imgsz`           | `640`    | size of input images as integer                                                                |
@@ -144,8 +156,9 @@ Inference arguments:
 | `visualize`     | `bool`         | `False`                | visualize model features                                                   |
 | `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
 | `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
+| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
-| `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+| `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
 
 Visualization arguments:
 

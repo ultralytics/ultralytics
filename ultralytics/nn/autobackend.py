@@ -40,6 +40,14 @@ def check_class_names(names):
     return names
 
 
+def default_class_names(data=None):
+    """Applies default class names to an input YAML file or returns numerical class names."""
+    if data:
+        with contextlib.suppress(Exception):
+            return yaml_load(check_yaml(data))['names']
+    return {i: f'class{i}' for i in range(999)}  # return default if above errors
+
+
 class AutoBackend(nn.Module):
     """
     Handles dynamic backend selection for running inference using Ultralytics YOLO models.
@@ -315,7 +323,7 @@ class AutoBackend(nn.Module):
 
         # Check names
         if 'names' not in locals():  # names missing
-            names = self._apply_default_class_names(data)
+            names = default_class_names(data)
         names = check_class_names(names)
 
         # Disable gradients
@@ -325,7 +333,7 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
-    def forward(self, im, augment=False, visualize=False):
+    def forward(self, im, augment=False, visualize=False, embed=None):
         """
         Runs inference on the YOLOv8 MultiBackend model.
 
@@ -333,6 +341,7 @@ class AutoBackend(nn.Module):
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): whether to perform data augmentation during inference, defaults to False
             visualize (bool): whether to visualize the output predictions, defaults to False
+            embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
             (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
@@ -344,7 +353,7 @@ class AutoBackend(nn.Module):
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
 
         if self.pt or self.nn_module:  # PyTorch
-            y = self.model(im, augment=augment, visualize=visualize) if augment or visualize else self.model(im)
+            y = self.model(im, augment=augment, visualize=visualize, embed=embed)
         elif self.jit:  # TorchScript
             y = self.model(im)
         elif self.dnn:  # ONNX OpenCV DNN
@@ -478,13 +487,6 @@ class AutoBackend(nn.Module):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):
                 self.forward(im)  # warmup
-
-    @staticmethod
-    def _apply_default_class_names(data):
-        """Applies default class names to an input YAML file or returns numerical class names."""
-        with contextlib.suppress(Exception):
-            return yaml_load(check_yaml(data))['names']
-        return {i: f'class{i}' for i in range(999)}  # return default if above errors
 
     @staticmethod
     def _model_type(p='path/to/model.pt'):

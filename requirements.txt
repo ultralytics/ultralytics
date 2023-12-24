@@ -32,6 +32,8 @@ seaborn>=0.11.0
 # scikit-learn==0.19.2  # CoreML quantization
 # tensorflow>=2.4.1,<=2.13.1  # TF exports (-cpu, -aarch64, -macos)
 # tflite-support
+# jax<=0.4.21  # tensorflowjs bug https://github.com/google/jax/issues/18978
+# jaxlib<=0.4.21  # tensorflowjs bug https://github.com/google/jax/issues/18978
 # tensorflowjs>=3.9.0  # TF.js export
 # openvino-dev>=2023.0  # OpenVINO export
 

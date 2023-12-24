@@ -178,6 +178,7 @@ class Results(SimpleClass):
         boxes=True,
         masks=True,
         probs=True,
+        exclude_class=[],
     ):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
@@ -242,6 +243,8 @@ class Results(SimpleClass):
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                if c in exclude_class:
+                    continue
                 name = ('' if id is None else f'id:{id} ') + names[c]
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))

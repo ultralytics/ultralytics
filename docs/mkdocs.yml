@@ -271,6 +271,8 @@ nav:
           - Objects Counting in Regions: guides/region-counting.md
           - Security Alarm System: guides/security-alarm-system.md
           - Heatmaps: guides/heatmaps.md
+          - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
+          - VisionEye Mapping: guides/vision-eye.md
   - Integrations:
       - integrations/index.md
       - Comet ML: integrations/comet.md

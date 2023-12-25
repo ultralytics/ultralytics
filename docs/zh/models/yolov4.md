@@ -68,4 +68,4 @@ YOLOv4是一种强大而高效的目标检测模型，它在速度和准确性�
         }
         ```
 
-YOLOv4的原始论文可以在[arXiv](https://arxiv.org/pdf/2004.10934.pdf)上找到。作者已经公开了他们的工作，代码库可以在[GitHub](https://github.com/AlexeyAB/darknet)上获取。我们赞赏他们在推动该领域方面的努力，并使他们的工作对广大社区产生影响。
+YOLOv4的原始论文可以在[arXiv](https://arxiv.org/abs/2004.10934)上找到。作者已经公开了他们的工作，代码库可以在[GitHub](https://github.com/AlexeyAB/darknet)上获取。我们赞赏他们在推动该领域方面的努力，并使他们的工作对广大社区产生影响。

@@ -68,4 +68,4 @@ Wir möchten den Autoren von YOLOv4 für ihren bedeutenden Beitrag auf dem Gebie
         }
         ```
 
-Die originale YOLOv4-Publikation finden Sie auf [arXiv](https://arxiv.org/pdf/2004.10934.pdf). Die Autoren haben ihre Arbeit öffentlich zugänglich gemacht und der Code kann auf [GitHub](https://github.com/AlexeyAB/darknet) abgerufen werden. Wir schätzen ihre Bemühungen, das Fachgebiet voranzubringen und ihre Arbeit der breiteren Community zugänglich zu machen.
+Die originale YOLOv4-Publikation finden Sie auf [arXiv](https://arxiv.org/abs/2004.10934). Die Autoren haben ihre Arbeit öffentlich zugänglich gemacht und der Code kann auf [GitHub](https://github.com/AlexeyAB/darknet) abgerufen werden. Wir schätzen ihre Bemühungen, das Fachgebiet voranzubringen und ihre Arbeit der breiteren Community zugänglich zu machen.

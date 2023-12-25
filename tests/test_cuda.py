@@ -61,6 +61,7 @@ def test_autobatch():
     check_train_batch_size(YOLO(MODEL).model.cuda(), imgsz=128, amp=True)
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason='CUDA is not available')
 def test_utils_benchmarks():
     """Profile YOLO models for performance benchmarks."""

@@ -17,6 +17,7 @@ This repository features a collection of real-world applications and walkthrough
 | [YOLOv8 SAHI Video Inference](https://github.com/RizwanMunawar/ultralytics/blob/main/examples/YOLOv8-SAHI-Inference-Video/yolov8_sahi.py) | Python             | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar)                               |
 | [YOLOv8 Region Counter](https://github.com/RizwanMunawar/ultralytics/blob/main/examples/YOLOv8-Region-Counter/yolov8_region_counter.py)   | Python             | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar)                               |
 | [YOLOv8 Segmentation ONNXRuntime Python](./YOLOv8-Segmentation-ONNXRuntime-Python)                                                        | Python/ONNXRuntime | [jamjamjon](https://github.com/jamjamjon)                                                 |
+| [YOLOv8 LibTorch CPP](./YOLOv8-LibTorch-CPP-Inference)                                                                                    | C++/LibTorch       | [Myyura](https://github.com/Myyura)                                                       |
 
 ### How to Contribute
 

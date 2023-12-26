@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data
 
 !!! Note
 
-    Ultralytics offers two licensing options: the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an OSI-approved open-source license ideal for students and enthusiasts, and the [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services. More details are available via [Ultralytics Licensing](https://ultralytics.com/license).
+    Ultralytics offers two licensing options: the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an OSI-approved open-source license ideal for students and enthusiasts, and the [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services. For more details see [Ultralytics Licensing](https://ultralytics.com/license).
 
 In this guide, we are going to showcase how to find, label, and organize data for use in training a custom Ultralytics YOLOv8 model. Use the table of contents below to jump directly to a specific section:
 

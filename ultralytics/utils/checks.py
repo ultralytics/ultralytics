@@ -452,7 +452,6 @@ def check_file(file, suffix='', download=True, hard=True):
         if Path(file).exists():
             LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
         else:
-            print('/home/plupiman/colorspace-experiments/customUltralytics/ultralytics/utils/checks.py line 456')
             downloads.safe_download(url=url, file=file, unzip=False)
         return file
     else:  # search

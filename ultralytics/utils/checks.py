@@ -27,8 +27,8 @@ from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT,
 
 
 def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
-    """Parse a requirements.txt file, ignoring lines that start with '#' and
-    any text after '#'.
+    """
+    Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
         file_path (Path): Path to the requirements.txt file.
@@ -63,9 +63,9 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
 
 
 def parse_version(version='0.0.0') -> tuple:
-    """Convert a version string to a tuple of integers, ignoring any extra non-
-    numeric string attached to the version. This function replaces deprecated
-    'pkg_resources.parse_version(v)'.
+    """
+    Convert a version string to a tuple of integers, ignoring any extra non- numeric string attached to the version.
+    This function replaces deprecated 'pkg_resources.parse_version(v)'.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu'
@@ -81,7 +81,8 @@ def parse_version(version='0.0.0') -> tuple:
 
 
 def is_ascii(s) -> bool:
-    """Check if a string is composed of only ASCII characters.
+    """
+    Check if a string is composed of only ASCII characters.
 
     Args:
         s (str): String to be checked.
@@ -97,10 +98,9 @@ def is_ascii(s) -> bool:
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
-    """Verify image size is a multiple of the given stride in each dimension.
-    If the image size is not a multiple of the stride, update it to the nearest
-    multiple of the stride that is greater than or equal to the given floor
-    value.
+    """
+    Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
+    stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
         imgsz (int | cList[int]): Image size.
@@ -151,7 +151,8 @@ def check_version(current: str = '0.0.0',
                   hard: bool = False,
                   verbose: bool = False,
                   msg: str = '') -> bool:
-    """Check current version against the required version or range.
+    """
+    Check current version against the required version or range.
 
     Args:
         current (str): Current version or package name to get version from.
@@ -224,8 +225,8 @@ def check_version(current: str = '0.0.0',
 
 
 def check_latest_pypi_version(package_name='ultralytics'):
-    """Returns the latest version of a PyPI package without downloading or
-    installing it.
+    """
+    Returns the latest version of a PyPI package without downloading or installing it.
 
     Parameters:
         package_name (str): The name of the package to find the latest version for.
@@ -241,7 +242,8 @@ def check_latest_pypi_version(package_name='ultralytics'):
 
 
 def check_pip_update_available():
-    """Checks if a new version of the ultralytics package is available on PyPI.
+    """
+    Checks if a new version of the ultralytics package is available on PyPI.
 
     Returns:
         (bool): True if an update is available, False otherwise.
@@ -259,8 +261,8 @@ def check_pip_update_available():
 
 @ThreadingLocked()
 def check_font(font='Arial.ttf'):
-    """Find font locally or download to user's configuration directory if it
-    does not already exist.
+    """
+    Find font locally or download to user's configuration directory if it does not already exist.
 
     Args:
         font (str): Path or name of font.
@@ -288,7 +290,8 @@ def check_font(font='Arial.ttf'):
 
 
 def check_python(minimum: str = '3.8.0') -> bool:
-    """Check current python version against the required minimum version.
+    """
+    Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
@@ -301,8 +304,8 @@ def check_python(minimum: str = '3.8.0') -> bool:
 
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=(), install=True, cmds=''):
-    """Check if installed dependencies meet YOLOv8 requirements and attempt to
-    auto-update if needed.
+    """
+    Check if installed dependencies meet YOLOv8 requirements and attempt to auto-update if needed.
 
     Args:
         requirements (Union[Path, str, List[str]]): Path to a requirements.txt file, a single package requirement as a
@@ -369,8 +372,8 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
 
 
 def check_torchvision():
-    """Checks the installed versions of PyTorch and Torchvision to ensure
-    they're compatible.
+    """
+    Checks the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
     to the provided compatibility table based on:
@@ -461,14 +464,13 @@ def check_file(file, suffix='', download=True, hard=True):
 
 
 def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
-    """Search/download YAML file (if necessary) and return path, checking
-    suffix."""
+    """Search/download YAML file (if necessary) and return path, checking suffix."""
     return check_file(file, suffix, hard=hard)
 
 
 def check_is_path_safe(basedir, path):
-    """Check if the resolved path is under the intended directory to prevent
-    path traversal.
+    """
+    Check if the resolved path is under the intended directory to prevent path traversal.
 
     Args:
         basedir (Path | str): The intended directory.
@@ -528,8 +530,7 @@ def check_yolo(verbose=True, device=''):
 
 
 def collect_system_info():
-    """Collect and print relevant system information including OS, Python, RAM,
-    CPU, and CUDA."""
+    """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA."""
 
     import psutil
 
@@ -565,10 +566,10 @@ def collect_system_info():
 
 
 def check_amp(model):
-    """This function checks the PyTorch Automatic Mixed Precision (AMP)
-    functionality of a YOLOv8 model. If the checks fail, it means there are
-    anomalies with AMP on the system that may cause NaN losses or zero-mAP
-    results, so AMP will be disabled during training.
+    """
+    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks
+    fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will
+    be disabled during training.
 
     Args:
         model (nn.Module): A YOLOv8 model instance.
@@ -628,8 +629,7 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     """Print function arguments (optional args dict)."""
 
     def strip_auth(v):
-        """Clean longer Ultralytics HUB URLs by stripping potential
-        authentication information."""
+        """Clean longer Ultralytics HUB URLs by stripping potential authentication information."""
         return clean_url(v) if (isinstance(v, str) and v.startswith('http') and len(v) > 100) else v
 
     x = inspect.currentframe().f_back  # previous frame
@@ -646,7 +646,8 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
 
 
 def cuda_device_count() -> int:
-    """Get the number of NVIDIA GPUs available in the environment.
+    """
+    Get the number of NVIDIA GPUs available in the environment.
 
     Returns:
         (int): The number of NVIDIA GPUs available.
@@ -666,7 +667,8 @@ def cuda_device_count() -> int:
 
 
 def cuda_is_available() -> bool:
-    """Check if CUDA is available in the environment.
+    """
+    Check if CUDA is available in the environment.
 
     Returns:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.

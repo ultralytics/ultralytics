@@ -7,12 +7,10 @@ from ultralytics.utils.plotting import Annotator
 
 
 class AIGym:
-    """A class to manage the gym steps of people in a real-time video stream
-    based on their poses."""
+    """A class to manage the gym steps of people in a real-time video stream based on their poses."""
 
     def __init__(self):
-        """Initializes the AIGym with default values for Visual and Image
-        parameters."""
+        """Initializes the AIGym with default values for Visual and Image parameters."""
 
         # Image and line thickness
         self.im0 = None

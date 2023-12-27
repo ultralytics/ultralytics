@@ -74,7 +74,8 @@ def run(
     track_thickness=2,
     region_thickness=2,
 ):
-    """Run Region counting on a video using YOLOv8 and ByteTrack.
+    """
+    Run Region counting on a video using YOLOv8 and ByteTrack.
 
     Supports movable region for real time counting inside specific area.
     Supports multiple regions counting.

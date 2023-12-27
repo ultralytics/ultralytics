@@ -45,8 +45,7 @@ def on_model_save(trainer):
 
 
 def on_train_end(trainer):
-    """Upload final model and metrics to Ultralytics HUB at the end of
-    training."""
+    """Upload final model and metrics to Ultralytics HUB at the end of training."""
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Upload final model and metrics with exponential standoff

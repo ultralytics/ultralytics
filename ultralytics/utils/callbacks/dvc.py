@@ -39,8 +39,7 @@ def _log_images(path, prefix=''):
 
 
 def _log_plots(plots, prefix=''):
-    """Logs plot images for training progress if they have not been previously
-    processed."""
+    """Logs plot images for training progress if they have not been previously processed."""
     for name, params in plots.items():
         timestamp = params['timestamp']
         if _processed_plots.get(name) != timestamp:
@@ -66,8 +65,7 @@ def _log_confusion_matrix(validator):
 
 
 def on_pretrain_routine_start(trainer):
-    """Initializes DVCLive logger for training metadata during pre-training
-    routine."""
+    """Initializes DVCLive logger for training metadata during pre-training routine."""
     try:
         global live
         live = dvclive.Live(save_dvc_exp=True, cache_images=True)
@@ -77,8 +75,7 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_pretrain_routine_end(trainer):
-    """Logs plots related to the training process at the end of the pretraining
-    routine."""
+    """Logs plots related to the training process at the end of the pretraining routine."""
     _log_plots(trainer.plots, 'train')
 
 
@@ -89,15 +86,13 @@ def on_train_start(trainer):
 
 
 def on_train_epoch_start(trainer):
-    """Sets the global variable _training_epoch value to True at the start of
-    training each epoch."""
+    """Sets the global variable _training_epoch value to True at the start of training each epoch."""
     global _training_epoch
     _training_epoch = True
 
 
 def on_fit_epoch_end(trainer):
-    """Logs training metrics and model info, and advances to next step on the
-    end of each fit epoch."""
+    """Logs training metrics and model info, and advances to next step on the end of each fit epoch."""
     global _training_epoch
     if live and _training_epoch:
         all_metrics = {**trainer.label_loss_items(trainer.tloss, prefix='train'), **trainer.metrics, **trainer.lr}
@@ -117,8 +112,7 @@ def on_fit_epoch_end(trainer):
 
 
 def on_train_end(trainer):
-    """Logs the best metrics, plots, and confusion matrix at the end of
-    training if DVCLive is active."""
+    """Logs the best metrics, plots, and confusion matrix at the end of training if DVCLive is active."""
     if live:
         # At the end log the best metrics. It runs validator on the best model internally.
         all_metrics = {**trainer.label_loss_items(trainer.tloss, prefix='train'), **trainer.metrics, **trainer.lr}

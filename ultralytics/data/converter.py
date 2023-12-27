@@ -12,7 +12,8 @@ from ultralytics.utils.files import increment_path
 
 
 def coco91_to_coco80_class():
-    """Converts 91-index COCO class IDs to 80-index COCO class IDs.
+    """
+    Converts 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
         (list): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
@@ -51,8 +52,8 @@ def convert_coco(labels_dir='../coco/annotations/',
                  use_segments=False,
                  use_keypoints=False,
                  cls91to80=True):
-    """Converts COCO dataset annotations to a YOLO annotation format  suitable
-    for training YOLO models.
+    """
+    Converts COCO dataset annotations to a YOLO annotation format  suitable for training YOLO models.
 
     Args:
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
@@ -147,8 +148,8 @@ def convert_coco(labels_dir='../coco/annotations/',
 
 
 def convert_dota_to_yolo_obb(dota_root_path: str):
-    """Converts DOTA dataset annotations to YOLO OBB (Oriented Bounding Box)
-    format.
+    """
+    Converts DOTA dataset annotations to YOLO OBB (Oriented Bounding Box) format.
 
     The function processes images in the 'train' and 'val' folders of the DOTA dataset. For each image, it reads the
     associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
@@ -203,8 +204,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         'helipad': 17}
 
     def convert_label(image_name, image_width, image_height, orig_label_dir, save_dir):
-        """Converts a single image's DOTA annotation to YOLO OBB format and
-        saves it to a specified directory."""
+        """Converts a single image's DOTA annotation to YOLO OBB format and saves it to a specified directory."""
         orig_label_path = orig_label_dir / f'{image_name}.txt'
         save_path = save_dir / f'{image_name}.txt'
 
@@ -240,8 +240,8 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
 
 
 def min_index(arr1, arr2):
-    """Find a pair of indexes with the shortest distance between two arrays of
-    2D points.
+    """
+    Find a pair of indexes with the shortest distance between two arrays of 2D points.
 
     Args:
         arr1 (np.array): A NumPy array of shape (N, 2) representing N 2D points.
@@ -255,9 +255,9 @@ def min_index(arr1, arr2):
 
 
 def merge_multi_segment(segments):
-    """Merge multiple segments into one list by connecting the coordinates with
-    the minimum distance between each segment. This function connects these
-    coordinates with a thin line to merge all segments into one.
+    """
+    Merge multiple segments into one list by connecting the coordinates with the minimum distance between each segment.
+    This function connects these coordinates with a thin line to merge all segments into one.
 
     Args:
         segments (List[List]): Original segmentations in COCO's JSON file.

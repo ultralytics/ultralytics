@@ -13,8 +13,8 @@ from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_di
 
 
 class ClassificationTrainer(BaseTrainer):
-    """A class extending the BaseTrainer class for training based on a
-    classification model.
+    """
+    A class extending the BaseTrainer class for training based on a classification model.
 
     Notes:
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
@@ -30,8 +30,7 @@ class ClassificationTrainer(BaseTrainer):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize a ClassificationTrainer object with optional
-        configuration overrides and callbacks."""
+        """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
         if overrides is None:
             overrides = {}
         overrides['task'] = 'classify'
@@ -80,13 +79,11 @@ class ClassificationTrainer(BaseTrainer):
         return ckpt
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        """Creates a ClassificationDataset instance given an image path, and
-        mode (train/test etc.)."""
+        """Creates a ClassificationDataset instance given an image path, and mode (train/test etc.)."""
         return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train', prefix=mode)
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
-        """Returns PyTorch DataLoader with transforms to preprocess images for
-        inference."""
+        """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
@@ -116,10 +113,10 @@ class ClassificationTrainer(BaseTrainer):
         return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir)
 
     def label_loss_items(self, loss_items=None, prefix='train'):
-        """Returns a loss dict with labelled training loss items tensor.
+        """
+        Returns a loss dict with labelled training loss items tensor.
 
-        Not needed for classification but necessary for segmentation &
-        detection
+        Not needed for classification but necessary for segmentation & detection
         """
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is None:

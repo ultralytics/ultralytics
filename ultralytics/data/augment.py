@@ -20,7 +20,8 @@ from .utils import polygons2masks, polygons2masks_overlap
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
-    """Base class for image transformations.
+    """
+    Base class for image transformations.
 
     This is a generic transformation class that can be extended for specific image processing needs.
     The class is designed to be compatible with both classification and semantic segmentation tasks.
@@ -50,8 +51,7 @@ class BaseTransform:
         pass
 
     def __call__(self, labels):
-        """Applies all label transformations to an image, instances, and
-        semantic masks."""
+        """Applies all label transformations to an image, instances, and semantic masks."""
         self.apply_image(labels)
         self.apply_instances(labels)
         self.apply_semantic(labels)
@@ -84,21 +84,20 @@ class Compose:
 
 
 class BaseMixTransform:
-    """Class for base mix (MixUp/Mosaic) transformations.
+    """
+    Class for base mix (MixUp/Mosaic) transformations.
 
     This implementation is from mmyolo.
     """
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
-        """Initializes the BaseMixTransform object with dataset, pre_transform,
-        and probability."""
+        """Initializes the BaseMixTransform object with dataset, pre_transform, and probability."""
         self.dataset = dataset
         self.pre_transform = pre_transform
         self.p = p
 
     def __call__(self, labels):
-        """Applies pre-processing transforms and mixup/mosaic transforms to
-        labels data."""
+        """Applies pre-processing transforms and mixup/mosaic transforms to labels data."""
         if random.uniform(0, 1) > self.p:
             return labels
 
@@ -130,7 +129,8 @@ class BaseMixTransform:
 
 
 class Mosaic(BaseMixTransform):
-    """Mosaic augmentation.
+    """
+    Mosaic augmentation.
 
     This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
     The augmentation is applied to a dataset with a given probability.
@@ -143,8 +143,7 @@ class Mosaic(BaseMixTransform):
     """
 
     def __init__(self, dataset, imgsz=640, p=1.0, n=4):
-        """Initializes the object with a dataset, image size, probability, and
-        border."""
+        """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, f'The probability should be in range [0, 1], but got {p}.'
         assert n in (4, 9), 'grid must be equal to 4 or 9.'
         super().__init__(dataset=dataset, p=p)
@@ -321,8 +320,7 @@ class MixUp(BaseMixTransform):
     """Class for applying MixUp augmentation to the dataset."""
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
-        """Initializes MixUp object with dataset, pre_transform, and
-        probability of applying MixUp."""
+        """Initializes MixUp object with dataset, pre_transform, and probability of applying MixUp."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
     def get_indexes(self):
@@ -340,11 +338,10 @@ class MixUp(BaseMixTransform):
 
 
 class RandomPerspective:
-    """Implements random perspective and affine transformations on images and
-    corresponding bounding boxes, segments, and keypoints. These
-    transformations include rotation, translation, scaling, and shearing. The
-    class also offers the option to apply these transformations conditionally
-    with a specified probability.
+    """
+    Implements random perspective and affine transformations on images and corresponding bounding boxes, segments, and
+    keypoints. These transformations include rotation, translation, scaling, and shearing. The class also offers the
+    option to apply these transformations conditionally with a specified probability.
 
     Attributes:
         degrees (float): Degree range for random rotations.
@@ -372,8 +369,7 @@ class RandomPerspective:
                  perspective=0.0,
                  border=(0, 0),
                  pre_transform=None):
-        """Initializes RandomPerspective object with transformation
-        parameters."""
+        """Initializes RandomPerspective object with transformation parameters."""
 
         self.degrees = degrees
         self.translate = translate
@@ -384,8 +380,8 @@ class RandomPerspective:
         self.pre_transform = pre_transform
 
     def affine_transform(self, img, border):
-        """Applies a sequence of affine transformations centered around the
-        image center.
+        """
+        Applies a sequence of affine transformations centered around the image center.
 
         Args:
             img (ndarray): Input image.
@@ -437,7 +433,8 @@ class RandomPerspective:
         return img, M, s
 
     def apply_bboxes(self, bboxes, M):
-        """Apply affine to bboxes only.
+        """
+        Apply affine to bboxes only.
 
         Args:
             bboxes (ndarray): list of bboxes, xyxy format, with shape (num_bboxes, 4).
@@ -461,7 +458,8 @@ class RandomPerspective:
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
     def apply_segments(self, segments, M):
-        """Apply affine to segments and generate new bboxes from segments.
+        """
+        Apply affine to segments and generate new bboxes from segments.
 
         Args:
             segments (ndarray): list of segments, [num_samples, 500, 2].
@@ -485,7 +483,8 @@ class RandomPerspective:
         return bboxes, segments
 
     def apply_keypoints(self, keypoints, M):
-        """Apply affine to keypoints.
+        """
+        Apply affine to keypoints.
 
         Args:
             keypoints (ndarray): keypoints, [N, 17, 3].
@@ -507,7 +506,8 @@ class RandomPerspective:
         return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
     def __call__(self, labels):
-        """Affine images and targets.
+        """
+        Affine images and targets.
 
         Args:
             labels (dict): a dict of `bboxes`, `segments`, `keypoints`.
@@ -556,9 +556,9 @@ class RandomPerspective:
         return labels
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
-        """Compute box candidates based on a set of thresholds. This method
-        compares the characteristics of the boxes before and after augmentation
-        to decide whether a box is a candidate for further processing.
+        """
+        Compute box candidates based on a set of thresholds. This method compares the characteristics of the boxes
+        before and after augmentation to decide whether a box is a candidate for further processing.
 
         Args:
             box1 (numpy.ndarray): The 4,n bounding box before augmentation, represented as [x1, y1, x2, y2].
@@ -578,15 +578,16 @@ class RandomPerspective:
 
 
 class RandomHSV:
-    """This class is responsible for performing random adjustments to the Hue,
-    Saturation, and Value (HSV) channels of an image.
+    """
+    This class is responsible for performing random adjustments to the Hue, Saturation, and Value (HSV) channels of an
+    image.
 
-    The adjustments are random but within limits set by hgain, sgain,
-    and vgain.
+    The adjustments are random but within limits set by hgain, sgain, and vgain.
     """
 
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
-        """Initialize RandomHSV class with gains for each HSV channel.
+        """
+        Initialize RandomHSV class with gains for each HSV channel.
 
         Args:
             hgain (float, optional): Maximum variation for hue. Default is 0.5.
@@ -598,11 +599,10 @@ class RandomHSV:
         self.vgain = vgain
 
     def __call__(self, labels):
-        """Applies random HSV augmentation to an image within the predefined
-        limits.
+        """
+        Applies random HSV augmentation to an image within the predefined limits.
 
-        The modified image replaces the original image in the input
-        'labels' dict.
+        The modified image replaces the original image in the input 'labels' dict.
         """
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
@@ -621,15 +621,15 @@ class RandomHSV:
 
 
 class RandomFlip:
-    """Applies a random horizontal or vertical flip to an image with a given
-    probability.
+    """
+    Applies a random horizontal or vertical flip to an image with a given probability.
 
-    Also updates any instances (bounding boxes, keypoints, etc.)
-    accordingly.
+    Also updates any instances (bounding boxes, keypoints, etc.) accordingly.
     """
 
     def __init__(self, p=0.5, direction='horizontal', flip_idx=None) -> None:
-        """Initializes the RandomFlip class with probability and direction.
+        """
+        Initializes the RandomFlip class with probability and direction.
 
         Args:
             p (float, optional): The probability of applying the flip. Must be between 0 and 1. Default is 0.5.
@@ -645,8 +645,8 @@ class RandomFlip:
         self.flip_idx = flip_idx
 
     def __call__(self, labels):
-        """Applies random flip to an image and updates any instances like
-        bounding boxes or keypoints accordingly.
+        """
+        Applies random flip to an image and updates any instances like bounding boxes or keypoints accordingly.
 
         Args:
             labels (dict): A dictionary containing the keys 'img' and 'instances'. 'img' is the image to be flipped.
@@ -752,7 +752,8 @@ class CopyPaste:
     """
 
     def __init__(self, p=0.5) -> None:
-        """Initializes the CopyPaste class with a given probability.
+        """
+        Initializes the CopyPaste class with a given probability.
 
         Args:
             p (float, optional): The probability of applying the Copy-Paste augmentation. Must be between 0 and 1.
@@ -761,8 +762,8 @@ class CopyPaste:
         self.p = p
 
     def __call__(self, labels):
-        """Applies the Copy-Paste augmentation to the given image and
-        instances.
+        """
+        Applies the Copy-Paste augmentation to the given image and instances.
 
         Args:
             labels (dict): A dictionary containing:
@@ -811,12 +812,12 @@ class CopyPaste:
 
 
 class Albumentations:
-    """Albumentations transformations.
+    """
+    Albumentations transformations.
 
-    Optional, uninstall package to disable. Applies Blur, Median Blur,
-    convert to grayscale, Contrast Limited Adaptive Histogram
-    Equalization, random change of brightness and contrast, RandomGamma
-    and lowering of image quality by compression.
+    Optional, uninstall package to disable. Applies Blur, Median Blur, convert to grayscale, Contrast Limited Adaptive
+    Histogram Equalization, random change of brightness and contrast, RandomGamma and lowering of image quality by
+    compression.
     """
 
     def __init__(self, p=1.0):
@@ -846,8 +847,7 @@ class Albumentations:
             LOGGER.info(f'{prefix}{e}')
 
     def __call__(self, labels):
-        """Generates object detections and returns a dictionary with detection
-        results."""
+        """Generates object detections and returns a dictionary with detection results."""
         im = labels['img']
         cls = labels['cls']
         if len(cls):
@@ -867,9 +867,9 @@ class Albumentations:
 
 # TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
-    """Formats image annotations for object detection, instance segmentation,
-    and pose estimation tasks. The class standardizes the image and instance
-    annotations to be used by the `collate_fn` in PyTorch DataLoader.
+    """
+    Formats image annotations for object detection, instance segmentation, and pose estimation tasks. The class
+    standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
 
     Attributes:
         bbox_format (str): Format for bounding boxes. Default is 'xywh'.
@@ -899,8 +899,7 @@ class Format:
         self.batch_idx = batch_idx  # keep the batch indexes
 
     def __call__(self, labels):
-        """Return formatted image, classes, bounding boxes & keypoints to be
-        used by 'collate_fn'."""
+        """Return formatted image, classes, bounding boxes & keypoints to be used by 'collate_fn'."""
         img = labels.pop('img')
         h, w = img.shape[:2]
         cls = labels.pop('cls')
@@ -994,8 +993,7 @@ def classify_transforms(size=224, rect=False, mean=(0.0, 0.0, 0.0), std=(1.0, 1.
 
 
 def hsv2colorjitter(h, s, v):
-    """Map HSV (hue, saturation, value) jitter into ColorJitter values
-    (brightness, contrast, saturation, hue)"""
+    """Map HSV (hue, saturation, value) jitter into ColorJitter values (brightness, contrast, saturation, hue)"""
     return v, v, s, h
 
 
@@ -1012,8 +1010,7 @@ def classify_albumentations(
         std=(1.0, 1.0, 1.0),  # IMAGENET_STD
         auto_aug=False,
 ):
-    """YOLOv8 classification Albumentations (optional, only used if package is
-    installed)."""
+    """YOLOv8 classification Albumentations (optional, only used if package is installed)."""
     prefix = colorstr('albumentations: ')
     try:
         import albumentations as A
@@ -1045,8 +1042,9 @@ def classify_albumentations(
 
 
 class ClassifyLetterBox:
-    """YOLOv8 LetterBox class for image preprocessing, designed to be part of a
-    transformation pipeline, e.g., T.Compose([LetterBox(size), ToTensor()]).
+    """
+    YOLOv8 LetterBox class for image preprocessing, designed to be part of a transformation pipeline, e.g.,
+    T.Compose([LetterBox(size), ToTensor()]).
 
     Attributes:
         h (int): Target height of the image.
@@ -1056,8 +1054,8 @@ class ClassifyLetterBox:
     """
 
     def __init__(self, size=(640, 640), auto=False, stride=32):
-        """Initializes the ClassifyLetterBox class with a target size, auto-
-        flag, and stride.
+        """
+        Initializes the ClassifyLetterBox class with a target size, auto- flag, and stride.
 
         Args:
             size (Union[int, Tuple[int, int]]): The target dimensions (height, width) for the letterbox.
@@ -1070,7 +1068,8 @@ class ClassifyLetterBox:
         self.stride = stride  # used with auto
 
     def __call__(self, im):
-        """Resizes the image and pads it with a letterbox method.
+        """
+        Resizes the image and pads it with a letterbox method.
 
         Args:
             im (numpy.ndarray): The input image as a numpy array of shape HWC.
@@ -1093,9 +1092,9 @@ class ClassifyLetterBox:
 
 
 class CenterCrop:
-    """YOLOv8 CenterCrop class for image preprocessing, designed to be part of
-    a transformation pipeline, e.g., T.Compose([CenterCrop(size),
-    ToTensor()])."""
+    """YOLOv8 CenterCrop class for image preprocessing, designed to be part of a transformation pipeline, e.g.,
+    T.Compose([CenterCrop(size), ToTensor()]).
+    """
 
     def __init__(self, size=640):
         """Converts an image from numpy array to PyTorch tensor."""
@@ -1103,7 +1102,8 @@ class CenterCrop:
         self.h, self.w = (size, size) if isinstance(size, int) else size
 
     def __call__(self, im):
-        """Resizes and crops the center of the image using a letterbox method.
+        """
+        Resizes and crops the center of the image using a letterbox method.
 
         Args:
             im (numpy.ndarray): The input image as a numpy array of shape HWC.
@@ -1118,18 +1118,16 @@ class CenterCrop:
 
 
 class ToTensor:
-    """YOLOv8 ToTensor class for image preprocessing, i.e.,
-    T.Compose([LetterBox(size), ToTensor()])."""
+    """YOLOv8 ToTensor class for image preprocessing, i.e., T.Compose([LetterBox(size), ToTensor()])."""
 
     def __init__(self, half=False):
-        """Initialize YOLOv8 ToTensor object with optional half-precision
-        support."""
+        """Initialize YOLOv8 ToTensor object with optional half-precision support."""
         super().__init__()
         self.half = half
 
     def __call__(self, im):
-        """Transforms an image from a numpy array to a PyTorch tensor, applying
-        optional half-precision and normalization.
+        """
+        Transforms an image from a numpy array to a PyTorch tensor, applying optional half-precision and normalization.
 
         Args:
             im (numpy.ndarray): Input image as a numpy array with shape (H, W, C) in BGR order.

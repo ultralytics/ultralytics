@@ -15,8 +15,8 @@ AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__versio
 
 
 class HUBTrainingSession:
-    """HUB training session for Ultralytics HUB YOLO models. Handles model
-    initialization, heartbeats, and checkpointing.
+    """
+    HUB training session for Ultralytics HUB YOLO models. Handles model initialization, heartbeats, and checkpointing.
 
     Args:
         url (str): Model identifier used to initialize the HUB training session.
@@ -35,8 +35,8 @@ class HUBTrainingSession:
     """
 
     def __init__(self, url):
-        """Initialize the HUBTrainingSession with the provided model
-        identifier.
+        """
+        Initialize the HUBTrainingSession with the provided model identifier.
 
         Args:
             url (str): Model identifier used to initialize the HUB training session.
@@ -77,17 +77,15 @@ class HUBTrainingSession:
         LOGGER.info(f'{PREFIX}View model at {self.model_url} 🚀')
 
     def _register_signal_handlers(self):
-        """Register signal handlers for SIGTERM and SIGINT signals to
-        gracefully handle termination."""
+        """Register signal handlers for SIGTERM and SIGINT signals to gracefully handle termination."""
         signal.signal(signal.SIGTERM, self._handle_signal)
         signal.signal(signal.SIGINT, self._handle_signal)
 
     def _handle_signal(self, signum, frame):
-        """Handle kill signals and prevent heartbeats from being sent on Colab
-        after termination.
+        """
+        Handle kill signals and prevent heartbeats from being sent on Colab after termination.
 
-        This method does not use frame, it is included as it is passed
-        by signal.
+        This method does not use frame, it is included as it is passed by signal.
         """
         if self.alive is True:
             LOGGER.info(f'{PREFIX}Kill signal received! ❌')
@@ -140,7 +138,8 @@ class HUBTrainingSession:
             raise
 
     def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
-        """Upload a model checkpoint to Ultralytics HUB.
+        """
+        Upload a model checkpoint to Ultralytics HUB.
 
         Args:
             epoch (int): The current training epoch.
@@ -177,8 +176,7 @@ class HUBTrainingSession:
 
     @threaded
     def _start_heartbeat(self):
-        """Begin a threaded heartbeat loop to report the agent's status to
-        Ultralytics HUB."""
+        """Begin a threaded heartbeat loop to report the agent's status to Ultralytics HUB."""
         while self.alive:
             r = smart_request('post',
                               f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',

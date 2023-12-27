@@ -125,7 +125,8 @@ def try_export(inner_func):
 
 
 class Exporter:
-    """A class for exporting a model.
+    """
+    A class for exporting a model.
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
@@ -133,7 +134,8 @@ class Exporter:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes the Exporter class.
+        """
+        Initializes the Exporter class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
@@ -1013,8 +1015,7 @@ class IOSDetectModel(torch.nn.Module):
     """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
     def __init__(self, model, im):
-        """Initialize the IOSDetectModel class with a YOLO model and example
-        image."""
+        """Initialize the IOSDetectModel class with a YOLO model and example image."""
         super().__init__()
         _, _, h, w = im.shape  # batch, channel, height, width
         self.model = model
@@ -1025,7 +1026,6 @@ class IOSDetectModel(torch.nn.Module):
             self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
 
     def forward(self, x):
-        """Normalize predictions of object detection model with input size-
-        dependent factors."""
+        """Normalize predictions of object detection model with input size- dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)

@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""Ultralytics modules.
+"""
+Ultralytics modules.
 
 Example:
     Visualize a module with Netron.

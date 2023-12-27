@@ -1,8 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""Helper file to build Ultralytics Docs reference section. Recursively walks
-through ultralytics dir and builds an MkDocs reference section of *.md files
-composed of classes and functions, and also creates a nav menu for use in
-mkdocs.yaml.
+"""
+Helper file to build Ultralytics Docs reference section. Recursively walks through ultralytics dir and builds an MkDocs
+reference section of *.md files composed of classes and functions, and also creates a nav menu for use in mkdocs.yaml.
 
 Note: Must be run from repository root directory. Do not run from docs directory.
 """
@@ -31,8 +30,7 @@ def extract_classes_and_functions(filepath: Path) -> tuple:
 
 
 def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list):
-    """Creates a Markdown file containing the API reference for the given
-    Python module."""
+    """Creates a Markdown file containing the API reference for the given Python module."""
     md_filepath = py_filepath.with_suffix('.md')
 
     # Read existing content and keep header content between first two ---
@@ -76,8 +74,7 @@ def sort_nested_dict(d: dict) -> dict:
 
 
 def create_nav_menu_yaml(nav_items: list):
-    """Creates a YAML file for the navigation menu based on the provided list
-    of items."""
+    """Creates a YAML file for the navigation menu based on the provided list of items."""
     nav_tree = nested_dict()
 
     for item_str in nav_items:
@@ -93,8 +90,7 @@ def create_nav_menu_yaml(nav_items: list):
     nav_tree_sorted = sort_nested_dict(nav_tree)
 
     def _dict_to_yaml(d, level=0):
-        """Converts a nested dictionary to a YAML-formatted string with
-        indentation."""
+        """Converts a nested dictionary to a YAML-formatted string with indentation."""
         yaml_str = ''
         indent = '  ' * level
         for k, v in d.items():
@@ -112,8 +108,7 @@ def create_nav_menu_yaml(nav_items: list):
 
 
 def main():
-    """Main function to extract class and function names, create Markdown
-    files, and generate a YAML navigation menu."""
+    """Main function to extract class and function names, create Markdown files, and generate a YAML navigation menu."""
     nav_items = []
 
     for py_filepath in CODE_DIR.rglob('*.py'):

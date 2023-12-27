@@ -14,7 +14,8 @@ TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 
 def on_predict_start(predictor: object, persist: bool = False) -> None:
-    """Initialize trackers for object tracking during prediction.
+    """
+    Initialize trackers for object tracking during prediction.
 
     Args:
         predictor (object): The predictor object to initialize trackers for.
@@ -40,7 +41,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
 
 def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
-    """Postprocess detected boxes and update with object tracking.
+    """
+    Postprocess detected boxes and update with object tracking.
 
     Args:
         predictor (object): The predictor object containing the predictions.
@@ -65,8 +67,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
 
 def register_tracker(model: object, persist: bool) -> None:
-    """Register tracking callbacks to the model for object tracking during
-    prediction.
+    """
+    Register tracking callbacks to the model for object tracking during prediction.
 
     Args:
         model (object): The model object to register tracking callbacks for.

@@ -21,12 +21,12 @@ from ultralytics.utils.instance import to_2tuple
 
 
 class Conv2d_BN(torch.nn.Sequential):
-    """A sequential container that performs 2D convolution followed by batch
-    normalization."""
+    """A sequential container that performs 2D convolution followed by batch normalization."""
 
     def __init__(self, a, b, ks=1, stride=1, pad=0, dilation=1, groups=1, bn_weight_init=1):
-        """Initializes the MBConv model with given input channels, output
-        channels, expansion ratio, activation, and drop path."""
+        """Initializes the MBConv model with given input channels, output channels, expansion ratio, activation, and
+        drop path.
+        """
         super().__init__()
         self.add_module('c', torch.nn.Conv2d(a, b, ks, stride, pad, dilation, groups, bias=False))
         bn = torch.nn.BatchNorm2d(b)
@@ -36,12 +36,12 @@ class Conv2d_BN(torch.nn.Sequential):
 
 
 class PatchEmbed(nn.Module):
-    """Embeds images into patches and projects them into a specified embedding
-    dimension."""
+    """Embeds images into patches and projects them into a specified embedding dimension."""
 
     def __init__(self, in_chans, embed_dim, resolution, activation):
-        """Initialize the PatchMerging class with specified input, output
-        dimensions, resolution and activation function."""
+        """Initialize the PatchMerging class with specified input, output dimensions, resolution and activation
+        function.
+        """
         super().__init__()
         img_size: Tuple[int, int] = to_2tuple(resolution)
         self.patches_resolution = (img_size[0] // 4, img_size[1] // 4)
@@ -56,18 +56,17 @@ class PatchEmbed(nn.Module):
         )
 
     def forward(self, x):
-        """Runs input tensor 'x' through the PatchMerging model's sequence of
-        operations."""
+        """Runs input tensor 'x' through the PatchMerging model's sequence of operations."""
         return self.seq(x)
 
 
 class MBConv(nn.Module):
-    """Mobile Inverted Bottleneck Conv (MBConv) layer, part of the EfficientNet
-    architecture."""
+    """Mobile Inverted Bottleneck Conv (MBConv) layer, part of the EfficientNet architecture."""
 
     def __init__(self, in_chans, out_chans, expand_ratio, activation, drop_path):
-        """Initializes a convolutional layer with specified dimensions, input
-        resolution, depth, and activation function."""
+        """Initializes a convolutional layer with specified dimensions, input resolution, depth, and activation
+        function.
+        """
         super().__init__()
         self.in_chans = in_chans
         self.hidden_chans = int(in_chans * expand_ratio)
@@ -100,12 +99,12 @@ class MBConv(nn.Module):
 
 
 class PatchMerging(nn.Module):
-    """Merges neighboring patches in the feature map and projects to a new
-    dimension."""
+    """Merges neighboring patches in the feature map and projects to a new dimension."""
 
     def __init__(self, input_resolution, dim, out_dim, activation):
-        """Initializes the ConvLayer with specific dimension, input resolution,
-        depth, activation, drop path, and other optional parameters."""
+        """Initializes the ConvLayer with specific dimension, input resolution, depth, activation, drop path, and other
+        optional parameters.
+        """
         super().__init__()
 
         self.input_resolution = input_resolution
@@ -118,8 +117,7 @@ class PatchMerging(nn.Module):
         self.conv3 = Conv2d_BN(out_dim, out_dim, 1, 1, 0)
 
     def forward(self, x):
-        """Applies forward pass on the input utilizing convolution and
-        activation layers, and returns the result."""
+        """Applies forward pass on the input utilizing convolution and activation layers, and returns the result."""
         if x.ndim == 3:
             H, W = self.input_resolution
             B = len(x)
@@ -136,11 +134,10 @@ class PatchMerging(nn.Module):
 
 
 class ConvLayer(nn.Module):
-    """Convolutional Layer featuring multiple MobileNetV3-style inverted
-    bottleneck convolutions (MBConv).
+    """
+    Convolutional Layer featuring multiple MobileNetV3-style inverted bottleneck convolutions (MBConv).
 
-    Optionally applies downsample operations to the output, and provides
-    support for gradient checkpointing.
+    Optionally applies downsample operations to the output, and provides support for gradient checkpointing.
     """
 
     def __init__(
@@ -155,7 +152,8 @@ class ConvLayer(nn.Module):
         out_dim=None,
         conv_expand_ratio=4.,
     ):
-        """Initializes the ConvLayer with the given dimensions and settings.
+        """
+        Initializes the ConvLayer with the given dimensions and settings.
 
         Args:
             dim (int): The dimensionality of the input and output.
@@ -189,23 +187,21 @@ class ConvLayer(nn.Module):
             input_resolution, dim=dim, out_dim=out_dim, activation=activation)
 
     def forward(self, x):
-        """Processes the input through a series of convolutional layers and
-        returns the activated output."""
+        """Processes the input through a series of convolutional layers and returns the activated output."""
         for blk in self.blocks:
             x = checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)
         return x if self.downsample is None else self.downsample(x)
 
 
 class Mlp(nn.Module):
-    """Multi-layer Perceptron (MLP) for transformer architectures.
+    """
+    Multi-layer Perceptron (MLP) for transformer architectures.
 
-    This layer takes an input with in_features, applies layer
-    normalization and two fully-connected layers.
+    This layer takes an input with in_features, applies layer normalization and two fully-connected layers.
     """
 
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
-        """Initializes Attention module with the given parameters including
-        dimension, key_dim, number of heads, etc."""
+        """Initializes Attention module with the given parameters including dimension, key_dim, number of heads, etc."""
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
@@ -216,8 +212,7 @@ class Mlp(nn.Module):
         self.drop = nn.Dropout(drop)
 
     def forward(self, x):
-        """Applies operations on input x and returns modified x, runs
-        downsample if not None."""
+        """Applies operations on input x and returns modified x, runs downsample if not None."""
         x = self.norm(x)
         x = self.fc1(x)
         x = self.act(x)
@@ -227,10 +222,10 @@ class Mlp(nn.Module):
 
 
 class Attention(torch.nn.Module):
-    """Multi-head attention module with support for spatial awareness, applying
-    attention biases based on spatial resolution. Implements trainable
-    attention biases for each unique offset between spatial positions in the
-    resolution grid.
+    """
+    Multi-head attention module with support for spatial awareness, applying attention biases based on spatial
+    resolution. Implements trainable attention biases for each unique offset between spatial positions in the resolution
+    grid.
 
     Attributes:
         ab (Tensor, optional): Cached attention biases for inference, deleted during training.
@@ -244,7 +239,8 @@ class Attention(torch.nn.Module):
             attn_ratio=4,
             resolution=(14, 14),
     ):
-        """Initializes the Attention module.
+        """
+        Initializes the Attention module.
 
         Args:
             dim (int): The dimensionality of the input and output.
@@ -287,8 +283,7 @@ class Attention(torch.nn.Module):
 
     @torch.no_grad()
     def train(self, mode=True):
-        """Sets the module in training mode and handles attribute 'ab' based on
-        the mode."""
+        """Sets the module in training mode and handles attribute 'ab' based on the mode."""
         super().train(mode)
         if mode and hasattr(self, 'ab'):
             del self.ab
@@ -296,8 +291,7 @@ class Attention(torch.nn.Module):
             self.ab = self.attention_biases[:, self.attention_bias_idxs]
 
     def forward(self, x):  # x
-        """Performs forward pass over the input tensor 'x' by applying
-        normalization and querying keys/values."""
+        """Performs forward pass over the input tensor 'x' by applying normalization and querying keys/values."""
         B, N, _ = x.shape  # B, N, C
 
         # Normalization
@@ -320,8 +314,7 @@ class Attention(torch.nn.Module):
 
 
 class TinyViTBlock(nn.Module):
-    """TinyViT Block that applies self-attention and a local convolution to the
-    input."""
+    """TinyViT Block that applies self-attention and a local convolution to the input."""
 
     def __init__(
         self,
@@ -335,7 +328,8 @@ class TinyViTBlock(nn.Module):
         local_conv_size=3,
         activation=nn.GELU,
     ):
-        """Initializes the TinyViTBlock.
+        """
+        Initializes the TinyViTBlock.
 
         Args:
             dim (int): The dimensionality of the input and output.
@@ -378,8 +372,9 @@ class TinyViTBlock(nn.Module):
         self.local_conv = Conv2d_BN(dim, dim, ks=local_conv_size, stride=1, pad=pad, groups=dim)
 
     def forward(self, x):
-        """Applies attention-based transformation or padding to input 'x'
-        before passing it through a local convolution."""
+        """Applies attention-based transformation or padding to input 'x' before passing it through a local
+        convolution.
+        """
         H, W = self.input_resolution
         B, L, C = x.shape
         assert L == H * W, 'input feature has wrong size'
@@ -445,7 +440,8 @@ class BasicLayer(nn.Module):
         activation=nn.GELU,
         out_dim=None,
     ):
-        """Initializes the BasicLayer.
+        """
+        Initializes the BasicLayer.
 
         Args:
             dim (int): The dimensionality of the input and output.
@@ -490,15 +486,13 @@ class BasicLayer(nn.Module):
             input_resolution, dim=dim, out_dim=out_dim, activation=activation)
 
     def forward(self, x):
-        """Performs forward propagation on the input tensor and returns a
-        normalized tensor."""
+        """Performs forward propagation on the input tensor and returns a normalized tensor."""
         for blk in self.blocks:
             x = checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)
         return x if self.downsample is None else self.downsample(x)
 
     def extra_repr(self) -> str:
-        """Returns a string representation of the extra_repr function with the
-        layer's parameters."""
+        """Returns a string representation of the extra_repr function with the layer's parameters."""
         return f'dim={self.dim}, input_resolution={self.input_resolution}, depth={self.depth}'
 
 
@@ -506,8 +500,7 @@ class LayerNorm2d(nn.Module):
     """A PyTorch implementation of Layer Normalization in 2D."""
 
     def __init__(self, num_channels: int, eps: float = 1e-6) -> None:
-        """Initialize LayerNorm2d with the number of channels and an optional
-        epsilon."""
+        """Initialize LayerNorm2d with the number of channels and an optional epsilon."""
         super().__init__()
         self.weight = nn.Parameter(torch.ones(num_channels))
         self.bias = nn.Parameter(torch.zeros(num_channels))
@@ -522,7 +515,8 @@ class LayerNorm2d(nn.Module):
 
 
 class TinyViT(nn.Module):
-    """The TinyViT architecture for vision tasks.
+    """
+    The TinyViT architecture for vision tasks.
 
     Attributes:
         img_size (int): Input image size.
@@ -563,7 +557,8 @@ class TinyViT(nn.Module):
         local_conv_size=3,
         layer_lr_decay=1.0,
     ):
-        """Initializes the TinyViT model.
+        """
+        Initializes the TinyViT model.
 
         Args:
             img_size (int, optional): The input image size. Defaults to 224.
@@ -663,8 +658,7 @@ class TinyViT(nn.Module):
         lr_scales = [decay_rate ** (depth - i - 1) for i in range(depth)]
 
         def _set_lr_scale(m, scale):
-            """Sets the learning rate scale for each layer in the model based
-            on the layer's depth."""
+            """Sets the learning rate scale for each layer in the model based on the layer's depth."""
             for p in m.parameters():
                 p.lr_scale = scale
 
@@ -684,16 +678,14 @@ class TinyViT(nn.Module):
             p.param_name = k
 
         def _check_lr_scale(m):
-            """Checks if the learning rate scale attribute is present in
-            module's parameters."""
+            """Checks if the learning rate scale attribute is present in module's parameters."""
             for p in m.parameters():
                 assert hasattr(p, 'lr_scale'), p.param_name
 
         self.apply(_check_lr_scale)
 
     def _init_weights(self, m):
-        """Initializes weights for linear layers and layer normalization in the
-        given module."""
+        """Initializes weights for linear layers and layer normalization in the given module."""
         if isinstance(m, nn.Linear):
             # NOTE: This initialization is needed only for training.
             # trunc_normal_(m.weight, std=.02)
@@ -705,13 +697,11 @@ class TinyViT(nn.Module):
 
     @torch.jit.ignore
     def no_weight_decay_keywords(self):
-        """Returns a dictionary of parameter names where weight decay should
-        not be applied."""
+        """Returns a dictionary of parameter names where weight decay should not be applied."""
         return {'attention_biases'}
 
     def forward_features(self, x):
-        """Runs the input through the model layers and returns the transformed
-        output."""
+        """Runs the input through the model layers and returns the transformed output."""
         x = self.patch_embed(x)  # x input is (N, C, H, W)
 
         x = self.layers[0](x)
@@ -726,6 +716,5 @@ class TinyViT(nn.Module):
         return self.neck(x)
 
     def forward(self, x):
-        """Executes a forward pass on the input tensor through the constructed
-        model layers."""
+        """Executes a forward pass on the input tensor through the constructed model layers."""
         return self.forward_features(x)

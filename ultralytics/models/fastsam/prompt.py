@@ -13,8 +13,8 @@ from ultralytics.utils import TQDM
 
 
 class FastSAMPrompt:
-    """Fast Segment Anything Model class for image annotation and
-    visualization.
+    """
+    Fast Segment Anything Model class for image annotation and visualization.
 
     Attributes:
         device (str): Computing device ('cuda' or 'cpu').
@@ -24,8 +24,7 @@ class FastSAMPrompt:
     """
 
     def __init__(self, source, results, device='cuda') -> None:
-        """Initializes FastSAMPrompt with given source, results and device, and
-        assigns clip for linear assignment."""
+        """Initializes FastSAMPrompt with given source, results and device, and assigns clip for linear assignment."""
         self.device = device
         self.results = results
         self.source = source
@@ -41,8 +40,7 @@ class FastSAMPrompt:
 
     @staticmethod
     def _segment_image(image, bbox):
-        """Segments the given image according to the provided bounding box
-        coordinates."""
+        """Segments the given image according to the provided bounding box coordinates."""
         image_array = np.array(image)
         segmented_image_array = np.zeros_like(image_array)
         x1, y1, x2, y2 = bbox
@@ -58,8 +56,9 @@ class FastSAMPrompt:
 
     @staticmethod
     def _format_results(result, filter=0):
-        """Formats detection results into list of annotations each containing
-        ID, segmentation, bounding box, score and area."""
+        """Formats detection results into list of annotations each containing ID, segmentation, bounding box, score and
+        area.
+        """
         annotations = []
         n = len(result.masks.data) if result.masks is not None else 0
         for i in range(n):
@@ -76,8 +75,9 @@ class FastSAMPrompt:
 
     @staticmethod
     def _get_bbox_from_mask(mask):
-        """Applies morphological transformations to the mask, displays it, and
-        if with_contours is True, draws contours."""
+        """Applies morphological transformations to the mask, displays it, and if with_contours is True, draws
+        contours.
+        """
         mask = mask.astype(np.uint8)
         contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         x1, y1, w, h = cv2.boundingRect(contours[0])
@@ -101,8 +101,8 @@ class FastSAMPrompt:
              better_quality=True,
              retina=False,
              with_contours=True):
-        """Plots annotations, bounding boxes, and points on images and saves
-        the output.
+        """
+        Plots annotations, bounding boxes, and points on images and saves the output.
 
         Args:
             annotations (list): Annotations to be plotted.
@@ -183,7 +183,8 @@ class FastSAMPrompt:
         target_height=960,
         target_width=960,
     ):
-        """Quickly shows the mask annotations on the given matplotlib axis.
+        """
+        Quickly shows the mask annotations on the given matplotlib axis.
 
         Args:
             annotation (array-like): Mask annotation.
@@ -239,8 +240,7 @@ class FastSAMPrompt:
 
     @torch.no_grad()
     def retrieve(self, model, preprocess, elements, search_text: str, device) -> int:
-        """Processes images and text with a model, calculates similarity, and
-        returns softmax score."""
+        """Processes images and text with a model, calculates similarity, and returns softmax score."""
         preprocessed_images = [preprocess(image).to(device) for image in elements]
         tokenized_text = self.clip.tokenize([search_text]).to(device)
         stacked_images = torch.stack(preprocessed_images)
@@ -252,8 +252,7 @@ class FastSAMPrompt:
         return probs[:, 0].softmax(dim=0)
 
     def _crop_image(self, format_results):
-        """Crops an image based on provided annotation format and returns
-        cropped images and related data."""
+        """Crops an image based on provided annotation format and returns cropped images and related data."""
         if os.path.isdir(self.source):
             raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
         image = Image.fromarray(cv2.cvtColor(self.results[0].orig_img, cv2.COLOR_BGR2RGB))
@@ -277,8 +276,7 @@ class FastSAMPrompt:
         return cropped_boxes, cropped_images, not_crop, filter_id, annotations
 
     def box_prompt(self, bbox):
-        """Modifies the bounding box properties and calculates IoU between
-        masks and bounding box."""
+        """Modifies the bounding box properties and calculates IoU between masks and bounding box."""
         if self.results[0].masks is not None:
             assert (bbox[2] != 0 and bbox[3] != 0)
             if os.path.isdir(self.source):
@@ -312,8 +310,7 @@ class FastSAMPrompt:
         return self.results
 
     def point_prompt(self, points, pointlabel):  # numpy
-        """Adjusts points on detected masks based on user input and returns the
-        modified results."""
+        """Adjusts points on detected masks based on user input and returns the modified results."""
         if self.results[0].masks is not None:
             if os.path.isdir(self.source):
                 raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
@@ -336,8 +333,7 @@ class FastSAMPrompt:
         return self.results
 
     def text_prompt(self, text):
-        """Processes a text prompt, applies it to existing results and returns
-        the updated results."""
+        """Processes a text prompt, applies it to existing results and returns the updated results."""
         if self.results[0].masks is not None:
             format_results = self._format_results(self.results[0], 0)
             cropped_boxes, cropped_images, not_crop, filter_id, annotations = self._crop_image(format_results)
@@ -350,6 +346,5 @@ class FastSAMPrompt:
         return self.results
 
     def everything_prompt(self):
-        """Returns the processed results from the previous methods in the
-        class."""
+        """Returns the processed results from the previous methods in the class."""
         return self.results

@@ -13,7 +13,8 @@ from .tal import bbox2dist
 
 
 class VarifocalLoss(nn.Module):
-    """Varifocal loss by Zhang et al.
+    """
+    Varifocal loss by Zhang et al.
 
     https://arxiv.org/abs/2008.13367.
     """
@@ -33,8 +34,7 @@ class VarifocalLoss(nn.Module):
 
 
 class FocalLoss(nn.Module):
-    """Wraps focal loss around existing loss_fcn(), i.e. criteria =
-    FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
+    """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 
     def __init__(self, ):
         """Initializer for FocalLoss class with no parameters."""
@@ -42,8 +42,7 @@ class FocalLoss(nn.Module):
 
     @staticmethod
     def forward(pred, label, gamma=1.5, alpha=0.25):
-        """Calculates and updates confusion matrix for object
-        detection/classification tasks."""
+        """Calculates and updates confusion matrix for object detection/classification tasks."""
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction='none')
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
@@ -63,8 +62,7 @@ class BboxLoss(nn.Module):
     """Criterion class for computing training losses during training."""
 
     def __init__(self, reg_max, use_dfl=False):
-        """Initialize the BboxLoss module with regularization maximum and DFL
-        settings."""
+        """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.reg_max = reg_max
         self.use_dfl = use_dfl
@@ -106,8 +104,7 @@ class KeypointLoss(nn.Module):
         self.sigmas = sigmas
 
     def forward(self, pred_kpts, gt_kpts, kpt_mask, area):
-        """Calculates keypoint loss factor and Euclidean distance loss for
-        predicted and actual keypoints."""
+        """Calculates keypoint loss factor and Euclidean distance loss for predicted and actual keypoints."""
         d = (pred_kpts[..., 0] - gt_kpts[..., 0]) ** 2 + (pred_kpts[..., 1] - gt_kpts[..., 1]) ** 2
         kpt_loss_factor = kpt_mask.shape[1] / (torch.sum(kpt_mask != 0, dim=1) + 1e-9)
         # e = d / (2 * (area * self.sigmas) ** 2 + 1e-9)  # from formula
@@ -119,8 +116,7 @@ class v8DetectionLoss:
     """Criterion class for computing training losses."""
 
     def __init__(self, model):  # model must be de-paralleled
-        """Initializes v8DetectionLoss with the model, defining model-related
-        properties and BCE loss function."""
+        """Initializes v8DetectionLoss with the model, defining model-related properties and BCE loss function."""
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
 
@@ -140,8 +136,7 @@ class v8DetectionLoss:
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
     def preprocess(self, targets, batch_size, scale_tensor):
-        """Preprocesses the target counts and matches with the input batch size
-        to output a tensor."""
+        """Preprocesses the target counts and matches with the input batch size to output a tensor."""
         if targets.shape[0] == 0:
             out = torch.zeros(batch_size, 0, 5, device=self.device)
         else:
@@ -158,8 +153,7 @@ class v8DetectionLoss:
         return out
 
     def bbox_decode(self, anchor_points, pred_dist):
-        """Decode predicted object bounding box coordinates from anchor points
-        and distribution."""
+        """Decode predicted object bounding box coordinates from anchor points and distribution."""
         if self.use_dfl:
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
@@ -168,8 +162,7 @@ class v8DetectionLoss:
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
     def __call__(self, preds, batch):
-        """Calculate the sum of the loss for box, cls and dfl multiplied by
-        batch size."""
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         feats = preds[1] if isinstance(preds, tuple) else preds
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -219,8 +212,7 @@ class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses."""
 
     def __init__(self, model):  # model must be de-paralleled
-        """Initializes the v8SegmentationLoss class, taking a de-paralleled
-        model as argument."""
+        """Initializes the v8SegmentationLoss class, taking a de-paralleled model as argument."""
         super().__init__(model)
         self.overlap = model.args.overlap_mask
 
@@ -294,7 +286,8 @@ class v8SegmentationLoss(v8DetectionLoss):
     @staticmethod
     def single_mask_loss(gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor,
                          area: torch.Tensor) -> torch.Tensor:
-        """Compute the instance segmentation loss for a single image.
+        """
+        Compute the instance segmentation loss for a single image.
 
         Args:
             gt_mask (torch.Tensor): Ground truth mask of shape (n, H, W), where n is the number of objects.
@@ -326,7 +319,8 @@ class v8SegmentationLoss(v8DetectionLoss):
         imgsz: torch.Tensor,
         overlap: bool,
     ) -> torch.Tensor:
-        """Calculate the loss for instance segmentation.
+        """
+        Calculate the loss for instance segmentation.
 
         Args:
             fg_mask (torch.Tensor): A binary tensor of shape (BS, N_anchors) indicating which anchors are positive.
@@ -383,8 +377,7 @@ class v8PoseLoss(v8DetectionLoss):
     """Criterion class for computing training losses."""
 
     def __init__(self, model):  # model must be de-paralleled
-        """Initializes v8PoseLoss with model, sets keypoint variables and
-        declares a keypoint loss instance."""
+        """Initializes v8PoseLoss with model, sets keypoint variables and declares a keypoint loss instance."""
         super().__init__(model)
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
@@ -462,7 +455,8 @@ class v8PoseLoss(v8DetectionLoss):
 
     def calculate_keypoints_loss(self, masks, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes,
                                  pred_kpts):
-        """Calculate the keypoints loss for the model.
+        """
+        Calculate the keypoints loss for the model.
 
         This function calculates the keypoints loss and keypoints object loss for a given batch. The keypoints loss is
         based on the difference between the predicted keypoints and ground truth keypoints. The keypoints object loss is
@@ -528,8 +522,7 @@ class v8ClassificationLoss:
     """Criterion class for computing training losses."""
 
     def __call__(self, preds, batch):
-        """Compute the classification loss between predictions and true
-        labels."""
+        """Compute the classification loss between predictions and true labels."""
         loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='mean')
         loss_items = loss.detach()
         return loss, loss_items

@@ -99,3 +99,12 @@ package-data = { "ultralytics" = ["**/*.yaml"], 'ultralytics.assets' = ['*.jpg']
 
 [tool.setuptools.dynamic]
 version = { attr = "ultralytics.__version__" }
+
+[tool.docformatter]
+wrap-summaries = 120
+wrap-descriptions = 120
+in-place = true
+make-summary-multi-line = false
+pre-summary-newline = true
+force-wrap = false
+close-quotes-on-newline = true

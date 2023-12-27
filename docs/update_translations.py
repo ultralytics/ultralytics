@@ -1,16 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""Script to fix broken Markdown links and front matter in language-specific
-directories zh, ko, ja, ru, de, fr, es, pt.
+"""
+Script to fix broken Markdown links and front matter in language-specific directories zh, ko, ja, ru, de, fr, es, pt.
 
-This script processes markdown files in language-specific directories
-(like /zh/). It finds Markdown links and checks their existence. If a
-link is broken and does not exist in the language-specific directory but
-exists in the /en/ directory, the script updates the link to point to
-the corresponding file in the /en/ directory.
+This script processes markdown files in language-specific directories (like /zh/). It finds Markdown links and checks
+their existence. If a link is broken and does not exist in the language-specific directory but exists in the /en/
+directory, the script updates the link to point to the corresponding file in the /en/ directory.
 
-It also ensures that front matter keywords like 'comments:',
-'description:', and 'keywords:' are not translated and remain in
-English.
+It also ensures that front matter keywords like 'comments:', 'description:', and 'keywords:' are not translated and
+remain in English.
 """
 
 import re
@@ -18,8 +15,7 @@ from pathlib import Path
 
 
 class MarkdownLinkFixer:
-    """Class to fix Markdown links and front matter in language-specific
-    directories."""
+    """Class to fix Markdown links and front matter in language-specific directories."""
 
     def __init__(self, base_dir, update_links=True, update_text=True):
         """Initialize the MarkdownLinkFixer with the base directory."""
@@ -95,15 +91,13 @@ class MarkdownLinkFixer:
 
     @staticmethod
     def update_iframe(content):
-        """Update the 'allow' attribute of iframe if it does not contain the
-        specific English permissions."""
+        """Update the 'allow' attribute of iframe if it does not contain the specific English permissions."""
         english = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
         pattern = re.compile(f'allow="(?!{re.escape(english)}).+?"')
         return pattern.sub(f'allow="{english}"', content)
 
     def link_replacer(self, match, parent_dir, lang_dir, use_abs_link=False):
-        """Replace broken links with corresponding links in the /en/
-        directory."""
+        """Replace broken links with corresponding links in the /en/ directory."""
         text, path = match.groups()
         linked_path = (parent_dir / path).resolve().with_suffix('.md')
 
@@ -173,8 +167,7 @@ class MarkdownLinkFixer:
             self.process_markdown_file(md_file, lang_dir)
 
     def run(self):
-        """Run the link fixing and front matter updating process for each
-        language-specific directory."""
+        """Run the link fixing and front matter updating process for each language-specific directory."""
         for subdir in self.base_dir.iterdir():
             if subdir.is_dir() and re.match(r'^\w\w$', subdir.name):
                 self.process_language_directory(subdir)

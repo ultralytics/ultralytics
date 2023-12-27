@@ -20,8 +20,8 @@ DATASET_CACHE_VERSION = '1.0.3'
 
 
 class YOLODataset(BaseDataset):
-    """Dataset class for loading object detection and/or segmentation labels in
-    YOLO format.
+    """
+    Dataset class for loading object detection and/or segmentation labels in YOLO format.
 
     Args:
         data (dict, optional): A dataset YAML dictionary. Defaults to None.
@@ -33,8 +33,7 @@ class YOLODataset(BaseDataset):
     """
 
     def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, **kwargs):
-        """Initializes the YOLODataset with optional configurations for
-        segments and keypoints."""
+        """Initializes the YOLODataset with optional configurations for segments and keypoints."""
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.data = data
@@ -42,7 +41,8 @@ class YOLODataset(BaseDataset):
         super().__init__(*args, **kwargs)
 
     def cache_labels(self, path=Path('./labels.cache')):
-        """Cache dataset labels, check images and read shapes.
+        """
+        Cache dataset labels, check images and read shapes.
 
         Args:
             path (Path): path where to save the cache file (default: Path('./labels.cache')).
@@ -153,8 +153,7 @@ class YOLODataset(BaseDataset):
         return transforms
 
     def close_mosaic(self, hyp):
-        """Sets mosaic, copy_paste and mixup options to 0.0 and builds
-        transformations."""
+        """Sets mosaic, copy_paste and mixup options to 0.0 and builds transformations."""
         hyp.mosaic = 0.0  # set mosaic ratio=0.0
         hyp.copy_paste = 0.0  # keep the same behavior as previous v8 close-mosaic
         hyp.mixup = 0.0  # keep the same behavior as previous v8 close-mosaic
@@ -194,7 +193,8 @@ class YOLODataset(BaseDataset):
 
 # Classification dataloaders -------------------------------------------------------------------------------------------
 class ClassificationDataset(torchvision.datasets.ImageFolder):
-    """YOLO Classification Dataset.
+    """
+    YOLO Classification Dataset.
 
     Args:
         root (str): Dataset path.
@@ -208,8 +208,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
     """
 
     def __init__(self, root, args, augment=False, cache=False, prefix=''):
-        """Initialize YOLO object with root, image size, augmentations, and
-        cache settings.
+        """
+        Initialize YOLO object with root, image size, augmentations, and cache settings.
 
         Args:
             root (str): Dataset path.
@@ -240,8 +240,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             auto_aug=False) if augment else None
 
     def __getitem__(self, i):
-        """Returns subset of data and targets corresponding to given
-        indices."""
+        """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram and im is None:
             im = self.samples[i][3] = cv2.imread(f)
@@ -325,7 +324,8 @@ def save_dataset_cache_file(prefix, path, x):
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
-    """Semantic Segmentation Dataset.
+    """
+    Semantic Segmentation Dataset.
 
     This class is responsible for handling datasets used for semantic segmentation tasks. It inherits functionalities
     from the BaseDataset class.

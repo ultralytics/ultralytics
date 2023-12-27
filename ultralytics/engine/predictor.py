@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""Run prediction on images, videos, directories, globs, YouTube, webcam,
-streams, etc.
+"""
+Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
 Usage - sources:
     $ yolo mode=predict model=yolov8n.pt source=0                               # webcam
@@ -58,7 +58,8 @@ Example:
 
 
 class BasePredictor:
-    """BasePredictor.
+    """
+    BasePredictor.
 
     A base class for creating predictors.
 
@@ -76,7 +77,8 @@ class BasePredictor:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes the BasePredictor class.
+        """
+        Initializes the BasePredictor class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
@@ -109,7 +111,8 @@ class BasePredictor:
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
-        """Prepares input image before inference.
+        """
+        Prepares input image before inference.
 
         Args:
             im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
@@ -128,14 +131,14 @@ class BasePredictor:
         return im
 
     def inference(self, im, *args, **kwargs):
-        """Runs inference on a given image using the specified model and
-        arguments."""
+        """Runs inference on a given image using the specified model and arguments."""
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
         return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
     def pre_transform(self, im):
-        """Pre-transform input image before inference.
+        """
+        Pre-transform input image before inference.
 
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
@@ -195,7 +198,8 @@ class BasePredictor:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
-        """Method used for CLI prediction.
+        """
+        Method used for CLI prediction.
 
         It uses always generator as outputs as not required by CLI mode.
         """
@@ -223,8 +227,7 @@ class BasePredictor:
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
-        """Streams real-time inference on camera feed and saves results to
-        file."""
+        """Streams real-time inference on camera feed and saves results to file."""
         if self.args.verbose:
             LOGGER.info('')
 
@@ -313,8 +316,7 @@ class BasePredictor:
         self.run_callbacks('on_predict_end')
 
     def setup_model(self, model, verbose=True):
-        """Initialize YOLO model with given parameters and set it to evaluation
-        mode."""
+        """Initialize YOLO model with given parameters and set it to evaluation mode."""
         self.model = AutoBackend(model or self.args.model,
                                  device=select_device(self.args.device, verbose=verbose),
                                  dnn=self.args.dnn,

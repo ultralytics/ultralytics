@@ -14,12 +14,10 @@ from shapely.geometry import LineString, Point, Polygon
 
 
 class Heatmap:
-    """A class to draw heatmaps in real-time video stream based on their
-    tracks."""
+    """A class to draw heatmaps in real-time video stream based on their tracks."""
 
     def __init__(self):
-        """Initializes the heatmap class with default values for Visual, Image,
-        track, count and heatmap parameters."""
+        """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
 
         # Visual information
         self.annotator = None
@@ -78,8 +76,8 @@ class Heatmap:
                  line_dist_thresh=15,
                  decay_factor=0.99,
                  shape='circle'):
-        """Configures the heatmap colormap, width, height and display
-        parameters.
+        """
+        Configures the heatmap colormap, width, height and display parameters.
 
         Args:
             colormap (cv2.COLORMAP): The colormap to be set.
@@ -140,7 +138,8 @@ class Heatmap:
             self.shape = 'circle'
 
     def extract_results(self, tracks):
-        """Extracts results from the provided data.
+        """
+        Extracts results from the provided data.
 
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
@@ -150,7 +149,8 @@ class Heatmap:
         self.track_ids = tracks[0].boxes.id.int().cpu().tolist()
 
     def generate_heatmap(self, im0, tracks):
-        """Generate heatmap based on tracking data.
+        """
+        Generate heatmap based on tracking data.
 
         Args:
             im0 (nd array): Image
@@ -249,7 +249,8 @@ class Heatmap:
 
     @staticmethod
     def display_frames(im0_with_heatmap):
-        """Display heatmap.
+        """
+        Display heatmap.
 
         Args:
             im0_with_heatmap (nd array): Original Image with heatmap

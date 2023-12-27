@@ -32,8 +32,7 @@ class Colors:
     """
 
     def __init__(self):
-        """Initialize colors as hex =
-        matplotlib.colors.TABLEAU_COLORS.values()."""
+        """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
         hexs = ('FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
                 '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7')
         self.palette = [self.hex2rgb(f'#{c}') for c in hexs]
@@ -59,8 +58,8 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    """Ultralytics Annotator for train/val mosaics and JPGs and predictions
-    annotations.
+    """
+    Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Attributes:
         im (Image.Image or numpy array): The image to annotate.
@@ -73,8 +72,7 @@ class Annotator:
     """
 
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
-        """Initialize the Annotator class with image and line width along with
-        color palette for keypoints and limbs."""
+        """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         self.pil = pil or non_ascii
@@ -135,7 +133,8 @@ class Annotator:
                             lineType=cv2.LINE_AA)
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
-        """Plot masks on image.
+        """
+        Plot masks on image.
 
         Args:
             masks (tensor): Predicted masks on cuda, shape: [n, h, w]
@@ -170,7 +169,8 @@ class Annotator:
             self.fromarray(self.im)
 
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
-        """Plot keypoints on the image.
+        """
+        Plot keypoints on the image.
 
         Args:
             kpts (tensor): Predicted keypoints with shape [17, 3]. Each keypoint has (x, y, confidence).
@@ -346,7 +346,8 @@ class Annotator:
         return angle
 
     def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2):
-        """Draw specific keypoints for gym steps counting.
+        """
+        Draw specific keypoints for gym steps counting.
 
         Args:
             keypoints (list): list of keypoints data to be plotted
@@ -368,7 +369,8 @@ class Annotator:
         return self.im
 
     def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, line_thickness=2):
-        """Plot the pose angle, count value and step stage.
+        """
+        Plot the pose angle, count value and step stage.
 
         Args:
             angle_text (str): angle value for workout monitoring
@@ -414,7 +416,8 @@ class Annotator:
         cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale, (0, 0, 0), line_thickness)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
-        """Function for drawing segmented object in bounding box shape.
+        """
+        Function for drawing segmented object in bounding box shape.
 
         Args:
             mask (list): masks data list for instance segmentation area plotting
@@ -434,7 +437,8 @@ class Annotator:
                     2)
 
     def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
-        """Function for pinpoint human-vision eye mapping and plotting.
+        """
+        Function for pinpoint human-vision eye mapping and plotting.
 
         Args:
             box (list): Bounding box coordinates
@@ -507,8 +511,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
 
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):
-    """Save image crop as {file} with crop size multiple {gain} and {pad}
-    pixels. Save and/or return crop.
+    """
+    Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according
     to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
@@ -688,10 +692,9 @@ def plot_images(images,
 
 @plt_settings()
 def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, classify=False, on_plot=None):
-    """Plot training results from a results CSV file. The function supports
-    various types of data including segmentation, pose estimation, and
-    classification. Plots are saved as 'results.png' in the directory where the
-    CSV is located.
+    """
+    Plot training results from a results CSV file. The function supports various types of data including segmentation,
+    pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results. Defaults to 'path/to/results.csv'.
@@ -751,7 +754,8 @@ def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, 
 
 
 def plt_color_scatter(v, f, bins=20, cmap='viridis', alpha=0.8, edgecolors='none'):
-    """Plots a scatter plot with points colored based on a 2D histogram.
+    """
+    Plots a scatter plot with points colored based on a 2D histogram.
 
     Args:
         v (array-like): Values for the x-axis.
@@ -778,10 +782,9 @@ def plt_color_scatter(v, f, bins=20, cmap='viridis', alpha=0.8, edgecolors='none
 
 
 def plot_tune_results(csv_file='tune_results.csv'):
-    """Plot the evolution results stored in an 'tune_results.csv' file. The
-    function generates a scatter plot for each key in the CSV, color-coded
-    based on fitness scores. The best-performing configurations are highlighted
-    on the plots.
+    """
+    Plot the evolution results stored in an 'tune_results.csv' file. The function generates a scatter plot for each key
+    in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
 
     Args:
         csv_file (str, optional): Path to the CSV file containing the tuning results. Defaults to 'tune_results.csv'.
@@ -837,8 +840,7 @@ def plot_tune_results(csv_file='tune_results.csv'):
 
 
 def output_to_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h,
-    conf] for plotting."""
+    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
         box, conf, cls = o[:max_det, :6].cpu().split((4, 1, 1), 1)
@@ -849,7 +851,8 @@ def output_to_target(output, max_det=300):
 
 
 def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detect/exp')):
-    """Visualize feature maps of a given model module during inference.
+    """
+    Visualize feature maps of a given model module during inference.
 
     Args:
         x (torch.Tensor): Features to be visualized.

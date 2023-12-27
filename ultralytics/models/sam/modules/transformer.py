@@ -10,11 +10,11 @@ from ultralytics.nn.modules import MLPBlock
 
 
 class TwoWayTransformer(nn.Module):
-    """A Two-Way Transformer module that enables the simultaneous attention to
-    both image and query points. This class serves as a specialized transformer
-    decoder that attends to an input image using queries whose positional
-    embedding is supplied. This is particularly useful for tasks like object
-    detection, image segmentation, and point cloud processing.
+    """
+    A Two-Way Transformer module that enables the simultaneous attention to both image and query points. This class
+    serves as a specialized transformer decoder that attends to an input image using queries whose positional embedding
+    is supplied. This is particularly useful for tasks like object detection, image segmentation, and point cloud
+    processing.
 
     Attributes:
         depth (int): The number of layers in the transformer.
@@ -35,8 +35,8 @@ class TwoWayTransformer(nn.Module):
         activation: Type[nn.Module] = nn.ReLU,
         attention_downsample_rate: int = 2,
     ) -> None:
-        """A transformer decoder that attends to an input image using queries
-        whose positional embedding is supplied.
+        """
+        A transformer decoder that attends to an input image using queries whose positional embedding is supplied.
 
         Args:
           depth (int): number of layers in the transformer
@@ -168,8 +168,7 @@ class TwoWayAttentionBlock(nn.Module):
         self.skip_first_layer_pe = skip_first_layer_pe
 
     def forward(self, queries: Tensor, keys: Tensor, query_pe: Tensor, key_pe: Tensor) -> Tuple[Tensor, Tensor]:
-        """Apply self-attention and cross-attention to queries and keys and
-        return the processed embeddings."""
+        """Apply self-attention and cross-attention to queries and keys and return the processed embeddings."""
 
         # Self attention block
         if self.skip_first_layer_pe:
@@ -203,8 +202,9 @@ class TwoWayAttentionBlock(nn.Module):
 
 
 class Attention(nn.Module):
-    """An attention layer that allows for downscaling the size of the embedding
-    after projection to queries, keys, and values."""
+    """An attention layer that allows for downscaling the size of the embedding after projection to queries, keys, and
+    values.
+    """
 
     def __init__(
         self,
@@ -212,8 +212,8 @@ class Attention(nn.Module):
         num_heads: int,
         downsample_rate: int = 1,
     ) -> None:
-        """Initializes the Attention model with the given dimensions and
-        settings.
+        """
+        Initializes the Attention model with the given dimensions and settings.
 
         Args:
             embedding_dim (int): The dimensionality of the input embeddings.
@@ -236,8 +236,7 @@ class Attention(nn.Module):
 
     @staticmethod
     def _separate_heads(x: Tensor, num_heads: int) -> Tensor:
-        """Separate the input tensor into the specified number of attention
-        heads."""
+        """Separate the input tensor into the specified number of attention heads."""
         b, n, c = x.shape
         x = x.reshape(b, n, num_heads, c // num_heads)
         return x.transpose(1, 2)  # B x N_heads x N_tokens x C_per_head
@@ -250,8 +249,7 @@ class Attention(nn.Module):
         return x.reshape(b, n_tokens, n_heads * c_per_head)  # B x N_tokens x C
 
     def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
-        """Compute the attention output given the input query, key, and value
-        tensors."""
+        """Compute the attention output given the input query, key, and value tensors."""
 
         # Input projections
         q = self.q_proj(q)

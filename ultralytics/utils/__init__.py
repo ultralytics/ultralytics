@@ -108,7 +108,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # suppress verbose TF compiler warning
 
 
 class TQDM(tqdm_original):
-    """Custom Ultralytics tqdm class with different default arguments.
+    """
+    Custom Ultralytics tqdm class with different default arguments.
 
     Args:
         *args (list): Positional arguments passed to original tqdm.
@@ -116,8 +117,7 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
-        """Initialize custom Ultralytics tqdm class with different default
-        arguments."""
+        """Initialize custom Ultralytics tqdm class with different default arguments."""
         # Set new default values (these can still be overridden when calling TQDM)
         kwargs['disable'] = not VERBOSE or kwargs.get('disable', False)  # logical 'and' with default value if passed
         kwargs.setdefault('bar_format', TQDM_BAR_FORMAT)  # override default value if passed
@@ -125,9 +125,9 @@ class TQDM(tqdm_original):
 
 
 class SimpleClass:
-    """Ultralytics SimpleClass is a base class providing helpful string
-    representation, error reporting, and attribute access methods for easier
-    debugging and usage."""
+    """Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
+    access methods for easier debugging and usage.
+    """
 
     def __str__(self):
         """Return a human-readable string representation of the object."""
@@ -154,13 +154,12 @@ class SimpleClass:
 
 
 class IterableSimpleNamespace(SimpleNamespace):
-    """Ultralytics IterableSimpleNamespace is an extension class of
-    SimpleNamespace that adds iterable functionality and enables usage with
-    dict() and for loops."""
+    """Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
+    enables usage with dict() and for loops.
+    """
 
     def __iter__(self):
-        """Return an iterator of key-value pairs from the namespace's
-        attributes."""
+        """Return an iterator of key-value pairs from the namespace's attributes."""
         return iter(vars(self).items())
 
     def __str__(self):
@@ -178,14 +177,13 @@ class IterableSimpleNamespace(SimpleNamespace):
             """)
 
     def get(self, key, default=None):
-        """Return the value of the specified key if it exists; otherwise,
-        return the default value."""
+        """Return the value of the specified key if it exists; otherwise, return the default value."""
         return getattr(self, key, default)
 
 
 def plt_settings(rcparams=None, backend='Agg'):
-    """Decorator to temporarily set rc parameters and the backend for a
-    plotting function.
+    """
+    Decorator to temporarily set rc parameters and the backend for a plotting function.
 
     Example:
         decorator: @plt_settings({"font.size": 12})
@@ -204,12 +202,10 @@ def plt_settings(rcparams=None, backend='Agg'):
         rcparams = {'font.size': 11}
 
     def decorator(func):
-        """Decorator to apply temporary rc parameters and backend to a
-        function."""
+        """Decorator to apply temporary rc parameters and backend to a function."""
 
         def wrapper(*args, **kwargs):
-            """Sets rc parameters and backend, calls the original function, and
-            restores the settings."""
+            """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
             if backend != original_backend:
                 plt.close('all')  # auto-close()ing of figures upon backend switching is deprecated since 3.8
@@ -277,10 +273,10 @@ def emojis(string=''):
 
 
 class ThreadingLocked:
-    """A decorator class for ensuring thread-safe execution of a function or
-    method. This class can be used as a decorator to make sure that if the
-    decorated function is called from multiple threads, only one thread at a
-    time will be able to execute the function.
+    """
+    A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator
+    to make sure that if the decorated function is called from multiple threads, only one thread at a time will be able
+    to execute the function.
 
     Attributes:
         lock (threading.Lock): A lock object used to manage access to the decorated function.
@@ -297,8 +293,7 @@ class ThreadingLocked:
     """
 
     def __init__(self):
-        """Initializes the decorator class for thread-safe execution of a
-        function or method."""
+        """Initializes the decorator class for thread-safe execution of a function or method."""
         self.lock = threading.Lock()
 
     def __call__(self, f):
@@ -315,7 +310,8 @@ class ThreadingLocked:
 
 
 def yaml_save(file='data.yaml', data=None, header=''):
-    """Save YAML data to a file.
+    """
+    Save YAML data to a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
@@ -346,7 +342,8 @@ def yaml_save(file='data.yaml', data=None, header=''):
 
 
 def yaml_load(file='data.yaml', append_filename=False):
-    """Load YAML data from a file.
+    """
+    Load YAML data from a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
@@ -371,7 +368,8 @@ def yaml_load(file='data.yaml', append_filename=False):
 
 
 def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
-    """Pretty prints a YAML file or a YAML-formatted dictionary.
+    """
+    Pretty prints a YAML file or a YAML-formatted dictionary.
 
     Args:
         yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
@@ -394,7 +392,8 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def is_ubuntu() -> bool:
-    """Check if the OS is Ubuntu.
+    """
+    Check if the OS is Ubuntu.
 
     Returns:
         (bool): True if OS is Ubuntu, False otherwise.
@@ -406,7 +405,8 @@ def is_ubuntu() -> bool:
 
 
 def is_colab():
-    """Check if the current script is running inside a Google Colab notebook.
+    """
+    Check if the current script is running inside a Google Colab notebook.
 
     Returns:
         (bool): True if running inside a Colab notebook, False otherwise.
@@ -415,7 +415,8 @@ def is_colab():
 
 
 def is_kaggle():
-    """Check if the current script is running inside a Kaggle kernel.
+    """
+    Check if the current script is running inside a Kaggle kernel.
 
     Returns:
         (bool): True if running inside a Kaggle kernel, False otherwise.
@@ -424,8 +425,8 @@ def is_kaggle():
 
 
 def is_jupyter():
-    """Check if the current script is running inside a Jupyter Notebook.
-    Verified on Colab, Jupyterlab, Kaggle, Paperspace.
+    """
+    Check if the current script is running inside a Jupyter Notebook. Verified on Colab, Jupyterlab, Kaggle, Paperspace.
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
@@ -437,7 +438,8 @@ def is_jupyter():
 
 
 def is_docker() -> bool:
-    """Determine if the script is running inside a Docker container.
+    """
+    Determine if the script is running inside a Docker container.
 
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
@@ -451,8 +453,8 @@ def is_docker() -> bool:
 
 
 def is_online() -> bool:
-    """Check internet connectivity by attempting to connect to a known online
-    host.
+    """
+    Check internet connectivity by attempting to connect to a known online host.
 
     Returns:
         (bool): True if connection is successful, False otherwise.
@@ -475,7 +477,8 @@ ONLINE = is_online()
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
-    """Determines if the file at the given filepath is part of a pip package.
+    """
+    Determines if the file at the given filepath is part of a pip package.
 
     Args:
         filepath (str): The filepath to check.
@@ -493,7 +496,8 @@ def is_pip_package(filepath: str = __name__) -> bool:
 
 
 def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
-    """Check if a directory is writeable.
+    """
+    Check if a directory is writeable.
 
     Args:
         dir_path (str | Path): The path to the directory.
@@ -505,7 +509,8 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
 
 
 def is_pytest_running():
-    """Determines whether pytest is currently running or not.
+    """
+    Determines whether pytest is currently running or not.
 
     Returns:
         (bool): True if pytest is running, False otherwise.
@@ -514,7 +519,8 @@ def is_pytest_running():
 
 
 def is_github_action_running() -> bool:
-    """Determine if the current environment is a GitHub Actions runner.
+    """
+    Determine if the current environment is a GitHub Actions runner.
 
     Returns:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
@@ -523,8 +529,9 @@ def is_github_action_running() -> bool:
 
 
 def is_git_dir():
-    """Determines whether the current file is part of a git repository. If the
-    current file is not part of a git repository, returns None.
+    """
+    Determines whether the current file is part of a git repository. If the current file is not part of a git
+    repository, returns None.
 
     Returns:
         (bool): True if current file is part of a git repository.
@@ -533,9 +540,9 @@ def is_git_dir():
 
 
 def get_git_dir():
-    """Determines whether the current file is part of a git repository and if
-    so, returns the repository root directory. If the current file is not part
-    of a git repository, returns None.
+    """
+    Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
+    the current file is not part of a git repository, returns None.
 
     Returns:
         (Path | None): Git root directory if found or None if not found.
@@ -546,7 +553,8 @@ def get_git_dir():
 
 
 def get_git_origin_url():
-    """Retrieves the origin URL of a git repository.
+    """
+    Retrieves the origin URL of a git repository.
 
     Returns:
         (str | None): The origin URL of the git repository or None if not git directory.
@@ -558,8 +566,8 @@ def get_git_origin_url():
 
 
 def get_git_branch():
-    """Returns the current git branch name. If not in a git repository, returns
-    None.
+    """
+    Returns the current git branch name. If not in a git repository, returns None.
 
     Returns:
         (str | None): The current git branch name or None if not a git directory.
@@ -571,7 +579,8 @@ def get_git_branch():
 
 
 def get_default_args(func):
-    """Returns a dictionary of default arguments for a function.
+    """
+    Returns a dictionary of default arguments for a function.
 
     Args:
         func (callable): The function to inspect.
@@ -584,7 +593,8 @@ def get_default_args(func):
 
 
 def get_ubuntu_version():
-    """Retrieve the Ubuntu version if the OS is Ubuntu.
+    """
+    Retrieve the Ubuntu version if the OS is Ubuntu.
 
     Returns:
         (str): Ubuntu version or None if not an Ubuntu OS.
@@ -596,7 +606,8 @@ def get_ubuntu_version():
 
 
 def get_user_config_dir(sub_dir='Ultralytics'):
-    """Get the user config directory.
+    """
+    Get the user config directory.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -683,7 +694,8 @@ def colorstr(*input):
 
 
 def remove_colorstr(input_string):
-    """Removes ANSI escape codes from a string, effectively un-coloring it.
+    """
+    Removes ANSI escape codes from a string, effectively un-coloring it.
 
     Args:
         input_string (str): The string to remove color and style from.
@@ -700,15 +712,14 @@ def remove_colorstr(input_string):
 
 
 class TryExcept(contextlib.ContextDecorator):
-    """YOLOv8 TryExcept class.
+    """
+    YOLOv8 TryExcept class.
 
-    Use as @TryExcept() decorator or 'with TryExcept():' context
-    manager.
+    Use as @TryExcept() decorator or 'with TryExcept():' context manager.
     """
 
     def __init__(self, msg='', verbose=True):
-        """Initialize TryExcept class with optional message and verbosity
-        settings."""
+        """Initialize TryExcept class with optional message and verbosity settings."""
         self.msg = msg
         self.verbose = verbose
 
@@ -717,15 +728,15 @@ class TryExcept(contextlib.ContextDecorator):
         pass
 
     def __exit__(self, exc_type, value, traceback):
-        """Defines behavior when exiting a 'with' block, prints error message
-        if necessary."""
+        """Defines behavior when exiting a 'with' block, prints error message if necessary."""
         if self.verbose and value:
             print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
         return True
 
 
 def threaded(func):
-    """Multi-threads a target function and returns thread.
+    """
+    Multi-threads a target function and returns thread.
 
     Use as @threaded decorator.
     """
@@ -740,9 +751,9 @@ def threaded(func):
 
 
 def set_sentry():
-    """Initialize the Sentry SDK for error tracking and reporting. Only used if
-    sentry_sdk package is installed and sync=True in settings. Run 'yolo
-    settings' to see and update settings YAML file.
+    """
+    Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
+    sync=True in settings. Run 'yolo settings' to see and update settings YAML file.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):
         - sentry_sdk package is installed
@@ -761,8 +772,8 @@ def set_sentry():
     """
 
     def before_send(event, hint):
-        """Modify the event before sending it to Sentry based on specific
-        exception types and messages.
+        """
+        Modify the event before sending it to Sentry based on specific exception types and messages.
 
         Args:
             event (dict): The event dictionary containing information about the error.
@@ -810,7 +821,8 @@ def set_sentry():
 
 
 class SettingsManager(dict):
-    """Manages Ultralytics settings stored in a YAML file.
+    """
+    Manages Ultralytics settings stored in a YAML file.
 
     Args:
         file (str | Path): Path to the Ultralytics settings YAML file. Default is USER_CONFIG_DIR / 'settings.yaml'.
@@ -818,8 +830,9 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version='0.0.4'):
-        """Initialize the SettingsManager with default settings, load and
-        validate current settings from the YAML file."""
+        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
+        file.
+        """
         import copy
         import hashlib
 
@@ -889,8 +902,7 @@ class SettingsManager(dict):
 
 
 def deprecation_warn(arg, new_arg, version=None):
-    """Issue a deprecation warning when a deprecated argument is used,
-    suggesting an updated argument."""
+    """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
     if not version:
         version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
     LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "

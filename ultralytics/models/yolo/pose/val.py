@@ -13,8 +13,8 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class PoseValidator(DetectionValidator):
-    """A class extending the DetectionValidator class for validation based on a
-    pose model.
+    """
+    A class extending the DetectionValidator class for validation based on a pose model.
 
     Example:
         ```python
@@ -27,8 +27,7 @@ class PoseValidator(DetectionValidator):
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """Initialize a 'PoseValidator' object with custom parameters and
-        assigned attributes."""
+        """Initialize a 'PoseValidator' object with custom parameters and assigned attributes."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.sigma = None
         self.kpt_shape = None
@@ -39,8 +38,7 @@ class PoseValidator(DetectionValidator):
                            'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
     def preprocess(self, batch):
-        """Preprocesses the batch by converting the 'keypoints' data into a
-        float and moving it to the device."""
+        """Preprocesses the batch by converting the 'keypoints' data into a float and moving it to the device."""
         batch = super().preprocess(batch)
         batch['keypoints'] = batch['keypoints'].to(self.device).float()
         return batch
@@ -51,8 +49,7 @@ class PoseValidator(DetectionValidator):
                                          'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
-        """Apply non-maximum suppression and return detections with high
-        confidence scores."""
+        """Apply non-maximum suppression and return detections with high confidence scores."""
         return ops.non_max_suppression(preds,
                                        self.args.conf,
                                        self.args.iou,
@@ -128,7 +125,8 @@ class PoseValidator(DetectionValidator):
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
     def _process_batch(self, detections, labels, pred_kpts=None, gt_kpts=None):
-        """Return correct prediction matrix.
+        """
+        Return correct prediction matrix.
 
         Args:
             detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
@@ -152,8 +150,7 @@ class PoseValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], labels[:, 0], iou)
 
     def plot_val_samples(self, batch, ni):
-        """Plots and saves validation set samples with predicted bounding boxes
-        and keypoints."""
+        """Plots and saves validation set samples with predicted bounding boxes and keypoints."""
         plot_images(batch['img'],
                     batch['batch_idx'],
                     batch['cls'].squeeze(-1),

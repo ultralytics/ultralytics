@@ -6,8 +6,8 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 
 
 class PosePredictor(DetectionPredictor):
-    """A class extending the DetectionPredictor class for prediction based on a
-    pose model.
+    """
+    A class extending the DetectionPredictor class for prediction based on a pose model.
 
     Example:
         ```python
@@ -21,8 +21,7 @@ class PosePredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes PosePredictor, sets task to 'pose' and logs a warning
-        for using 'mps' as device."""
+        """Initializes PosePredictor, sets task to 'pose' and logs a warning for using 'mps' as device."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'pose'
         if isinstance(self.args.device, str) and self.args.device.lower() == 'mps':
@@ -30,8 +29,7 @@ class PosePredictor(DetectionPredictor):
                            'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
     def postprocess(self, preds, img, orig_imgs):
-        """Return detection results for a given input image or list of
-        images."""
+        """Return detection results for a given input image or list of images."""
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,

@@ -11,11 +11,10 @@ from ultralytics.nn.modules import LayerNorm2d, MLPBlock
 
 
 class ImageEncoderViT(nn.Module):
-    """An image encoder using Vision Transformer (ViT) architecture for
-    encoding an image into a compact latent space. The encoder takes an image,
-    splits it into patches, and processes these patches through a series of
-    transformer blocks. The encoded patches are then processed through a neck
-    to generate the final encoded representation.
+    """
+    An image encoder using Vision Transformer (ViT) architecture for encoding an image into a compact latent space. The
+    encoder takes an image, splits it into patches, and processes these patches through a series of transformer blocks.
+    The encoded patches are then processed through a neck to generate the final encoded representation.
 
     This class and its supporting functions below lightly adapted from the ViTDet backbone available at
     https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py.
@@ -115,8 +114,9 @@ class ImageEncoderViT(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Processes input through patch embedding, applies positional
-        embedding if present, and passes through blocks and neck."""
+        """Processes input through patch embedding, applies positional embedding if present, and passes through blocks
+        and neck.
+        """
         x = self.patch_embed(x)
         if self.pos_embed is not None:
             x = x + self.pos_embed
@@ -126,9 +126,9 @@ class ImageEncoderViT(nn.Module):
 
 
 class PromptEncoder(nn.Module):
-    """Encodes different types of prompts, including points, boxes, and masks,
-    for input to SAM's mask decoder. The encoder produces both sparse and dense
-    embeddings for the input prompts.
+    """
+    Encodes different types of prompts, including points, boxes, and masks, for input to SAM's mask decoder. The encoder
+    produces both sparse and dense embeddings for the input prompts.
 
     Attributes:
         embed_dim (int): Dimension of the embeddings.
@@ -151,7 +151,8 @@ class PromptEncoder(nn.Module):
         mask_in_chans: int,
         activation: Type[nn.Module] = nn.GELU,
     ) -> None:
-        """Encodes prompts for input to SAM's mask decoder.
+        """
+        Encodes prompts for input to SAM's mask decoder.
 
         Args:
           embed_dim (int): The prompts' embedding dimension
@@ -188,8 +189,9 @@ class PromptEncoder(nn.Module):
         self.no_mask_embed = nn.Embedding(1, embed_dim)
 
     def get_dense_pe(self) -> torch.Tensor:
-        """Returns the positional encoding used to encode point prompts,
-        applied to a dense set of points the shape of the image encoding.
+        """
+        Returns the positional encoding used to encode point prompts, applied to a dense set of points the shape of the
+        image encoding.
 
         Returns:
           torch.Tensor: Positional encoding with shape 1x(embed_dim)x(embedding_h)x(embedding_w)
@@ -235,8 +237,7 @@ class PromptEncoder(nn.Module):
         boxes: Optional[torch.Tensor],
         masks: Optional[torch.Tensor],
     ) -> int:
-        """Gets the batch size of the output given the batch size of the input
-        prompts."""
+        """Gets the batch size of the output given the batch size of the input prompts."""
         if points is not None:
             return points[0].shape[0]
         elif boxes is not None:
@@ -256,8 +257,8 @@ class PromptEncoder(nn.Module):
         boxes: Optional[torch.Tensor],
         masks: Optional[torch.Tensor],
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Embeds different types of prompts, returning both sparse and dense
-        embeddings.
+        """
+        Embeds different types of prompts, returning both sparse and dense embeddings.
 
         Args:
           points (tuple(torch.Tensor, torch.Tensor), None): point coordinates and labels to embed.
@@ -293,8 +294,7 @@ class PositionEmbeddingRandom(nn.Module):
     """Positional encoding using random spatial frequencies."""
 
     def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
-        """Initializes a position embedding using random spatial
-        frequencies."""
+        """Initializes a position embedding using random spatial frequencies."""
         super().__init__()
         if scale is None or scale <= 0.0:
             scale = 1.0
@@ -335,8 +335,7 @@ class PositionEmbeddingRandom(nn.Module):
 
 
 class Block(nn.Module):
-    """Transformer blocks with support of window attention and residual
-    propagation blocks."""
+    """Transformer blocks with support of window attention and residual propagation blocks."""
 
     def __init__(
         self,
@@ -383,8 +382,7 @@ class Block(nn.Module):
         self.window_size = window_size
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Executes a forward pass through the transformer block with window
-        attention and non-overlapping windows."""
+        """Executes a forward pass through the transformer block with window attention and non-overlapping windows."""
         shortcut = x
         x = self.norm1(x)
         # Window partition
@@ -413,7 +411,8 @@ class Attention(nn.Module):
         rel_pos_zero_init: bool = True,
         input_size: Optional[Tuple[int, int]] = None,
     ) -> None:
-        """Initialize Attention module.
+        """
+        Initialize Attention module.
 
         Args:
             dim (int): Number of input channels.
@@ -439,8 +438,7 @@ class Attention(nn.Module):
             self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Applies the forward operation including attention, normalization,
-        MLP, and indexing within window limits."""
+        """Applies the forward operation including attention, normalization, MLP, and indexing within window limits."""
         B, H, W, _ = x.shape
         # qkv with shape (3, B, nHead, H * W, C)
         qkv = self.qkv(x).reshape(B, H * W, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
@@ -483,7 +481,8 @@ def window_partition(x: torch.Tensor, window_size: int) -> Tuple[torch.Tensor, T
 
 def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[int, int],
                        hw: Tuple[int, int]) -> torch.Tensor:
-    """Window unpartition into original sequences and removing padding.
+    """
+    Window unpartition into original sequences and removing padding.
 
     Args:
         windows (tensor): input tokens with [B * num_windows, window_size, window_size, C].
@@ -506,8 +505,8 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[in
 
 
 def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
-    """Get relative positional embeddings according to the relative positions
-    of query and key sizes.
+    """
+    Get relative positional embeddings according to the relative positions of query and key sizes.
 
     Args:
         q_size (int): size of query q.
@@ -588,7 +587,8 @@ class PatchEmbed(nn.Module):
             in_chans: int = 3,
             embed_dim: int = 768,
     ) -> None:
-        """Initialize PatchEmbed module.
+        """
+        Initialize PatchEmbed module.
 
         Args:
             kernel_size (Tuple): kernel size of the projection layer.
@@ -602,6 +602,5 @@ class PatchEmbed(nn.Module):
         self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Computes patch embedding by applying convolution and transposing
-        resulting tensor."""
+        """Computes patch embedding by applying convolution and transposing resulting tensor."""
         return self.proj(x).permute(0, 2, 3, 1)  # B C H W -> B H W C

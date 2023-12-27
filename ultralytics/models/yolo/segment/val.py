@@ -15,8 +15,8 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class SegmentationValidator(DetectionValidator):
-    """A class extending the DetectionValidator class for validation based on a
-    segmentation model.
+    """
+    A class extending the DetectionValidator class for validation based on a segmentation model.
 
     Example:
         ```python
@@ -29,8 +29,7 @@ class SegmentationValidator(DetectionValidator):
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """Initialize SegmentationValidator and set task to 'segment', metrics
-        to SegmentMetrics."""
+        """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.plot_masks = None
         self.process = None
@@ -38,15 +37,13 @@ class SegmentationValidator(DetectionValidator):
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
     def preprocess(self, batch):
-        """Preprocesses batch by converting masks to float and sending to
-        device."""
+        """Preprocesses batch by converting masks to float and sending to device."""
         batch = super().preprocess(batch)
         batch['masks'] = batch['masks'].to(self.device).float()
         return batch
 
     def init_metrics(self, model):
-        """Initialize metrics and select mask processing function based on
-        save_json flag."""
+        """Initialize metrics and select mask processing function based on save_json flag."""
         super().init_metrics(model)
         self.plot_masks = []
         if self.args.save_json:
@@ -61,8 +58,7 @@ class SegmentationValidator(DetectionValidator):
                                          'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
-        """Post-processes YOLO predictions and returns output detections with
-        proto."""
+        """Post-processes YOLO predictions and returns output detections with proto."""
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,
@@ -147,7 +143,8 @@ class SegmentationValidator(DetectionValidator):
         self.metrics.confusion_matrix = self.confusion_matrix
 
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
-        """Return correct prediction matrix.
+        """
+        Return correct prediction matrix.
 
         Args:
             detections (array[N, 6]), x1, y1, x2, y2, conf, class

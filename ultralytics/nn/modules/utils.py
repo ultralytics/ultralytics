@@ -42,7 +42,8 @@ def inverse_sigmoid(x, eps=1e-5):
 def multi_scale_deformable_attn_pytorch(value: torch.Tensor, value_spatial_shapes: torch.Tensor,
                                         sampling_locations: torch.Tensor,
                                         attention_weights: torch.Tensor) -> torch.Tensor:
-    """Multi-scale deformable attention.
+    """
+    Multi-scale deformable attention.
 
     https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
     """

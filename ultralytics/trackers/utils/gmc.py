@@ -9,8 +9,8 @@ from ultralytics.utils import LOGGER
 
 
 class GMC:
-    """Generalized Motion Compensation (GMC) class for tracking and object
-    detection in video frames.
+    """
+    Generalized Motion Compensation (GMC) class for tracking and object detection in video frames.
 
     This class provides methods for tracking and detecting objects based on several tracking algorithms including ORB,
     SIFT, ECC, and Sparse Optical Flow. It also supports downscaling of frames for computational efficiency.
@@ -34,7 +34,8 @@ class GMC:
     """
 
     def __init__(self, method: str = 'sparseOptFlow', downscale: int = 2) -> None:
-        """Initialize a video tracker with specified parameters.
+        """
+        Initialize a video tracker with specified parameters.
 
         Args:
             method (str): The method used for tracking. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
@@ -80,7 +81,8 @@ class GMC:
         self.initializedFirstFrame = False
 
     def apply(self, raw_frame: np.array, detections: list = None) -> np.array:
-        """Apply object detection on a raw frame using specified method.
+        """
+        Apply object detection on a raw frame using specified method.
 
         Args:
             raw_frame (np.array): The raw frame to be processed.
@@ -105,7 +107,8 @@ class GMC:
             return np.eye(2, 3)
 
     def applyEcc(self, raw_frame: np.array, detections: list = None) -> np.array:
-        """Apply ECC algorithm to a raw frame.
+        """
+        Apply ECC algorithm to a raw frame.
 
         Args:
             raw_frame (np.array): The raw frame to be processed.
@@ -151,7 +154,8 @@ class GMC:
         return H
 
     def applyFeatures(self, raw_frame: np.array, detections: list = None) -> np.array:
-        """Apply feature-based methods like ORB or SIFT to a raw frame.
+        """
+        Apply feature-based methods like ORB or SIFT to a raw frame.
 
         Args:
             raw_frame (np.array): The raw frame to be processed.
@@ -289,7 +293,8 @@ class GMC:
         return H
 
     def applySparseOptFlow(self, raw_frame: np.array, detections: list = None) -> np.array:
-        """Apply Sparse Optical Flow method to a raw frame.
+        """
+        Apply Sparse Optical Flow method to a raw frame.
 
         Args:
             raw_frame (np.array): The raw frame to be processed.

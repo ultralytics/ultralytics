@@ -9,7 +9,8 @@ from ultralytics.utils import LOGGER, SETTINGS
 
 
 def login(api_key=''):
-    """Log in to the Ultralytics HUB API using the provided API key.
+    """
+    Log in to the Ultralytics HUB API using the provided API key.
 
     Args:
         api_key (str, optional): May be an API key or a combination API key and model ID, i.e. key_id
@@ -25,8 +26,8 @@ def login(api_key=''):
 
 
 def logout():
-    """Log out of Ultralytics HUB by removing the API key from the settings
-    file. To log in again, use 'yolo hub login'.
+    """
+    Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo hub login'.
 
     Example:
         ```python
@@ -78,9 +79,9 @@ def get_export(model_id='', format='torchscript'):
 
 
 def check_dataset(path='', task='detect'):
-    """Function for error-checking HUB dataset Zip file before upload. It
-    checks a dataset for errors before it is uploaded to the HUB. Usage
-    examples are given below.
+    """
+    Function for error-checking HUB dataset Zip file before upload. It checks a dataset for errors before it is uploaded
+    to the HUB. Usage examples are given below.
 
     Args:
         path (str, optional): Path to data.zip (with data.yaml inside data.zip). Defaults to ''.

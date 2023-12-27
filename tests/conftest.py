@@ -9,7 +9,8 @@ TMP = Path(__file__).resolve().parent / 'tmp'  # temp directory for test files
 
 
 def pytest_addoption(parser):
-    """Add custom command-line options to pytest.
+    """
+    Add custom command-line options to pytest.
 
     Args:
         parser (pytest.config.Parser): The pytest parser object.
@@ -18,7 +19,8 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    """Register custom markers to avoid pytest warnings.
+    """
+    Register custom markers to avoid pytest warnings.
 
     Args:
         config (pytest.config.Config): The pytest config object.
@@ -27,8 +29,8 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
-    """Setup hook to skip tests marked as slow if the --slow option is not
-    provided.
+    """
+    Setup hook to skip tests marked as slow if the --slow option is not provided.
 
     Args:
         item (pytest.Item): The test item object.
@@ -51,7 +53,8 @@ def pytest_collection_modifyitems(config, items):
 
 
 def pytest_sessionstart(session):
-    """Initialize session configurations for pytest.
+    """
+    Initialize session configurations for pytest.
 
     This function is automatically called by pytest after the 'Session' object has been created but before performing
     test collection. It sets the initial seeds and prepares the temporary directory for the test session.
@@ -67,7 +70,8 @@ def pytest_sessionstart(session):
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    """Cleanup operations after pytest session.
+    """
+    Cleanup operations after pytest session.
 
     This function is automatically called by pytest at the end of the entire test session. It removes certain files
     and directories used during testing.

@@ -526,3 +526,12 @@ class v8ClassificationLoss:
         loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='mean')
         loss_items = loss.detach()
         return loss, loss_items
+
+class v8RegressionLoss:
+    """Criterion class for computing regression training losses."""
+
+    def __call__(self, preds, batch):
+        """Compute the regression loss between predictions and true labels."""
+        loss = torch.nn.functional.mse_loss(preds.view(preds.size()[0]), batch['value'].float(), reduction='mean')
+        loss_items = loss.detach()
+        return loss, loss_items

@@ -1074,3 +1074,54 @@ class ClassifyMetrics(SimpleClass):
     def curves_results(self):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
+    
+class RegressMetrics(SimpleClass):
+    """
+    Class for computing regression metrics including mean absolute error and mean squared error.
+
+    Attributes:
+        mae (float): The mean absolute error.
+        mse (float): The mean squared error.
+        speed (Dict[str, float]): A dictionary containing the time taken for each step in the pipeline.
+
+    Properties:
+        results_dict (Dict[str, Union[float, str]]): A dictionary containing the regression metrics.
+        keys (List[str]): A list of keys for the results_dict.
+
+    Methods:
+        process(targets, pred): Processes the targets and predictions to compute regression metrics.
+    """
+
+    def __init__(self) -> None:
+        """Initialize a RegressMetrics instance."""
+        self.mae = 0
+        self.mse = 0
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.task = 'regress'
+
+    def process(self, targets, pred):
+        """Target classes and predicted classes."""
+        targets, pred = torch.cat(targets), torch.cat(pred)
+        diff_t = torch.sub(targets, pred)
+        self.mae = torch.mean(torch.abs(diff_t)).tolist()
+        self.mse = torch.mean(torch.mul(diff_t, diff_t)).tolist()
+
+    @property
+    def results_dict(self):
+        """Returns a dictionary with model's performance metrics."""
+        return dict(zip(self.keys, [self.mae, self.mse]))
+
+    @property
+    def keys(self):
+        """Returns a list of keys for the results_dict property."""
+        return ['metrics/mae', 'metrics/mse']
+
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+
+    @property
+    def curves_results(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []

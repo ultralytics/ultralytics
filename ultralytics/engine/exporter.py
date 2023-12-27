@@ -1026,6 +1026,6 @@ class IOSDetectModel(torch.nn.Module):
             self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
 
     def forward(self, x):
-        """Normalize predictions of object detection model with input size- dependent factors."""
+        """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)

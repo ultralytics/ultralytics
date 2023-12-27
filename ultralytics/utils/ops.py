@@ -460,7 +460,7 @@ def xyxy2ltwh(x):
 
 def ltwh2xywh(x):
     """
-    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top- left, xy=center.
+    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center.
 
     Args:
         x (torch.Tensor): the input tensor
@@ -576,7 +576,7 @@ def segments2boxes(segments):
 
 def resample_segments(segments, n=1000):
     """
-    Inputs a list of segments (n,2) and returns a list of segments (n,2) up- sampled to n points each.
+    Inputs a list of segments (n,2) and returns a list of segments (n,2) up-sampled to n points each.
 
     Args:
         segments (list): a list of (n,2) arrays, where n is the number of points in the segment.

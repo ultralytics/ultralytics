@@ -4,7 +4,7 @@ Generate predictions using the Segment Anything Model (SAM).
 
 SAM is an advanced image segmentation model offering features like promptable segmentation and zero-shot performance.
 This module contains the implementation of the prediction logic and auxiliary utilities required to perform segmentation
-using SAM. It forms an integral part of the Ultralytics framework and is designed for high-performance, real- time image
+using SAM. It forms an integral part of the Ultralytics framework and is designed for high-performance, real-time image
 segmentation tasks.
 """
 

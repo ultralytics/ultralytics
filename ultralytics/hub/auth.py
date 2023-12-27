@@ -10,7 +10,7 @@ API_KEY_URL = f'{HUB_WEB_ROOT}/settings?tab=api+keys'
 
 class Auth:
     """
-    Manages authentication processes including API key handling, cookie- based authentication, and header generation.
+    Manages authentication processes including API key handling, cookie-based authentication, and header generation.
 
     The class supports different methods of authentication:
     1. Directly using an API key.

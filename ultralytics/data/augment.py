@@ -1055,7 +1055,7 @@ class ClassifyLetterBox:
 
     def __init__(self, size=(640, 640), auto=False, stride=32):
         """
-        Initializes the ClassifyLetterBox class with a target size, auto- flag, and stride.
+        Initializes the ClassifyLetterBox class with a target size, auto-flag, and stride.
 
         Args:
             size (Union[int, Tuple[int, int]]): The target dimensions (height, width) for the letterbox.

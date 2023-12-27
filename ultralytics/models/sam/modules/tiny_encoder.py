@@ -414,9 +414,8 @@ class TinyViTBlock(nn.Module):
         return x + self.drop_path(self.mlp(x))
 
     def extra_repr(self) -> str:
-        """Returns a formatted string representing the TinyViTBlock's
-        parameters: dimension, input resolution, number of attentions heads,
-        window size, and MLP ratio."""
+        """Returns a formatted string representing the TinyViTBlock's parameters: dimension, input resolution,
+        number of attentions heads, window size, and MLP ratio."""
         return f'dim={self.dim}, input_resolution={self.input_resolution}, num_heads={self.num_heads}, ' \
                f'window_size={self.window_size}, mlp_ratio={self.mlp_ratio}'
 

@@ -161,8 +161,8 @@ class RepConv(nn.Module):
     """
     RepConv is a basic rep-style block, including training and deploy status.
 
-    This module is used in RT-DETR. Based on
-    https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
+    This module is used in RT-DETR.
+    Based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
     """
     default_act = nn.SiLU()  # default activation
 

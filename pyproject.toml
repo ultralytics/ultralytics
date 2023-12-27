@@ -100,6 +100,48 @@ package-data = { "ultralytics" = ["**/*.yaml"], 'ultralytics.assets' = ['*.jpg']
 [tool.setuptools.dynamic]
 version = { attr = "ultralytics.__version__" }
 
+[tool.pytest]
+norecursedirs = [".git", "dist", "build"]
+addopts = "--doctest-modules --durations=30 --color=yes"
+
+[tool.coverage.run]
+source = "ultralytics/"
+data_file = "tests/.coverage"
+omit = ["ultralytics/utils/callbacks/*"]
+
+[tool.flake8]
+max-line-length = 120
+exclude = [".tox", "*.egg", "build", "temp"]
+select = "E,W,F"
+doctests = true
+verbose = 2
+format = "pylint"
+ignore = ["E731", "F405", "E402", "W504", "E501"]
+# E731: Do not assign a lambda expression, use a def
+# F405: name may be undefined, or defined from star imports: module
+# E402: module level import not at top of file
+# W504: line break after binary operator
+# E501: line too long
+# removed:
+# F401: module imported but unused
+# E231: missing whitespace after ‘,’, ‘;’, or ‘:’
+# E127: continuation line over-indented for visual indent
+# F403: ‘from module import *’ used; unable to detect undefined names
+
+[tool.isort]
+line_length = 120
+multi_line_output = 0
+
+[tool.yapf]
+based_on_style = "pep8"
+spaces_before_comment = 2
+column_limit = 120
+coalesce_brackets = true
+spaces_around_power_operator = true
+space_between_ending_comma_and_closing_bracket = true
+split_before_closing_bracket = false
+split_before_first_argument = false
+
 [tool.docformatter]
 wrap-summaries = 120
 wrap-descriptions = 120

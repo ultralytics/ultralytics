@@ -9,11 +9,11 @@ import torch.nn as nn
 
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
                                     Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d,
-                                    Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, RepC3, RepConv,
+                                    Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, Regress, RepC3, RepConv,
                                     ResNetLayer, RTDETRDecoder, Segment)
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
+from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss, v8RegressionLoss
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights, intersect_dicts,
                                            make_divisible, model_info, scale_img, time_sync)
@@ -370,6 +370,48 @@ class ClassificationModel(BaseModel):
         """Initialize the loss criterion for the ClassificationModel."""
         return v8ClassificationLoss()
 
+class RegressionModel(BaseModel):
+    """YOLOv8 regression model."""
+
+    def __init__(self, cfg='yolov8n-regress.yaml', ch=3, nc=None, verbose=True):
+        """Init RegressionModel with YAML, channels, number of classes, verbose flag."""
+        super().__init__()
+        self._from_yaml(cfg, ch, nc, verbose)
+
+    def _from_yaml(self, cfg, ch, nc, verbose):
+        """Set YOLOv8 model configurations and define the model architecture."""
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+
+        # Define model
+        ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.stride = torch.Tensor([1])  # no stride constraints
+        self.info()
+
+    #@staticmethod
+    #def reshape_outputs(model, nc):
+    #    """Update a TorchVision classification model to class count 'n' if required."""
+    #    name, m = list((model.model if hasattr(model, 'model') else model).named_children())[-1]  # last module
+    #    if isinstance(m, Classify):  # YOLO Classify() head
+    #        if m.linear.out_features != nc:
+    #            m.linear = nn.Linear(m.linear.in_features, nc)
+    #    elif isinstance(m, nn.Linear):  # ResNet, EfficientNet
+    #        if m.out_features != nc:
+    #            setattr(model, name, nn.Linear(m.in_features, nc))
+    #    elif isinstance(m, nn.Sequential):
+    #        types = [type(x) for x in m]
+    #        if nn.Linear in types:
+    #            i = types.index(nn.Linear)  # nn.Linear index
+    #            if m[i].out_features != nc:
+    #                m[i] = nn.Linear(m[i].in_features, nc)
+    #        elif nn.Conv2d in types:
+    #            i = types.index(nn.Conv2d)  # nn.Conv2d index
+    #            if m[i].out_channels != nc:
+    #                m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the RegressionModel."""
+        return v8RegressionLoss()
 
 class RTDETRDetectionModel(DetectionModel):
     """
@@ -712,6 +754,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
+        elif m is Regress:
+            c1, c2 = ch[f], args[0]
+            args = [c1, c2]
         else:
             c2 = ch[f]
 
@@ -773,7 +818,7 @@ def guess_model_task(model):
         model (nn.Module | dict): PyTorch model or model configuration in YAML format.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'regress').
 
     Raises:
         SyntaxError: If the task of the model could not be determined.
@@ -790,6 +835,8 @@ def guess_model_task(model):
             return 'segment'
         if m == 'pose':
             return 'pose'
+        if m == 'regress':
+            return 'regress'
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -814,6 +861,8 @@ def guess_model_task(model):
                 return 'classify'
             elif isinstance(m, Pose):
                 return 'pose'
+            #elif isinstance(m, Regress):
+            #    return 'regress'
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
@@ -826,8 +875,10 @@ def guess_model_task(model):
             return 'pose'
         elif 'detect' in model.parts:
             return 'detect'
+        elif '-regress' in model.stem or 'regress' in model.parts:
+            return 'regress'
 
     # Unable to determine task from model
     LOGGER.warning("WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
-                   "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', or 'pose'.")
+                   "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', or 'regress'.")
     return 'detect'  # assume detect

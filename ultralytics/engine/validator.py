@@ -138,7 +138,7 @@ class BaseValidator:
 
             if str(self.args.data).split('.')[-1] in ('yaml', 'yml'):
                 self.data = check_det_dataset(self.args.data)
-            elif self.args.task == 'classify':
+            elif self.args.task in ('classify', 'regress'):
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
             else:
                 raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))

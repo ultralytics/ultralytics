@@ -299,6 +299,112 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         save_dataset_cache_file(self.prefix, path, x)
         return samples
 
+# Regression dataloaders -------------------------------------------------------------------------------------------
+class RegressionDataset(torchvision.datasets.ImageFolder):
+    """
+    Regression Dataset.
+
+    Args:
+        root (str): Dataset path.
+
+    Attributes:
+        cache_ram (bool): True if images should be cached in RAM, False otherwise.
+        cache_disk (bool): True if images should be cached on disk, False otherwise.
+        samples (list): List of samples containing file, index, npy, and im.
+        torch_transforms (callable): torchvision transforms applied to the dataset.
+        album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
+    """
+
+    def __init__(self, root, args, augment=False, cache=False, prefix=''):
+        """
+        Initialize YOLO object with root, image size, augmentations, and cache settings.
+
+        Args:
+            root (str): Dataset path.
+            args (Namespace): Argument parser containing dataset related settings.
+            augment (bool, optional): True if dataset should be augmented, False otherwise. Defaults to False.
+            cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
+        """
+        super().__init__(root=root)
+        if augment and args.fraction < 1.0:  # reduce training fraction
+            self.samples = self.samples[:round(len(self.samples) * args.fraction)]
+        self.prefix = colorstr(f'{prefix}: ') if prefix else ''
+        self.cache_ram = cache is True or cache == 'ram'
+        self.cache_disk = cache == 'disk'
+        self.samples = self.verify_images()  # filter out bad images
+        self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
+        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
+        self.pre_album_transforms = T.Compose([ClassifyLetterBox(size=args.imgsz)])
+        self.album_transforms = classify_albumentations(
+            hflip=args.fliplr,
+            vflip=args.flipud,
+            hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
+            hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
+            hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
+            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
+            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
+            auto_aug=False) if augment else None
+
+    def __getitem__(self, i):
+        """Returns subset of data and targets corresponding to given indices."""
+        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        if self.cache_ram and im is None:
+            im = self.samples[i][3] = cv2.imread(f)
+        elif self.cache_disk:
+            if not fn.exists():  # load npy
+                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
+            im = np.load(fn)
+        else:  # read image
+            im = cv2.imread(f)  # BGR
+        if self.album_transforms:
+            im = self.pre_album_transforms(im)  # Letterbox
+            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
+        else:
+            sample = self.torch_transforms(im)
+        return {'img': sample, 'value': j, 'name': f}
+
+    def __len__(self) -> int:
+        """Return the total number of samples in the dataset."""
+        return len(self.samples)
+
+    def verify_images(self):
+        """Verify all images in dataset."""
+        desc = f'{self.prefix}Scanning {self.root}...'
+        path = Path(self.root).with_suffix('.cache')  # *.cache file path
+
+        with contextlib.suppress(FileNotFoundError, AssertionError, AttributeError):
+            cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
+            assert cache['version'] == DATASET_CACHE_VERSION  # matches current version
+            assert cache['hash'] == get_hash([x[0] for x in self.samples])  # identical hash
+            nf, nc, n, samples = cache.pop('results')  # found, missing, empty, corrupt, total
+            if LOCAL_RANK in (-1, 0):
+                d = f'{desc} {nf} images, {nc} corrupt'
+                TQDM(None, desc=d, total=n, initial=n)
+                if cache['msgs']:
+                    LOGGER.info('\n'.join(cache['msgs']))  # display warnings
+            return samples
+
+        # Run scan if *.cache retrieval failed
+        nf, nc, msgs, samples, x = 0, 0, [], [], {}
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
+            pbar = TQDM(results, desc=desc, total=len(self.samples))
+            for sample, nf_f, nc_f, msg in pbar:
+                if nf_f:
+                    samples.append(sample)
+                if msg:
+                    msgs.append(msg)
+                nf += nf_f
+                nc += nc_f
+                pbar.desc = f'{desc} {nf} images, {nc} corrupt'
+            pbar.close()
+        if msgs:
+            LOGGER.info('\n'.join(msgs))
+        x['hash'] = get_hash([x[0] for x in self.samples])
+        x['results'] = nf, nc, len(samples), samples
+        x['msgs'] = msgs  # warnings
+        save_dataset_cache_file(self.prefix, path, x)
+        return samples
 
 def load_dataset_cache_file(path):
     """Load an Ultralytics *.cache dictionary from path."""

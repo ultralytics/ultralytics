@@ -109,25 +109,6 @@ source = "ultralytics/"
 data_file = "tests/.coverage"
 omit = ["ultralytics/utils/callbacks/*"]
 
-[tool.flake8]
-max-line-length = 120
-exclude = [".tox", "*.egg", "build", "temp"]
-select = "E,W,F"
-doctests = true
-verbose = 2
-format = "pylint"
-ignore = ["E731", "F405", "E402", "W504", "E501"]
-# E731: Do not assign a lambda expression, use a def
-# F405: name may be undefined, or defined from star imports: module
-# E402: module level import not at top of file
-# W504: line break after binary operator
-# E501: line too long
-# removed:
-# F401: module imported but unused
-# E231: missing whitespace after ‘,’, ‘;’, or ‘:’
-# E127: continuation line over-indented for visual indent
-# F403: ‘from module import *’ used; unable to detect undefined names
-
 [tool.isort]
 line_length = 120
 multi_line_output = 0

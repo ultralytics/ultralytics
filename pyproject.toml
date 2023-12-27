@@ -1,0 +1,101 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+[build-system]
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ultralytics"
+dynamic = ["version"]
+description = "Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { "text" = "AGPL-3.0" }
+keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "HUB", "Ultralytics"]
+authors = [
+    { name = "Glenn Jocher" },
+    { name = "Ayush Chaurasia" },
+    { name = "Jing Qiu" }
+]
+maintainers = [
+    { name = "Glenn Jocher" },
+    { name = "Ayush Chaurasia" },
+    { name = "Jing Qiu" }
+]
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Education',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Topic :: Software Development',
+    'Topic :: Scientific/Engineering',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence',
+    'Topic :: Scientific/Engineering :: Image Recognition',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: MacOS',
+    'Operating System :: Microsoft :: Windows',
+]  # Optional, for a list of valid classifiers, see https://pypi.org/classifiers/
+dependencies = [
+    # Base
+    "matplotlib>=3.3.0",
+    "numpy>=1.22.2", # pinned by Snyk to avoid a vulnerability
+    "opencv-python>=4.6.0",
+    "pillow>=7.1.2",
+    "pyyaml>=5.3.1",
+    "requests>=2.23.0",
+    "scipy>=1.4.1",
+    "torch>=1.8.0",
+    "torchvision>=0.9.0",
+    "tqdm>=4.64.0",
+    # Plotting
+    "pandas>=1.1.4",
+    "seaborn>=0.11.0",
+    # Extras
+    "psutil", # system utilization
+    "py-cpuinfo", # display CPU info
+    "thop>=0.1.1", # FLOPs computation
+]
+
+[project.urls]  # Optional
+"Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
+"Funding" = "https://ultralytics.com"
+"Source" = "https://github.com/ultralytics/ultralytics/"
+
+[project.scripts]
+yolo = "ultralytics.cfg:entrypoint"
+ultralytics = "ultralytics.cfg:entrypoint"
+
+[project.optional-dependencies]
+dev = [
+    'ipython',
+    'check-manifest',
+    'pre-commit',
+    'pytest',
+    'pytest-cov',
+    'coverage',
+    'mkdocs-material',
+    'mkdocstrings[python]',
+    'mkdocs-redirects', # for 301 redirects
+    'mkdocs-ultralytics-plugin>=0.0.34', # for meta descriptions and images, dates and authors
+]
+export = [
+    'coremltools>=7.0',
+    'openvino-dev>=2023.0',
+    'tensorflow<=2.13.1', # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    'jax<=0.4.21', # tensorflowjs bug https://github.com/google/jax/issues/18978
+    'jaxlib<=0.4.21', # tensorflowjs bug https://github.com/google/jax/issues/18978
+    'tensorflowjs', # automatically installs tensorflow
+]
+
+[tool.setuptools]  # configuration specific to the `setuptools` build backend.
+packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*"] } }
+package-data = { "ultralytics" = ["**/*.yaml"], 'ultralytics.assets' = ['*.jpg'] }
+
+[tool.setuptools.dynamic]
+version = { attr = "ultralytics.__version__" }

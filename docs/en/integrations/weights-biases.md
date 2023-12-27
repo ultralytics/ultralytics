@@ -72,7 +72,7 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
        wandb.init(project="ultralytics", job_type="training")
 
        # Step 2: Define the YOLOv8 Model and Dataset
-       model_name = "yolov8n" 
+       model_name = "yolov8n"
        dataset_name = "coco128.yaml"
        model = YOLO(f"{model_name}.pt")
 

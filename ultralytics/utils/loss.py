@@ -1,8 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import math
+
 import torch
 import torch.nn as nn
-import math
 import torch.nn.functional as F
 
 from ultralytics.utils.metrics import OKS_SIGMA
@@ -94,7 +95,6 @@ class BboxLoss(nn.Module):
         wr = 1 - wl  # weight right
         return (F.cross_entropy(pred_dist, tl.view(-1), reduction='none').view(tl.shape) * wl +
                 F.cross_entropy(pred_dist, tr.view(-1), reduction='none').view(tl.shape) * wr).mean(-1, keepdim=True)
-    
 
     @staticmethod
     def _df_angle_loss(pred_dist, target):
@@ -117,7 +117,8 @@ class RotatedBboxLoss(BboxLoss):
         self.use_angle_dfl = use_angle_dfl
         self.angle_max = 90
 
-    def forward(self, pred_dist, pred_angle, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
+    def forward(self, pred_dist, pred_angle, pred_bboxes, anchor_points, target_bboxes, target_scores,
+                target_scores_sum, fg_mask):
         """IoU loss."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
         iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
@@ -131,10 +132,10 @@ class RotatedBboxLoss(BboxLoss):
         else:
             loss_dfl = torch.tensor(0.0).to(pred_dist.device)
 
-        
         # Angle DFL loss
         if self.use_angle_dfl:
-            self.half_pi_range = torch.tensor([90*(math.pi/180)], dtype=torch.float32, device=pred_dist.device) / self.angle_max
+            self.half_pi_range = torch.tensor([90 * (math.pi / 180)], dtype=torch.float32,
+                                              device=pred_dist.device) / self.angle_max
             angle_mask = fg_mask.unsqueeze(-1).repeat([1, 1, self.angle_max + 1])
             pred_angle_pos = torch.masked_select(pred_angle, angle_mask).reshape([-1, self.angle_max + 1])
             target_angle_pos = (target_bboxes[fg_mask][:, 4] / self.half_pi_range)
@@ -588,7 +589,8 @@ class v8OBBLoss(v8DetectionLoss):
         super().__init__(model)
         self.use_angle_dfl = True
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
-        self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl, use_angle_dfl=self.use_angle_dfl).to(self.device)
+        self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl,
+                                         use_angle_dfl=self.use_angle_dfl).to(self.device)
 
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocesses the target counts and matches with the input batch size to output a tensor."""
@@ -661,8 +663,8 @@ class v8OBBLoss(v8DetectionLoss):
         # Bbox loss
         if fg_mask.sum():
             target_bboxes[..., :4] /= stride_tensor
-            loss[0], loss[2], loss[3] = self.bbox_loss(pred_distri, pred_angle, pred_bboxes, anchor_points, target_bboxes, target_scores,
-                                              target_scores_sum, fg_mask)
+            loss[0], loss[2], loss[3] = self.bbox_loss(pred_distri, pred_angle, pred_bboxes, anchor_points,
+                                                       target_bboxes, target_scores, target_scores_sum, fg_mask)
         else:
             loss[0] += (pred_angle * 0).sum()
 

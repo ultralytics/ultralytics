@@ -26,38 +26,45 @@ except (ImportError, AssertionError):
 
 
 def _get_comet_mode():
-    """Returns the mode of comet set in the environment variables, defaults to 'online' if not set."""
+    """Returns the mode of comet set in the environment variables, defaults to
+    'online' if not set."""
     return os.getenv('COMET_MODE', 'online')
 
 
 def _get_comet_model_name():
-    """Returns the model name for Comet from the environment variable 'COMET_MODEL_NAME' or defaults to 'YOLOv8'."""
+    """Returns the model name for Comet from the environment variable
+    'COMET_MODEL_NAME' or defaults to 'YOLOv8'."""
     return os.getenv('COMET_MODEL_NAME', 'YOLOv8')
 
 
 def _get_eval_batch_logging_interval():
-    """Get the evaluation batch logging interval from environment variable or use default value 1."""
+    """Get the evaluation batch logging interval from environment variable or
+    use default value 1."""
     return int(os.getenv('COMET_EVAL_BATCH_LOGGING_INTERVAL', 1))
 
 
 def _get_max_image_predictions_to_log():
-    """Get the maximum number of image predictions to log from the environment variables."""
+    """Get the maximum number of image predictions to log from the environment
+    variables."""
     return int(os.getenv('COMET_MAX_IMAGE_PREDICTIONS', 100))
 
 
 def _scale_confidence_score(score):
-    """Scales the given confidence score by a factor specified in an environment variable."""
+    """Scales the given confidence score by a factor specified in an
+    environment variable."""
     scale = float(os.getenv('COMET_MAX_CONFIDENCE_SCORE', 100.0))
     return score * scale
 
 
 def _should_log_confusion_matrix():
-    """Determines if the confusion matrix should be logged based on the environment variable settings."""
+    """Determines if the confusion matrix should be logged based on the
+    environment variable settings."""
     return os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'false').lower() == 'true'
 
 
 def _should_log_image_predictions():
-    """Determines whether to log image predictions based on a specified environment variable."""
+    """Determines whether to log image predictions based on a specified
+    environment variable."""
     return os.getenv('COMET_EVAL_LOG_IMAGE_PREDICTIONS', 'true').lower() == 'true'
 
 
@@ -70,7 +77,8 @@ def _get_experiment_type(mode, project_name):
 
 
 def _create_experiment(args):
-    """Ensures that the experiment object is only created in a single process during distributed training."""
+    """Ensures that the experiment object is only created in a single process
+    during distributed training."""
     if RANK not in (-1, 0):
         return
     try:
@@ -90,7 +98,8 @@ def _create_experiment(args):
 
 
 def _fetch_trainer_metadata(trainer):
-    """Returns metadata for YOLO training including epoch and asset saving status."""
+    """Returns metadata for YOLO training including epoch and asset saving
+    status."""
     curr_epoch = trainer.epoch + 1
 
     train_num_steps_per_epoch = len(trainer.train_loader.dataset) // trainer.batch_size
@@ -111,10 +120,11 @@ def _fetch_trainer_metadata(trainer):
 
 
 def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad):
-    """
-    YOLOv8 resizes images during training and the label values are normalized based on this resized shape.
+    """YOLOv8 resizes images during training and the label values are
+    normalized based on this resized shape.
 
-    This function rescales the bounding box labels to the original image shape.
+    This function rescales the bounding box labels to the original image
+    shape.
     """
 
     resized_image_height, resized_image_width = resized_image_shape
@@ -195,7 +205,8 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
 
 
 def _create_prediction_metadata_map(model_predictions):
-    """Create metadata map for model predictions by groupings them based on image ID."""
+    """Create metadata map for model predictions by groupings them based on
+    image ID."""
     pred_metadata_map = {}
     for prediction in model_predictions:
         pred_metadata_map.setdefault(prediction['image_id'], [])
@@ -294,7 +305,8 @@ def _log_model(experiment, trainer):
 
 
 def on_pretrain_routine_start(trainer):
-    """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
+    """Creates or resumes a CometML experiment at the start of a YOLO pre-
+    training routine."""
     experiment = comet_ml.get_global_experiment()
     is_alive = getattr(experiment, 'alive', False)
     if not experiment or not is_alive:

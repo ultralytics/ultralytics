@@ -20,14 +20,14 @@ from .utils import PIN_MEMORY
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """
-    Dataloader that reuses workers.
+    """Dataloader that reuses workers.
 
     Uses same syntax as vanilla DataLoader.
     """
 
     def __init__(self, *args, **kwargs):
-        """Dataloader that infinitely recycles workers, inherits from DataLoader."""
+        """Dataloader that infinitely recycles workers, inherits from
+        DataLoader."""
         super().__init__(*args, **kwargs)
         object.__setattr__(self, 'batch_sampler', _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
@@ -42,17 +42,16 @@ class InfiniteDataLoader(dataloader.DataLoader):
             yield next(self.iterator)
 
     def reset(self):
-        """
-        Reset iterator.
+        """Reset iterator.
 
-        This is useful when we want to modify settings of dataset while training.
+        This is useful when we want to modify settings of dataset while
+        training.
         """
         self.iterator = self._get_iterator()
 
 
 class _RepeatSampler:
-    """
-    Sampler that repeats forever.
+    """Sampler that repeats forever.
 
     Args:
         sampler (Dataset.sampler): The sampler to repeat.
@@ -97,7 +96,8 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode='train', rect=False, str
 
 
 def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
-    """Return an InfiniteDataLoader or DataLoader for training or validation set."""
+    """Return an InfiniteDataLoader or DataLoader for training or validation
+    set."""
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min([os.cpu_count() // max(nd, 1), batch, workers])  # number of workers
@@ -142,8 +142,8 @@ def check_source(source):
 
 
 def load_inference_source(source=None, imgsz=640, vid_stride=1, buffer=False):
-    """
-    Loads an inference source for object detection and applies necessary transformations.
+    """Loads an inference source for object detection and applies necessary
+    transformations.
 
     Args:
         source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.

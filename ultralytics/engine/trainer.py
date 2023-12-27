@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Train a model on a dataset.
+"""Train a model on a dataset.
 
 Usage:
     $ yolo mode=train model=yolov8n.pt data=coco128.yaml imgsz=640 epochs=100 batch=16
@@ -34,8 +33,7 @@ from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel,
 
 
 class BaseTrainer:
-    """
-    BaseTrainer.
+    """BaseTrainer.
 
     A base class for creating trainers.
 
@@ -71,8 +69,7 @@ class BaseTrainer:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initializes the BaseTrainer class.
+        """Initializes the BaseTrainer class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
@@ -155,7 +152,8 @@ class BaseTrainer:
             callback(self)
 
     def train(self):
-        """Allow device='', device=None on Multi-GPU systems to default to device=0."""
+        """Allow device='', device=None on Multi-GPU systems to default to
+        device=0."""
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(','))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
@@ -198,7 +196,8 @@ class BaseTrainer:
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
     def _setup_ddp(self, world_size):
-        """Initializes and sets the DistributedDataParallel parameters for training."""
+        """Initializes and sets the DistributedDataParallel parameters for
+        training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device('cuda', RANK)
         # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
@@ -458,8 +457,7 @@ class BaseTrainer:
 
     @staticmethod
     def get_dataset(data):
-        """
-        Get train, val path from data dict if it exists.
+        """Get train, val path from data dict if it exists.
 
         Returns None if data format is not recognized.
         """
@@ -481,7 +479,8 @@ class BaseTrainer:
         return ckpt
 
     def optimizer_step(self):
-        """Perform a single step of the training optimizer with gradient clipping and EMA update."""
+        """Perform a single step of the training optimizer with gradient
+        clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
         self.scaler.step(self.optimizer)
@@ -491,12 +490,12 @@ class BaseTrainer:
             self.ema.update(self.model)
 
     def preprocess_batch(self, batch):
-        """Allows custom preprocessing model inputs and ground truths depending on task type."""
+        """Allows custom preprocessing model inputs and ground truths depending
+        on task type."""
         return batch
 
     def validate(self):
-        """
-        Runs validation on test set using self.validator.
+        """Runs validation on test set using self.validator.
 
         The returned dict is expected to contain "fitness" key.
         """
@@ -511,7 +510,8 @@ class BaseTrainer:
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
-        """Returns a NotImplementedError when the get_validator function is called."""
+        """Returns a NotImplementedError when the get_validator function is
+        called."""
         raise NotImplementedError('get_validator function not implemented in trainer')
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
@@ -566,7 +566,8 @@ class BaseTrainer:
         self.plots[path] = {'data': data, 'timestamp': time.time()}
 
     def final_eval(self):
-        """Performs final evaluation and validation for object detection YOLO model."""
+        """Performs final evaluation and validation for object detection YOLO
+        model."""
         for f in self.last, self.best:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
@@ -578,7 +579,8 @@ class BaseTrainer:
                     self.run_callbacks('on_fit_epoch_end')
 
     def check_resume(self, overrides):
-        """Check if resume checkpoint exists and update arguments accordingly."""
+        """Check if resume checkpoint exists and update arguments
+        accordingly."""
         resume = self.args.resume
         if resume:
             try:
@@ -638,9 +640,9 @@ class BaseTrainer:
             self.train_loader.dataset.close_mosaic(hyp=self.args)
 
     def build_optimizer(self, model, name='auto', lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
-        """
-        Constructs an optimizer for the given model, based on the specified optimizer name, learning rate, momentum,
-        weight decay, and number of iterations.
+        """Constructs an optimizer for the given model, based on the specified
+        optimizer name, learning rate, momentum, weight decay, and number of
+        iterations.
 
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.

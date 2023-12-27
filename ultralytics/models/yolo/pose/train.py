@@ -9,8 +9,8 @@ from ultralytics.utils.plotting import plot_images, plot_results
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class extending the DetectionTrainer class for training based on a pose model.
+    """A class extending the DetectionTrainer class for training based on a
+    pose model.
 
     Example:
         ```python
@@ -23,7 +23,8 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize a PoseTrainer object with specified configurations and overrides."""
+        """Initialize a PoseTrainer object with specified configurations and
+        overrides."""
         if overrides is None:
             overrides = {}
         overrides['task'] = 'pose'
@@ -34,7 +35,8 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
                            'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Get pose estimation model with specified configuration and weights."""
+        """Get pose estimation model with specified configuration and
+        weights."""
         model = PoseModel(cfg, ch=3, nc=self.data['nc'], data_kpt_shape=self.data['kpt_shape'], verbose=verbose)
         if weights:
             model.load(weights)
@@ -52,7 +54,8 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         return yolo.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def plot_training_samples(self, batch, ni):
-        """Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints."""
+        """Plot a batch of training samples with annotated class labels,
+        bounding boxes, and keypoints."""
         images = batch['img']
         kpts = batch['keypoints']
         cls = batch['cls'].squeeze(-1)

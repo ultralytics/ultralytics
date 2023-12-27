@@ -63,7 +63,8 @@ def test_model_profile():
 
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason='directory is not writeable')
 def test_predict_txt():
-    """Test YOLO predictions with sources (file, dir, glob, recursive glob) specified in a text file."""
+    """Test YOLO predictions with sources (file, dir, glob, recursive glob)
+    specified in a text file."""
     txt_file = TMP / 'sources.txt'
     with open(txt_file, 'w') as f:
         for x in [ASSETS / 'bus.jpg', ASSETS, ASSETS / '*', ASSETS / '**/*.jpg']:
@@ -108,7 +109,8 @@ def test_predict_img():
 
 
 def test_predict_grey_and_4ch():
-    """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images."""
+    """Test YOLO prediction on SOURCE converted to greyscale and 4-channel
+    images."""
     im = Image.open(SOURCE)
     directory = TMP / 'im4'
     directory.mkdir(parents=True, exist_ok=True)
@@ -135,8 +137,7 @@ def test_predict_grey_and_4ch():
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_youtube():
-    """
-    Test YouTube inference.
+    """Test YouTube inference.
 
     Marked --slow to reduce YouTube API rate limits risk.
     """
@@ -147,10 +148,11 @@ def test_youtube():
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason='directory is not writeable')
 def test_track_stream():
-    """
-    Test streaming tracking (short 10 frame video) with non-default ByteTrack tracker.
+    """Test streaming tracking (short 10 frame video) with non-default
+    ByteTrack tracker.
 
-    Note imgsz=160 required for tracking for higher confidence and better matches
+    Note imgsz=160 required for tracking for higher confidence and
+    better matches
     """
     import yaml
 
@@ -218,8 +220,7 @@ def test_export_coreml():
 
 
 def test_export_tflite(enabled=False):
-    """
-    Test exporting the YOLO model to TFLite format.
+    """Test exporting the YOLO model to TFLite format.
 
     Note TF suffers from install conflicts on Windows and macOS.
     """
@@ -230,8 +231,7 @@ def test_export_tflite(enabled=False):
 
 
 def test_export_pb(enabled=False):
-    """
-    Test exporting the YOLO model to *.pb format.
+    """Test exporting the YOLO model to *.pb format.
 
     Note TF suffers from install conflicts on Windows and macOS.
     """
@@ -242,10 +242,10 @@ def test_export_pb(enabled=False):
 
 
 def test_export_paddle(enabled=False):
-    """
-    Test exporting the YOLO model to Paddle format.
+    """Test exporting the YOLO model to Paddle format.
 
-    Note Paddle protobuf requirements conflicting with onnx protobuf requirements.
+    Note Paddle protobuf requirements conflicting with onnx protobuf
+    requirements.
     """
     if enabled:
         YOLO(MODEL).export(format='paddle')
@@ -269,7 +269,8 @@ def test_all_model_yamls():
 
 
 def test_workflow():
-    """Test the complete workflow including training, validation, prediction, and exporting."""
+    """Test the complete workflow including training, validation, prediction,
+    and exporting."""
     model = YOLO(MODEL)
     model.train(data='coco8.yaml', epochs=1, imgsz=32, optimizer='SGD')
     model.val(imgsz=32)
@@ -281,7 +282,8 @@ def test_predict_callback_and_setup():
     """Test callback functionality during YOLO prediction."""
 
     def on_predict_batch_end(predictor):
-        """Callback function that handles operations at the end of a prediction batch."""
+        """Callback function that handles operations at the end of a prediction
+        batch."""
         path, im0s, _, _ = predictor.batch
         im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]

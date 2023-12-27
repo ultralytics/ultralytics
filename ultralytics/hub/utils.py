@@ -21,8 +21,8 @@ HUB_WEB_ROOT = os.environ.get('ULTRALYTICS_HUB_WEB', 'https://hub.ultralytics.co
 
 
 def request_with_credentials(url: str) -> any:
-    """
-    Make an AJAX request with cookies attached in a Google Colab environment.
+    """Make an AJAX request with cookies attached in a Google Colab
+    environment.
 
     Args:
         url (str): The URL to make the request to.
@@ -58,8 +58,8 @@ def request_with_credentials(url: str) -> any:
 
 
 def requests_with_progress(method, url, **kwargs):
-    """
-    Make an HTTP request using the specified method and URL, with an optional progress bar.
+    """Make an HTTP request using the specified method and URL, with an
+    optional progress bar.
 
     Args:
         method (str): The HTTP method to use (e.g. 'GET', 'POST').
@@ -90,8 +90,8 @@ def requests_with_progress(method, url, **kwargs):
 
 
 def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbose=True, progress=False, **kwargs):
-    """
-    Makes an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
+    """Makes an HTTP request using the 'requests' library, with exponential
+    backoff retries up to a specified timeout.
 
     Args:
         method (str): The HTTP method to use for the request. Choices are 'post' and 'get'.
@@ -111,7 +111,8 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
 
     @TryExcept(verbose=verbose)
     def func(func_method, func_url, **func_kwargs):
-        """Make HTTP requests with retries and timeouts, with optional progress tracking."""
+        """Make HTTP requests with retries and timeouts, with optional progress
+        tracking."""
         r = None  # response
         t0 = time.time()  # initial time for timer
         for i in range(retry + 1):
@@ -147,9 +148,9 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
 
 
 class Events:
-    """
-    A class for collecting anonymous event analytics. Event analytics are enabled when sync=True in settings and
-    disabled when sync=False. Run 'yolo settings' to see and update settings YAML file.
+    """A class for collecting anonymous event analytics. Event analytics are
+    enabled when sync=True in settings and disabled when sync=False. Run 'yolo
+    settings' to see and update settings YAML file.
 
     Attributes:
         url (str): The URL to send anonymous events.
@@ -161,7 +162,8 @@ class Events:
     url = 'https://www.google-analytics.com/mp/collect?measurement_id=G-X8NCJYTQXM&api_secret=QLQrATrNSwGRFRLE-cbHJw'
 
     def __init__(self):
-        """Initializes the Events object with default values for events, rate_limit, and metadata."""
+        """Initializes the Events object with default values for events,
+        rate_limit, and metadata."""
         self.events = []  # events list
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
@@ -181,8 +183,8 @@ class Events:
             (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
 
     def __call__(self, cfg):
-        """
-        Attempts to add a new event to the events list and send events if the rate limit is reached.
+        """Attempts to add a new event to the events list and send events if
+        the rate limit is reached.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.

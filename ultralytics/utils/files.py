@@ -29,10 +29,10 @@ class WorkingDirectory(contextlib.ContextDecorator):
 
 @contextmanager
 def spaces_in_path(path):
-    """
-    Context manager to handle paths with spaces in their names. If a path contains spaces, it replaces them with
-    underscores, copies the file/directory to the new path, executes the context code block, then copies the
-    file/directory back to its original location.
+    """Context manager to handle paths with spaces in their names. If a path
+    contains spaces, it replaces them with underscores, copies the
+    file/directory to the new path, executes the context code block, then
+    copies the file/directory back to its original location.
 
     Args:
         path (str | Path): The original path.
@@ -83,8 +83,8 @@ def spaces_in_path(path):
 
 
 def increment_path(path, exist_ok=False, sep='', mkdir=False):
-    """
-    Increments a file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
+    """Increments a file or directory path, i.e. runs/exp --> runs/exp{sep}2,
+    runs/exp{sep}3, ... etc.
 
     If the path exists and exist_ok is not set to True, the path will be incremented by appending a number and sep to
     the end of the path. If the path is a file, the file extension will be preserved. If the path is a directory, the
@@ -142,6 +142,7 @@ def file_size(path):
 
 
 def get_latest_run(search_dir='.'):
-    """Return path to most recent 'last.pt' in /runs (i.e. to --resume from)."""
+    """Return path to most recent 'last.pt' in /runs (i.e. to --resume
+    from)."""
     last_list = glob.glob(f'{search_dir}/**/last*.pt', recursive=True)
     return max(last_list, key=os.path.getctime) if last_list else ''

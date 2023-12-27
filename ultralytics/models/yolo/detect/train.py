@@ -14,8 +14,8 @@ from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_fi
 
 
 class DetectionTrainer(BaseTrainer):
-    """
-    A class extending the BaseTrainer class for training based on a detection model.
+    """A class extending the BaseTrainer class for training based on a
+    detection model.
 
     Example:
         ```python
@@ -28,8 +28,7 @@ class DetectionTrainer(BaseTrainer):
     """
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        """
-        Build YOLO Dataset.
+        """Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -52,12 +51,14 @@ class DetectionTrainer(BaseTrainer):
         return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
     def preprocess_batch(self, batch):
-        """Preprocesses a batch of images by scaling and converting to float."""
+        """Preprocesses a batch of images by scaling and converting to
+        float."""
         batch['img'] = batch['img'].to(self.device, non_blocking=True).float() / 255
         return batch
 
     def set_model_attributes(self):
-        """Nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)."""
+        """Nl = de_parallel(self.model).model[-1].nl  # number of detection
+        layers (to scale hyps)."""
         # self.args.box *= 3 / nl  # scale to layers
         # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
         # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
@@ -79,10 +80,10 @@ class DetectionTrainer(BaseTrainer):
         return yolo.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def label_loss_items(self, loss_items=None, prefix='train'):
-        """
-        Returns a loss dict with labelled training loss items tensor.
+        """Returns a loss dict with labelled training loss items tensor.
 
-        Not needed for classification but necessary for segmentation & detection
+        Not needed for classification but necessary for segmentation &
+        detection
         """
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is not None:
@@ -92,7 +93,8 @@ class DetectionTrainer(BaseTrainer):
             return keys
 
     def progress_string(self):
-        """Returns a formatted string of training progress with epoch, GPU memory, loss, instances and size."""
+        """Returns a formatted string of training progress with epoch, GPU
+        memory, loss, instances and size."""
         return ('\n' + '%11s' *
                 (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 

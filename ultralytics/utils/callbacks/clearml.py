@@ -17,8 +17,7 @@ except (ImportError, AssertionError):
 
 
 def _log_debug_samples(files, title='Debug Samples') -> None:
-    """
-    Log files (images) as debug samples in the ClearML task.
+    """Log files (images) as debug samples in the ClearML task.
 
     Args:
         files (list): A list of file paths in PosixPath format.
@@ -38,8 +37,7 @@ def _log_debug_samples(files, title='Debug Samples') -> None:
 
 
 def _log_plot(title, plot_path) -> None:
-    """
-    Log an image as a plot in the plot section of ClearML.
+    """Log an image as a plot in the plot section of ClearML.
 
     Args:
         title (str): The title of the plot.
@@ -60,7 +58,8 @@ def _log_plot(title, plot_path) -> None:
 
 
 def on_pretrain_routine_start(trainer):
-    """Runs at start of pretraining routine; initializes and connects/ logs task to ClearML."""
+    """Runs at start of pretraining routine; initializes and connects/ logs
+    task to ClearML."""
     try:
         if task := Task.current_task():
             # Make sure the automatic pytorch and matplotlib bindings are disabled!
@@ -84,7 +83,8 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_train_epoch_end(trainer):
-    """Logs debug samples for the first epoch of YOLO training and report current training progress."""
+    """Logs debug samples for the first epoch of YOLO training and report
+    current training progress."""
     if task := Task.current_task():
         # Log debug samples
         if trainer.epoch == 1:

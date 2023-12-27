@@ -76,8 +76,8 @@ CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', '
 
 
 def cfg2dict(cfg):
-    """
-    Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
+    """Convert a configuration object to a dictionary, whether it is a file
+    path, a string, or a SimpleNamespace object.
 
     Args:
         cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted to a dictionary.
@@ -93,8 +93,7 @@ def cfg2dict(cfg):
 
 
 def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None):
-    """
-    Load and merge configuration data from a file or dictionary.
+    """Load and merge configuration data from a file or dictionary.
 
     Args:
         cfg (str | Path | Dict | SimpleNamespace): Configuration data.
@@ -181,9 +180,10 @@ def _handle_deprecation(custom):
 
 
 def check_dict_alignment(base: Dict, custom: Dict, e=None):
-    """
-    This function checks for any mismatched keys between a custom configuration list and a base configuration list. If
-    any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
+    """This function checks for any mismatched keys between a custom
+    configuration list and a base configuration list. If any mismatched keys
+    are found, the function prints out similar keys from the base list and
+    exits the program.
 
     Args:
         custom (dict): a dictionary of custom configuration options
@@ -206,9 +206,9 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 
 def merge_equals_args(args: List[str]) -> List[str]:
-    """
-    Merges arguments around isolated '=' args in a list of strings. The function considers cases where the first
-    argument ends with '=' or the second starts with '=', as well as when the middle one is an equals sign.
+    """Merges arguments around isolated '=' args in a list of strings. The
+    function considers cases where the first argument ends with '=' or the
+    second starts with '=', as well as when the middle one is an equals sign.
 
     Args:
         args (List[str]): A list of strings where each element is an argument.
@@ -232,8 +232,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
 
 def handle_yolo_hub(args: List[str]) -> None:
-    """
-    Handle Ultralytics HUB command-line interface (CLI) commands.
+    """Handle Ultralytics HUB command-line interface (CLI) commands.
 
     This function processes Ultralytics HUB CLI commands such as login and logout.
     It should be called when executing a script with arguments related to HUB authentication.
@@ -258,8 +257,7 @@ def handle_yolo_hub(args: List[str]) -> None:
 
 
 def handle_yolo_settings(args: List[str]) -> None:
-    """
-    Handle YOLO settings command-line interface (CLI) commands.
+    """Handle YOLO settings command-line interface (CLI) commands.
 
     This function processes YOLO settings CLI commands such as reset.
     It should be called when executing a script with arguments related to YOLO settings management.
@@ -314,9 +312,8 @@ def smart_value(v):
 
 
 def entrypoint(debug=''):
-    """
-    This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
-    to the package.
+    """This function is the ultralytics package entrypoint, it's responsible
+    for parsing the command line arguments passed to the package.
 
     This function allows for:
     - passing mandatory YOLO args as a list of strings
@@ -453,7 +450,8 @@ def entrypoint(debug=''):
 
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_cfg():
-    """Copy and create a new default configuration file with '_copy' appended to its name."""
+    """Copy and create a new default configuration file with '_copy' appended
+    to its name."""
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
     LOGGER.info(f'{DEFAULT_CFG_PATH} copied to {new_file}\n'

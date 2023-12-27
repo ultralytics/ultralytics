@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-This module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection,
-instance segmentation, image classification, pose estimation, and multi-object tracking.
+"""This module provides functionalities for hyperparameter tuning of the
+Ultralytics YOLO models for object detection, instance segmentation, image
+classification, pose estimation, and multi-object tracking.
 
 Hyperparameter tuning is the process of systematically searching for the optimal set of hyperparameters
 that yield the best model performance. This is particularly crucial in deep learning models like YOLO,
@@ -30,8 +30,7 @@ from ultralytics.utils.plotting import plot_tune_results
 
 
 class Tuner:
-    """
-    Class responsible for hyperparameter tuning of YOLO models.
+    """Class responsible for hyperparameter tuning of YOLO models.
 
     The class evolves YOLO model hyperparameters over a given number of iterations
     by mutating them according to the search space and retraining the model to evaluate their performance.
@@ -67,8 +66,7 @@ class Tuner:
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):
-        """
-        Initialize the Tuner with configurations.
+        """Initialize the Tuner with configurations.
 
         Args:
             args (dict, optional): Configuration for hyperparameter evolution.
@@ -107,8 +105,8 @@ class Tuner:
                     f'{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning')
 
     def _mutate(self, parent='single', n=5, mutation=0.8, sigma=0.2):
-        """
-        Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
+        """Mutates the hyperparameters based on bounds and scaling factors
+        specified in `self.space`.
 
         Args:
             parent (str): Parent selection method: 'single' or 'weighted'.
@@ -153,8 +151,8 @@ class Tuner:
         return hyp
 
     def __call__(self, model=None, iterations=10, cleanup=True):
-        """
-        Executes the hyperparameter evolution process when the Tuner instance is called.
+        """Executes the hyperparameter evolution process when the Tuner
+        instance is called.
 
         This method iterates through the number of iterations, performing the following steps in each iteration:
         1. Load the existing hyperparameters or initialize new ones.

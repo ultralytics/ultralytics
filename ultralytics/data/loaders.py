@@ -30,8 +30,7 @@ class SourceTypes:
 
 
 class LoadStreams:
-    """
-    Stream Loader for various types of video streams.
+    """Stream Loader for various types of video streams.
 
     Suitable for use with `yolo predict source='rtsp://example.com/media.mp4'`, supports RTSP, RTMP, HTTP, and TCP streams.
 
@@ -60,7 +59,8 @@ class LoadStreams:
     """
 
     def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, buffer=False):
-        """Initialize instance variables and check for consistent input stream shapes."""
+        """Initialize instance variables and check for consistent input stream
+        shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.buffer = buffer  # buffer input streams
         self.running = True  # running flag for Thread
@@ -144,12 +144,14 @@ class LoadStreams:
         cv2.destroyAllWindows()
 
     def __iter__(self):
-        """Iterates through YOLO image feed and re-opens unresponsive streams."""
+        """Iterates through YOLO image feed and re-opens unresponsive
+        streams."""
         self.count = -1
         return self
 
     def __next__(self):
-        """Returns source paths, transformed and original images for processing."""
+        """Returns source paths, transformed and original images for
+        processing."""
         self.count += 1
 
         images = []
@@ -182,8 +184,7 @@ class LoadStreams:
 
 
 class LoadScreenshots:
-    """
-    YOLOv8 screenshot dataloader.
+    """YOLOv8 screenshot dataloader.
 
     This class manages the loading of screenshot images for processing with YOLOv8.
     Suitable for use with `yolo predict source=screen`.
@@ -248,8 +249,7 @@ class LoadScreenshots:
 
 
 class LoadImages:
-    """
-    YOLOv8 image/video dataloader.
+    """YOLOv8 image/video dataloader.
 
     This class manages the loading and pre-processing of image and video data for YOLOv8. It supports loading from
     various formats, including single image files, video files, and lists of image and video paths.
@@ -272,7 +272,8 @@ class LoadImages:
     """
 
     def __init__(self, path, imgsz=640, vid_stride=1):
-        """Initialize the Dataloader and raise FileNotFoundError if file not found."""
+        """Initialize the Dataloader and raise FileNotFoundError if file not
+        found."""
         parent = None
         if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
             parent = Path(path).parent
@@ -362,8 +363,7 @@ class LoadImages:
 
 
 class LoadPilAndNumpy:
-    """
-    Load images from PIL and Numpy arrays for batch processing.
+    """Load images from PIL and Numpy arrays for batch processing.
 
     This class is designed to manage loading and pre-processing of image data from both PIL and Numpy formats.
     It performs basic validation and format conversion to ensure that the images are in the required format for
@@ -421,8 +421,7 @@ class LoadPilAndNumpy:
 
 
 class LoadTensor:
-    """
-    Load images from torch.Tensor data.
+    """Load images from torch.Tensor data.
 
     This class manages the loading and pre-processing of image data from PyTorch tensors for further processing.
 
@@ -481,7 +480,8 @@ class LoadTensor:
 
 
 def autocast_list(source):
-    """Merges a list of source of different types into a list of numpy arrays or PIL images."""
+    """Merges a list of source of different types into a list of numpy arrays
+    or PIL images."""
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
@@ -499,8 +499,8 @@ LOADERS = LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots  # tuple
 
 
 def get_best_youtube_url(url, use_pafy=True):
-    """
-    Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
+    """Retrieves the URL of the best quality MP4 video stream from a given
+    YouTube video.
 
     This function uses the pafy or yt_dlp library to extract the video info from YouTube. It then finds the highest
     quality MP4 format that has video codec but no audio codec, and returns the URL of this video stream.

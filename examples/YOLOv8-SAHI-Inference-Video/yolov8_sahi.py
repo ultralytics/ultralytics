@@ -10,8 +10,7 @@ from ultralytics.utils.files import increment_path
 
 
 def run(weights='yolov8n.pt', source='test.mp4', view_img=False, save_img=False, exist_ok=False):
-    """
-    Run object detection on a video using YOLOv8 and SAHI.
+    """Run object detection on a video using YOLOv8 and SAHI.
 
     Args:
         weights (str): Model weights path.

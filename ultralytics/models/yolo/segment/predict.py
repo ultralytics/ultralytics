@@ -6,8 +6,8 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class SegmentationPredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on a segmentation model.
+    """A class extending the DetectionPredictor class for prediction based on a
+    segmentation model.
 
     Example:
         ```python
@@ -21,12 +21,14 @@ class SegmentationPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes the SegmentationPredictor with the provided configuration, overrides, and callbacks."""
+        """Initializes the SegmentationPredictor with the provided
+        configuration, overrides, and callbacks."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'segment'
 
     def postprocess(self, preds, img, orig_imgs):
-        """Applies non-max suppression and processes detections for each image in an input batch."""
+        """Applies non-max suppression and processes detections for each image
+        in an input batch."""
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,

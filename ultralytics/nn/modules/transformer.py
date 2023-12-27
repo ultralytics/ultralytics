@@ -108,7 +108,8 @@ class TransformerLayer(nn.Module):
     """Transformer layer https://arxiv.org/abs/2010.11929 (LayerNorm layers removed for better performance)."""
 
     def __init__(self, c, num_heads):
-        """Initializes a self-attention mechanism using linear transformations and multi-head attention."""
+        """Initializes a self-attention mechanism using linear transformations
+        and multi-head attention."""
         super().__init__()
         self.q = nn.Linear(c, c, bias=False)
         self.k = nn.Linear(c, c, bias=False)
@@ -127,7 +128,8 @@ class TransformerBlock(nn.Module):
     """Vision Transformer https://arxiv.org/abs/2010.11929."""
 
     def __init__(self, c1, c2, num_heads, num_layers):
-        """Initialize a Transformer module with position embedding and specified number of heads and layers."""
+        """Initialize a Transformer module with position embedding and
+        specified number of heads and layers."""
         super().__init__()
         self.conv = None
         if c1 != c2:
@@ -149,7 +151,8 @@ class MLPBlock(nn.Module):
     """Implements a single block of a multi-layer perceptron."""
 
     def __init__(self, embedding_dim, mlp_dim, act=nn.GELU):
-        """Initialize the MLPBlock with specified embedding dimension, MLP dimension, and activation function."""
+        """Initialize the MLPBlock with specified embedding dimension, MLP
+        dimension, and activation function."""
         super().__init__()
         self.lin1 = nn.Linear(embedding_dim, mlp_dim)
         self.lin2 = nn.Linear(mlp_dim, embedding_dim)
@@ -164,7 +167,8 @@ class MLP(nn.Module):
     """Implements a simple multi-layer perceptron (also called FFN)."""
 
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
-        """Initialize the MLP with specified input, hidden, output dimensions and number of layers."""
+        """Initialize the MLP with specified input, hidden, output dimensions
+        and number of layers."""
         super().__init__()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)
@@ -178,12 +182,12 @@ class MLP(nn.Module):
 
 
 class LayerNorm2d(nn.Module):
-    """
-    2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
+    """2D Layer Normalization module inspired by Detectron2 and ConvNeXt
+    implementations.
 
     Original implementations in
     https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
-    and
+     and
     https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py.
     """
 
@@ -203,8 +207,8 @@ class LayerNorm2d(nn.Module):
 
 
 class MSDeformAttn(nn.Module):
-    """
-    Multi-Scale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
+    """Multi-Scale Deformable Attention Module based on Deformable-DETR and
+    PaddleDetection implementations.
 
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
@@ -251,8 +255,7 @@ class MSDeformAttn(nn.Module):
         constant_(self.output_proj.bias.data, 0.)
 
     def forward(self, query, refer_bbox, value, value_shapes, value_mask=None):
-        """
-        Perform forward pass for multiscale deformable attention.
+        """Perform forward pass for multiscale deformable attention.
 
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
 
@@ -294,15 +297,16 @@ class MSDeformAttn(nn.Module):
 
 
 class DeformableTransformerDecoderLayer(nn.Module):
-    """
-    Deformable Transformer Decoder Layer inspired by PaddleDetection and Deformable-DETR implementations.
+    """Deformable Transformer Decoder Layer inspired by PaddleDetection and
+    Deformable-DETR implementations.
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
     """
 
     def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0., act=nn.ReLU(), n_levels=4, n_points=4):
-        """Initialize the DeformableTransformerDecoderLayer with the given parameters."""
+        """Initialize the DeformableTransformerDecoderLayer with the given
+        parameters."""
         super().__init__()
 
         # Self attention
@@ -329,7 +333,8 @@ class DeformableTransformerDecoderLayer(nn.Module):
         return tensor if pos is None else tensor + pos
 
     def forward_ffn(self, tgt):
-        """Perform forward pass through the Feed-Forward Network part of the layer."""
+        """Perform forward pass through the Feed-Forward Network part of the
+        layer."""
         tgt2 = self.linear2(self.dropout3(self.act(self.linear1(tgt))))
         tgt = tgt + self.dropout4(tgt2)
         return self.norm3(tgt)
@@ -355,14 +360,15 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
 
 class DeformableTransformerDecoder(nn.Module):
-    """
-    Implementation of Deformable Transformer Decoder based on PaddleDetection.
+    """Implementation of Deformable Transformer Decoder based on
+    PaddleDetection.
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     """
 
     def __init__(self, hidden_dim, decoder_layer, num_layers, eval_idx=-1):
-        """Initialize the DeformableTransformerDecoder with the given parameters."""
+        """Initialize the DeformableTransformerDecoder with the given
+        parameters."""
         super().__init__()
         self.layers = _get_clones(decoder_layer, num_layers)
         self.num_layers = num_layers

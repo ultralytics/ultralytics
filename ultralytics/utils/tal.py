@@ -10,8 +10,7 @@ TORCH_1_10 = check_version(torch.__version__, '1.10.0')
 
 
 def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
-    """
-    Select the positive anchor center in gt.
+    """Select the positive anchor center in gt.
 
     Args:
         xy_centers (Tensor): shape(h*w, 2)
@@ -29,8 +28,8 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
 
 
 def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
-    """
-    If an anchor box is assigned to multiple gts, the one with the highest IoI will be selected.
+    """If an anchor box is assigned to multiple gts, the one with the highest
+    IoI will be selected.
 
     Args:
         mask_pos (Tensor): shape(b, n_max_boxes, h*w)
@@ -58,8 +57,7 @@ def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
 
 
 class TaskAlignedAssigner(nn.Module):
-    """
-    A task-aligned assigner for object detection.
+    """A task-aligned assigner for object detection.
 
     This class assigns ground-truth (gt) objects to anchors based on the task-aligned metric, which combines both
     classification and localization information.
@@ -73,7 +71,8 @@ class TaskAlignedAssigner(nn.Module):
     """
 
     def __init__(self, topk=13, num_classes=80, alpha=1.0, beta=6.0, eps=1e-9):
-        """Initialize a TaskAlignedAssigner object with customizable hyperparameters."""
+        """Initialize a TaskAlignedAssigner object with customizable
+        hyperparameters."""
         super().__init__()
         self.topk = topk
         self.num_classes = num_classes
@@ -142,7 +141,8 @@ class TaskAlignedAssigner(nn.Module):
         return mask_pos, align_metric, overlaps
 
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
-        """Compute alignment metric given predicted and ground truth bounding boxes."""
+        """Compute alignment metric given predicted and ground truth bounding
+        boxes."""
         na = pd_bboxes.shape[-2]
         mask_gt = mask_gt.bool()  # b, max_num_obj, h*w
         overlaps = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_bboxes.dtype, device=pd_bboxes.device)
@@ -163,8 +163,7 @@ class TaskAlignedAssigner(nn.Module):
         return align_metric, overlaps
 
     def select_topk_candidates(self, metrics, largest=True, topk_mask=None):
-        """
-        Select the top-k candidates based on the given metrics.
+        """Select the top-k candidates based on the given metrics.
 
         Args:
             metrics (Tensor): A tensor of shape (b, max_num_obj, h*w), where b is the batch size,
@@ -199,8 +198,8 @@ class TaskAlignedAssigner(nn.Module):
         return count_tensor.to(metrics.dtype)
 
     def get_targets(self, gt_labels, gt_bboxes, target_gt_idx, fg_mask):
-        """
-        Compute target labels, target bounding boxes, and target scores for the positive anchor points.
+        """Compute target labels, target bounding boxes, and target scores for
+        the positive anchor points.
 
         Args:
             gt_labels (Tensor): Ground truth labels of shape (b, max_num_obj, 1), where b is the

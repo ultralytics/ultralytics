@@ -20,8 +20,7 @@ from .utils import HELP_URL, IMG_FORMATS
 
 
 class BaseDataset(Dataset):
-    """
-    Base dataset class for loading and processing image data.
+    """Base dataset class for loading and processing image data.
 
     Args:
         img_path (str): Path to the folder containing images.
@@ -219,7 +218,8 @@ class BaseDataset(Dataset):
         return cache
 
     def set_rectangle(self):
-        """Sets the shape of bounding boxes for YOLO detections as rectangles."""
+        """Sets the shape of bounding boxes for YOLO detections as
+        rectangles."""
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
 
@@ -267,8 +267,7 @@ class BaseDataset(Dataset):
         return label
 
     def build_transforms(self, hyp=None):
-        """
-        Users can customize augmentations here.
+        """Users can customize augmentations here.
 
         Example:
             ```python
@@ -283,8 +282,7 @@ class BaseDataset(Dataset):
         raise NotImplementedError
 
     def get_labels(self):
-        """
-        Users can customize their own format here.
+        """Users can customize their own format here.
 
         Note:
             Ensure output is a dictionary with the following keys:

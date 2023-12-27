@@ -9,8 +9,8 @@ from ultralytics.utils.plotting import plot_images, plot_results
 
 
 class SegmentationTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class extending the DetectionTrainer class for training based on a segmentation model.
+    """A class extending the DetectionTrainer class for training based on a
+    segmentation model.
 
     Example:
         ```python
@@ -30,7 +30,8 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Return SegmentationModel initialized with specified config and weights."""
+        """Return SegmentationModel initialized with specified config and
+        weights."""
         model = SegmentationModel(cfg, ch=3, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
@@ -38,12 +39,14 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         return model
 
     def get_validator(self):
-        """Return an instance of SegmentationValidator for validation of YOLO model."""
+        """Return an instance of SegmentationValidator for validation of YOLO
+        model."""
         self.loss_names = 'box_loss', 'seg_loss', 'cls_loss', 'dfl_loss'
         return yolo.segment.SegmentationValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def plot_training_samples(self, batch, ni):
-        """Creates a plot of training sample images with labels and box coordinates."""
+        """Creates a plot of training sample images with labels and box
+        coordinates."""
         plot_images(batch['img'],
                     batch['batch_idx'],
                     batch['cls'].squeeze(-1),

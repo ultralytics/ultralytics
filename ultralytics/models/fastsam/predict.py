@@ -9,9 +9,8 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class FastSAMPredictor(DetectionPredictor):
-    """
-    FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks in Ultralytics
-    YOLO framework.
+    """FastSAMPredictor is specialized for fast SAM (Segment Anything Model)
+    segmentation prediction tasks in Ultralytics YOLO framework.
 
     This class extends the DetectionPredictor, customizing the prediction pipeline specifically for fast SAM.
     It adjusts post-processing steps to incorporate mask prediction and non-max suppression while optimizing
@@ -24,8 +23,8 @@ class FastSAMPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initializes the FastSAMPredictor class, inheriting from DetectionPredictor and setting the task to 'segment'.
+        """Initializes the FastSAMPredictor class, inheriting from
+        DetectionPredictor and setting the task to 'segment'.
 
         Args:
             cfg (dict): Configuration parameters for prediction.
@@ -36,9 +35,9 @@ class FastSAMPredictor(DetectionPredictor):
         self.args.task = 'segment'
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Perform post-processing steps on predictions, including non-max suppression and scaling boxes to original image
-        size, and returns the final results.
+        """Perform post-processing steps on predictions, including non-max
+        suppression and scaling boxes to original image size, and returns the
+        final results.
 
         Args:
             preds (list): The raw output predictions from the model.

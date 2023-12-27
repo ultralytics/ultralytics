@@ -31,11 +31,10 @@ def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
 
 
 def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, threshold_offset: float) -> torch.Tensor:
-    """
-    Computes the stability score for a batch of masks.
+    """Computes the stability score for a batch of masks.
 
-    The stability score is the IoU between the binary masks obtained by thresholding the predicted mask logits at high
-    and low values.
+    The stability score is the IoU between the binary masks obtained by
+    thresholding the predicted mask logits at high and low values.
     """
     # One mask is always contained inside the other.
     # Save memory by preventing unnecessary cast to torch.int64
@@ -61,8 +60,7 @@ def build_all_layer_point_grids(n_per_side: int, n_layers: int, scale_per_layer:
 
 def generate_crop_boxes(im_size: Tuple[int, ...], n_layers: int,
                         overlap_ratio: float) -> Tuple[List[List[int]], List[int]]:
-    """
-    Generates a list of crop boxes of different sizes.
+    """Generates a list of crop boxes of different sizes.
 
     Each layer has (2**i)**2 boxes for the ith layer.
     """
@@ -129,7 +127,8 @@ def uncrop_masks(masks: torch.Tensor, crop_box: List[int], orig_h: int, orig_w: 
 
 
 def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tuple[np.ndarray, bool]:
-    """Remove small disconnected regions or holes in a mask, returning the mask and a modification indicator."""
+    """Remove small disconnected regions or holes in a mask, returning the mask
+    and a modification indicator."""
     import cv2  # type: ignore
 
     assert mode in {'holes', 'islands'}
@@ -149,8 +148,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
 
 
 def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
-    """
-    Calculates boxes in XYXY format around masks.
+    """Calculates boxes in XYXY format around masks.
 
     Return [0,0,0,0] for an empty mask. For input shape C1xC2x...xHxW, the output shape is C1xC2x...x4.
     """

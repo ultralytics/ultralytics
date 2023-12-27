@@ -10,9 +10,9 @@ from ultralytics.nn.modules import LayerNorm2d
 
 
 class MaskDecoder(nn.Module):
-    """
-    Decoder module for generating masks and their associated quality scores, using a transformer architecture to predict
-    masks given image and prompt embeddings.
+    """Decoder module for generating masks and their associated quality scores,
+    using a transformer architecture to predict masks given image and prompt
+    embeddings.
 
     Attributes:
         transformer_dim (int): Channel dimension for the transformer module.
@@ -36,8 +36,8 @@ class MaskDecoder(nn.Module):
         iou_head_depth: int = 3,
         iou_head_hidden_dim: int = 256,
     ) -> None:
-        """
-        Predicts masks given an image and prompt embeddings, using a transformer architecture.
+        """Predicts masks given an image and prompt embeddings, using a
+        transformer architecture.
 
         Args:
             transformer_dim (int): the channel dimension of the transformer module
@@ -77,8 +77,7 @@ class MaskDecoder(nn.Module):
         dense_prompt_embeddings: torch.Tensor,
         multimask_output: bool,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Predict masks given image and prompt embeddings.
+        """Predict masks given image and prompt embeddings.
 
         Args:
             image_embeddings (torch.Tensor): the embeddings from the image encoder
@@ -113,8 +112,7 @@ class MaskDecoder(nn.Module):
         sparse_prompt_embeddings: torch.Tensor,
         dense_prompt_embeddings: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Predicts masks.
+        """Predicts masks.
 
         See 'forward' for more details.
         """
@@ -163,8 +161,7 @@ class MLP(nn.Module):
         num_layers: int,
         sigmoid_output: bool = False,
     ) -> None:
-        """
-        Initializes the MLP (Multi-Layer Perceptron) model.
+        """Initializes the MLP (Multi-Layer Perceptron) model.
 
         Args:
             input_dim (int): The dimensionality of the input features.
@@ -180,7 +177,8 @@ class MLP(nn.Module):
         self.sigmoid_output = sigmoid_output
 
     def forward(self, x):
-        """Executes feedforward within the neural network module and applies activation."""
+        """Executes feedforward within the neural network module and applies
+        activation."""
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
         if self.sigmoid_output:

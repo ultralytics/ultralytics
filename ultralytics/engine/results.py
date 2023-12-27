@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Ultralytics Results, Boxes and Masks classes for handling inference results.
+"""Ultralytics Results, Boxes and Masks classes for handling inference results.
 
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
@@ -19,11 +18,11 @@ from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class BaseTensor(SimpleClass):
-    """Base tensor class with additional methods for easy manipulation and device handling."""
+    """Base tensor class with additional methods for easy manipulation and
+    device handling."""
 
     def __init__(self, data, orig_shape) -> None:
-        """
-        Initialize BaseTensor with data and original shape.
+        """Initialize BaseTensor with data and original shape.
 
         Args:
             data (torch.Tensor | np.ndarray): Predictions, such as bboxes, masks and keypoints.
@@ -64,8 +63,7 @@ class BaseTensor(SimpleClass):
 
 
 class Results(SimpleClass):
-    """
-    A class for storing and manipulating inference results.
+    """A class for storing and manipulating inference results.
 
     Args:
         orig_img (numpy.ndarray): The original image as a numpy array.
@@ -115,7 +113,8 @@ class Results(SimpleClass):
                 return len(v)
 
     def update(self, boxes=None, masks=None, probs=None):
-        """Update the boxes, masks, and probs attributes of the Results object."""
+        """Update the boxes, masks, and probs attributes of the Results
+        object."""
         if boxes is not None:
             self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
         if masks is not None:
@@ -124,9 +123,9 @@ class Results(SimpleClass):
             self.probs = probs
 
     def _apply(self, fn, *args, **kwargs):
-        """
-        Applies a function to all non-empty attributes and returns a new Results object with modified attributes. This
-        function is internally called by methods like .to(), .cuda(), .cpu(), etc.
+        """Applies a function to all non-empty attributes and returns a new
+        Results object with modified attributes. This function is internally
+        called by methods like .to(), .cuda(), .cpu(), etc.
 
         Args:
             fn (str): The name of the function to apply.
@@ -144,19 +143,23 @@ class Results(SimpleClass):
         return r
 
     def cpu(self):
-        """Return a copy of the Results object with all tensors on CPU memory."""
+        """Return a copy of the Results object with all tensors on CPU
+        memory."""
         return self._apply('cpu')
 
     def numpy(self):
-        """Return a copy of the Results object with all tensors as numpy arrays."""
+        """Return a copy of the Results object with all tensors as numpy
+        arrays."""
         return self._apply('numpy')
 
     def cuda(self):
-        """Return a copy of the Results object with all tensors on GPU memory."""
+        """Return a copy of the Results object with all tensors on GPU
+        memory."""
         return self._apply('cuda')
 
     def to(self, *args, **kwargs):
-        """Return a copy of the Results object with tensors on the specified device and dtype."""
+        """Return a copy of the Results object with tensors on the specified
+        device and dtype."""
         return self._apply('to', *args, **kwargs)
 
     def new(self):
@@ -179,8 +182,8 @@ class Results(SimpleClass):
         masks=True,
         probs=True,
     ):
-        """
-        Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
+        """Plots the detection results on an input RGB image. Accepts a numpy
+        array (cv2) or a PIL Image.
 
         Args:
             conf (bool): Whether to plot the detection confidence score.
@@ -275,8 +278,7 @@ class Results(SimpleClass):
         return log_string
 
     def save_txt(self, txt_file, save_conf=False):
-        """
-        Save predictions into txt file.
+        """Save predictions into txt file.
 
         Args:
             txt_file (str): txt file path.
@@ -310,8 +312,7 @@ class Results(SimpleClass):
                 f.writelines(text + '\n' for text in texts)
 
     def save_crop(self, save_dir, file_name=Path('im.jpg')):
-        """
-        Save cropped predictions to `save_dir/cls/file_name.jpg`.
+        """Save cropped predictions to `save_dir/cls/file_name.jpg`.
 
         Args:
             save_dir (str | pathlib.Path): Save path.
@@ -359,8 +360,7 @@ class Results(SimpleClass):
 
 
 class Boxes(BaseTensor):
-    """
-    A class for storing and manipulating detection boxes.
+    """A class for storing and manipulating detection boxes.
 
     Args:
         boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes,
@@ -424,7 +424,8 @@ class Boxes(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxyn(self):
-        """Return the boxes in xyxy format normalized by original image size."""
+        """Return the boxes in xyxy format normalized by original image
+        size."""
         xyxy = self.xyxy.clone() if isinstance(self.xyxy, torch.Tensor) else np.copy(self.xyxy)
         xyxy[..., [0, 2]] /= self.orig_shape[1]
         xyxy[..., [1, 3]] /= self.orig_shape[0]
@@ -433,7 +434,8 @@ class Boxes(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xywhn(self):
-        """Return the boxes in xywh format normalized by original image size."""
+        """Return the boxes in xywh format normalized by original image
+        size."""
         xywh = ops.xyxy2xywh(self.xyxy)
         xywh[..., [0, 2]] /= self.orig_shape[1]
         xywh[..., [1, 3]] /= self.orig_shape[0]
@@ -441,8 +443,7 @@ class Boxes(BaseTensor):
 
 
 class Masks(BaseTensor):
-    """
-    A class for storing and manipulating detection masks.
+    """A class for storing and manipulating detection masks.
 
     Attributes:
         xy (list): A list of segments in pixel coordinates.
@@ -456,7 +457,8 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape) -> None:
-        """Initialize the Masks class with the given masks tensor and original image shape."""
+        """Initialize the Masks class with the given masks tensor and original
+        image shape."""
         if masks.ndim == 2:
             masks = masks[None, :]
         super().__init__(masks, orig_shape)
@@ -479,8 +481,7 @@ class Masks(BaseTensor):
 
 
 class Keypoints(BaseTensor):
-    """
-    A class for storing and manipulating detection keypoints.
+    """A class for storing and manipulating detection keypoints.
 
     Attributes:
         xy (torch.Tensor): A collection of keypoints containing x, y coordinates for each detection.
@@ -496,7 +497,8 @@ class Keypoints(BaseTensor):
 
     @smart_inference_mode()  # avoid keypoints < conf in-place error
     def __init__(self, keypoints, orig_shape) -> None:
-        """Initializes the Keypoints object with detection keypoints and original image size."""
+        """Initializes the Keypoints object with detection keypoints and
+        original image size."""
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
         if keypoints.shape[2] == 3:  # x, y, conf
@@ -528,8 +530,7 @@ class Keypoints(BaseTensor):
 
 
 class Probs(BaseTensor):
-    """
-    A class for storing and manipulating classification predictions.
+    """A class for storing and manipulating classification predictions.
 
     Attributes:
         top1 (int): Index of the top 1 class.
@@ -545,7 +546,8 @@ class Probs(BaseTensor):
     """
 
     def __init__(self, probs, orig_shape=None) -> None:
-        """Initialize the Probs class with classification probabilities and optional original shape of the image."""
+        """Initialize the Probs class with classification probabilities and
+        optional original shape of the image."""
         super().__init__(probs, orig_shape)
 
     @property

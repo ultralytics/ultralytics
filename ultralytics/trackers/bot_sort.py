@@ -12,8 +12,8 @@ from .utils.kalman_filter import KalmanFilterXYWH
 
 
 class BOTrack(STrack):
-    """
-    An extended version of the STrack class for YOLOv8, adding object tracking features.
+    """An extended version of the STrack class for YOLOv8, adding object
+    tracking features.
 
     Attributes:
         shared_kalman (KalmanFilterXYWH): A shared Kalman filter for all instances of BOTrack.
@@ -42,7 +42,8 @@ class BOTrack(STrack):
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
-        """Initialize YOLOv8 object with temporal parameters, such as feature history, alpha and current features."""
+        """Initialize YOLOv8 object with temporal parameters, such as feature
+        history, alpha and current features."""
         super().__init__(tlwh, score, cls)
 
         self.smooth_feat = None
@@ -53,7 +54,8 @@ class BOTrack(STrack):
         self.alpha = 0.9
 
     def update_features(self, feat):
-        """Update features vector and smooth it using exponential moving average."""
+        """Update features vector and smooth it using exponential moving
+        average."""
         feat /= np.linalg.norm(feat)
         self.curr_feat = feat
         if self.smooth_feat is None:
@@ -73,7 +75,8 @@ class BOTrack(STrack):
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
 
     def re_activate(self, new_track, frame_id, new_id=False):
-        """Reactivates a track with updated features and optionally assigns a new ID."""
+        """Reactivates a track with updated features and optionally assigns a
+        new ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
         super().re_activate(new_track, frame_id, new_id)
@@ -86,7 +89,8 @@ class BOTrack(STrack):
 
     @property
     def tlwh(self):
-        """Get current position in bounding box format `(top left x, top left y, width, height)`."""
+        """Get current position in bounding box format `(top left x, top left
+        y, width, height)`."""
         if self.mean is None:
             return self._tlwh.copy()
         ret = self.mean[:4].copy()
@@ -95,7 +99,8 @@ class BOTrack(STrack):
 
     @staticmethod
     def multi_predict(stracks):
-        """Predicts the mean and covariance of multiple object tracks using shared Kalman filter."""
+        """Predicts the mean and covariance of multiple object tracks using
+        shared Kalman filter."""
         if len(stracks) <= 0:
             return
         multi_mean = np.asarray([st.mean.copy() for st in stracks])
@@ -110,20 +115,22 @@ class BOTrack(STrack):
             stracks[i].covariance = cov
 
     def convert_coords(self, tlwh):
-        """Converts Top-Left-Width-Height bounding box coordinates to X-Y-Width-Height format."""
+        """Converts Top-Left-Width-Height bounding box coordinates to X-Y-
+        Width-Height format."""
         return self.tlwh_to_xywh(tlwh)
 
     @staticmethod
     def tlwh_to_xywh(tlwh):
-        """Convert bounding box to format `(center x, center y, width, height)`."""
+        """Convert bounding box to format `(center x, center y, width,
+        height)`."""
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
         return ret
 
 
 class BOTSORT(BYTETracker):
-    """
-    An extended version of the BYTETracker class for YOLOv8, designed for object tracking with ReID and GMC algorithm.
+    """An extended version of the BYTETracker class for YOLOv8, designed for
+    object tracking with ReID and GMC algorithm.
 
     Attributes:
         proximity_thresh (float): Threshold for spatial proximity (IoU) between tracks and detections.
@@ -174,7 +181,8 @@ class BOTSORT(BYTETracker):
             return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]  # detections
 
     def get_dists(self, tracks, detections):
-        """Get distances between tracks and detections using IoU and (optionally) ReID embeddings."""
+        """Get distances between tracks and detections using IoU and
+        (optionally) ReID embeddings."""
         dists = matching.iou_distance(tracks, detections)
         dists_mask = (dists > self.proximity_thresh)
 

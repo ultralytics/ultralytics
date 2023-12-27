@@ -25,11 +25,12 @@ except ImportError:
 
 
 class BaseModel(nn.Module):
-    """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
+    """The BaseModel class serves as a base class for all the models in the
+    Ultralytics YOLO family."""
 
     def forward(self, x, *args, **kwargs):
-        """
-        Forward pass of the model on a single scale. Wrapper for `_forward_once` method.
+        """Forward pass of the model on a single scale. Wrapper for
+        `_forward_once` method.
 
         Args:
             x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
@@ -42,8 +43,7 @@ class BaseModel(nn.Module):
         return self.predict(x, *args, **kwargs)
 
     def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
-        """
-        Perform a forward pass through the network.
+        """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
@@ -60,8 +60,7 @@ class BaseModel(nn.Module):
         return self._predict_once(x, profile, visualize, embed)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
-        """
-        Perform a forward pass through the network.
+        """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
@@ -89,15 +88,15 @@ class BaseModel(nn.Module):
         return x
 
     def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference."""
+        """Perform augmentations on input image x and return augmented
+        inference."""
         LOGGER.warning(f'WARNING ⚠️ {self.__class__.__name__} does not support augmented inference yet. '
                        f'Reverting to single-scale inference instead.')
         return self._predict_once(x)
 
     def _profile_one_layer(self, m, x, dt):
-        """
-        Profile the computation time and FLOPs of a single layer of the model on a given input. Appends the results to
-        the provided list.
+        """Profile the computation time and FLOPs of a single layer of the
+        model on a given input. Appends the results to the provided list.
 
         Args:
             m (nn.Module): The layer to be profiled.
@@ -120,9 +119,8 @@ class BaseModel(nn.Module):
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
     def fuse(self, verbose=True):
-        """
-        Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer, in order to improve the
-        computation efficiency.
+        """Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a
+        single layer, in order to improve the computation efficiency.
 
         Returns:
             (nn.Module): The fused model is returned.
@@ -147,8 +145,8 @@ class BaseModel(nn.Module):
         return self
 
     def is_fused(self, thresh=10):
-        """
-        Check if the model has less than a certain threshold of BatchNorm layers.
+        """Check if the model has less than a certain threshold of BatchNorm
+        layers.
 
         Args:
             thresh (int, optional): The threshold number of BatchNorm layers. Default is 10.
@@ -160,8 +158,7 @@ class BaseModel(nn.Module):
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
 
     def info(self, detailed=False, verbose=True, imgsz=640):
-        """
-        Prints model information.
+        """Prints model information.
 
         Args:
             detailed (bool): if True, prints out detailed information about the model. Defaults to False
@@ -171,8 +168,8 @@ class BaseModel(nn.Module):
         return model_info(self, detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     def _apply(self, fn):
-        """
-        Applies a function to all the tensors in the model that are not parameters or registered buffers.
+        """Applies a function to all the tensors in the model that are not
+        parameters or registered buffers.
 
         Args:
             fn (function): the function to apply to the model
@@ -189,8 +186,7 @@ class BaseModel(nn.Module):
         return self
 
     def load(self, weights, verbose=True):
-        """
-        Load the weights into the model.
+        """Load the weights into the model.
 
         Args:
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
@@ -204,8 +200,7 @@ class BaseModel(nn.Module):
             LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights')
 
     def loss(self, batch, preds=None):
-        """
-        Compute loss.
+        """Compute loss.
 
         Args:
             batch (dict): Batch to compute loss on
@@ -226,7 +221,8 @@ class DetectionModel(BaseModel):
     """YOLOv8 detection model."""
 
     def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
-        """Initialize the YOLOv8 detection model with the given config and parameters."""
+        """Initialize the YOLOv8 detection model with the given config and
+        parameters."""
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
@@ -258,7 +254,8 @@ class DetectionModel(BaseModel):
             LOGGER.info('')
 
     def _predict_augment(self, x):
-        """Perform augmentations on input image x and return augmented inference and train outputs."""
+        """Perform augmentations on input image x and return augmented
+        inference and train outputs."""
         img_size = x.shape[-2:]  # height, width
         s = [1, 0.83, 0.67]  # scales
         f = [None, 3, None]  # flips (2-ud, 3-lr)
@@ -273,7 +270,8 @@ class DetectionModel(BaseModel):
 
     @staticmethod
     def _descale_pred(p, flips, scale, img_size, dim=1):
-        """De-scale predictions following augmented inference (inverse operation)."""
+        """De-scale predictions following augmented inference (inverse
+        operation)."""
         p[:, :4] /= scale  # de-scale
         x, y, wh, cls = p.split((1, 1, 2, p.shape[dim] - 4), dim)
         if flips == 2:
@@ -302,7 +300,8 @@ class SegmentationModel(DetectionModel):
     """YOLOv8 segmentation model."""
 
     def __init__(self, cfg='yolov8n-seg.yaml', ch=3, nc=None, verbose=True):
-        """Initialize YOLOv8 segmentation model with given config and parameters."""
+        """Initialize YOLOv8 segmentation model with given config and
+        parameters."""
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
@@ -331,12 +330,14 @@ class ClassificationModel(BaseModel):
     """YOLOv8 classification model."""
 
     def __init__(self, cfg='yolov8n-cls.yaml', ch=3, nc=None, verbose=True):
-        """Init ClassificationModel with YAML, channels, number of classes, verbose flag."""
+        """Init ClassificationModel with YAML, channels, number of classes,
+        verbose flag."""
         super().__init__()
         self._from_yaml(cfg, ch, nc, verbose)
 
     def _from_yaml(self, cfg, ch, nc, verbose):
-        """Set YOLOv8 model configurations and define the model architecture."""
+        """Set YOLOv8 model configurations and define the model
+        architecture."""
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
         # Define model
@@ -353,7 +354,8 @@ class ClassificationModel(BaseModel):
 
     @staticmethod
     def reshape_outputs(model, nc):
-        """Update a TorchVision classification model to class count 'n' if required."""
+        """Update a TorchVision classification model to class count 'n' if
+        required."""
         name, m = list((model.model if hasattr(model, 'model') else model).named_children())[-1]  # last module
         if isinstance(m, Classify):  # YOLO Classify() head
             if m.linear.out_features != nc:
@@ -378,8 +380,8 @@ class ClassificationModel(BaseModel):
 
 
 class RTDETRDetectionModel(DetectionModel):
-    """
-    RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
+    """RTDETR (Real-time DEtection and Tracking using Transformers) Detection
+    Model class.
 
     This class is responsible for constructing the RTDETR architecture, defining loss functions, and facilitating both
     the training and inference processes. RTDETR is an object detection and tracking model that extends from the
@@ -398,8 +400,7 @@ class RTDETRDetectionModel(DetectionModel):
     """
 
     def __init__(self, cfg='rtdetr-l.yaml', ch=3, nc=None, verbose=True):
-        """
-        Initialize the RTDETRDetectionModel.
+        """Initialize the RTDETRDetectionModel.
 
         Args:
             cfg (str): Configuration file name or path.
@@ -416,8 +417,7 @@ class RTDETRDetectionModel(DetectionModel):
         return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 
     def loss(self, batch, preds=None):
-        """
-        Compute the loss for the given batch of data.
+        """Compute the loss for the given batch of data.
 
         Args:
             batch (dict): Dictionary containing image and label data.
@@ -461,8 +461,7 @@ class RTDETRDetectionModel(DetectionModel):
                                                    device=img.device)
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
-        """
-        Perform a forward pass through the model.
+        """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
@@ -515,8 +514,8 @@ class Ensemble(nn.ModuleList):
 
 @contextlib.contextmanager
 def temporary_modules(modules=None):
-    """
-    Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
+    """Context manager for temporarily adding or modifying modules in Python's
+    module cache (`sys.modules`).
 
     This function can be used to change the module paths during runtime. It's useful when refactoring code,
     where you've moved a module from one location to another, but you still want to support the old import
@@ -555,10 +554,11 @@ def temporary_modules(modules=None):
 
 
 def torch_safe_load(weight):
-    """
-    This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
-    it catches the error, logs a warning message, and attempts to install the missing module via the
-    check_requirements() function. After installation, the function again attempts to load the model using torch.load().
+    """This function attempts to load a PyTorch model with the torch.load()
+    function. If a ModuleNotFoundError is raised, it catches the error, logs a
+    warning message, and attempts to install the missing module via the
+    check_requirements() function. After installation, the function again
+    attempts to load the model using torch.load().
 
     Args:
         weight (str): The file path of the PyTorch model.
@@ -595,7 +595,8 @@ def torch_safe_load(weight):
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
-    """Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a."""
+    """Loads an ensemble of models weights=[a,b,c] or a single model
+    weights=[a] or weights=a."""
 
     ensemble = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
@@ -759,10 +760,11 @@ def yaml_model_load(path):
 
 
 def guess_model_scale(model_path):
-    """
-    Takes a path to a YOLO model's YAML file as input and extracts the size character of the model's scale. The function
-    uses regular expression matching to find the pattern of the model scale in the YAML file name, which is denoted by
-    n, s, m, l, or x. The function returns the size character of the model scale as a string.
+    """Takes a path to a YOLO model's YAML file as input and extracts the size
+    character of the model's scale. The function uses regular expression
+    matching to find the pattern of the model scale in the YAML file name,
+    which is denoted by n, s, m, l, or x. The function returns the size
+    character of the model scale as a string.
 
     Args:
         model_path (str | Path): The path to the YOLO model's YAML file.
@@ -777,8 +779,8 @@ def guess_model_scale(model_path):
 
 
 def guess_model_task(model):
-    """
-    Guess the task of a PyTorch model from its architecture or configuration.
+    """Guess the task of a PyTorch model from its architecture or
+    configuration.
 
     Args:
         model (nn.Module | dict): PyTorch model or model configuration in YAML format.

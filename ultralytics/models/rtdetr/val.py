@@ -13,15 +13,17 @@ __all__ = 'RTDETRValidator',  # tuple or list
 
 
 class RTDETRDataset(YOLODataset):
-    """
-    Real-Time DEtection and TRacking (RT-DETR) dataset class extending the base YOLODataset class.
+    """Real-Time DEtection and TRacking (RT-DETR) dataset class extending the
+    base YOLODataset class.
 
-    This specialized dataset class is designed for use with the RT-DETR object detection model and is optimized for
-    real-time detection and tracking tasks.
+    This specialized dataset class is designed for use with the RT-DETR
+    object detection model and is optimized for real-time detection and
+    tracking tasks.
     """
 
     def __init__(self, *args, data=None, **kwargs):
-        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class."""
+        """Initialize the RTDETRDataset class by inheriting from the
+        YOLODataset class."""
         super().__init__(*args, data=data, use_segments=False, use_keypoints=False, **kwargs)
 
     # NOTE: add stretch version load_image for RTDETR mosaic
@@ -50,9 +52,9 @@ class RTDETRDataset(YOLODataset):
 
 
 class RTDETRValidator(DetectionValidator):
-    """
-    RTDETRValidator extends the DetectionValidator class to provide validation capabilities specifically tailored for
-    the RT-DETR (Real-Time DETR) object detection model.
+    """RTDETRValidator extends the DetectionValidator class to provide
+    validation capabilities specifically tailored for the RT-DETR (Real-Time
+    DETR) object detection model.
 
     The class allows building of an RTDETR-specific dataset for validation, applies Non-maximum suppression for
     post-processing, and updates evaluation metrics accordingly.
@@ -71,8 +73,7 @@ class RTDETRValidator(DetectionValidator):
     """
 
     def build_dataset(self, img_path, mode='val', batch=None):
-        """
-        Build an RTDETR Dataset.
+        """Build an RTDETR Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.

@@ -30,7 +30,8 @@ TORCH_2_0 = check_version(torch.__version__, '2.0.0')
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
-    """Decorator to make all processes in distributed training wait for each local_master to do something."""
+    """Decorator to make all processes in distributed training wait for each
+    local_master to do something."""
     initialized = torch.distributed.is_available() and torch.distributed.is_initialized()
     if initialized and local_rank not in (-1, 0):
         dist.barrier(device_ids=[local_rank])
@@ -40,10 +41,12 @@ def torch_distributed_zero_first(local_rank: int):
 
 
 def smart_inference_mode():
-    """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
+    """Applies torch.inference_mode() decorator if torch>=1.9.0 else
+    torch.no_grad() decorator."""
 
     def decorate(fn):
-        """Applies appropriate torch decorator for inference mode based on torch version."""
+        """Applies appropriate torch decorator for inference mode based on
+        torch version."""
         if TORCH_1_9 and torch.is_inference_mode_enabled():
             return fn  # already in inference_mode, act as a pass-through
         else:
@@ -63,8 +66,7 @@ def get_cpu_info():
 
 
 def select_device(device='', batch=0, newline=False, verbose=True):
-    """
-    Selects the appropriate PyTorch device based on the provided arguments.
+    """Selects the appropriate PyTorch device based on the provided arguments.
 
     The function takes a string specifying the device or a torch.device object and returns a torch.device object
     representing the selected device. The function also validates the number of available devices and raises an
@@ -205,8 +207,7 @@ def fuse_deconv_and_bn(deconv, bn):
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
-    """
-    Model information.
+    """Model information.
 
     imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320].
     """
@@ -243,8 +244,7 @@ def get_num_gradients(model):
 
 
 def model_info_for_loggers(trainer):
-    """
-    Return model info dict with useful model information.
+    """Return model info dict with useful model information.
 
     Example:
         YOLOv8n info for loggers
@@ -312,9 +312,8 @@ def initialize_weights(model):
 
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
-    """Scales and pads an image tensor of shape img(bs,3,y,x) based on given ratio and grid size gs, optionally
-    retaining the original shape.
-    """
+    """Scales and pads an image tensor of shape img(bs,3,y,x) based on given
+    ratio and grid size gs, optionally retaining the original shape."""
     if ratio == 1.0:
         return img
     h, w = img.shape[2:]
@@ -333,7 +332,8 @@ def make_divisible(x, divisor):
 
 
 def copy_attr(a, b, include=(), exclude=()):
-    """Copies attributes from object 'b' to object 'a', with options to include/exclude certain attributes."""
+    """Copies attributes from object 'b' to object 'a', with options to
+    include/exclude certain attributes."""
     for k, v in b.__dict__.items():
         if (len(include) and k not in include) or k.startswith('_') or k in exclude:
             continue
@@ -342,12 +342,14 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
-    """Return second-most (for maturity) recently supported ONNX opset by this version of torch."""
+    """Return second-most (for maturity) recently supported ONNX opset by this
+    version of torch."""
     return max(int(k[14:]) for k in vars(torch.onnx) if 'symbolic_opset' in k) - 1  # opset
 
 
 def intersect_dicts(da, db, exclude=()):
-    """Returns a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values."""
+    """Returns a dictionary of intersecting keys with matching shapes,
+    excluding 'exclude' keys, using da values."""
     return {k: v for k, v in da.items() if k in db and all(x not in k for x in exclude) and v.shape == db[k].shape}
 
 
@@ -417,14 +419,14 @@ class ModelEMA:
                     # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
 
     def update_attr(self, model, include=(), exclude=('process_group', 'reducer')):
-        """Updates attributes and saves stripped model with optimizer removed."""
+        """Updates attributes and saves stripped model with optimizer
+        removed."""
         if self.enabled:
             copy_attr(self.ema, model, include, exclude)
 
 
 def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
-    """
-    Strip optimizer from 'f' to finalize training, optionally save as 's'.
+    """Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
         f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
@@ -466,8 +468,7 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
 
 
 def profile(input, ops, n=10, device=None):
-    """
-    Ultralytics speed, memory and FLOPs profiler.
+    """Ultralytics speed, memory and FLOPs profiler.
 
     Example:
         ```python
@@ -523,11 +524,11 @@ def profile(input, ops, n=10, device=None):
 
 
 class EarlyStopping:
-    """Early stopping class that stops training when a specified number of epochs have passed without improvement."""
+    """Early stopping class that stops training when a specified number of
+    epochs have passed without improvement."""
 
     def __init__(self, patience=50):
-        """
-        Initialize early stopping object.
+        """Initialize early stopping object.
 
         Args:
             patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
@@ -538,8 +539,7 @@ class EarlyStopping:
         self.possible_stop = False  # possible stop may occur next epoch
 
     def __call__(self, epoch, fitness):
-        """
-        Check whether to stop training.
+        """Check whether to stop training.
 
         Args:
             epoch (int): Current epoch of training

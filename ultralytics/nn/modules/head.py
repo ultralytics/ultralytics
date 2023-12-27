@@ -26,7 +26,8 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
 
     def __init__(self, nc=80, ch=()):
-        """Initializes the YOLOv8 detection layer with specified number of classes and channels."""
+        """Initializes the YOLOv8 detection layer with specified number of
+        classes and channels."""
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
@@ -40,7 +41,8 @@ class Detect(nn.Module):
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
+        """Concatenates and returns predicted bounding boxes and class
+        probabilities."""
         shape = x[0].shape  # BCHW
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
@@ -71,7 +73,8 @@ class Detect(nn.Module):
         return y if self.export else (y, x)
 
     def bias_init(self):
-        """Initialize Detect() biases, WARNING: requires stride availability."""
+        """Initialize Detect() biases, WARNING: requires stride
+        availability."""
         m = self  # self.model[-1]  # Detect() module
         # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
         # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
@@ -84,7 +87,8 @@ class Segment(Detect):
     """YOLOv8 Segment head for segmentation models."""
 
     def __init__(self, nc=80, nm=32, npr=256, ch=()):
-        """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers."""
+        """Initialize the YOLO model attributes such as the number of masks,
+        prototypes, and the convolution layers."""
         super().__init__(nc, ch)
         self.nm = nm  # number of masks
         self.npr = npr  # number of protos
@@ -95,7 +99,8 @@ class Segment(Detect):
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
 
     def forward(self, x):
-        """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
+        """Return model outputs and mask coefficients if training, otherwise
+        return outputs and mask coefficients."""
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]  # batch size
 
@@ -110,7 +115,8 @@ class Pose(Detect):
     """YOLOv8 Pose head for keypoints models."""
 
     def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
-        """Initialize YOLO network with default parameters and Convolutional Layers."""
+        """Initialize YOLO network with default parameters and Convolutional
+        Layers."""
         super().__init__(nc, ch)
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
         self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
@@ -151,9 +157,8 @@ class Classify(nn.Module):
     """YOLOv8 classification head, i.e. x(b,c1,20,20) to x(b,c2)."""
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
-        """Initializes YOLOv8 classification head with specified input and output channels, kernel size, stride,
-        padding, and groups.
-        """
+        """Initializes YOLOv8 classification head with specified input and
+        output channels, kernel size, stride, padding, and groups."""
         super().__init__()
         c_ = 1280  # efficientnet_b0 size
         self.conv = Conv(c1, c_, k, s, p, g)
@@ -170,12 +175,14 @@ class Classify(nn.Module):
 
 
 class RTDETRDecoder(nn.Module):
-    """
-    Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for object detection.
+    """Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for
+    object detection.
 
-    This decoder module utilizes Transformer architecture along with deformable convolutions to predict bounding boxes
-    and class labels for objects in an image. It integrates features from multiple layers and runs through a series of
-    Transformer decoder layers to output the final predictions.
+    This decoder module utilizes Transformer architecture along with
+    deformable convolutions to predict bounding boxes and class labels
+    for objects in an image. It integrates features from multiple layers
+    and runs through a series of Transformer decoder layers to output
+    the final predictions.
     """
     export = False  # export mode
 
@@ -197,8 +204,7 @@ class RTDETRDecoder(nn.Module):
             label_noise_ratio=0.5,
             box_noise_scale=1.0,
             learnt_init_query=False):
-        """
-        Initializes the RTDETRDecoder module with the given parameters.
+        """Initializes the RTDETRDecoder module with the given parameters.
 
         Args:
             nc (int): Number of classes. Default is 80.
@@ -258,7 +264,8 @@ class RTDETRDecoder(nn.Module):
         self._reset_parameters()
 
     def forward(self, x, batch=None):
-        """Runs the forward pass of the module, returning bounding box and classification scores for the input."""
+        """Runs the forward pass of the module, returning bounding box and
+        classification scores for the input."""
         from ultralytics.models.utils.ops import get_cdn_group
 
         # Input projection and embedding
@@ -295,7 +302,8 @@ class RTDETRDecoder(nn.Module):
         return y if self.export else (y, x)
 
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
-        """Generates anchor bounding boxes for given shapes with specific grid size and validates them."""
+        """Generates anchor bounding boxes for given shapes with specific grid
+        size and validates them."""
         anchors = []
         for i, (h, w) in enumerate(shapes):
             sy = torch.arange(end=h, dtype=dtype, device=device)
@@ -315,7 +323,8 @@ class RTDETRDecoder(nn.Module):
         return anchors, valid_mask
 
     def _get_encoder_input(self, x):
-        """Processes and returns encoder inputs by getting projection features from input and concatenating them."""
+        """Processes and returns encoder inputs by getting projection features
+        from input and concatenating them."""
         # Get projection features
         x = [self.input_proj[i](feat) for i, feat in enumerate(x)]
         # Get encoder inputs
@@ -333,7 +342,8 @@ class RTDETRDecoder(nn.Module):
         return feats, shapes
 
     def _get_decoder_input(self, feats, shapes, dn_embed=None, dn_bbox=None):
-        """Generates and prepares the input required for the decoder from the provided features and shapes."""
+        """Generates and prepares the input required for the decoder from the
+        provided features and shapes."""
         bs = len(feats)
         # Prepare input for decoder
         anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
@@ -372,7 +382,8 @@ class RTDETRDecoder(nn.Module):
 
     # TODO
     def _reset_parameters(self):
-        """Initializes or resets the parameters of the model's various components with predefined weights and biases."""
+        """Initializes or resets the parameters of the model's various
+        components with predefined weights and biases."""
         # Class and bbox head init
         bias_cls = bias_init_with_prob(0.01) / 80 * self.nc
         # NOTE: the weight initialization in `linear_init_` would cause NaN when training with custom datasets.

@@ -15,8 +15,8 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class DetectionValidator(BaseValidator):
-    """
-    A class extending the BaseValidator class for validation based on a detection model.
+    """A class extending the BaseValidator class for validation based on a
+    detection model.
 
     Example:
         ```python
@@ -73,7 +73,8 @@ class DetectionValidator(BaseValidator):
         self.stats = []
 
     def get_desc(self):
-        """Return a formatted string summarizing class metrics of YOLO model."""
+        """Return a formatted string summarizing class metrics of YOLO
+        model."""
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
@@ -166,8 +167,7 @@ class DetectionValidator(BaseValidator):
                                            on_plot=self.on_plot)
 
     def _process_batch(self, detections, labels):
-        """
-        Return correct prediction matrix.
+        """Return correct prediction matrix.
 
         Args:
             detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
@@ -182,8 +182,7 @@ class DetectionValidator(BaseValidator):
         return self.match_predictions(detections[:, 5], labels[:, 0], iou)
 
     def build_dataset(self, img_path, mode='val', batch=None):
-        """
-        Build YOLO Dataset.
+        """Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -209,7 +208,8 @@ class DetectionValidator(BaseValidator):
                     on_plot=self.on_plot)
 
     def plot_predictions(self, batch, preds, ni):
-        """Plots predicted bounding boxes on input images and saves the result."""
+        """Plots predicted bounding boxes on input images and saves the
+        result."""
         plot_images(batch['img'],
                     *output_to_target(preds, max_det=self.args.max_det),
                     paths=batch['im_file'],
@@ -218,7 +218,8 @@ class DetectionValidator(BaseValidator):
                     on_plot=self.on_plot)  # pred
 
     def save_one_txt(self, predn, save_conf, shape, file):
-        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        """Save YOLO detections to a txt file in normalized coordinates in a
+        specific format."""
         gn = torch.tensor(shape)[[1, 0, 1, 0]]  # normalization gain whwh
         for *xyxy, conf, cls in predn.tolist():
             xywh = (ops.xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -240,7 +241,8 @@ class DetectionValidator(BaseValidator):
                 'score': round(p[4], 5)})
 
     def eval_json(self, stats):
-        """Evaluates YOLO output in JSON format and returns performance statistics."""
+        """Evaluates YOLO output in JSON format and returns performance
+        statistics."""
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data['path'] / 'annotations/instances_val2017.json'  # annotations
             pred_json = self.save_dir / 'predictions.json'  # predictions

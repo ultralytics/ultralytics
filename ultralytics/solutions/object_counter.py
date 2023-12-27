@@ -13,10 +13,12 @@ from shapely.geometry import LineString, Point, Polygon
 
 
 class ObjectCounter:
-    """A class to manage the counting of objects in a real-time video stream based on their tracks."""
+    """A class to manage the counting of objects in a real-time video stream
+    based on their tracks."""
 
     def __init__(self):
-        """Initializes the Counter with default values for various tracking and counting parameters."""
+        """Initializes the Counter with default values for various tracking and
+        counting parameters."""
 
         # Mouse events
         self.is_drawing = False
@@ -68,8 +70,8 @@ class ObjectCounter:
                  track_color=(0, 255, 0),
                  region_thickness=5,
                  line_dist_thresh=15):
-        """
-        Configures the Counter's image, bounding box line thickness, and counting region points.
+        """Configures the Counter's image, bounding box line thickness, and
+        counting region points.
 
         Args:
             line_thickness (int): Line thickness for bounding boxes.
@@ -115,8 +117,8 @@ class ObjectCounter:
         self.line_dist_thresh = line_dist_thresh
 
     def mouse_event_for_region(self, event, x, y, flags, params):
-        """
-        This function is designed to move region with mouse events in a real-time video stream.
+        """This function is designed to move region with mouse events in a
+        real-time video stream.
 
         Args:
             event (int): The type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
@@ -209,8 +211,7 @@ class ObjectCounter:
                 return
 
     def start_counting(self, im0, tracks):
-        """
-        Main function to start the object counting process.
+        """Main function to start the object counting process.
 
         Args:
             im0 (ndarray): Current frame from the video stream.

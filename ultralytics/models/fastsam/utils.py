@@ -4,8 +4,8 @@ import torch
 
 
 def adjust_bboxes_to_image_border(boxes, image_shape, threshold=20):
-    """
-    Adjust bounding boxes to stick to image border if they are within a certain threshold.
+    """Adjust bounding boxes to stick to image border if they are within a
+    certain threshold.
 
     Args:
         boxes (torch.Tensor): (n, 4)
@@ -28,8 +28,8 @@ def adjust_bboxes_to_image_border(boxes, image_shape, threshold=20):
 
 
 def bbox_iou(box1, boxes, iou_thres=0.9, image_shape=(640, 640), raw_output=False):
-    """
-    Compute the Intersection-Over-Union of a bounding box with respect to an array of other bounding boxes.
+    """Compute the Intersection-Over-Union of a bounding box with respect to an
+    array of other bounding boxes.
 
     Args:
         box1 (torch.Tensor): (4, )

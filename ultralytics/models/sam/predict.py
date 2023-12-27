@@ -1,11 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Generate predictions using the Segment Anything Model (SAM).
+"""Generate predictions using the Segment Anything Model (SAM).
 
-SAM is an advanced image segmentation model offering features like promptable segmentation and zero-shot performance.
-This module contains the implementation of the prediction logic and auxiliary utilities required to perform segmentation
-using SAM. It forms an integral part of the Ultralytics framework and is designed for high-performance, real-time image
-segmentation tasks.
+SAM is an advanced image segmentation model offering features like
+promptable segmentation and zero-shot performance. This module contains
+the implementation of the prediction logic and auxiliary utilities
+required to perform segmentation using SAM. It forms an integral part of
+the Ultralytics framework and is designed for high-performance, real-
+time image segmentation tasks.
 """
 
 import numpy as np
@@ -25,8 +26,8 @@ from .build import build_sam
 
 
 class Predictor(BasePredictor):
-    """
-    Predictor class for the Segment Anything Model (SAM), extending BasePredictor.
+    """Predictor class for the Segment Anything Model (SAM), extending
+    BasePredictor.
 
     The class provides an interface for model inference tailored to image segmentation tasks.
     With advanced architecture and promptable segmentation capabilities, it facilitates flexible and real-time
@@ -45,8 +46,8 @@ class Predictor(BasePredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the Predictor with configuration, overrides, and callbacks.
+        """Initialize the Predictor with configuration, overrides, and
+        callbacks.
 
         The method sets up the Predictor object and applies any configuration overrides or callbacks provided. It
         initializes task-specific settings for SAM, such as retina_masks being set to True for optimal results.
@@ -67,8 +68,7 @@ class Predictor(BasePredictor):
         self.segment_all = False
 
     def preprocess(self, im):
-        """
-        Preprocess the input image for model inference.
+        """Preprocess the input image for model inference.
 
         The method prepares the input image by applying transformations and normalization.
         It supports both torch.Tensor and list of np.ndarray as input formats.
@@ -95,8 +95,8 @@ class Predictor(BasePredictor):
         return im
 
     def pre_transform(self, im):
-        """
-        Perform initial transformations on the input image for preprocessing.
+        """Perform initial transformations on the input image for
+        preprocessing.
 
         The method applies transformations such as resizing to prepare the image for further preprocessing.
         Currently, batched inference is not supported; hence the list length should be 1.
@@ -112,10 +112,11 @@ class Predictor(BasePredictor):
         return [letterbox(image=x) for x in im]
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
-        """
-        Perform image segmentation inference based on the given input cues, using the currently loaded image. This
-        method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt encoder, and
-        mask decoder for real-time and promptable segmentation tasks.
+        """Perform image segmentation inference based on the given input cues,
+        using the currently loaded image. This method leverages SAM's (Segment
+        Anything Model) architecture consisting of image encoder, prompt
+        encoder, and mask decoder for real-time and promptable segmentation
+        tasks.
 
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
@@ -142,9 +143,9 @@ class Predictor(BasePredictor):
         return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)
 
     def prompt_inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False):
-        """
-        Internal function for image segmentation inference based on cues like bounding boxes, points, and masks.
-        Leverages SAM's specialized architecture for prompt-based, real-time segmentation.
+        """Internal function for image segmentation inference based on cues
+        like bounding boxes, points, and masks. Leverages SAM's specialized
+        architecture for prompt-based, real-time segmentation.
 
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
@@ -211,8 +212,7 @@ class Predictor(BasePredictor):
                  stability_score_thresh=0.95,
                  stability_score_offset=0.95,
                  crop_nms_thresh=0.7):
-        """
-        Perform image segmentation using the Segment Anything Model (SAM).
+        """Perform image segmentation using the Segment Anything Model (SAM).
 
         This function segments an entire image into constituent parts by leveraging SAM's advanced architecture
         and real-time performance capabilities. It can optionally work on image crops for finer segmentation.
@@ -303,8 +303,7 @@ class Predictor(BasePredictor):
         return pred_masks, pred_scores, pred_bboxes
 
     def setup_model(self, model, verbose=True):
-        """
-        Initializes the Segment Anything Model (SAM) for inference.
+        """Initializes the Segment Anything Model (SAM) for inference.
 
         This method sets up the SAM model by allocating it to the appropriate device and initializing the necessary
         parameters for image normalization and other Ultralytics compatibility settings.
@@ -336,8 +335,8 @@ class Predictor(BasePredictor):
         self.done_warmup = True
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Post-processes SAM's inference outputs to generate object detection masks and bounding boxes.
+        """Post-processes SAM's inference outputs to generate object detection
+        masks and bounding boxes.
 
         The method scales masks and boxes to the original image size and applies a threshold to the mask predictions. The
         SAM model uses advanced architecture and promptable segmentation tasks to achieve real-time performance.
@@ -375,8 +374,7 @@ class Predictor(BasePredictor):
         return results
 
     def setup_source(self, source):
-        """
-        Sets up the data source for inference.
+        """Sets up the data source for inference.
 
         This method configures the data source from which images will be fetched for inference. The source could be a
         directory, a video file, or other types of image data sources.
@@ -388,8 +386,7 @@ class Predictor(BasePredictor):
             super().setup_source(source)
 
     def set_image(self, image):
-        """
-        Preprocesses and sets a single image for inference.
+        """Preprocesses and sets a single image for inference.
 
         This function sets up the model if not already initialized, configures the data source to the specified image,
         and preprocesses the image for feature extraction. Only one image can be set at a time.
@@ -422,10 +419,11 @@ class Predictor(BasePredictor):
 
     @staticmethod
     def remove_small_regions(masks, min_area=0, nms_thresh=0.7):
-        """
-        Perform post-processing on segmentation masks generated by the Segment Anything Model (SAM). Specifically, this
-        function removes small disconnected regions and holes from the input masks, and then performs Non-Maximum
-        Suppression (NMS) to eliminate any newly created duplicate boxes.
+        """Perform post-processing on segmentation masks generated by the
+        Segment Anything Model (SAM). Specifically, this function removes small
+        disconnected regions and holes from the input masks, and then performs
+        Non-Maximum Suppression (NMS) to eliminate any newly created duplicate
+        boxes.
 
         Args:
             masks (torch.Tensor): A tensor containing the masks to be processed. Shape should be (N, H, W), where N is

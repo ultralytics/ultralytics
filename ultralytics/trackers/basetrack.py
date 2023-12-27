@@ -7,8 +7,8 @@ import numpy as np
 
 
 class TrackState:
-    """
-    Enumeration class representing the possible states of an object being tracked.
+    """Enumeration class representing the possible states of an object being
+    tracked.
 
     Attributes:
         New (int): State when the object is newly detected.
@@ -24,8 +24,8 @@ class TrackState:
 
 
 class BaseTrack:
-    """
-    Base class for object tracking, providing foundational attributes and methods.
+    """Base class for object tracking, providing foundational attributes and
+    methods.
 
     Attributes:
         _count (int): Class-level counter for unique track IDs.

@@ -12,8 +12,7 @@ from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks,
 
 
 class Model(nn.Module):
-    """
-    A base class to unify APIs for all models.
+    """A base class to unify APIs for all models.
 
     Args:
         model (str, Path): Path to the model file to load or create.
@@ -53,8 +52,7 @@ class Model(nn.Module):
     """
 
     def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None) -> None:
-        """
-        Initializes the YOLO model.
+        """Initializes the YOLO model.
 
         Args:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
@@ -94,12 +92,14 @@ class Model(nn.Module):
             self._load(model, task)
 
     def __call__(self, source=None, stream=False, **kwargs):
-        """Calls the predict() method with given arguments to perform object detection."""
+        """Calls the predict() method with given arguments to perform object
+        detection."""
         return self.predict(source, stream, **kwargs)
 
     @staticmethod
     def is_triton_model(model):
-        """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
+        """Is model a Triton Server URL string, i.e.
+        <scheme>://<netloc>/<endpoint>/<task_name>"""
         from urllib.parse import urlsplit
         url = urlsplit(model)
         return url.netloc and url.path and url.scheme in {'http', 'grpc'}
@@ -113,8 +113,8 @@ class Model(nn.Module):
             len(model) == 20 and not Path(model).exists() and all(x not in model for x in './\\')))  # MODELID
 
     def _new(self, cfg: str, task=None, model=None, verbose=True):
-        """
-        Initializes a new model and infers the task type from the model definitions.
+        """Initializes a new model and infers the task type from the model
+        definitions.
 
         Args:
             cfg (str): model configuration file
@@ -134,8 +134,8 @@ class Model(nn.Module):
         self.model.task = self.task
 
     def _load(self, weights: str, task=None):
-        """
-        Initializes a new model and infers the task type from the model head.
+        """Initializes a new model and infers the task type from the model
+        head.
 
         Args:
             weights (str): model checkpoint to be loaded
@@ -168,7 +168,8 @@ class Model(nn.Module):
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'")
 
     def reset_weights(self):
-        """Resets the model modules parameters to randomly initialized values, losing all training information."""
+        """Resets the model modules parameters to randomly initialized values,
+        losing all training information."""
         self._check_is_pytorch_model()
         for m in self.model.modules():
             if hasattr(m, 'reset_parameters'):
@@ -178,7 +179,8 @@ class Model(nn.Module):
         return self
 
     def load(self, weights='yolov8n.pt'):
-        """Transfers parameters with matching names and shapes from 'weights' to model."""
+        """Transfers parameters with matching names and shapes from 'weights'
+        to model."""
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             weights, self.ckpt = attempt_load_one_weight(weights)
@@ -186,8 +188,7 @@ class Model(nn.Module):
         return self
 
     def info(self, detailed=False, verbose=True):
-        """
-        Logs model info.
+        """Logs model info.
 
         Args:
             detailed (bool): Show detailed information about model.
@@ -202,8 +203,7 @@ class Model(nn.Module):
         self.model.fuse()
 
     def embed(self, source=None, stream=False, **kwargs):
-        """
-        Calls the predict() method and returns image embeddings.
+        """Calls the predict() method and returns image embeddings.
 
         Args:
             source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
@@ -220,8 +220,7 @@ class Model(nn.Module):
         return self.predict(source, stream, **kwargs)
 
     def predict(self, source=None, stream=False, predictor=None, **kwargs):
-        """
-        Perform prediction using the YOLO model.
+        """Perform prediction using the YOLO model.
 
         Args:
             source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
@@ -257,8 +256,8 @@ class Model(nn.Module):
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):
-        """
-        Perform object tracking on the input source using the registered trackers.
+        """Perform object tracking on the input source using the registered
+        trackers.
 
         Args:
             source (str, optional): The input source for object tracking. Can be a file path or a video stream.
@@ -277,8 +276,7 @@ class Model(nn.Module):
         return self.predict(source=source, stream=stream, **kwargs)
 
     def val(self, validator=None, **kwargs):
-        """
-        Validate a model on a given dataset.
+        """Validate a model on a given dataset.
 
         Args:
             validator (BaseValidator): Customized validator.
@@ -293,8 +291,7 @@ class Model(nn.Module):
         return validator.metrics
 
     def benchmark(self, **kwargs):
-        """
-        Benchmark a model on all export formats.
+        """Benchmark a model on all export formats.
 
         Args:
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
@@ -314,8 +311,7 @@ class Model(nn.Module):
             verbose=kwargs.get('verbose'))
 
     def export(self, **kwargs):
-        """
-        Export model.
+        """Export model.
 
         Args:
             **kwargs : Any other args accepted by the Exporter. To see all args check 'configuration' section in docs.
@@ -328,8 +324,7 @@ class Model(nn.Module):
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
     def train(self, trainer=None, **kwargs):
-        """
-        Trains the model on a given dataset.
+        """Trains the model on a given dataset.
 
         Args:
             trainer (BaseTrainer, optional): Customized trainer.
@@ -363,8 +358,8 @@ class Model(nn.Module):
         return self.metrics
 
     def tune(self, use_ray=False, iterations=10, *args, **kwargs):
-        """
-        Runs hyperparameter tuning, optionally using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
+        """Runs hyperparameter tuning, optionally using Ray Tune. See
+        ultralytics.utils.tuner.run_ray_tune for Args.
 
         Returns:
             (dict): A dictionary containing the results of the hyperparameter search.
@@ -381,7 +376,8 @@ class Model(nn.Module):
             return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
 
     def _apply(self, fn):
-        """Apply to(), cpu(), cuda(), half(), float() to model tensors that are not parameters or registered buffers."""
+        """Apply to(), cpu(), cuda(), half(), float() to model tensors that are
+        not parameters or registered buffers."""
         self._check_is_pytorch_model()
         self = super()._apply(fn)  # noqa
         self.predictor = None  # reset predictor as device may have changed
@@ -439,8 +435,7 @@ class Model(nn.Module):
 
     @property
     def task_map(self):
-        """
-        Map head to model, trainer, validator, and predictor classes.
+        """Map head to model, trainer, validator, and predictor classes.
 
         Returns:
             task_map (dict): The map of model task to mode classes.

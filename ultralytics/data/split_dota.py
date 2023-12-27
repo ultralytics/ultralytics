@@ -82,7 +82,7 @@ def load_yolo_dota(data_root, split='train'):
     return annos
 
 
-def get_windows(im_size, crop_size=1024, gap=200, im_rate_thr=0.6, eps=0.01):
+def get_windows(im_size, crop_sizes=[1024], gaps=[200], im_rate_thr=0.6, eps=0.01):
     """
     Get the coordinates of windows.
 
@@ -93,22 +93,25 @@ def get_windows(im_size, crop_size=1024, gap=200, im_rate_thr=0.6, eps=0.01):
         im_rate_thr (float): Threshold of windows areas divided by image ares.
     """
     h, w = im_size
-    assert crop_size > gap, f'invaild crop_size gap pair [{crop_size} {gap}]'
-    step = crop_size - gap
+    windows = []
+    for crop_size, gap in zip(crop_sizes, gaps):
+        assert crop_size > gap, f'invaild crop_size gap pair [{crop_size} {gap}]'
+        step = crop_size - gap
 
-    xn = 1 if w <= crop_size else ceil((w - crop_size) / step + 1)
-    xs = [step * i for i in range(xn)]
-    if len(xs) > 1 and xs[-1] + crop_size > w:
-        xs[-1] = w - crop_size
+        xn = 1 if w <= crop_size else ceil((w - crop_size) / step + 1)
+        xs = [step * i for i in range(xn)]
+        if len(xs) > 1 and xs[-1] + crop_size > w:
+            xs[-1] = w - crop_size
 
-    yn = 1 if h <= crop_size else ceil((h - crop_size) / step + 1)
-    ys = [step * i for i in range(yn)]
-    if len(ys) > 1 and ys[-1] + crop_size > h:
-        ys[-1] = h - crop_size
+        yn = 1 if h <= crop_size else ceil((h - crop_size) / step + 1)
+        ys = [step * i for i in range(yn)]
+        if len(ys) > 1 and ys[-1] + crop_size > h:
+            ys[-1] = h - crop_size
 
-    start = np.array(list(itertools.product(xs, ys)), dtype=np.int64)
-    stop = start + crop_size
-    windows = np.concatenate([start, stop], axis=1)
+        start = np.array(list(itertools.product(xs, ys)), dtype=np.int64)
+        stop = start + crop_size
+        windows.append(np.concatenate([start, stop], axis=1))
+    windows = np.concatenate(windows, axis=0)
 
     im_in_wins = windows.copy()
     im_in_wins[:, 0::2] = np.clip(im_in_wins[:, 0::2], 0, w)
@@ -122,9 +125,8 @@ def get_windows(im_size, crop_size=1024, gap=200, im_rate_thr=0.6, eps=0.01):
     return windows[im_rates > im_rate_thr]
 
 
-def get_window_obj(anno, iof_thr=0.7):
+def get_window_obj(anno, windows, iof_thr=0.7):
     """Get objects for each window."""
-    windows = get_windows(anno['ori_size'])
     h, w = anno['ori_size']
     label = anno['label']
     if len(label):
@@ -134,8 +136,8 @@ def get_window_obj(anno, iof_thr=0.7):
         # unnormalized and misaligned coordinates
         window_anns = [(label[iofs[:, i] >= iof_thr]) for i in range(len(windows))]
     else:
-        window_anns = [np.zeros((0, 9), dtype=np.float32) for i in range(len(windows))]
-    return windows, window_anns
+        window_anns = [np.zeros((0, 9), dtype=np.float32) for _ in range(len(windows))]
+    return window_anns
 
 
 def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
@@ -179,7 +181,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
                 f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
 
 
-def split_images_and_labels(data_root, save_dir, split='train'):
+def split_images_and_labels(data_root, save_dir, split='train', crop_sizes=[1024], gaps=[200]):
     """
     Split both images and labels.
 
@@ -204,11 +206,12 @@ def split_images_and_labels(data_root, save_dir, split='train'):
 
     annos = load_yolo_dota(data_root, split=split)
     for anno in tqdm(annos, total=len(annos), desc=split):
-        windows, window_objs = get_window_obj(anno)
+        windows = get_windows(anno['ori_size'], crop_sizes, gaps)
+        window_objs = get_window_obj(anno, windows)
         crop_and_save(anno, windows, window_objs, str(im_dir), str(lb_dir))
 
 
-def split_trainval(data_root, save_dir):
+def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
     """
     Split train and val set of DOTA.
 
@@ -230,11 +233,15 @@ def split_trainval(data_root, save_dir):
                     - train
                     - val
     """
+    crop_sizes, gaps = [], []
+    for r in rates:
+        crop_sizes.append(int(crop_size / r))
+        gaps.append(int(gap / r))
     for split in ['train', 'val']:
-        split_images_and_labels(data_root, save_dir, split)
+        split_images_and_labels(data_root, save_dir, split, crop_sizes, gaps)
 
 
-def split_test(data_root, save_dir):
+def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
     """
     Split test set of DOTA, labels are not included within this set.
 
@@ -248,6 +255,10 @@ def split_test(data_root, save_dir):
                 - images
                     - test
     """
+    crop_sizes, gaps = [], []
+    for r in rates:
+        crop_sizes.append(int(crop_size / r))
+        gaps.append(int(gap / r))
     save_dir = Path(save_dir) / 'images' / 'test'
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -256,7 +267,7 @@ def split_test(data_root, save_dir):
     im_files = glob(str(im_dir / '*'))
     for im_file in tqdm(im_files, total=len(im_files), desc='test'):
         w, h = exif_size(Image.open(im_file))
-        windows = get_windows((h, w))
+        windows = get_windows((h, w), crop_sizes=crop_sizes, gaps=gaps)
         im = cv2.imread(im_file)
         name = Path(im_file).stem
         for window in windows:

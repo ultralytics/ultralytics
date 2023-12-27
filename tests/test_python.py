@@ -511,3 +511,13 @@ def test_model_tune():
     """Tune YOLO model for performance."""
     YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
     YOLO('yolov8n-cls.pt').tune(data='imagenet10', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
+
+
+def test_model_embeddings():
+    """Test YOLO model embeddings."""
+    model_detect = YOLO(MODEL)
+    model_segment = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
+
+    for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
+        assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
+        assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)

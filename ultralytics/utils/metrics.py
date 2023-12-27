@@ -605,7 +605,8 @@ class Metric(SimpleClass):
 
     @property
     def map75(self):
-        """Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
+        """
+        Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
 
         Returns:
             (float): The mAP50 at an IoU threshold of 0.75.

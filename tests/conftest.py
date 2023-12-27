@@ -40,7 +40,8 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Modify the list of test items to remove tests marked as slow if the --slow option is not provided.
+    """
+    Modify the list of test items to remove tests marked as slow if the --slow option is not provided.
 
     Args:
         config (pytest.config.Config): The pytest config object.

@@ -64,8 +64,8 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
 
 def parse_version(version='0.0.0') -> tuple:
     """
-    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
-    This function replaces deprecated 'pkg_resources.parse_version(v)'.
+    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version. This
+    function replaces deprecated 'pkg_resources.parse_version(v)'.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu'

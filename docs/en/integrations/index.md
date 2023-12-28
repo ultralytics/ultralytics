@@ -16,15 +16,15 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Training Integrations
 
-- [Comet ML](comet.md): Enhance your model development with Ultralytics by tracking, comparing, and optimizing your machine learning experiments.
-
 - [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
+
+- [Comet ML](comet.md): Enhance your model development with Ultralytics by tracking, comparing, and optimizing your machine learning experiments.
 
 - [DVC](dvc.md): Implement version control for your Ultralytics machine learning projects, synchronizing data, code, and models effectively.
 
-- [Ultralytics HUB](https://hub.ultralytics.com): Access and contribute to a community of pre-trained Ultralytics models.
-
 - [MLFlow](mlflow.md): Streamline the entire ML lifecycle of Ultralytics models, from experimentation and reproducibility to deployment.
+
+- [Ultralytics HUB](https://hub.ultralytics.com): Access and contribute to a community of pre-trained Ultralytics models.
 
 - [Neptune](https://neptune.ai/): Maintain a comprehensive log of your ML experiments with Ultralytics in this metadata store designed for MLOps.
 
@@ -32,11 +32,13 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TensorBoard](https://tensorboard.dev/): Visualize your Ultralytics ML workflows, monitor model metrics, and foster team collaboration.
 
-- [Weights & Biases (W&B)](https://wandb.ai/site): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
+- [Weights & Biases (W&B)](weights-biases.md): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
 
 ## Deployment Integrations
 
 - [Neural Magic](https://neuralmagic.com/): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
+
+- [OpenVino](openvino.md): OpenVINO is Intel's toolkit for optimizing and deploying computer vision models efficiently across various Intel hardware platforms.
 
 ### Export Formats
 

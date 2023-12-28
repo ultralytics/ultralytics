@@ -224,3 +224,4 @@ Ci-dessous des exemples de code pour utiliser chaque type de source :
 
         # Exécuter une inférence sur la source
         results = model(source)  # liste d'objets Results
+        ```

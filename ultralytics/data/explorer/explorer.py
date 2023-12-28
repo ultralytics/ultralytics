@@ -148,6 +148,14 @@ class Explorer:
 
         Returns:
             An arrow table containing the results.
+        
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            query = 'SELECT * FROM table WHERE labels LIKE "%person%"'
+            result = exp.sql_query(query)
+            ```
         """
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
@@ -185,6 +193,16 @@ class Explorer:
         """
         similar = self.get_similar(img, idx, limit)
         plot_similar_images(similar)
+    
+    def visualize(self, result):
+        """
+        Visualize the results of a query.
+
+        Args:
+            result (arrow table): Arrow table containing the results of a query.
+        """
+        # TODO: 
+        pass
 
     def _check_imgs_or_idxs(self, img, idx):
         if img is None and idx is None:

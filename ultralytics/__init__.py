@@ -3,6 +3,7 @@
 __version__ = '8.0.229'
 
 from ultralytics.models import RTDETR, SAM, YOLO
+from ultralytics.data.explorer.explorer import Explorer
 from ultralytics.models.fastsam import FastSAM
 from ultralytics.models.nas import NAS
 from ultralytics.utils import SETTINGS as settings

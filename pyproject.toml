@@ -1,9 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 #
 # Overview:
-# This `pyproject.toml` file is crucial for managing the build, packaging, and distribution of the Ultralytics library.
-# It defines the essential project metadata, dependencies, and various settings that are instrumental for the efficient
-# development and deployment of the library.
+# This pyproject.toml file manages the build, packaging, and distribution of the Ultralytics library.
+# It defines essential project metadata, dependencies, and settings used to develop and deploy the library.
 
 # Key Sections:
 # - [build-system]: Specifies the build requirements and backend (e.g., setuptools, wheel).
@@ -43,24 +42,31 @@ maintainers = [
     { name = "Jing Qiu" }
 ]
 classifiers = [
-    'Development Status :: 4 - Beta',
-    'Intended Audience :: Developers',
-    'Intended Audience :: Education',
-    'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Topic :: Software Development',
-    'Topic :: Scientific/Engineering',
-    'Topic :: Scientific/Engineering :: Artificial Intelligence',
-    'Topic :: Scientific/Engineering :: Image Recognition',
-    'Operating System :: POSIX :: Linux',
-    'Operating System :: MacOS',
-    'Operating System :: Microsoft :: Windows',
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
 ]
+[project.urls]  # Optional
+"Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
+"Funding" = "https://ultralytics.com"
+"Source" = "https://github.com/ultralytics/ultralytics/"
+[project.scripts]
+yolo = "ultralytics.cfg:entrypoint"
+ultralytics = "ultralytics.cfg:entrypoint"
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
@@ -84,25 +90,25 @@ dependencies = [
 # Optional dependencies ------------------------------------------------------------------------------------------------
 [project.optional-dependencies]
 dev = [
-    'ipython',
-    'check-manifest',
-    'pre-commit',
-    'pytest',
-    'pytest-cov',
-    'coverage[toml]',
-    'mkdocs-material',
-    'mkdocstrings[python]',
-    'mkdocs-redirects', # for 301 redirects
-    'mkdocs-ultralytics-plugin>=0.0.34', # for meta descriptions and images, dates and authors
+    "ipython",
+    "check-manifest",
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "coverage[toml]",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "mkdocs-redirects", # for 301 redirects
+    "mkdocs-ultralytics-plugin>=0.0.34", # for meta descriptions and images, dates and authors
 ]
 export = [
-    'onnx>=1.12.0', # ONNX export
-    'coremltools>=7.0', # CoreML export
-    'openvino-dev>=2023.0', # OpenVINO export
-    'tensorflow<=2.13.1', # TF bug https://github.com/ultralytics/ultralytics/issues/5161
-    'jax<=0.4.21', # tensorflowjs bug https://github.com/google/jax/issues/18978
-    'jaxlib<=0.4.21', # tensorflowjs bug https://github.com/google/jax/issues/18978
-    'tensorflowjs>=3.9.0', # TF.js export, automatically installs tensorflow
+    "onnx>=1.12.0", # ONNX export
+    "coremltools>=7.0", # CoreML export
+    "openvino-dev>=2023.0", # OpenVINO export
+    "tensorflow<=2.13.1", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "jax<=0.4.21", # tensorflowjs bug https://github.com/google/jax/issues/18978
+    "jaxlib<=0.4.21", # tensorflowjs bug https://github.com/google/jax/issues/18978
+    "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
 ]
 # tensorflow>=2.4.1,<=2.13.1  # TF exports (-cpu, -aarch64, -macos)
 # tflite-support  # for TFLite model metadata
@@ -110,29 +116,20 @@ export = [
 # nvidia-pyindex  # TensorRT export
 # nvidia-tensorrt  # TensorRT export
 logging = [
-    'comet', # https://docs.ultralytics.com/integrations/comet/
-    'tensorboard>=2.13.0',
-    'dvclive>=2.12.0',
+    "comet", # https://docs.ultralytics.com/integrations/comet/
+    "tensorboard>=2.13.0",
+    "dvclive>=2.12.0",
 ]
 extra = [
-    'ipython', # interactive notebook
-    'albumentations>=1.0.3', # training augmentations
-    'pycocotools>=2.0.6', # COCO mAP
+    "ipython", # interactive notebook
+    "albumentations>=1.0.3", # training augmentations
+    "pycocotools>=2.0.6", # COCO mAP
 ]
-
-[project.urls]  # Optional
-"Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
-"Funding" = "https://ultralytics.com"
-"Source" = "https://github.com/ultralytics/ultralytics/"
-
-[project.scripts]
-yolo = "ultralytics.cfg:entrypoint"
-ultralytics = "ultralytics.cfg:entrypoint"
 
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
 packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*"] } }
-package-data = { "ultralytics" = ["**/*.yaml"], 'ultralytics.assets' = ['*.jpg'] }
+package-data = { "ultralytics" = ["**/*.yaml"], "ultralytics.assets" = ["*.jpg"] }
 
 [tool.setuptools.dynamic]
 version = { attr = "ultralytics.__version__" }

@@ -1,18 +1,22 @@
+import math
+from typing import List
+
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import math
-import matplotlib.pyplot as plt
-from ultralytics.utils.plotting import plot_images, Annotator, colors
+
+from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
-from ultralytics.data.augment import LetterBox
-from typing import List
+from ultralytics.utils.plotting import Annotator, colors
+
 check_requirements('lancedb')
 from lancedb.pydantic import LanceModel, Vector
 
 
 def get_schema(vector_size):
+
     class Schema(LanceModel):
         im_file: str
         labels: List[str]
@@ -21,9 +25,9 @@ def get_schema(vector_size):
         masks: List[List[List[int]]]
         keypoints: List[List[List[float]]]
         vector: Vector(vector_size)
-    
+
     return Schema
-    
+
 
 def sanitize_batch(batch, dataset_info):
     batch['cls'] = batch['cls'].flatten().int().tolist()
@@ -31,10 +35,11 @@ def sanitize_batch(batch, dataset_info):
     batch['bboxes'] = [box for box, _ in box_cls_pair]
     batch['cls'] = [cls for _, cls in box_cls_pair]
     batch['labels'] = [dataset_info['names'][i] for i in batch['cls']]
-    batch["masks"] = batch["masks"].tolist() if "masks" in batch else [[[]]]
-    batch["keypoints"] = batch["keypoints"].tolist() if "keypoints" in batch else [[[]]]
+    batch['masks'] = batch['masks'].tolist() if 'masks' in batch else [[[]]]
+    batch['keypoints'] = batch['keypoints'].tolist() if 'keypoints' in batch else [[[]]]
 
     return batch
+
 
 def plot_similar_images(similar_set):
     """
@@ -59,14 +64,16 @@ def plot_similar_images(similar_set):
     if len(images) == 0:
         logger.info('No similar images found')
         return
-    
+
     for idx, img in enumerate(images):
         img = cv2.imread(img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if labels:
             ann = Annotator(img)
             if len(bboxes) > idx:
-                [ann.box_label(bbox, label, color=colors(cls, True)) for bbox, label, cls in zip(bboxes[idx], labels[idx], cls[idx])]
+                [
+                    ann.box_label(bbox, label, color=colors(cls, True))
+                    for bbox, label, cls in zip(bboxes[idx], labels[idx], cls[idx])]
             if len(masks) > idx:
                 mask = torch.tensor(np.array(masks[idx]))
                 img = LetterBox(mask.shape[1:])(image=ann.result())
@@ -87,6 +94,6 @@ def plot_similar_images(similar_set):
     for i, ax in enumerate(axes.ravel()):
         if i < len(resized_images):
             ax.imshow(resized_images[i])
-        ax.axis("off")
+        ax.axis('off')
     # Display the grid of images
     plt.show()

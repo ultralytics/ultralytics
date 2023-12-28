@@ -3,7 +3,6 @@ from typing import List
 
 import cv2
 import numpy as np
-import pyarrow as pa
 import torch
 from tqdm import tqdm
 
@@ -14,7 +13,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
 
-from .utils import sanitize_batch, plot_similar_images, get_schema
+from .utils import get_schema, plot_similar_images, sanitize_batch
 
 check_requirements('lancedb')
 import lancedb
@@ -24,8 +23,8 @@ class ExplorerDataset(YOLODataset):
 
     def __init__(self, *args, data=None, **kwargs):
         task = kwargs.pop('task', 'detect')
-        logger.info(f"ExplorerDataset task: {task}")
-        super().__init__(*args, data=data, use_keypoints=task=='pose', use_segments=task=='segment', **kwargs)
+        logger.info(f'ExplorerDataset task: {task}')
+        super().__init__(*args, data=data, use_keypoints=task == 'pose', use_segments=task == 'segment', **kwargs)
 
     # NOTE: Load the image directly without any resize operations.
     def load_image(self, i):
@@ -154,7 +153,7 @@ class Explorer:
             raise ValueError('Table is not created. Please create the table first.')
 
         return self.table.to_lance.to_table(filter=query).to_arrow()
-    
+
     def get_similar(self, img=None, idx=None, limit=25):
         """
         Query the table for similar images. Accepts a single image or a list of images.
@@ -173,7 +172,7 @@ class Explorer:
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
         return similar
-    
+
     def show_similar(self, img=None, idx=None, limit=25):
         """
         Plot the similar images. Accepts images or indexes.
@@ -187,7 +186,6 @@ class Explorer:
         similar = self.get_similar(img, idx, limit)
         plot_similar_images(similar)
 
-    
     def _check_imgs_or_idxs(self, img, idx):
         if img is None and idx is None:
             raise ValueError('Either img or idx must be provided.')
@@ -195,7 +193,7 @@ class Explorer:
             raise ValueError('Only one of img or idx must be provided.')
         if idx is not None:
             idx = idx if isinstance(idx, list) else [idx]
-            img = self.table.to_lance().take(idx, columns=["im_file"]).to_pydict()["im_file"]
-        
+            img = self.table.to_lance().take(idx, columns=['im_file']).to_pydict()['im_file']
+
         img = img if isinstance(img, list) else [img]
         return img

@@ -148,7 +148,7 @@ class Explorer:
 
         Returns:
             An arrow table containing the results.
-        
+
         Example:
             ```python
             exp = Explorer()
@@ -193,7 +193,7 @@ class Explorer:
         """
         similar = self.get_similar(img, idx, limit)
         plot_similar_images(similar)
-    
+
     def visualize(self, result):
         """
         Visualize the results of a query.
@@ -201,7 +201,7 @@ class Explorer:
         Args:
             result (arrow table): Arrow table containing the results of a query.
         """
-        # TODO: 
+        # TODO:
         pass
 
     def _check_imgs_or_idxs(self, img, idx):

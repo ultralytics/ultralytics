@@ -6,13 +6,13 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from ...models.yolo.model import YOLO
 from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
 
+from ...models.yolo.model import YOLO
 from .utils import get_schema, plot_similar_images, sanitize_batch
 
 check_requirements('lancedb')

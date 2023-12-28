@@ -120,7 +120,7 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
 
         للاستفادة القصوى من استخدام Docker المتقدم، لا تتردد في استكشاف [دليل Ultralytics Docker](https://docs.ultralytics.com/guides/docker-quickstart/).
 
-راجع ملف `requirements.txt` الخاص بـ `ultralytics` [هنا](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) للحصول على قائمة المتطلبات. يُرجى ملاحظة أن جميع الأمثلة أعلاه يتم تثبيت جميع المتطلبات المطلوبة.
+راجع ملف `requirements.txt` الخاص بـ `ultralytics` [هنا](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) للحصول على قائمة المتطلبات. يُرجى ملاحظة أن جميع الأمثلة أعلاه يتم تثبيت جميع المتطلبات المطلوبة.
 
 <p align="center">
   <br>

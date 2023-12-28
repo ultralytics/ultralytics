@@ -57,12 +57,6 @@ repos:
         exclude: 'docs/.*\.md'
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        name: PEP8
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:

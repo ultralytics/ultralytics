@@ -60,13 +60,6 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
 ]
-[project.urls]  # Optional
-"Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
-"Funding" = "https://ultralytics.com"
-"Source" = "https://github.com/ultralytics/ultralytics/"
-[project.scripts]
-yolo = "ultralytics.cfg:entrypoint"
-ultralytics = "ultralytics.cfg:entrypoint"
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
@@ -125,6 +118,15 @@ extra = [
     "albumentations>=1.0.3", # training augmentations
     "pycocotools>=2.0.6", # COCO mAP
 ]
+
+[project.urls]
+"Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
+"Funding" = "https://ultralytics.com"
+"Source" = "https://github.com/ultralytics/ultralytics/"
+
+[project.scripts]
+yolo = "ultralytics.cfg:entrypoint"
+ultralytics = "ultralytics.cfg:entrypoint"
 
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.

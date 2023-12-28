@@ -1,4 +1,23 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+#
+# Overview:
+# This `pyproject.toml` file is crucial for managing the build, packaging, and distribution of the Ultralytics library.
+# It defines the essential project metadata, dependencies, and various settings that are instrumental for the efficient
+# development and deployment of the library.
+
+# Key Sections:
+# - [build-system]: Specifies the build requirements and backend (e.g., setuptools, wheel).
+# - [project]: Includes details like name, version, description, authors, dependencies and more.
+# - [project.optional-dependencies]: Provides additional, optional packages for extended features.
+# - [tool.*]: Configures settings for various tools (pytest, yapf, etc.) used in the project.
+
+# Installation:
+# The Ultralytics library can be installed using the command: 'pip install ultralytics'
+# For development purposes, you can install the package in editable mode with: 'pip install -e .'
+# This approach allows for real-time code modifications without the need for re-installation.
+
+# Documentation:
+# For comprehensive documentation and usage instructions, visit: https://docs.ultralytics.com
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]

@@ -78,7 +78,7 @@ dev = [
     'pre-commit',
     'pytest',
     'pytest-cov',
-    'coverage',
+    'coverage[toml]',
     'mkdocs-material',
     'mkdocstrings[python]',
     'mkdocs-redirects', # for 301 redirects

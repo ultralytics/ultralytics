@@ -5,23 +5,24 @@
 matplotlib>=3.3.0
 numpy>=1.22.2 # pinned by Snyk to avoid a vulnerability
 opencv-python>=4.6.0
+pandas>=1.1.4
 pillow>=7.1.2
+psutil  # system utilization
 pyyaml>=5.3.1
 requests>=2.23.0
 scipy>=1.4.1
+seaborn>=0.11.0  # plotting
+thop>=0.1.1  # FLOPs computation
 torch>=1.8.0
 torchvision>=0.9.0
 tqdm>=4.64.0
+py-cpuinfo  # display CPU info
 
 # Logging -------------------------------------
 # tensorboard>=2.13.0
 # dvclive>=2.12.0
 # clearml
 # comet
-
-# Plotting ------------------------------------
-pandas>=1.1.4
-seaborn>=0.11.0
 
 # Export --------------------------------------
 # coremltools>=7.0  # CoreML export
@@ -38,10 +39,6 @@ seaborn>=0.11.0
 # openvino-dev>=2023.0  # OpenVINO export
 
 # Extras --------------------------------------
-psutil  # system utilization
-py-cpuinfo  # display CPU info
-thop>=0.1.1  # FLOPs computation
 # ipython  # interactive notebook
 # albumentations>=1.0.3  # training augmentations
 # pycocotools>=2.0.6  # COCO mAP
-# roboflow

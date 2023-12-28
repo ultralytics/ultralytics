@@ -125,5 +125,6 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 | `visualize`     | `bool`         | `False`                | visualize model features                                                   |
 | `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
 | `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
+| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
-| `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+| `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |

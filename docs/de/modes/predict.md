@@ -224,3 +224,4 @@ Untenstehend finden Sie Codebeispiele für die Verwendung jedes Quelltyps:
 
         # Inferenz auf der Quelle ausführen
         ergebnisse = model(quell)  # Liste von Results-Objekten
+        ```

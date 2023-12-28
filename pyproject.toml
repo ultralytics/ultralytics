@@ -4,6 +4,7 @@
 requires = ["setuptools>=43.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+# Project settings -----------------------------------------------------------------------------------------------------
 [project]
 name = "ultralytics"
 dynamic = ["version"]
@@ -40,7 +41,9 @@ classifiers = [
     'Operating System :: POSIX :: Linux',
     'Operating System :: MacOS',
     'Operating System :: Microsoft :: Windows',
-]  # Optional, for a list of valid classifiers, see https://pypi.org/classifiers/
+]
+
+# Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
     # Base
     "matplotlib>=3.3.0",
@@ -62,15 +65,7 @@ dependencies = [
     "thop>=0.1.1", # FLOPs computation
 ]
 
-[project.urls]  # Optional
-"Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
-"Funding" = "https://ultralytics.com"
-"Source" = "https://github.com/ultralytics/ultralytics/"
-
-[project.scripts]
-yolo = "ultralytics.cfg:entrypoint"
-ultralytics = "ultralytics.cfg:entrypoint"
-
+# Optional dependencies ------------------------------------------------------------------------------------------------
 [project.optional-dependencies]
 dev = [
     'ipython',
@@ -93,6 +88,16 @@ export = [
     'tensorflowjs', # automatically installs tensorflow
 ]
 
+[project.urls]  # Optional
+"Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
+"Funding" = "https://ultralytics.com"
+"Source" = "https://github.com/ultralytics/ultralytics/"
+
+[project.scripts]
+yolo = "ultralytics.cfg:entrypoint"
+ultralytics = "ultralytics.cfg:entrypoint"
+
+# Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
 packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*"] } }
 package-data = { "ultralytics" = ["**/*.yaml"], 'ultralytics.assets' = ['*.jpg'] }

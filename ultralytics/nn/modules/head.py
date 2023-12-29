@@ -10,7 +10,7 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, make_anchors
 
 from .block import DFL, Proto
-from .conv import Conv
+from .conv import Conv, FullConn
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init_
 
@@ -197,18 +197,20 @@ class Regress(nn.Module):
         """
         super().__init__()
         c_ = 1280  # 128 # Reference design (https://github.com/ahmetozlu/nonlinear_regression_keras)
-        self.conv1 = Conv(c1, c_, k, s, p, g) #128 output channels
-        self.conv2 = Conv(c_, c_, k, s, p, g) #32 output channels
+        c_2 = 256
+        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
+        #self.conv2 = Conv(c_, c_, k, s, p, g) #32 output channels
         #self.conv3 = Conv(c_ // 4, c_ // 16, k, s, p, g) #8 output channels
         self.pool = nn.AdaptiveAvgPool2d(1)
         self.drop = nn.Dropout(p=0.0, inplace=True)
-        self.linear = nn.Linear(c_, c2)  #1 output channel
+        self.conv2_postpool = Conv(c_2, c2, k, s, p, g, act=False)
+        #self.linear = nn.Linear(c_, c2)  #1 output channel
 
     def forward(self, x):
         """Performs a forward pass of the YOLO model on input image data."""
         if isinstance(x, list):
             x = torch.cat(x, 1)
-        x = self.linear(self.drop(self.pool(self.conv2(self.conv1(x))).flatten(1)))
+        x = self.conv2_postpool(self.drop(self.pool(self.conv1(x))))
         return x
 
 class RTDETRDecoder(nn.Module):

@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-__all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
+__all__ = ('Conv', 'FullConn', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
            'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv')
 
 
@@ -39,6 +39,23 @@ class Conv(nn.Module):
         """Perform transposed convolution of 2D data."""
         return self.act(self.conv(x))
 
+class FullConn(nn.Module):
+    """Fully-connected layer with args(ch_in, ch_out, activation)."""
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, act=True):
+        """Initialize fully-connected layer with given arguments including activation."""
+        super().__init__()
+        self.fc = nn.Linear(c1, c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        """Forward process."""
+        return self.act(self.fc(x))
+
+    def forward_fuse(self, x):
+        """Forward process."""
+        return self.act(self.fc(x))
 
 class Conv2(Conv):
     """Simplified RepConv module with Conv fusing."""

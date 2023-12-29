@@ -166,7 +166,7 @@ pnnx*
 trained/*
 
 # My space
-Cls_UTKFace_*
+UTKFace_*
 *.jpg
 my_ws_*
 args_*

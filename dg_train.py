@@ -6,7 +6,8 @@ import argparse
 def parser_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str, default='', help='initial weights path')
-    parser.add_argument('--cfg', type=str, default='', help='model.yaml path')
+    parser.add_argument('--cfg', type=str, default=None, help='default.yaml path')
+    parser.add_argument('--model-cfg', type=str, default='', help='model.yaml path')
     parser.add_argument('--data', type=str, default='coco128.yaml', help='dataset.yaml path')
     parser.add_argument('--epochs', type=int, default=100, help='total training epochs')
     parser.add_argument('--batch', type=int, default=32, help='total batch size for all GPUs, -1 for autobatch')
@@ -27,6 +28,9 @@ def parser_arguments():
     parser.add_argument('--scale', type=float, default=0.5, help='image scale (+/- gain)')
     parser.add_argument('--mixup', type=float, default=0.00, help='image mixup (probability)')
     parser.add_argument('--copy_paste', type=float, default=0.00, help='copy-paste (probability)')
+    parser.add_argument('--mean', type=float, nargs='+', default=[0, 0, 0], help='channel-wise mean normalization')
+    parser.add_argument('--std', type=float, nargs='+', default=[1, 1, 1], help='channel-wise std normalization')
+    
     
     return parser.parse_args()
 
@@ -36,9 +40,9 @@ if __name__ == '__main__':
     # Create a dictionary of kwargs
     kwargs = vars(args)
 
-    if args.cfg != '':
+    if args.model_cfg != '':
         # Create a new YOLO model from scratch
-        model = YOLO(args.cfg)
+        model = YOLO(args.model_cfg)
         if args.weights != '':
             # transfer weights
             model.load(args.weights) 
@@ -48,7 +52,7 @@ if __name__ == '__main__':
     else:
         raise SystemError('--cfg or --weights must be provided')
 
-    del kwargs['cfg']
+    del kwargs['model_cfg']
     del kwargs['weights']
 
     # Train the model

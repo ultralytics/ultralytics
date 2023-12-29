@@ -183,8 +183,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                                     imw=im0.shape[1],  # should same as im0 width
-                                     imh=im0.shape[0],  # should same as im0 height
+                                     imw=im0.shape[0],  # should same as im0 width
+                                     imh=im0.shape[1],  # should same as im0 height
                                      view_img=True,
                                      shape="circle")
 

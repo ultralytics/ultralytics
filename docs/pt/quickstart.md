@@ -76,7 +76,7 @@ O Ultralytics oferece diversos métodos de instalação, incluindo pip, conda e 
         pip install -e .
         ```
 
-Veja o arquivo [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) do `ultralytics` para uma lista de dependências. Note que todos os exemplos acima instalam todas as dependências necessárias.
+Veja o arquivo [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) do `ultralytics` para uma lista de dependências. Note que todos os exemplos acima instalam todas as dependências necessárias.
 
 <p align="center">
   <br>

@@ -238,12 +238,13 @@ class Results(SimpleClass):
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
+        confs = conf  # flag to plot the detection confidence score.
         # Plot Detect results
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
-                label = (f'{name} {conf:.2f}' if conf else name) if labels else None
+                label = f'{name} {conf:.2f}' if labels and confs else (f'{name}' if labels else (f'{conf:.2f}' if confs else None))
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         # Plot Classify results

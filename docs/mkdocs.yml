@@ -170,6 +170,12 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
+      - Guides:
+          - guides/index.md
+      - Models:
+          - models/index.md
+      - Datasets:
+          - datasets/index.md
       - Languages:
           - 🇬🇧&nbsp English: https://docs.ultralytics.com/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -282,6 +288,7 @@ nav:
       - MLflow: integrations/mlflow.md
       - ClearML: integrations/clearml.md
       - DVC: integrations/dvc.md
+      - Weights & Biases: integrations/weights-biases.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md

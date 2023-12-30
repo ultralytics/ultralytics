@@ -9,7 +9,7 @@ import torch
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import Annotator, colors, plot_images
 
 check_requirements('lancedb')
 from lancedb.pydantic import LanceModel, Vector
@@ -58,6 +58,28 @@ def plot_similar_images(similar_set):
     kpts = similar_set.get('keypoints') if similar_set.get('keypoints')[0] != empty_masks else []
     cls = similar_set.get('cls', [])
 
+    # NOTE: use plot_images, only support detection labels for now.
+    # imgs, boxes, batch_idx = [], [], []
+    # for i, imf in enumerate(images):
+    #     im = cv2.imread(imf)
+    #     im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+    #     h, w = im.shape[:2]
+    #     r = min(640 / h, 640 / w)
+    #     imgs.append(LetterBox(center=False)(image=im).transpose(2, 0, 1))
+    #     box = np.array(bboxes[i], dtype=np.float32)
+    #     box[:, [0, 2]] *= r
+    #     box[:, [1, 3]] *= r
+    #     boxes.append(box)
+    #     batch_idx.append(np.ones(len(box)) * i)
+    # from ultralytics.utils.ops import xyxy2xywh
+    # imgs = np.stack(imgs, axis=0)
+    # boxes = xyxy2xywh(np.concatenate(boxes, axis=0))
+    # batch_idx = np.concatenate(batch_idx, axis=0)
+    # cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
+    # plot_images(imgs, batch_idx, cls, bboxes=boxes)
+    # import time
+    # time.sleep(3)  # waiting for the plot process
+    # exit()
     # handle empty
 
     resized_images = []

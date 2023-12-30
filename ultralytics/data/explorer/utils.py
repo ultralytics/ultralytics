@@ -9,7 +9,7 @@ import torch
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.plotting import Annotator, colors, plot_images
+from ultralytics.utils.plotting import Annotator, colors
 
 check_requirements('lancedb')
 from lancedb.pydantic import LanceModel, Vector

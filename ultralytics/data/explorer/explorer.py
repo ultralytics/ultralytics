@@ -132,7 +132,7 @@ class Explorer:
         elif isinstance(imgs, list):
             pass
         else:
-            raise ValueError(f'img must be a string or a list of strings. Got {type(img)}')
+            raise ValueError(f'img must be a string or a list of strings. Got {type(imgs)}')
         embeds = self.model.embed(imgs)
         # Get avg if multiple images are passed (len > 1)
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()

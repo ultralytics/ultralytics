@@ -46,9 +46,9 @@ class ClassificationTrainer(BaseTrainer):
         # self.model.names = self.data['names']
         pass
     
-    def get_model(self, cfg=None, ch=3, weights=None, verbose=True):
+    def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
-        model = ClassificationModel(cfg, ch, nc=self.data['nc'], verbose=verbose and RANK == -1)
+        model = ClassificationModel(cfg, self.inputCh, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 

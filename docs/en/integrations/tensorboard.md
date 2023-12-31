@@ -35,7 +35,7 @@ To install the required package, run:
         pip install ultralytics
         ```
 
-TensorBoard is conveniently pre-installed with YOLOv8, eliminating the need for additional setup for visualization purposes. 
+TensorBoard is conveniently pre-installed with YOLOv8, eliminating the need for additional setup for visualization purposes.
 
 For detailed instructions and best practices related to the installation process, be sure to check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
@@ -82,7 +82,7 @@ For more information related to the model training process, be sure to check our
 
 ## Understanding Your TensorBoard for YOLOv8 Training
 
-Now, let’s focus on understanding the various features and components of TensorBoard in the context of YOLOv8 training. The three key sections of the TensorBoard are Time Series, Scalars, and Graphs. 
+Now, let’s focus on understanding the various features and components of TensorBoard in the context of YOLOv8 training. The three key sections of the TensorBoard are Time Series, Scalars, and Graphs.
 
 ### Time Series
 

@@ -140,4 +140,3 @@ elif choose == 'Info':
         st.markdown(link, unsafe_allow_html=True)
     else:
         pass
-

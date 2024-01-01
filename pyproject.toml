@@ -163,7 +163,9 @@ split_before_first_argument = false
 wrap-summaries = 120
 wrap-descriptions = 120
 in-place = true
-make-summary-multi-line = false
 pre-summary-newline = true
-force-wrap = false
 close-quotes-on-newline = true
+
+[tool.codespell]
+ignore-words-list = "crate,nd,strack,dota,ane,segway,fo,gool,winn"
+skip = '*.csv,*venv*,docs/de,docs/fr,docs/pt,docs/es,docs/mkdocs_de.yml'

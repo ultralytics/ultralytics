@@ -1,8 +1,6 @@
----
-comments: true
-description: 探索详细的YOLO-NAS文档，这是一个更高级的物体检测模型。了解其特点、预训练模型、与Ultralytics Python API的使用等内容。
-keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ultralytics Python API, YOLO模型, 预训练模型, 量化, 优化, COCO, Objects365, Roboflow 100
----
+______________________________________________________________________
+
+## comments: true description: 探索详细的YOLO-NAS文档，这是一个更高级的物体检测模型。了解其特点、预训练模型、与Ultralytics Python API的使用等内容。 keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ultralytics Python API, YOLO模型, 预训练模型, 量化, 优化, COCO, Objects365, Roboflow 100
 
 # YOLO-NAS
 
@@ -10,8 +8,7 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 由Deci AI开发，YOLO-NAS是一种开创性的物体检测基础模型。它是先进的神经架构搜索技术的产物，经过精心设计以解决之前YOLO模型的局限性。YOLO-NAS在量化支持和准确性-延迟权衡方面取得了重大改进，代表了物体检测领域的重大飞跃。
 
-![模型示例图像](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png)
-**YOLO-NAS概览。** YOLO-NAS采用量化感知块和选择性量化实现最佳性能。当将模型转换为INT8量化版本时，模型会经历较小的精度损失，比其他模型有显著改进。这些先进技术使得YOLO-NAS成为具有前所未有的物体检测能力和出色性能的卓越架构。
+![模型示例图像](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png) **YOLO-NAS概览。** YOLO-NAS采用量化感知块和选择性量化实现最佳性能。当将模型转换为INT8量化版本时，模型会经历较小的精度损失，比其他模型有显著改进。这些先进技术使得YOLO-NAS成为具有前所未有的物体检测能力和出色性能的卓越架构。
 
 ### 主要特点
 
@@ -24,7 +21,7 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 通过Ultralytics提供的预训练YOLO-NAS模型，体验下一代物体检测的强大功能。这些模型旨在在速度和准确性方面提供出色的性能。根据您的需求，可以选择各种选项：
 
 | 模型               | mAP   | 延迟（ms） |
-|------------------|-------|--------|
+| ---------------- | ----- | ------ |
 | YOLO-NAS S       | 47.5  | 3.21   |
 | YOLO-NAS M       | 51.55 | 5.85   |
 | YOLO-NAS L       | 52.22 | 7.87   |
@@ -46,39 +43,41 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 !!! 例子
 
-    以下示例为YOLO-NAS提供了简单的推理和验证代码。有关处理推理结果的方法，请参见[Predict](../modes/predict.md)模式。有关使用其他模式的YOLO-NAS的方法，请参见[Val](../modes/val.md)和[Export](../modes/export.md)。`ultralytics`包中的YOLO-NAS不支持训练。
+````
+以下示例为YOLO-NAS提供了简单的推理和验证代码。有关处理推理结果的方法，请参见[Predict](../modes/predict.md)模式。有关使用其他模式的YOLO-NAS的方法，请参见[Val](../modes/val.md)和[Export](../modes/export.md)。`ultralytics`包中的YOLO-NAS不支持训练。
 
-    === "Python"
+=== "Python"
 
-        可以将预训练的PyTorch `*.pt`模型文件传递给`NAS()`类以在python中创建一个模型实例：
+    可以将预训练的PyTorch `*.pt`模型文件传递给`NAS()`类以在python中创建一个模型实例：
 
-        ```python
-        from ultralytics import NAS
+    ```python
+    from ultralytics import NAS
 
-        # 加载一个在COCO上预训练的YOLO-NAS-s模型
-        model = NAS('yolo_nas_s.pt')
+    # 加载一个在COCO上预训练的YOLO-NAS-s模型
+    model = NAS('yolo_nas_s.pt')
 
-        # 显示模型信息（可选）
-        model.info()
+    # 显示模型信息（可选）
+    model.info()
 
-        # 在COCO8示例数据集上验证模型
-        results = model.val(data='coco8.yaml')
+    # 在COCO8示例数据集上验证模型
+    results = model.val(data='coco8.yaml')
 
-        # 使用YOLO-NAS-s模型对'bus.jpg'图像进行推理
-        results = model('path/to/bus.jpg')
-        ```
+    # 使用YOLO-NAS-s模型对'bus.jpg'图像进行推理
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        可以使用CLI命令直接运行模型：
+    可以使用CLI命令直接运行模型：
 
-        ```bash
-        # 加载一个在COCO上预训练的YOLO-NAS-s模型，并验证其在COCO8示例数据集上的性能
-        yolo val model=yolo_nas_s.pt data=coco8.yaml
+    ```bash
+    # 加载一个在COCO上预训练的YOLO-NAS-s模型，并验证其在COCO8示例数据集上的性能
+    yolo val model=yolo_nas_s.pt data=coco8.yaml
 
-        # 加载一个在COCO上预训练的YOLO-NAS-s模型，并对'bus.jpg'图像进行推理
-        yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
-        ```
+    # 加载一个在COCO上预训练的YOLO-NAS-s模型，并对'bus.jpg'图像进行推理
+    yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
+    ```
+````
 
 ## 支持的任务和模式
 
@@ -90,11 +89,11 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 下面是每个模型的详细信息，包括它们的预训练权重链接、支持的任务以及与不同操作模式的兼容性。
 
-| 模型类型       | 预训练权重链接                                                                                       | 支持的任务                      | 推理 | 验证 | 训练 | 导出 |
-|------------|-----------------------------------------------------------------------------------------------|----------------------------|----|----|----|----|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
+| 模型类型       | 预训练权重链接                                                                                       | 支持的任务                      | 推理  | 验证  | 训练  | 导出  |
+| ---------- | --------------------------------------------------------------------------------------------- | -------------------------- | --- | --- | --- | --- |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [物体检测](../tasks/detect.md) | ✅   | ✅   | ❌   | ✅   |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [物体检测](../tasks/detect.md) | ✅   | ✅   | ❌   | ✅   |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [物体检测](../tasks/detect.md) | ✅   | ✅   | ❌   | ✅   |
 
 ## 引用和致谢
 
@@ -102,19 +101,21 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{supergradients,
-              doi = {10.5281/ZENODO.7789328},
-              url = {https://zenodo.org/record/7789328},
-              author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
-              title = {Super-Gradients},
-              publisher = {GitHub},
-              journal = {GitHub repository},
-              year = {2021},
-        }
-        ```
+    ```bibtex
+    @misc{supergradients,
+          doi = {10.5281/ZENODO.7789328},
+          url = {https://zenodo.org/record/7789328},
+          author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
+          title = {Super-Gradients},
+          publisher = {GitHub},
+          journal = {GitHub repository},
+          year = {2021},
+    }
+    ```
+````
 
 我们向Deci AI的[SuperGradients](https://github.com/Deci-AI/super-gradients/)团队表示感谢，他们致力于创建和维护这个对计算机视觉社区非常有价值的资源。我们相信YOLO-NAS凭借其创新的架构和卓越的物体检测能力，将成为开发者和研究人员的重要工具。
 

@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore Ultralytics community’s Code of Conduct, ensuring a supportive, inclusive environment for contributors & members at all levels. Find our guidelines on acceptable behavior & enforcement.
-keywords: Ultralytics, code of conduct, community, contribution, behavior guidelines, enforcement, open source contributions
----
+______________________________________________________________________
+
+## comments: true description: Explore Ultralytics community’s Code of Conduct, ensuring a supportive, inclusive environment for contributors & members at all levels. Find our guidelines on acceptable behavior & enforcement. keywords: Ultralytics, code of conduct, community, contribution, behavior guidelines, enforcement, open source contributions
 
 # Ultralytics Contributor Covenant Code of Conduct
 
@@ -76,13 +74,10 @@ Community leaders will follow these Community Impact Guidelines in determining t
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.0, available at
-https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
+This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.0, available at https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
 
 Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
 
-For answers to common questions about this code of conduct, see the FAQ at
-https://www.contributor-covenant.org/faq. Translations are available at
-https://www.contributor-covenant.org/translations.
+For answers to common questions about this code of conduct, see the FAQ at https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
 
 [homepage]: https://www.contributor-covenant.org

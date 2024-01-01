@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore la amplia gama de modelos de la familia YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS y RT-DETR soportados por Ultralytics. Comienza con ejemplos para el uso tanto de CLI como de Python.
-keywords: Ultralytics, documentación, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, modelos, arquitecturas, Python, CLI
----
+______________________________________________________________________
+
+## comments: true description: Explore la amplia gama de modelos de la familia YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS y RT-DETR soportados por Ultralytics. Comienza con ejemplos para el uso tanto de CLI como de Python. keywords: Ultralytics, documentación, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, modelos, arquitecturas, Python, CLI
 
 # Modelos soportados por Ultralytics
 
@@ -10,21 +8,23 @@ keywords: Ultralytics, documentación, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, 
 
 !!! Note "Nota"
 
-    🚧 Estamos trabajando arduamente para mejorar nuestra documentación en varios idiomas actualmente en construcción. ¡Gracias por tu paciencia! 🙏
+```
+🚧 Estamos trabajando arduamente para mejorar nuestra documentación en varios idiomas actualmente en construcción. ¡Gracias por tu paciencia! 🙏
+```
 
 ## Modelos destacados
 
 Aquí están algunos de los modelos clave soportados:
 
-1. **[YOLOv3](yolov3.md)**: La tercera iteración de la familia de modelos YOLO, original de Joseph Redmon, conocida por su capacidad de detección de objetos en tiempo real eficientemente.
-2. **[YOLOv4](yolov4.md)**: Una actualización nativa de darknet para YOLOv3, lanzada por Alexey Bochkovskiy en 2020.
-3. **[YOLOv5](yolov5.md)**: Una versión mejorada de la arquitectura YOLO por Ultralytics, ofreciendo un mejor rendimiento y compromiso de velocidad comparado con versiones anteriores.
-4. **[YOLOv6](yolov6.md)**: Lanzado por [Meituan](https://about.meituan.com/) en 2022, y utilizado en muchos de los robots de entrega autónomos de la compañía.
-5. **[YOLOv7](yolov7.md)**: Modelos YOLO actualizados lanzados en 2022 por los autores de YOLOv4.
-6. **[YOLOv8](yolov8.md) NUEVO 🚀**: La última versión de la familia YOLO, con capacidades mejoradas como segmentación de instancias, estimación de posturas/puntos clave y clasificación.
-7. **[Modelo Segment Anything (SAM)](sam.md)**: Modelo Segment Anything (SAM) de Meta.
-8. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM para aplicaciones móviles, por la Universidad de Kyung Hee.
-9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM por el Grupo de Análisis de Imagen y Video, Instituto de Automatización, Academia China de Ciencias.
+01. **[YOLOv3](yolov3.md)**: La tercera iteración de la familia de modelos YOLO, original de Joseph Redmon, conocida por su capacidad de detección de objetos en tiempo real eficientemente.
+02. **[YOLOv4](yolov4.md)**: Una actualización nativa de darknet para YOLOv3, lanzada por Alexey Bochkovskiy en 2020.
+03. **[YOLOv5](yolov5.md)**: Una versión mejorada de la arquitectura YOLO por Ultralytics, ofreciendo un mejor rendimiento y compromiso de velocidad comparado con versiones anteriores.
+04. **[YOLOv6](yolov6.md)**: Lanzado por [Meituan](https://about.meituan.com/) en 2022, y utilizado en muchos de los robots de entrega autónomos de la compañía.
+05. **[YOLOv7](yolov7.md)**: Modelos YOLO actualizados lanzados en 2022 por los autores de YOLOv4.
+06. **[YOLOv8](yolov8.md) NUEVO 🚀**: La última versión de la familia YOLO, con capacidades mejoradas como segmentación de instancias, estimación de posturas/puntos clave y clasificación.
+07. **[Modelo Segment Anything (SAM)](sam.md)**: Modelo Segment Anything (SAM) de Meta.
+08. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM para aplicaciones móviles, por la Universidad de Kyung Hee.
+09. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM por el Grupo de Análisis de Imagen y Video, Instituto de Automatización, Academia China de Ciencias.
 10. **[YOLO-NAS](yolo-nas.md)**: Modelos YOLO de Búsqueda de Arquitectura Neural (NAS).
 11. **[Transformadores de Detección en Tiempo Real (RT-DETR)](rtdetr.md)**: Modelos de Transformador de Detección en Tiempo Real (RT-DETR) de Baidu's PaddlePaddle.
 
@@ -47,37 +47,39 @@ Nota que el siguiente ejemplo es para los modelos YOLOv8 [Detect](../tasks/detec
 
 !!! Example "Ejemplo"
 
-    === "Python"
+````
+=== "Python"
 
-        Los modelos pre-entrenados `*.pt` de PyTorch así como los archivos de configuración `*.yaml` se pueden pasar a las clases `YOLO()`, `SAM()`, `NAS()` y `RTDETR()` para crear una instancia de modelo en Python:
+    Los modelos pre-entrenados `*.pt` de PyTorch así como los archivos de configuración `*.yaml` se pueden pasar a las clases `YOLO()`, `SAM()`, `NAS()` y `RTDETR()` para crear una instancia de modelo en Python:
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo YOLOv8n preentrenado en COCO
-        model = YOLO('yolov8n.pt')
+    # Cargar un modelo YOLOv8n preentrenado en COCO
+    model = YOLO('yolov8n.pt')
 
-        # Mostrar información del modelo (opcional)
-        model.info()
+    # Mostrar información del modelo (opcional)
+    model.info()
 
-        # Entrenar el modelo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # Entrenar el modelo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # Ejecutar inferencia con el modelo YOLOv8n en la imagen 'bus.jpg'
-        results = model('path/to/bus.jpg')
-        ```
+    # Ejecutar inferencia con el modelo YOLOv8n en la imagen 'bus.jpg'
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        Los comandos CLI están disponibles para ejecutar directamente los modelos:
+    Los commandos CLI están disponibles para ejecutar directamente los modelos:
 
-        ```bash
-        # Cargar un modelo YOLOv8n preentrenado en COCO y entrenarlo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
-        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # Cargar un modelo YOLOv8n preentrenado en COCO y entrenarlo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
+    yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # Cargar un modelo YOLOv8n preentrenado en COCO y ejecutar inferencia en la imagen 'bus.jpg'
-        yolo predict model=yolov8n.pt source=path/to/bus.jpg
-        ```
+    # Cargar un modelo YOLOv8n preentrenado en COCO y ejecutar inferencia en la imagen 'bus.jpg'
+    yolo predict model=yolov8n.pt source=path/to/bus.jpg
+    ```
+````
 
 ## Contribuir con Nuevos Modelos
 

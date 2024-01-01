@@ -1,13 +1,14 @@
----
-description: Explore Ultralytics-tailored torch utility features like Model EMA, early stopping, smart inference, image scaling, get_flops, and many more.
-keywords: Ultralytics, Torch Utils, Model EMA, Early Stopping, Smart Inference, Get CPU Info, Time Sync, Fuse Deconv and bn, Get num params, Get FLOPs, Scale img, Copy attr, Intersect dicts, De_parallel, Init seeds, Profile
----
+______________________________________________________________________
+
+## description: Explore Ultralytics-tailored torch utility features like Model EMA, early stopping, smart inference, image scaling, get_flops, and many more. keywords: Ultralytics, Torch Utils, Model EMA, Early Stopping, Smart Inference, Get CPU Info, Time Sync, Fuse Deconv and bn, Get num params, Get FLOPs, Scale img, Copy attr, Intersect dicts, De_parallel, Init seeds, Profile
 
 # Reference for `ultralytics/utils/torch_utils.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/torch_utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/torch_utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/torch_utils.py) 🛠️. Thank you 🙏!
+```
+This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/torch_utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/torch_utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/torch_utils.py) 🛠️. Thank you 🙏!
+```
 
 <br><br>
 

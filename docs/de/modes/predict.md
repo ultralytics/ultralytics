@@ -1,8 +1,6 @@
----
-comments: true
-description: Erkunden Sie, wie der YOLOv8-Prognosemodus für verschiedene Aufgaben verwendet werden kann. Erfahren Sie mehr über verschiedene Inferenzquellen wie Bilder, Videos und Datenformate.
-keywords: Ultralytics, YOLOv8, Vorhersagemodus, Inferenzquellen, Vorhersageaufgaben, Streaming-Modus, Bildverarbeitung, Videoverarbeitung, maschinelles Lernen, KI
----
+______________________________________________________________________
+
+## comments: true description: Erkunden Sie, wie der YOLOv8-Prognosemodus für verschiedene Aufgaben verwendet werden kann. Erfahren Sie mehr über verschiedene Inferenzquellen wie Bilder, Videos und Datenformate. keywords: Ultralytics, YOLOv8, Vorhersagemodus, Inferenzquellen, Vorhersageaufgaben, Streaming-Modus, Bildverarbeitung, Videoverarbeitung, maschinelles Lernen, KI
 
 # Modellvorhersage mit Ultralytics YOLO
 
@@ -10,7 +8,7 @@ keywords: Ultralytics, YOLOv8, Vorhersagemodus, Inferenzquellen, Vorhersageaufga
 
 ## Einführung
 
-Im Bereich des maschinellen Lernens und der Computer Vision wird der Prozess des Verstehens visueller Daten als 'Inferenz' oder 'Vorhersage' bezeichnet. Ultralytics YOLOv8 bietet eine leistungsstarke Funktion, die als **Prognosemodus** bekannt ist und für eine hochleistungsfähige, echtzeitfähige Inferenz auf einer breiten Palette von Datenquellen zugeschnitten ist.
+Im Bereich des maschinellen Lernens und der Computer Vision wird der Process des Verstehens visueller Daten also 'Inferenz' oder 'Vorhersage' bezeichnet. Ultralytics YOLOv8 bietet eine leistungsstarke Function, die also **Prognosemodus** bekannt ist und für eine hochleistungsfähige, echtzeitfähige Inferenz auf einer breiten Palette von Datenquellen zugeschnitten ist.
 
 <p align="center">
   <br>
@@ -20,13 +18,13 @@ Im Bereich des maschinellen Lernens und der Computer Vision wird der Prozess des
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Anschauen:</strong> Wie man die Ausgaben vom Ultralytics YOLOv8 Modell für individuelle Projekte extrahiert.
+  <strong>Anschauen:</strong> Wie man die Ausgaben vom Ultralytics YOLOv8 Model für individuelle Projekte extrahiert.
 </p>
 
 ## Anwendungen in der realen Welt
 
 |                                                               Herstellung                                                               |                                                                Sport                                                                |                                                               Sicherheit                                                                |
-|:---------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------:|
+| :-------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ersatzteilerkennung für Fahrzeuge](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Erkennung von Fußballspielern](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![Erkennung von stürzenden Personen](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
 |                                                   Erkennung von Fahrzeugersatzteilen                                                    |                                                    Erkennung von Fußballspielern                                                    |                                                    Erkennung von stürzenden Personen                                                    |
 
@@ -48,45 +46,47 @@ Der Prognosemodus von YOLOv8 ist robust und vielseitig konzipiert und verfügt �
 - **Batchverarbeitung:** Die Möglichkeit, mehrere Bilder oder Videoframes in einem einzigen Batch zu verarbeiten, wodurch die Inferenzzeit weiter verkürzt wird.
 - **Integrationsfreundlich:** Dank der flexiblen API leicht in bestehende Datenpipelines und andere Softwarekomponenten zu integrieren.
 
-Ultralytics YOLO-Modelle geben entweder eine Python-Liste von `Results`-Objekten zurück, oder einen speichereffizienten Python-Generator von `Results`-Objekten, wenn `stream=True` beim Inferenzvorgang an das Modell übergeben wird:
+Ultralytics YOLO-Modelle geben entweder eine Python-Liste von `Results`-Objekten zurück, oder einen speichereffizienten Python-Generator von `Results`-Objekten, wenn `stream=True` beim Inferenzvorgang an das Model übergeben wird:
 
 !!! Example "Predict"
 
-    === "Gibt eine Liste mit `stream=False` zurück"
-        ```python
-        from ultralytics import YOLO
+````
+=== "Gibt eine Liste mit `stream=False` zurück"
+    ```python
+    from ultralytics import YOLO
 
-        # Ein Modell laden
-        model = YOLO('yolov8n.pt')  # vortrainiertes YOLOv8n Modell
+    # Ein Model laden
+    model = YOLO('yolov8n.pt')  # vortrainiertes YOLOv8n Model
 
-        # Batch-Inferenz auf einer Liste von Bildern ausführen
-        results = model(['im1.jpg', 'im2.jpg'])  # gibt eine Liste von Results-Objekten zurück
+    # Batch-Inferenz auf einer Liste von Bildern ausführen
+    results = model(['im1.jpg', 'im2.jpg'])  # gibt eine Liste von Results-Objekten zurück
 
-        # Ergebnisliste verarbeiten
-        for result in results:
-            boxes = result.boxes  # Boxes-Objekt für Bbox-Ausgaben
-            masks = result.masks  # Masks-Objekt für Segmentierungsmasken-Ausgaben
-            keypoints = result.keypoints  # Keypoints-Objekt für Pose-Ausgaben
-            probs = result.probs  # Probs-Objekt für Klassifizierungs-Ausgaben
-        ```
+    # Ergebnisliste verarbeiten
+    for result in results:
+        boxes = result.boxes  # Boxes-Objekt für Bbox-Ausgaben
+        masks = result.masks  # Masks-Objekt für Segmentierungsmasken-Ausgaben
+        keypoints = result.keypoints  # Keypoints-Objekt für Pose-Ausgaben
+        probs = result.probs  # Probs-Objekt für Klassifizierungs-Ausgaben
+    ```
 
-    === "Gibt einen Generator mit `stream=True` zurück"
-        ```python
-        from ultralytics import YOLO
+=== "Gibt einen Generator mit `stream=True` zurück"
+    ```python
+    from ultralytics import YOLO
 
-        # Ein Modell laden
-        model = YOLO('yolov8n.pt')  # vortrainiertes YOLOv8n Modell
+    # Ein Model laden
+    model = YOLO('yolov8n.pt')  # vortrainiertes YOLOv8n Model
 
-        # Batch-Inferenz auf einer Liste von Bildern ausführen
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # gibt einen Generator von Results-Objekten zurück
+    # Batch-Inferenz auf einer Liste von Bildern ausführen
+    results = model(['im1.jpg', 'im2.jpg'], stream=True)  # gibt einen Generator von Results-Objekten zurück
 
-        # Generator von Ergebnissen verarbeiten
-        for result in results:
-            boxes = result.boxes  # Boxes-Objekt für Bbox-Ausgaben
-            masks = result.masks  # Masks-Objekt für Segmentierungsmasken-Ausgaben
-            keypoints = result.keypoints  # Keypoints-Objekt für Pose-Ausgaben
-            probs = result.probs  # Probs-Objekt für Klassifizierungs-Ausgaben
-        ```
+    # Generator von Ergebnissen verarbeiten
+    for result in results:
+        boxes = result.boxes  # Boxes-Objekt für Bbox-Ausgaben
+        masks = result.masks  # Masks-Objekt für Segmentierungsmasken-Ausgaben
+        keypoints = result.keypoints  # Keypoints-Objekt für Pose-Ausgaben
+        probs = result.probs  # Probs-Objekt für Klassifizierungs-Ausgaben
+    ```
+````
 
 ## Inferenzquellen
 
@@ -94,10 +94,12 @@ YOLOv8 kann verschiedene Arten von Eingabequellen für die Inferenz verarbeiten,
 
 !!! Tip "Tipp"
 
-    Verwenden Sie `stream=True` für die Verarbeitung langer Videos oder großer Datensätze, um den Speicher effizient zu verwalten. Bei `stream=False` werden die Ergebnisse für alle Frames oder Datenpunkte im Speicher gehalten, was bei großen Eingaben schnell zu Speicherüberläufen führen kann. Im Gegensatz dazu verwendet `stream=True` einen Generator, der nur die Ergebnisse des aktuellen Frames oder Datenpunkts im Speicher behält, was den Speicherverbrauch erheblich reduziert und Speicherüberlaufprobleme verhindert.
+```
+Verwenden Sie `stream=True` für die Verarbeitung langer Videos oder großer Datensätze, um den Speicher effizient zu verwalten. Bei `stream=False` werden die Ergebnisse für alle Frames oder Datenpunkte im Speicher gehalten, was bei großen Eingaben schnell zu Speicherüberläufen führen kann. Im Gegensatz dazu verwendet `stream=True` einen Generator, der nur die Ergebnisse des aktuellen Frames oder Datenpunkts im Speicher behält, was den Speicherverbrauch erheblich reduziert und Speicherüberlaufprobleme verhindert.
+```
 
 | Quelle             | Argument                                   | Typ               | Hinweise                                                                                       |
-|--------------------|--------------------------------------------|-------------------|------------------------------------------------------------------------------------------------|
+| ------------------ | ------------------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------- |
 | Bild               | `'image.jpg'`                              | `str` oder `Path` | Einzelbilddatei.                                                                               |
 | URL                | `'https://ultralytics.com/images/bus.jpg'` | `str`             | URL zu einem Bild.                                                                             |
 | Bildschirmaufnahme | `'screen'`                                 | `str`             | Eine Bildschirmaufnahme erstellen.                                                             |
@@ -108,7 +110,7 @@ YOLOv8 kann verschiedene Arten von Eingabequellen für die Inferenz verarbeiten,
 | CSV                | `'sources.csv'`                            | `str` oder `Path` | CSV-Datei mit Pfaden zu Bildern, Videos oder Verzeichnissen.                                   |
 | video ✅            | `'video.mp4'`                              | `str` oder `Path` | Videodatei in Formaten wie MP4, AVI, usw.                                                      |
 | Verzeichnis ✅      | `'path/'`                                  | `str` oder `Path` | Pfad zu einem Verzeichnis mit Bildern oder Videos.                                             |
-| glob ✅             | `'path/*.jpg'`                             | `str`             | Glob-Muster, um mehrere Dateien zu finden. Verwenden Sie das `*` Zeichen als Platzhalter.      |
+| glob ✅             | `'path/*.jpg'`                             | `str`             | Glob-Muster, um mehrere Dateien zu finden. Verwenden Sie das `*` Zeichen also Platzhalter.      |
 | YouTube ✅          | `'https://youtu.be/LNwODJXcvt4'`           | `str`             | URL zu einem YouTube-Video.                                                                    |
 | stream ✅           | `'rtsp://example.com/media.mp4'`           | `str`             | URL für Streaming-Protokolle wie RTSP, RTMP, TCP oder eine IP-Adresse.                         |
 | Multi-Stream ✅     | `'list.streams'`                           | `str` oder `Path` | `*.streams` Textdatei mit einer Stream-URL pro Zeile, z.B. 8 Streams laufen bei Batch-Größe 8. |
@@ -117,111 +119,113 @@ Untenstehend finden Sie Codebeispiele für die Verwendung jedes Quelltyps:
 
 !!! Example "Vorhersagequellen"
 
-    === "Bild"
-        Führen Sie die Inferenz auf einer Bilddatei aus.
-        ```python
-        from ultralytics import YOLO
+````
+=== "Bild"
+    Führen Sie die Inferenz auf einer Bilddatei aus.
+    ```python
+    from ultralytics import YOLO
 
-        # Ein vortrainiertes YOLOv8n Modell laden
-        model = YOLO('yolov8n.pt')
+    # Ein vortrainiertes YOLOv8n Model laden
+    model = YOLO('yolov8n.pt')
 
-        # Pfad zur Bilddatei definieren
-        quell = 'Pfad/zum/Bild.jpg'
+    # Pfad zur Bilddatei definieren
+    quell = 'Pfad/zum/Bild.jpg'
 
-        # Inferenz auf der Quelle ausführen
-        ergebnisse = model(quell)  # Liste von Results-Objekten
-        ```
+    # Inferenz auf der Quelle ausführen
+    ergebnisse = model(quell)  # Liste von Results-Objekten
+    ```
 
-    === "Bildschirmaufnahme"
-        Führen Sie die Inferenz auf dem aktuellen Bildschirminhalt als Screenshot aus.
-        ```python
-        from ultralytics import YOLO
+=== "Bildschirmaufnahme"
+    Führen Sie die Inferenz auf dem aktuellen Bildschirminhalt also Screenshot aus.
+    ```python
+    from ultralytics import YOLO
 
-        # Ein vortrainiertes YOLOv8n Modell laden
-        model = YOLO('yolov8n.pt')
+    # Ein vortrainiertes YOLOv8n Model laden
+    model = YOLO('yolov8n.pt')
 
-        # Aktuellen Screenshot als Quelle definieren
-        quell = 'Bildschirm'
+    # Aktuellen Screenshot also Quelle definieren
+    quell = 'Bildschirm'
 
-        # Inferenz auf der Quelle ausführen
-        ergebnisse = model(quell)  # Liste von Results-Objekten
-        ```
+    # Inferenz auf der Quelle ausführen
+    ergebnisse = model(quell)  # Liste von Results-Objekten
+    ```
 
-    === "URL"
-        Führen Sie die Inferenz auf einem Bild oder Video aus, das über eine URL remote gehostet wird.
-        ```python
-        from ultralytics import YOLO
+=== "URL"
+    Führen Sie die Inferenz auf einem Bild oder Video aus, das über eine URL remote gehostet wird.
+    ```python
+    from ultralytics import YOLO
 
-        # Ein vortrainiertes YOLOv8n Modell laden
-        model = YOLO('yolov8n.pt')
+    # Ein vortrainiertes YOLOv8n Model laden
+    model = YOLO('yolov8n.pt')
 
-        # Remote-Bild- oder Video-URL definieren
-        quell = 'https://ultralytics.com/images/bus.jpg'
+    # Remote-Bild- oder Video-URL definieren
+    quell = 'https://ultralytics.com/images/bus.jpg'
 
-        # Inferenz auf der Quelle ausführen
-        ergebnisse = model(quell)  # Liste von Results-Objekten
-        ```
+    # Inferenz auf der Quelle ausführen
+    ergebnisse = model(quell)  # Liste von Results-Objekten
+    ```
 
-    === "PIL"
-        Führen Sie die Inferenz auf einem Bild aus, das mit der Python Imaging Library (PIL) geöffnet wurde.
-        ```python
-        from PIL import Image
-        from ultralytics import YOLO
+=== "PIL"
+    Führen Sie die Inferenz auf einem Bild aus, das mit der Python Imaging Library (PIL) geöffnet wurde.
+    ```python
+    from PIL import Image
+    from ultralytics import YOLO
 
-        # Ein vortrainiertes YOLOv8n Modell laden
-        model = YOLO('yolov8n.pt')
+    # Ein vortrainiertes YOLOv8n Model laden
+    model = YOLO('yolov8n.pt')
 
-        # Ein Bild mit PIL öffnen
-        quell = Image.open('Pfad/zum/Bild.jpg')
+    # Ein Bild mit PIL öffnen
+    quell = Image.open('Pfad/zum/Bild.jpg')
 
-        # Inferenz auf der Quelle ausführen
-        ergebnisse = model(quell)  # Liste von Results-Objekten
-        ```
+    # Inferenz auf der Quelle ausführen
+    ergebnisse = model(quell)  # Liste von Results-Objekten
+    ```
 
-    === "OpenCV"
-        Führen Sie die Inferenz auf einem Bild aus, das mit OpenCV gelesen wurde.
-        ```python
-        import cv2
-        from ultralytics import YOLO
+=== "OpenCV"
+    Führen Sie die Inferenz auf einem Bild aus, das mit OpenCV gelesen wurde.
+    ```python
+    import cv2
+    from ultralytics import YOLO
 
-        # Ein vortrainiertes YOLOv8n Modell laden
-        model = YOLO('yolov8n.pt')
+    # Ein vortrainiertes YOLOv8n Model laden
+    model = YOLO('yolov8n.pt')
 
-        # Ein Bild mit OpenCV lesen
-        quell = cv2.imread('Pfad/zum/Bild.jpg')
+    # Ein Bild mit OpenCV lesen
+    quell = cv2.imread('Pfad/zum/Bild.jpg')
 
-        # Inferenz auf der Quelle ausführen
-        ergebnisse = model(quell)  # Liste von Results-Objekten
-        ```
+    # Inferenz auf der Quelle ausführen
+    ergebnisse = model(quell)  # Liste von Results-Objekten
+    ```
 
-    === "numpy"
-        Führen Sie die Inferenz auf einem Bild aus, das als numpy-Array dargestellt wird.
-        ```python
-        import numpy as np
-        from ultralytics import YOLO
+=== "numpy"
+    Führen Sie die Inferenz auf einem Bild aus, das also numpy-Array dargestellt wird.
+    ```python
+    import numpy as np
+    from ultralytics import YOLO
 
-        # Ein vortrainiertes YOLOv8n Modell laden
-        model = YOLO('yolov8n.pt')
+    # Ein vortrainiertes YOLOv8n Model laden
+    model = YOLO('yolov8n.pt')
 
-        # Ein zufälliges numpy-Array der HWC-Form (640, 640, 3) mit Werten im Bereich [0, 255] und Typ uint8 erstellen
-        quell = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+    # Ein zufälliges numpy-Array der HWC-Form (640, 640, 3) mit Werten im Bereich [0, 255] und Typ uint8 erstellen
+    quell = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
 
-        # Inferenz auf der Quelle ausführen
-        ergebnisse = model(quell)  # Liste von Results-Objekten
-        ```
+    # Inferenz auf der Quelle ausführen
+    ergebnisse = model(quell)  # Liste von Results-Objekten
+    ```
 
-    === "torch"
-        Führen Sie die Inferenz auf einem Bild aus, das als PyTorch-Tensor dargestellt wird.
-        ```python
-        import torch
-        from ultralytics import YOLO
+=== "torch"
+    Führen Sie die Inferenz auf einem Bild aus, das also PyTorch-Tensor dargestellt wird.
+    ```python
+    import torch
+    from ultralytics import YOLO
 
-        # Ein vortrainiertes YOLOv8n Modell laden
-        model = YOLO('yolov8n.pt')
+    # Ein vortrainiertes YOLOv8n Model laden
+    model = YOLO('yolov8n.pt')
 
-        # Ein zufälliger torch-Tensor der BCHW-Form (1, 3, 640, 640) mit Werten im Bereich [0, 1] und Typ float32 erstellen
-        quell = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+    # Ein zufälliger torch-Tensor der BCHW-Form (1, 3, 640, 640) mit Werten im Bereich [0, 1] und Typ float32 erstellen
+    quell = torch.rand(1, 3, 640, 640, dtype=torch.float32)
 
-        # Inferenz auf der Quelle ausführen
-        ergebnisse = model(quell)  # Liste von Results-Objekten
-        ```
+    # Inferenz auf der Quelle ausführen
+    ergebnisse = model(quell)  # Liste von Results-Objekten
+    ```
+````

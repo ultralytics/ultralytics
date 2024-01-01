@@ -1,8 +1,6 @@
----
-comments: true
-description: Discover how to deploy YOLOv5 on a GCP Deep Learning VM for seamless object detection. Ideal for ML beginners and cloud learners. Get started with our easy-to-follow tutorial!
-keywords: YOLOv5, Google Cloud Platform, GCP, Deep Learning VM, ML model training, object detection, AI tutorial, cloud-based AI, machine learning setup
----
+______________________________________________________________________
+
+## comments: true description: Discover how to deploy YOLOv5 on a GCP Deep Learning VM for seamless object detection. Ideal for ML beginners and cloud learners. Get started with our easy-to-follow tutorial! keywords: YOLOv5, Google Cloud Platform, GCP, Deep Learning VM, ML model training, object detection, AI tutorial, cloud-based AI, machine learning setup
 
 # Mastering YOLOv5 🚀 Deployment on Google Cloud Platform (GCP) Deep Learning Virtual Machine (VM) ⭐
 

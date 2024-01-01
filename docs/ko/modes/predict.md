@@ -1,8 +1,6 @@
----
-comments: true
-description: YOLOv8 예측 모드를 사용하여 다양한 작업을 수행하는 방법을 알아보십시오. 이미지, 비디오 및 데이터 형식과 같은 다양한 추론 소스에 대해 자세히 알아봅니다.
-keywords: Ultralytics, YOLOv8, 예측 모드, 추론 소스, 예측 작업, 스트리밍 모드, 이미지 처리, 비디오 처리, 머신 러닝, AI
----
+______________________________________________________________________
+
+## comments: true description: YOLOv8 예측 모드를 사용하여 다양한 작업을 수행하는 방법을 알아보십시오. 이미지, 비디오 및 데이터 형식과 같은 다양한 추론 소스에 대해 자세히 알아봅니다. keywords: Ultralytics, YOLOv8, 예측 모드, 추론 소스, 예측 작업, 스트리밍 모드, 이미지 처리, 비디오 처리, 머신 러닝, AI
 
 # Ultralytics YOLO로 모델 예측
 
@@ -26,7 +24,7 @@ keywords: Ultralytics, YOLOv8, 예측 모드, 추론 소스, 예측 작업, 스�
 ## 실제 응용 분야
 
 |                                                        제조업                                                        |                                                      스포츠                                                       |                                                       안전                                                        |
-|:-----------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------:|
+| :---------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------: |
 | ![차량 예비 부품 탐지](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![축구 선수 탐지](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![사람 넘어짐 탐지](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
 |                                                    차량 예비 부품 탐지                                                    |                                                    축구 선수 탐지                                                    |                                                    사람 넘어짐 탐지                                                    |
 
@@ -52,41 +50,43 @@ Ultralytics YOLO 모델은 Python `Results` 객체의 리스트를 반환하거�
 
 !!! 예시 "예측"
 
-    === "`stream=False`로 리스트 반환"
-        ```python
-        from ultralytics import YOLO
+````
+=== "`stream=False`로 리스트 반환"
+    ```python
+    from ultralytics import YOLO
 
-        # 모델 로드
-        model = YOLO('yolov8n.pt')  # 사전 훈련된 YOLOv8n 모델
+    # 모델 로드
+    model = YOLO('yolov8n.pt')  # 사전 훈련된 YOLOv8n 모델
 
-        # 이미지 리스트에 대한 배치 추론 실행
-        results = model(['im1.jpg', 'im2.jpg'])  # Results 객체의 리스트 반환
+    # 이미지 리스트에 대한 배치 추론 실행
+    results = model(['im1.jpg', 'im2.jpg'])  # Results 객체의 리스트 반환
 
-        # 결과 리스트 처리
-        for result in results:
-            boxes = result.boxes  # bbox 출력을 위한 Boxes 객체
-            masks = result.masks  # 세그멘테이션 마스크 출력을 위한 Masks 객체
-            keypoints = result.keypoints  # 자세 출력을 위한 Keypoints 객체
-            probs = result.probs  # 분류 출력을 위한 Probs 객체
-        ```
+    # 결과 리스트 처리
+    for result in results:
+        boxes = result.boxes  # bbox 출력을 위한 Boxes 객체
+        masks = result.masks  # 세그멘테이션 마스크 출력을 위한 Masks 객체
+        keypoints = result.keypoints  # 자세 출력을 위한 Keypoints 객체
+        probs = result.probs  # 분류 출력을 위한 Probs 객체
+    ```
 
-    === "`stream=True`로 생성자 반환"
-        ```python
-        from ultralytics import YOLO
+=== "`stream=True`로 생성자 반환"
+    ```python
+    from ultralytics import YOLO
 
-        # 모델 로드
-        model = YOLO('yolov8n.pt')  # 사전 훈련된 YOLOv8n 모델
+    # 모델 로드
+    model = YOLO('yolov8n.pt')  # 사전 훈련된 YOLOv8n 모델
 
-        # 이미지 리스트에 대한 배치 추론 실행
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # Results 객체의 생성자 반환
+    # 이미지 리스트에 대한 배치 추론 실행
+    results = model(['im1.jpg', 'im2.jpg'], stream=True)  # Results 객체의 생성자 반환
 
-        # 결과 생성자 처리
-        for result in results:
-            boxes = result.boxes  # bbox 출력을 위한 Boxes 객체
-            masks = result.masks  # 세그멘테이션 마스크 출력을 위한 Masks 객체
-            keypoints = result.keypoints  # 자세 출력을 위한 Keypoints 객체
-            probs = result.probs  # 분류 출력을 위한 Probs 객체
-        ```
+    # 결과 생성자 처리
+    for result in results:
+        boxes = result.boxes  # bbox 출력을 위한 Boxes 객체
+        masks = result.masks  # 세그멘테이션 마스크 출력을 위한 Masks 객체
+        keypoints = result.keypoints  # 자세 출력을 위한 Keypoints 객체
+        probs = result.probs  # 분류 출력을 위한 Probs 객체
+    ```
+````
 
 ## 추론 소스
 
@@ -94,10 +94,12 @@ YOLOv8은 아래 표에 표시된 바와 같이 추론을 위한 다양한 유�
 
 !!! Tip "팁"
 
-    긴 비디오나 큰 데이터 세트를 처리할 때 'stream=True'를 사용하여 효율적으로 메모리를 관리합니다. 'stream=False'일 때는 모든 프레임 또는 데이터 포인트에 대한 결과가 메모리에 저장되어, 입력이 크면 메모리 부족 오류를 빠르게 유발할 수 있습니다. 반면에, 'stream=True'는 생성자를 사용하여 현재 프레임 또는 데이터 포인트의 결과만 메모리에 유지하여 메모리 소비를 크게 줄이고 메모리 부족 문제를 방지합니다.
+```
+긴 비디오나 큰 데이터 세트를 처리할 때 'stream=True'를 사용하여 효율적으로 메모리를 관리합니다. 'stream=False'일 때는 모든 프레임 또는 데이터 포인트에 대한 결과가 메모리에 저장되어, 입력이 크면 메모리 부족 오류를 빠르게 유발할 수 있습니다. 반면에, 'stream=True'는 생성자를 사용하여 현재 프레임 또는 데이터 포인트의 결과만 메모리에 유지하여 메모리 소비를 크게 줄이고 메모리 부족 문제를 방지합니다.
+```
 
 | 소스        | 인수                                         | 유형              | 비고                                                                       |
-|-----------|--------------------------------------------|-----------------|--------------------------------------------------------------------------|
+| --------- | ------------------------------------------ | --------------- | ------------------------------------------------------------------------ |
 | 이미지       | `'image.jpg'`                              | `str` 또는 `Path` | 단일 이미지 파일.                                                               |
 | URL       | `'https://ultralytics.com/images/bus.jpg'` | `str`           | 이미지 URL.                                                                 |
 | 스크린샷      | `'screen'`                                 | `str`           | 스크린샷을 캡처합니다.                                                             |
@@ -108,7 +110,7 @@ YOLOv8은 아래 표에 표시된 바와 같이 추론을 위한 다양한 유�
 | CSV       | `'sources.csv'`                            | `str` 또는 `Path` | 이미지, 비디오 또는 디렉토리 경로가 있는 CSV 파일.                                          |
 | 비디오 ✅     | `'video.mp4'`                              | `str` 또는 `Path` | MP4, AVI 등과 같은 형식의 비디오 파일입니다.                                            |
 | 디렉토리 ✅    | `'path/'`                                  | `str` 또는 `Path` | 이미지나 비디오가 있는 디렉토리 경로입니다.                                                 |
-| 글로브 ✅     | `'path/*.jpg'`                             | `str`           | 여러 파일에 일치하는 글로브 패턴입니다. '*' 문자를 와일드카드로 사용하세요.                             |
+| 글로브 ✅     | `'path/*.jpg'`                             | `str`           | 여러 파일에 일치하는 글로브 패턴입니다. '\*' 문자를 와일드카드로 사용하세요.                            |
 | YouTube ✅ | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | YouTube 비디오의 URL입니다.                                                     |
 | 스트림 ✅     | `'rtsp://example.com/media.mp4'`           | `str`           | RTSP, RTMP, TCP 또는 IP 주소와 같은 스트리밍 프로토콜의 URL입니다.                          |
 | 멀티-스트림 ✅  | `'list.streams'`                           | `str` 또는 `Path` | 스트림 URL이 행당 하나씩 있는 `*.streams` 텍스트 파일이며, 예를 들어 8개의 스트림은 배치 크기 8에서 실행됩니다. |
@@ -117,111 +119,113 @@ YOLOv8은 아래 표에 표시된 바와 같이 추론을 위한 다양한 유�
 
 !!! 예시 "예측 소스"
 
-    === "이미지"
-        이미지 파일에서 추론을 실행합니다.
-        ```python
-        from ultralytics import YOLO
+````
+=== "이미지"
+    이미지 파일에서 추론을 실행합니다.
+    ```python
+    from ultralytics import YOLO
 
-        # 사전 훈련된 YOLOv8n 모델 로드
-        model = YOLO('yolov8n.pt')
+    # 사전 훈련된 YOLOv8n 모델 로드
+    model = YOLO('yolov8n.pt')
 
-        # 이미지 파일 경로 정의
-        source = 'path/to/image.jpg'
+    # 이미지 파일 경로 정의
+    source = 'path/to/image.jpg'
 
-        # 소스에서 추론 실행
-        results = model(source)  # Results 객체의 리스트
-        ```
+    # 소스에서 추론 실행
+    results = model(source)  # Results 객체의 리스트
+    ```
 
-    === "스크린샷"
-        현재 스크린 콘텐츠를 스크린샷으로 추론을 실행합니다.
-        ```python
-        from ultralytics import YOLO
+=== "스크린샷"
+    현재 스크린 콘텐츠를 스크린샷으로 추론을 실행합니다.
+    ```python
+    from ultralytics import YOLO
 
-        # 사전 훈련된 YOLOv8n 모델 로드
-        model = YOLO('yolov8n.pt')
+    # 사전 훈련된 YOLOv8n 모델 로드
+    model = YOLO('yolov8n.pt')
 
-        # 현재 스크린샷을 소스로 정의
-        source = 'screen'
+    # 현재 스크린샷을 소스로 정의
+    source = 'screen'
 
-        # 소스에서 추론 실행
-        results = model(source)  # Results 객체의 리스트
-        ```
+    # 소스에서 추론 실행
+    results = model(source)  # Results 객체의 리스트
+    ```
 
-    === "URL"
-        URL을 통해 원격으로 호스팅되는 이미지나 비디오에서 추론을 실행합니다.
-        ```python
-        from ultralytics import YOLO
+=== "URL"
+    URL을 통해 원격으로 호스팅되는 이미지나 비디오에서 추론을 실행합니다.
+    ```python
+    from ultralytics import YOLO
 
-        # 사전 훈련된 YOLOv8n 모델 로드
-        model = YOLO('yolov8n.pt')
+    # 사전 훈련된 YOLOv8n 모델 로드
+    model = YOLO('yolov8n.pt')
 
-        # 원격 이미지나 동영상 URL 정의
-        source = 'https://ultralytics.com/images/bus.jpg'
+    # 원격 이미지나 동영상 URL 정의
+    source = 'https://ultralytics.com/images/bus.jpg'
 
-        # 소스에서 추론 실행
-        results = model(source)  # Results 객체의 리스트
-        ```
+    # 소스에서 추론 실행
+    results = model(source)  # Results 객체의 리스트
+    ```
 
-    === "PIL"
-        Python Imaging Library (PIL)로 열린 이미지에서 추론을 실행합니다.
-        ```python
-        from PIL import Image
-        from ultralytics import YOLO
+=== "PIL"
+    Python Imaging Library (PIL)로 열린 이미지에서 추론을 실행합니다.
+    ```python
+    from PIL import Image
+    from ultralytics import YOLO
 
-        # 사전 훈련된 YOLOv8n 모델 로드
-        model = YOLO('yolov8n.pt')
+    # 사전 훈련된 YOLOv8n 모델 로드
+    model = YOLO('yolov8n.pt')
 
-        # PIL을 사용하여 이미지 열기
-        source = Image.open('path/to/image.jpg')
+    # PIL을 사용하여 이미지 열기
+    source = Image.open('path/to/image.jpg')
 
-        # 소스에서 추론 실행
-        results = model(source)  # Results 객체의 리스트
-        ```
+    # 소스에서 추론 실행
+    results = model(source)  # Results 객체의 리스트
+    ```
 
-    === "OpenCV"
-        OpenCV로 읽은 이미지에서 추론을 실행합니다.
-        ```python
-        import cv2
-        from ultralytics import YOLO
+=== "OpenCV"
+    OpenCV로 읽은 이미지에서 추론을 실행합니다.
+    ```python
+    import cv2
+    from ultralytics import YOLO
 
-        # 사전 훈련된 YOLOv8n 모델 로드
-        model = YOLO('yolov8n.pt')
+    # 사전 훈련된 YOLOv8n 모델 로드
+    model = YOLO('yolov8n.pt')
 
-        # OpenCV를 사용하여 이미지 읽기
-        source = cv2.imread('path/to/image.jpg')
+    # OpenCV를 사용하여 이미지 읽기
+    source = cv2.imread('path/to/image.jpg')
 
-        # 소스에서 추론 실행
-        results = model(source)  # Results 객체의 리스트
-        ```
+    # 소스에서 추론 실행
+    results = model(source)  # Results 객체의 리스트
+    ```
 
-    === "numpy"
-        numpy 배열로 표현된 이미지에서 추론을 실행합니다.
-        ```python
-        import numpy as np
-        from ultralytics import YOLO
+=== "numpy"
+    numpy 배열로 표현된 이미지에서 추론을 실행합니다.
+    ```python
+    import numpy as np
+    from ultralytics import YOLO
 
-        # 사전 훈련된 YOLOv8n 모델 로드
-        model = YOLO('yolov8n.pt')
+    # 사전 훈련된 YOLOv8n 모델 로드
+    model = YOLO('yolov8n.pt')
 
-        # 무작위 numpy 배열 생성, HWC 형태 (640, 640, 3), 값 범위 [0, 255], 타입 uint8
-        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+    # 무작위 numpy 배열 생성, HWC 형태 (640, 640, 3), 값 범위 [0, 255], 타입 uint8
+    source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
 
-        # 소스에서 추론 실행
-        results = model(source)  # Results 객체의 리스트
-        ```
+    # 소스에서 추론 실행
+    results = model(source)  # Results 객체의 리스트
+    ```
 
-    === "torch"
-        PyTorch 텐서로 표현된 이미지에서 추론을 실행합니다.
-        ```python
-        import torch
-        from ultralytics import YOLO
+=== "torch"
+    PyTorch 텐서로 표현된 이미지에서 추론을 실행합니다.
+    ```python
+    import torch
+    from ultralytics import YOLO
 
-        # 사전 훈련된 YOLOv8n 모델 로드
-        model = YOLO('yolov8n.pt')
+    # 사전 훈련된 YOLOv8n 모델 로드
+    model = YOLO('yolov8n.pt')
 
-        # 무작위 torch 텐서 생성, BCHW 형태 (1, 3, 640, 640), 값 범위 [0, 1], 타입 float32
-        source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+    # 무작위 torch 텐서 생성, BCHW 형태 (1, 3, 640, 640), 값 범위 [0, 1], 타입 float32
+    source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
 
-        # 소스에서 추론 실행
-        results = model(source)  # Results 객체의 리스트
-        ```
+    # 소스에서 추론 실행
+    results = model(source)  # Results 객체의 리스트
+    ```
+````

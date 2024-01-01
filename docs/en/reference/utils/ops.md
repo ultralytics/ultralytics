@@ -1,13 +1,14 @@
----
-description: Explore detailed documentation for Ultralytics utility operations. Learn about methods like segment2box, make_divisible, clip_boxes, and many more.
-keywords: Ultralytics YOLO, Utility Operations, segment2box, make_divisible, clip_boxes, scale_image, xywh2xyxy, xyxy2xywhn, xywh2ltwh, ltwh2xywh, segments2boxes, crop_mask, process_mask, scale_masks, masks2segments
----
+______________________________________________________________________
+
+## description: Explore detailed documentation for Ultralytics utility operations. Learn about methods like segment2box, make_divisible, clip_boxes, and many more. keywords: Ultralytics YOLO, Utility Operations, segment2box, make_divisible, clip_boxes, scale_image, xywh2xyxy, xyxy2xywhn, xywh2ltwh, ltwh2xywh, segments2boxes, crop_mask, process_mask, scale_masks, masks2segments
 
 # Reference for `ultralytics/utils/ops.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/ops.py) 🛠️. Thank you 🙏!
+```
+This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/ops.py) 🛠️. Thank you 🙏!
+```
 
 <br><br>
 

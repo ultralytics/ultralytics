@@ -1,8 +1,6 @@
----
-comments: true
-description: 探索Ultralytics YOLOv8的完整指南，这是一个高速、高精度的目标检测和图像分割模型。包括安装、预测、训练教程等。
-keywords: Ultralytics, YOLOv8, 目标检测, 图像分割, 机器学习, 深度学习, 计算机视觉, YOLOv8安装, YOLOv8预测, YOLOv8训练, YOLO历史, YOLO许可
----
+______________________________________________________________________
+
+## comments: true description: 探索Ultralytics YOLOv8的完整指南，这是一个高速、高精度的目标检测和图像分割模型。包括安装、预测、训练教程等。 keywords: Ultralytics, YOLOv8, 目标检测, 图像分割, 机器学习, 深度学习, 计算机视觉, YOLOv8安装, YOLOv8预测, YOLOv8训练, YOLO历史, YOLO许可
 
 # Ultralytics 中文文档
 
@@ -43,10 +41,10 @@ keywords: Ultralytics, YOLOv8, 目标检测, 图像分割, 机器学习, 深度�
 
 ## 从哪里开始
 
-- **安装** `ultralytics` 并通过 pip 在几分钟内开始运行 &nbsp; [:material-clock-fast: 开始使用](quickstart.md){ .md-button }
-- **预测** 使用YOLOv8预测新的图像和视频 &nbsp; [:octicons-image-16: 在图像上预测](modes/predict.md){ .md-button }
-- **训练** 在您自己的自定义数据集上训练新的YOLOv8模型 &nbsp; [:fontawesome-solid-brain: 训练模型](modes/train.md){ .md-button }
-- **探索** YOLOv8的任务，如分割、分类、姿态和跟踪 &nbsp; [:material-magnify-expand: 探索任务](tasks/index.md){ .md-button }
+- **安装** `ultralytics` 并通过 pip 在几分钟内开始运行   [:material-clock-fast: 开始使用](quickstart.md){ .md-button }
+- **预测** 使用YOLOv8预测新的图像和视频   [:octicons-image-16: 在图像上预测](modes/predict.md){ .md-button }
+- **训练** 在您自己的自定义数据集上训练新的YOLOv8模型   [:fontawesome-solid-brain: 训练模型](modes/train.md){ .md-button }
+- **探索** YOLOv8的任务，如分割、分类、姿态和跟踪   [:material-magnify-expand: 探索任务](tasks/index.md){ .md-button }
 
 <p align="center">
   <br>
@@ -80,6 +78,6 @@ Ultralytics提供两种许可选项以适应不同的使用场景：
 
 我们的授权策略旨在确保我们的开源项目的任何改进都能回馈到社区。我们十分珍视开源原则❤️，我们的使命是确保我们的贡献能够以对所有人有益的方式被利用和拓展。
 
----
+______________________________________________________________________
 
 **注意**：我们正在努力为我们的文档页面提供中文文档，并希望在接下来的几个月内发布。请密切关注我们的更新，并感谢您的耐心等待🙏。

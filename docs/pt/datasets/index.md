@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore diversos conjuntos de dados de visão computacional suportados pela Ultralytics para detecção de objetos, segmentação, estimativa de pose, classificação de imagens e rastreamento de múltiplos objetos.
-keywords: visão computacional, conjuntos de dados, Ultralytics, YOLO, detecção de objetos, segmentação de instância, estimativa de pose, classificação de imagens, rastreamento de múltiplos objetos
----
+______________________________________________________________________
+
+## comments: true description: Explore diversos conjuntos de dados de visão computacional suportados pela Ultralytics para detecção de objetos, segmentação, estimativa de pose, classificação de imagens e rastreamento de múltiplos objetos. keywords: visão computacional, conjuntos de dados, Ultralytics, YOLO, detecção de objetos, segmentação de instância, estimativa de pose, classificação de imagens, rastreamento de múltiplos objetos
 
 # Visão Geral de Conjuntos de Dados
 
@@ -10,7 +8,9 @@ A Ultralytics oferece suporte para diversos conjuntos de dados para facilitar ta
 
 !!! Note "Nota"
 
-    🚧 Nossa documentação multilíngue está atualmente em construção e estamos trabalhando arduamente para melhorá-la. Obrigado pela sua paciência! 🙏
+```
+🚧 Nossa documentação multilíngue está atualmente em construção e estamos trabalhando arduamente para melhorá-la. Obrigado pela sua paciência! 🙏
+```
 
 ## [Conjuntos de Dados de Detecção](../../datasets/detect/index.md)
 
@@ -76,23 +76,23 @@ Contribuir com um novo conjunto de dados envolve várias etapas para garantir qu
 
 ### Etapas para Contribuir com um Novo Conjunto de Dados
 
-1. **Coletar Imagens**: Reúna as imagens que pertencem ao conjunto de dados. Estas podem ser coletadas de várias fontes, como bancos de dados públicos ou sua própria coleção.
+1. **Coletar Imagens**: Reúna as imagens que pertencem ao conjunto de dados. Estas podem set coletadas de várias fontes, como bancos de dados públicos ou sua própria coleção.
 
 2. **Anotar Imagens**: Anote essas imagens com caixas delimitadoras, segmentos ou pontos-chave, dependendo da tarefa.
 
-3. **Exportar Anotações**: Converta essas anotações no formato de arquivo *.txt YOLO que a Ultralytics suporta.
+3. **Exportar Anotações**: Converta essas anotações no formato de arquivo \*.txt YOLO que a Ultralytics suporta.
 
 4. **Organizar Conjunto de Dados**: Organize seu conjunto de dados na estrutura de pastas correta. Você deve ter diretórios de topo `train/` e `val/`, e dentro de cada um, um subdiretório `images/` e `labels/`.
 
-    ```
-    conjunto_de_dados/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    └── val/
-        ├── images/
-        └── labels/
-    ```
+   ```
+   conjunto_de_dados/
+   ├── train/
+   │   ├── images/
+   │   └── labels/
+   └── val/
+       ├── images/
+       └── labels/
+   ```
 
 5. **Criar um Arquivo `data.yaml`**: No diretório raiz do seu conjunto de dados, crie um arquivo `data.yaml` que descreva o conjunto de dados, as classes e outras informações necessárias.
 
@@ -106,22 +106,24 @@ Contribuir com um novo conjunto de dados envolve várias etapas para garantir qu
 
 !!! Example "Otimizar e Compactar um Conjunto de Dados"
 
-    === "Python"
+````
+=== "Python"
 
-    ```python
-    from pathlib import Path
-    from ultralytics.data.utils import compress_one_image
-    from ultralytics.utils.downloads import zip_directory
+```python
+from pathlib import Path
+from ultralytics.data.utils import compress_one_image
+from ultralytics.utils.downloads import zip_directory
 
-    # Definir diretório do conjunto de dados
-    path = Path('caminho/para/conjunto_de_dados')
+# Definir diretório do conjunto de dados
+path = Path('caminho/para/conjunto_de_dados')
 
-    # Otimizar imagens no conjunto de dados (opcional)
-    for f in path.rglob('*.jpg'):
-        compress_one_image(f)
+# Otimizar imagens no conjunto de dados (opcional)
+for f in path.rglob('*.jpg'):
+    compress_one_image(f)
 
-    # Compactar conjunto de dados em 'caminho/para/conjunto_de_dados.zip'
-    zip_directory(path)
-    ```
+# Compactar conjunto de dados em 'caminho/para/conjunto_de_dados.zip'
+zip_directory(path)
+```
+````
 
 Seguindo esses passos, você poderá contribuir com um novo conjunto de dados que se integra bem com a estrutura existente da Ultralytics.

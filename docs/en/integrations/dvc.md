@@ -1,8 +1,6 @@
----
-comments: true
-description: This guide provides a step-by-step approach to integrating DVCLive with Ultralytics YOLOv8 for advanced experiment tracking. Learn how to set up your environment, run experiments with varied configurations, and analyze results using DVCLive's powerful tracking and visualization tools.
-keywords: DVCLive, Ultralytics, YOLOv8, Machine Learning, Experiment Tracking, Data Version Control, ML Workflows, Model Training, Hyperparameter Tuning
----
+______________________________________________________________________
+
+## comments: true description: This guide provides a step-by-step approach to integrating DVCLive with Ultralytics YOLOv8 for advanced experiment tracking. Learn how to set up your environment, run experiments with varied configurations, and analyze results using DVCLive's powerful tracking and visualization tools. keywords: DVCLive, Ultralytics, YOLOv8, Machine Learning, Experiment Tracking, Data Version Control, ML Workflows, Model Training, Hyperparameter Tuning
 
 # Advanced YOLOv8 Experiment Tracking with DVCLive
 
@@ -28,12 +26,14 @@ To install the required packages, run:
 
 !!! Tip "Installation"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Install the required packages for YOLOv8 and DVCLive
-        pip install ultralytics dvclive
-        ```
+    ```bash
+    # Install the required packages for YOLOv8 and DVCLive
+    pip install ultralytics dvclive
+    ```
+````
 
 For detailed instructions and best practices related to the installation process, be sure to check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
@@ -45,22 +45,24 @@ Begin by initializing a Git repository, as Git plays a crucial role in version c
 
 !!! Tip "Initial Environment Setup"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Initialize a Git repository
-        git init -q
+    ```bash
+    # Initialize a Git repository
+    git init -q
 
-        # Configure Git with your details
-        git config --local user.email "you@example.com"
-        git config --local user.name "Your Name"
+    # Configure Git with your details
+    git config --local user.email "you@example.com"
+    git config --local user.name "Your Name"
 
-        # Initialize DVCLive in your project
-        dvc init -q
+    # Initialize DVCLive in your project
+    dvc init -q
 
-        # Commit the DVCLive setup to your Git repository
-        git commit -m "DVC init"
-        ```
+    # Commit the DVCLive setup to your Git repository
+    git commit -m "DVC init"
+    ```
+````
 
 In these commands, ensure to replace "you@example.com" with the email address associated with your Git account, and "Your Name" with your Git account username.
 

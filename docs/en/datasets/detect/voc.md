@@ -1,8 +1,6 @@
----
-comments: true
-description: A complete guide to the PASCAL VOC dataset used for object detection, segmentation and classification tasks with relevance to YOLO model training.
-keywords: Ultralytics, PASCAL VOC dataset, object detection, segmentation, image classification, YOLO, model training, VOC.yaml, deep learning
----
+______________________________________________________________________
+
+## comments: true description: A complete guide to the PASCAL VOC dataset used for object detection, segmentation and classification tasks with relevance to YOLO model training. keywords: Ultralytics, PASCAL VOC dataset, object detection, segmentation, image classification, YOLO, model training, VOC.yaml, deep learning
 
 # VOC Dataset
 
@@ -33,9 +31,11 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 !!! Example "ultralytics/cfg/datasets/VOC.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/VOC.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/VOC.yaml"
+```
+````
 
 ## Usage
 
@@ -43,25 +43,27 @@ To train a YOLOv8n model on the VOC dataset for 100 epochs with an image size of
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='VOC.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='VOC.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from
-        a pretrained *.pt model
-        yolo detect train data=VOC.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from
+    a pretrained *.pt model
+    yolo detect train data=VOC.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Images and Annotations
 
@@ -79,17 +81,19 @@ If you use the VOC dataset in your research or development work, please cite the
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{everingham2010pascal,
-              title={The PASCAL Visual Object Classes (VOC) Challenge},
-              author={Mark Everingham and Luc Van Gool and Christopher K. I. Williams and John Winn and Andrew Zisserman},
-              year={2010},
-              eprint={0909.5206},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{everingham2010pascal,
+          title={The PASCAL Visual Object Classes (VOC) Challenge},
+          author={Mark Everingham and Luc Van Gool and Christopher K. I. Williams and John Winn and Andrew Zisserman},
+          year={2010},
+          eprint={0909.5206},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 We would like to acknowledge the PASCAL VOC Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the VOC dataset and its creators, visit the [PASCAL VOC dataset website](http://host.robots.ox.ac.uk/pascal/VOC/).

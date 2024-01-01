@@ -1,8 +1,6 @@
----
-comments: true
-description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO including examples of single-GPU and multi-GPU training
-keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
----
+______________________________________________________________________
+
+## comments: true description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO including examples of single-GPU and multi-GPU training keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
 
 # Model Training with Ultralytics YOLO
 
@@ -43,7 +41,9 @@ The following are some notable features of YOLOv8's Train mode:
 
 !!! Tip "Tip"
 
-    * YOLOv8 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
+```
+* YOLOv8 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
+```
 
 ## Usage Examples
 
@@ -51,34 +51,36 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. The train
 
 !!! Example "Single-GPU and CPU Training Example"
 
-    Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.
+````
+Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
+    # Load a model
+    model = YOLO('yolov8n.yaml')  # build a new model from YAML
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
 
-        # Train the model
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Build a new model from YAML and start training from scratch
-        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+    ```bash
+    # Build a new model from YAML and start training from scratch
+    yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
 
-        # Start training from a pretrained *.pt model
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+    # Start training from a pretrained *.pt model
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
 
-        # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
-        ```
+    # Build a new model from YAML, transfer pretrained weights to it and start training
+    yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ### Multi-GPU Training
 
@@ -86,26 +88,28 @@ Multi-GPU training allows for more efficient utilization of available hardware r
 
 !!! Example "Multi-GPU Training Example"
 
-    To train with 2 GPUs, CUDA devices 0 and 1 use the following commands. Expand to additional GPUs as required.
+````
+To train with 2 GPUs, CUDA devices 0 and 1 use the following commands. Expand to additional GPUs as required.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model with 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
-        ```
+    # Train the model with 2 GPUs
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model using GPUs 0 and 1
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model using GPUs 0 and 1
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+    ```
+````
 
 ### Apple M1 and M2 MPS Training
 
@@ -115,24 +119,26 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
 
 !!! Example "MPS Training Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model with 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
-        ```
+    # Train the model with 2 GPUs
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model using GPUs 0 and 1
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model using GPUs 0 and 1
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+    ```
+````
 
 While leveraging the computational power of the M1/M2 chips, this enables more efficient processing of the training tasks. For more detailed guidance and advanced configuration options, please refer to the [PyTorch MPS documentation](https://pytorch.org/docs/stable/notes/mps.html).
 
@@ -148,24 +154,26 @@ Below is an example of how to resume an interrupted training using Python and vi
 
 !!! Example "Resume Training Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('path/to/last.pt')  # load a partially trained model
+    # Load a model
+    model = YOLO('path/to/last.pt')  # load a partially trained model
 
-        # Resume training
-        results = model.train(resume=True)
-        ```
+    # Resume training
+    results = model.train(resume=True)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Resume an interrupted training
-        yolo train resume model=path/to/last.pt
-        ```
+    ```bash
+    # Resume an interrupted training
+    yolo train resume model=path/to/last.pt
+    ```
+````
 
 By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session.
 
@@ -176,7 +184,7 @@ Remember that checkpoints are saved at the end of every epoch by default, or at 
 Training settings for YOLO models refer to the various hyperparameters and configurations used to train the model on a dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO training settings include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the training process include the choice of optimizer, the choice of loss function, and the size and composition of the training dataset. It is important to carefully tune and experiment with these settings to achieve the best possible performance for a given task.
 
 | Key               | Value    | Description                                                                                    |
-|-------------------|----------|------------------------------------------------------------------------------------------------|
+| ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                              |
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
@@ -185,7 +193,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                                  |
 | `imgsz`           | `640`    | size of input images as integer                                                                |
 | `save`            | `True`   | save train checkpoints and predict results                                                     |
-| `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if < 1)                                               |
+| `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if \< 1)                                              |
 | `cache`           | `False`  | True/ram, disk or False. Use cache for data loading                                            |
 | `device`          | `None`   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu                           |
 | `workers`         | `8`      | number of worker threads for data loading (per RANK if DDP)                                    |
@@ -193,7 +201,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `name`            | `None`   | experiment name                                                                                |
 | `exist_ok`        | `False`  | whether to overwrite existing experiment                                                       |
 | `pretrained`      | `True`   | (bool or str) whether to use a pretrained model (bool) or a model to load weights from (str)   |
-| `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]              |
+| `optimizer`       | `'auto'` | optimizer to use, choices=\[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto\]            |
 | `verbose`         | `False`  | whether to print verbose output                                                                |
 | `seed`            | `0`      | random seed for reproducibility                                                                |
 | `deterministic`   | `True`   | whether to enable deterministic mode                                                           |
@@ -202,7 +210,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                                             |
 | `close_mosaic`    | `10`     | (int) disable mosaic augmentation for final epochs (0 to disable)                              |
 | `resume`          | `False`  | resume training from last checkpoint                                                           |
-| `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]                                |
+| `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=\[True, False\]                              |
 | `fraction`        | `1.0`    | dataset fraction to train on (default is 1.0, all images in train set)                         |
 | `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                                   |
 | `freeze`          | `None`   | (int or list, optional) freeze first n layers, or freeze list of layer indices during training |
@@ -240,13 +248,15 @@ To use Comet:
 
 !!! Example
 
-    === "Python"
-        ```python
-        # pip install comet_ml
-        import comet_ml
+````
+=== "Python"
+    ```python
+    # pip install comet_ml
+    import comet_ml
 
-        comet_ml.init()
-        ```
+    comet_ml.init()
+    ```
+````
 
 Remember to sign in to your Comet account on their website and get your API key. You will need to add this to your environment variables or your script to log your experiments.
 
@@ -258,13 +268,15 @@ To use ClearML:
 
 !!! Example
 
-    === "Python"
-        ```python
-        # pip install clearml
-        import clearml
+````
+=== "Python"
+    ```python
+    # pip install clearml
+    import clearml
 
-        clearml.browser_login()
-        ```
+    clearml.browser_login()
+    ```
+````
 
 After running this script, you will need to sign in to your ClearML account on the browser and authenticate your session.
 
@@ -276,20 +288,24 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
 
 !!! Example
 
-    === "CLI"
-        ```bash
-        load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
-        ```
+````
+=== "CLI"
+    ```bash
+    load_ext tensorboard
+    tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+    ```
+````
 
 To use TensorBoard locally run the below command and view results at http://localhost:6006/.
 
 !!! Example
 
-    === "CLI"
-        ```bash
-        tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
-        ```
+````
+=== "CLI"
+    ```bash
+    tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+    ```
+````
 
 This will load TensorBoard and direct it to the directory where your training logs are saved.
 

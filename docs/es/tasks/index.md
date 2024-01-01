@@ -1,8 +1,6 @@
----
-comments: true
-description: Aprenda sobre las tareas fundamentales de visión por computadora que YOLOv8 puede realizar, incluyendo detección, segmentación, clasificación y estimación de pose. Comprenda sus usos en sus proyectos de IA.
-keywords: Ultralytics, YOLOv8, Detección, Segmentación, Clasificación, Estimación de Pose, Marco de IA, Tareas de Visión por Computadora
----
+______________________________________________________________________
+
+## comments: true description: Aprenda sobre las tareas fundamentales de visión por computadora que YOLOv8 puede realizar, incluyendo detección, segmentación, clasificación y estimación de pose. Comprenda sus usos en sus proyectos de IA. keywords: Ultralytics, YOLOv8, Detección, Segmentación, Clasificación, Estimación de Pose, Marco de IA, Tareas de Visión por Computadora
 
 # Tareas de Ultralytics YOLOv8
 
@@ -13,7 +11,9 @@ YOLOv8 es un marco de trabajo de IA que soporta múltiples **tareas** de visión
 
 !!! Note "Nota"
 
-    🚧 Nuestra documentación multilenguaje está actualmente en construcción y estamos trabajando arduamente para mejorarla. ¡Gracias por su paciencia! 🙏
+```
+🚧 Nuestra documentación multilenguaje está actualmente en construcción y estamos trabajando arduamente para mejorarla. ¡Gracias por su paciencia! 🙏
+```
 
 <p align="center">
   <br>
@@ -34,13 +34,13 @@ La detección es la tarea principal soportada por YOLOv8. Implica detectar objet
 
 ## [Segmentación](segment.md)
 
-La segmentación es una tarea que implica segmentar una imagen en diferentes regiones basadas en el contenido de la imagen. A cada región se le asigna una etiqueta basada en su contenido. Esta tarea es útil en aplicaciones tales como segmentación de imágenes y imágenes médicas. YOLOv8 utiliza una variante de la arquitectura U-Net para realizar la segmentación.
+La segmentación es una tarea que implica segmentar una imagen en diferentes regiones basadas en el contenido de la imagen. A cada región se le asigna una etiqueta basada en su contenido. Esta tarea es útil en aplicaciones tales como segmentación de imágenes y imágenes médicas. YOLOv8 utilize una variante de la arquitectura U-Net para realizar la segmentación.
 
 [Ejemplos de Segmentación](segment.md){ .md-button }
 
 ## [Clasificación](classify.md)
 
-La clasificación es una tarea que implica clasificar una imagen en diferentes categorías. YOLOv8 puede usarse para clasificar imágenes basadas en su contenido. Utiliza una variante de la arquitectura EfficientNet para realizar la clasificación.
+La clasificación es una tarea que implica clasificar una imagen en diferentes categorías. YOLOv8 puede usarse para clasificar imágenes basadas en su contenido. Utilize una variante de la arquitectura EfficientNet para realizar la clasificación.
 
 [Ejemplos de Clasificación](classify.md){ .md-button }
 

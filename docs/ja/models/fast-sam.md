@@ -1,8 +1,6 @@
----
-comments: true
-description: FastSAMは、画像内のオブジェクトをリアルタイムでセグメンテーションするためのCNNベースのソリューションです。利用者の対話、計算効率の向上、様々なビジョンタスクに対応可能です。
-keywords: FastSAM, 機械学習, CNNベースのソリューション, オブジェクトセグメンテーション, リアルタイムソリューション, Ultralytics, ビジョンタスク, 画像処理, 工業用途, ユーザー対話
----
+______________________________________________________________________
+
+## comments: true description: FastSAMは、画像内のオブジェクトをリアルタイムでセグメンテーションするためのCNNベースのソリューションです。利用者の対話、計算効率の向上、様々なビジョンタスクに対応可能です。 keywords: FastSAM, 機械学習, CNNベースのソリューション, オブジェクトセグメンテーション, リアルタイムソリューション, Ultralytics, ビジョンタスク, 画像処理, 工業用途, ユーザー対話
 
 # Fast Segment Anything Model (FastSAM)
 
@@ -35,7 +33,7 @@ FastSAMは、[Segment Anything Model (SAM)](sam.md)の制約事項に対処す�
 この表は、利用可能なモデルとそれぞれの特定の事前学習済みウェイト、サポートされるタスク、およびInference、Validation、Training、Exportなどの異なる操作モードとの互換性を示しています。サポートされているモードは✅、サポートされていないモードは❌の絵文字で示されます。
 
 | モデルの種類    | 事前学習済みウェイト     | サポートされるタスク                             | Inference | Validation | Training | Export |
-|-----------|----------------|----------------------------------------|-----------|------------|----------|--------|
+| --------- | -------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | FastSAM-s | `FastSAM-s.pt` | [インスタンスセグメンテーション](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
 | FastSAM-x | `FastSAM-x.pt` | [インスタンスセグメンテーション](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
 
@@ -49,44 +47,46 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
 
 !!! Example "例"
 
-    === "Python"
-        ```python
-        from ultralytics import FastSAM
-        from ultralytics.models.fastsam import FastSAMPrompt
+````
+=== "Python"
+    ```python
+    from ultralytics import FastSAM
+    from ultralytics.models.fastsam import FastSAMPrompt
 
-        # 推論元のソースを定義する
-        source = 'path/to/bus.jpg'
+    # 推論元のソースを定義する
+    source = 'path/to/bus.jpg'
 
-        # FastSAMモデルを作成する
-        model = FastSAM('FastSAM-s.pt')  # または FastSAM-x.pt
+    # FastSAMモデルを作成する
+    model = FastSAM('FastSAM-s.pt')  # または FastSAM-x.pt
 
-        # 画像への推論を実行する
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+    # 画像への推論を実行する
+    everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
-        # Prompt Processオブジェクトを準備する
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+    # Prompt Processオブジェクトを準備する
+    prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
 
-        # Everything prompt
-        ann = prompt_process.everything_prompt()
+    # Everything prompt
+    ann = prompt_process.everything_prompt()
 
-        # バウンディングボックスのデフォルトの形状は [0,0,0,0] -> [x1,y1,x2,y2]
-        ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+    # バウンディングボックスのデフォルトの形状は [0,0,0,0] -> [x1,y1,x2,y2]
+    ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
-        # テキストプロンプト
-        ann = prompt_process.text_prompt(text='a photo of a dog')
+    # テキストプロンプト
+    ann = prompt_process.text_prompt(text='a photo of a dog')
 
-        # ポイントプロンプト
-        # pointsのデフォルトは [[0,0]] [[x1,y1],[x2,y2]]
-        # point_labelのデフォルトは [0] [1,0] 0:background, 1:foreground
-        ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
-        ```
+    # ポイントプロンプト
+    # pointsのデフォルトは [[0,0]] [[x1,y1],[x2,y2]]
+    # point_labelのデフォルトは [0] [1,0] 0:background, 1:foreground
+    ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
+    prompt_process.plot(annotations=ann, output='./')
+    ```
 
-    === "CLI"
-        ```bash
-        # FastSAMモデルをロードし、それによってeverythingをセグメント化する
-        yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
-        ```
+=== "CLI"
+    ```bash
+    # FastSAMモデルをロードし、それによってeverythingをセグメント化する
+    yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
+    ```
+````
 
 このスニペットは、事前学習済みモデルをロードし、イメージに対する予測を実行するシンプルさを示しています。
 
@@ -96,22 +96,24 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
 
 !!! Example "例"
 
-    === "Python"
-        ```python
-        from ultralytics import FastSAM
+````
+=== "Python"
+    ```python
+    from ultralytics import FastSAM
 
-        # FastSAMモデルを作成する
-        model = FastSAM('FastSAM-s.pt')  # または FastSAM-x.pt
+    # FastSAMモデルを作成する
+    model = FastSAM('FastSAM-s.pt')  # または FastSAM-x.pt
 
-        # モデルを検証する
-        results = model.val(data='coco8-seg.yaml')
-        ```
+    # モデルを検証する
+    results = model.val(data='coco8-seg.yaml')
+    ```
 
-    === "CLI"
-        ```bash
-        # FastSAMモデルをロードし、COCO8の例のデータセットで検証する（イメージサイズ：640）
-        yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
-        ```
+=== "CLI"
+    ```bash
+    # FastSAMモデルをロードし、COCO8の例のデータセットで検証する（イメージサイズ：640）
+    yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
+    ```
+````
 
 FastSAMは、オブジェクトの検出とセグメンテーションを1つのクラスのオブジェクトに対してのみサポートしています。これは、すべてのオブジェクトを同じクラスとして認識し、セグメント化することを意味します。そのため、データセットを準備する際には、すべてのオブジェクトのカテゴリIDを0に変換する必要があります。
 
@@ -122,23 +124,27 @@ FastSAMは、[https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA
 ### インストール
 
 1. FastSAMリポジトリをクローンする：
+
    ```shell
    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
    ```
 
 2. Python 3.9を使用したConda環境を作成してアクティベートする：
+
    ```shell
    conda create -n FastSAM python=3.9
    conda activate FastSAM
    ```
 
 3. クローンされたリポジトリに移動し、必要なパッケージをインストールする：
+
    ```shell
    cd FastSAM
    pip install -r requirements.txt
    ```
 
 4. CLIPモデルをインストールする：
+
    ```shell
    pip install git+https://github.com/openai/CLIP.git
    ```
@@ -149,25 +155,29 @@ FastSAMは、[https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA
 
 2. FastSAMを推論に使用します。以下は実行例です：
 
-    - 画像内のすべてをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+   - 画像内のすべてをセグメント化する：
 
-    - テキストプロンプトを使用して特定のオブジェクトをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+     ```
 
-    - バウンディングボックス内のオブジェクトをセグメント化する（xywh形式でボックス座標を指定します）：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+   - テキストプロンプトを使用して特定のオブジェクトをセグメント化する：
 
-    - 特定のポイントの近くにあるオブジェクトをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
+     ```
+
+   - バウンディングボックス内のオブジェクトをセグメント化する（xywh形式でボックス座標を指定します）：
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+     ```
+
+   - 特定のポイントの近くにあるオブジェクトをセグメント化する：
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+     ```
 
 さらに、FastSAMを[Colabデモ](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing)や[HuggingFaceウェブデモ](https://huggingface.co/spaces/An-619/FastSAM)で試すこともできます。
 
@@ -177,17 +187,19 @@ FastSAMの著者には、リアルタイムインスタンスセグメンテー�
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-      ```bibtex
-      @misc{zhao2023fast,
-            title={Fast Segment Anything},
-            author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
-            year={2023},
-            eprint={2306.12156},
-            archivePrefix={arXiv},
-            primaryClass={cs.CV}
-      }
-      ```
+  ```bibtex
+  @misc{zhao2023fast,
+        title={Fast Segment Anything},
+        author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
+        year={2023},
+        eprint={2306.12156},
+        archivePrefix={arXiv},
+        primaryClass={cs.CV}
+  }
+  ```
+````
 
 FastSAMのオリジナルの論文は、[arXiv](https://arxiv.org/abs/2306.12156)で入手できます。著者は彼らの作品を広く公開し、コードベースは[GitHub](https://github.com/CASIA-IVA-Lab/FastSAM)でアクセスできるようにしています。私たちは、彼らがフィールドを進歩させ、その成果を広いコミュニティにアクセス可能にしてくれた彼らの努力に感謝しています。

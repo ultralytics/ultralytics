@@ -1,8 +1,6 @@
----
-comments: true
-description: احصل على نظرة عامة حول YOLOv3 و YOLOv3-Ultralytics و YOLOv3u. تعرف على ميزاتها الرئيسية واستخدامها والمهام المدعومة للكشف عن الكائنات.
-keywords: YOLOv3، YOLOv3-Ultralytics، YOLOv3u، الكشف عن الكائنات، إجراء، التدريب، Ultralytics
----
+______________________________________________________________________
+
+## comments: true description: احصل على نظرة عامة حول YOLOv3 و YOLOv3-Ultralytics و YOLOv3u. تعرف على ميزاتها الرئيسية واستخدامها والمهام المدعومة للكشف عن الكائنات. keywords: YOLOv3، YOLOv3-Ultralytics، YOLOv3u، الكشف عن الكائنات، إجراء، التدريب، Ultralytics
 
 # YOLOv3 و YOLOv3-Ultralytics و YOLOv3u
 
@@ -33,7 +31,7 @@ keywords: YOLOv3، YOLOv3-Ultralytics، YOLOv3u، الكشف عن الكائنا
 يدعم النماذج الثلاثة وضعًا شاملاً من الأوضاع ، مما يضمن مرونة في مراحل مختلفة من نموذج النشر والتطوير. هذه الأوضاع تشمل [التمييز](../modes/predict.md) ، [التحقق](../modes/val.md) ، [التدريب](../modes/train.md) و [التصدير](../modes/export.md) ، مما يوفر للمستخدمين مجموعة كاملة من أدوات فعالة للكشف عن الكائنات.
 
 | نوع النموذج        | المهام المدعومة                    | التمييز | التحقق | التدريب | التصدير |
-|--------------------|------------------------------------|---------|--------|---------|---------|
+| ------------------ | ---------------------------------- | ------- | ------ | ------- | ------- |
 | YOLOv3             | [كشف الكائنات](../tasks/detect.md) | ✅       | ✅      | ✅       | ✅       |
 | YOLOv3-Ultralytics | [كشف الكائنات](../tasks/detect.md) | ✅       | ✅      | ✅       | ✅       |
 | YOLOv3u            | [كشف الكائنات](../tasks/detect.md) | ✅       | ✅      | ✅       | ✅       |
@@ -46,37 +44,39 @@ keywords: YOLOv3، YOLOv3-Ultralytics، YOLOv3u، الكشف عن الكائنا
 
 !!! Example "مثال"
 
-    === "بيثون"
+````
+=== "بيثون"
 
-        يمكن تمرير نماذج PyTorch المدربة مسبقًا `*.pt` وملفات التكوين `*.yaml` إلى فئة `YOLO()` لإنشاء نموذج في Python:
+    يمكن تمرير نماذج PyTorch المدربة مسبقًا `*.pt` وملفات التكوين `*.yaml` إلى فئة `YOLO()` لإنشاء نموذج في Python:
 
-        ```python
-        من ultralytics استيراد YOLO
+    ```python
+    من ultralytics استيراد YOLO
 
-        # تحميل نموذج YOLOv3n المدرب مسبقًا على COCO
-        model = YOLO('yolov3n.pt')
+    # تحميل نموذج YOLOv3n المدرب مسبقًا على COCO
+    model = YOLO('yolov3n.pt')
 
-        # عرض معلومات النموذج (اختياري)
-        model.info()
+    # عرض معلومات النموذج (اختياري)
+    model.info()
 
-        # تدريب النموذج على مجموعة البيانات المثالية Coco8 لمدة 100 دورة تدريب
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # تدريب النموذج على مجموعة البيانات المثالية Coco8 لمدة 100 دورة تدريب
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # قم بتشغيل التنبؤ باستخدام نموذج YOLOv3n على صورة 'bus.jpg'
-        results = model('path/to/bus.jpg')
-        ```
+    # قم بتشغيل التنبؤ باستخدام نموذج YOLOv3n على صورة 'bus.jpg'
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        تتوفر أوامر CLI لتشغيل النماذج مباشرة:
+    تتوفر أوامر CLI لتشغيل النماذج مباشرة:
 
-        ```bash
-        # تحميل نموذج YOLOv3n المدرب مسبقًا على COCO وقم بتدريبه على مجموعة البيانات المثالية Coco8 لمدة 100 دورة تدريب
-        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # تحميل نموذج YOLOv3n المدرب مسبقًا على COCO وقم بتدريبه على مجموعة البيانات المثالية Coco8 لمدة 100 دورة تدريب
+    yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # تحميل نموذج YOLOv3n المدرب مسبقًا على COCO وتشغيل التنبؤ على صورة 'bus.jpg'
-        yolo predict model=yolov3n.pt source=path/to/bus.jpg
-        ```
+    # تحميل نموذج YOLOv3n المدرب مسبقًا على COCO وتشغيل التنبؤ على صورة 'bus.jpg'
+    yolo predict model=yolov3n.pt source=path/to/bus.jpg
+    ```
+````
 
 ## الاقتباسات والشكر
 
@@ -84,15 +84,17 @@ keywords: YOLOv3، YOLOv3-Ultralytics، YOLOv3u، الكشف عن الكائنا
 
 !!! Quote ""
 
-    === "بيب تيكس"
+````
+=== "بيب تيكس"
 
-        ```bibtex
-        @article{redmon2018yolov3,
-          title={YOLOv3: An Incremental Improvement},
-          author={Redmon, Joseph and Farhadi, Ali},
-          journal={arXiv preprint arXiv:1804.02767},
-          year={2018}
-        }
-        ```
+    ```bibtex
+    @article{redmon2018yolov3,
+      title={YOLOv3: An Incremental Improvement},
+      author={Redmon, Joseph and Farhadi, Ali},
+      journal={arXiv preprint arXiv:1804.02767},
+      year={2018}
+    }
+    ```
+````
 
 شكراً لجوزيف ريدمون وعلي فرهادي على تطوير YOLOv3 الأصلي.

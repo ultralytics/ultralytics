@@ -1,8 +1,6 @@
----
-comments: true
-description: Ultralyticsフレームワーク内でMobileSAMをダウンロードしてテストする方法、MobileSAMの実装、オリジナルのSAMとの比較について詳しく知ることができます。今日からモバイルアプリケーションを改善しましょう。
-keywords: MobileSAM, Ultralytics, SAM, モバイルアプリケーション, Arxiv, GPU, API, 画像エンコーダ, マスクデコーダ, モデルのダウンロード, テスト方法
----
+______________________________________________________________________
+
+## comments: true description: Ultralyticsフレームワーク内でMobileSAMをダウンロードしてテストする方法、MobileSAMの実装、オリジナルのSAMとの比較について詳しく知ることができます。今日からモバイルアプリケーションを改善しましょう。 keywords: MobileSAM, Ultralytics, SAM, モバイルアプリケーション, Arxiv, GPU, API, 画像エンコーダ, マスクデコーダ, モデルのダウンロード, テスト方法
 
 ![MobileSAM ロゴ](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true)
 
@@ -20,9 +18,9 @@ MobileSAMは、100kのデータセット（元の画像の1%）を単一のGPU�
 
 この表は、利用可能なモデルとそれぞれの固有の事前学習重み、サポートされているタスク、および[予測](../modes/predict.md)、[検証](../modes/val.md)、[訓練](../modes/train.md)、および[エクスポート](../modes/export.md)のようなさまざまな動作モードに対する互換性を示しています。`✅`は対応しているモード、`❌`は対応していないモードを示しています。
 
-| モデルタイプ    | 事前学習重み          | サポートされているタスク                           | 予測 | 検証 | 訓練 | エクスポート |
-|-----------|-----------------|----------------------------------------|----|----|----|--------|
-| MobileSAM | `mobile_sam.pt` | [インスタンスセグメンテーション](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅      |
+| モデルタイプ    | 事前学習重み          | サポートされているタスク                           | 予測  | 検証  | 訓練  | エクスポート |
+| --------- | --------------- | -------------------------------------- | --- | --- | --- | ------ |
+| MobileSAM | `mobile_sam.pt` | [インスタンスセグメンテーション](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅      |
 
 ## SAMからMobileSAMへの移行
 
@@ -33,21 +31,21 @@ MobileSAMは、オリジナルのSAMと同等のパフォーマンスを発揮�
 次の表は、ViTベースのイメージエンコーダの比較です：
 
 | イメージエンコーダ | オリジナルのSAM | MobileSAM |
-|-----------|-----------|-----------|
+| --------- | --------- | --------- |
 | パラメーター    | 611M      | 5M        |
 | 速度        | 452ms     | 8ms       |
 
 オリジナルのSAMとMobileSAMは、同じプロンプト誘導型マスクデコーダを使用しています：
 
 | マスクデコーダ | オリジナルのSAM | MobileSAM |
-|---------|-----------|-----------|
+| ------- | --------- | --------- |
 | パラメーター  | 3.876M    | 3.876M    |
 | 速度      | 4ms       | 4ms       |
 
 以下は、全体のパイプラインの比較です：
 
 | パイプライン全体（エンコーダ+デコーダ） | オリジナルのSAM | MobileSAM |
-|----------------------|-----------|-----------|
+| -------------------- | --------- | --------- |
 | パラメーター               | 615M      | 9.66M     |
 | 速度                   | 456ms     | 12ms      |
 
@@ -71,31 +69,35 @@ MobileSAMは、現在のFastSAMよりも約5倍小さく、約7倍高速です�
 
 !!! Example "例"
 
-    === "Python"
-        ```python
-        from ultralytics import SAM
+````
+=== "Python"
+    ```python
+    from ultralytics import SAM
 
-        # モデルをロード
-        model = SAM('mobile_sam.pt')
+    # モデルをロード
+    model = SAM('mobile_sam.pt')
 
-        # ポイントプロンプトに基づいてセグメントを予測
-        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
-        ```
+    # ポイントプロンプトに基づいてセグメントを予測
+    model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+    ```
+````
 
 ### ボックスプロンプト
 
 !!! Example "例"
 
-    === "Python"
-        ```python
-        from ultralytics import SAM
+````
+=== "Python"
+    ```python
+    from ultralytics import SAM
 
-        # モデルをロード
-        model = SAM('mobile_sam.pt')
+    # モデルをロード
+    model = SAM('mobile_sam.pt')
 
-        # ボックスプロンプトに基づいてセグメントを予測
-        model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
-        ```
+    # ボックスプロンプトに基づいてセグメントを予測
+    model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+    ```
+````
 
 `MobileSAM`と`SAM`は、同じAPIを使用して実装されています。詳細な使用方法については、[SAMページ](sam.md)をご覧ください。
 
@@ -105,12 +107,14 @@ MobileSAMが研究や開発のお役に立つ場合は、次の論文を引用�
 
 !!! Quote文 ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{mobile_sam,
-          title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
-          author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
-          journal={arXiv preprint arXiv:2306.14289},
-          year={2023}
-        }
+    ```bibtex
+    @article{mobile_sam,
+      title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
+      author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
+      journal={arXiv preprint arXiv:2306.14289},
+      year={2023}
+    }
+````

@@ -1,15 +1,12 @@
----
-comments: true
-description: YOLOv4에 대한 상세 가이드를 살펴보세요. 최신 실시간 객체 감지기의 아키텍처 하이라이트, 혁신적인 기능 및 응용 예제를 이해하세요.
-keywords: ultralytics, YOLOv4, 객체 감지, 신경망, 실시간 감지, 객체 감지기, 기계 학습
----
+______________________________________________________________________
+
+## comments: true description: YOLOv4에 대한 상세 가이드를 살펴보세요. 최신 실시간 객체 감지기의 아키텍처 하이라이트, 혁신적인 기능 및 응용 예제를 이해하세요. keywords: ultralytics, YOLOv4, 객체 감지, 신경망, 실시간 감지, 객체 감지기, 기계 학습
 
 # YOLOv4: 높은 속도와 정밀도를 갖는 객체 감지
 
 Ultralytics YOLOv4 문서 페이지에 오신 것을 환영합니다. YOLOv4는 아키텍처 및 알고리즘 개선으로 실시간 객체 감지의 최적 속도와 정확도를 제공하는 최신 객체 감지기입니다. 2020년에 Alexey Bochkovskiy가 [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet)에서 출시되었습니다. YOLOv4는 많은 응용 분야에서 우수한 선택입니다.
 
-![YOLOv4 아키텍처 다이어그램](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png)
-**YOLOv4 아키텍처 다이어그램**. YOLOv4의 복잡한 네트워크 설계를 보여줍니다. 최적의 실시간 객체 감지를 위해 백본, 넥 및 헤드 구성 요소와 이들의 상호 연결된 레이어가 포함되어 있습니다.
+![YOLOv4 아키텍처 다이어그램](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png) **YOLOv4 아키텍처 다이어그램**. YOLOv4의 복잡한 네트워크 설계를 보여줍니다. 최적의 실시간 객체 감지를 위해 백본, 넥 및 헤드 구성 요소와 이들의 상호 연결된 레이어가 포함되어 있습니다.
 
 ## 소개
 
@@ -55,17 +52,19 @@ YOLOv4는 속도와 정확도의 균형을 이루는 강력하고 효율적인 �
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{bochkovskiy2020yolov4,
-              title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
-              author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
-              year={2020},
-              eprint={2004.10934},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{bochkovskiy2020yolov4,
+          title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
+          author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
+          year={2020},
+          eprint={2004.10934},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 원본 YOLOv4 논문은 [arXiv](https://arxiv.org/abs/2004.10934)에서 확인할 수 있습니다. 저자들은 자신들의 작업을 일반에 공개하고 코드베이스는 [GitHub](https://github.com/AlexeyAB/darknet)에서 액세스할 수 있도록 했습니다. 저자들의 노력과 널리 알려진 커뮤니티에 작업을 제공해 준 사항을 감사히 여깁니다.

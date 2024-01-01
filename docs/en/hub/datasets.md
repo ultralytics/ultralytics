@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how Ultralytics HUB datasets streamline your ML workflow. Upload, format, validate, access, share, edit or delete datasets for Ultralytics YOLO model training.
-keywords: Ultralytics, HUB datasets, YOLO model training, upload datasets, dataset validation, ML workflow, share datasets
----
+______________________________________________________________________
+
+## comments: true description: Learn how Ultralytics HUB datasets streamline your ML workflow. Upload, format, validate, access, share, edit or delete datasets for Ultralytics YOLO model training. keywords: Ultralytics, HUB datasets, YOLO model training, upload datasets, dataset validation, ML workflow, share datasets
 
 # HUB Datasets
 
@@ -32,9 +30,11 @@ The dataset YAML is the same standard YOLOv5 and YOLOv8 YAML format.
 
 !!! Example "coco8.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/coco8.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/coco8.yaml"
+```
+````
 
 After zipping your dataset, you should validate it before uploading it to Ultralytics HUB. Ultralytics HUB conducts the dataset validation check post-upload, so by ensuring your dataset is correctly formatted and error-free ahead of time, you can forestall any setbacks due to dataset rejection.
 
@@ -50,9 +50,11 @@ Once your dataset ZIP is ready, navigate to the [Datasets](https://hub.ultralyti
 
 ??? tip "Tip"
 
-    You can also upload a dataset directly from the [Home](https://hub.ultralytics.com/home) page.
+```
+You can also upload a dataset directly from the [Home](https://hub.ultralytics.com/home) page.
 
-    ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_3.jpg)
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_3.jpg)
+```
 
 Click on the **Upload Dataset** button on the top right of the page. This action will trigger the **Upload Dataset** dialog.
 
@@ -76,11 +78,13 @@ You can view the images in your dataset grouped by splits (Train, Validation, Te
 
 ??? tip "Tip"
 
-    Each image can be enlarged for better visualization.
+```
+Each image can be enlarged for better visualization.
 
-    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with an arrow pointing to the expand icon](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_8.jpg)
+![Ultralytics HUB screenshot of the Images tab inside the Dataset page with an arrow pointing to the expand icon](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_8.jpg)
 
-    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with one of the images expanded](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_9.jpg)
+![Ultralytics HUB screenshot of the Images tab inside the Dataset page with one of the images expanded](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_9.jpg)
+```
 
 Also, you can analyze your dataset by click on the **Overview** tab.
 
@@ -94,13 +98,17 @@ Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) on y
 
 !!! Info "Info"
 
-    Ultralytics HUB's sharing functionality provides a convenient way to share datasets with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
+```
+Ultralytics HUB's sharing functionality provides a convenient way to share datasets with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
+```
 
 ??? note "Note"
 
-    You have control over the general access of your datasets.
+```
+You have control over the general access of your datasets.
 
-    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the dataset, regardless of whether they have an Ultralytics HUB account or not.
+You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the dataset, regardless of whether they have an Ultralytics HUB account or not.
+```
 
 Navigate to the Dataset page of the dataset you want to share, open the dataset actions dropdown and click on the **Share** option. This action will trigger the **Share Dataset** dialog.
 
@@ -108,9 +116,11 @@ Navigate to the Dataset page of the dataset you want to share, open the dataset 
 
 ??? tip "Tip"
 
-    You can also share a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
+```
+You can also share a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
 
-    ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Share option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_share_dataset_2.jpg)
+![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Share option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_share_dataset_2.jpg)
+```
 
 Set the general access to "Unlisted" and click **Save**.
 
@@ -120,9 +130,11 @@ Now, anyone who has the direct link to your dataset can view it.
 
 ??? tip "Tip"
 
-    You can easily click on the dataset's link shown in the **Share Dataset** dialog to copy it.
+```
+You can easily click on the dataset's link shown in the **Share Dataset** dialog to copy it.
 
-    ![Ultralytics HUB screenshot of the Share Dataset dialog with an arrow pointing to the dataset's link](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_share_dataset_4.jpg)
+![Ultralytics HUB screenshot of the Share Dataset dialog with an arrow pointing to the dataset's link](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_share_dataset_4.jpg)
+```
 
 ## Edit Dataset
 
@@ -132,9 +144,11 @@ Navigate to the Dataset page of the dataset you want to edit, open the dataset a
 
 ??? tip "Tip"
 
-    You can also edit a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
+```
+You can also edit a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
 
-    ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Edit option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_edit_dataset_2.jpg)
+![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Edit option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_edit_dataset_2.jpg)
+```
 
 Apply the desired modifications to your dataset and then confirm the changes by clicking **Save**.
 
@@ -148,12 +162,16 @@ Navigate to the Dataset page of the dataset you want to delete, open the dataset
 
 ??? tip "Tip"
 
-    You can also delete a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
+```
+You can also delete a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
 
-    ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Delete option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_delete_dataset_2.jpg)
+![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Delete option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_delete_dataset_2.jpg)
+```
 
 ??? note "Note"
 
-    If you change your mind, you can restore the dataset from the [Trash](https://hub.ultralytics.com/trash) page.
+```
+If you change your mind, you can restore the dataset from the [Trash](https://hub.ultralytics.com/trash) page.
 
-    ![Ultralytics HUB screenshot of the Trash page with an arrow pointing to the Restore option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_delete_dataset_3.jpg)
+![Ultralytics HUB screenshot of the Trash page with an arrow pointing to the Restore option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_delete_dataset_3.jpg)
+```

@@ -1,8 +1,6 @@
----
-comments: true
-description: 了解如何使用 YOLOv8 预测模式进行各种任务。学习关于不同推理源如图像，视频和数据格式的内容。
-keywords: Ultralytics, YOLOv8, 预测模式, 推理源, 预测任务, 流式模式, 图像处理, 视频处理, 机器学习, 人工智能
----
+______________________________________________________________________
+
+## comments: true description: 了解如何使用 YOLOv8 预测模式进行各种任务。学习关于不同推理源如图像，视频和数据格式的内容。 keywords: Ultralytics, YOLOv8, 预测模式, 推理源, 预测任务, 流式模式, 图像处理, 视频处理, 机器学习, 人工智能
 
 # 使用 Ultralytics YOLO 进行模型预测
 
@@ -26,7 +24,7 @@ keywords: Ultralytics, YOLOv8, 预测模式, 推理源, 预测任务, 流式模�
 ## 实际应用领域
 
 |                                                      制造业                                                      |                                                      体育                                                       |                                                      安全                                                      |
-|:-------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------:|
+| :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------: |
 | ![车辆零部件检测](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![足球运动员检测](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![人员摔倒检测](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
 |                                                    车辆零部件检测                                                    |                                                    足球运动员检测                                                    |                                                    人员摔倒检测                                                    |
 
@@ -52,41 +50,43 @@ Ultralytics YOLO 模型在进行推理时返回一个 Python `Results` 对象列
 
 !!! Example "预测"
 
-    === "使用 `stream=False` 返回列表"
-        ```python
-        from ultralytics import YOLO
+````
+=== "使用 `stream=False` 返回列表"
+    ```python
+    from ultralytics import YOLO
 
-        # 加载模型
-        model = YOLO('yolov8n.pt')  # 预训练的 YOLOv8n 模型
+    # 加载模型
+    model = YOLO('yolov8n.pt')  # 预训练的 YOLOv8n 模型
 
-        # 在图片列表上运行批量推理
-        results = model(['im1.jpg', 'im2.jpg'])  # 返回 Results 对象列表
+    # 在图片列表上运行批量推理
+    results = model(['im1.jpg', 'im2.jpg'])  # 返回 Results 对象列表
 
-        # 处理结果列表
-        for result in results:
-            boxes = result.boxes  # 边界框输出的 Boxes 对象
-            masks = result.masks  # 分割掩码输出的 Masks 对象
-            keypoints = result.keypoints  # 姿态输出的 Keypoints 对象
-            probs = result.probs  # 分类输出的 Probs 对象
-        ```
+    # 处理结果列表
+    for result in results:
+        boxes = result.boxes  # 边界框输出的 Boxes 对象
+        masks = result.masks  # 分割掩码输出的 Masks 对象
+        keypoints = result.keypoints  # 姿态输出的 Keypoints 对象
+        probs = result.probs  # 分类输出的 Probs 对象
+    ```
 
-    === "使用 `stream=True` 返回生成器"
-        ```python
-        from ultralytics import YOLO
+=== "使用 `stream=True` 返回生成器"
+    ```python
+    from ultralytics import YOLO
 
-        # 加载模型
-        model = YOLO('yolov8n.pt')  # 预训练的 YOLOv8n 模型
+    # 加载模型
+    model = YOLO('yolov8n.pt')  # 预训练的 YOLOv8n 模型
 
-        # 在图片列表上运行批量推理
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # 返回 Results 对象生成器
+    # 在图片列表上运行批量推理
+    results = model(['im1.jpg', 'im2.jpg'], stream=True)  # 返回 Results 对象生成器
 
-        # 处理结果生成器
-        for result in results:
-            boxes = result.boxes  # 边界框输出的 Boxes 对象
-            masks = result.masks  # 分割掩码输出的 Masks 对象
-            keypoints = result.keypoints  # 姿态输出的 Keypoints 对象
-            probs = result.probs  # 分类输出的 Probs 对象
-        ```
+    # 处理结果生成器
+    for result in results:
+        boxes = result.boxes  # 边界框输出的 Boxes 对象
+        masks = result.masks  # 分割掩码输出的 Masks 对象
+        keypoints = result.keypoints  # 姿态输出的 Keypoints 对象
+        probs = result.probs  # 分类输出的 Probs 对象
+    ```
+````
 
 ## 推理来源
 
@@ -94,10 +94,12 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
 
 !!! Tip "提示"
 
-    使用 `stream=True` 处理长视频或大型数据集来高效地管理内存。当 `stream=False` 时，所有帧或数据点的结果都将存储在内存中，这可能很快导致内存不足错误。相对地，`stream=True` 使用生成器，只保留当前帧或数据点的结果在内存中，显著减少了内存消耗，防止内存不足问题。
+```
+使用 `stream=True` 处理长视频或大型数据集来高效地管理内存。当 `stream=False` 时，所有帧或数据点的结果都将存储在内存中，这可能很快导致内存不足错误。相对地，`stream=True` 使用生成器，只保留当前帧或数据点的结果在内存中，显著减少了内存消耗，防止内存不足问题。
+```
 
 | 来源        | 参数                                         | 类型             | 备注                                                 |
-|-----------|--------------------------------------------|----------------|----------------------------------------------------|
+| --------- | ------------------------------------------ | -------------- | -------------------------------------------------- |
 | 图像        | `'image.jpg'`                              | `str` 或 `Path` | 单个图像文件。                                            |
 | URL       | `'https://ultralytics.com/images/bus.jpg'` | `str`          | 图像的 URL 地址。                                        |
 | 截屏        | `'screen'`                                 | `str`          | 截取屏幕图像。                                            |
@@ -117,211 +119,213 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
 
 !!! Example "预测来源"
 
-    === "图像"
-        对图像文件进行推理。
-        ```python
-        from ultralytics import YOLO
+````
+=== "图像"
+    对图像文件进行推理。
+    ```python
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 定义图像文件的路径
-        source = 'path/to/image.jpg'
+    # 定义图像文件的路径
+    source = 'path/to/image.jpg'
 
-        # 对来源进行推理
-        results = model(source)  # Results 对象列表
-        ```
+    # 对来源进行推理
+    results = model(source)  # Results 对象列表
+    ```
 
-    === "截屏"
-        对当前屏幕内容作为截屏进行推理。
-        ```python
-        from ultralytics import YOLO
+=== "截屏"
+    对当前屏幕内容作为截屏进行推理。
+    ```python
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 定义当前截屏为来源
-        source = 'screen'
+    # 定义当前截屏为来源
+    source = 'screen'
 
-        # 对来源进行推理
-        results = model(source)  # Results 对象列表
-        ```
+    # 对来源进行推理
+    results = model(source)  # Results 对象列表
+    ```
 
-    === "URL"
-        对通过 URL 远程托管的图像或视频进行推理。
-        ```python
-        from ultralytics import YOLO
+=== "URL"
+    对通过 URL 远程托管的图像或视频进行推理。
+    ```python
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 定义远程图像或视频 URL
-        source = 'https://ultralytics.com/images/bus.jpg'
+    # 定义远程图像或视频 URL
+    source = 'https://ultralytics.com/images/bus.jpg'
 
-        # 对来源进行推理
-        results = model(source)  # Results 对象列表
-        ```
+    # 对来源进行推理
+    results = model(source)  # Results 对象列表
+    ```
 
-    === "PIL"
-        对使用 Python Imaging Library (PIL) 打开的图像进行推理。
-        ```python
-        from PIL import Image
-        from ultralytics import YOLO
+=== "PIL"
+    对使用 Python Imaging Library (PIL) 打开的图像进行推理。
+    ```python
+    from PIL import Image
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 使用 PIL 打开图像
-        source = Image.open('path/to/image.jpg')
+    # 使用 PIL 打开图像
+    source = Image.open('path/to/image.jpg')
 
-        # 对来源进行推理
-        results = model(source)  # Results 对象列表
-        ```
+    # 对来源进行推理
+    results = model(source)  # Results 对象列表
+    ```
 
-    === "OpenCV"
-        对使用 OpenCV 读取的图像进行推理。
-        ```python
-        import cv2
-        from ultralytics import YOLO
+=== "OpenCV"
+    对使用 OpenCV 读取的图像进行推理。
+    ```python
+    import cv2
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 使用 OpenCV 读取图像
-        source = cv2.imread('path/to/image.jpg')
+    # 使用 OpenCV 读取图像
+    source = cv2.imread('path/to/image.jpg')
 
-        # 对来源进行推理
-        results = model(source)  # Results 对象列表
-        ```
+    # 对来源进行推理
+    results = model(source)  # Results 对象列表
+    ```
 
-    === "numpy"
-        对表示为 numpy 数组的图像进行推理。
-        ```python
-        import numpy as np
-        from ultralytics import YOLO
+=== "numpy"
+    对表示为 numpy 数组的图像进行推理。
+    ```python
+    import numpy as np
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 创建一个 HWC 形状 (640, 640, 3) 的随机 numpy 数组，数值范围 [0, 255] 类型为 uint8
-        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+    # 创建一个 HWC 形状 (640, 640, 3) 的随机 numpy 数组，数值范围 [0, 255] 类型为 uint8
+    source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
 
-        # 对来源进行推理
-        results = model(source)  # Results 对象列表
-        ```
+    # 对来源进行推理
+    results = model(source)  # Results 对象列表
+    ```
 
-    === "torch"
-        对表示为 PyTorch 张量的图像进行推理。
-        ```python
-        import torch
-        from ultralytics import YOLO
+=== "torch"
+    对表示为 PyTorch 张量的图像进行推理。
+    ```python
+    import torch
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 创建一个 BCHW 形状 (1, 3, 640, 640) 的随机 torch 张量，数值范围 [0, 1] 类型为 float32
-        source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+    # 创建一个 BCHW 形状 (1, 3, 640, 640) 的随机 torch 张量，数值范围 [0, 1] 类型为 float32
+    source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
 
-        # 对来源进行推理
-        results = model(source)  # Results 对象列表
-        ```
+    # 对来源进行推理
+    results = model(source)  # Results 对象列表
+    ```
 
-    === "CSV"
-        对 CSV 文件中列出的图像、URLs、视频和目录进行推理。
-        ```python
-        import torch
-        from ultralytics import YOLO
+=== "CSV"
+    对 CSV 文件中列出的图像、URLs、视频和目录进行推理。
+    ```python
+    import torch
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 定义一个包含图像、URLs、视频和目录路径的 CSV 文件路径
-        source = 'path/to/file.csv'
+    # 定义一个包含图像、URLs、视频和目录路径的 CSV 文件路径
+    source = 'path/to/file.csv'
 
-        # 对来源进行推理
-        results = model(source)  # Results 对象列表
-        ```
+    # 对来源进行推理
+    results = model(source)  # Results 对象列表
+    ```
 
-    === "视频"
-        对视频文件进行推理。使用 `stream=True` 时，可以创建一个 Results 对象的生成器，减少内存使用。
-        ```python
-        from ultralytics import YOLO
+=== "视频"
+    对视频文件进行推理。使用 `stream=True` 时，可以创建一个 Results 对象的生成器，减少内存使用。
+    ```python
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 定义视频文件路径
-        source = 'path/to/video.mp4'
+    # 定义视频文件路径
+    source = 'path/to/video.mp4'
 
-        # 对来源进行推理
-        results = model(source, stream=True)  # Results 对象的生成器
-        ```
+    # 对来源进行推理
+    results = model(source, stream=True)  # Results 对象的生成器
+    ```
 
-    === "目录"
-        对目录中的所有图像和视频进行推理。要包含子目录中的图像和视频，使用通配符模式，例如 `path/to/dir/**/*`。
-        ```python
-        from ultralytics import YOLO
+=== "目录"
+    对目录中的所有图像和视频进行推理。要包含子目录中的图像和视频，使用通配符模式，例如 `path/to/dir/**/*`。
+    ```python
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 定义包含图像和视频文件用于推理的目录路径
-        source = 'path/to/dir'
+    # 定义包含图像和视频文件用于推理的目录路径
+    source = 'path/to/dir'
 
-        # 对来源进行推理
-        results = model(source, stream=True)  # Results 对象的生成器
-        ```
+    # 对来源进行推理
+    results = model(source, stream=True)  # Results 对象的生成器
+    ```
 
-    === "通配符"
-        对与 `*` 字符匹配的所有图像和视频进行推理。
-        ```python
-        from ultralytics import YOLO
+=== "通配符"
+    对与 `*` 字符匹配的所有图像和视频进行推理。
+    ```python
+    from ultralytics import YOLO
 
-        # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的 YOLOv8n 模型
+    model = YOLO('yolov8n.pt')
 
-        # 定义一个目录下所有 JPG 文件的通配符搜索
-        source = 'path/to/dir/*.jpg'
+    # 定义一个目录下所有 JPG 文件的通配符搜索
+    source = 'path/to/dir/*.jpg'
 
-        # 或定义一个包括子目录的所有 JPG 文件的递归通配符搜索
-        source = 'path/to/dir/**/*.jpg'
+    # 或定义一个包括子目录的所有 JPG 文件的递归通配符搜索
+    source = 'path/to/dir/**/*.jpg'
 
-        # 对来源进行推理
-        results = model(source, stream=True)  # Results 对象的生成器
-        ```
+    # 对来源进行推理
+    results = model(source, stream=True)  # Results 对象的生成器
+    ```
 
-    === "YouTube"
-        在YouTube视频上运行推理。通过使用`stream=True`，您可以创建一个Results对象的生成器，以减少长视频的内存使用。
-        ```python
-        from ultralytics import YOLO
+=== "YouTube"
+    在YouTube视频上运行推理。通过使用`stream=True`，您可以创建一个Results对象的生成器，以减少长视频的内存使用。
+    ```python
+    from ultralytics import YOLO
 
-        # 加载预训练的YOLOv8n模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的YOLOv8n模型
+    model = YOLO('yolov8n.pt')
 
-        # 定义源为YouTube视频URL
-        source = 'https://youtu.be/LNwODJXcvt4'
+    # 定义源为YouTube视频URL
+    source = 'https://youtu.be/LNwODJXcvt4'
 
-        # 在源上运行推理
-        results = model(source, stream=True)  # Results对象的生成器
-        ```
+    # 在源上运行推理
+    results = model(source, stream=True)  # Results对象的生成器
+    ```
 
-    === "Streams"
-        使用RTSP、RTMP、TCP和IP地址协议在远程流媒体源上运行推理。如果在`*.streams`文本文件中提供了多个流，则将运行批量推理，例如，8个流将以批大小8运行，否则单个流将以批大小1运行。
-        ```python
-        from ultralytics import YOLO
+=== "Streams"
+    使用RTSP、RTMP、TCP和IP地址协议在远程流媒体源上运行推理。如果在`*.streams`文本文件中提供了多个流，则将运行批量推理，例如，8个流将以批大小8运行，否则单个流将以批大小1运行。
+    ```python
+    from ultralytics import YOLO
 
-        # 加载预训练的YOLOv8n模型
-        model = YOLO('yolov8n.pt')
+    # 加载预训练的YOLOv8n模型
+    model = YOLO('yolov8n.pt')
 
-        # 单流媒体源批大小1推理
-        source = 'rtsp://example.com/media.mp4'  # RTSP、RTMP、TCP或IP流媒体地址
+    # 单流媒体源批大小1推理
+    source = 'rtsp://example.com/media.mp4'  # RTSP、RTMP、TCP或IP流媒体地址
 
-        # 多个流媒体源的批量推理（例如，8个流的批大小为8）
-        source = 'path/to/list.streams'  # *.streams文本文件，每行一个流媒体地址
+    # 多个流媒体源的批量推理（例如，8个流的批大小为8）
+    source = 'path/to/list.streams'  # *.streams文本文件，每行一个流媒体地址
 
-        # 在源上运行推理
-        results = model(source, stream=True)  # Results对象的生成器
-        ```
+    # 在源上运行推理
+    results = model(source, stream=True)  # Results对象的生成器
+    ```
+````
 
 ## 推理参数
 
@@ -329,20 +333,22 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
 
 !!! Example "示例"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # 加载预训练的YOLOv8n模型
-    model = YOLO('yolov8n.pt')
+# 加载预训练的YOLOv8n模型
+model = YOLO('yolov8n.pt')
 
-    # 在'bus.jpg'上运行推理，并附加参数
-    model.predict('bus.jpg', save=True, imgsz=320, conf=0.5)
-    ```
+# 在'bus.jpg'上运行推理，并附加参数
+model.predict('bus.jpg', save=True, imgsz=320, conf=0.5)
+```
+````
 
 支持的所有参数：
 
 | 名称              | 类型             | 默认值                    | 描述                                       |
-|-----------------|----------------|------------------------|------------------------------------------|
+| --------------- | -------------- | ---------------------- | ---------------------------------------- |
 | `source`        | `str`          | `'ultralytics/assets'` | 图像或视频的源目录                                |
 | `conf`          | `float`        | `0.25`                 | 检测对象的置信度阈值                               |
 | `iou`           | `float`        | `0.7`                  | 用于NMS的交并比（IoU）阈值                         |
@@ -364,7 +370,7 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
 | `augment`       | `bool`         | `False`                | 应用图像增强到预测源                               |
 | `agnostic_nms`  | `bool`         | `False`                | 类别不敏感的NMS                                |
 | `retina_masks`  | `bool`         | `False`                | 使用高分辨率分割掩码                               |
-| `classes`       | `None or list` | `None`                 | 按类别过滤结果，例如 classes=0，或 classes=[0,2,3]   |
+| `classes`       | `None or list` | `None`                 | 按类别过滤结果，例如 classes=0，或 classes=\[0,2,3\] |
 | `boxes`         | `bool`         | `True`                 | 在分割预测中显示框                                |
 
 ## 图像和视频格式
@@ -376,7 +382,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 下表包含了Ultralytics支持的有效图像格式。
 
 | 图像后缀  | 示例预测命令                           | 参考链接                                                                          |
-|-------|----------------------------------|-------------------------------------------------------------------------------|
+| ----- | -------------------------------- | ----------------------------------------------------------------------------- |
 | .bmp  | `yolo predict source=image.bmp`  | [Microsoft BMP文件格式](https://en.wikipedia.org/wiki/BMP_file_format)            |
 | .dng  | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
 | .jpeg | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
@@ -393,7 +399,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 以下表格包含有效的Ultralytics视频格式。
 
 | 视频后缀名 | 示例预测命令                           | 参考链接                                                                 |
-|-------|----------------------------------|----------------------------------------------------------------------|
+| ----- | -------------------------------- | -------------------------------------------------------------------- |
 | .asf  | `yolo predict source=video.asf`  | [高级系统格式](https://en.wikipedia.org/wiki/Advanced_Systems_Format)      |
 | .avi  | `yolo predict source=video.avi`  | [音视频交错](https://en.wikipedia.org/wiki/Audio_Video_Interleave)        |
 | .gif  | `yolo predict source=video.gif`  | [图形交换格式](https://en.wikipedia.org/wiki/GIF)                          |
@@ -413,21 +419,23 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 !!! Example "结果"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # 加载预训练的YOLOv8n模型
-    model = YOLO('yolov8n.pt')
+# 加载预训练的YOLOv8n模型
+model = YOLO('yolov8n.pt')
 
-    # 在图片上运行推理
-    results = model('bus.jpg')  # 1个Results对象的列表
-    results = model(['bus.jpg', 'zidane.jpg'])  # 2个Results对象的列表
-    ```
+# 在图片上运行推理
+results = model('bus.jpg')  # 1个Results对象的列表
+results = model(['bus.jpg', 'zidane.jpg'])  # 2个Results对象的列表
+```
+````
 
 `Results`对象具有以下属性：
 
 | 属性           | 类型              | 描述                           |
-|--------------|-----------------|------------------------------|
+| ------------ | --------------- | ---------------------------- |
 | `orig_img`   | `numpy.ndarray` | 原始图像的numpy数组。                |
 | `orig_shape` | `tuple`         | 原始图像的形状，格式为（高度，宽度）。          |
 | `boxes`      | `Boxes, 可选`     | 包含检测边界框的Boxes对象。             |
@@ -441,7 +449,7 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 `Results`对象具有以下方法：
 
 | 方法              | 返回类型            | 描述                                     |
-|-----------------|-----------------|----------------------------------------|
+| --------------- | --------------- | -------------------------------------- |
 | `__getitem__()` | `Results`       | 返回指定索引的Results对象。                      |
 | `__len__()`     | `int`           | 返回Results对象中的检测数量。                     |
 | `update()`      | `None`          | 更新Results对象的boxes, masks和probs属性。      |
@@ -465,24 +473,26 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 !!! Example "边界框（Boxes）"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # 加载预训练的YOLOv8n模型
-    model = YOLO('yolov8n.pt')
+# 加载预训练的YOLOv8n模型
+model = YOLO('yolov8n.pt')
 
-    # 在图片上运行推理
-    results = model('bus.jpg')
+# 在图片上运行推理
+results = model('bus.jpg')
 
-    # 查看结果
-    for r in results:
-        print(r.boxes)  # 打印包含检测边界框的Boxes对象
-    ```
+# 查看结果
+for r in results:
+    print(r.boxes)  # 打印包含检测边界框的Boxes对象
+```
+````
 
 以下是`Boxes`类方法和属性的表格，包括它们的名称、类型和description:
 
 | 名称        | 类型                  | 描述                      |
-|-----------|---------------------|-------------------------|
+| --------- | ------------------- | ----------------------- |
 | `cpu()`   | 方法                  | 将对象移动到CPU内存。            |
 | `numpy()` | 方法                  | 将对象转换为numpy数组。          |
 | `cuda()`  | 方法                  | 将对象移动到CUDA内存。           |
@@ -503,24 +513,26 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 !!! Example "掩码（Masks）"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # 加载预训练的YOLOv8n-seg分割模型
-    model = YOLO('yolov8n-seg.pt')
+# 加载预训练的YOLOv8n-seg分割模型
+model = YOLO('yolov8n-seg.pt')
 
-    # 在图片上运行推理
-    results = model('bus.jpg')  # results列表
+# 在图片上运行推理
+results = model('bus.jpg')  # results列表
 
-    # 查看结果
-    for r in results:
-        print(r.masks)  # 打印包含检测到的实例掩码的Masks对象
-    ```
+# 查看结果
+for r in results:
+    print(r.masks)  # 打印包含检测到的实例掩码的Masks对象
+```
+````
 
 以下是`Masks`类方法和属性的表格，包括它们的名称、类型和description:
 
 | 名称        | 类型                  | 描述                   |
-|-----------|---------------------|----------------------|
+| --------- | ------------------- | -------------------- |
 | `cpu()`   | 方法                  | 将掩码张量返回到CPU内存。       |
 | `numpy()` | 方法                  | 将掩码张量转换为numpy数组。     |
 | `cuda()`  | 方法                  | 将掩码张量返回到GPU内存。       |
@@ -536,24 +548,26 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 !!! Example "关键点"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # 加载预训练的YOLOv8n-pose 姿态模型
-    model = YOLO('yolov8n-pose.pt')
+# 加载预训练的YOLOv8n-pose 姿态模型
+model = YOLO('yolov8n-pose.pt')
 
-    # 在图像上运行推理
-    results = model('bus.jpg')  # 结果列表
+# 在图像上运行推理
+results = model('bus.jpg')  # 结果列表
 
-    # 查看结果
-    for r in results:
-        print(r.keypoints)  # 打印包含检测到的关键点的Keypoints对象
-    ```
+# 查看结果
+for r in results:
+    print(r.keypoints)  # 打印包含检测到的关键点的Keypoints对象
+```
+````
 
 以下是`Keypoints`类方法和属性的表格，包括它们的名称、类型和description:
 
 | 名称        | 类型                 | 描述                        |
-|-----------|--------------------|---------------------------|
+| --------- | ------------------ | ------------------------- |
 | `cpu()`   | 方法                 | 返回CPU内存上的关键点张量。           |
 | `numpy()` | 方法                 | 返回作为numpy数组的关键点张量。        |
 | `cuda()`  | 方法                 | 返回GPU内存上的关键点张量。           |
@@ -570,24 +584,26 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 !!! Example "概率"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # 加载预训练的YOLOv8n-cls 分类模型
-    model = YOLO('yolov8n-cls.pt')
+# 加载预训练的YOLOv8n-cls 分类模型
+model = YOLO('yolov8n-cls.pt')
 
-    # 在图像上运行推理
-    results = model('bus.jpg')  # 结果列表
+# 在图像上运行推理
+results = model('bus.jpg')  # 结果列表
 
-    # 查看结果
-    for r in results:
-        print(r.probs)  # 打印包含检测到的类别概率的Probs对象
-    ```
+# 查看结果
+for r in results:
+    print(r.probs)  # 打印包含检测到的类别概率的Probs对象
+```
+````
 
 以下是`Probs`类的方法和属性的表格总结：
 
 | 名称         | 类型                 | 描述                      |
-|------------|--------------------|-------------------------|
+| ---------- | ------------------ | ----------------------- |
 | `cpu()`    | 方法                 | 返回CPU内存上的概率张量的副本。       |
 | `numpy()`  | 方法                 | 返回概率张量的副本作为numpy数组。     |
 | `cuda()`   | 方法                 | 返回GPU内存上的概率张量的副本。       |
@@ -605,41 +621,43 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 !!! Example "绘制"
 
-    ```python
-    from PIL import Image
-    from ultralytics import YOLO
+````
+```python
+from PIL import Image
+from ultralytics import YOLO
 
-    # 加载预训练的YOLOv8n模型
-    model = YOLO('yolov8n.pt')
+# 加载预训练的YOLOv8n模型
+model = YOLO('yolov8n.pt')
 
-    # 在'bus.jpg'上运行推理
-    results = model('bus.jpg')  # 结果列表
+# 在'bus.jpg'上运行推理
+results = model('bus.jpg')  # 结果列表
 
-    # 展示结果
-    for r in results:
-        im_array = r.plot()  # 绘制包含预测结果的BGR numpy数组
-        im = Image.fromarray(im_array[..., ::-1])  # RGB PIL图像
-        im.show()  # 显示图像
-        im.save('results.jpg')  # 保存图像
-    ```
+# 展示结果
+for r in results:
+    im_array = r.plot()  # 绘制包含预测结果的BGR numpy数组
+    im = Image.fromarray(im_array[..., ::-1])  # RGB PIL图像
+    im.show()  # 显示图像
+    im.save('results.jpg')  # 保存图像
+```
 
-    `plot()`方法支持以下参数：
+`plot()`方法支持以下参数：
 
-    | 参数          | 类型            | 描述                                                                    | 默认值         |
-    |---------------|-----------------|------------------------------------------------------------------------|---------------|
-    | `conf`        | `bool`          | 是否绘制检测置信度分数。                                                | `True`        |
-    | `line_width`  | `float`         | 边框线宽度。如果为None，则按图像大小缩放。                             | `None`        |
-    | `font_size`   | `float`         | 文本字体大小。如果为None，则按图像大小缩放。                           | `None`        |
-    | `font`        | `str`           | 文本字体。                                                             | `'Arial.ttf'` |
-    | `pil`         | `bool`          | 是否将图像返回为PIL图像。                                               | `False`       |
-    | `img`         | `numpy.ndarray` | 绘制到另一个图像上。如果没有，则绘制到原始图像上。                      | `None`        |
-    | `im_gpu`      | `torch.Tensor`  | 形状为(1, 3, 640, 640)的规范化GPU图像，用于更快地绘制掩码。              | `None`        |
-    | `kpt_radius`  | `int`           | 绘制关键点的半径。默认为5。                                             | `5`           |
-    | `kpt_line`    | `bool`          | 是否绘制连接关键点的线条。                                              | `True`        |
-    | `labels`      | `bool`          | 是否绘制边框标签。                                                      | `True`        |
-    | `boxes`       | `bool`          | 是否绘制边框。                                                          | `True`        |
-    | `masks`       | `bool`          | 是否绘制掩码。                                                          | `True`        |
-    | `probs`       | `bool`          | 是否绘制分类概率                                                        | `True`        |
+| 参数          | 类型            | 描述                                                                    | 默认值         |
+|---------------|-----------------|------------------------------------------------------------------------|---------------|
+| `conf`        | `bool`          | 是否绘制检测置信度分数。                                                | `True`        |
+| `line_width`  | `float`         | 边框线宽度。如果为None，则按图像大小缩放。                             | `None`        |
+| `font_size`   | `float`         | 文本字体大小。如果为None，则按图像大小缩放。                           | `None`        |
+| `font`        | `str`           | 文本字体。                                                             | `'Arial.ttf'` |
+| `pil`         | `bool`          | 是否将图像返回为PIL图像。                                               | `False`       |
+| `img`         | `numpy.ndarray` | 绘制到另一个图像上。如果没有，则绘制到原始图像上。                      | `None`        |
+| `im_gpu`      | `torch.Tensor`  | 形状为(1, 3, 640, 640)的规范化GPU图像，用于更快地绘制掩码。              | `None`        |
+| `kpt_radius`  | `int`           | 绘制关键点的半径。默认为5。                                             | `5`           |
+| `kpt_line`    | `bool`          | 是否绘制连接关键点的线条。                                              | `True`        |
+| `labels`      | `bool`          | 是否绘制边框标签。                                                      | `True`        |
+| `boxes`       | `bool`          | 是否绘制边框。                                                          | `True`        |
+| `masks`       | `bool`          | 是否绘制掩码。                                                          | `True`        |
+| `probs`       | `bool`          | 是否绘制分类概率                                                        | `True`        |
+````
 
 ## 线程安全推理
 
@@ -649,21 +667,23 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 !!! Example "线程安全推理"
 
-    在每个线程内实例化单个模型以实现线程安全的推理：
-    ```python
-    from ultralytics import YOLO
-    from threading import Thread
+````
+在每个线程内实例化单个模型以实现线程安全的推理：
+```python
+from ultralytics import YOLO
+from threading import Thread
 
-    def thread_safe_predict(image_path):
-        # 在线程内实例化新模型
-        local_model = YOLO("yolov8n.pt")
-        results = local_model.predict(image_path)
-        # 处理结果
+def thread_safe_predict(image_path):
+    # 在线程内实例化新模型
+    local_model = YOLO("yolov8n.pt")
+    results = local_model.predict(image_path)
+    # 处理结果
 
-    # 启动拥有各自模型实例的线程
-    Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
-    Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
-    ```
+# 启动拥有各自模型实例的线程
+Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
+Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
+```
+````
 
 有关YOLO模型线程安全推理的深入讨论和逐步指导，请参阅我们的[YOLO线程安全推理指南](/../guides/yolo-thread-safe-inference.md)。该指南将为您提供避免常见陷阱并确保多线程推理顺利进行所需的所有必要信息。
 
@@ -673,42 +693,44 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 !!! Example "流媒体for循环"
 
-    ```python
-    import cv2
-    from ultralytics import YOLO
+````
+```python
+import cv2
+from ultralytics import YOLO
 
-    # 加载YOLOv8模型
-    model = YOLO('yolov8n.pt')
+# 加载YOLOv8模型
+model = YOLO('yolov8n.pt')
 
-    # 打开视频文件
-    video_path = "path/to/your/video/file.mp4"
-    cap = cv2.VideoCapture(video_path)
+# 打开视频文件
+video_path = "path/to/your/video/file.mp4"
+cap = cv2.VideoCapture(video_path)
 
-    # 遍历视频帧
-    while cap.isOpened():
-        # 从视频中读取一帧
-        success, frame = cap.read()
+# 遍历视频帧
+while cap.isOpened():
+    # 从视频中读取一帧
+    success, frame = cap.read()
 
-        if success:
-            # 在该帧上运行YOLOv8推理
-            results = model(frame)
+    if success:
+        # 在该帧上运行YOLOv8推理
+        results = model(frame)
 
-            # 在帧上可视化结果
-            annotated_frame = results[0].plot()
+        # 在帧上可视化结果
+        annotated_frame = results[0].plot()
 
-            # 显示带注释的帧
-            cv2.imshow("YOLOv8推理", annotated_frame)
+        # 显示带注释的帧
+        cv2.imshow("YOLOv8推理", annotated_frame)
 
-            # 如果按下'q'则中断循环
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-        else:
-            # 如果视频结束则中断循环
+        # 如果按下'q'则中断循环
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
+    else:
+        # 如果视频结束则中断循环
+        break
 
-    # 释放视频捕获对象并关闭显示窗口
-    cap.release()
-    cv2.destroyAllWindows()
-    ```
+# 释放视频捕获对象并关闭显示窗口
+cap.release()
+cv2.destroyAllWindows()
+```
+````
 
 此脚本将对视频的每一帧进行预测，可视化结果，并在窗口中显示。按下'q'键可以退出循环。

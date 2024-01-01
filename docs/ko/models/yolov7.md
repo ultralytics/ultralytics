@@ -1,15 +1,12 @@
----
-comments: true
-description: YOLOv7은 실시간 객체 검출기로, 뛰어난 속도, 강력한 정확성, 독특한 trainable bag-of-freebies 최적화에 대해 알아봅니다.
-keywords: YOLOv7, 실시간 객체 검출기, 최첨단, Ultralytics, MS COCO 데이터셋, 모델 재파라미터화, 동적 라벨 할당, 확장 스케일, 복합 스케일
----
+______________________________________________________________________
+
+## comments: true description: YOLOv7은 실시간 객체 검출기로, 뛰어난 속도, 강력한 정확성, 독특한 trainable bag-of-freebies 최적화에 대해 알아봅니다. keywords: YOLOv7, 실시간 객체 검출기, 최첨단, Ultralytics, MS COCO 데이터셋, 모델 재파라미터화, 동적 라벨 할당, 확장 스케일, 복합 스케일
 
 # YOLOv7: Trainable Bag-of-Freebies
 
 YOLOv7은 5 FPS에서 160 FPS까지의 범위에서 알려진 모든 객체 검출기를 속도와 정확성에서 능가하는 최첨단 실시간 객체 검출기입니다. 이 모델은 GPU V100에서 30 FPS 이상을 달성하여, 알려진 실시간 객체 검출기 중 가장 높은 정확도(56.8% AP)를 보여줍니다. 게다가, YOLOv7은 다른 객체 검출기인 YOLOR, YOLOX, Scaled-YOLOv4, YOLOv5 등에 비해 속도와 정확성 면에서 더 뛰어납니다. 이 모델은 다른 데이터셋이나 사전 학습된 가중치를 사용하지 않고 MS COCO 데이터셋에서 처음부터 훈련되었습니다. YOLOv7의 소스 코드는 GitHub에서 확인할 수 있습니다.
 
-![YOLOv7와 최첨단 객체 검출기 비교](https://github.com/ultralytics/ultralytics/assets/26833433/5e1e0420-8122-4c79-b8d0-2860aa79af92)
-**최첨단 객체 검출기 비교**. 표 2의 결과에서 볼 수 있듯이, 제안된 방법은 최상의 속도-정확성 균형을 가지고 있습니다. YOLOv7-tiny-SiLU를 YOLOv5-N(r6.1)과 비교해보면, 저희 방법은 약 127 fps가 더 빠르고 AP에서 10.7% 정확도가 향상됩니다. 게다가, YOLOv7은 161 fps 프레임 속도에서 51.4% AP를 달성하는 반면, PPYOLOE-L은 동일한 AP에서 78 fps 프레임 속도만 갖습니다. 매개 변수 사용 측면에서 YOLOv7는 PPYOLOE-L의 41%를 줄입니다. YOLOv7-X를 114 fps의 추론 속도로 YOLOv5-L(r6.1)의 99 fps 추론 속도와 비교하면, YOLOv7-X는 AP를 3.9% 향상시킵니다. YOLOv7-X를 유사한 스케일의 YOLOv5-X(r6.1)와 비교하면, YOLOv7-X의 추론 속도가 31 fps 더 빨라집니다. 또한, 매개 변수 및 계산의 양 측면에서 YOLOv7-X는 YOLOv5-X(r6.1)과 비교하여 매개 변수 22%와 계산 8%를 줄이고 AP를 2.2% 향상시킵니다 ([출처](https://arxiv.org/pdf/2207.02696.pdf)).
+![YOLOv7와 최첨단 객체 검출기 비교](https://github.com/ultralytics/ultralytics/assets/26833433/5e1e0420-8122-4c79-b8d0-2860aa79af92) **최첨단 객체 검출기 비교**. 표 2의 결과에서 볼 수 있듯이, 제안된 방법은 최상의 속도-정확성 균형을 가지고 있습니다. YOLOv7-tiny-SiLU를 YOLOv5-N(r6.1)과 비교해보면, 저희 방법은 약 127 fps가 더 빠르고 AP에서 10.7% 정확도가 향상됩니다. 게다가, YOLOv7은 161 fps 프레임 속도에서 51.4% AP를 달성하는 반면, PPYOLOE-L은 동일한 AP에서 78 fps 프레임 속도만 갖습니다. 매개 변수 사용 측면에서 YOLOv7는 PPYOLOE-L의 41%를 줄입니다. YOLOv7-X를 114 fps의 추론 속도로 YOLOv5-L(r6.1)의 99 fps 추론 속도와 비교하면, YOLOv7-X는 AP를 3.9% 향상시킵니다. YOLOv7-X를 유사한 스케일의 YOLOv5-X(r6.1)와 비교하면, YOLOv7-X의 추론 속도가 31 fps 더 빨라집니다. 또한, 매개 변수 및 계산의 양 측면에서 YOLOv7-X는 YOLOv5-X(r6.1)과 비교하여 매개 변수 22%와 계산 8%를 줄이고 AP를 2.2% 향상시킵니다 ([출처](https://arxiv.org/pdf/2207.02696.pdf)).
 
 ## 개요
 
@@ -51,15 +48,17 @@ YOLOv7을 지원하게 되면, Ultralytics의 사용 예시를 포함하여 이 
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{wang2022yolov7,
-          title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
-          author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
-          journal={arXiv preprint arXiv:2207.02696},
-          year={2022}
-        }
-        ```
+    ```bibtex
+    @article{wang2022yolov7,
+      title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
+      author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
+      journal={arXiv preprint arXiv:2207.02696},
+      year={2022}
+    }
+    ```
+````
 
 원본 YOLOv7 논문은 [arXiv](https://arxiv.org/pdf/2207.02696.pdf)에서 찾을 수 있습니다. 저자들은 작업을 공개적으로 사용 가능하게 하였고, 코드베이스는 [GitHub](https://github.com/WongKinYiu/yolov7)에서 확인할 수 있습니다. 저희는 이들이 해당 분야의 발전에 기여하고 작업을 폭넓은 커뮤니티에게 공개 가능하게 한 노력에 감사드립니다.

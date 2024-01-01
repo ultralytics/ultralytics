@@ -1,8 +1,6 @@
----
-comments: true
-description: Discover how to leverage the CIFAR-100 dataset for machine learning and computer vision tasks with YOLO. Gain insights on its structure, use, and utilization for model training.
-keywords: Ultralytics, YOLO, CIFAR-100 dataset, image classification, machine learning, computer vision, YOLO model training
----
+______________________________________________________________________
+
+## comments: true description: Discover how to leverage the CIFAR-100 dataset for machine learning and computer vision tasks with YOLO. Gain insights on its structure, use, and utilization for model training. keywords: Ultralytics, YOLO, CIFAR-100 dataset, image classification, machine learning, computer vision, YOLO model training
 
 # CIFAR-100 Dataset
 
@@ -33,24 +31,26 @@ To train a YOLO model on the CIFAR-100 dataset for 100 epochs with an image size
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='cifar100', epochs=100, imgsz=32)
-        ```
+    # Train the model
+    results = model.train(data='cifar100', epochs=100, imgsz=32)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
+    ```
+````
 
 ## Sample Images and Annotations
 
@@ -66,15 +66,17 @@ If you use the CIFAR-100 dataset in your research or development work, please ci
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @TECHREPORT{Krizhevsky09learningmultiple,
-                    author={Alex Krizhevsky},
-                    title={Learning multiple layers of features from tiny images},
-                    institution={},
-                    year={2009}
-        }
-        ```
+    ```bibtex
+    @TECHREPORT{Krizhevsky09learningmultiple,
+                author={Alex Krizhevsky},
+                title={Learning multiple layers of features from tiny images},
+                institution={},
+                year={2009}
+    }
+    ```
+````
 
 We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-100 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the CIFAR-100 dataset and its creator, visit the [CIFAR-100 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).

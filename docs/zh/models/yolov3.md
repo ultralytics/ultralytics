@@ -1,8 +1,6 @@
----
-comments: true
-description: 了解YOLOv3、YOLOv3-Ultralytics和YOLOv3u的概述。了解它们的关键功能、用途和支持的目标检测任务。
-keywords: YOLOv3、YOLOv3-Ultralytics、YOLOv3u、目标检测、推理、训练、Ultralytics
----
+______________________________________________________________________
+
+## comments: true description: 了解YOLOv3、YOLOv3-Ultralytics和YOLOv3u的概述。了解它们的关键功能、用途和支持的目标检测任务。 keywords: YOLOv3、YOLOv3-Ultralytics、YOLOv3u、目标检测、推理、训练、Ultralytics
 
 # YOLOv3、YOLOv3-Ultralytics和YOLOv3u
 
@@ -32,11 +30,11 @@ YOLOv3 系列，包括 YOLOv3、YOLOv3-Ultralytics 和 YOLOv3u，专门用于目
 
 这三个模型都支持一套全面的模式，确保在模型部署和开发的各个阶段具备多种功能。这些模式包括[推理](../modes/predict.md)、[验证](../modes/val.md)、[训练](../modes/train.md)和[导出](../modes/export.md)，为用户提供了有效的目标检测完整工具。
 
-| 模型类型               | 支持的任务                      | 推理 | 验证 | 训练 | 导出 |
-|--------------------|----------------------------|----|----|----|----|
-| YOLOv3             | [目标检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
-| YOLOv3-Ultralytics | [目标检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
-| YOLOv3u            | [目标检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
+| 模型类型               | 支持的任务                      | 推理  | 验证  | 训练  | 导出  |
+| ------------------ | -------------------------- | --- | --- | --- | --- |
+| YOLOv3             | [目标检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
+| YOLOv3-Ultralytics | [目标检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
+| YOLOv3u            | [目标检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
 
 该表格提供了每个 YOLOv3 变体的能力一览，突显了它们的多功能性和适用性，以用于目标检测工作流程中的各种任务和操作模式。
 
@@ -46,37 +44,39 @@ YOLOv3 系列，包括 YOLOv3、YOLOv3-Ultralytics 和 YOLOv3u，专门用于目
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        可以将预先训练的 PyTorch `*.pt` 模型以及配置 `*.yaml` 文件传递给 `YOLO()` 类，以在 Python 中创建模型实例：
+    可以将预先训练的 PyTorch `*.pt` 模型以及配置 `*.yaml` 文件传递给 `YOLO()` 类，以在 Python 中创建模型实例：
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 加载一个经过 COCO 预训练的 YOLOv3n 模型
-        model = YOLO('yolov3n.pt')
+    # 加载一个经过 COCO 预训练的 YOLOv3n 模型
+    model = YOLO('yolov3n.pt')
 
-        # 显示模型信息（可选）
-        model.info()
+    # 显示模型信息（可选）
+    model.info()
 
-        # 在 COCO8 示例数据集上训练模型100个epoch
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # 在 COCO8 示例数据集上训练模型100个epoch
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # 使用 YOLOv3n 模型对 'bus.jpg' 图像进行推理
-        results = model('path/to/bus.jpg')
-        ```
+    # 使用 YOLOv3n 模型对 'bus.jpg' 图像进行推理
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        可以直接使用命令行界面 (CLI) 来运行模型：
+    可以直接使用命令行界面 (CLI) 来运行模型：
 
-        ```bash
-        # 加载一个经过 COCO 预训练的 YOLOv3n 模型，并在 COCO8 示例数据集上训练100个epoch
-        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # 加载一个经过 COCO 预训练的 YOLOv3n 模型，并在 COCO8 示例数据集上训练100个epoch
+    yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # 加载一个经过 COCO 预训练的 YOLOv3n 模型，并对 'bus.jpg' 图像进行推理
-        yolo predict model=yolov3n.pt source=path/to/bus.jpg
-        ```
+    # 加载一个经过 COCO 预训练的 YOLOv3n 模型，并对 'bus.jpg' 图像进行推理
+    yolo predict model=yolov3n.pt source=path/to/bus.jpg
+    ```
+````
 
 ## 引用和致谢
 
@@ -84,15 +84,17 @@ YOLOv3 系列，包括 YOLOv3、YOLOv3-Ultralytics 和 YOLOv3u，专门用于目
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{redmon2018yolov3,
-          title={YOLOv3: An Incremental Improvement},
-          author={Redmon, Joseph and Farhadi, Ali},
-          journal={arXiv preprint arXiv:1804.02767},
-          year={2018}
-        }
-        ```
+    ```bibtex
+    @article{redmon2018yolov3,
+      title={YOLOv3: An Incremental Improvement},
+      author={Redmon, Joseph and Farhadi, Ali},
+      journal={arXiv preprint arXiv:1804.02767},
+      year={2018}
+    }
+    ```
+````
 
 感谢 Joseph Redmon 和 Ali Farhadi 开发了原始的 YOLOv3 模型。

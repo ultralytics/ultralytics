@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how to utilize callbacks in the Ultralytics framework during train, val, export, and predict modes for enhanced functionality.
-keywords: Ultralytics, YOLO, callbacks guide, training callback, validation callback, export callback, prediction callback
----
+______________________________________________________________________
+
+## comments: true description: Learn how to utilize callbacks in the Ultralytics framework during train, val, export, and predict modes for enhanced functionality. keywords: Ultralytics, YOLO, callbacks guide, training callback, validation callback, export callback, prediction callback
 
 ## Callbacks
 
@@ -58,7 +56,7 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 ### Trainer Callbacks
 
 | Callback                    | Description                                             |
-|-----------------------------|---------------------------------------------------------|
+| --------------------------- | ------------------------------------------------------- |
 | `on_pretrain_routine_start` | Triggered at the beginning of pre-training routine      |
 | `on_pretrain_routine_end`   | Triggered at the end of pre-training routine            |
 | `on_train_start`            | Triggered when the training starts                      |
@@ -77,7 +75,7 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 ### Validator Callbacks
 
 | Callback             | Description                                     |
-|----------------------|-------------------------------------------------|
+| -------------------- | ----------------------------------------------- |
 | `on_val_start`       | Triggered when the validation starts            |
 | `on_val_batch_start` | Triggered at the start of each validation batch |
 | `on_val_batch_end`   | Triggered at the end of each validation batch   |
@@ -86,7 +84,7 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 ### Predictor Callbacks
 
 | Callback                     | Description                                       |
-|------------------------------|---------------------------------------------------|
+| ---------------------------- | ------------------------------------------------- |
 | `on_predict_start`           | Triggered when the prediction process starts      |
 | `on_predict_batch_start`     | Triggered at the start of each prediction batch   |
 | `on_predict_postprocess_end` | Triggered at the end of prediction postprocessing |
@@ -96,6 +94,6 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 ### Exporter Callbacks
 
 | Callback          | Description                              |
-|-------------------|------------------------------------------|
+| ----------------- | ---------------------------------------- |
 | `on_export_start` | Triggered when the export process starts |
 | `on_export_end`   | Triggered when the export process ends   |

@@ -1,8 +1,6 @@
----
-comments: true
-description: Erfahren Sie, welche grundlegenden Aufgaben im Bereich der Computer Vision YOLOv8 durchführen kann, einschließlich Erkennung, Segmentierung, Klassifizierung und Haltungsschätzung, und wie sie in Ihren KI-Projekten verwendet werden können.
-keywords: Ultralytics, YOLOv8, Erkennung, Segmentierung, Klassifizierung, Pose-Schätzung, KI-Framework, Computer Vision-Aufgaben
----
+______________________________________________________________________
+
+## comments: true description: Erfahren Sie, welche grundlegenden Aufgaben im Bereich der Computer Vision YOLOv8 durchführen kann, einschließlich Erkennung, Segmentierung, Klassifizierung und Haltungsschätzung, und wie sie in Ihren KI-Projekten verwendet werden können. keywords: Ultralytics, YOLOv8, Erkennung, Segmentierung, Klassifizierung, Pose-Schätzung, KI-Framework, Computer Vision-Aufgaben
 
 # Ultralytics YOLOv8 Aufgaben
 
@@ -13,7 +11,9 @@ YOLOv8 ist ein KI-Framework, das mehrere Aufgaben im Bereich der Computer Vision
 
 !!! Note "Hinweis"
 
-    🚧 Unsere mehrsprachigen Dokumentation befindet sich derzeit im Aufbau und wir arbeiten hart daran, sie zu verbessern. Danke für Ihre Geduld! 🙏
+```
+🚧 Unsere mehrsprachigen Dokumentation befindet sich derzeit im Aufbau und wir arbeiten hart daran, sie zu verbessern. Danke für Ihre Geduld! 🙏
+```
 
 <p align="center">
   <br>
@@ -46,7 +46,7 @@ Klassifizierung ist eine Aufgabe, die das Einordnen eines Bildes in verschiedene
 
 ## [Pose](pose.md)
 
-Die Pose-/Keypoint-Erkennung ist eine Aufgabe, die das Erkennen von spezifischen Punkten in einem Bild oder Videobild beinhaltet. Diese Punkte werden als Keypoints bezeichnet und werden zur Bewegungsverfolgung oder Pose-Schätzung verwendet. YOLOv8 kann Keypoints in einem Bild oder Videobild mit hoher Genauigkeit und Geschwindigkeit erkennen.
+Die Pose-/Keypoint-Erkennung ist eine Aufgabe, die das Erkennen von spezifischen Punkten in einem Bild oder Videobild beinhaltet. Diese Punkte werden also Keypoints bezeichnet und werden zur Bewegungsverfolgung oder Pose-Schätzung verwendet. YOLOv8 kann Keypoints in einem Bild oder Videobild mit hoher Genauigkeit und Geschwindigkeit erkennen.
 
 [Beispiele für Posen](pose.md){ .md-button }
 

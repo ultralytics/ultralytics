@@ -1,8 +1,6 @@
----
-comments: true
-description: 学习如何使用Ultralytics YOLO进行实例分割模型。包括训练、验证、图像预测和模型导出的说明。
-keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体检测, 模型训练, 模型验证, 图像预测, 模型导出
----
+______________________________________________________________________
+
+## comments: true description: 学习如何使用Ultralytics YOLO进行实例分割模型。包括训练、验证、图像预测和模型导出的说明。 keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体检测, 模型训练, 模型验证, 图像预测, 模型导出
 
 # 实例分割
 
@@ -25,7 +23,9 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 !!! Tip "提示"
 
-    YOLOv8分割模型使用`-seg`后缀，即`yolov8n-seg.pt`，并在[COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)上进行预训练。
+```
+YOLOv8分割模型使用`-seg`后缀，即`yolov8n-seg.pt`，并在[COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)上进行预训练。
+```
 
 ## [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -34,17 +34,15 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)会在首次使用时自动从Ultralytics的最新[版本](https://github.com/ultralytics/assets/releases)下载。
 
 | 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|-----------------|----------------------|-----------------------|-----------------------------|----------------------------------|----------------|-------------------|
+| -------------------------------------------------------------------------------------------- | --------------- | -------------------- | --------------------- | --------------------------- | -------------------------------- | -------------- | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640             | 36.7                 | 30.5                  | 96.1                        | 1.21                             | 3.4            | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640             | 44.6                 | 36.8                  | 155.7                       | 1.47                             | 11.8           | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640             | 49.9                 | 40.8                  | 317.0                       | 2.18                             | 27.3           | 110.2             |
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640             | 52.3                 | 42.6                  | 572.4                       | 2.79                             | 46.0           | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | 712.1                       | 4.02                             | 71.8           | 344.1             |
 
-- **mAP<sup>val</sup>** 值针对[COCO val2017](http://cocodataset.org)数据集的单模型单尺度。
-  <br>通过`yolo val segment data=coco.yaml device=0`复现。
-- **速度** 基于在[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)实例上运行的COCO val图像的平均值。
-  <br>通过`yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`复现。
+- **mAP<sup>val</sup>** 值针对[COCO val2017](http://cocodataset.org)数据集的单模型单尺度。 <br>通过`yolo val segment data=coco.yaml device=0`复现。
+- **速度** 基于在[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)实例上运行的COCO val图像的平均值。 <br>通过`yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`复现。
 
 ## 训练
 
@@ -52,31 +50,33 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 载入一个模型
-        model = YOLO('yolov8n-seg.yaml')  # 从YAML构建一个新模型
-        model = YOLO('yolov8n-seg.pt')    # 载入预训练模型（推荐用于训练）
-        model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # 从YAML构建并传递权重
+    # 载入一个模型
+    model = YOLO('yolov8n-seg.yaml')  # 从YAML构建一个新模型
+    model = YOLO('yolov8n-seg.pt')    # 载入预训练模型（推荐用于训练）
+    model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # 从YAML构建并传递权重
 
-        # 训练模型
-        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # 训练模型
+    results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # 从YAML构建新模型并从头开始训练
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
+    ```bash
+    # 从YAML构建新模型并从头开始训练
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
 
-        # 从预训练*.pt模型开始训练
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+    # 从预训练*.pt模型开始训练
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
 
-        # 从YAML构建新模型，传递预训练权重，开始训练
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
-        ```
+    # 从YAML构建新模型，传递预训练权重，开始训练
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
+    ```
+````
 
 ### 数据集格式
 
@@ -88,32 +88,34 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 载入一个模型
-        model = YOLO('yolov8n-seg.pt')    # 载入官方模型
-        model = YOLO('path/to/best.pt')  # 载入自定义模型
+    # 载入一个模型
+    model = YOLO('yolov8n-seg.pt')    # 载入官方模型
+    model = YOLO('path/to/best.pt')  # 载入自定义模型
 
-        # 验证模型
-        metrics = model.val()  # 不需要参数，数据集和设置被记住了
-        metrics.box.map    # map50-95(B)
-        metrics.box.map50  # map50(B)
-        metrics.box.map75  # map75(B)
-        metrics.box.maps   # 各类别map50-95(B)列表
-        metrics.seg.map    # map50-95(M)
-        metrics.seg.map50  # map50(M)
-        metrics.seg.map75  # map75(M)
-        metrics.seg.maps   # 各类别map50-95(M)列表
-        ```
-    === "CLI"
+    # 验证模型
+    metrics = model.val()  # 不需要参数，数据集和设置被记住了
+    metrics.box.map    # map50-95(B)
+    metrics.box.map50  # map50(B)
+    metrics.box.map75  # map75(B)
+    metrics.box.maps   # 各类别map50-95(B)列表
+    metrics.seg.map    # map50-95(M)
+    metrics.seg.map50  # map50(M)
+    metrics.seg.map75  # map75(M)
+    metrics.seg.maps   # 各类别map50-95(M)列表
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment val model=yolov8n-seg.pt  # 验证官方模型
-        yolo segment val model=path/to/best.pt  # 验证自定义模型
-        ```
+    ```bash
+    yolo segment val model=yolov8n-seg.pt  # 验证官方模型
+    yolo segment val model=path/to/best.pt  # 验证自定义模型
+    ```
+````
 
 ## 预测
 
@@ -121,24 +123,26 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 载入一个模型
-        model = YOLO('yolov8n-seg.pt')    # 载入官方模型
-        model = YOLO('path/to/best.pt')  # 载入自定义模型
+    # 载入一个模型
+    model = YOLO('yolov8n-seg.pt')    # 载入官方模型
+    model = YOLO('path/to/best.pt')  # 载入自定义模型
 
-        # 使用模型进行预测
-        results = model('https://ultralytics.com/images/bus.jpg')  # 对一张图像进行预测
-        ```
-    === "CLI"
+    # 使用模型进行预测
+    results = model('https://ultralytics.com/images/bus.jpg')  # 对一张图像进行预测
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # 使用官方模型进行预测
-        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # 使用自定义模型进行预测
-        ```
+    ```bash
+    yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # 使用官方模型进行预测
+    yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # 使用自定义模型进行预测
+    ```
+````
 
 预测模式的完整详情请参见[Predict](https://docs.ultralytics.com/modes/predict/)页面。
 
@@ -148,29 +152,31 @@ keywords: yolov8, 实例分割, Ultralytics, COCO数据集, 图像分割, 物体
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 载入一个模型
-        model = YOLO('yolov8n-seg.pt')    # 载入官方模型
-        model = YOLO('path/to/best.pt')  # 载入自定义训练模型
+    # 载入一个模型
+    model = YOLO('yolov8n-seg.pt')    # 载入官方模型
+    model = YOLO('path/to/best.pt')  # 载入自定义训练模型
 
-        # 导出模型
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # 导出模型
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-seg.pt format=onnx  # 导出官方模型
-        yolo export model=path/to/best.pt format=onnx  # 导出自定义训练模型
-        ```
+    ```bash
+    yolo export model=yolov8n-seg.pt format=onnx  # 导出官方模型
+    yolo export model=path/to/best.pt format=onnx  # 导出自定义训练模型
+    ```
+````
 
 YOLOv8-seg导出格式的可用表格如下所示。您可以直接在导出的模型上进行预测或验证，例如`yolo predict model=yolov8n-seg.onnx`。导出完成后，示例用法将显示您的模型。
 
 | 格式                                                                 | `format` 参数   | 模型                            | 元数据 | 参数                                                  |
-|--------------------------------------------------------------------|---------------|-------------------------------|-----|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ------------- | ----------------------------- | --- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-seg.pt`              | ✅   | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-seg.torchscript`     | ✅   | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-seg.onnx`            | ✅   | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore um guia completo do Ultralytics YOLOv8, um modelo de detecção de objetos e segmentação de imagens de alta velocidade e precisão. Tutoriais de instalação, previsão, treinamento e muito mais.
-keywords: Ultralytics, YOLOv8, detecção de objetos, segmentação de imagens, aprendizado de máquina, aprendizado profundo, visão computacional, instalação do YOLOv8, previsão do YOLOv8, treinamento do YOLOv8, história do YOLO, licenças do YOLO
----
+______________________________________________________________________
+
+## comments: true description: Explore um guia completo do Ultralytics YOLOv8, um modelo de detecção de objetos e segmentação de imagens de alta velocidade e precisão. Tutoriais de instalação, previsão, treinamento e muito mais. keywords: Ultralytics, YOLOv8, detecção de objetos, segmentação de imagens, aprendizado de máquina, aprendizado profundo, visão computacional, instalação do YOLOv8, previsão do YOLOv8, treinamento do YOLOv8, história do YOLO, licenças do YOLO
 
 <div align="center">
   <p>
@@ -37,18 +35,20 @@ keywords: Ultralytics, YOLOv8, detecção de objetos, segmentação de imagens, 
 
 Apresentamos o [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), a mais recente versão do aclamado modelo de detecção de objetos em tempo real e segmentação de imagens. O YOLOv8 é baseado nos mais recentes avanços do aprendizado profundo e visão computacional, oferecendo um desempenho sem paralelo em termos de velocidade e precisão. Seu design simplificado o torna adequado para várias aplicações e facilmente adaptável a diferentes plataformas de hardware, desde dispositivos de borda até APIs na nuvem.
 
-Explore os Documentos do YOLOv8, um recurso abrangente projetado para ajudá-lo a entender e utilizar suas características e capacidades. Seja você um praticante experiente de aprendizado de máquina ou novo no campo, este hub tem como objetivo maximizar o potencial do YOLOv8 em seus projetos
+Explore os Documentos do YOLOv8, um recurso abrangente projetado para ajudá-lo a entender e utilizar suas características e capacidades. Seja você um praticante experiente de aprendizado de máquina ou novo no campo, este hub tem como objetivo maximizar o potential do YOLOv8 em seus projetos
 
 !!! Note "Nota"
 
-    🚧 Nossa documentação em vários idiomas está atualmente em construção e estamos trabalhando arduamente para aprimorá-la. Agradecemos sua paciência! 🙏
+```
+🚧 Nossa documentação em vários idiomas está atualmente em construção e estamos trabalhando arduamente para aprimorá-la. Agradecemos sua paciência! 🙏
+```
 
 ## Por Onde Começar
 
-- **Instalar** `ultralytics` com pip e começar a funcionar em minutos &nbsp; [:material-clock-fast: Começar](quickstart.md){ .md-button }
-- **Prever** novas imagens e vídeos com o YOLOv8 &nbsp; [:octicons-image-16: Prever em Imagens](modes/predict.md){ .md-button }
-- **Treinar** um novo modelo YOLOv8 em seu próprio conjunto de dados personalizado &nbsp; [:fontawesome-solid-brain: Treinar um Modelo](modes/train.md){ .md-button }
-- **Explorar** tarefas do YOLOv8 como segmentar, classificar, estimar pose e rastrear &nbsp; [:material-magnify-expand: Explorar Tarefas](tasks/index.md){ .md-button }
+- **Instalar** `ultralytics` com pip e começar a funcionar em minutos   [:material-clock-fast: Começar](quickstart.md){ .md-button }
+- **Prever** novas imagens e vídeos com o YOLOv8   [:octicons-image-16: Prever em Imagens](modes/predict.md){ .md-button }
+- **Treinar** um novo modelo YOLOv8 em seu próprio conjunto de dados personalizado   [:fontawesome-solid-brain: Treinar um Modelo](modes/train.md){ .md-button }
+- **Explorar** tarefas do YOLOv8 como segmentar, classificar, estimar pose e rastrear   [:material-magnify-expand: Explorar Tarefas](tasks/index.md){ .md-button }
 
 <p align="center">
   <br>
@@ -78,6 +78,6 @@ Explore os Documentos do YOLOv8, um recurso abrangente projetado para ajudá-lo 
 A Ultralytics oferece duas opções de licença para acomodar casos de uso diversos:
 
 - **Licença AGPL-3.0**: Essa licença de código aberto [aprovada pela OSI](https://opensource.org/licenses/) é ideal para estudantes e entusiastas, promovendo colaboração aberta e compartilhamento de conhecimento. Veja o arquivo [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) para mais detalhes.
-- **Licença Empresarial**: Projetada para uso comercial, esta licença permite a integração perfeita do software Ultralytics e modelos de IA em bens e serviços comerciais, contornando os requisitos de código aberto da AGPL-3.0. Se o seu cenário envolver a incorporação de nossas soluções em uma oferta comercial, entre em contato através do [Licenciamento da Ultralytics](https://ultralytics.com/license).
+- **Licença Empresarial**: Projetada para uso commercial, esta licença permite a integração perfeita do software Ultralytics e modelos de IA em bens e serviços comerciais, contornando os requisitos de código aberto da AGPL-3.0. Se o seu cenário envolver a incorporação de nossas soluções em uma oferta commercial, entre em contato através do [Licenciamento da Ultralytics](https://ultralytics.com/license).
 
-Nossa estratégia de licenciamento é projetada para garantir que qualquer melhoria em nossos projetos de código aberto retorne à comunidade. Mantemos os princípios de código aberto próximos ao nosso coração ❤️, e nossa missão é garantir que nossas contribuições possam ser utilizadas e expandidas de formas que beneficiem todos.
+Nossa estratégia de licenciamento é projetada para garantir que qualquer melhoria em nossos projetos de código aberto retorne à comunidade. Mantemos os princípios de código aberto próximos ao nosso coração ❤️, e nossa missão é garantir que nossas contribuições possam set utilizadas e expandidas de formas que beneficiem todos.

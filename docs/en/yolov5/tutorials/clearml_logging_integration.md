@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how ClearML can enhance your YOLOv5 pipeline – track your training runs, version your data, remotely monitor your models and optimize performance.
-keywords: ClearML, YOLOv5, Ultralytics, AI toolbox, training data, remote training, hyperparameter optimization, YOLOv5 model
----
+______________________________________________________________________
+
+## comments: true description: Learn how ClearML can enhance your YOLOv5 pipeline – track your training runs, version your data, remotely monitor your models and optimize performance. keywords: ClearML, YOLOv5, Ultralytics, AI toolbox, training data, remote training, hyperparameter optimization, YOLOv5 model
 
 # ClearML Integration
 
@@ -40,15 +38,15 @@ Either sign up for free to the [ClearML Hosted Service](https://cutt.ly/yolov5-t
 
 - Install the `clearml` python package:
 
-   ```bash
-   pip install clearml
-   ```
+  ```bash
+  pip install clearml
+  ```
 
 - Connect the ClearML SDK to the server by [creating credentials](https://app.clear.ml/settings/workspace-configuration) (go right top to Settings -> Workspace -> Create new credentials), then execute the command below and follow the instructions:
 
-   ```bash
-   clearml-init
-   ```
+  ```bash
+  clearml-init
+  ```
 
 That's it! You're done 😎
 

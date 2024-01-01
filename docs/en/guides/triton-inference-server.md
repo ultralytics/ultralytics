@@ -1,8 +1,6 @@
----
-comments: true
-description: A step-by-step guide on integrating Ultralytics YOLOv8 with Triton Inference Server for scalable and high-performance deep learning inference deployments.
-keywords: YOLOv8, Triton Inference Server, ONNX, Deep Learning Deployment, Scalable Inference, Ultralytics, NVIDIA, Object Detection, Cloud Inference
----
+______________________________________________________________________
+
+## comments: true description: A step-by-step guide on integrating Ultralytics YOLOv8 with Triton Inference Server for scalable and high-performance deep learning inference deployments. keywords: YOLOv8, Triton Inference Server, ONNX, Deep Learning Deployment, Scalable Inference, Ultralytics, NVIDIA, Object Detection, Cloud Inference
 
 # Triton Inference Server with Ultralytics YOLOv8
 
@@ -58,28 +56,28 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
 1. Create the necessary directory structure:
 
-    ```python
-    from pathlib import Path
+   ```python
+   from pathlib import Path
 
-    # Define paths
-    triton_repo_path = Path('tmp') / 'triton_repo'
-    triton_model_path = triton_repo_path / 'yolo'
+   # Define paths
+   triton_repo_path = Path('tmp') / 'triton_repo'
+   triton_model_path = triton_repo_path / 'yolo'
 
-    # Create directories
-    (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
-    ```
+   # Create directories
+   (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
+   ```
 
 2. Move the exported ONNX model to the Triton repository:
 
-    ```python
-    from pathlib import Path
+   ```python
+   from pathlib import Path
 
-    # Move ONNX model to Triton Model path
-    Path(onnx_file).rename(triton_model_path / '1' / 'model.onnx')
+   # Move ONNX model to Triton Model path
+   Path(onnx_file).rename(triton_model_path / '1' / 'model.onnx')
 
-    # Create config file
-    (triton_model_path / 'config.pbtxt').touch()
-    ```
+   # Create config file
+   (triton_model_path / 'config.pbtxt').touch()
+   ```
 
 ## Running Triton Inference Server
 
@@ -132,6 +130,6 @@ Cleanup the container:
 subprocess.call(f'docker kill {container_id}', shell=True)
 ```
 
----
+______________________________________________________________________
 
 By following the above steps, you can deploy and run Ultralytics YOLOv8 models efficiently on Triton Inference Server, providing a scalable and high-performance solution for deep learning inference tasks. If you face any issues or have further queries, refer to the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or reach out to the Ultralytics community for support.

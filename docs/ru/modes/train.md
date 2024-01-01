@@ -1,8 +1,6 @@
----
-comments: true
-description: Пошаговое руководство по обучению моделей YOLOv8 с использованием Ultralytics YOLO, включая примеры обучения на одном и нескольких GPU
-keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, режим обучения, настраиваемый набор данных, обучение на GPU, много-GPU, гиперпараметры, примеры CLI, примеры Python
----
+______________________________________________________________________
+
+## comments: true description: Пошаговое руководство по обучению моделей YOLOv8 с использованием Ultralytics YOLO, включая примеры обучения на одном и нескольких GPU keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, режим обучения, настраиваемый набор данных, обучение на GPU, много-GPU, гиперпараметры, примеры CLI, примеры Python
 
 # Обучение моделей с помощью Ultralytics YOLO
 
@@ -43,7 +41,9 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 !!! Tip "Совет"
 
-    * Наборы данных YOLOv8, такие как COCO, VOC, ImageNet и многие другие, автоматически загружаются при первом использовании, например, `yolo train data=coco.yaml`
+```
+* Наборы данных YOLOv8, такие как COCO, VOC, ImageNet и многие другие, автоматически загружаются при первом использовании, например, `yolo train data=coco.yaml`
+```
 
 ## Примеры использования
 
@@ -51,34 +51,36 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 !!! Example "Пример обучения на одном GPU и CPU"
 
-    Устройство определяется автоматически. Если доступен GPU, то он будет использован, иначе обучение начнется на CPU.
+````
+Устройство определяется автоматически. Если доступен GPU, то он будет использован, иначе обучение начнется на CPU.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n.yaml')  # создать новую модель из YAML
-        model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # создать из YAML и перенести веса
+    # Загрузить модель
+    model = YOLO('yolov8n.yaml')  # создать новую модель из YAML
+    model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
+    model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # создать из YAML и перенести веса
 
-        # Обучить модель
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-        ```
+    # Обучить модель
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Создать новую модель из YAML и начать обучение с нуля
-        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+    ```bash
+    # Создать новую модель из YAML и начать обучение с нуля
+    yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
 
-        # Начать обучение с предобученной модели *.pt
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+    # Начать обучение с предобученной модели *.pt
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
 
-        # Создать новую модель из YAML, перенести предобученные веса и начать обучение
-        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
-        ```
+    # Создать новую модель из YAML, перенести предобученные веса и начать обучение
+    yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ### Обучение на нескольких GPU
 
@@ -86,26 +88,28 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 !!! Example "Пример обучения на нескольких GPU"
 
-    Чтобы обучить с использованием 2 GPU, устройств CUDA 0 и 1 используйте следующие команды. Расширьте до дополнительных GPU по мере необходимости.
+````
+Чтобы обучить с использованием 2 GPU, устройств CUDA 0 и 1 используйте следующие команды. Расширьте до дополнительных GPU по мере необходимости.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
+    # Загрузить модель
+    model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
 
-        # Обучить модель с использованием 2 GPU
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
-        ```
+    # Обучить модель с использованием 2 GPU
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Начать обучение с предобученной модели *.pt используя GPU 0 и 1
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
-        ```
+    ```bash
+    # Начать обучение с предобученной модели *.pt используя GPU 0 и 1
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+    ```
+````
 
 ### Обучение на Apple M1 и M2 с использованием MPS
 
@@ -115,24 +119,26 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 !!! Example "Пример обучения с MPS"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
+    # Загрузить модель
+    model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
 
-        # Обучить модель с использованием MPS
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
-        ```
+    # Обучить модель с использованием MPS
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Начать обучение с предобученной модели *.pt используя MPS
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
-        ```
+    ```bash
+    # Начать обучение с предобученной модели *.pt используя MPS
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+    ```
+````
 
 Используя вычислительные возможности чипов M1/M2, это позволяет более эффективно обрабатывать задачи обучения. Для более подробного руководства и расширенных параметров конфигурации, пожалуйста, обратитесь к [документации PyTorch MPS](https://pytorch.org/docs/stable/notes/mps.html).
 
@@ -150,13 +156,15 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 !!! Example "Пример"
 
-    === "Python"
-        ```python
-        # pip install comet_ml
-        import comet_ml
+````
+=== "Python"
+    ```python
+    # pip install comet_ml
+    import comet_ml
 
-        comet_ml.init()
-        ```
+    comet_ml.init()
+    ```
+````
 
 Не забудьте войти в свою учетную запись Comet на их сайте и получить свой API-ключ. Вам нужно будет добавить его в переменные среды или в свой скрипт, чтобы вести журнал своих экспериментов.
 
@@ -168,13 +176,15 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 !!! Example "Пример"
 
-    === "Python"
-        ```python
-        # pip install clearml
-        import clearml
+````
+=== "Python"
+    ```python
+    # pip install clearml
+    import clearml
 
-        clearml.browser_login()
-        ```
+    clearml.browser_login()
+    ```
+````
 
 После запуска этого скрипта вам нужно будет войти в вашу учетную запись ClearML в браузере и аутентифицировать вашу сессию.
 
@@ -186,20 +196,24 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
 !!! Example "Пример"
 
-    === "CLI"
-        ```bash
-        load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # заменить на директорию 'runs'
-        ```
+````
+=== "CLI"
+    ```bash
+    load_ext tensorboard
+    tensorboard --logdir ultralytics/runs  # заменить на директорию 'runs'
+    ```
+````
 
 Чтобы использовать TensorBoard локально, запустите приведенную ниже команду и просмотрите результаты по адресу http://localhost:6006/.
 
 !!! Example "Пример"
 
-    === "CLI"
-        ```bash
-        tensorboard --logdir ultralytics/runs  # заменить на директорию 'runs'
-        ```
+````
+=== "CLI"
+    ```bash
+    tensorboard --logdir ultralytics/runs  # заменить на директорию 'runs'
+    ```
+````
 
 Это загрузит TensorBoard и направит его к каталогу, где сохраняются ваши журналы обучения.
 

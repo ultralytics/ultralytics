@@ -1,8 +1,6 @@
----
-comments: true
-description: Discover how to customize and extend base Ultralytics YOLO Trainer engines. Support your custom model and dataloader by overriding built-in functions.
-keywords: Ultralytics, YOLO, trainer engines, BaseTrainer, DetectionTrainer, customizing trainers, extending trainers, custom model, custom dataloader
----
+______________________________________________________________________
+
+## comments: true description: Discover how to customize and extend base Ultralytics YOLO Trainer engines. Support your custom model and dataloader by overriding built-in functions. keywords: Ultralytics, YOLO, trainer engines, BaseTrainer, DetectionTrainer, customizing trainers, extending trainers, custom model, custom dataloader
 
 Both the Ultralytics YOLO command-line and Python interfaces are simply a high-level abstraction on the base engine executors. Let's take a look at the Trainer engine.
 
@@ -21,8 +19,8 @@ Both the Ultralytics YOLO command-line and Python interfaces are simply a high-l
 
 BaseTrainer contains the generic boilerplate training routine. It can be customized for any task based over overriding the required functions or operations as long the as correct formats are followed. For example, you can support your own custom model and dataloader by just overriding these functions:
 
-* `get_model(cfg, weights)` - The function that builds the model to be trained
-* `get_dataloader()` - The function that builds the dataloader More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
+- `get_model(cfg, weights)` - The function that builds the model to be trained
+- `get_dataloader()` - The function that builds the dataloader More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
 
 ## DetectionTrainer
 
@@ -55,9 +53,8 @@ trainer.train()
 
 You now realize that you need to customize the trainer further to:
 
-* Customize the `loss function`.
-* Add `callback` that uploads model to your Google Drive after every 10 `epochs`
-  Here's how you can do it:
+- Customize the `loss function`.
+- Add `callback` that uploads model to your Google Drive after every 10 `epochs` Here's how you can do it:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -89,5 +86,4 @@ To know more about Callback triggering events and entry point, checkout our [Cal
 
 ## Other engine components
 
-There are other components that can be customized similarly like `Validators` and `Predictors`
-See Reference section for more information on these.
+There are other components that can be customized similarly like `Validators` and `Predictors` See Reference section for more information on these.

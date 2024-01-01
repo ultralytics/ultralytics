@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore Argoverse, a comprehensive dataset for autonomous driving tasks including 3D tracking, motion forecasting and depth estimation used in YOLO.
-keywords: Argoverse dataset, autonomous driving, YOLO, 3D tracking, motion forecasting, LiDAR data, HD maps, ultralytics documentation
----
+______________________________________________________________________
+
+## comments: true description: Explore Argoverse, a comprehensive dataset for autonomous driving tasks including 3D tracking, motion forecasting and depth estimation used in YOLO. keywords: Argoverse dataset, autonomous driving, YOLO, 3D tracking, motion forecasting, LiDAR data, HD maps, ultralytics documentation
 
 # Argoverse Dataset
 
@@ -10,7 +8,9 @@ The [Argoverse](https://www.argoverse.org/) dataset is a collection of data desi
 
 !!! Note
 
-    The Argoverse dataset *.zip file required for training was removed from Amazon S3 after the shutdown of Argo AI by Ford, but we have made it available for manual download on [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link).
+```
+The Argoverse dataset *.zip file required for training was removed from Amazon S3 after the shutdown of Argo AI by Ford, but we have made it available for manual download on [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link).
+```
 
 ## Key Features
 
@@ -37,9 +37,11 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 !!! Example "ultralytics/cfg/datasets/Argoverse.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/Argoverse.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/Argoverse.yaml"
+```
+````
 
 ## Usage
 
@@ -47,24 +49,26 @@ To train a YOLOv8n model on the Argoverse dataset for 100 epochs with an image s
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='Argoverse.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='Argoverse.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=Argoverse.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=Argoverse.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Data and Annotations
 
@@ -82,16 +86,18 @@ If you use the Argoverse dataset in your research or development work, please ci
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @inproceedings{chang2019argoverse,
-          title={Argoverse: 3D Tracking and Forecasting with Rich Maps},
-          author={Chang, Ming-Fang and Lambert, John and Sangkloy, Patsorn and Singh, Jagjeet and Bak, Slawomir and Hartnett, Andrew and Wang, Dequan and Carr, Peter and Lucey, Simon and Ramanan, Deva and others},
-          booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-          pages={8748--8757},
-          year={2019}
-        }
-        ```
+    ```bibtex
+    @inproceedings{chang2019argoverse,
+      title={Argoverse: 3D Tracking and Forecasting with Rich Maps},
+      author={Chang, Ming-Fang and Lambert, John and Sangkloy, Patsorn and Singh, Jagjeet and Bak, Slawomir and Hartnett, Andrew and Wang, Dequan and Carr, Peter and Lucey, Simon and Ramanan, Deva and others},
+      booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+      pages={8748--8757},
+      year={2019}
+    }
+    ```
+````
 
 We would like to acknowledge Argo AI for creating and maintaining the Argoverse dataset as a valuable resource for the autonomous driving research community. For more information about the Argoverse dataset and its creators, visit the [Argoverse dataset website](https://www.argoverse.org/).

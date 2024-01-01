@@ -1,8 +1,6 @@
----
-comments: true
-description: YOLOv8 모델을 Ultralytics YOLO를 사용하여 훈련하는 단계별 가이드로, 단일 GPU 및 다중 GPU 훈련의 예제 포함
-keywords: Ultralytics, YOLOv8, YOLO, 객체 감지, 훈련 모드, 사용자 정의 데이터셋, GPU 훈련, 다중 GPU, 하이퍼파라미터, CLI 예제, Python 예제
----
+______________________________________________________________________
+
+## comments: true description: YOLOv8 모델을 Ultralytics YOLO를 사용하여 훈련하는 단계별 가이드로, 단일 GPU 및 다중 GPU 훈련의 예제 포함 keywords: Ultralytics, YOLOv8, YOLO, 객체 감지, 훈련 모드, 사용자 정의 데이터셋, GPU 훈련, 다중 GPU, 하이퍼파라미터, CLI 예제, Python 예제
 
 # Ultralytics YOLO와 함께 하는 모델 훈련
 
@@ -43,7 +41,9 @@ YOLOv8의 훈련 모드를 선택하는 데는 몇 가지 설득력 있는 이�
 
 !!! Tip "팁"
 
-    * YOLOv8 데이터셋들은 첫 사용시 자동으로 다운로드됩니다, 예: `yolo train data=coco.yaml`
+```
+* YOLOv8 데이터셋들은 첫 사용시 자동으로 다운로드됩니다, 예: `yolo train data=coco.yaml`
+```
 
 ## 사용 예제
 
@@ -51,34 +51,36 @@ COCO128 데이터셋에서 YOLOv8n을 이미지 크기 640으로 100 에포크 �
 
 !!! Example "단일 GPU 및 CPU 훈련 예제"
 
-    장치는 자동으로 결정됩니다. GPU가 사용 가능하면 사용되며, 그렇지 않으면 CPU에서 훈련이 시작됩니다.
+````
+장치는 자동으로 결정됩니다. GPU가 사용 가능하면 사용되며, 그렇지 않으면 CPU에서 훈련이 시작됩니다.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 모델을 로드하세요.
-        model = YOLO('yolov8n.yaml')  # YAML에서 새 모델 구축
-        model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련을 위해 권장됨)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # YAML에서 구축 및 가중치 전달
+    # 모델을 로드하세요.
+    model = YOLO('yolov8n.yaml')  # YAML에서 새 모델 구축
+    model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련을 위해 권장됨)
+    model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # YAML에서 구축 및 가중치 전달
 
-        # 모델을 훈련합니다.
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-        ```
+    # 모델을 훈련합니다.
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # YAML에서 새 모델을 구축하고 처음부터 훈련을 시작하세요.
-        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+    ```bash
+    # YAML에서 새 모델을 구축하고 처음부터 훈련을 시작하세요.
+    yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
 
-        # 사전 훈련된 *.pt 모델에서 훈련을 시작하세요.
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+    # 사전 훈련된 *.pt 모델에서 훈련을 시작하세요.
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
 
-        # YAML에서 새 모델을 구축하고, 사전 훈련된 가중치를 전달하고 훈련을 시작하세요.
-        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
-        ```
+    # YAML에서 새 모델을 구축하고, 사전 훈련된 가중치를 전달하고 훈련을 시작하세요.
+    yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ### 다중 GPU 훈련
 
@@ -86,26 +88,28 @@ COCO128 데이터셋에서 YOLOv8n을 이미지 크기 640으로 100 에포크 �
 
 !!! Example "다중 GPU 훈련 예제"
 
-    2개의 GPU, CUDA 장치 0과 1로 훈련하려면 다음 명령을 사용하세요. 필요에 따라 추가 GPU로 확장하세요.
+````
+2개의 GPU, CUDA 장치 0과 1로 훈련하려면 다음 명령을 사용하세요. 필요에 따라 추가 GPU로 확장하세요.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 모델을 로드하세요.
-        model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련 추천됨)
+    # 모델을 로드하세요.
+    model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련 추천됨)
 
-        # 2개의 GPU로 모델을 훈련합니다.
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
-        ```
+    # 2개의 GPU로 모델을 훈련합니다.
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # 사전 훈련된 *.pt 모델로부터 시작하여 GPU 0과 1을 사용하여 훈련합니다.
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
-        ```
+    ```bash
+    # 사전 훈련된 *.pt 모델로부터 시작하여 GPU 0과 1을 사용하여 훈련합니다.
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+    ```
+````
 
 ### Apple M1 및 M2 MPS 훈련
 
@@ -115,24 +119,26 @@ Apple M1 및 M2 칩에서 훈련을 활성화하려면, 훈련 과정을 시작�
 
 !!! Example "MPS 훈련 예제"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 모델을 로드하세요.
-        model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련 추천됨)
+    # 모델을 로드하세요.
+    model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련 추천됨)
 
-        # 2개의 GPU로 모델을 훈련합니다.
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
-        ```
+    # 2개의 GPU로 모델을 훈련합니다.
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # 사전 훈련된 *.pt 모델을 사용하여 mps 장치에서 훈련을 시작합니다.
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
-        ```
+    ```bash
+    # 사전 훈련된 *.pt 모델을 사용하여 mps 장치에서 훈련을 시작합니다.
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+    ```
+````
 
 M1/M2 칩의 연산력을 활용하면서 훈련 작업을 더 효율적으로 처리할 수 있습니다. 자세한 지침과 고급 설정 옵션을 원하신다면 [PyTorch MPS 문서](https://pytorch.org/docs/stable/notes/mps.html)를 참조하세요.
 

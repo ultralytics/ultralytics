@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how Ultralytics YOLO supports various dataset formats for instance segmentation. This guide includes information on data conversions, auto-annotations, and dataset usage.
-keywords: Ultralytics, YOLO, Instance Segmentation, Dataset, YAML, COCO, Auto-Annotation, Image Segmentation
----
+______________________________________________________________________
+
+## comments: true description: Learn how Ultralytics YOLO supports various dataset formats for instance segmentation. This guide includes information on data conversions, auto-annotations, and dataset usage. keywords: Ultralytics, YOLO, Instance Segmentation, Dataset, YAML, COCO, Auto-Annotation, Image Segmentation
 
 # Instance Segmentation Datasets Overview
 
@@ -15,8 +13,8 @@ The dataset label format used for training YOLO segmentation models is as follow
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
-    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-    - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
+   - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
+   - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
 
 The format for a single row in the segmentation dataset file is as follows:
 
@@ -35,8 +33,10 @@ Here is an example of the YOLO dataset format for a single image with two object
 
 !!! Tip "Tip"
 
-      - The length of each row does **not** have to be equal.
-      - Each segmentation label must have a **minimum of 3 xy points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
+```
+  - The length of each row does **not** have to be equal.
+  - Each segmentation label must have a **minimum of 3 xy points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
+```
 
 ### Dataset YAML format
 
@@ -68,28 +68,30 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # Train the model
+    results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Supported Datasets
 
-* [COCO](coco.md): A large-scale dataset designed for object detection, segmentation, and captioning tasks with over 200K labeled images.
-* [COCO8-seg](coco8-seg.md): A smaller dataset for instance segmentation tasks, containing a subset of 8 COCO images with segmentation annotations.
+- [COCO](coco.md): A large-scale dataset designed for object detection, segmentation, and captioning tasks with over 200K labeled images.
+- [COCO8-seg](coco8-seg.md): A smaller dataset for instance segmentation tasks, containing a subset of 8 COCO images with segmentation annotations.
 
 ### Adding your own dataset
 
@@ -103,13 +105,15 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.data.converter import convert_coco
+    ```python
+    from ultralytics.data.converter import convert_coco
 
-        convert_coco(labels_dir='path/to/coco/annotations/', use_segments=True)
-        ```
+    convert_coco(labels_dir='path/to/coco/annotations/', use_segments=True)
+    ```
+````
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
 
@@ -125,18 +129,20 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.data.annotator import auto_annotate
+    ```python
+    from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
-        ```
+    auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+    ```
+````
 
 Certainly, here is the table updated with code snippets:
 
 | Argument     | Type                    | Description                                                                                                 | Default        |
-|--------------|-------------------------|-------------------------------------------------------------------------------------------------------------|----------------|
+| ------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                         | `None`         |
 | `det_model`  | `str, optional`         | Pre-trained YOLO detection model. Defaults to `'yolov8x.pt'`.                                               | `'yolov8x.pt'` |
 | `sam_model`  | `str, optional`         | Pre-trained SAM segmentation model. Defaults to `'sam_b.pt'`.                                               | `'sam_b.pt'`   |

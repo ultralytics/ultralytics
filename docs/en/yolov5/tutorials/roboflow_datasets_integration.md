@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how to use Roboflow for organizing, labelling, preparing, and hosting your datasets for YOLOv5 models. Enhance your model deployments with our platform.
-keywords: Ultralytics, YOLOv5, Roboflow, data organization, data labelling, data preparation, model deployment, active learning, machine learning pipeline
----
+______________________________________________________________________
+
+## comments: true description: Learn how to use Roboflow for organizing, labelling, preparing, and hosting your datasets for YOLOv5 models. Enhance your model deployments with our platform. keywords: Ultralytics, YOLOv5, Roboflow, data organization, data labelling, data preparation, model deployment, active learning, machine learning pipeline
 
 # Roboflow Datasets
 
@@ -10,7 +8,9 @@ You can now use Roboflow to organize, label, prepare, version, and host your dat
 
 !!! Warning
 
-    Roboflow users can use Ultralytics under the [AGPL license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) or procure an [Enterprise license](https://ultralytics.com/license) directly from Ultralytics. Be aware that Roboflow does **not** provide Ultralytics licenses, and it is the responsibility of the user to ensure appropriate licensing.
+```
+Roboflow users can use Ultralytics under the [AGPL license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) or procure an [Enterprise license](https://ultralytics.com/license) directly from Ultralytics. Be aware that Roboflow does **not** provide Ultralytics licenses, and it is the responsibility of the user to ensure appropriate licensing.
+```
 
 ## Upload
 

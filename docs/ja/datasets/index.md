@@ -1,8 +1,6 @@
----
-comments: true
-description: Ultralyticsがサポートするオブジェクト検出、セグメンテーション、ポーズ推定、画像分類、マルチオブジェクト追跡に対応した各種コンピュータビジョンデータセットを探求します。
-keywords: コンピュータビジョン, データセット, Ultralytics, YOLO, オブジェクト検出, インスタンスセグメンテーション, ポーズ推定, 画像分類, マルチオブジェクト追跡
----
+______________________________________________________________________
+
+## comments: true description: Ultralyticsがサポートするオブジェクト検出、セグメンテーション、ポーズ推定、画像分類、マルチオブジェクト追跡に対応した各種コンピュータビジョンデータセットを探求します。 keywords: コンピュータビジョン, データセット, Ultralytics, YOLO, オブジェクト検出, インスタンスセグメンテーション, ポーズ推定, 画像分類, マルチオブジェクト追跡
 
 # データセット概要
 
@@ -10,7 +8,9 @@ Ultralyticsは、検出、インスタンスセグメンテーション、ポー
 
 !!! Note "ノート"
 
-    🚧 当社の多言語ドキュメントは現在作成中であり、改善のため頑張って作業しています。ご理解いただいてありがとうございます！ 🙏
+```
+🚧 当社の多言語ドキュメントは現在作成中であり、改善のため頑張って作業しています。ご理解いただいてありがとうございます！ 🙏
+```
 
 ## [検出データセット](../../datasets/detect/index.md)
 
@@ -80,23 +80,23 @@ Ultralyticsは、検出、インスタンスセグメンテーション、ポー
 
 2. **画像をアノテート**します：これらの画像を、タスクに応じてバウンディングボックス、セグメント、またはキーポイントでアノテートします。
 
-3. **アノテーションをエクスポート**します：これらのアノテーションを、UltralyticsがサポートしているYOLO *.txtファイルフォーマットに変換します。
+3. **アノテーションをエクスポート**します：これらのアノテーションを、UltralyticsがサポートしているYOLO \*.txtファイルフォーマットに変換します。
 
 4. **データセットを編成**します：データセットを正しいフォルダ構造に配置します。`train/` および `val/` のトップレベルディレクトリーを持ち、各ディレクトリー内に `images/` および `labels/` のサブディレクトリーがあるべきです。
 
-    ```
-    dataset/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    └── val/
-        ├── images/
-        └── labels/
-    ```
+   ```
+   dataset/
+   ├── train/
+   │   ├── images/
+   │   └── labels/
+   └── val/
+       ├── images/
+       └── labels/
+   ```
 
 5. **`data.yaml`ファイルを作成**します：データセットのルートディレクトリに、データセット、クラス、その他の必要な情報を記述する`data.yaml`ファイルを作成します。
 
-6. **画像を最適化（オプショナル）**します：データセットのサイズを削減してより効率的な処理を行いたい場合は、以下のコードを使用して画像を最適化することができます。これは必須ではありませんが、データセットのサイズを小さくし、ダウンロード速度を上げるために推奨されます。
+6. \*\*画像を最適化（オプショナル）\*\*します：データセットのサイズを削減してより効率的な処理を行いたい場合は、以下のコードを使用して画像を最適化することができます。これは必須ではありませんが、データセットのサイズを小さくし、ダウンロード速度を上げるために推奨されます。
 
 7. **データセットをZip**します：データセットフォルダ全体をzipファイルに圧縮します。
 
@@ -106,22 +106,24 @@ Ultralyticsは、検出、インスタンスセグメンテーション、ポー
 
 !!! Example "データセットを最適化してZipする"
 
-    === "Python"
+````
+=== "Python"
 
-    ```python
-    from pathlib import Path
-    from ultralytics.data.utils import compress_one_image
-    from ultralytics.utils.downloads import zip_directory
+```python
+from pathlib import Path
+from ultralytics.data.utils import compress_one_image
+from ultralytics.utils.downloads import zip_directory
 
-    # データセットディレクトリを定義
-    path = Path('path/to/dataset')
+# データセットディレクトリを定義
+path = Path('path/to/dataset')
 
-    # データセット内の画像を最適化 (オプショナル)
-    for f in path.rglob('*.jpg'):
-        compress_one_image(f)
+# データセット内の画像を最適化 (オプショナル)
+for f in path.rglob('*.jpg'):
+    compress_one_image(f)
 
-    # 'path/to/dataset.zip'にデータセットをZip
-    zip_directory(path)
-    ```
+# 'path/to/dataset.zip'にデータセットをZip
+zip_directory(path)
+```
+````
 
 これらのステップに従えば、Ultralyticsの既存の構造に適切に統合された新しいデータセットを提供することができます。

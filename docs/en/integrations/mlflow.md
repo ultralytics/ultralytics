@@ -1,8 +1,6 @@
----
-comments: true
-description: Uncover the utility of MLflow for effective experiment logging in your Ultralytics YOLO projects.
-keywords: ultralytics docs, YOLO, MLflow, experiment logging, metrics tracking, parameter logging, artifact logging
----
+______________________________________________________________________
+
+## comments: true description: Uncover the utility of MLflow for effective experiment logging in your Ultralytics YOLO projects. keywords: ultralytics docs, YOLO, MLflow, experiment logging, metrics tracking, parameter logging, artifact logging
 
 # MLflow Integration for Ultralytics YOLO
 
@@ -36,54 +34,63 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
 !!! Example "Update Ultralytics MLflow Settings"
 
-    === "Python"
-        Within the Python environment, call the `update` method on the `settings` object to change your settings:
-        ```python
-        from ultralytics import settings
+````
+=== "Python"
+    Within the Python environment, call the `update` method on the `settings` object to change your settings:
+    ```python
+    from ultralytics import settings
 
-        # Update a setting
-        settings.update({'mlflow': True})
+    # Update a setting
+    settings.update({'mlflow': True})
 
-        # Reset settings to default values
-        settings.reset()
-        ```
+    # Reset settings to default values
+    settings.reset()
+    ```
 
-    === "CLI"
-        If you prefer using the command-line interface, the following commands will allow you to modify your settings:
-        ```bash
-        # Update a setting
-        yolo settings runs_dir='/path/to/runs'
+=== "CLI"
+    If you prefer using the command-line interface, the following commands will allow you to modify your settings:
+    ```bash
+    # Update a setting
+    yolo settings runs_dir='/path/to/runs'
 
-        # Reset settings to default values
-        yolo settings reset
-        ```
+    # Reset settings to default values
+    yolo settings reset
+    ```
+````
 
 ## How to Use
 
 ### Commands
 
 1. **Set a Project Name**: You can set the project name via an environment variable:
-    ```bash
-    export MLFLOW_EXPERIMENT_NAME=<your_experiment_name>
-    ```
+
+   ```bash
+   export MLFLOW_EXPERIMENT_NAME=<your_experiment_name>
+   ```
+
    Or use the `project=<project>` argument when training a YOLO model, i.e. `yolo train project=my_project`.
 
 2. **Set a Run Name**: Similar to setting a project name, you can set the run name via an environment variable:
-    ```bash
-    export MLFLOW_RUN=<your_run_name>
-    ```
+
+   ```bash
+   export MLFLOW_RUN=<your_run_name>
+   ```
+
    Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
 
 3. **Start Local MLflow Server**: To start tracking, use:
-    ```bash
-    mlflow server --backend-store-uri runs/mlflow'
-    ```
+
+   ```bash
+   mlflow server --backend-store-uri runs/mlflow'
+   ```
+
    This will start a local server at http://127.0.0.1:5000 by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
 
 4. **Kill MLflow Server Instances**: To stop all running MLflow instances, run:
-    ```bash
-    ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
-    ```
+
+   ```bash
+   ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
+   ```
 
 ### Logging
 
@@ -93,11 +100,9 @@ The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end
 
 1. **Logging Custom Metrics**: You can add custom metrics to be logged by modifying the `trainer.metrics` dictionary before `on_fit_epoch_end` is called.
 
-2. **View Experiment**: To view your logs, navigate to your MLflow server (usually http://127.0.0.1:5000) and select your experiment and run.
-   <img width="1024" src="https://user-images.githubusercontent.com/26833433/274933329-3127aa8c-4491-48ea-81df-ed09a5837f2a.png" alt="YOLO MLflow Experiment">
+2. **View Experiment**: To view your logs, navigate to your MLflow server (usually http://127.0.0.1:5000) and select your experiment and run. <img width="1024" src="https://user-images.githubusercontent.com/26833433/274933329-3127aa8c-4491-48ea-81df-ed09a5837f2a.png" alt="YOLO MLflow Experiment">
 
-3. **View Run**: Runs are individual models inside an experiment. Click on a Run and see the Run details, including uploaded artifacts and model weights.
-   <img width="1024" src="https://user-images.githubusercontent.com/26833433/274933337-ac61371c-2867-4099-a733-147a2583b3de.png" alt="YOLO MLflow Run">
+3. **View Run**: Runs are individual models inside an experiment. Click on a Run and see the Run details, including uploaded artifacts and model weights. <img width="1024" src="https://user-images.githubusercontent.com/26833433/274933337-ac61371c-2867-4099-a733-147a2583b3de.png" alt="YOLO MLflow Run">
 
 ## Disabling MLflow
 

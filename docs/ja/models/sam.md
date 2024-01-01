@@ -1,8 +1,6 @@
----
-comments: true
-description: リアルタイムの画像セグメンテーションを可能にするウルトラリティクスの最先端Segment Anything Model (SAM)を紹介します。SAMのプロンプト可能なセグメンテーション、ゼロショットパフォーマンス、使用方法について学びましょう。
-keywords: Ultralytics, 画像セグメンテーション, Segment Anything Model, SAM, SA-1B データセット, リアルタイムパフォーマンス, ゼロショット転送, 物体検出, 画像解析, 機械学習
----
+______________________________________________________________________
+
+## comments: true description: リアルタイムの画像セグメンテーションを可能にするウルトラリティクスの最先端Segment Anything Model (SAM)を紹介します。SAMのプロンプト可能なセグメンテーション、ゼロショットパフォーマンス、使用方法について学びましょう。 keywords: Ultralytics, 画像セグメンテーション, Segment Anything Model, SAM, SA-1B データセット, リアルタイムパフォーマンス, ゼロショット転送, 物体検出, 画像解析, 機械学習
 
 # Segment Anything Model (SAM)
 
@@ -14,8 +12,7 @@ Segment Anything Model（SAM）は、画像解析タスクにおける柔軟な�
 
 SAMの高度な設計により、新しい画像分布やタスクに事前の知識なしで適応するゼロショット転送の機能を持っています。豊富な[SA-1B データセット](https://ai.facebook.com/datasets/segment-anything/)でトレーニングされたSAMは、1億以上のマスクを含む1,100万枚以上の厳選された画像に広がる自動的にアノテーションされたセグメンテーションマスクを備えており、多くの場合、前向きに監督された結果を上回る卓越したゼロショットパフォーマンスを発揮しています。
 
-![データセットサンプルイメージ](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg)
-新たに導入されたSA-1Bデータセットからガイドマスクを重畳した例の画像です。SA-1Bには、多様な高解像度のライセンス画像と11億件以上の高品質のセグメンテーションマスクが含まれています。これらのマスクは、SAMによって完全自動的に注釈付けされ、人間の評価と数多くの実験で高品質と多様性が確認されています。画像は可視化のために画像あたりのマスクの数でグループ化されています（平均でおおよそ100個のマスクがあります）。
+![データセットサンプルイメージ](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg) 新たに導入されたSA-1Bデータセットからガイドマスクを重畳した例の画像です。SA-1Bには、多様な高解像度のライセンス画像と11億件以上の高品質のセグメンテーションマスクが含まれています。これらのマスクは、SAMによって完全自動的に注釈付けされ、人間の評価と数多くの実験で高品質と多様性が確認されています。画像は可視化のために画像あたりのマスクの数でグループ化されています（平均でおおよそ100個のマスクがあります）。
 
 ## Segment Anything Model (SAM)の主な特徴
 
@@ -31,7 +28,7 @@ Segment Anything ModelおよびSA-1Bデータセットの詳細については�
 このテーブルでは、使用可能なモデルとその特定の事前トレーニング済み重み、サポートされているタスク、およびInference、Validation、Training、Exportなどのさまざまな操作モードに対する互換性を示しています。サポートされるモードは✅の絵文字で表示され、サポートされていないモードは❌の絵文字で表示されます。
 
 | モデルの種類    | 事前トレーニング済みの重み | サポートされているタスク                                                  | Inference | Validation | Training | Export |
-|-----------|---------------|---------------------------------------------------------------|-----------|------------|----------|--------|
+| --------- | ------------- | ------------------------------------------------------------- | --------- | ---------- | -------- | ------ |
 | SAM base  | `sam_b.pt`    | [Instance Segmentation（インスタンスセグメンテーション）](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
 | SAM large | `sam_l.pt`    | [Instance Segmentation（インスタンスセグメンテーション）](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
 
@@ -43,91 +40,97 @@ Segment Anything Modelは、トレーニングデータを超えた多くのダ�
 
 !!! Example "プロンプトでセグメントする"
 
-    与えられたプロンプトで画像をセグメンテーションします。
+````
+与えられたプロンプトで画像をセグメンテーションします。
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import SAM
+    ```python
+    from ultralytics import SAM
 
-        # モデルをロード
-        model = SAM('sam_b.pt')
+    # モデルをロード
+    model = SAM('sam_b.pt')
 
-        # モデル情報を表示（オプション）
-        model.info()
+    # モデル情報を表示（オプション）
+    model.info()
 
-        # バウンディングボックスのプロンプトで予測を実行
-        model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+    # バウンディングボックスのプロンプトで予測を実行
+    model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
 
-        # ポイントのプロンプトで予測を実行
-        model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
-        ```
+    # ポイントのプロンプトで予測を実行
+    model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+    ```
+````
 
 !!! Example "すべてをセグメントする"
 
-    画像全体をセグメンテーションします。
+````
+画像全体をセグメンテーションします。
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import SAM
+    ```python
+    from ultralytics import SAM
 
-        # モデルをロード
-        model = SAM('sam_b.pt')
+    # モデルをロード
+    model = SAM('sam_b.pt')
 
-        # モデル情報を表示（オプション）
-        model.info()
+    # モデル情報を表示（オプション）
+    model.info()
 
-        # 予測を実行
-        model('path/to/image.jpg')
-        ```
+    # 予測を実行
+    model('path/to/image.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # SAMモデルで予測を実行
-        yolo predict model=sam_b.pt source=path/to/image.jpg
-        ```
+    ```bash
+    # SAMモデルで予測を実行
+    yolo predict model=sam_b.pt source=path/to/image.jpg
+    ```
+````
 
 - ここでは、プロンプト（バウンディングボックス/ポイント/マスク）を指定しない場合は、画像全体がセグメンテーションされるロジックです。
 
 !!! Example "SAMPredictorの例"
 
-    画像を一度設定し、イメージエンコーダを複数回実行することなく複数回プロンプト推論を実行できます。
+````
+画像を一度設定し、イメージエンコーダを複数回実行することなく複数回プロンプト推論を実行できます。
 
-    === "プロンプト推論"
+=== "プロンプト推論"
 
-        ```python
-        from ultralytics.models.sam import Predictor as SAMPredictor
+    ```python
+    from ultralytics.models.sam import Predictor as SAMPredictor
 
-        # SAMPredictorを作成
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
-        predictor = SAMPredictor(overrides=overrides)
+    # SAMPredictorを作成
+    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+    predictor = SAMPredictor(overrides=overrides)
 
-        # イメージを設定する
-        predictor.set_image("ultralytics/assets/zidane.jpg")  # 画像ファイルで設定する
-        predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # np.ndarrayで設定する
-        results = predictor(bboxes=[439, 437, 524, 709])
-        results = predictor(points=[900, 370], labels=[1])
+    # イメージを設定する
+    predictor.set_image("ultralytics/assets/zidane.jpg")  # 画像ファイルで設定する
+    predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # np.ndarrayで設定する
+    results = predictor(bboxes=[439, 437, 524, 709])
+    results = predictor(points=[900, 370], labels=[1])
 
-        # イメージをリセットする
-        predictor.reset_image()
-        ```
+    # イメージをリセットする
+    predictor.reset_image()
+    ```
 
-    追加の引数を指定してすべてのセグメントを設定します。
+追加の引数を指定してすべてのセグメントを設定します。
 
-    === "すべてをセグメントする"
+=== "すべてをセグメントする"
 
-        ```python
-        from ultralytics.models.sam import Predictor as SAMPredictor
+    ```python
+    from ultralytics.models.sam import Predictor as SAMPredictor
 
-        # SAMPredictorを作成
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
-        predictor = SAMPredictor(overrides=overrides)
+    # SAMPredictorを作成
+    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+    predictor = SAMPredictor(overrides=overrides)
 
-        # 追加の引数でセグメント
-        results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
-        ```
+    # 追加の引数でセグメント
+    results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
+    ```
+````
 
 - `すべてをセグメントする` のための追加の引数の詳細は、[`Predictor/generate` リファレンス](../../../reference/models/sam/predict.md)を参照してください。
 
@@ -136,7 +139,7 @@ Segment Anything Modelは、トレーニングデータを超えた多くのダ�
 ここでは、Metaの最小のSAMモデルであるSAM-bと、Ultralyticsの最小のセグメンテーションモデルである[YOLOv8n-seg](../tasks/segment.md)とを比較します。
 
 | モデル                                            | サイズ                   | パラメータ数               | スピード（CPU）             |
-|------------------------------------------------|-----------------------|----------------------|-----------------------|
+| ---------------------------------------------- | --------------------- | -------------------- | --------------------- |
 | MetaのSAM-b                                     | 358 MB                | 94.7 M               | 51096 ms/im           |
 | [MobileSAM](mobile-sam.md)                     | 40.7 MB               | 10.1 M               | 46122 ms/im           |
 | [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB               | 11.8 M               | 115 ms/im             |
@@ -148,30 +151,32 @@ Segment Anything Modelは、トレーニングデータを超えた多くのダ�
 
 !!! Example "例"
 
-    === "Python"
-        ```python
-        from ultralytics import FastSAM, SAM, YOLO
+````
+=== "Python"
+    ```python
+    from ultralytics import FastSAM, SAM, YOLO
 
-        # SAM-bのプロファイリング
-        model = SAM('sam_b.pt')
-        model.info()
-        model('ultralytics/assets')
+    # SAM-bのプロファイリング
+    model = SAM('sam_b.pt')
+    model.info()
+    model('ultralytics/assets')
 
-        # MobileSAMのプロファイリング
-        model = SAM('mobile_sam.pt')
-        model.info()
-        model('ultralytics/assets')
+    # MobileSAMのプロファイリング
+    model = SAM('mobile_sam.pt')
+    model.info()
+    model('ultralytics/assets')
 
-        # FastSAM-sのプロファイリング
-        model = FastSAM('FastSAM-s.pt')
-        model.info()
-        model('ultralytics/assets')
+    # FastSAM-sのプロファイリング
+    model = FastSAM('FastSAM-s.pt')
+    model.info()
+    model('ultralytics/assets')
 
-        # YOLOv8n-segのプロファイリング
-        model = YOLO('yolov8n-seg.pt')
-        model.info()
-        model('ultralytics/assets')
-        ```
+    # YOLOv8n-segのプロファイリング
+    model = YOLO('yolov8n-seg.pt')
+    model.info()
+    model('ultralytics/assets')
+    ```
+````
 
 ## オートアノテーション: セグメンテーションデータセットの迅速な作成方法
 
@@ -183,15 +188,17 @@ Ultralyticsフレームワークを使用してデータセットをオートア
 
 !!! Example "例"
 
-    === "Python"
-        ```python
-        from ultralytics.data.annotator import auto_annotate
+````
+=== "Python"
+    ```python
+    from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
-        ```
+    auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+    ```
+````
 
 | 引数         | タイプ              | 説明                                                           | デフォルト        |
-|------------|------------------|--------------------------------------------------------------|--------------|
+| ---------- | ---------------- | ------------------------------------------------------------ | ------------ |
 | data       | str              | 注釈を付ける画像が含まれるフォルダへのパス。                                       |              |
 | det_model  | str, オプション       | 事前トレーニング済みのYOLO検出モデル。デフォルトは'yolov8x.pt'。                     | 'yolov8x.pt' |
 | sam_model  | str, オプション       | 事前トレーニング済みのSAMセグメンテーションモデル。デフォルトは'sam_b.pt'。                 | 'sam_b.pt'   |
@@ -208,18 +215,20 @@ SAMが研究や開発の場で役立つ場合は、引用にご協力いただ�
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{kirillov2023segment,
-              title={Segment Anything},
-              author={Alexander Kirillov and Eric Mintun and Nikhila Ravi and Hanzi Mao and Chloe Rolland and Laura Gustafson and Tete Xiao and Spencer Whitehead and Alexander C. Berg and Wan-Yen Lo and Piotr Dollár and Ross Girshick},
-              year={2023},
-              eprint={2304.02643},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{kirillov2023segment,
+          title={Segment Anything},
+          author={Alexander Kirillov and Eric Mintun and Nikhila Ravi and Hanzi Mao and Chloe Rolland and Laura Gustafson and Tete Xiao and Spencer Whitehead and Alexander C. Berg and Wan-Yen Lo and Piotr Dollár and Ross Girshick},
+          year={2023},
+          eprint={2304.02643},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 この貴重なコンピュータビジョンコミュニティ向けのリソースを作成および維持してくれたMeta AIに感謝の意を表します。
 

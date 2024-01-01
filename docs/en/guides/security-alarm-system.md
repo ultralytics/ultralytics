@@ -1,8 +1,6 @@
----
-comments: true
-description: Security Alarm System Project Using Ultralytics YOLOv8. Learn How to implement a Security Alarm System Using ultralytics YOLOv8
-keywords: Object Detection, Security Alarm, Object Tracking, YOLOv8, Computer Vision Projects
----
+______________________________________________________________________
+
+## comments: true description: Security Alarm System Project Using Ultralytics YOLOv8. Learn How to implement a Security Alarm System Using ultralytics YOLOv8 keywords: Object Detection, Security Alarm, Object Tracking, YOLOv8, Computer Vision Projects
 
 # Security Alarm System Project Using Ultralytics YOLOv8
 
@@ -45,7 +43,9 @@ from email.mime.text import MIMEText
 
 ???+ tip "Note"
 
-    App Password Generation is necessary
+```
+App Password Generation is necessary
+```
 
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated password field as instructed.
 

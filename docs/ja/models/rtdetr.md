@@ -1,8 +1,6 @@
----
-comments: true
-description: RT-DETRは、Baiduによって開発された、高速かつ高精度なリアルタイムオブジェクト検出器です。Vision Transformers（ViT）の力を借りて、マルチスケールの特徴を効率的に処理します。RT-DETRは非常に適応性があり、再学習せずに異なるデコーダーレイヤーを使用して推論速度を柔軟に調整できます。このモデルは、TensorRTを使用したCUDAなどの高速エンドバックエンドで優れた性能を発揮し、多くの他のリアルタイムオブジェクト検出器を凌駕します。
-keywords: RT-DETR, Baidu, Vision Transformers, object detection, real-time performance, CUDA, TensorRT, IoU-aware query selection, Ultralytics, Python API, PaddlePaddle
----
+______________________________________________________________________
+
+## comments: true description: RT-DETRは、Baiduによって開発された、高速かつ高精度なリアルタイムオブジェクト検出器です。Vision Transformers（ViT）の力を借りて、マルチスケールの特徴を効率的に処理します。RT-DETRは非常に適応性があり、再学習せずに異なるデコーダーレイヤーを使用して推論速度を柔軟に調整できます。このモデルは、TensorRTを使用したCUDAなどの高速エンドバックエンドで優れた性能を発揮し、多くの他のリアルタイムオブジェクト検出器を凌駕します。 keywords: RT-DETR, Baidu, Vision Transformers, object detection, real-time performance, CUDA, TensorRT, IoU-aware query selection, Ultralytics, Python API, PaddlePaddle
 
 # BaiduのRT-DETR: Vision Transformerベースのリアルタイムオブジェクト検出器
 
@@ -10,8 +8,7 @@ keywords: RT-DETR, Baidu, Vision Transformers, object detection, real-time perfo
 
 Baiduが開発したリアルタイム検出Transformer（RT-DETR）は、高い精度を維持しながらリアルタイム性能を提供する最先端のエンドツーエンドのオブジェクト検出器です。Vision Transformers（ViT）の力を借りて、マルチスケールの特徴を効率的に処理することにより、RT-DETRは高い適応性を持ちます。再学習せずに異なるデコーダーレイヤーを使用して推論速度を柔軟に調整できるため、このモデルはTensorRTを使用したCUDAなどの高速バックエンドで多くの他のリアルタイムオブジェクト検出器を凌駕します。
 
-![モデルの例](https://user-images.githubusercontent.com/26833433/238963168-90e8483f-90aa-4eb6-a5e1-0d408b23dd33.png)
-**BaiduのRT-DETRの概要。** RT-DETRのモデルアーキテクチャダイアグラムでは、バックボーンの最後の3つのステージ{S3、S4、S5}がエンコーダーへの入力として表示されます。効率的なハイブリッドエンコーダーは、マルチスケールの特徴をイントラスケール特徴の相互作用（AIFI）とクロススケール特徴融合モジュール（CCFM）を介して画像特徴のシーケンスに変換します。IoU-awareクエリ選択は、デコーダーの初期オブジェクトクエリとして固定数の画像特徴を選択するために使用されます。最後に、デコーダーは補助予測ヘッドとともに、オブジェクトクエリを反復最適化してボックスと信頼スコアを生成します（[出典](https://arxiv.org/pdf/2304.08069.pdf)）。
+![モデルの例](https://user-images.githubusercontent.com/26833433/238963168-90e8483f-90aa-4eb6-a5e1-0d408b23dd33.png) **BaiduのRT-DETRの概要。** RT-DETRのモデルアーキテクチャダイアグラムでは、バックボーンの最後の3つのステージ{S3、S4、S5}がエンコーダーへの入力として表示されます。効率的なハイブリッドエンコーダーは、マルチスケールの特徴をイントラスケール特徴の相互作用（AIFI）とクロススケール特徴融合モジュール（CCFM）を介して画像特徴のシーケンスに変換します。IoU-awareクエリ選択は、デコーダーの初期オブジェクトクエリとして固定数の画像特徴を選択するために使用されます。最後に、デコーダーは補助予測ヘッドとともに、オブジェクトクエリを反復最適化してボックスと信頼スコアを生成します（[出典](https://arxiv.org/pdf/2304.08069.pdf)）。
 
 ### 主な特徴
 
@@ -32,42 +29,44 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import RTDETR
+    ```python
+    from ultralytics import RTDETR
 
-        # COCOで事前学習済みのRT-DETR-lモデルをロードします
-        model = RTDETR('rtdetr-l.pt')
+    # COCOで事前学習済みのRT-DETR-lモデルをロードします
+    model = RTDETR('rtdetr-l.pt')
 
-        # モデル情報を表示します（オプション）
-        model.info()
+    # モデル情報を表示します（オプション）
+    model.info()
 
-        # COCO8の例のデータセットでモデルを100エポックトレーニングします
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # COCO8の例のデータセットでモデルを100エポックトレーニングします
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # 'bus.jpg'画像でRT-DETR-lモデルで推論を実行します
-        results = model('path/to/bus.jpg')
-        ```
+    # 'bus.jpg'画像でRT-DETR-lモデルで推論を実行します
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # COCOで事前学習済みのRT-DETR-lモデルをロードし、COCO8の例のデータセットで100エポックトレーニングします
-        yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # COCOで事前学習済みのRT-DETR-lモデルをロードし、COCO8の例のデータセットで100エポックトレーニングします
+    yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # COCOで事前学習済みのRT-DETR-lモデルをロードし、'bus.jpg'画像で推論を実行します
-        yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
-        ```
+    # COCOで事前学習済みのRT-DETR-lモデルをロードし、'bus.jpg'画像で推論を実行します
+    yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
+    ```
+````
 
 ## サポートされているタスクとモード
 
 この表には、各モデルがサポートするタスク、特定の事前学習済み重み、およびサポートされるさまざまなモード（[Train](../modes/train.md)、[Val](../modes/val.md)、[Predict](../modes/predict.md)、[Export](../modes/export.md)）が✅絵文字で示されている情報が示されています。
 
-| モデルの種類              | 事前学習済み重み      | サポートされるタスク                     | 推論 | 検証 | 訓練 | エクスポート |
-|---------------------|---------------|--------------------------------|----|----|----|--------|
-| RT-DETR Large       | `rtdetr-l.pt` | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅      |
-| RT-DETR Extra-Large | `rtdetr-x.pt` | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅      |
+| モデルの種類              | 事前学習済み重み      | サポートされるタスク                     | 推論  | 検証  | 訓練  | エクスポート |
+| ------------------- | ------------- | ------------------------------ | --- | --- | --- | ------ |
+| RT-DETR Large       | `rtdetr-l.pt` | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅      |
+| RT-DETR Extra-Large | `rtdetr-x.pt` | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅      |
 
 ## 引用と謝辞
 
@@ -75,18 +74,20 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{lv2023detrs,
-              title={DETRs Beat YOLOs on Real-time Object Detection},
-              author={Wenyu Lv and Shangliang Xu and Yian Zhao and Guanzhong Wang and Jinman Wei and Cheng Cui and Yuning Du and Qingqing Dang and Yi Liu},
-              year={2023},
-              eprint={2304.08069},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{lv2023detrs,
+          title={DETRs Beat YOLOs on Real-time Object Detection},
+          author={Wenyu Lv and Shangliang Xu and Yian Zhao and Guanzhong Wang and Jinman Wei and Cheng Cui and Yuning Du and Qingqing Dang and Yi Liu},
+          year={2023},
+          eprint={2304.08069},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 私たちは、Baiduと[PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection)チームに、コンピュータビジョンコミュニティ向けのこの貴重なリソースを作成しメンテナンスしていただいたことに感謝いたします。Vision Transformersベースのリアルタイムオブジェクト検出器であるRT-DETRの開発による、彼らのフィールドへの貢献は非常に評価されています。
 

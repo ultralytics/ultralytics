@@ -1,8 +1,6 @@
----
-comments: true
-description: Ultralytics YOLOv8을 완벽하게 탐구하는 가이드로, 고속 및 정확성이 특징인 객체 탐지 및 이미지 분할 모델입니다. 설치, 예측, 훈련 튜토리얼 등이 포함되어 있습니다.
-keywords: Ultralytics, YOLOv8, 객체 탐지, 이미지 분할, 기계 학습, 딥러닝, 컴퓨터 비전, YOLOv8 설치, YOLOv8 예측, YOLOv8 훈련, YOLO 역사, YOLO 라이센스
----
+______________________________________________________________________
+
+## comments: true description: Ultralytics YOLOv8을 완벽하게 탐구하는 가이드로, 고속 및 정확성이 특징인 객체 탐지 및 이미지 분할 모델입니다. 설치, 예측, 훈련 튜토리얼 등이 포함되어 있습니다. keywords: Ultralytics, YOLOv8, 객체 탐지, 이미지 분할, 기계 학습, 딥러닝, 컴퓨터 비전, YOLOv8 설치, YOLOv8 예측, YOLOv8 훈련, YOLO 역사, YOLO 라이센스
 
 <div align="center">
   <p>
@@ -41,14 +39,16 @@ YOLOv8 문서를 탐구하여, 그 기능과 능력을 이해하고 활용할 �
 
 !!! Note "노트"
 
-    🚧 다국어 문서는 현재 제작 중이며, 이를 개선하기 위해 노력하고 있습니다. 인내해 주셔서 감사합니다! 🙏
+```
+🚧 다국어 문서는 현재 제작 중이며, 이를 개선하기 위해 노력하고 있습니다. 인내해 주셔서 감사합니다! 🙏
+```
 
 ## 시작하기
 
-- **설치** `ultralytics`를 pip으로 설치하고 몇 분 만에 시작하세요 &nbsp; [:material-clock-fast: 시작하기](quickstart.md){ .md-button }
-- **예측** YOLOv8로 새로운 이미지와 비디오를 감지하세요 &nbsp; [:octicons-image-16: 이미지에서 예측하기](modes/predict.md){ .md-button }
-- **훈련** 새로운 YOLOv8 모델을 사용자의 맞춤 데이터셋으로 훈련하세요 &nbsp; [:fontawesome-solid-brain: 모델 훈련하기](modes/train.md){ .md-button }
-- **탐험** 세분화, 분류, 자세 인식, 추적과 같은 YOLOv8 작업 &nbsp; [:material-magnify-expand: 작업 탐험하기](tasks/index.md){ .md-button }
+- **설치** `ultralytics`를 pip으로 설치하고 몇 분 만에 시작하세요   [:material-clock-fast: 시작하기](quickstart.md){ .md-button }
+- **예측** YOLOv8로 새로운 이미지와 비디오를 감지하세요   [:octicons-image-16: 이미지에서 예측하기](modes/predict.md){ .md-button }
+- **훈련** 새로운 YOLOv8 모델을 사용자의 맞춤 데이터셋으로 훈련하세요   [:fontawesome-solid-brain: 모델 훈련하기](modes/train.md){ .md-button }
+- **탐험** 세분화, 분류, 자세 인식, 추적과 같은 YOLOv8 작업   [:material-magnify-expand: 작업 탐험하기](tasks/index.md){ .md-button }
 
 <p align="center">
   <br>

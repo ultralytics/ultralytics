@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn about the Ultralytics Android App, enabling real-time object detection using YOLO models. Discover in-app features, quantization methods, and delegate options for optimal performance.
-keywords: Ultralytics, Android App, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, CPU, GPU, Hexagon, NNAPI
----
+______________________________________________________________________
+
+## comments: true description: Learn about the Ultralytics Android App, enabling real-time object detection using YOLO models. Discover in-app features, quantization methods, and delegate options for optimal performance. keywords: Ultralytics, Android App, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, CPU, GPU, Hexagon, NNAPI
 
 # Ultralytics Android App: Real-time Object Detection with YOLO Models
 
@@ -45,7 +43,9 @@ INT8 (or 8-bit integer) quantization further reduces the model's size and comput
 
 !!! Tip "mAP Reduction in INT8 Models"
 
-    The reduced numerical precision in INT8 models can lead to some loss of information during the quantization process, which may result in a slight decrease in mAP. However, this trade-off is often acceptable considering the substantial performance gains offered by INT8 quantization.
+```
+The reduced numerical precision in INT8 models can lead to some loss of information during the quantization process, which may result in a slight decrease in mAP. However, this trade-off is often acceptable considering the substantial performance gains offered by INT8 quantization.
+```
 
 ## Delegates and Performance Variability
 
@@ -59,7 +59,7 @@ Different delegates are available on Android devices to accelerate model inferen
 Here's a table showing the primary vendors, their product lines, popular devices, and supported delegates:
 
 | Vendor                                  | Product Lines                                                                        | Popular Devices                                                                                                                                                                | Delegates Supported      |
-|-----------------------------------------|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| --------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
 | [Qualcomm](https://www.qualcomm.com/)   | [Snapdragon (e.g., 800 series)](https://www.qualcomm.com/snapdragon)                 | [Samsung Galaxy S21](https://www.samsung.com/global/galaxy/galaxy-s21-5g/), [OnePlus 9](https://www.oneplus.com/9), [Google Pixel 6](https://store.google.com/product/pixel_6) | CPU, GPU, Hexagon, NNAPI |
 | [Samsung](https://www.samsung.com/)     | [Exynos (e.g., Exynos 2100)](https://www.samsung.com/semiconductor/minisite/exynos/) | [Samsung Galaxy S21 (Global version)](https://www.samsung.com/global/galaxy/galaxy-s21-5g/)                                                                                    | CPU, GPU, NNAPI          |
 | [MediaTek](https://i.mediatek.com/)     | [Dimensity (e.g., Dimensity 1200)](https://i.mediatek.com/dimensity-1200)            | [Realme GT](https://www.realme.com/global/realme-gt), [Xiaomi Redmi Note](https://www.mi.com/en/phone/redmi/note-list)                                                         | CPU, GPU, NNAPI          |

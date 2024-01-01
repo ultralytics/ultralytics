@@ -1,8 +1,6 @@
----
-comments: true
-description: Discover how to use YOLOv8 predict mode for various tasks. Learn about different inference sources like images, videos, and data formats.
-keywords: Ultralytics, YOLOv8, predict mode, inference sources, prediction tasks, streaming mode, image processing, video processing, machine learning, AI
----
+______________________________________________________________________
+
+## comments: true description: Discover how to use YOLOv8 predict mode for various tasks. Learn about different inference sources like images, videos, and data formats. keywords: Ultralytics, YOLOv8, predict mode, inference sources, prediction tasks, streaming mode, image processing, video processing, machine learning, AI
 
 # Model Prediction with Ultralytics YOLO
 
@@ -26,7 +24,7 @@ In the world of machine learning and computer vision, the process of making sens
 ## Real-world Applications
 
 |                   Manufacturing                   |                        Sports                        |                   Safety                    |
-|:-------------------------------------------------:|:----------------------------------------------------:|:-------------------------------------------:|
+| :-----------------------------------------------: | :--------------------------------------------------: | :-----------------------------------------: |
 | ![Vehicle Spare Parts Detection][car spare parts] | ![Football Player Detection][football player detect] | ![People Fall Detection][human fall detect] |
 |           Vehicle Spare Parts Detection           |              Football Player Detection               |            People Fall Detection            |
 
@@ -52,41 +50,43 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
 
 !!! Example "Predict"
 
-    === "Return a list with `stream=False`"
-        ```python
-        from ultralytics import YOLO
+````
+=== "Return a list with `stream=False`"
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
+    # Load a model
+    model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
-        # Run batched inference on a list of images
-        results = model(['im1.jpg', 'im2.jpg'])  # return a list of Results objects
+    # Run batched inference on a list of images
+    results = model(['im1.jpg', 'im2.jpg'])  # return a list of Results objects
 
-        # Process results list
-        for result in results:
-            boxes = result.boxes  # Boxes object for bbox outputs
-            masks = result.masks  # Masks object for segmentation masks outputs
-            keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Probs object for classification outputs
-        ```
+    # Process results list
+    for result in results:
+        boxes = result.boxes  # Boxes object for bbox outputs
+        masks = result.masks  # Masks object for segmentation masks outputs
+        keypoints = result.keypoints  # Keypoints object for pose outputs
+        probs = result.probs  # Probs object for classification outputs
+    ```
 
-    === "Return a generator with `stream=True`"
-        ```python
-        from ultralytics import YOLO
+=== "Return a generator with `stream=True`"
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
+    # Load a model
+    model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
-        # Run batched inference on a list of images
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # return a generator of Results objects
+    # Run batched inference on a list of images
+    results = model(['im1.jpg', 'im2.jpg'], stream=True)  # return a generator of Results objects
 
-        # Process results generator
-        for result in results:
-            boxes = result.boxes  # Boxes object for bbox outputs
-            masks = result.masks  # Masks object for segmentation masks outputs
-            keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Probs object for classification outputs
-        ```
+    # Process results generator
+    for result in results:
+        boxes = result.boxes  # Boxes object for bbox outputs
+        masks = result.masks  # Masks object for segmentation masks outputs
+        keypoints = result.keypoints  # Keypoints object for pose outputs
+        probs = result.probs  # Probs object for classification outputs
+    ```
+````
 
 ## Inference Sources
 
@@ -94,10 +94,12 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 
 !!! Tip "Tip"
 
-    Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
+```
+Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
+```
 
 | Source         | Argument                                   | Type            | Notes                                                                                       |
-|----------------|--------------------------------------------|-----------------|---------------------------------------------------------------------------------------------|
+| -------------- | ------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------- |
 | image          | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
 | URL            | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |
 | screenshot     | `'screen'`                                 | `str`           | Capture a screenshot.                                                                       |
@@ -117,211 +119,213 @@ Below are code examples for using each source type:
 
 !!! Example "Prediction sources"
 
-    === "image"
-        Run inference on an image file.
-        ```python
-        from ultralytics import YOLO
+````
+=== "image"
+    Run inference on an image file.
+    ```python
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Define path to the image file
-        source = 'path/to/image.jpg'
+    # Define path to the image file
+    source = 'path/to/image.jpg'
 
-        # Run inference on the source
-        results = model(source)  # list of Results objects
-        ```
+    # Run inference on the source
+    results = model(source)  # list of Results objects
+    ```
 
-    === "screenshot"
-        Run inference on the current screen content as a screenshot.
-        ```python
-        from ultralytics import YOLO
+=== "screenshot"
+    Run inference on the current screen content as a screenshot.
+    ```python
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Define current screenshot as source
-        source = 'screen'
+    # Define current screenshot as source
+    source = 'screen'
 
-        # Run inference on the source
-        results = model(source)  # list of Results objects
-        ```
+    # Run inference on the source
+    results = model(source)  # list of Results objects
+    ```
 
-    === "URL"
-        Run inference on an image or video hosted remotely via URL.
-        ```python
-        from ultralytics import YOLO
+=== "URL"
+    Run inference on an image or video hosted remotely via URL.
+    ```python
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Define remote image or video URL
-        source = 'https://ultralytics.com/images/bus.jpg'
+    # Define remote image or video URL
+    source = 'https://ultralytics.com/images/bus.jpg'
 
-        # Run inference on the source
-        results = model(source)  # list of Results objects
-        ```
+    # Run inference on the source
+    results = model(source)  # list of Results objects
+    ```
 
-    === "PIL"
-        Run inference on an image opened with Python Imaging Library (PIL).
-        ```python
-        from PIL import Image
-        from ultralytics import YOLO
+=== "PIL"
+    Run inference on an image opened with Python Imaging Library (PIL).
+    ```python
+    from PIL import Image
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Open an image using PIL
-        source = Image.open('path/to/image.jpg')
+    # Open an image using PIL
+    source = Image.open('path/to/image.jpg')
 
-        # Run inference on the source
-        results = model(source)  # list of Results objects
-        ```
+    # Run inference on the source
+    results = model(source)  # list of Results objects
+    ```
 
-    === "OpenCV"
-        Run inference on an image read with OpenCV.
-        ```python
-        import cv2
-        from ultralytics import YOLO
+=== "OpenCV"
+    Run inference on an image read with OpenCV.
+    ```python
+    import cv2
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Read an image using OpenCV
-        source = cv2.imread('path/to/image.jpg')
+    # Read an image using OpenCV
+    source = cv2.imread('path/to/image.jpg')
 
-        # Run inference on the source
-        results = model(source)  # list of Results objects
-        ```
+    # Run inference on the source
+    results = model(source)  # list of Results objects
+    ```
 
-    === "numpy"
-        Run inference on an image represented as a numpy array.
-        ```python
-        import numpy as np
-        from ultralytics import YOLO
+=== "numpy"
+    Run inference on an image represented as a numpy array.
+    ```python
+    import numpy as np
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Create a random numpy array of HWC shape (640, 640, 3) with values in range [0, 255] and type uint8
-        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+    # Create a random numpy array of HWC shape (640, 640, 3) with values in range [0, 255] and type uint8
+    source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
 
-        # Run inference on the source
-        results = model(source)  # list of Results objects
-        ```
+    # Run inference on the source
+    results = model(source)  # list of Results objects
+    ```
 
-    === "torch"
-        Run inference on an image represented as a PyTorch tensor.
-        ```python
-        import torch
-        from ultralytics import YOLO
+=== "torch"
+    Run inference on an image represented as a PyTorch tensor.
+    ```python
+    import torch
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Create a random torch tensor of BCHW shape (1, 3, 640, 640) with values in range [0, 1] and type float32
-        source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+    # Create a random torch tensor of BCHW shape (1, 3, 640, 640) with values in range [0, 1] and type float32
+    source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
 
-        # Run inference on the source
-        results = model(source)  # list of Results objects
-        ```
+    # Run inference on the source
+    results = model(source)  # list of Results objects
+    ```
 
-    === "CSV"
-        Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
-        ```python
-        import torch
-        from ultralytics import YOLO
+=== "CSV"
+    Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
+    ```python
+    import torch
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Define a path to a CSV file with images, URLs, videos and directories
-        source = 'path/to/file.csv'
+    # Define a path to a CSV file with images, URLs, videos and directories
+    source = 'path/to/file.csv'
 
-        # Run inference on the source
-        results = model(source)  # list of Results objects
-        ```
+    # Run inference on the source
+    results = model(source)  # list of Results objects
+    ```
 
-    === "video"
-        Run inference on a video file. By using `stream=True`, you can create a generator of Results objects to reduce memory usage.
-        ```python
-        from ultralytics import YOLO
+=== "video"
+    Run inference on a video file. By using `stream=True`, you can create a generator of Results objects to reduce memory usage.
+    ```python
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Define path to video file
-        source = 'path/to/video.mp4'
+    # Define path to video file
+    source = 'path/to/video.mp4'
 
-        # Run inference on the source
-        results = model(source, stream=True)  # generator of Results objects
-        ```
+    # Run inference on the source
+    results = model(source, stream=True)  # generator of Results objects
+    ```
 
-    === "directory"
-        Run inference on all images and videos in a directory. To also capture images and videos in subdirectories use a glob pattern, i.e. `path/to/dir/**/*`.
-        ```python
-        from ultralytics import YOLO
+=== "directory"
+    Run inference on all images and videos in a directory. To also capture images and videos in subdirectories use a glob pattern, i.e. `path/to/dir/**/*`.
+    ```python
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Define path to directory containing images and videos for inference
-        source = 'path/to/dir'
+    # Define path to directory containing images and videos for inference
+    source = 'path/to/dir'
 
-        # Run inference on the source
-        results = model(source, stream=True)  # generator of Results objects
-        ```
+    # Run inference on the source
+    results = model(source, stream=True)  # generator of Results objects
+    ```
 
-    === "glob"
-        Run inference on all images and videos that match a glob expression with `*` characters.
-        ```python
-        from ultralytics import YOLO
+=== "glob"
+    Run inference on all images and videos that match a glob expression with `*` characters.
+    ```python
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Define a glob search for all JPG files in a directory
-        source = 'path/to/dir/*.jpg'
+    # Define a glob search for all JPG files in a directory
+    source = 'path/to/dir/*.jpg'
 
-        # OR define a recursive glob search for all JPG files including subdirectories
-        source = 'path/to/dir/**/*.jpg'
+    # OR define a recursive glob search for all JPG files including subdirectories
+    source = 'path/to/dir/**/*.jpg'
 
-        # Run inference on the source
-        results = model(source, stream=True)  # generator of Results objects
-        ```
+    # Run inference on the source
+    results = model(source, stream=True)  # generator of Results objects
+    ```
 
-    === "YouTube"
-        Run inference on a YouTube video. By using `stream=True`, you can create a generator of Results objects to reduce memory usage for long videos.
-        ```python
-        from ultralytics import YOLO
+=== "YouTube"
+    Run inference on a YouTube video. By using `stream=True`, you can create a generator of Results objects to reduce memory usage for long videos.
+    ```python
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Define source as YouTube video URL
-        source = 'https://youtu.be/LNwODJXcvt4'
+    # Define source as YouTube video URL
+    source = 'https://youtu.be/LNwODJXcvt4'
 
-        # Run inference on the source
-        results = model(source, stream=True)  # generator of Results objects
-        ```
+    # Run inference on the source
+    results = model(source, stream=True)  # generator of Results objects
+    ```
 
-    === "Streams"
-        Run inference on remote streaming sources using RTSP, RTMP, TCP and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
-        ```python
-        from ultralytics import YOLO
+=== "Streams"
+    Run inference on remote streaming sources using RTSP, RTMP, TCP and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
+    ```python
+    from ultralytics import YOLO
 
-        # Load a pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Single stream with batch-size 1 inference
-        source = 'rtsp://example.com/media.mp4'  # RTSP, RTMP, TCP or IP streaming address
+    # Single stream with batch-size 1 inference
+    source = 'rtsp://example.com/media.mp4'  # RTSP, RTMP, TCP or IP streaming address
 
-        # Multiple streams with batched inference (i.e. batch-size 8 for 8 streams)
-        source = 'path/to/list.streams'  # *.streams text file with one streaming address per row
+    # Multiple streams with batched inference (i.e. batch-size 8 for 8 streams)
+    source = 'path/to/list.streams'  # *.streams text file with one streaming address per row
 
-        # Run inference on the source
-        results = model(source, stream=True)  # generator of Results objects
-        ```
+    # Run inference on the source
+    results = model(source, stream=True)  # generator of Results objects
+    ```
+````
 
 ## Inference Arguments
 
@@ -329,20 +333,22 @@ Below are code examples for using each source type:
 
 !!! Example
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n model
-    model = YOLO('yolov8n.pt')
+# Load a pretrained YOLOv8n model
+model = YOLO('yolov8n.pt')
 
-    # Run inference on 'bus.jpg' with arguments
-    model.predict('bus.jpg', save=True, imgsz=320, conf=0.5)
-    ```
+# Run inference on 'bus.jpg' with arguments
+model.predict('bus.jpg', save=True, imgsz=320, conf=0.5)
+```
+````
 
 Inference arguments:
 
 | Name            | Type           | Default                | Description                                                                |
-|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
 | `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
 | `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
 | `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
@@ -355,14 +361,14 @@ Inference arguments:
 | `visualize`     | `bool`         | `False`                | visualize model features                                                   |
 | `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
 | `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
-| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=\[0,2,3\]              |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
 | `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
 
 Visualization arguments:
 
 | Name          | Type          | Default | Description                                                     |
-|---------------|---------------|---------|-----------------------------------------------------------------|
+| ------------- | ------------- | ------- | --------------------------------------------------------------- |
 | `show`        | `bool`        | `False` | show predicted images and videos if environment allows          |
 | `save`        | `bool`        | `False` | save predicted images and videos                                |
 | `save_frames` | `bool`        | `False` | save predicted individual video frames                          |
@@ -383,7 +389,7 @@ YOLOv8 supports various image and video formats, as specified in [data/utils.py]
 The below table contains valid Ultralytics image formats.
 
 | Image Suffixes | Example Predict Command          | Reference                                                                     |
-|----------------|----------------------------------|-------------------------------------------------------------------------------|
+| -------------- | -------------------------------- | ----------------------------------------------------------------------------- |
 | .bmp           | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format)    |
 | .dng           | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
 | .jpeg          | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
@@ -400,7 +406,7 @@ The below table contains valid Ultralytics image formats.
 The below table contains valid Ultralytics video formats.
 
 | Video Suffixes | Example Predict Command          | Reference                                                                        |
-|----------------|----------------------------------|----------------------------------------------------------------------------------|
+| -------------- | -------------------------------- | -------------------------------------------------------------------------------- |
 | .asf           | `yolo predict source=video.asf`  | [Advanced Systems Format](https://en.wikipedia.org/wiki/Advanced_Systems_Format) |
 | .avi           | `yolo predict source=video.avi`  | [Audio Video Interleave](https://en.wikipedia.org/wiki/Audio_Video_Interleave)   |
 | .gif           | `yolo predict source=video.gif`  | [Graphics Interchange Format](https://en.wikipedia.org/wiki/GIF)                 |
@@ -420,21 +426,23 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 !!! Example "Results"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n model
-    model = YOLO('yolov8n.pt')
+# Load a pretrained YOLOv8n model
+model = YOLO('yolov8n.pt')
 
-    # Run inference on an image
-    results = model('bus.jpg')  # list of 1 Results object
-    results = model(['bus.jpg', 'zidane.jpg'])  # list of 2 Results objects
-    ```
+# Run inference on an image
+results = model('bus.jpg')  # list of 1 Results object
+results = model(['bus.jpg', 'zidane.jpg'])  # list of 2 Results objects
+```
+````
 
 `Results` objects have the following attributes:
 
 | Attribute    | Type                  | Description                                                                              |
-|--------------|-----------------------|------------------------------------------------------------------------------------------|
+| ------------ | --------------------- | ---------------------------------------------------------------------------------------- |
 | `orig_img`   | `numpy.ndarray`       | The original image as a numpy array.                                                     |
 | `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
 | `boxes`      | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
@@ -448,7 +456,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 `Results` objects have the following methods:
 
 | Method          | Return Type     | Description                                                                         |
-|-----------------|-----------------|-------------------------------------------------------------------------------------|
+| --------------- | --------------- | ----------------------------------------------------------------------------------- |
 | `__getitem__()` | `Results`       | Return a Results object for the specified index.                                    |
 | `__len__()`     | `int`           | Return the number of detections in the Results object.                              |
 | `update()`      | `None`          | Update the boxes, masks, and probs attributes of the Results object.                |
@@ -472,24 +480,26 @@ For more details see the `Results` class [documentation](../reference/engine/res
 
 !!! Example "Boxes"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n model
-    model = YOLO('yolov8n.pt')
+# Load a pretrained YOLOv8n model
+model = YOLO('yolov8n.pt')
 
-    # Run inference on an image
-    results = model('bus.jpg')  # results list
+# Run inference on an image
+results = model('bus.jpg')  # results list
 
-    # View results
-    for r in results:
-        print(r.boxes)  # print the Boxes object containing the detection bounding boxes
-    ```
+# View results
+for r in results:
+    print(r.boxes)  # print the Boxes object containing the detection bounding boxes
+```
+````
 
 Here is a table for the `Boxes` class methods and properties, including their name, type, and description:
 
 | Name      | Type                      | Description                                                        |
-|-----------|---------------------------|--------------------------------------------------------------------|
+| --------- | ------------------------- | ------------------------------------------------------------------ |
 | `cpu()`   | Method                    | Move the object to CPU memory.                                     |
 | `numpy()` | Method                    | Convert the object to a numpy array.                               |
 | `cuda()`  | Method                    | Move the object to CUDA memory.                                    |
@@ -510,24 +520,26 @@ For more details see the `Boxes` class [documentation](../reference/engine/resul
 
 !!! Example "Masks"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n-seg Segment model
-    model = YOLO('yolov8n-seg.pt')
+# Load a pretrained YOLOv8n-seg Segment model
+model = YOLO('yolov8n-seg.pt')
 
-    # Run inference on an image
-    results = model('bus.jpg')  # results list
+# Run inference on an image
+results = model('bus.jpg')  # results list
 
-    # View results
-    for r in results:
-        print(r.masks)  # print the Masks object containing the detected instance masks
-    ```
+# View results
+for r in results:
+    print(r.masks)  # print the Masks object containing the detected instance masks
+```
+````
 
 Here is a table for the `Masks` class methods and properties, including their name, type, and description:
 
 | Name      | Type                      | Description                                                     |
-|-----------|---------------------------|-----------------------------------------------------------------|
+| --------- | ------------------------- | --------------------------------------------------------------- |
 | `cpu()`   | Method                    | Returns the masks tensor on CPU memory.                         |
 | `numpy()` | Method                    | Returns the masks tensor as a numpy array.                      |
 | `cuda()`  | Method                    | Returns the masks tensor on GPU memory.                         |
@@ -543,24 +555,26 @@ For more details see the `Masks` class [documentation](../reference/engine/resul
 
 !!! Example "Keypoints"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n-pose Pose model
-    model = YOLO('yolov8n-pose.pt')
+# Load a pretrained YOLOv8n-pose Pose model
+model = YOLO('yolov8n-pose.pt')
 
-    # Run inference on an image
-    results = model('bus.jpg')  # results list
+# Run inference on an image
+results = model('bus.jpg')  # results list
 
-    # View results
-    for r in results:
-        print(r.keypoints)  # print the Keypoints object containing the detected keypoints
-    ```
+# View results
+for r in results:
+    print(r.keypoints)  # print the Keypoints object containing the detected keypoints
+```
+````
 
 Here is a table for the `Keypoints` class methods and properties, including their name, type, and description:
 
 | Name      | Type                      | Description                                                       |
-|-----------|---------------------------|-------------------------------------------------------------------|
+| --------- | ------------------------- | ----------------------------------------------------------------- |
 | `cpu()`   | Method                    | Returns the keypoints tensor on CPU memory.                       |
 | `numpy()` | Method                    | Returns the keypoints tensor as a numpy array.                    |
 | `cuda()`  | Method                    | Returns the keypoints tensor on GPU memory.                       |
@@ -577,24 +591,26 @@ For more details see the `Keypoints` class [documentation](../reference/engine/r
 
 !!! Example "Probs"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n-cls Classify model
-    model = YOLO('yolov8n-cls.pt')
+# Load a pretrained YOLOv8n-cls Classify model
+model = YOLO('yolov8n-cls.pt')
 
-    # Run inference on an image
-    results = model('bus.jpg')  # results list
+# Run inference on an image
+results = model('bus.jpg')  # results list
 
-    # View results
-    for r in results:
-        print(r.probs)  # print the Probs object containing the detected class probabilities
-    ```
+# View results
+for r in results:
+    print(r.probs)  # print the Probs object containing the detected class probabilities
+```
+````
 
 Here's a table summarizing the methods and properties for the `Probs` class:
 
 | Name       | Type                      | Description                                                             |
-|------------|---------------------------|-------------------------------------------------------------------------|
+| ---------- | ------------------------- | ----------------------------------------------------------------------- |
 | `cpu()`    | Method                    | Returns a copy of the probs tensor on CPU memory.                       |
 | `numpy()`  | Method                    | Returns a copy of the probs tensor as a numpy array.                    |
 | `cuda()`   | Method                    | Returns a copy of the probs tensor on GPU memory.                       |
@@ -612,41 +628,43 @@ You can use the `plot()` method of a `Result` objects to visualize predictions. 
 
 !!! Example "Plotting"
 
-    ```python
-    from PIL import Image
-    from ultralytics import YOLO
+````
+```python
+from PIL import Image
+from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n model
-    model = YOLO('yolov8n.pt')
+# Load a pretrained YOLOv8n model
+model = YOLO('yolov8n.pt')
 
-    # Run inference on 'bus.jpg'
-    results = model('bus.jpg')  # results list
+# Run inference on 'bus.jpg'
+results = model('bus.jpg')  # results list
 
-    # Show the results
-    for r in results:
-        im_array = r.plot()  # plot a BGR numpy array of predictions
-        im = Image.fromarray(im_array[..., ::-1])  # RGB PIL image
-        im.show()  # show image
-        im.save('results.jpg')  # save image
-    ```
+# Show the results
+for r in results:
+    im_array = r.plot()  # plot a BGR numpy array of predictions
+    im = Image.fromarray(im_array[..., ::-1])  # RGB PIL image
+    im.show()  # show image
+    im.save('results.jpg')  # save image
+```
 
-    The `plot()` method supports the following arguments:
+The `plot()` method supports the following arguments:
 
-    | Argument     | Type            | Description                                                                    | Default       |
-    |--------------|-----------------|--------------------------------------------------------------------------------|---------------|
-    | `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |
-    | `line_width` | `float`         | The line width of the bounding boxes. If None, it is scaled to the image size. | `None`        |
-    | `font_size`  | `float`         | The font size of the text. If None, it is scaled to the image size.            | `None`        |
-    | `font`       | `str`           | The font to use for the text.                                                  | `'Arial.ttf'` |
-    | `pil`        | `bool`          | Whether to return the image as a PIL Image.                                    | `False`       |
-    | `img`        | `numpy.ndarray` | Plot to another image. if not, plot to original image.                         | `None`        |
-    | `im_gpu`     | `torch.Tensor`  | Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting. | `None`        |
-    | `kpt_radius` | `int`           | Radius of the drawn keypoints. Default is 5.                                   | `5`           |
-    | `kpt_line`   | `bool`          | Whether to draw lines connecting keypoints.                                    | `True`        |
-    | `labels`     | `bool`          | Whether to plot the label of bounding boxes.                                   | `True`        |
-    | `boxes`      | `bool`          | Whether to plot the bounding boxes.                                            | `True`        |
-    | `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
-    | `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
+| Argument     | Type            | Description                                                                    | Default       |
+|--------------|-----------------|--------------------------------------------------------------------------------|---------------|
+| `conf`       | `bool`          | Whether to plot the detection confidence score.                                | `True`        |
+| `line_width` | `float`         | The line width of the bounding boxes. If None, it is scaled to the image size. | `None`        |
+| `font_size`  | `float`         | The font size of the text. If None, it is scaled to the image size.            | `None`        |
+| `font`       | `str`           | The font to use for the text.                                                  | `'Arial.ttf'` |
+| `pil`        | `bool`          | Whether to return the image as a PIL Image.                                    | `False`       |
+| `img`        | `numpy.ndarray` | Plot to another image. if not, plot to original image.                         | `None`        |
+| `im_gpu`     | `torch.Tensor`  | Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting. | `None`        |
+| `kpt_radius` | `int`           | Radius of the drawn keypoints. Default is 5.                                   | `5`           |
+| `kpt_line`   | `bool`          | Whether to draw lines connecting keypoints.                                    | `True`        |
+| `labels`     | `bool`          | Whether to plot the label of bounding boxes.                                   | `True`        |
+| `boxes`      | `bool`          | Whether to plot the bounding boxes.                                            | `True`        |
+| `masks`      | `bool`          | Whether to plot the masks.                                                     | `True`        |
+| `probs`      | `bool`          | Whether to plot classification probability                                     | `True`        |
+````
 
 ## Thread-Safe Inference
 
@@ -656,22 +674,24 @@ When using YOLO models in a multi-threaded application, it's important to instan
 
 !!! Example "Thread-Safe Inference"
 
-    Instantiate a single model inside each thread for thread-safe inference:
-    ```python
-    from ultralytics import YOLO
-    from threading import Thread
+````
+Instantiate a single model inside each thread for thread-safe inference:
+```python
+from ultralytics import YOLO
+from threading import Thread
 
-    def thread_safe_predict(image_path):
-        # Instantiate a new model inside the thread
-        local_model = YOLO("yolov8n.pt")
-        results = local_model.predict(image_path)
-        # Process results
+def thread_safe_predict(image_path):
+    # Instantiate a new model inside the thread
+    local_model = YOLO("yolov8n.pt")
+    results = local_model.predict(image_path)
+    # Process results
 
 
-    # Starting threads that each have their own model instance
-    Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
-    Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
-    ```
+# Starting threads that each have their own model instance
+Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
+Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
+```
+````
 
 For an in-depth look at thread-safe inference with YOLO models and step-by-step instructions, please refer to our [YOLO Thread-Safe Inference Guide](../guides/yolo-thread-safe-inference.md). This guide will provide you with all the necessary information to avoid common pitfalls and ensure that your multi-threaded inference runs smoothly.
 
@@ -681,48 +701,48 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
 
 !!! Example "Streaming for-loop"
 
-    ```python
-    import cv2
-    from ultralytics import YOLO
+````
+```python
+import cv2
+from ultralytics import YOLO
 
-    # Load the YOLOv8 model
-    model = YOLO('yolov8n.pt')
+# Load the YOLOv8 model
+model = YOLO('yolov8n.pt')
 
-    # Open the video file
-    video_path = "path/to/your/video/file.mp4"
-    cap = cv2.VideoCapture(video_path)
+# Open the video file
+video_path = "path/to/your/video/file.mp4"
+cap = cv2.VideoCapture(video_path)
 
-    # Loop through the video frames
-    while cap.isOpened():
-        # Read a frame from the video
-        success, frame = cap.read()
+# Loop through the video frames
+while cap.isOpened():
+    # Read a frame from the video
+    success, frame = cap.read()
 
-        if success:
-            # Run YOLOv8 inference on the frame
-            results = model(frame)
+    if success:
+        # Run YOLOv8 inference on the frame
+        results = model(frame)
 
-            # Visualize the results on the frame
-            annotated_frame = results[0].plot()
+        # Visualize the results on the frame
+        annotated_frame = results[0].plot()
 
-            # Display the annotated frame
-            cv2.imshow("YOLOv8 Inference", annotated_frame)
+        # Display the annotated frame
+        cv2.imshow("YOLOv8 Inference", annotated_frame)
 
-            # Break the loop if 'q' is pressed
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-        else:
-            # Break the loop if the end of the video is reached
+        # Break the loop if 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
+    else:
+        # Break the loop if the end of the video is reached
+        break
 
-    # Release the video capture object and close the display window
-    cap.release()
-    cv2.destroyAllWindows()
-    ```
+# Release the video capture object and close the display window
+cap.release()
+cv2.destroyAllWindows()
+```
+````
 
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
 
 [car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
-
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
-
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43

@@ -1,16 +1,14 @@
----
-comments: true
-description: استكشف دليلنا التفصيلي على YOLOv4 ، وهو جهاز كشف الكائنات الحديثة في الوقت الحقيقي. فهم أبرز معالم التصميم المعماري الخاصة به ، والميزات المبتكرة ، وأمثلة التطبيق.
-keywords: ultralytics ، yolo v4 ، كشف الكائنات ، شبكة عصبية ، كشف في الوقت الحقيقي ، كاشف الكائنات ، تعلم الآلة
+______________________________________________________________________
 
----
+comments: true description: استكشف دليلنا التفصيلي على YOLOv4 ، وهو جهاز كشف الكائنات الحديثة في الوقت الحقيقي. فهم أبرز معالم التصميم المعماري الخاصة به ، والميزات المبتكرة ، وأمثلة التطبيق. keywords: ultralytics ، yolo v4 ، كشف الكائنات ، شبكة عصبية ، كشف في الوقت الحقيقي ، كاشف الكائنات ، تعلم الآلة
+
+______________________________________________________________________
 
 # YOLOv4: الكشف العالي السرعة والدقة للكائنات
 
-أهلاً بك في صفحة وثائق Ultralytics لـ YOLOv4 ، جهاز كشف الكائنات الحديث في الوقت الحقيقي الذي تم إطلاقه في عام 2020 من قبل Alexey Bochkovskiy على  [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet). تم تصميم YOLOv4 لتوفير التوازن المثالي بين السرعة والدقة ، مما يجعله خيارًا ممتازًا للعديد من التطبيقات.
+أهلاً بك في صفحة وثائق Ultralytics لـ YOLOv4 ، جهاز كشف الكائنات الحديث في الوقت الحقيقي الذي تم إطلاقه في عام 2020 من قبل Alexey Bochkovskiy على [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet). تم تصميم YOLOv4 لتوفير التوازن المثالي بين السرعة والدقة ، مما يجعله خيارًا ممتازًا للعديد من التطبيقات.
 
-![رسم توضيحي لهندسة YOLOv4](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png)
-**رسم توضيحي لهندسة YOLOv4**. يعرض التصميم المعماري المعقد لشبكة YOLOv4 ، بما في ذلك المكونات الرئيسية والرقبة والرأس ، والطبقات المترابطة للكشف الفعال في الوقت الحقيقي.
+![رسم توضيحي لهندسة YOLOv4](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png) **رسم توضيحي لهندسة YOLOv4**. يعرض التصميم المعماري المعقد لشبكة YOLOv4 ، بما في ذلك المكونات الرئيسية والرقبة والرأس ، والطبقات المترابطة للكشف الفعال في الوقت الحقيقي.
 
 ## مقدمة
 
@@ -56,17 +54,19 @@ YOLOv4 هو نموذج قوي وفعال لكشف الكائنات يجمع بي
 
 !!! Quote ""
 
-    === "بيب تكس"
+````
+=== "بيب تكس"
 
-        ```bibtex
-        @misc{bochkovskiy2020yolov4,
-              title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
-              author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
-              year={2020},
-              eprint={2004.10934},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{bochkovskiy2020yolov4,
+          title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
+          author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
+          year={2020},
+          eprint={2004.10934},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 يمكن العثور على ورقة YOLOv4 الأصلية على [arXiv](https://arxiv.org/abs/2004.10934). قام المؤلفون بتوفير عملهم بشكل عام ، ويمكن الوصول إلى قاعدة الشفرات على [GitHub](https://github.com/AlexeyAB/darknet). نقدر جهودهم في تعزيز الميدان وتوفير عملهم للمجتمع العريض.

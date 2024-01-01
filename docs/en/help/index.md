@@ -1,8 +1,6 @@
----
-comments: true
-description: Find comprehensive guides and documents on Ultralytics YOLO tasks. Includes FAQs, contributing guides, CI guide, CLA, MRE guide, code of conduct & more.
-keywords: Ultralytics, YOLO, guides, documents, FAQ, contributing, CI guide, CLA, MRE guide, code of conduct, EHS policy, security policy, privacy policy
----
+______________________________________________________________________
+
+## comments: true description: Find comprehensive guides and documents on Ultralytics YOLO tasks. Includes FAQs, contributing guides, CI guide, CLA, MRE guide, code of conduct & more. keywords: Ultralytics, YOLO, guides, documents, FAQ, contributing, CI guide, CLA, MRE guide, code of conduct, EHS policy, security policy, privacy policy
 
 Welcome to the Ultralytics Help page! We are dedicated to providing you with detailed resources to enhance your experience with the Ultralytics YOLO models and repositories. This page serves as your portal to guides and documentation designed to assist you with various tasks and answer questions you may encounter while engaging with our repositories.
 

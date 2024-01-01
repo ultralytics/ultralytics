@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore various computer vision datasets supported by Ultralytics for object detection, segmentation, pose estimation, image classification, and multi-object tracking.
-keywords: computer vision, datasets, Ultralytics, YOLO, object detection, instance segmentation, pose estimation, image classification, multi-object tracking
----
+______________________________________________________________________
+
+## comments: true description: Explore various computer vision datasets supported by Ultralytics for object detection, segmentation, pose estimation, image classification, and multi-object tracking. keywords: computer vision, datasets, Ultralytics, YOLO, object detection, instance segmentation, pose estimation, image classification, multi-object tracking
 
 # Datasets Overview
 
@@ -76,19 +74,19 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 2. **Annotate Images**: Annotate these images with bounding boxes, segments, or keypoints, depending on the task.
 
-3. **Export Annotations**: Convert these annotations into the YOLO *.txt file format which Ultralytics supports.
+3. **Export Annotations**: Convert these annotations into the YOLO \*.txt file format which Ultralytics supports.
 
 4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `train/` and `val/` top-level directories, and within each, an `images/` and `labels/` subdirectory.
 
-    ```
-    dataset/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    └── val/
-        ├── images/
-        └── labels/
-    ```
+   ```
+   dataset/
+   ├── train/
+   │   ├── images/
+   │   └── labels/
+   └── val/
+       ├── images/
+       └── labels/
+   ```
 
 5. **Create a `data.yaml` File**: In your dataset's root directory, create a `data.yaml` file that describes the dataset, classes, and other necessary information.
 
@@ -102,22 +100,24 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 !!! Example "Optimize and Zip a Dataset"
 
-    === "Python"
+````
+=== "Python"
 
-    ```python
-    from pathlib import Path
-    from ultralytics.data.utils import compress_one_image
-    from ultralytics.utils.downloads import zip_directory
+```python
+from pathlib import Path
+from ultralytics.data.utils import compress_one_image
+from ultralytics.utils.downloads import zip_directory
 
-    # Define dataset directory
-    path = Path('path/to/dataset')
+# Define dataset directory
+path = Path('path/to/dataset')
 
-    # Optimize images in dataset (optional)
-    for f in path.rglob('*.jpg'):
-        compress_one_image(f)
+# Optimize images in dataset (optional)
+for f in path.rglob('*.jpg'):
+    compress_one_image(f)
 
-    # Zip dataset into 'path/to/dataset.zip'
-    zip_directory(path)
-    ```
+# Zip dataset into 'path/to/dataset.zip'
+zip_directory(path)
+```
+````
 
 By following these steps, you can contribute a new dataset that integrates well with Ultralytics' existing structure.

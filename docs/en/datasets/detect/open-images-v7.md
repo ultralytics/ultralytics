@@ -1,8 +1,6 @@
----
-comments: true
-description: Dive into Google's Open Images V7, a comprehensive dataset offering a broad scope for computer vision research. Understand its usage with deep learning models.
-keywords: Open Images V7, object detection, segmentation masks, visual relationships, localized narratives, computer vision, deep learning, annotations, bounding boxes
----
+______________________________________________________________________
+
+## comments: true description: Dive into Google's Open Images V7, a comprehensive dataset offering a broad scope for computer vision research. Understand its usage with deep learning models. keywords: Open Images V7, object detection, segmentation masks, visual relationships, localized narratives, computer vision, deep learning, annotations, bounding boxes
 
 # Open Images V7 Dataset
 
@@ -42,9 +40,11 @@ Typically, datasets come with a YAML (Yet Another Markup Language) file that del
 
 !!! Example "OpenImagesV7.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/open-images-v7.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/open-images-v7.yaml"
+```
+````
 
 ## Usage
 
@@ -52,33 +52,37 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an im
 
 !!! Warning
 
-    The complete Open Images V7 dataset comprises 1,743,042 training images and 41,620 validation images, requiring approximately **561 GB of storage space** upon download.
+```
+The complete Open Images V7 dataset comprises 1,743,042 training images and 41,620 validation images, requiring approximately **561 GB of storage space** upon download.
 
-    Executing the commands provided below will trigger an automatic download of the full dataset if it's not already present locally. Before running the below example it's crucial to:
+Executing the commands provided below will trigger an automatic download of the full dataset if it's not already present locally. Before running the below example it's crucial to:
 
-    - Verify that your device has enough storage capacity.
-    - Ensure a robust and speedy internet connection.
+- Verify that your device has enough storage capacity.
+- Ensure a robust and speedy internet connection.
+```
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a COCO-pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Train the model on the Open Images V7 dataset
-        results = model.train(data='open-images-v7.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model on the Open Images V7 dataset
+    results = model.train(data='open-images-v7.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Train a COCO-pretrained YOLOv8n model on the Open Images V7 dataset
-        yolo detect train data=open-images-v7.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Train a COCO-pretrained YOLOv8n model on the Open Images V7 dataset
+    yolo detect train data=open-images-v7.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Data and Annotations
 
@@ -96,15 +100,17 @@ For those employing Open Images V7 in their work, it's prudent to cite the relev
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{OpenImages,
-          author = {Alina Kuznetsova and Hassan Rom and Neil Alldrin and Jasper Uijlings and Ivan Krasin and Jordi Pont-Tuset and Shahab Kamali and Stefan Popov and Matteo Malloci and Alexander Kolesnikov and Tom Duerig and Vittorio Ferrari},
-          title = {The Open Images Dataset V4: Unified image classification, object detection, and visual relationship detection at scale},
-          year = {2020},
-          journal = {IJCV}
-        }
-        ```
+    ```bibtex
+    @article{OpenImages,
+      author = {Alina Kuznetsova and Hassan Rom and Neil Alldrin and Jasper Uijlings and Ivan Krasin and Jordi Pont-Tuset and Shahab Kamali and Stefan Popov and Matteo Malloci and Alexander Kolesnikov and Tom Duerig and Vittorio Ferrari},
+      title = {The Open Images Dataset V4: Unified image classification, object detection, and visual relationship detection at scale},
+      year = {2020},
+      journal = {IJCV}
+    }
+    ```
+````
 
 A heartfelt acknowledgment goes out to the Google AI team for creating and maintaining the Open Images V7 dataset. For a deep dive into the dataset and its offerings, navigate to the [official Open Images V7 website](https://storage.googleapis.com/openimages/web/index.html).

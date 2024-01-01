@@ -1,8 +1,6 @@
----
-comments: true
-description: Ultralytics YOLOv8を使用してポーズ推定タスクを行う方法を学びます。事前トレーニング済みのモデルを見つけ、トレーニング、検証、予測、独自のエクスポートを行います。
-keywords: Ultralytics, YOLO, YOLOv8, ポーズ推定, キーポイント検出, 物体検出, 事前トレーニング済みモデル, 機械学習, 人工知能
----
+______________________________________________________________________
+
+## comments: true description: Ultralytics YOLOv8を使用してポーズ推定タスクを行う方法を学びます。事前トレーニング済みのモデルを見つけ、トレーニング、検証、予測、独自のエクスポートを行います。 keywords: Ultralytics, YOLO, YOLOv8, ポーズ推定, キーポイント検出, 物体検出, 事前トレーニング済みモデル, 機械学習, 人工知能
 
 # ポーズ推定
 
@@ -25,7 +23,9 @@ keywords: Ultralytics, YOLO, YOLOv8, ポーズ推定, キーポイント検出, 
 
 !!! Tip "ヒント"
 
-    YOLOv8 _pose_ モデルは `-pose` サフィックスを使用します。例：`yolov8n-pose.pt`。これらのモデルは [COCOキーポイント](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) データセットでトレーニングされ、多様なポーズ推定タスクに適しています。
+```
+YOLOv8 _pose_ モデルは `-pose` サフィックスを使用します。例：`yolov8n-pose.pt`。これらのモデルは [COCOキーポイント](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) データセットでトレーニングされ、多様なポーズ推定タスクに適しています。
+```
 
 ## [モデル](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -34,7 +34,7 @@ YOLOv8事前トレーニング済みポーズモデルはこちらです。Detec
 [モデル](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)は最新のUltralytics [リリース](https://github.com/ultralytics/assets/releases)から最初の使用時に自動的にダウンロードされます。
 
 | モデル                                                                                                  | サイズ<br><sup>(ピクセル) | mAP<sup>ポーズ<br>50-95 | mAP<sup>ポーズ<br>50 | 速度<br><sup>CPU ONNX<br>(ミリ秒) | 速度<br><sup>A100 TensorRT<br>(ミリ秒) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
-|------------------------------------------------------------------------------------------------------|--------------------|----------------------|-------------------|------------------------------|-----------------------------------|-------------------|-------------------|
+| ---------------------------------------------------------------------------------------------------- | ------------------ | -------------------- | ----------------- | ---------------------------- | --------------------------------- | ----------------- | ----------------- |
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                | 50.4                 | 80.1              | 131.8                        | 1.18                              | 3.3               | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                | 60.0                 | 86.2              | 233.2                        | 1.42                              | 11.6              | 30.2              |
 | [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                | 65.0                 | 88.8              | 456.3                        | 2.00                              | 26.4              | 81.0              |
@@ -42,10 +42,8 @@ YOLOv8事前トレーニング済みポーズモデルはこちらです。Detec
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                | 69.2                 | 90.2              | 1607.1                       | 3.73                              | 69.4              | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280               | 71.6                 | 91.2              | 4088.7                       | 10.04                             | 99.1              | 1066.4            |
 
-- **mAP<sup>val</sup>** の値は、[COCO Keypoints val2017](http://cocodataset.org)データセットでの単一モデル単一スケールに対するものです。
-  <br>再現方法 `yolo val pose data=coco-pose.yaml device=0`
-- **速度** は [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)インスタンスを使用したCOCO val画像の平均です。
-  <br>再現方法 `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** の値は、[COCO Keypoints val2017](http://cocodataset.org)データセットでの単一モデル単一スケールに対するものです。 <br>再現方法 `yolo val pose data=coco-pose.yaml device=0`
+- **速度** は [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)インスタンスを使用したCOCO val画像の平均です。 <br>再現方法 `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
 
 ## トレーニング
 
@@ -53,31 +51,33 @@ COCO128-poseデータセットでYOLOv8-poseモデルをトレーニングしま
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n-pose.yaml')  # 新しいモデルをYAMLからビルド
-        model = YOLO('yolov8n-pose.pt')    # 事前トレーニング済みのモデルをロード（トレーニング用に推奨）
-        model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # YAMLからビルドして重みを転送
+    # モデルをロード
+    model = YOLO('yolov8n-pose.yaml')  # 新しいモデルをYAMLからビルド
+    model = YOLO('yolov8n-pose.pt')    # 事前トレーニング済みのモデルをロード（トレーニング用に推奨）
+    model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # YAMLからビルドして重みを転送
 
-        # モデルのトレーニング
-        results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # モデルのトレーニング
+    results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # YAMLから新しいモデルをビルドし、最初からトレーニングを開始
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
+    ```bash
+    # YAMLから新しいモデルをビルドし、最初からトレーニングを開始
+    yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
 
-        # 事前トレーニング済みの*.ptモデルからトレーニングを開始
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+    # 事前トレーニング済みの*.ptモデルからトレーニングを開始
+    yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
 
-        # YAMLから新しいモデルをビルド、事前トレーニング済みの重みを転送してトレーニングを開始
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
-        ```
+    # YAMLから新しいモデルをビルド、事前トレーニング済みの重みを転送してトレーニングを開始
+    yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
+    ```
+````
 
 ### データセットフォーマット
 
@@ -89,28 +89,30 @@ COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデ�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')   # カスタムモデルをロード
+    # モデルをロード
+    model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
+    model = YOLO('path/to/best.pt')   # カスタムモデルをロード
 
-        # モデルを検証
-        metrics = model.val()  # データセットや設定は記録されているため引数は不要
-        metrics.box.map    # map50-95
-        metrics.box.map50  # map50
-        metrics.box.map75  # map75
-        metrics.box.maps   # 各カテゴリのmap50-95が含まれるリスト
-        ```
-    === "CLI"
+    # モデルを検証
+    metrics = model.val()  # データセットや設定は記録されているため引数は不要
+    metrics.box.map    # map50-95
+    metrics.box.map50  # map50
+    metrics.box.map75  # map75
+    metrics.box.maps   # 各カテゴリのmap50-95が含まれるリスト
+    ```
+=== "CLI"
 
-        ```bash
-        yolo pose val model=yolov8n-pose.pt  # 公式モデルを検証
-        yolo pose val model=path/to/best.pt  # カスタムモデルを検証
-        ```
+    ```bash
+    yolo pose val model=yolov8n-pose.pt  # 公式モデルを検証
+    yolo pose val model=path/to/best.pt  # カスタムモデルを検証
+    ```
+````
 
 ## Predict
 
@@ -118,24 +120,26 @@ COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデ�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')   # カスタムモデルをロード
+    # モデルをロード
+    model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
+    model = YOLO('path/to/best.pt')   # カスタムモデルをロード
 
-        # モデルで予測
-        results = model('https://ultralytics.com/images/bus.jpg')  # 画像に予測を実行
-        ```
-    === "CLI"
+    # モデルで予測
+    results = model('https://ultralytics.com/images/bus.jpg')  # 画像に予測を実行
+    ```
+=== "CLI"
 
-        ```bash
-        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # 公式モデルで予測
-        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # カスタムモデルで予測
-        ```
+    ```bash
+    yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # 公式モデルで予測
+    yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # カスタムモデルで予測
+    ```
+````
 
 `predict`モードの詳細を[Predict](https://docs.ultralytics.com/modes/predict/)ページでご覧いただけます。
 
@@ -145,29 +149,31 @@ YOLOv8n PoseモデルをONNX、CoreMLなどの異なるフォーマットにエ�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')   # カスタムトレーニング済みモデルをロード
+    # モデルをロード
+    model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
+    model = YOLO('path/to/best.pt')   # カスタムトレーニング済みモデルをロード
 
-        # モデルをエクスポート
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # モデルをエクスポート
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-pose.pt format=onnx  # 公式モデルをエクスポート
-        yolo export model=path/to/best.pt format=onnx  # カスタムトレーニング済みモデルをエクスポート
-        ```
+    ```bash
+    yolo export model=yolov8n-pose.pt format=onnx  # 公式モデルをエクスポート
+    yolo export model=path/to/best.pt format=onnx  # カスタムトレーニング済みモデルをエクスポート
+    ```
+````
 
 利用可能なYOLOv8-poseエクスポートフォーマットは以下の表に示されており、エクスポート完了後にお使いのモデルに関する使用例が示されます。
 
 | フォーマット                                                             | `format`引数    | モデル                            | メタデータ | 引数                                                  |
-|--------------------------------------------------------------------|---------------|--------------------------------|-------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ------------- | ------------------------------ | ----- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-pose.pt`              | ✅     | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-pose.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-pose.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

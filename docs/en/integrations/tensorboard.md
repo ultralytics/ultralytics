@@ -1,8 +1,6 @@
----
-comments: true
-description: Walk through the integration of YOLOv8 with TensorBoard to be able to use TensorFlow's visualization toolkit for enhanced model training analysis, offering capabilities like metric tracking, model graph visualization, and more.
-keywords: TensorBoard, YOLOv8, Visualization, TensorFlow, Training Analysis, Metric Tracking, Model Graphs, Experimentation, Ultralytics
----
+______________________________________________________________________
+
+## comments: true description: Walk through the integration of YOLOv8 with TensorBoard to be able to use TensorFlow's visualization toolkit for enhanced model training analysis, offering capabilities like metric tracking, model graph visualization, and more. keywords: TensorBoard, YOLOv8, Visualization, TensorFlow, Training Analysis, Metric Tracking, Model Graphs, Experimentation, Ultralytics
 
 # Gain Visual Insights with YOLOv8’s Integration with TensorBoard
 
@@ -28,12 +26,14 @@ To install the required package, run:
 
 !!! Tip "Installation"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Install the required package for YOLOv8 and Tensorboard
-        pip install ultralytics
-        ```
+    ```bash
+    # Install the required package for YOLOv8 and Tensorboard
+    pip install ultralytics
+    ```
+````
 
 TensorBoard is conveniently pre-installed with YOLOv8, eliminating the need for additional setup for visualization purposes.
 
@@ -45,12 +45,14 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 
 !!! Example "Configure TensorBoard for Google Collab"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        %load_ext tensorboard
-        %tensorboard --logdir path/to/runs
-        ```
+    ```python
+    %load_ext tensorboard
+    %tensorboard --logdir path/to/runs
+    ```
+````
 
 ## Usage
 
@@ -58,17 +60,19 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 !!! Example "Usage"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-       from ultralytics import YOLO
+    ```python
+   from ultralytics import YOLO
 
-       # Load a pre-trained model
-       model = YOLO('yolov8n.pt')
+   # Load a pre-trained model
+   model = YOLO('yolov8n.pt')
 
-       # Train the model
-       results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-       ```
+   # Train the model
+   results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+   ```
+````
 
 Upon running the usage code snippet above, you can expect the following output:
 
@@ -116,15 +120,15 @@ Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics
 
 - **Metrics Tags**: Scalars include performance indicators such as:
 
-    - `mAP50 (B)`: Mean Average Precision at 50% Intersection over Union (IoU), crucial for assessing object detection accuracy.
+  - `mAP50 (B)`: Mean Average Precision at 50% Intersection over Union (IoU), crucial for assessing object detection accuracy.
 
-    - `mAP50-95 (B)`: Mean Average Precision calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
+  - `mAP50-95 (B)`: Mean Average Precision calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
 
-    - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction accuracy.
+  - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction accuracy.
 
-    - `Recall (B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
+  - `Recall (B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
 
-    - To learn more about the different metrics, read our guide on [performance metrics](../guides/yolo-performance-metrics.md).
+  - To learn more about the different metrics, read our guide on [performance metrics](../guides/yolo-performance-metrics.md).
 
 - **Training and Validation Tags (`train`, `val`)**: These tags display metrics specifically for the training and validation datasets, allowing for a comparative analysis of model performance across different data sets.
 

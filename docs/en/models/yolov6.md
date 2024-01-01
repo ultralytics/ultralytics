@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore Meituan YOLOv6, a state-of-the-art object detection model striking a balance between speed and accuracy. Dive into features, pre-trained models, and Python usage.
-keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directional Concatenation, Anchor-Aided Training, pretrained models, real-time applications
----
+______________________________________________________________________
+
+## comments: true description: Explore Meituan YOLOv6, a state-of-the-art object detection model striking a balance between speed and accuracy. Dive into features, pre-trained models, and Python usage. keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directional Concatenation, Anchor-Aided Training, pretrained models, real-time applications
 
 # Meituan YOLOv6
 
@@ -10,9 +8,7 @@ keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directi
 
 [Meituan](https://about.meituan.com/) YOLOv6 is a cutting-edge object detector that offers remarkable balance between speed and accuracy, making it a popular choice for real-time applications. This model introduces several notable enhancements on its architecture and training scheme, including the implementation of a Bi-directional Concatenation (BiC) module, an anchor-aided training (AAT) strategy, and an improved backbone and neck design for state-of-the-art accuracy on the COCO dataset.
 
-![Meituan YOLOv6](https://user-images.githubusercontent.com/26833433/240750495-4da954ce-8b3b-41c4-8afd-ddb74361d3c2.png)
-![Model example image](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png)
-**Overview of YOLOv6.** Model architecture diagram showing the redesigned network components and training strategies that have led to significant performance improvements. (a) The neck of YOLOv6 (N and S are shown). Note for M/L, RepBlocks is replaced with CSPStackRep. (b) The structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/pdf/2301.05586.pdf)).
+![Meituan YOLOv6](https://user-images.githubusercontent.com/26833433/240750495-4da954ce-8b3b-41c4-8afd-ddb74361d3c2.png) ![Model example image](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png) **Overview of YOLOv6.** Model architecture diagram showing the redesigned network components and training strategies that have led to significant performance improvements. (a) The neck of YOLOv6 (N and S are shown). Note for M/L, RepBlocks is replaced with CSPStackRep. (b) The structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/pdf/2301.05586.pdf)).
 
 ### Key Features
 
@@ -35,48 +31,50 @@ YOLOv6 also provides quantized models for different precisions and models optimi
 
 ## Usage Examples
 
-This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+    PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Build a YOLOv6n model from scratch
-        model = YOLO('yolov6n.yaml')
+    # Build a YOLOv6n model from scratch
+    model = YOLO('yolov6n.yaml')
 
-        # Display model information (optional)
-        model.info()
+    # Display model information (optional)
+    model.info()
 
-        # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # Train the model on the COCO8 example dataset for 100 epochs
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # Run inference with the YOLOv6n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
-        ```
+    # Run inference with the YOLOv6n model on the 'bus.jpg' image
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        CLI commands are available to directly run the models:
+    CLI commands are available to directly run the models:
 
-        ```bash
-        # Build a YOLOv6n model from scratch and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # Build a YOLOv6n model from scratch and train it on the COCO8 example dataset for 100 epochs
+    yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
 
-        # Build a YOLOv6n model from scratch and run inference on the 'bus.jpg' image
-        yolo predict model=yolov6n.yaml source=path/to/bus.jpg
-        ```
+    # Build a YOLOv6n model from scratch and run inference on the 'bus.jpg' image
+    yolo predict model=yolov6n.yaml source=path/to/bus.jpg
+    ```
+````
 
 ## Supported Tasks and Modes
 
 The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
 | Model Type | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
-|------------|---------------------|----------------------------------------|-----------|------------|----------|--------|
+| ---------- | ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv6-N   | `yolov6-n.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 | YOLOv6-S   | `yolov6-s.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 | YOLOv6-M   | `yolov6-m.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
@@ -91,17 +89,19 @@ We would like to acknowledge the authors for their significant contributions in 
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{li2023yolov6,
-              title={YOLOv6 v3.0: A Full-Scale Reloading},
-              author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
-              year={2023},
-              eprint={2301.05586},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{li2023yolov6,
+          title={YOLOv6 v3.0: A Full-Scale Reloading},
+          author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
+          year={2023},
+          eprint={2301.05586},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 The original YOLOv6 paper can be found on [arXiv](https://arxiv.org/abs/2301.05586). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/meituan/YOLOv6). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

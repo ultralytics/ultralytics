@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore the ImageWoof dataset, designed for challenging dog breed classification. Train AI models with Ultralytics YOLO using this dataset.
-keywords: ImageWoof, image classification, dog breeds, machine learning, deep learning, Ultralytics, YOLO, dataset
----
+______________________________________________________________________
+
+## comments: true description: Explore the ImageWoof dataset, designed for challenging dog breed classification. Train AI models with Ultralytics YOLO using this dataset. keywords: ImageWoof, image classification, dog breeds, machine learning, deep learning, Ultralytics, YOLO, dataset
 
 # ImageWoof Dataset
 
@@ -28,24 +26,26 @@ To train a CNN model on the ImageWoof dataset for 100 epochs with an image size 
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='imagewoof', epochs=100, imgsz=224)
-        ```
+    # Train the model
+    results = model.train(data='imagewoof', epochs=100, imgsz=224)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=imagewoof model=yolov8n-cls.pt epochs=100 imgsz=224
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=imagewoof model=yolov8n-cls.pt epochs=100 imgsz=224
+    ```
+````
 
 ## Dataset Variants
 

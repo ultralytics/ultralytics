@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how to profile speed and accuracy of YOLOv8 across various export formats; get insights on mAP50-95, accuracy_top5 metrics, and more.
-keywords: Ultralytics, YOLOv8, benchmarking, speed profiling, accuracy profiling, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO export formats
----
+______________________________________________________________________
+
+## comments: true description: Learn how to profile speed and accuracy of YOLOv8 across various export formats; get insights on mAP50-95, accuracy_top5 metrics, and more. keywords: Ultralytics, YOLOv8, benchmarking, speed profiling, accuracy profiling, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO export formats
 
 # Model Benchmarking with Ultralytics YOLO
 
@@ -45,8 +43,10 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 !!! Tip "Tip"
 
-    * Export to ONNX or OpenVINO for up to 3x CPU speedup.
-    * Export to TensorRT for up to 5x GPU speedup.
+```
+* Export to ONNX or OpenVINO for up to 3x CPU speedup.
+* Export to TensorRT for up to 5x GPU speedup.
+```
 
 ## Usage Examples
 
@@ -54,26 +54,28 @@ Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT 
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # Benchmark on GPU
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # Benchmark on GPU
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## Arguments
 
 Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
 | Key       | Value   | Description                                                           |
-|-----------|---------|-----------------------------------------------------------------------|
+| --------- | ------- | --------------------------------------------------------------------- |
 | `model`   | `None`  | path to model file, i.e. yolov8n.pt, yolov8n.yaml                     |
 | `data`    | `None`  | path to YAML referencing the benchmarking dataset (under `val` label) |
 | `imgsz`   | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                  |
@@ -87,7 +89,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 Benchmarks will attempt to run automatically on all possible export formats below.
 
 | Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
-|--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ------------------------- | -------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

@@ -1,16 +1,12 @@
----
-comments: true
-description: Explore o YOLOv7, um detector de objetos em tempo real. Entenda sua velocidade superior, impressionante precisão e foco exclusivo em otimização treinável de recursos gratuitos.
-keywords: YOLOv7, detector de objetos em tempo real, state-of-the-art, Ultralytics, conjunto de dados MS COCO, reparametrização de modelo, atribuição dinâmica de rótulo, escalonamento estendido, escalonamento composto
----
+______________________________________________________________________
+
+## comments: true description: Explore o YOLOv7, um detector de objetos em tempo real. Entenda sua velocidade superior, impressionante precisão e foco exclusivo em otimização treinável de recursos gratuitos. keywords: YOLOv7, detector de objetos em tempo real, state-of-the-art, Ultralytics, conjunto de dados MS COCO, reparametrização de modelo, atribuição dinâmica de rótulo, escalonamento estendido, escalonamento composto
 
 # YOLOv7: Treinável Bag-of-Freebies
 
 O YOLOv7 é um detector de objetos em tempo real state-of-the-art que supera todos os detectores de objetos conhecidos em termos de velocidade e precisão na faixa de 5 FPS a 160 FPS. Ele possui a maior precisão (56,8% de AP) entre todos os detectores de objetos em tempo real conhecidos com 30 FPS ou mais no GPU V100. Além disso, o YOLOv7 supera outros detectores de objetos, como YOLOR, YOLOX, Scaled-YOLOv4, YOLOv5 e muitos outros em velocidade e precisão. O modelo é treinado no conjunto de dados MS COCO do zero, sem usar outros conjuntos de dados ou pesos pré-treinados. O código-fonte para o YOLOv7 está disponível no GitHub.
 
-![Comparação YOLOv7 com outros detectores de objetos](https://github.com/ultralytics/ultralytics/assets/26833433/5e1e0420-8122-4c79-b8d0-2860aa79af92)
-**Comparação de detectores de objetos state-of-the-art.
-** A partir dos resultados na Tabela 2, sabemos que o método proposto tem a melhor relação velocidade-precisão de forma abrangente. Se compararmos o YOLOv7-tiny-SiLU com o YOLOv5-N (r6.1), nosso método é 127 FPS mais rápido e 10,7% mais preciso em AP. Além disso, o YOLOv7 tem 51,4% de AP em uma taxa de quadros de 161 FPS, enquanto o PPYOLOE-L com o mesmo AP tem apenas uma taxa de quadros de 78 FPS. Em termos de uso de parâmetros, o YOLOv7 é 41% menor do que o PPYOLOE-L. Se compararmos o YOLOv7-X com uma velocidade de inferência de 114 FPS com o YOLOv5-L (r6.1) com uma velocidade de inferência de 99 FPS, o YOLOv7-X pode melhorar o AP em 3,9%. Se o YOLOv7-X for comparado com o YOLOv5-X (r6.1) de escala similar, a velocidade de inferência do YOLOv7-X é 31 FPS mais rápida. Além disso, em termos da quantidade de parâmetros e cálculos, o YOLOv7-X reduz 22% dos parâmetros e 8% dos cálculos em comparação com o YOLOv5-X (r6.1), mas melhora o AP em 2,2% ([Fonte](https://arxiv.org/pdf/2207.02696.pdf)).
+![Comparação YOLOv7 com outros detectores de objetos](https://github.com/ultralytics/ultralytics/assets/26833433/5e1e0420-8122-4c79-b8d0-2860aa79af92) \*\*Comparação de detectores de objetos state-of-the-art. \*\* A partir dos resultados na Tabela 2, sabemos que o método proposto tem a melhor relação velocidade-precisão de forma abrangente. Se compararmos o YOLOv7-tiny-SiLU com o YOLOv5-N (r6.1), nosso método é 127 FPS mais rápido e 10,7% mais preciso em AP. Além disso, o YOLOv7 tem 51,4% de AP em uma taxa de quadros de 161 FPS, enquanto o PPYOLOE-L com o mesmo AP tem apenas uma taxa de quadros de 78 FPS. Em termos de uso de parâmetros, o YOLOv7 é 41% menor do que o PPYOLOE-L. Se compararmos o YOLOv7-X com uma velocidade de inferência de 114 FPS com o YOLOv5-L (r6.1) com uma velocidade de inferência de 99 FPS, o YOLOv7-X pode melhorar o AP em 3,9%. Se o YOLOv7-X for comparado com o YOLOv5-X (r6.1) de escala similar, a velocidade de inferência do YOLOv7-X é 31 FPS mais rápida. Além disso, em termos da quantidade de parâmetros e cálculos, o YOLOv7-X reduz 22% dos parâmetros e 8% dos cálculos em comparação com o YOLOv5-X (r6.1), mas melhora o AP em 2,2% ([Fonte](https://arxiv.org/pdf/2207.02696.pdf)).
 
 ## Visão Geral
 
@@ -32,7 +28,7 @@ O YOLOv7 apresenta vários recursos principais:
 
 ## Exemplos de Uso
 
-No momento em que este texto foi escrito, a Ultralytics ainda não oferece suporte aos modelos YOLOv7. Portanto, qualquer usuário interessado em usar o YOLOv7 precisará se referir diretamente ao repositório do YOLOv7 no GitHub para obter instruções de instalação e uso.
+No memento em que este texto foi escrito, a Ultralytics ainda não oferece suporte aos modelos YOLOv7. Portanto, qualquer usuário interessado em usar o YOLOv7 precisará se referir diretamente ao repositório do YOLOv7 no GitHub para obter instruções de instalação e uso.
 
 Aqui está uma breve visão geral das etapas típicas que você pode seguir para usar o YOLOv7:
 
@@ -52,15 +48,17 @@ Gostaríamos de agradecer aos autores do YOLOv7 por suas contribuições signifi
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{wang2022yolov7,
-          title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
-          author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
-          journal={arXiv preprint arXiv:2207.02696},
-          year={2022}
-        }
-        ```
+    ```bibtex
+    @article{wang2022yolov7,
+      title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
+      author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
+      journal={arXiv preprint arXiv:2207.02696},
+      year={2022}
+    }
+    ```
+````
 
-O artigo original do YOLOv7 pode ser encontrado no [arXiv](https://arxiv.org/pdf/2207.02696.pdf). Os autores disponibilizaram publicamente seu trabalho, e o código pode ser acessado no [GitHub](https://github.com/WongKinYiu/yolov7). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.
+O artigo original do YOLOv7 pode set encontrado no [arXiv](https://arxiv.org/pdf/2207.02696.pdf). Os autores disponibilizaram publicamente seu trabalho, e o código pode set acessado no [GitHub](https://github.com/WongKinYiu/yolov7). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.

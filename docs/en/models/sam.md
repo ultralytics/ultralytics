@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore the cutting-edge Segment Anything Model (SAM) from Ultralytics that allows real-time image segmentation. Learn about its promptable segmentation, zero-shot performance, and how to use it.
-keywords: Ultralytics, image segmentation, Segment Anything Model, SAM, SA-1B dataset, real-time performance, zero-shot transfer, object detection, image analysis, machine learning
----
+______________________________________________________________________
+
+## comments: true description: Explore the cutting-edge Segment Anything Model (SAM) from Ultralytics that allows real-time image segmentation. Learn about its promptable segmentation, zero-shot performance, and how to use it. keywords: Ultralytics, image segmentation, Segment Anything Model, SAM, SA-1B dataset, real-time performance, zero-shot transfer, object detection, image analysis, machine learning
 
 # Segment Anything Model (SAM)
 
@@ -14,8 +12,7 @@ The Segment Anything Model, or SAM, is a cutting-edge image segmentation model t
 
 SAM's advanced design allows it to adapt to new image distributions and tasks without prior knowledge, a feature known as zero-shot transfer. Trained on the expansive [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), which contains more than 1 billion masks spread over 11 million carefully curated images, SAM has displayed impressive zero-shot performance, surpassing previous fully supervised results in many cases.
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg)
-Example images with overlaid masks from our newly introduced dataset, SA-1B. SA-1B contains 11M diverse, high-resolution, licensed, and privacy protecting images and 1.1B high-quality segmentation masks. These masks were annotated fully automatically by SAM, and as verified by human ratings and numerous experiments, are of high quality and diversity. Images are grouped by number of masks per image for visualization (there are ∼100 masks per image on average).
+![Dataset sample image](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg) Example images with overlaid masks from our newly introduced dataset, SA-1B. SA-1B contains 11M diverse, high-resolution, licensed, and privacy protecting images and 1.1B high-quality segmentation masks. These masks were annotated fully automatically by SAM, and as verified by human ratings and numerous experiments, are of high quality and diversity. Images are grouped by number of masks per image for visualization (there are ∼100 masks per image on average).
 
 ## Key Features of the Segment Anything Model (SAM)
 
@@ -31,7 +28,7 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
 | Model Type | Pre-trained Weights | Tasks Supported                              | Inference | Validation | Training | Export |
-|------------|---------------------|----------------------------------------------|-----------|------------|----------|--------|
+| ---------- | ------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | SAM base   | `sam_b.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 | SAM large  | `sam_l.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
@@ -43,91 +40,97 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 !!! Example "Segment with prompts"
 
-    Segment image with given prompts.
+````
+Segment image with given prompts.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import SAM
+    ```python
+    from ultralytics import SAM
 
-        # Load a model
-        model = SAM('sam_b.pt')
+    # Load a model
+    model = SAM('sam_b.pt')
 
-        # Display model information (optional)
-        model.info()
+    # Display model information (optional)
+    model.info()
 
-        # Run inference with bboxes prompt
-        model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+    # Run inference with bboxes prompt
+    model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
 
-        # Run inference with points prompt
-        model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
-        ```
+    # Run inference with points prompt
+    model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+    ```
+````
 
 !!! Example "Segment everything"
 
-    Segment the whole image.
+````
+Segment the whole image.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import SAM
+    ```python
+    from ultralytics import SAM
 
-        # Load a model
-        model = SAM('sam_b.pt')
+    # Load a model
+    model = SAM('sam_b.pt')
 
-        # Display model information (optional)
-        model.info()
+    # Display model information (optional)
+    model.info()
 
-        # Run inference
-        model('path/to/image.jpg')
-        ```
+    # Run inference
+    model('path/to/image.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Run inference with a SAM model
-        yolo predict model=sam_b.pt source=path/to/image.jpg
-        ```
+    ```bash
+    # Run inference with a SAM model
+    yolo predict model=sam_b.pt source=path/to/image.jpg
+    ```
+````
 
 - The logic here is to segment the whole image if you don't pass any prompts(bboxes/points/masks).
 
 !!! Example "SAMPredictor example"
 
-    This way you can set image once and run prompts inference multiple times without running image encoder multiple times.
+````
+This way you can set image once and run prompts inference multiple times without running image encoder multiple times.
 
-    === "Prompt inference"
+=== "Prompt inference"
 
-        ```python
-        from ultralytics.models.sam import Predictor as SAMPredictor
+    ```python
+    from ultralytics.models.sam import Predictor as SAMPredictor
 
-        # Create SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
-        predictor = SAMPredictor(overrides=overrides)
+    # Create SAMPredictor
+    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+    predictor = SAMPredictor(overrides=overrides)
 
-        # Set image
-        predictor.set_image("ultralytics/assets/zidane.jpg")  # set with image file
-        predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
-        results = predictor(bboxes=[439, 437, 524, 709])
-        results = predictor(points=[900, 370], labels=[1])
+    # Set image
+    predictor.set_image("ultralytics/assets/zidane.jpg")  # set with image file
+    predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
+    results = predictor(bboxes=[439, 437, 524, 709])
+    results = predictor(points=[900, 370], labels=[1])
 
-        # Reset image
-        predictor.reset_image()
-        ```
+    # Reset image
+    predictor.reset_image()
+    ```
 
-    Segment everything with additional args.
+Segment everything with additional args.
 
-    === "Segment everything"
+=== "Segment everything"
 
-        ```python
-        from ultralytics.models.sam import Predictor as SAMPredictor
+    ```python
+    from ultralytics.models.sam import Predictor as SAMPredictor
 
-        # Create SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
-        predictor = SAMPredictor(overrides=overrides)
+    # Create SAMPredictor
+    overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+    predictor = SAMPredictor(overrides=overrides)
 
-        # Segment with additional args
-        results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
-        ```
+    # Segment with additional args
+    results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
+    ```
+````
 
 - More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 
@@ -136,7 +139,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
 
 | Model                                          | Size                       | Parameters             | Speed (CPU)                |
-|------------------------------------------------|----------------------------|------------------------|----------------------------|
+| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
 | Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
 | [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
 | [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
@@ -148,30 +151,32 @@ Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
 !!! Example
 
-    === "Python"
-        ```python
-        from ultralytics import FastSAM, SAM, YOLO
+````
+=== "Python"
+    ```python
+    from ultralytics import FastSAM, SAM, YOLO
 
-        # Profile SAM-b
-        model = SAM('sam_b.pt')
-        model.info()
-        model('ultralytics/assets')
+    # Profile SAM-b
+    model = SAM('sam_b.pt')
+    model.info()
+    model('ultralytics/assets')
 
-        # Profile MobileSAM
-        model = SAM('mobile_sam.pt')
-        model.info()
-        model('ultralytics/assets')
+    # Profile MobileSAM
+    model = SAM('mobile_sam.pt')
+    model.info()
+    model('ultralytics/assets')
 
-        # Profile FastSAM-s
-        model = FastSAM('FastSAM-s.pt')
-        model.info()
-        model('ultralytics/assets')
+    # Profile FastSAM-s
+    model = FastSAM('FastSAM-s.pt')
+    model.info()
+    model('ultralytics/assets')
 
-        # Profile YOLOv8n-seg
-        model = YOLO('yolov8n-seg.pt')
-        model.info()
-        model('ultralytics/assets')
-        ```
+    # Profile YOLOv8n-seg
+    model = YOLO('yolov8n-seg.pt')
+    model.info()
+    model('ultralytics/assets')
+    ```
+````
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
 
@@ -183,15 +188,17 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
 
 !!! Example
 
-    === "Python"
-        ```python
-        from ultralytics.data.annotator import auto_annotate
+````
+=== "Python"
+    ```python
+    from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
-        ```
+    auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+    ```
+````
 
 | Argument   | Type                | Description                                                                                             | Default      |
-|------------|---------------------|---------------------------------------------------------------------------------------------------------|--------------|
+| ---------- | ------------------- | ------------------------------------------------------------------------------------------------------- | ------------ |
 | data       | str                 | Path to a folder containing images to be annotated.                                                     |              |
 | det_model  | str, optional       | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | 'yolov8x.pt' |
 | sam_model  | str, optional       | Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.                                             | 'sam_b.pt'   |
@@ -208,18 +215,20 @@ If you find SAM useful in your research or development work, please consider cit
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{kirillov2023segment,
-              title={Segment Anything},
-              author={Alexander Kirillov and Eric Mintun and Nikhila Ravi and Hanzi Mao and Chloe Rolland and Laura Gustafson and Tete Xiao and Spencer Whitehead and Alexander C. Berg and Wan-Yen Lo and Piotr Dollár and Ross Girshick},
-              year={2023},
-              eprint={2304.02643},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{kirillov2023segment,
+          title={Segment Anything},
+          author={Alexander Kirillov and Eric Mintun and Nikhila Ravi and Hanzi Mao and Chloe Rolland and Laura Gustafson and Tete Xiao and Spencer Whitehead and Alexander C. Berg and Wan-Yen Lo and Piotr Dollár and Ross Girshick},
+          year={2023},
+          eprint={2304.02643},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
 

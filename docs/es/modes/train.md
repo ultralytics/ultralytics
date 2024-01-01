@@ -1,8 +1,6 @@
----
-comments: true
-description: Guía paso a paso para entrenar modelos YOLOv8 con Ultralytics YOLO incluyendo ejemplos de entrenamiento con una sola GPU y múltiples GPUs
-keywords: Ultralytics, YOLOv8, YOLO, detección de objetos, modo de entrenamiento, conjunto de datos personalizado, entrenamiento GPU, multi-GPU, hiperparámetros, ejemplos CLI, ejemplos Python
----
+______________________________________________________________________
+
+## comments: true description: Guía paso a paso para entrenar modelos YOLOv8 con Ultralytics YOLO incluyendo ejemplos de entrenamiento con una sola GPU y múltiples GPUs keywords: Ultralytics, YOLOv8, YOLO, detección de objetos, modo de entrenamiento, conjunto de datos personalizado, entrenamiento GPU, multi-GPU, hiperparámetros, ejemplos CLI, ejemplos Python
 
 # Entrenamiento de Modelos con Ultralytics YOLO
 
@@ -43,7 +41,9 @@ Las siguientes son algunas características notables del modo Entrenamiento de Y
 
 !!! Tip "Consejo"
 
-    * Los conjuntos de datos de YOLOv8 como COCO, VOC, ImageNet y muchos otros se descargan automáticamente en el primer uso, es decir, `yolo train data=coco.yaml`
+```
+* Los conjuntos de datos de YOLOv8 como COCO, VOC, ImageNet y muchos otros se descargan automáticamente en el primer uso, es decir, `yolo train data=coco.yaml`
+```
 
 ## Ejemplos de Uso
 
@@ -51,88 +51,94 @@ Entrena YOLOv8n en el conjunto de datos COCO128 durante 100 épocas con un tama�
 
 !!! Example "Ejemplo de Entrenamiento con una sola GPU y CPU"
 
-    El dispositivo se determina automáticamente. Si hay una GPU disponible, se usará; de lo contrario, el entrenamiento comenzará en la CPU.
+````
+El dispositivo se determina automáticamente. Si hay una GPU disponible, se usará; de lo contrario, el entrenamiento comenzará en la CPU.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n.yaml')  # construir un modelo nuevo desde YAML
-        model = YOLO('yolov8n.pt')    # cargar un modelo preentrenado (recomendado para entrenamiento)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # construir desde YAML y transferir pesos
+    # Cargar un modelo
+    model = YOLO('yolov8n.yaml')  # construir un modelo nuevo desde YAML
+    model = YOLO('yolov8n.pt')    # cargar un modelo preentrenado (recomendado para entrenamiento)
+    model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # construir desde YAML y transferir pesos
 
-        # Entrenar el modelo
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-        ```
+    # Entrenar el modelo
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Construir un modelo nuevo desde YAML y comenzar el entrenamiento desde cero
-        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+    ```bash
+    # Construir un modelo nuevo desde YAML y comenzar el entrenamiento desde cero
+    yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
 
-        # Comenzar el entrenamiento desde un modelo preentrenado *.pt
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+    # Comenzar el entrenamiento desde un modelo preentrenado *.pt
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
 
-        # Construir un modelo nuevo desde YAML, transferir pesos preentrenados a él y comenzar el entrenamiento
-        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
-        ```
+    # Construir un modelo nuevo desde YAML, transferir pesos preentrenados a él y comenzar el entrenamiento
+    yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ### Entrenamiento Multi-GPU
 
-El entrenamiento Multi-GPU permite una utilización más eficiente de los recursos de hardware disponibles, distribuyendo la carga de entrenamiento en varias GPUs. Esta característica está disponible tanto a través de la API de Python como de la interfaz de línea de comandos. Para habilitar el entrenamiento Multi-GPU, especifica los IDs de los dispositivos GPU que deseas usar.
+El entrenamiento Multi-GPU permite una utilización más eficiente de los recursos de hardware disponibles, distribuyendo la carga de entrenamiento en varias GPUs. Esta característica está disponible tanto a través de la API de Python como de la interfaz de línea de commandos. Para habilitar el entrenamiento Multi-GPU, especifica los IDs de los dispositivos GPU que deseas usar.
 
 !!! Example "Ejemplo de Entrenamiento Multi-GPU"
 
-    Para entrenar con 2 GPUs, dispositivos CUDA 0 y 1, usa los siguientes comandos. Amplía a GPUs adicionales según sea necesario.
+````
+Para entrenar con 2 GPUs, dispositivos CUDA 0 y 1, usa los siguientes commandos. Amplía a GPUs adicionales según sea necesario.
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n.pt')  # cargar un modelo preentrenado (recomendado para entrenamiento)
+    # Cargar un modelo
+    model = YOLO('yolov8n.pt')  # cargar un modelo preentrenado (recomendado para entrenamiento)
 
-        # Entrenar el modelo con 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
-        ```
+    # Entrenar el modelo con 2 GPUs
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Comenzar el entrenamiento desde un modelo preentrenado *.pt usando las GPUs 0 y 1
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
-        ```
+    ```bash
+    # Comenzar el entrenamiento desde un modelo preentrenado *.pt usando las GPUs 0 y 1
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+    ```
+````
 
 ### Entrenamiento con Apple M1 y M2 MPS
 
-Con el soporte para los chips Apple M1 y M2 integrados en los modelos Ultralytics YOLO, ahora es posible entrenar tus modelos en dispositivos que utilizan el potente marco de Metal Performance Shaders (MPS). El MPS ofrece una forma de alto rendimiento para ejecutar tareas de cálculo y procesamiento de imágenes en el silicio personalizado de Apple.
+Con el soporte para los chips Apple M1 y M2 integrados en los modelos Ultralytics YOLO, ahora es possible entrenar tus modelos en dispositivos que utilizan el potente marco de Metal Performance Shaders (MPS). El MPS ofrece una forma de alto rendimiento para ejecutar tareas de cálculo y procesamiento de imágenes en el silicio personalizado de Apple.
 
-Para habilitar el entrenamiento en chips Apple M1 y M2, debes especificar 'mps' como tu dispositivo al iniciar el proceso de entrenamiento. A continuación se muestra un ejemplo de cómo podrías hacer esto en Python y a través de la línea de comandos:
+Para habilitar el entrenamiento en chips Apple M1 y M2, debes especificar 'mps' como tu dispositivo al iniciar el proceso de entrenamiento. A continuación se muestra un ejemplo de cómo podrías hacer esto en Python y a través de la línea de commandos:
 
 !!! Example "Ejemplo de Entrenamiento MPS"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n.pt')  # cargar un modelo preentrenado (recomendado para entrenamiento)
+    # Cargar un modelo
+    model = YOLO('yolov8n.pt')  # cargar un modelo preentrenado (recomendado para entrenamiento)
 
-        # Entrenar el modelo con 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
-        ```
+    # Entrenar el modelo con 2 GPUs
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Comenzar el entrenamiento desde un modelo preentrenado *.pt usando las GPUs 0 y 1
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
-        ```
+    ```bash
+    # Comenzar el entrenamiento desde un modelo preentrenado *.pt usando las GPUs 0 y 1
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+    ```
+````
 
 Al aprovechar el poder computacional de los chips M1/M2, esto permite un procesamiento más eficiente de las tareas de entrenamiento. Para obtener una guía más detallada y opciones de configuración avanzadas, consulta la [documentación de PyTorch MPS](https://pytorch.org/docs/stable/notes/mps.html).
 
@@ -150,13 +156,15 @@ Para usar Comet:
 
 !!! Example "Ejemplo"
 
-    === "Python"
-        ```python
-        # pip install comet_ml
-        import comet_ml
+````
+=== "Python"
+    ```python
+    # pip install comet_ml
+    import comet_ml
 
-        comet_ml.init()
-        ```
+    comet_ml.init()
+    ```
+````
 
 Recuerda iniciar sesión en tu cuenta de Comet en su sitio web y obtener tu clave API. Necesitarás agregar esto a tus variables de entorno o tu script para registrar tus experimentos.
 
@@ -168,13 +176,15 @@ Para usar ClearML:
 
 !!! Example "Ejemplo"
 
-    === "Python"
-        ```python
-        # pip install clearml
-        import clearml
+````
+=== "Python"
+    ```python
+    # pip install clearml
+    import clearml
 
-        clearml.browser_login()
-        ```
+    clearml.browser_login()
+    ```
+````
 
 Después de ejecutar este script, necesitarás iniciar sesión en tu cuenta de ClearML en el navegador y autenticar tu sesión.
 
@@ -186,20 +196,24 @@ Para usar TensorBoard en [Google Colab](https://colab.research.google.com/github
 
 !!! Example "Ejemplo"
 
-    === "CLI"
-        ```bash
-        load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # reemplazar con el directorio 'runs'
-        ```
+````
+=== "CLI"
+    ```bash
+    load_ext tensorboard
+    tensorboard --logdir ultralytics/runs  # reemplazar con el directorio 'runs'
+    ```
+````
 
-Para usar TensorBoard localmente, ejecuta el siguiente comando y visualiza los resultados en http://localhost:6006/.
+Para usar TensorBoard localmente, ejecuta el siguiente commando y visualiza los resultados en http://localhost:6006/.
 
 !!! Example "Ejemplo"
 
-    === "CLI"
-        ```bash
-        tensorboard --logdir ultralytics/runs  # reemplazar con el directorio 'runs'
-        ```
+````
+=== "CLI"
+    ```bash
+    tensorboard --logdir ultralytics/runs  # reemplazar con el directorio 'runs'
+    ```
+````
 
 Esto cargará TensorBoard y lo dirigirá al directorio donde se guardan tus registros de entrenamiento.
 

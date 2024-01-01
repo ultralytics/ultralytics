@@ -1,21 +1,22 @@
----
-description: Uncover the specifics of Ultralytics ClearML callbacks, from pretrain routine start to training end. Boost your ML model performance.
-keywords: Ultralytics, clearML, callbacks, pretrain routine start, validation end, train epoch end, training end
----
+______________________________________________________________________
+
+## description: Uncover the specifics of Ultralytics ClearML callbacks, from pretrain routine start to training end. Boost your ML model performance. keywords: Ultralytics, clearML, callbacks, pretrain routine start, validation end, train epoch end, training end
 
 # Reference for `ultralytics/utils/callbacks/clearml.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/clearml.py) 🛠️. Thank you 🙏!
+```
+This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/clearml.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/clearml.py) 🛠️. Thank you 🙏!
+```
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.clearml._log_debug_samples
+## ::: ultralytics.utils.callbacks.clearml.\_log_debug_samples
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.clearml._log_plot
+## ::: ultralytics.utils.callbacks.clearml.\_log_plot
 
 <br><br>
 

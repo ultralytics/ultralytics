@@ -1,8 +1,6 @@
----
-comments: true
-description: YOLOv8予測モードの使用方法について学び、画像、動画、データフォーマットなどさまざまな推論ソースについて解説します。
-keywords: Ultralytics, YOLOv8, 予測モード, 推論ソース, 予測タスク, ストリーミングモード, 画像処理, 動画処理, 機械学習, AI
----
+______________________________________________________________________
+
+## comments: true description: YOLOv8予測モードの使用方法について学び、画像、動画、データフォーマットなどさまざまな推論ソースについて解説します。 keywords: Ultralytics, YOLOv8, 予測モード, 推論ソース, 予測タスク, ストリーミングモード, 画像処理, 動画処理, 機械学習, AI
 
 # Ultralytics YOLOによるモデル予測
 
@@ -26,7 +24,7 @@ keywords: Ultralytics, YOLOv8, 予測モード, 推論ソース, 予測タスク
 ## 実際の応用例
 
 |                                                                 製造業                                                                 |                                                              スポーツ                                                               |                                                             安全                                                              |
-|:-----------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------:|
+| :---------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
 | ![Vehicle Spare Parts Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Football Player Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![People Fall Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
 |                                                             車両のスペアパーツ検出                                                             |                                                           フットボール選手検出                                                            |                                                           人の転倒検出                                                            |
 
@@ -52,41 +50,43 @@ UltralyticsのYOLOモデルは、`stream=True`が推論中にモデルに渡さ�
 
 !!! Example "予測"
 
-    === "`stream=False`でリストを返す"
-        ```python
-        from ultralytics import YOLO
+````
+=== "`stream=False`でリストを返す"
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n.pt')  # 事前にトレーニングされたYOLOv8nモデル
+    # モデルをロード
+    model = YOLO('yolov8n.pt')  # 事前にトレーニングされたYOLOv8nモデル
 
-        # 画像のリストに対してバッチ推論を実行
-        results = model(['im1.jpg', 'im2.jpg'])  # Resultsオブジェクトのリストを返す
+    # 画像のリストに対してバッチ推論を実行
+    results = model(['im1.jpg', 'im2.jpg'])  # Resultsオブジェクトのリストを返す
 
-        # 結果リストを処理
-        for result in results:
-            boxes = result.boxes  # バウンディングボックス出力用のBoxesオブジェクト
-            masks = result.masks  # セグメンテーションマスク出力用のMasksオブジェクト
-            keypoints = result.keypoints  # 姿勢出力用のKeypointsオブジェクト
-            probs = result.probs  # 分類出力用のProbsオブジェクト
-        ```
+    # 結果リストを処理
+    for result in results:
+        boxes = result.boxes  # バウンディングボックス出力用のBoxesオブジェクト
+        masks = result.masks  # セグメンテーションマスク出力用のMasksオブジェクト
+        keypoints = result.keypoints  # 姿勢出力用のKeypointsオブジェクト
+        probs = result.probs  # 分類出力用のProbsオブジェクト
+    ```
 
-    === "`stream=True`でジェネレータを返す"
-        ```python
-        from ultralytics import YOLO
+=== "`stream=True`でジェネレータを返す"
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n.pt')  # 事前にトレーニングされたYOLOv8nモデル
+    # モデルをロード
+    model = YOLO('yolov8n.pt')  # 事前にトレーニングされたYOLOv8nモデル
 
-        # 画像のリストに対してバッチ推論を実行
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # Resultsオブジェクトのジェネレータを返す
+    # 画像のリストに対してバッチ推論を実行
+    results = model(['im1.jpg', 'im2.jpg'], stream=True)  # Resultsオブジェクトのジェネレータを返す
 
-        # 結果ジェネレータを処理
-        for result in results:
-            boxes = result.boxes  # バウンディングボックス出力用のBoxesオブジェクト
-            masks = result.masks  # セグメンテーションマスク出力用のMasksオブジェクト
-            keypoints = result.keypoints  # 姿勢出力用のKeypointsオブジェクト
-            probs = result.probs  # 分類出力用のProbsオブジェクト
-        ```
+    # 結果ジェネレータを処理
+    for result in results:
+        boxes = result.boxes  # バウンディングボックス出力用のBoxesオブジェクト
+        masks = result.masks  # セグメンテーションマスク出力用のMasksオブジェクト
+        keypoints = result.keypoints  # 姿勢出力用のKeypointsオブジェクト
+        probs = result.probs  # 分類出力用のProbsオブジェクト
+    ```
+````
 
 ## 推論ソース
 
@@ -94,10 +94,12 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
 
 !!! Tip "ヒント"
 
-    長い動画や大きなデータセットを効率的にメモリ管理するために`stream=True`を使用します。`stream=False`では、すべてのフレームまたはデータポイントの結果がメモリに格納されますが、大きな入力で迅速にメモリが積み上がり、メモリ不足のエラーを引き起こす可能性があります。対照的に、`stream=True`はジェネレータを利用し、現在のフレームまたはデータポイントの結果のみをメモリに保持し、メモリ消費を大幅に削減し、メモリ不足の問題を防ぎます。
+```
+長い動画や大きなデータセットを効率的にメモリ管理するために`stream=True`を使用します。`stream=False`では、すべてのフレームまたはデータポイントの結果がメモリに格納されますが、大きな入力で迅速にメモリが積み上がり、メモリ不足のエラーを引き起こす可能性があります。対照的に、`stream=True`はジェネレータを利用し、現在のフレームまたはデータポイントの結果のみをメモリに保持し、メモリ消費を大幅に削減し、メモリ不足の問題を防ぎます。
+```
 
 | ソース        | 引数                                         | タイプ              | 備考                                                               |
-|------------|--------------------------------------------|------------------|------------------------------------------------------------------|
+| ---------- | ------------------------------------------ | ---------------- | ---------------------------------------------------------------- |
 | 画像         | `'image.jpg'`                              | `str` または `Path` | 単一の画像ファイル。                                                       |
 | URL        | `'https://ultralytics.com/images/bus.jpg'` | `str`            | 画像へのURL。                                                         |
 | スクリーンショット  | `'screen'`                                 | `str`            | スクリーンショットをキャプチャ。                                                 |
@@ -117,95 +119,97 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
 
 !!! Example "予測ソース"
 
-    === "画像"
-        画像ファイルに推論を実行します。
-        ```python
-        from ultralytics import YOLO
+````
+=== "画像"
+    画像ファイルに推論を実行します。
+    ```python
+    from ultralytics import YOLO
 
-        # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+    # 事前にトレーニングされたYOLOv8nモデルをロード
+    model = YOLO('yolov8n.pt')
 
-        # 画像ファイルへのパスを定義
-        source = 'path/to/image.jpg'
+    # 画像ファイルへのパスを定義
+    source = 'path/to/image.jpg'
 
-        # ソースに推論を実行
-        results = model(source)  # Resultsオブジェクトのリスト
-        ```
+    # ソースに推論を実行
+    results = model(source)  # Resultsオブジェクトのリスト
+    ```
 
-    === "スクリーンショット"
-        現在の画面内容のスクリーンショットに推論を実行します。
-        ```python
-        from ultralytics import YOLO
+=== "スクリーンショット"
+    現在の画面内容のスクリーンショットに推論を実行します。
+    ```python
+    from ultralytics import YOLO
 
-        # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+    # 事前にトレーニングされたYOLOv8nモデルをロード
+    model = YOLO('yolov8n.pt')
 
-        # 現在のスクリーンショットをソースとして定義
-        source = 'screen'
+    # 現在のスクリーンショットをソースとして定義
+    source = 'screen'
 
-        # ソースに推論を実行
-        results = model(source)  # Resultsオブジェクトのリスト
-        ```
+    # ソースに推論を実行
+    results = model(source)  # Resultsオブジェクトのリスト
+    ```
 
-    === "URL"
-        リモートのURL経由でホストされている画像や動画に推論を実行します。
-        ```python
-        from ultralytics import YOLO
+=== "URL"
+    リモートのURL経由でホストされている画像や動画に推論を実行します。
+    ```python
+    from ultralytics import YOLO
 
-        # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+    # 事前にトレーニングされたYOLOv8nモデルをロード
+    model = YOLO('yolov8n.pt')
 
-        # リモート画像や動画のURLを定義
-        source = 'https://ultralytics.com/images/bus.jpg'
+    # リモート画像や動画のURLを定義
+    source = 'https://ultralytics.com/images/bus.jpg'
 
-        # ソースに推論を実行
-        results = model(source)  # Resultsオブジェクトのリスト
-        ```
+    # ソースに推論を実行
+    results = model(source)  # Resultsオブジェクトのリスト
+    ```
 
-    === "PIL"
-        Python Imaging Library (PIL)を使用して開いた画像に推論を実行します。
-        ```python
-        from PIL import Image
-        from ultralytics import YOLO
+=== "PIL"
+    Python Imaging Library (PIL)を使用して開いた画像に推論を実行します。
+    ```python
+    from PIL import Image
+    from ultralytics import YOLO
 
-        # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+    # 事前にトレーニングされたYOLOv8nモデルをロード
+    model = YOLO('yolov8n.pt')
 
-        # PILを使用して画像を開く
-        source = Image.open('path/to/image.jpg')
+    # PILを使用して画像を開く
+    source = Image.open('path/to/image.jpg')
 
-        # ソースに推論を実行
-        results = model(source)  # Resultsオブジェクトのリスト
-        ```
+    # ソースに推論を実行
+    results = model(source)  # Resultsオブジェクトのリスト
+    ```
 
-    === "OpenCV"
-        OpenCVを使用して読み込んだ画像に推論を実行します。
-        ```python
-        import cv2
-        from ultralytics import YOLO
+=== "OpenCV"
+    OpenCVを使用して読み込んだ画像に推論を実行します。
+    ```python
+    import cv2
+    from ultralytics import YOLO
 
-        # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+    # 事前にトレーニングされたYOLOv8nモデルをロード
+    model = YOLO('yolov8n.pt')
 
-        # OpenCVを使用して画像を読み込む
-        source = cv2.imread('path/to/image.jpg')
+    # OpenCVを使用して画像を読み込む
+    source = cv2.imread('path/to/image.jpg')
 
-        # ソースに推論を実行
-        results = model(source)  # Resultsオブジェクトのリスト
-        ```
+    # ソースに推論を実行
+    results = model(source)  # Resultsオブジェクトのリスト
+    ```
 
-    === "numpy"
-        numpy配列として表される画像に推論を実行します。
-        ```python
-        import numpy as np
-        from ultralytics import YOLO
+=== "numpy"
+    numpy配列として表される画像に推論を実行します。
+    ```python
+    import numpy as np
+    from ultralytics import YOLO
 
-        # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+    # 事前にトレーニングされたYOLOv8nモデルをロード
+    model = YOLO('yolov8n.pt')
 
-        # HWC形状（640, 640, 3）、範囲[0, 255]、型`uint8`のランダムなnumpy配列を作成
-        source = np.random.randint(low=0, high=255, size=(640,640,3), dtype='uint8')
+    # HWC形状（640, 640, 3）、範囲[0, 255]、型`uint8`のランダムなnumpy配列を作成
+    source = np.random.randint(low=0, high=255, size=(640,640,3), dtype='uint8')
 
-        # ソースに推論を実行
-        results = model(source)  # Resultsオブジェクトのリスト
-        ```
+    # ソースに推論を実行
+    results = model(source)  # Resultsオブジェクトのリスト
+    ```
+````

@@ -1,8 +1,6 @@
----
-comments: true
-description: Delve into DOTA v2, an Oriented Bounding Box (OBB) aerial imagery dataset with 1.7 million instances and 11,268 images.
-keywords: DOTA v2, object detection, aerial images, computer vision, deep learning, annotations, oriented bounding boxes, OBB
----
+______________________________________________________________________
+
+## comments: true description: Delve into DOTA v2, an Oriented Bounding Box (OBB) aerial imagery dataset with 1.7 million instances and 11,268 images. keywords: DOTA v2, object detection, aerial images, computer vision, deep learning, annotations, oriented bounding boxes, OBB
 
 # DOTA v2 Dataset with OBB
 
@@ -40,10 +38,10 @@ keywords: DOTA v2, object detection, aerial images, computer vision, deep learni
 - Comprises 11,268 images with a whopping 1,793,658 instances.
 - New categories introduced: "airport" and "helipad".
 - Image splits:
-    - Training: 1,830 images with 268,627 instances.
-    - Validation: 593 images with 81,048 instances.
-    - Test-dev: 2,792 images with 353,346 instances.
-    - Test-challenge: 6,053 images with 1,090,637 instances.
+  - Training: 1,830 images with 268,627 instances.
+  - Validation: 593 images with 81,048 instances.
+  - Test-dev: 2,792 images with 353,346 instances.
+  - Test-challenge: 6,053 images with 1,090,637 instances.
 
 ## Dataset Structure
 
@@ -62,9 +60,11 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 !!! Example "DOTAv2.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/DOTAv2.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/DOTAv2.yaml"
+```
+````
 
 ## Usage
 
@@ -72,28 +72,32 @@ To train a model on the DOTA v2 dataset, you can utilize the following code snip
 
 !!! Warning
 
-    Please note that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
+```
+Please note that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
+```
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Create a new YOLOv8n-OBB model from scratch
-        model = YOLO('yolov8n-obb.yaml')
+    # Create a new YOLOv8n-OBB model from scratch
+    model = YOLO('yolov8n-obb.yaml')
 
-        # Train the model on the DOTAv2 dataset
-        results = model.train(data='DOTAv2.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model on the DOTAv2 dataset
+    results = model.train(data='DOTAv2.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
-        yolo detect train data=DOTAv2.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
+    yolo detect train data=DOTAv2.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Data and Annotations
 
@@ -111,19 +115,21 @@ For those leveraging DOTA v2 in their endeavors, it's pertinent to cite the rele
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{9560031,
-          author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
-          journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
-          title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
-          year={2021},
-          volume={},
-          number={},
-          pages={1-1},
-          doi={10.1109/TPAMI.2021.3117983}
-        }
-        ```
+    ```bibtex
+    @article{9560031,
+      author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
+      journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+      title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
+      year={2021},
+      volume={},
+      number={},
+      pages={1-1},
+      doi={10.1109/TPAMI.2021.3117983}
+    }
+    ```
+````
 
 A special note of gratitude to the team behind DOTA v2 for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DOTA v2 website](https://captain-whu.github.io/DOTA/index.html).

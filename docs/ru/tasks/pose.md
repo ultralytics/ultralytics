@@ -1,7 +1,6 @@
----
-comments: true
-description: Узнайте, как использовать Ultralytics YOLOv8 для задач оценки позы. Найдите предварительно обученные модели, узнайте, как обучать, проверять, предсказывать и экспортировать свои собственные.
----
+______________________________________________________________________
+
+## comments: true description: Узнайте, как использовать Ultralytics YOLOv8 для задач оценки позы. Найдите предварительно обученные модели, узнайте, как обучать, проверять, предсказывать и экспортировать свои собственные.
 
 # Оценка позы
 
@@ -15,7 +14,9 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 !!! Tip "Совет"
 
-    Модели _pose_ YOLOv8 используют суффикс `-pose`, т.е. `yolov8n-pose.pt`. Эти модели обучены на наборе данных [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) и подходят для различных задач оценки позы.
+```
+Модели _pose_ YOLOv8 используют суффикс `-pose`, т.е. `yolov8n-pose.pt`. Эти модели обучены на наборе данных [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) и подходят для различных задач оценки позы.
+```
 
 ## [Модели](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -24,7 +25,7 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 [Модели](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) скачиваются автоматически из последнего [релиза](https://github.com/ultralytics/assets/releases) Ultralytics при первом использовании.
 
 | Модель                                                                                               | размер<br><sup>(пиксели) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Скорость<br><sup>CPU ONNX<br>(мс) | Скорость<br><sup>A100 TensorRT<br>(мс) | параметры<br><sup>(М) | FLOPs<br><sup>(Б) |
-|------------------------------------------------------------------------------------------------------|--------------------------|-----------------------|--------------------|-----------------------------------|----------------------------------------|-----------------------|-------------------|
+| ---------------------------------------------------------------------------------------------------- | ------------------------ | --------------------- | ------------------ | --------------------------------- | -------------------------------------- | --------------------- | ----------------- |
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                      | 50.4                  | 80.1               | 131.8                             | 1.18                                   | 3.3                   | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                      | 60.0                  | 86.2               | 233.2                             | 1.42                                   | 11.6                  | 30.2              |
 | [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                      | 65.0                  | 88.8               | 456.3                             | 2.00                                   | 26.4                  | 81.0              |
@@ -32,10 +33,8 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                      | 69.2                  | 90.2               | 1607.1                            | 3.73                                   | 69.4                  | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                     | 71.6                  | 91.2               | 4088.7                            | 10.04                                  | 99.1                  | 1066.4            |
 
-- **mAP<sup>val</sup>** значения для одной модели одиночного масштаба на наборе данных [COCO Keypoints val2017](http://cocodataset.org).
-  <br>Воспроизводится с помощью: `yolo val pose data=coco-pose.yaml device=0`
-- **Скорость** усреднена по изображениям COCO val на [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) инстансе.
-  <br>Воспроизводится с помощью: `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** значения для одной модели одиночного масштаба на наборе данных [COCO Keypoints val2017](http://cocodataset.org). <br>Воспроизводится с помощью: `yolo val pose data=coco-pose.yaml device=0`
+- **Скорость** усреднена по изображениям COCO val на [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) инстансе. <br>Воспроизводится с помощью: `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
 
 ## Обучение
 
@@ -43,31 +42,33 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n-pose.yaml')  # создать новую модель из YAML
-        model = YOLO('yolov8n-pose.pt')  # загрузить предварительно обученную модель (рекомендуется для обучения)
-        model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # создать из YAML и перенести веса
+    # Загрузить модель
+    model = YOLO('yolov8n-pose.yaml')  # создать новую модель из YAML
+    model = YOLO('yolov8n-pose.pt')  # загрузить предварительно обученную модель (рекомендуется для обучения)
+    model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # создать из YAML и перенести веса
 
-        # Обучить модель
-        results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # Обучить модель
+    results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # Создать новую модель из YAML и начать обучение с нуля
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
+    ```bash
+    # Создать новую модель из YAML и начать обучение с нуля
+    yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
 
-        # Начать обучение с предварительно обученной модели *.pt
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+    # Начать обучение с предварительно обученной модели *.pt
+    yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
 
-        # Создать новую модель из YAML, перенести предварительно обученные веса и начать обучение
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
-        ```
+    # Создать новую модель из YAML, перенести предварительно обученные веса и начать обучение
+    yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
+    ```
+````
 
 ### Формат набора данных
 
@@ -75,33 +76,34 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 ## Проверка
 
-Проверьте точность обученной модели YOLOv8n-pose на наборе данных COCO128-pose. Аргументы не нужны, так как `model`
-запоминает свои `data` и аргументы как атрибуты модели.
+Проверьте точность обученной модели YOLOv8n-pose на наборе данных COCO128-pose. Аргументы не нужны, так как `model` запоминает свои `data` и аргументы как атрибуты модели.
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n-pose.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить свою модель
+    # Загрузить модель
+    model = YOLO('yolov8n-pose.pt')  # загрузить официальную модель
+    model = YOLO('path/to/best.pt')  # загрузить свою модель
 
-        # Проверить модель
-        metrics = model.val()  # аргументы не нужны, набор данных и настройки запомнены
-        metrics.box.map    # map50-95
-        metrics.box.map50  # map50
-        metrics.box.map75  # map75
-        metrics.box.maps   # список содержит map50-95 для каждой категории
-        ```
-    === "CLI"
+    # Проверить модель
+    metrics = model.val()  # аргументы не нужны, набор данных и настройки запомнены
+    metrics.box.map    # map50-95
+    metrics.box.map50  # map50
+    metrics.box.map75  # map75
+    metrics.box.maps   # список содержит map50-95 для каждой категории
+    ```
+=== "CLI"
 
-        ```bash
-        yolo pose val model=yolov8n-pose.pt  # проверить официальную модель
-        yolo pose val model=path/to/best.pt  # проверить свою модель
-        ```
+    ```bash
+    yolo pose val model=yolov8n-pose.pt  # проверить официальную модель
+    yolo pose val model=path/to/best.pt  # проверить свою модель
+    ```
+````
 
 ## Предсказание
 
@@ -109,24 +111,26 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n-pose.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить свою модель
+    # Загрузить модель
+    model = YOLO('yolov8n-pose.pt')  # загрузить официальную модель
+    model = YOLO('path/to/best.pt')  # загрузить свою модель
 
-        # Сделать предсказание моделью
-        results = model('https://ultralytics.com/images/bus.jpg')  # предсказать по изображению
-        ```
-    === "CLI"
+    # Сделать предсказание моделью
+    results = model('https://ultralytics.com/images/bus.jpg')  # предсказать по изображению
+    ```
+=== "CLI"
 
-        ```bash
-        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать официальной моделью
-        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать своей моделью
-        ```
+    ```bash
+    yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать официальной моделью
+    yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать своей моделью
+    ```
+````
 
 Полные детали работы в режиме `predict` смотрите на странице [Predict](https://docs.ultralytics.com/modes/predict/).
 
@@ -136,29 +140,31 @@ description: Узнайте, как использовать Ultralytics YOLOv8 
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n-pose.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить свою обученную модель
+    # Загрузить модель
+    model = YOLO('yolov8n-pose.pt')  # загрузить официальную модель
+    model = YOLO('path/to/best.pt')  # загрузить свою обученную модель
 
-        # Экспортировать модель
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # Экспортировать модель
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-pose.pt format=onnx  # экспортировать официальную модель
-        yolo export model=path/to/best.pt format=onnx  # экспортировать свою обученную модель
-        ```
+    ```bash
+    yolo export model=yolov8n-pose.pt format=onnx  # экспортировать официальную модель
+    yolo export model=path/to/best.pt format=onnx  # экспортировать свою обученную модель
+    ```
+````
 
 Доступные форматы экспорта модели YOLOv8-pose приведены в таблице ниже. Вы можете делать предсказания или проверки непосредственно с экспортированных моделей, например, `yolo predict model=yolov8n-pose.onnx`. Примеры использования показаны для вашей модели после завершения экспорта.
 
 | Формат                                                             | Аргумент `format` | Модель                         | Метаданные | Аргументы                                           |
-|--------------------------------------------------------------------|-------------------|--------------------------------|------------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ------------------------------ | ---------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-pose.pt`              | ✅          | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-pose.torchscript`     | ✅          | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-pose.onnx`            | ✅          | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

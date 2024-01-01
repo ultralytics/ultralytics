@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore Ultralytics integrations with tools for dataset management, model optimization, ML workflows automation, experiment tracking, version control, and more. Learn about our support for various model export formats for deployment.
-keywords: Ultralytics integrations, Roboflow, Neural Magic, ClearML, Comet ML, DVC, Ultralytics HUB, MLFlow, Neptune, Ray Tune, TensorBoard, W&B, model export formats, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF Edge TPU, TF.js, PaddlePaddle, NCNN
----
+______________________________________________________________________
+
+## comments: true description: Explore Ultralytics integrations with tools for dataset management, model optimization, ML workflows automation, experiment tracking, version control, and more. Learn about our support for various model export formats for deployment. keywords: Ultralytics integrations, Roboflow, Neural Magic, ClearML, Comet ML, DVC, Ultralytics HUB, MLFlow, Neptune, Ray Tune, TensorBoard, W&B, model export formats, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF Edge TPU, TF.js, PaddlePaddle, NCNN
 
 # Ultralytics Integrations
 
@@ -45,7 +43,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:
 
 | Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
-|--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ------------------------- | -------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

@@ -70,8 +70,8 @@ Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind 
 ## Build 🛠️
 
 1. Clone the repository to your local machine.
-1. Navigate to the root directory of the repository.
-1. Create a build directory and navigate to it:
+2. Navigate to the root directory of the repository.
+3. Create a build directory and navigate to it:
 
 ```console
 mkdir build && cd build

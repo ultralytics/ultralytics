@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how to use the Fashion-MNIST dataset for image classification with the Ultralytics YOLO model. Covers dataset structure, labels, applications, and usage.
-keywords: Ultralytics, YOLO, Fashion-MNIST, dataset, image classification, machine learning, deep learning, neural networks, training, testing
----
+______________________________________________________________________
+
+## comments: true description: Learn how to use the Fashion-MNIST dataset for image classification with the Ultralytics YOLO model. Covers dataset structure, labels, applications, and usage. keywords: Ultralytics, YOLO, Fashion-MNIST, dataset, image classification, machine learning, deep learning, neural networks, training, testing
 
 # Fashion-MNIST Dataset
 
@@ -47,24 +45,26 @@ To train a CNN model on the Fashion-MNIST dataset for 100 epochs with an image s
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='fashion-mnist', epochs=100, imgsz=28)
-        ```
+    # Train the model
+    results = model.train(data='fashion-mnist', epochs=100, imgsz=28)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=fashion-mnist model=yolov8n-cls.pt epochs=100 imgsz=28
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=fashion-mnist model=yolov8n-cls.pt epochs=100 imgsz=28
+    ```
+````
 
 ## Sample Images and Annotations
 

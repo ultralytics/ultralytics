@@ -1,8 +1,6 @@
----
-comments: true
-description: Get an overview of YOLOv3, YOLOv3-Ultralytics and YOLOv3u. Learn about their key features, usage, and supported tasks for object detection.
-keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Object Detection, Inference, Training, Ultralytics
----
+______________________________________________________________________
+
+## comments: true description: Get an overview of YOLOv3, YOLOv3-Ultralytics and YOLOv3u. Learn about their key features, usage, and supported tasks for object detection. keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Object Detection, Inference, Training, Ultralytics
 
 # YOLOv3, YOLOv3-Ultralytics, and YOLOv3u
 
@@ -33,7 +31,7 @@ The YOLOv3 series, including YOLOv3, YOLOv3-Ultralytics, and YOLOv3u, are design
 All three models support a comprehensive set of modes, ensuring versatility in various stages of model deployment and development. These modes include [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), providing users with a complete toolkit for effective object detection.
 
 | Model Type         | Tasks Supported                        | Inference | Validation | Training | Export |
-|--------------------|----------------------------------------|-----------|------------|----------|--------|
+| ------------------ | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv3             | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 | YOLOv3-Ultralytics | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 | YOLOv3u            | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
@@ -42,41 +40,43 @@ This table provides an at-a-glance view of the capabilities of each YOLOv3 varia
 
 ## Usage Examples
 
-This example provides simple YOLOv3 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv3 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+    PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLOv3n model
-        model = YOLO('yolov3n.pt')
+    # Load a COCO-pretrained YOLOv3n model
+    model = YOLO('yolov3n.pt')
 
-        # Display model information (optional)
-        model.info()
+    # Display model information (optional)
+    model.info()
 
-        # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # Train the model on the COCO8 example dataset for 100 epochs
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # Run inference with the YOLOv3n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
-        ```
+    # Run inference with the YOLOv3n model on the 'bus.jpg' image
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        CLI commands are available to directly run the models:
+    CLI commands are available to directly run the models:
 
-        ```bash
-        # Load a COCO-pretrained YOLOv3n model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # Load a COCO-pretrained YOLOv3n model and train it on the COCO8 example dataset for 100 epochs
+    yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # Load a COCO-pretrained YOLOv3n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov3n.pt source=path/to/bus.jpg
-        ```
+    # Load a COCO-pretrained YOLOv3n model and run inference on the 'bus.jpg' image
+    yolo predict model=yolov3n.pt source=path/to/bus.jpg
+    ```
+````
 
 ## Citations and Acknowledgements
 
@@ -84,15 +84,17 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{redmon2018yolov3,
-          title={YOLOv3: An Incremental Improvement},
-          author={Redmon, Joseph and Farhadi, Ali},
-          journal={arXiv preprint arXiv:1804.02767},
-          year={2018}
-        }
-        ```
+    ```bibtex
+    @article{redmon2018yolov3,
+      title={YOLOv3: An Incremental Improvement},
+      author={Redmon, Joseph and Farhadi, Ali},
+      journal={arXiv preprint arXiv:1804.02767},
+      year={2018}
+    }
+    ```
+````
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.

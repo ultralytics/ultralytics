@@ -1,8 +1,6 @@
----
-comments: true
-description: Научитесь использовать модели сегментации объектов с помощью Ultralytics YOLO. Инструкции по обучению, валидации, предсказанию изображений и экспорту моделей.
-keywords: yolov8, сегментация объектов, Ultralytics, набор данных COCO, сегментация изображений, обнаружение объектов, обучение моделей, валидация моделей, предсказания изображений, экспорт моделей
----
+______________________________________________________________________
+
+## comments: true description: Научитесь использовать модели сегментации объектов с помощью Ultralytics YOLO. Инструкции по обучению, валидации, предсказанию изображений и экспорту моделей. keywords: yolov8, сегментация объектов, Ultralytics, набор данных COCO, сегментация изображений, обнаружение объектов, обучение моделей, валидация моделей, предсказания изображений, экспорт моделей
 
 # Сегментация экземпляров
 
@@ -25,7 +23,9 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 !!! Tip "Совет"
 
-    Модели YOLOv8 Segment используют суффикс `-seg`, например `yolov8n-seg.pt` и предварительно обучены на [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+```
+Модели YOLOv8 Segment используют суффикс `-seg`, например `yolov8n-seg.pt` и предварительно обучены на [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+```
 
 ## [Модели](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -34,18 +34,15 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 [Модели](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) автоматически загружаются из последнего [релиза](https://github.com/ultralytics/assets/releases) Ultralytics при первом использовании.
 
 | Модель                                                                                       | размер<br><sup>(пиксели) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Скорость<br><sup>CPU ONNX<br>(мс) | Скорость<br><sup>A100 TensorRT<br>(мс) | параметры<br><sup>(М) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|--------------------------|----------------------|-----------------------|-----------------------------------|----------------------------------------|-----------------------|-------------------|
+| -------------------------------------------------------------------------------------------- | ------------------------ | -------------------- | --------------------- | --------------------------------- | -------------------------------------- | --------------------- | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                      | 36.7                 | 30.5                  | 96.1                              | 1.21                                   | 3.4                   | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                      | 44.6                 | 36.8                  | 155.7                             | 1.47                                   | 11.8                  | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                      | 49.9                 | 40.8                  | 317.0                             | 2.18                                   | 27.3                  | 110.2             |
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640                      | 52.3                 | 42.6                  | 572.4                             | 2.79                                   | 46.0                  | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                      | 53.4                 | 43.4                  | 712.1                             | 4.02                                   | 71.8                  | 344.1             |
 
-- Значения **mAP<sup>val</sup>** для одиночной модели одиночного масштаба на наборе данных [COCO val2017](http://cocodataset.org).
-  <br>Воспроизведите с помощью `yolo val segment data=coco.yaml device=0`
-- **Скорость** усреднена для изображений COCO val на [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
-  инстансе.
-  <br>Воспроизведите с помощью `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
+- Значения **mAP<sup>val</sup>** для одиночной модели одиночного масштаба на наборе данных [COCO val2017](http://cocodataset.org). <br>Воспроизведите с помощью `yolo val segment data=coco.yaml device=0`
+- **Скорость** усреднена для изображений COCO val на [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) инстансе. <br>Воспроизведите с помощью `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
 
 ## Обучение
 
@@ -53,31 +50,33 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n-seg.yaml')  # создать новую модель из YAML
-        model = YOLO('yolov8n-seg.pt')  # загрузить предварительно обученную модель (рекомендуется для обучения)
-        model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # создать из YAML и перенести веса
+    # Загрузить модель
+    model = YOLO('yolov8n-seg.yaml')  # создать новую модель из YAML
+    model = YOLO('yolov8n-seg.pt')  # загрузить предварительно обученную модель (рекомендуется для обучения)
+    model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # создать из YAML и перенести веса
 
-        # Обучить модель
-        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # Обучить модель
+    results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # Создать новую модель из YAML и начать обучение с нуля
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
+    ```bash
+    # Создать новую модель из YAML и начать обучение с нуля
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
 
-        # Начать обучение с предварительно обученной модели *.pt
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+    # Начать обучение с предварительно обученной модели *.pt
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
 
-        # Создать новую модель из YAML, перенести предварительно обученные веса и начать обучение
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
-        ```
+    # Создать новую модель из YAML, перенести предварительно обученные веса и начать обучение
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
+    ```
+````
 
 ### Формат набора данных
 
@@ -89,32 +88,34 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить пользовательскую модель
+    # Загрузить модель
+    model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
+    model = YOLO('path/to/best.pt')  # загрузить пользовательскую модель
 
-        # Провалидировать модель
-        metrics = model.val()  # аргументы не нужны, набор данных и настройки запомнены
-        metrics.box.map    # map50-95(B)
-        metrics.box.map50  # map50(B)
-        metrics.box.map75  # map75(B)
-        metrics.box.maps   # список содержит map50-95(B) каждой категории
-        metrics.seg.map    # map50-95(M)
-        metrics.seg.map50  # map50(M)
-        metrics.seg.map75  # map75(M)
-        metrics.seg.maps   # список содержит map50-95(M) каждой категории
-        ```
-    === "CLI"
+    # Провалидировать модель
+    metrics = model.val()  # аргументы не нужны, набор данных и настройки запомнены
+    metrics.box.map    # map50-95(B)
+    metrics.box.map50  # map50(B)
+    metrics.box.map75  # map75(B)
+    metrics.box.maps   # список содержит map50-95(B) каждой категории
+    metrics.seg.map    # map50-95(M)
+    metrics.seg.map50  # map50(M)
+    metrics.seg.map75  # map75(M)
+    metrics.seg.maps   # список содержит map50-95(M) каждой категории
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment val model=yolov8n-seg.pt  # валидация официальной модели
-        yolo segment val model=path/to/best.pt  # валидация пользовательской модели
-        ```
+    ```bash
+    yolo segment val model=yolov8n-seg.pt  # валидация официальной модели
+    yolo segment val model=path/to/best.pt  # валидация пользовательской модели
+    ```
+````
 
 ## Предсказание
 
@@ -122,24 +123,26 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить пользовательскую модель
+    # Загрузить модель
+    model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
+    model = YOLO('path/to/best.pt')  # загрузить пользовательскую модель
 
-        # Сделать предсказание с помощью модели
-        results = model('https://ultralytics.com/images/bus.jpg')  # предсказать по изображению
-        ```
-    === "CLI"
+    # Сделать предсказание с помощью модели
+    results = model('https://ultralytics.com/images/bus.jpg')  # предсказать по изображению
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать с официальной моделью
-        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать с пользовательской моделью
-        ```
+    ```bash
+    yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать с официальной моделью
+    yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать с пользовательской моделью
+    ```
+````
 
 Полная информация о режиме `predict` на странице [Predict](https://docs.ultralytics.com/modes/predict/).
 
@@ -149,29 +152,31 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузить модель
-        model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить пользовательскую обученную модель
+    # Загрузить модель
+    model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
+    model = YOLO('path/to/best.pt')  # загрузить пользовательскую обученную модель
 
-        # Экспортировать модель
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # Экспортировать модель
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-seg.pt format=onnx  # экспортировать официальную модель
-        yolo export model=path/to/best.pt format=onnx  # экспортировать пользовательскую обученную модель
-        ```
+    ```bash
+    yolo export model=yolov8n-seg.pt format=onnx  # экспортировать официальную модель
+    yolo export model=path/to/best.pt format=onnx  # экспортировать пользовательскую обученную модель
+    ```
+````
 
 Доступные форматы экспорта YOLOv8-seg приведены в таблице ниже. После завершения экспорта для вашей модели показаны примеры использования, включая прямое предсказание или валидацию на экспортированных моделях, например `yolo predict model=yolov8n-seg.onnx`.
 
 | Формат                                                             | Аргумент `format` | Модель                        | Метаданные | Аргументы                                           |
-|--------------------------------------------------------------------|-------------------|-------------------------------|------------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ----------------------------- | ---------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-seg.pt`              | ✅          | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-seg.torchscript`     | ✅          | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-seg.onnx`            | ✅          | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

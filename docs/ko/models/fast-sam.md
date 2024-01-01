@@ -1,8 +1,6 @@
----
-comments: true
-description: FastSAM은 이미지에서 실시간 객체 분할을 위한 CNN 기반 솔루션으로, 향상된 사용자 상호작용, 계산 효율성, 다양한 비전 작업에 대응할 수 있는 특징을 갖고 있습니다.
-keywords: FastSAM, 머신러닝, CNN 기반 솔루션, 객체 분할, 실시간 솔루션, Ultralytics, 비전 작업, 이미지 처리, 산업 응용, 사용자 상호작용
----
+______________________________________________________________________
+
+## comments: true description: FastSAM은 이미지에서 실시간 객체 분할을 위한 CNN 기반 솔루션으로, 향상된 사용자 상호작용, 계산 효율성, 다양한 비전 작업에 대응할 수 있는 특징을 갖고 있습니다. keywords: FastSAM, 머신러닝, CNN 기반 솔루션, 객체 분할, 실시간 솔루션, Ultralytics, 비전 작업, 이미지 처리, 산업 응용, 사용자 상호작용
 
 # Fast Segment Anything Model (FastSAM)
 
@@ -35,7 +33,7 @@ FastSAM은 계산 리소스 요구 사항이 큰 Transformer 모델인 Segment A
 이 표는 사용 가능한 모델과 해당하는 사전 훈련 가중치, 지원하는 작업 및 [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), [Export](../modes/export.md)와 같은 다른 운영 모드에 대한 호환성을 나타내며, 지원되는 모드는 ✅ 이모지로, 지원되지 않는 모드는 ❌ 이모지로 표시됩니다.
 
 | 모델 유형     | 사전 훈련 가중치      | 지원되는 작업                        | Inference | Validation | Training | Export |
-|-----------|----------------|--------------------------------|-----------|------------|----------|--------|
+| --------- | -------------- | ------------------------------ | --------- | ---------- | -------- | ------ |
 | FastSAM-s | `FastSAM-s.pt` | [인스턴스 분할](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
 | FastSAM-x | `FastSAM-x.pt` | [인스턴스 분할](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
 
@@ -49,44 +47,46 @@ FastSAM 모델을 Python 애플리케이션에 쉽게 통합할 수 있습니다
 
 !!! Example "예제"
 
-    === "Python"
-        ```python
-        from ultralytics import FastSAM
-        from ultralytics.models.fastsam import FastSAMPrompt
+````
+=== "Python"
+    ```python
+    from ultralytics import FastSAM
+    from ultralytics.models.fastsam import FastSAMPrompt
 
-        # 추론 소스 정의
-        source = 'path/to/bus.jpg'
+    # 추론 소스 정의
+    source = 'path/to/bus.jpg'
 
-        # FastSAM 모델 생성
-        model = FastSAM('FastSAM-s.pt')  # 또는 FastSAM-x.pt
+    # FastSAM 모델 생성
+    model = FastSAM('FastSAM-s.pt')  # 또는 FastSAM-x.pt
 
-        # 이미지에 대한 추론 실행
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+    # 이미지에 대한 추론 실행
+    everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
-        # Prompt Process 객체 준비
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+    # Prompt Process 객체 준비
+    prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
 
-        # 모든 프롬프트
-        ann = prompt_process.everything_prompt()
+    # 모든 프롬프트
+    ann = prompt_process.everything_prompt()
 
-        # 바운딩 박스의 기본 모양은 [0,0,0,0]에서 [x1,y1,x2,y2]로 변경
-        ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+    # 바운딩 박스의 기본 모양은 [0,0,0,0]에서 [x1,y1,x2,y2]로 변경
+    ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
-        # 텍스트 프롬프트
-        ann = prompt_process.text_prompt(text='a photo of a dog')
+    # 텍스트 프롬프트
+    ann = prompt_process.text_prompt(text='a photo of a dog')
 
-        # 포인트 프롬프트
-        # 기본 포인트 [[0,0]] [[x1,y1],[x2,y2]]
-        # 기본 포인트 레이블 [0] [1,0] 0:배경, 1:전경
-        ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
-        ```
+    # 포인트 프롬프트
+    # 기본 포인트 [[0,0]] [[x1,y1],[x2,y2]]
+    # 기본 포인트 레이블 [0] [1,0] 0:배경, 1:전경
+    ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
+    prompt_process.plot(annotations=ann, output='./')
+    ```
 
-    === "CLI"
-        ```bash
-        # FastSAM 모델 로드 및 모든 것을 세분화하여 추출
-        yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
-        ```
+=== "CLI"
+    ```bash
+    # FastSAM 모델 로드 및 모든 것을 세분화하여 추출
+    yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
+    ```
+````
 
 이 코드 조각은 사전 훈련된 모델을 로드하고 이미지에 대한 예측을 실행하는 간편함을 보여줍니다.
 
@@ -96,22 +96,24 @@ FastSAM 모델을 Python 애플리케이션에 쉽게 통합할 수 있습니다
 
 !!! Example "예제"
 
-    === "Python"
-        ```python
-        from ultralytics import FastSAM
+````
+=== "Python"
+    ```python
+    from ultralytics import FastSAM
 
-        # FastSAM 모델 생성
-        model = FastSAM('FastSAM-s.pt')  # 또는 FastSAM-x.pt
+    # FastSAM 모델 생성
+    model = FastSAM('FastSAM-s.pt')  # 또는 FastSAM-x.pt
 
-        # 모델 검증
-        results = model.val(data='coco8-seg.yaml')
-        ```
+    # 모델 검증
+    results = model.val(data='coco8-seg.yaml')
+    ```
 
-    === "CLI"
-        ```bash
-        # FastSAM 모델 로드 및 이미지 크기 640에서 COCO8 예제 데이터셋에 대해 유효성 검사
-        yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
-        ```
+=== "CLI"
+    ```bash
+    # FastSAM 모델 로드 및 이미지 크기 640에서 COCO8 예제 데이터셋에 대해 유효성 검사
+    yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
+    ```
+````
 
 FastSAM은 단일 클래스 객체의 감지와 분할만 지원합니다. 이는 모든 객체를 동일한 클래스로 인식하고 분할한다는 의미입니다. 따라서 데이터셋을 준비할 때 모든 객체 카테고리 ID를 0으로 변환해야 합니다.
 
@@ -122,23 +124,27 @@ FastSAM은 [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-I
 ### 설치
 
 1. FastSAM 저장소를 복제합니다:
+
    ```shell
    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
    ```
 
 2. Python 3.9로 Conda 환경을 생성하고 활성화합니다:
+
    ```shell
    conda create -n FastSAM python=3.9
    conda activate FastSAM
    ```
 
 3. 복제한 저장소로 이동하여 필요한 패키지를 설치합니다:
+
    ```shell
    cd FastSAM
    pip install -r requirements.txt
    ```
 
 4. CLIP 모델을 설치합니다:
+
    ```shell
    pip install git+https://github.com/openai/CLIP.git
    ```
@@ -149,25 +155,29 @@ FastSAM은 [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-I
 
 2. FastSAM을 추론하기 위해 다음과 같이 사용합니다. 예시 명령어:
 
-    - 이미지에서 모든 것을 세분화:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+   - 이미지에서 모든 것을 세분화:
 
-    - 텍스트 프롬프트를 사용하여 특정 객체를 세분화:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+     ```
 
-    - 바운딩 박스 내의 객체를 세분화 (xywh 형식으로 상자 좌표 제공):
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+   - 텍스트 프롬프트를 사용하여 특정 객체를 세분화:
 
-    - 특정 지점 근처의 객체를 세분화:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
+     ```
+
+   - 바운딩 박스 내의 객체를 세분화 (xywh 형식으로 상자 좌표 제공):
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+     ```
+
+   - 특정 지점 근처의 객체를 세분화:
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+     ```
 
 또한, FastSAM을 [Colab 데모](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) 또는 [HuggingFace 웹 데모](https://huggingface.co/spaces/An-619/FastSAM)에서 시각적인 경험으로 시도해 볼 수 있습니다.
 
@@ -177,17 +187,19 @@ FastSAM의 실시간 인스턴스 분할 분야에 대한 혁신적인 기여를
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-      ```bibtex
-      @misc{zhao2023fast,
-            title={Fast Segment Anything},
-            author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
-            year={2023},
-            eprint={2306.12156},
-            archivePrefix={arXiv},
-            primaryClass={cs.CV}
-      }
-      ```
+  ```bibtex
+  @misc{zhao2023fast,
+        title={Fast Segment Anything},
+        author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
+        year={2023},
+        eprint={2306.12156},
+        archivePrefix={arXiv},
+        primaryClass={cs.CV}
+  }
+  ```
+````
 
 FastSAM 원본 논문은 [arXiv](https://arxiv.org/abs/2306.12156)에서 찾을 수 있습니다. 저자들은 자신들의 작업을 공개적으로 제공하였으며, 코드베이스는 [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM)에서 이용할 수 있습니다. 저자들의 노력에 감사드리며 저작물을 더 폭넓은 커뮤니티에 알리기 위한 기여를 기대합니다.

@@ -1,8 +1,6 @@
----
-comments: true
-description: Improve YOLOv5 model efficiency by pruning with Ultralytics. Understand the process, conduct tests and view the impact on accuracy and sparsity. Test-maintained API environments.
-keywords: YOLOv5, YOLO, Ultralytics, model pruning, PyTorch, machine learning, deep learning, computer vision, object detection
----
+______________________________________________________________________
+
+## comments: true description: Improve YOLOv5 model efficiency by pruning with Ultralytics. Understand the process, conduct tests and view the impact on accuracy and sparsity. Test-maintained API environments. keywords: YOLOv5, YOLO, Ultralytics, model pruning, PyTorch, machine learning, deep learning, computer vision, object detection
 
 📚 This guide explains how to apply **pruning** to YOLOv5 🚀 models.
 

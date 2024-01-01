@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore the Ultralytics HUB App, offering the ability to run YOLOv5 and YOLOv8 models on your iOS and Android devices with optimized performance.
-keywords: Ultralytics, HUB App, YOLOv5, YOLOv8, mobile AI, real-time object detection, image recognition, mobile device, hardware acceleration, Apple Neural Engine, Android GPU, NNAPI, custom model training
----
+______________________________________________________________________
+
+## comments: true description: Explore the Ultralytics HUB App, offering the ability to run YOLOv5 and YOLOv8 models on your iOS and Android devices with optimized performance. keywords: Ultralytics, HUB App, YOLOv5, YOLOv8, mobile AI, real-time object detection, image recognition, mobile device, hardware acceleration, Apple Neural Engine, Android GPU, NNAPI, custom model training
 
 # Ultralytics HUB App
 

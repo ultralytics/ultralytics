@@ -1,8 +1,6 @@
----
-comments: true
-description: YOLOv8を様々なエクスポート形式でスピードと精度をプロファイリングする方法を学び、mAP50-95、accuracy_top5のメトリクスなどの洞察を得る。
-keywords: Ultralytics, YOLOv8, ベンチマーク, スピードプロファイリング, 精度プロファイリング, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLOエクスポート形式
----
+______________________________________________________________________
+
+## comments: true description: YOLOv8を様々なエクスポート形式でスピードと精度をプロファイリングする方法を学び、mAP50-95、accuracy_top5のメトリクスなどの洞察を得る。 keywords: Ultralytics, YOLOv8, ベンチマーク, スピードプロファイリング, 精度プロファイリング, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLOエクスポート形式
 
 # Ultralytics YOLO でのモデルベンチマーク
 
@@ -34,8 +32,10 @@ keywords: Ultralytics, YOLOv8, ベンチマーク, スピードプロファイ�
 
 !!! Tip "ヒント"
 
-    * CPUスピードアップのためにONNXまたはOpenVINOにエクスポートする。
-    * GPUスピードアップのためにTensorRTにエクスポートする。
+```
+* CPUスピードアップのためにONNXまたはOpenVINOにエクスポートする。
+* GPUスピードアップのためにTensorRTにエクスポートする。
+```
 
 ## 使用例
 
@@ -43,26 +43,28 @@ ONNX、TensorRTなど、すべてのサポートされるエクスポート形�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # GPUでベンチマーク
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # GPUでベンチマーク
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## 引数
 
 `model`、`data`、`imgsz`、`half`、`device`、`verbose` などの引数は、特定のニーズに合わせてベンチマークを微調整し、さまざまなエクスポート形式のパフォーマンスを容易に比較するためにユーザーに柔軟性を提供します。
 
 | キー        | 値       | 説明                                                        |
-|-----------|---------|-----------------------------------------------------------|
+| --------- | ------- | --------------------------------------------------------- |
 | `model`   | `None`  | モデルファイルへのパス、例: yolov8n.pt, yolov8n.yaml                   |
 | `data`    | `None`  | ベンチマークデータセットを参照するYAMLへのパス（`val`ラベルの下）                     |
 | `imgsz`   | `640`   | 画像サイズをスカラーまたは(h, w)リストで、例: (640, 480)                     |
@@ -76,7 +78,7 @@ ONNX、TensorRTなど、すべてのサポートされるエクスポート形�
 以下の可能なすべてのエクスポート形式で自動的にベンチマークを試みます。
 
 | 形式                                                                 | `format` 引数   | モデル                       | メタデータ | 引数                                                  |
-|--------------------------------------------------------------------|---------------|---------------------------|-------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ------------- | ------------------------- | ----- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n.pt`              | ✅     | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

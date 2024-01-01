@@ -1,8 +1,6 @@
----
-comments: true
-description: Apprenez comment profiler la vitesse et l'exactitude de YOLOv8 à travers divers formats d'exportation ; obtenez des insights sur les métriques mAP50-95, accuracy_top5 et plus.
-keywords: Ultralytics, YOLOv8, benchmarking, profilage de vitesse, profilage de précision, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, formats d'exportation YOLO
----
+______________________________________________________________________
+
+## comments: true description: Apprenez comment profiler la vitesse et l'exactitude de YOLOv8 à travers divers formats d'exportation ; obtenez des insights sur les métriques mAP50-95, accuracy_top5 et plus. keywords: Ultralytics, YOLOv8, benchmarking, profilage de vitesse, profilage de précision, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, formats d'exportation YOLO
 
 # Benchmarking de Modèles avec Ultralytics YOLO
 
@@ -15,11 +13,11 @@ Une fois votre modèle entraîné et validé, l'étape logique suivante est d'é
 ## Pourquoi le Benchmarking est-il Crucial ?
 
 - **Décisions Éclairées :** Obtenez des insights sur les arbitrages entre la vitesse et l'exactitude.
-- **Allocation des Ressources :** Comprenez comment les différents formats d'exportation se comportent sur différents matériels.
+- **Allocation des Resources :** Comprenez comment les différents formats d'exportation se comportent sur différents matériels.
 - **Optimisation :** Découvrez quel format d'exportation offre la meilleure performance pour votre cas d'utilisation spécifique.
-- **Efficacité des Coûts :** Utilisez les ressources matérielles plus efficacement en vous basant sur les résultats des benchmarks.
+- **Efficacité des Coûts :** Utilisez les resources matérielles plus efficacement en vous basant sur les résultats des benchmarks.
 
-### Mesures Clés en Mode Benchmark
+### Measures Clés en Mode Benchmark
 
 - **mAP50-95 :** Pour la détection d'objets, la segmentation et l'estimation de pose.
 - **accuracy_top5 :** Pour la classification d'images.
@@ -34,35 +32,39 @@ Une fois votre modèle entraîné et validé, l'étape logique suivante est d'é
 
 !!! astuce "Conseil"
 
-    * Exportez vers ONNX ou OpenVINO pour un gain de vitesse CPU jusqu'à 3x.
-    * Exportez vers TensorRT pour un gain de vitesse GPU jusqu'à 5x.
+```
+* Exportez vers ONNX ou OpenVINO pour un gain de vitesse CPU jusqu'à 3x.
+* Exportez vers TensorRT pour un gain de vitesse GPU jusqu'à 5x.
+```
 
-## Exemples d'Utilisation
+## Examples d'Utilisation
 
 Exécutez les benchmarks YOLOv8n sur tous les formats d'exportation supportés, y compris ONNX, TensorRT, etc. Consultez la section Arguments ci-dessous pour une liste complète des arguments d'exportation.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # Benchmark sur GPU
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # Benchmark sur GPU
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## Arguments
 
 Des arguments tels que `model`, `data`, `imgsz`, `half`, `device` et `verbose` offrent aux utilisateurs la flexibilité d'ajuster précisément les benchmarks à leurs besoins spécifiques et de comparer facilement les performances de différents formats d'exportation.
 
 | Clé       | Valeur  | Description                                                                           |
-|-----------|---------|---------------------------------------------------------------------------------------|
+| --------- | ------- | ------------------------------------------------------------------------------------- |
 | `model`   | `None`  | chemin vers le fichier modèle, par ex. yolov8n.pt, yolov8n.yaml                       |
 | `data`    | `None`  | chemin vers le YAML référençant le dataset de benchmarking (sous l'étiquette `val`)   |
 | `imgsz`   | `640`   | taille de l'image comme scalaire ou liste (h, w), par ex. (640, 480)                  |
@@ -76,7 +78,7 @@ Des arguments tels que `model`, `data`, `imgsz`, `half`, `device` et `verbose` o
 Les benchmarks tenteront de s'exécuter automatiquement sur tous les formats d'exportation possibles ci-dessous.
 
 | Format                                                             | Argument `format` | Modèle                    | Métadonnées | Arguments                                           |
-|--------------------------------------------------------------------|-------------------|---------------------------|-------------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ------------------------- | ----------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅           | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅           | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅           | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
@@ -91,4 +93,4 @@ Les benchmarks tenteront de s'exécuter automatiquement sur tous les formats d'e
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅           | `imgsz`                                             |
 | [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅           | `imgsz`, `half`                                     |
 
-Consultez les détails complets sur `export` dans la page [Export](https://docs.ultralytics.com/modes/export/).
+Consultez les détails completes sur `export` dans la page [Export](https://docs.ultralytics.com/modes/export/).

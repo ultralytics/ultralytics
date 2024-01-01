@@ -1,8 +1,6 @@
----
-comments: true
-description: Detailed guide on loading YOLOv5 from PyTorch Hub. Includes examples & tips on inference settings, multi-GPU inference, training and more.
-keywords: Ultralytics, YOLOv5, PyTorch, loading YOLOv5, PyTorch Hub, inference, multi-GPU inference, training
----
+______________________________________________________________________
+
+## comments: true description: Detailed guide on loading YOLOv5 from PyTorch Hub. Includes examples & tips on inference settings, multi-GPU inference, training and more. keywords: Ultralytics, YOLOv5, PyTorch, loading YOLOv5, PyTorch Hub, inference, multi-GPU inference, training
 
 📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5).
 
@@ -339,8 +337,7 @@ model = torch.hub.load('path/to/yolov5', 'custom', path='path/to/best.pt', sourc
 
 PyTorch Hub supports inference on most YOLOv5 export formats, including custom trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](https://docs.ultralytics.com/yolov5/tutorials/model_export) for details on exporting models.
 
-💡 ProTip: **TensorRT** may be up to 2-5X faster than PyTorch on [**GPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6963)
-💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)
+💡 ProTip: **TensorRT** may be up to 2-5X faster than PyTorch on [**GPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6963) 💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)
 
 ```python
 import torch

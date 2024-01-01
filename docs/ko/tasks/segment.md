@@ -1,8 +1,6 @@
----
-comments: true
-description: Ultralytics YOLO를 이용한 인스턴스 세그멘테이션 모델 사용법 배우기. 훈련, 검증, 이미지 예측 및 모델 수출에 대한 지침.
-keywords: yolov8, 인스턴스 세그멘테이션, Ultralytics, COCO 데이터셋, 이미지 세그멘테이션, 객체 탐지, 모델 훈련, 모델 검증, 이미지 예측, 모델 수출
----
+______________________________________________________________________
+
+## comments: true description: Ultralytics YOLO를 이용한 인스턴스 세그멘테이션 모델 사용법 배우기. 훈련, 검증, 이미지 예측 및 모델 수출에 대한 지침. keywords: yolov8, 인스턴스 세그멘테이션, Ultralytics, COCO 데이터셋, 이미지 세그멘테이션, 객체 탐지, 모델 훈련, 모델 검증, 이미지 예측, 모델 수출
 
 # 인스턴스 세그멘테이션
 
@@ -25,7 +23,9 @@ keywords: yolov8, 인스턴스 세그멘테이션, Ultralytics, COCO 데이터�
 
 !!! Tip "팁"
 
-    YOLOv8 Segment 모델은 '-seg' 접미사를 사용하며 즉, `yolov8n-seg.pt`와 같이 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) 데이터셋에 사전 훈련되어 있습니다.
+```
+YOLOv8 Segment 모델은 '-seg' 접미사를 사용하며 즉, `yolov8n-seg.pt`와 같이 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) 데이터셋에 사전 훈련되어 있습니다.
+```
 
 ## [모델](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -34,17 +34,15 @@ keywords: yolov8, 인스턴스 세그멘테이션, Ultralytics, COCO 데이터�
 [모델](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)은 첫 사용 시 Ultralytics의 최신 [릴리스](https://github.com/ultralytics/assets/releases)에서 자동으로 다운로드 됩니다.
 
 | 모델                                                                                           | 크기<br><sup>(픽셀) | mAP<sup>박스<br>50-95 | mAP<sup>마스크<br>50-95 | 속도<br><sup>CPU ONNX<br>(밀리초) | 속도<br><sup>A100 TensorRT<br>(밀리초) | 매개변수<br><sup>(M) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|-----------------|---------------------|----------------------|------------------------------|-----------------------------------|------------------|-------------------|
+| -------------------------------------------------------------------------------------------- | --------------- | ------------------- | -------------------- | ---------------------------- | --------------------------------- | ---------------- | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640             | 36.7                | 30.5                 | 96.1                         | 1.21                              | 3.4              | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640             | 44.6                | 36.8                 | 155.7                        | 1.47                              | 11.8             | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640             | 49.9                | 40.8                 | 317.0                        | 2.18                              | 27.3             | 110.2             |
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640             | 52.3                | 42.6                 | 572.4                        | 2.79                              | 46.0             | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640             | 53.4                | 43.4                 | 712.1                        | 4.02                              | 71.8             | 344.1             |
 
-- **mAP<sup>val</sup>** 값들은 [COCO val2017](http://cocodataset.org) 데이터셋에서 단일 모델 단일 스케일로 얻은 값입니다.
-  <br>복제는 `yolo val segment data=coco.yaml device=0` 명령어로 실행할 수 있습니다.
-- **속도**는 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 인스턴스를 이용하여 COCO 검증 이미지로 평균 내었습니다.
-  <br>복제는 `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu` 명령어로 실행할 수 있습니다.
+- **mAP<sup>val</sup>** 값들은 [COCO val2017](http://cocodataset.org) 데이터셋에서 단일 모델 단일 스케일로 얻은 값입니다. <br>복제는 `yolo val segment data=coco.yaml device=0` 명령어로 실행할 수 있습니다.
+- **속도**는 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 인스턴스를 이용하여 COCO 검증 이미지로 평균 내었습니다. <br>복제는 `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu` 명령어로 실행할 수 있습니다.
 
 ## 훈련
 
@@ -52,31 +50,33 @@ COCO128-seg 데이터셋에서 이미지 크기 640으로 YOLOv8n-seg을 100 에
 
 !!! Example "예제"
 
-    === "파이썬"
+````
+=== "파이썬"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 모델을 불러옵니다
-        model = YOLO('yolov8n-seg.yaml')  # YAML에서 새로운 모델을 구성
-        model = YOLO('yolov8n-seg.pt')    # 사전 훈련된 모델을 불러옴 (훈련에 추천)
-        model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt') # YAML에서 구성하고 가중치를 전달
+    # 모델을 불러옵니다
+    model = YOLO('yolov8n-seg.yaml')  # YAML에서 새로운 모델을 구성
+    model = YOLO('yolov8n-seg.pt')    # 사전 훈련된 모델을 불러옴 (훈련에 추천)
+    model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt') # YAML에서 구성하고 가중치를 전달
 
-        # 모델을 훈련시킵니다
-        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # 모델을 훈련시킵니다
+    results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # YAML에서 새로운 모델을 구성하고 처음부터 훈련을 시작합니다
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
+    ```bash
+    # YAML에서 새로운 모델을 구성하고 처음부터 훈련을 시작합니다
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
 
-        # 사전 훈련된 *.pt 모델로 부터 훈련을 시작합니다
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+    # 사전 훈련된 *.pt 모델로 부터 훈련을 시작합니다
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
 
-        # YAML에서 새로운 모델을 구성하고 사전 훈련된 가중치를 전달한 뒤 훈련을 시작합니다
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
-        ```
+    # YAML에서 새로운 모델을 구성하고 사전 훈련된 가중치를 전달한 뒤 훈련을 시작합니다
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
+    ```
+````
 
 ### 데이터셋 형식
 
@@ -88,32 +88,34 @@ COCO128-seg 데이터셋에서 훈련된 YOLOv8n-seg 모델의 정확도를 검�
 
 !!! Example "예제"
 
-    === "파이썬"
+````
+=== "파이썬"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 모델을 불러옵니다
-        model = YOLO('yolov8n-seg.pt')    # 공식 모델을 불러옴
-        model = YOLO('path/to/best.pt')    # 커스텀 모델을 불러옴
+    # 모델을 불러옵니다
+    model = YOLO('yolov8n-seg.pt')    # 공식 모델을 불러옴
+    model = YOLO('path/to/best.pt')    # 커스텀 모델을 불러옴
 
-        # 모델을 검증합니다
-        metrics = model.val()  # 데이터셋과 설정이 기억되어 있어 인자가 필요 없습니다
-        metrics.box.map    # map50-95(B)
-        metrics.box.map50  # map50(B)
-        metrics.box.map75  # map75(B)
-        metrics.box.maps   # 각 카테고리별 map50-95(B) 리스트
-        metrics.seg.map    # map50-95(M)
-        metrics.seg.map50  # map50(M)
-        metrics.seg.map75  # map75(M)
-        metrics.seg.maps   # 각 카테고리별 map50-95(M) 리스트
-        ```
-    === "CLI"
+    # 모델을 검증합니다
+    metrics = model.val()  # 데이터셋과 설정이 기억되어 있어 인자가 필요 없습니다
+    metrics.box.map    # map50-95(B)
+    metrics.box.map50  # map50(B)
+    metrics.box.map75  # map75(B)
+    metrics.box.maps   # 각 카테고리별 map50-95(B) 리스트
+    metrics.seg.map    # map50-95(M)
+    metrics.seg.map50  # map50(M)
+    metrics.seg.map75  # map75(M)
+    metrics.seg.maps   # 각 카테고리별 map50-95(M) 리스트
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment val model=yolov8n-seg.pt  # 공식 모델로 검증
-        yolo segment val model=path/to/best.pt  # 커스텀 모델로 검증
-        ```
+    ```bash
+    yolo segment val model=yolov8n-seg.pt  # 공식 모델로 검증
+    yolo segment val model=path/to/best.pt  # 커스텀 모델로 검증
+    ```
+````
 
 ## 예측
 
@@ -121,24 +123,26 @@ COCO128-seg 데이터셋에서 훈련된 YOLOv8n-seg 모델의 정확도를 검�
 
 !!! Example "예제"
 
-    === "파이썬"
+````
+=== "파이썬"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 모델을 불러옵니다
-        model = YOLO('yolov8n-seg.pt')    # 공식 모델을 불러옴
-        model = YOLO('path/to/best.pt')    # 커스텀 모델을 불러옴
+    # 모델을 불러옵니다
+    model = YOLO('yolov8n-seg.pt')    # 공식 모델을 불러옴
+    model = YOLO('path/to/best.pt')    # 커스텀 모델을 불러옴
 
-        # 모델로 예측을 진행합니다
-        results = model('https://ultralytics.com/images/bus.jpg')  # 이미지에 대한 예측
-        ```
-    === "CLI"
+    # 모델로 예측을 진행합니다
+    results = model('https://ultralytics.com/images/bus.jpg')  # 이미지에 대한 예측
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # 공식 모델로 예측 실행
-        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # 커스텀 모델로 예측 실행
-        ```
+    ```bash
+    yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # 공식 모델로 예측 실행
+    yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # 커스텀 모델로 예측 실행
+    ```
+````
 
 `predict` 모드의 전체 세부 사항은 [예측](https://docs.ultralytics.com/modes/predict/) 페이지에서 확인할 수 있습니다.
 
@@ -148,29 +152,31 @@ ONNX, CoreML 등과 같은 다른 형식으로 YOLOv8n-seg 모델을 수출합�
 
 !!! Example "예제"
 
-    === "파이썬"
+````
+=== "파이썬"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 모델을 불러옵니다
-        model = YOLO('yolov8n-seg.pt')    # 공식 모델을 불러옴
-        model = YOLO('path/to/best.pt')    # 커스텀 훈련 모델을 불러옴
+    # 모델을 불러옵니다
+    model = YOLO('yolov8n-seg.pt')    # 공식 모델을 불러옴
+    model = YOLO('path/to/best.pt')    # 커스텀 훈련 모델을 불러옴
 
-        # 모델을 수출합니다
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # 모델을 수출합니다
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-seg.pt format=onnx  # 공식 모델을 수출합니다
-        yolo export model=path/to/best.pt format=onnx  # 커스텀 훈련 모델을 수출합니다
-        ```
+    ```bash
+    yolo export model=yolov8n-seg.pt format=onnx  # 공식 모델을 수출합니다
+    yolo export model=path/to/best.pt format=onnx  # 커스텀 훈련 모델을 수출합니다
+    ```
+````
 
 아래 표에 나열된 것은 가능한 YOLOv8-seg 수출 형식입니다. 수출 완료 후 모델 사용 예는 모델을 직접 예측하거나 검증할 때 사용할 수 있습니다.
 
 | 형식                                                                 | `format` 인자   | 모델                            | 메타데이터 | 인자                                                  |
-|--------------------------------------------------------------------|---------------|-------------------------------|-------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ------------- | ----------------------------- | ----- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-seg.pt`              | ✅     | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-seg.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-seg.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

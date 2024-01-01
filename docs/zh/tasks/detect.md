@@ -1,8 +1,6 @@
----
-comments: true
-description: Ultralytics 官方YOLOv8文档。学习如何训练、验证、预测并以各种格式导出模型。包括详尽的性能统计。
-keywords: YOLOv8, Ultralytics, 目标检测, 预训练模型, 训练, 验证, 预测, 导出模型, COCO, ImageNet, PyTorch, ONNX, CoreML
----
+______________________________________________________________________
+
+## comments: true description: Ultralytics 官方YOLOv8文档。学习如何训练、验证、预测并以各种格式导出模型。包括详尽的性能统计。 keywords: YOLOv8, Ultralytics, 目标检测, 预训练模型, 训练, 验证, 预测, 导出模型, COCO, ImageNet, PyTorch, ONNX, CoreML
 
 # 目标检测
 
@@ -25,7 +23,9 @@ keywords: YOLOv8, Ultralytics, 目标检测, 预训练模型, 训练, 验证, �
 
 !!! Tip "提示"
 
-    YOLOv8 Detect 模型是默认的 YOLOv8 模型，即 `yolov8n.pt` ，并在 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) 数据集上进行了预训练。
+```
+YOLOv8 Detect 模型是默认的 YOLOv8 模型，即 `yolov8n.pt` ，并在 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) 数据集上进行了预训练。
+```
 
 ## [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -34,17 +34,15 @@ keywords: YOLOv8, Ultralytics, 目标检测, 预训练模型, 训练, 验证, �
 [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) 会在首次使用时自动从Ultralytics的最新 [发布](https://github.com/ultralytics/assets/releases) 中下载。
 
 | 模型                                                                                   | 尺寸<br><sup>(像素) | mAP<sup>val<br>50-95 | 速度<br><sup>CPU ONNX<br>(毫秒) | 速度<br><sup>A100 TensorRT<br>(毫秒) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
-|--------------------------------------------------------------------------------------|-----------------|----------------------|-----------------------------|----------------------------------|----------------|-------------------|
+| ------------------------------------------------------------------------------------ | --------------- | -------------------- | --------------------------- | -------------------------------- | -------------- | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640             | 37.3                 | 80.4                        | 0.99                             | 3.2            | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640             | 44.9                 | 128.4                       | 1.20                             | 11.2           | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640             | 50.2                 | 234.7                       | 1.83                             | 25.9           | 78.9              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640             | 52.9                 | 375.2                       | 2.39                             | 43.7           | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640             | 53.9                 | 479.1                       | 3.53                             | 68.2           | 257.8             |
 
-- **mAP<sup>val</sup>** 值适用于 [COCO val2017](http://cocodataset.org) 数据集上的单模型单尺度。
-  <br>通过 `yolo val detect data=coco.yaml device=0` 复现。
-- **速度** 是在使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 云实例对COCO val图像的平均值。
-  <br>通过 `yolo val detect data=coco128.yaml batch=1 device=0|cpu` 复现。
+- **mAP<sup>val</sup>** 值适用于 [COCO val2017](http://cocodataset.org) 数据集上的单模型单尺度。 <br>通过 `yolo val detect data=coco.yaml device=0` 复现。
+- **速度** 是在使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 云实例对COCO val图像的平均值。 <br>通过 `yolo val detect data=coco128.yaml batch=1 device=0|cpu` 复现。
 
 ## 训练
 
@@ -52,31 +50,33 @@ keywords: YOLOv8, Ultralytics, 目标检测, 预训练模型, 训练, 验证, �
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 加载模型
-        model = YOLO('yolov8n.yaml')  # 从YAML构建新模型
-        model = YOLO('yolov8n.pt')    # 加载预训练模型（推荐用于训练）
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # 从YAML构建并转移权重
+    # 加载模型
+    model = YOLO('yolov8n.yaml')  # 从YAML构建新模型
+    model = YOLO('yolov8n.pt')    # 加载预训练模型（推荐用于训练）
+    model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # 从YAML构建并转移权重
 
-        # 训练模型
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # 训练模型
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # 从YAML构建新模型并从头开始训练
-        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+    ```bash
+    # 从YAML构建新模型并从头开始训练
+    yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
 
-        # 从预训练的*.pt模型开始训练
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+    # 从预训练的*.pt模型开始训练
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
 
-        # 从YAML构建新模型，传递预训练权重并开始训练
-        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
-        ```
+    # 从YAML构建新模型，传递预训练权重并开始训练
+    yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ### 数据集格式
 
@@ -88,28 +88,30 @@ YOLO检测数据集格式可以在 [数据集指南](/../datasets/detect/index.m
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 加载模型
-        model = YOLO('yolov8n.pt')  # 加载官方模型
-        model = YOLO('path/to/best.pt')  # 加载自定义模型
+    # 加载模型
+    model = YOLO('yolov8n.pt')  # 加载官方模型
+    model = YOLO('path/to/best.pt')  # 加载自定义模型
 
-        # 验证模型
-        metrics = model.val()  # 无需参数，数据集和设置通过模型属性记住
-        metrics.box.map    # map50-95
-        metrics.box.map50  # map50
-        metrics.box.map75  # map75
-        metrics.box.maps   # 包含每个类别map50-95的列表
-        ```
-    === "CLI"
+    # 验证模型
+    metrics = model.val()  # 无需参数，数据集和设置通过模型属性记住
+    metrics.box.map    # map50-95
+    metrics.box.map50  # map50
+    metrics.box.map75  # map75
+    metrics.box.maps   # 包含每个类别map50-95的列表
+    ```
+=== "CLI"
 
-        ```bash
-        yolo detect val model=yolov8n.pt  # 验证官方模型
-        yolo detect val model=path/to/best.pt  # 验证自定义模型
-        ```
+    ```bash
+    yolo detect val model=yolov8n.pt  # 验证官方模型
+    yolo detect val model=path/to/best.pt  # 验证自定义模型
+    ```
+````
 
 ## 预测
 
@@ -117,24 +119,26 @@ YOLO检测数据集格式可以在 [数据集指南](/../datasets/detect/index.m
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 加载模型
-        model = YOLO('yolov8n.pt')  # 加载官方模型
-        model = YOLO('path/to/best.pt')  # 加载自定义模型
+    # 加载模型
+    model = YOLO('yolov8n.pt')  # 加载官方模型
+    model = YOLO('path/to/best.pt')  # 加载自定义模型
 
-        # 使用模型进行预测
-        results = model('https://ultralytics.com/images/bus.jpg')  # 对图像进行预测
-        ```
-    === "CLI"
+    # 使用模型进行预测
+    results = model('https://ultralytics.com/images/bus.jpg')  # 对图像进行预测
+    ```
+=== "CLI"
 
-        ```bash
-        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # 使用官方模型进行预测
-        yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # 使用自定义模型进行预测
-        ```
+    ```bash
+    yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # 使用官方模型进行预测
+    yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # 使用自定义模型进行预测
+    ```
+````
 
 完整的 `predict` 模式细节请见 [预测](https://docs.ultralytics.com/modes/predict/) 页面。
 
@@ -144,29 +148,31 @@ YOLO检测数据集格式可以在 [数据集指南](/../datasets/detect/index.m
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 加载模型
-        model = YOLO('yolov8n.pt')  # 加载官方模型
-        model = YOLO('path/to/best.pt')  # 加载自定义训练模型
+    # 加载模型
+    model = YOLO('yolov8n.pt')  # 加载官方模型
+    model = YOLO('path/to/best.pt')  # 加载自定义训练模型
 
-        # 导出模型
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # 导出模型
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n.pt format=onnx  # 导出官方模型
-        yolo export model=path/to/best.pt format=onnx  # 导出自定义训练模型
-        ```
+    ```bash
+    yolo export model=yolov8n.pt format=onnx  # 导出官方模型
+    yolo export model=path/to/best.pt format=onnx  # 导出自定义训练模型
+    ```
+````
 
 下表中提供了可用的YOLOv8导出格式。您可以直接在导出的模型上进行预测或验证，即 `yolo predict model=yolov8n.onnx`。导出完成后，会为您的模型显示使用示例。
 
 | 格式                                                                 | `format` 参数   | 模型                        | 元数据 | 参数                                              |
-|--------------------------------------------------------------------|---------------|---------------------------|-----|-------------------------------------------------|
+| ------------------------------------------------------------------ | ------------- | ------------------------- | --- | ----------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n.pt`              | ✅   | -                                               |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n.torchscript`     | ✅   | `imgsz`，`optimize`                              |
 | [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n.onnx`            | ✅   | `imgsz`，`half`，`dynamic`，`simplify`，`opset`     |

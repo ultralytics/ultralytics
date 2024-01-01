@@ -1,8 +1,6 @@
----
-comments: true
-description: Understand how to use ImageNet, an extensive annotated image dataset for object recognition research, with Ultralytics YOLO models. Learn about its structure, usage, and significance in computer vision.
-keywords: Ultralytics, YOLO, ImageNet, dataset, object recognition, deep learning, computer vision, machine learning, dataset training, model training, image classification, object detection
----
+______________________________________________________________________
+
+## comments: true description: Understand how to use ImageNet, an extensive annotated image dataset for object recognition research, with Ultralytics YOLO models. Learn about its structure, usage, and significance in computer vision. keywords: Ultralytics, YOLO, ImageNet, dataset, object recognition, deep learning, computer vision, machine learning, dataset training, model training, image classification, object detection
 
 # ImageNet Dataset
 
@@ -33,24 +31,26 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='imagenet', epochs=100, imgsz=224)
-        ```
+    # Train the model
+    results = model.train(data='imagenet', epochs=100, imgsz=224)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
+    ```
+````
 
 ## Sample Images and Annotations
 
@@ -66,18 +66,20 @@ If you use the ImageNet dataset in your research or development work, please cit
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{ILSVRC15,
-                 author = {Olga Russakovsky and Jia Deng and Hao Su and Jonathan Krause and Sanjeev Satheesh and Sean Ma and Zhiheng Huang and Andrej Karpathy and Aditya Khosla and Michael Bernstein and Alexander C. Berg and Li Fei-Fei},
-                 title={ImageNet Large Scale Visual Recognition Challenge},
-                 year={2015},
-                 journal={International Journal of Computer Vision (IJCV)},
-                 volume={115},
-                 number={3},
-                 pages={211-252}
-        }
-        ```
+    ```bibtex
+    @article{ILSVRC15,
+             author = {Olga Russakovsky and Jia Deng and Hao Su and Jonathan Krause and Sanjeev Satheesh and Sean Ma and Zhiheng Huang and Andrej Karpathy and Aditya Khosla and Michael Bernstein and Alexander C. Berg and Li Fei-Fei},
+             title={ImageNet Large Scale Visual Recognition Challenge},
+             year={2015},
+             journal={International Journal of Computer Vision (IJCV)},
+             volume={115},
+             number={3},
+             pages={211-252}
+    }
+    ```
+````
 
 We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset as a valuable resource for the machine learning and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).

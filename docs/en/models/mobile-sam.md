@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn more about MobileSAM, its implementation, comparison with the original SAM, and how to download and test it in the Ultralytics framework. Improve your mobile applications today.
-keywords: MobileSAM, Ultralytics, SAM, mobile applications, Arxiv, GPU, API, image encoder, mask decoder, model download, testing method
----
+______________________________________________________________________
+
+## comments: true description: Learn more about MobileSAM, its implementation, comparison with the original SAM, and how to download and test it in the Ultralytics framework. Improve your mobile applications today. keywords: MobileSAM, Ultralytics, SAM, mobile applications, Arxiv, GPU, API, image encoder, mask decoder, model download, testing method
 
 ![MobileSAM Logo](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true)
 
@@ -21,7 +19,7 @@ MobileSAM is trained on a single GPU with a 100k dataset (1% of the original ima
 This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
 | Model Type | Pre-trained Weights | Tasks Supported                              | Inference | Validation | Training | Export |
-|------------|---------------------|----------------------------------------------|-----------|------------|----------|--------|
+| ---------- | ------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | MobileSAM  | `mobile_sam.pt`     | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ## Adapting from SAM to MobileSAM
@@ -33,21 +31,21 @@ MobileSAM performs comparably to the original SAM and retains the same pipeline 
 The following table provides a comparison of ViT-based image encoders:
 
 | Image Encoder | Original SAM | MobileSAM |
-|---------------|--------------|-----------|
+| ------------- | ------------ | --------- |
 | Parameters    | 611M         | 5M        |
 | Speed         | 452ms        | 8ms       |
 
 Both the original SAM and MobileSAM utilize the same prompt-guided mask decoder:
 
 | Mask Decoder | Original SAM | MobileSAM |
-|--------------|--------------|-----------|
+| ------------ | ------------ | --------- |
 | Parameters   | 3.876M       | 3.876M    |
 | Speed        | 4ms          | 4ms       |
 
 Here is the comparison of the whole pipeline:
 
 | Whole Pipeline (Enc+Dec) | Original SAM | MobileSAM |
-|--------------------------|--------------|-----------|
+| ------------------------ | ------------ | --------- |
 | Parameters               | 615M         | 9.66M     |
 | Speed                    | 456ms        | 12ms      |
 
@@ -71,31 +69,35 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
 !!! Example
 
-    === "Python"
-        ```python
-        from ultralytics import SAM
+````
+=== "Python"
+    ```python
+    from ultralytics import SAM
 
-        # Load the model
-        model = SAM('mobile_sam.pt')
+    # Load the model
+    model = SAM('mobile_sam.pt')
 
-        # Predict a segment based on a point prompt
-        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
-        ```
+    # Predict a segment based on a point prompt
+    model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+    ```
+````
 
 ### Box Prompt
 
 !!! Example
 
-    === "Python"
-        ```python
-        from ultralytics import SAM
+````
+=== "Python"
+    ```python
+    from ultralytics import SAM
 
-        # Load the model
-        model = SAM('mobile_sam.pt')
+    # Load the model
+    model = SAM('mobile_sam.pt')
 
-        # Predict a segment based on a box prompt
-        model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
-        ```
+    # Predict a segment based on a box prompt
+    model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+    ```
+````
 
 We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](sam.md).
 
@@ -105,13 +107,15 @@ If you find MobileSAM useful in your research or development work, please consid
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{mobile_sam,
-          title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
-          author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
-          journal={arXiv preprint arXiv:2306.14289},
-          year={2023}
-        }
-        ```
+    ```bibtex
+    @article{mobile_sam,
+      title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
+      author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
+      journal={arXiv preprint arXiv:2306.14289},
+      year={2023}
+    }
+    ```
+````

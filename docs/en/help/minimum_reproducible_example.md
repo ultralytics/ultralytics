@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how to create minimum reproducible examples (MRE) for efficient bug reporting in Ultralytics YOLO repositories with this step-by-step guide.
-keywords: Ultralytics, YOLO, minimum reproducible example, MRE, bug reports, guide, dependencies, code, troubleshooting
----
+______________________________________________________________________
+
+## comments: true description: Learn how to create minimum reproducible examples (MRE) for efficient bug reporting in Ultralytics YOLO repositories with this step-by-step guide. keywords: Ultralytics, YOLO, minimum reproducible example, MRE, bug reports, guide, dependencies, code, troubleshooting
 
 # Creating a Minimum Reproducible Example for Bug Reports in Ultralytics YOLO Repositories
 
@@ -26,7 +24,7 @@ Provide a clear and concise description of the issue you're experiencing. Explai
 
 ## 5. Format Your Code Properly
 
-When submitting an MRE, format your code properly using code blocks in the issue description. This makes it easier for others to read and understand your code. In GitHub, you can create a code block by wrapping your code with triple backticks (\```) and specifying the language:
+When submitting an MRE, format your code properly using code blocks in the issue description. This makes it easier for others to read and understand your code. In GitHub, you can create a code block by wrapping your code with triple backticks (\`\`\`) and specifying the language:
 
 <pre>
 ```python

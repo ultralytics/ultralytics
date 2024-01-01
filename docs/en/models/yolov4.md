@@ -1,15 +1,12 @@
----
-comments: true
-description: Explore our detailed guide on YOLOv4, a state-of-the-art real-time object detector. Understand its architectural highlights, innovative features, and application examples.
-keywords: ultralytics, YOLOv4, object detection, neural network, real-time detection, object detector, machine learning
----
+______________________________________________________________________
+
+## comments: true description: Explore our detailed guide on YOLOv4, a state-of-the-art real-time object detector. Understand its architectural highlights, innovative features, and application examples. keywords: ultralytics, YOLOv4, object detection, neural network, real-time detection, object detector, machine learning
 
 # YOLOv4: High-Speed and Precise Object Detection
 
 Welcome to the Ultralytics documentation page for YOLOv4, a state-of-the-art, real-time object detector launched in 2020 by Alexey Bochkovskiy at [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet). YOLOv4 is designed to provide the optimal balance between speed and accuracy, making it an excellent choice for many applications.
 
-![YOLOv4 architecture diagram](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png)
-**YOLOv4 architecture diagram**. Showcasing the intricate network design of YOLOv4, including the backbone, neck, and head components, and their interconnected layers for optimal real-time object detection.
+![YOLOv4 architecture diagram](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png) **YOLOv4 architecture diagram**. Showcasing the intricate network design of YOLOv4, including the backbone, neck, and head components, and their interconnected layers for optimal real-time object detection.
 
 ## Introduction
 
@@ -55,17 +52,19 @@ We would like to acknowledge the YOLOv4 authors for their significant contributi
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{bochkovskiy2020yolov4,
-              title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
-              author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
-              year={2020},
-              eprint={2004.10934},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{bochkovskiy2020yolov4,
+          title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
+          author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
+          year={2020},
+          eprint={2004.10934},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 The original YOLOv4 paper can be found on [arXiv](https://arxiv.org/abs/2004.10934). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/AlexeyAB/darknet). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

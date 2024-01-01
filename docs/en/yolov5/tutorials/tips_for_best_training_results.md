@@ -1,8 +1,6 @@
----
-comments: true
-description: Our comprehensive guide provides insights on how to train your YOLOv5 system to get the best mAP. Master dataset preparation, model selection, training settings, and more.
-keywords: Ultralytics, YOLOv5, Training guide, dataset preparation, model selection, training settings, mAP results, Machine Learning, Object Detection
----
+______________________________________________________________________
+
+## comments: true description: Our comprehensive guide provides insights on how to train your YOLOv5 system to get the best mAP. Master dataset preparation, model selection, training settings, and more. keywords: Ultralytics, YOLOv5, Training guide, dataset preparation, model selection, training settings, mAP results, Machine Learning, Object Detection
 
 📚 This guide explains how to produce the best mAP and training results with YOLOv5 🚀.
 

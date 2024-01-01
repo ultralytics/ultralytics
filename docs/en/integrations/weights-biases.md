@@ -1,8 +1,6 @@
----
-comments: true
-description: Discover how to train your YOLOv8 models efficiently with Weights & Biases. This guide walks through integrating Weights & Biases with YOLOv8 to enable seamless experiment tracking, result visualization, and model explainability.
-keywords: Ultralytics, YOLOv8, Object Detection, Weights & Biases, Model Training, Experiment Tracking, Visualizing Results
----
+______________________________________________________________________
+
+## comments: true description: Discover how to train your YOLOv8 models efficiently with Weights & Biases. This guide walks through integrating Weights & Biases with YOLOv8 to enable seamless experiment tracking, result visualization, and model explainability. keywords: Ultralytics, YOLOv8, Object Detection, Weights & Biases, Model Training, Experiment Tracking, Visualizing Results
 
 # Enhancing YOLOv8 Experiment Tracking and Visualization with Weights & Biases
 
@@ -28,12 +26,14 @@ To install the required packages, run:
 
 !!! Tip "Installation"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Install the required packages for YOLOv8 and Weights & Biases
-        pip install --upgrade ultralytics==8.0.186 wandb
-        ```
+    ```bash
+    # Install the required packages for YOLOv8 and Weights & Biases
+    pip install --upgrade ultralytics==8.0.186 wandb
+    ```
+````
 
 For detailed instructions and best practices related to the installation process, be sure to check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
@@ -45,12 +45,14 @@ Start by initializing the Weights & Biases environment in your workspace. You ca
 
 !!! Tip "Initial SDK Setup"
 
-    === "CLI"
-        ```bash
-        # Initialize your Weights & Biases environment
-        import wandb
-        wandb.login()
-        ```
+````
+=== "CLI"
+    ```bash
+    # Initialize your Weights & Biases environment
+    import wandb
+    wandb.login()
+    ```
+````
 
 Navigate to the Weights & Biases authorization page to create and retrieve your API key. Use this key to authenticate your environment with W&B.
 
@@ -60,35 +62,37 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
 
 !!! Example "Usage: Training YOLOv8 with Weights & Biases"
 
-    === "Python"
-       ```python
-       from ultralytics import YOLO
-       from wandb.integration.ultralytics import add_wandb_callback
-       import wandb
+````
+=== "Python"
+   ```python
+   from ultralytics import YOLO
+   from wandb.integration.ultralytics import add_wandb_callback
+   import wandb
 
-       # Step 1: Initialize a Weights & Biases run
-       wandb.init(project="ultralytics", job_type="training")
+   # Step 1: Initialize a Weights & Biases run
+   wandb.init(project="ultralytics", job_type="training")
 
-       # Step 2: Define the YOLOv8 Model and Dataset
-       model_name = "yolov8n"
-       dataset_name = "coco128.yaml"
-       model = YOLO(f"{model_name}.pt")
+   # Step 2: Define the YOLOv8 Model and Dataset
+   model_name = "yolov8n"
+   dataset_name = "coco128.yaml"
+   model = YOLO(f"{model_name}.pt")
 
-       # Step 3: Add W&B Callback for Ultralytics
-       add_wandb_callback(model, enable_model_checkpointing=True)
+   # Step 3: Add W&B Callback for Ultralytics
+   add_wandb_callback(model, enable_model_checkpointing=True)
 
-       # Step 4: Train and Fine-Tune the Model
-       model.train(project="ultralytics", data=dataset_name, epochs=5, imgsz=640)
+   # Step 4: Train and Fine-Tune the Model
+   model.train(project="ultralytics", data=dataset_name, epochs=5, imgsz=640)
 
-       # Step 5: Validate the Model
-       model.val()
+   # Step 5: Validate the Model
+   model.val()
 
-       # Step 6: Perform Inference and Log Results
-       model(["path/to/image1", "path/to/image2"])
+   # Step 6: Perform Inference and Log Results
+   model(["path/to/image1", "path/to/image2"])
 
-       # Step 7: Finalize the W&B Run
-       wandb.finish()
-       ```
+   # Step 7: Finalize the W&B Run
+   wandb.finish()
+   ```
+````
 
 ### Understanding the Code
 

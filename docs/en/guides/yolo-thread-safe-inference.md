@@ -1,8 +1,6 @@
----
-comments: true
-description: This guide provides best practices for performing thread-safe inference with YOLO models, ensuring reliable and concurrent predictions in multi-threaded applications.
-keywords: thread-safe, YOLO inference, multi-threading, concurrent predictions, YOLO models, Ultralytics, Python threading, safe YOLO usage, AI concurrency
----
+______________________________________________________________________
+
+## comments: true description: This guide provides best practices for performing thread-safe inference with YOLO models, ensuring reliable and concurrent predictions in multi-threaded applications. keywords: thread-safe, YOLO inference, multi-threading, concurrent predictions, YOLO models, Ultralytics, Python threading, safe YOLO usage, AI concurrency
 
 # Thread-Safe Inference with YOLO Models
 

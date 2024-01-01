@@ -1,8 +1,6 @@
----
-comments: true
-description: YOLOv8モデルをUltralytics YOLOを使用してトレーニングする手順についてのガイドで、シングルGPUとマルチGPUトレーニングの例を含む
-keywords: Ultralytics, YOLOv8, YOLO, 物体検出, トレーニングモード, カスタムデータセット, GPUトレーニング, マルチGPU, ハイパーパラメータ, CLI例, Python例
----
+______________________________________________________________________
+
+## comments: true description: YOLOv8モデルをUltralytics YOLOを使用してトレーニングする手順についてのガイドで、シングルGPUとマルチGPUトレーニングの例を含む keywords: Ultralytics, YOLOv8, YOLO, 物体検出, トレーニングモード, カスタムデータセット, GPUトレーニング, マルチGPU, ハイパーパラメータ, CLI例, Python例
 
 # Ultralytics YOLOを使ったモデルトレーニング
 
@@ -43,7 +41,9 @@ YOLOv8のトレーニングモードを選択するいくつかの魅力的な�
 
 !!! Tip "ヒント"
 
-    * YOLOv8のデータセット、例えばCOCO、VOC、ImageNetなどは、最初の使用時に自動的にダウンロードされます。例：`yolo train data=coco.yaml`
+```
+* YOLOv8のデータセット、例えばCOCO、VOC、ImageNetなどは、最初の使用時に自動的にダウンロードされます。例：`yolo train data=coco.yaml`
+```
 
 ## 使用例
 
@@ -51,34 +51,36 @@ COCO128データセットでYOLOv8nを100エポック、画像サイズ640でト
 
 !!! Example "シングルGPUとCPUトレーニング例"
 
-    デバイスは自動的に決定されます。GPUが利用可能であればそれが使用され、そうでなければCPUでトレーニングが開始されます。
+````
+デバイスは自動的に決定されます。GPUが利用可能であればそれが使用され、そうでなければCPUでトレーニングが開始されます。
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n.yaml')  # YAMLから新しいモデルを作成
-        model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # YAMLからモデルを作成し、重みを転送
+    # モデルをロード
+    model = YOLO('yolov8n.yaml')  # YAMLから新しいモデルを作成
+    model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
+    model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # YAMLからモデルを作成し、重みを転送
 
-        # モデルをトレーニング
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-        ```
+    # モデルをトレーニング
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # YAMLから新しいモデルを作成し、最初からトレーニングを開始
-        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+    ```bash
+    # YAMLから新しいモデルを作成し、最初からトレーニングを開始
+    yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
 
-        # 事前学習済み*.ptモデルからトレーニングを開始
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+    # 事前学習済み*.ptモデルからトレーニングを開始
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
 
-        # YAMLから新しいモデルを作成し、事前学習済みの重みを転送してトレーニングを開始
-        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
-        ```
+    # YAMLから新しいモデルを作成し、事前学習済みの重みを転送してトレーニングを開始
+    yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ### マルチGPUトレーニング
 
@@ -86,26 +88,28 @@ COCO128データセットでYOLOv8nを100エポック、画像サイズ640でト
 
 !!! Example "マルチGPUトレーニング例"
 
-    2つのGPUを使ってトレーニングするには、CUDAデバイス0と1を使い以下のコマンドを使用します。必要に応じて追加のGPUに拡張します。
+````
+2つのGPUを使ってトレーニングするには、CUDAデバイス0と1を使い以下のコマンドを使用します。必要に応じて追加のGPUに拡張します。
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
+    # モデルをロード
+    model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
 
-        # 2つのGPUでモデルをトレーニング
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
-        ```
+    # 2つのGPUでモデルをトレーニング
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # 事前学習済み*.ptモデルからGPU 0と1を使ってトレーニングを開始
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
-        ```
+    ```bash
+    # 事前学習済み*.ptモデルからGPU 0と1を使ってトレーニングを開始
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+    ```
+````
 
 ### Apple M1 および M2 MPSトレーニング
 
@@ -115,24 +119,26 @@ AppleのM1およびM2チップでのトレーニングを有効にするには�
 
 !!! Example "MPSトレーニング例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
+    # モデルをロード
+    model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
 
-        # MPSを使ってモデルをトレーニング
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
-        ```
+    # MPSを使ってモデルをトレーニング
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # MPSを使って、事前学習済み*.ptモデルからトレーニングを開始
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
-        ```
+    ```bash
+    # MPSを使って、事前学習済み*.ptモデルからトレーニングを開始
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+    ```
+````
 
 M1/M2チップの計算能力を利用しながら、これによりトレーニングタスクのより効率的な処理が可能になります。より詳細なガイダンスや高度な設定オプションについては、[PyTorch MPSのドキュメント](https://pytorch.org/docs/stable/notes/mps.html)を参照してください。
 
@@ -150,13 +156,15 @@ Cometを使用するには：
 
 !!! Example "例"
 
-    === "Python"
-        ```python
-        # pip install comet_ml
-        import comet_ml
+````
+=== "Python"
+    ```python
+    # pip install comet_ml
+    import comet_ml
 
-        comet_ml.init()
-        ```
+    comet_ml.init()
+    ```
+````
 
 Cometアカウントにサインインし、APIキーを取得してください。このキーを環境変数またはスクリプトに追加して、実験をログに記録する必要があります。
 
@@ -168,13 +176,15 @@ ClearMLを使用するには：
 
 !!! Example "例"
 
-    === "Python"
-        ```python
-        # pip install clearml
-        import clearml
+````
+=== "Python"
+    ```python
+    # pip install clearml
+    import clearml
 
-        clearml.browser_login()
-        ```
+    clearml.browser_login()
+    ```
+````
 
 このスクリプトを実行した後、ブラウザでClearMLアカウントにサインインし、セッションを認証する必要があります。
 
@@ -186,20 +196,24 @@ ClearMLを使用するには：
 
 !!! Example "例"
 
-    === "CLI"
-        ```bash
-        load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # 'runs'ディレクトリと置き換えてください
-        ```
+````
+=== "CLI"
+    ```bash
+    load_ext tensorboard
+    tensorboard --logdir ultralytics/runs  # 'runs'ディレクトリと置き換えてください
+    ```
+````
 
 TensorBoardをローカルで使用する場合は、http://localhost:6006/ で結果を確認できます。
 
 !!! Example "例"
 
-    === "CLI"
-        ```bash
-        tensorboard --logdir ultralytics/runs  # 'runs'ディレクトリと置き換えてください
-        ```
+````
+=== "CLI"
+    ```bash
+    tensorboard --logdir ultralytics/runs  # 'runs'ディレクトリと置き換えてください
+    ```
+````
 
 これでTensorBoardがロードされ、トレーニングログが保存されているディレクトリを指定します。
 

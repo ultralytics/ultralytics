@@ -1,25 +1,22 @@
----
-comments: true
-description: Explore nosso guia detalhado sobre o YOLOv4, um detector de objetos em tempo real de última geração. Entenda seus destaques arquiteturais, recursos inovadores e exemplos de aplicação.
-keywords: ultralytics, YOLOv4, detecção de objetos, rede neural, detecção em tempo real, detector de objetos, aprendizado de máquina
----
+______________________________________________________________________
+
+## comments: true description: Explore nosso guia detalhado sobre o YOLOv4, um detector de objetos em tempo real de última geração. Entenda seus destaques arquiteturais, recursos inovadores e exemplos de aplicação. keywords: ultralytics, YOLOv4, detecção de objetos, rede neural, detecção em tempo real, detector de objetos, aprendizado de máquina
 
 # YOLOv4: Detecção de Objetos Rápida e Precisa
 
 Bem-vindo à página de documentação do Ultralytics para o YOLOv4, um detector de objetos em tempo real de última geração lançado em 2020 por Alexey Bochkovskiy em [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet). O YOLOv4 foi projetado para fornecer o equilíbrio ideal entre velocidade e precisão, tornando-o uma excelente escolha para muitas aplicações.
 
-![Diagrama da arquitetura do YOLOv4](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png)
-**Diagrama da arquitetura do YOLOv4**. Mostra o design intricado da rede do YOLOv4, incluindo os componentes backbone, neck e head, bem como suas camadas interconectadas para uma detecção de objetos em tempo real otimizada.
+![Diagram da arquitetura do YOLOv4](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png) **Diagram da arquitetura do YOLOv4**. Mostra o design intricado da rede do YOLOv4, incluindo os components backbone, neck e head, bem como suas camadas interconectadas para uma detecção de objetos em tempo real otimizada.
 
 ## Introdução
 
-YOLOv4 significa You Only Look Once versão 4. É um modelo de detecção de objetos em tempo real desenvolvido para superar as limitações de versões anteriores do YOLO, como [YOLOv3](yolov3.md) e outros modelos de detecção de objetos. Ao contrário de outros detectores de objetos baseados em redes neurais convolucionais (CNN), o YOLOv4 é aplicável não apenas a sistemas de recomendação, mas também ao gerenciamento de processos independentes e à redução da entrada humana. Sua operação em unidades de processamento gráfico (GPUs) convencionais permite o uso em massa a um preço acessível, e foi projetado para funcionar em tempo real em uma GPU convencional, exigindo apenas uma GPU para treinamento.
+YOLOv4 significa You Only Look Once versão 4. É um modelo de detecção de objetos em tempo real desenvolvido para superar as limitações de versões anteriores do YOLO, como [YOLOv3](yolov3.md) e outros modelos de detecção de objetos. Ao contrário de outros detectores de objetos baseados em redes neurais convolucionais (CNN), o YOLOv4 é aplicável não apenas a sistemas de recomendação, mas também ao gerenciamento de processos independentes e à redução da entrada humana. Sua operação em unidades de processamento gráfico (GPUs) convencionais permite o uso em massa a um preço acessível, e foi projetado para funcionar em tempo real em uma GPU conventional, exigindo apenas uma GPU para treinamento.
 
 ## Arquitetura
 
 O YOLOv4 faz uso de várias características inovadoras que trabalham juntas para otimizar seu desempenho. Estas incluem Conexões Residuais Ponderadas (WRC), Conexões Parciais Cruzadas de Estágio (CSP), Normalização Cruzada em Mini Lote (CmBN), Treinamento Autoadversário (SAT), Ativação Mish, Aumento de Dados Mosaic, Regularização DropBlock e Perda CIoU. Essas características são combinadas para obter resultados de última geração.
 
-Um detector de objetos típico é composto por várias partes, incluindo a entrada, o backbone, o neck e o head. O backbone do YOLOv4 é pré-treinado no ImageNet e é usado para prever as classes e caixas delimitadoras dos objetos. O backbone pode ser de vários modelos, incluindo VGG, ResNet, ResNeXt ou DenseNet. A parte neck do detector é usada para coletar mapas de características de diferentes estágios e geralmente inclui várias caminhadas bottom-up e várias caminhadas top-down. A parte head é responsável por fazer as detecções e classificações finais dos objetos.
+Um detector de objetos típico é composto por várias partes, incluindo a entrada, o backbone, o neck e o head. O backbone do YOLOv4 é pré-treinado no ImageNet e é usado para prever as classes e caixas delimitadoras dos objetos. O backbone pode set de vários modelos, incluindo VGG, ResNet, ResNeXt ou DenseNet. A parte neck do detector é usada para coletar mapas de características de diferentes estágios e geralmente inclui várias caminhadas bottom-up e várias caminhadas top-down. A parte head é responsável por fazer as detecções e classificações finais dos objetos.
 
 ## Bag of Freebies
 
@@ -31,7 +28,7 @@ O YOLOv4 foi projetado para oferecer velocidade e precisão ideais na detecção
 
 ## Exemplos de Uso
 
-No momento da escrita, o Ultralytics não oferece suporte a modelos YOLOv4. Portanto, os usuários interessados em usar o YOLOv4 deverão consultar diretamente o repositório YOLOv4 no GitHub para instruções de instalação e uso.
+No memento da escrita, o Ultralytics não oferece suporte a modelos YOLOv4. Portanto, os usuários interessados em usar o YOLOv4 deverão consultar diretamente o repositório YOLOv4 no GitHub para instruções de instalação e uso.
 
 Aqui está uma breve visão geral das etapas típicas que você pode seguir para usar o YOLOv4:
 
@@ -47,7 +44,7 @@ Lamentamos qualquer inconveniente que isso possa causar e nos esforçaremos para
 
 ## Conclusão
 
-O YOLOv4 é um modelo poderoso e eficiente de detecção de objetos que oferece um equilíbrio entre velocidade e precisão. O uso de recursos exclusivos e técnicas "Bag of Freebies" durante o treinamento permite que ele tenha um excelente desempenho em tarefas de detecção de objetos em tempo real. O YOLOv4 pode ser treinado e usado por qualquer pessoa com uma GPU convencional, tornando-o acessível e prático para uma ampla variedade de aplicações.
+O YOLOv4 é um modelo poderoso e eficiente de detecção de objetos que oferece um equilíbrio entre velocidade e precisão. O uso de recursos exclusivos e técnicas "Bag of Freebies" durante o treinamento permite que ele tenha um excelente desempenho em tarefas de detecção de objetos em tempo real. O YOLOv4 pode set treinado e usado por qualquer pessoa com uma GPU conventional, tornando-o acessível e prático para uma ampla variedade de aplicações.
 
 ## Referências e Agradecimentos
 
@@ -55,17 +52,19 @@ Gostaríamos de agradecer aos autores do YOLOv4 por suas contribuições signifi
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{bochkovskiy2020yolov4,
-              title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
-              author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
-              year={2020},
-              eprint={2004.10934},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{bochkovskiy2020yolov4,
+          title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
+          author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
+          year={2020},
+          eprint={2004.10934},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
-O artigo original do YOLOv4 pode ser encontrado no [arXiv](https://arxiv.org/abs/2004.10934). Os autores disponibilizaram seu trabalho publicamente, e o código pode ser acessado no [GitHub](https://github.com/AlexeyAB/darknet). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.
+O artigo original do YOLOv4 pode set encontrado no [arXiv](https://arxiv.org/abs/2004.10934). Os autores disponibilizaram seu trabalho publicamente, e o código pode set acessado no [GitHub](https://github.com/AlexeyAB/darknet). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.

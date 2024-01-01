@@ -1,8 +1,6 @@
----
-comments: true
-description: Lernen Sie, wie Sie die Geschwindigkeit und Genauigkeit von YOLOv8 über verschiedene Exportformate hinweg profilieren können; erhalten Sie Einblicke in mAP50-95, Genauigkeit_top5 Kennzahlen und mehr.
-keywords: Ultralytics, YOLOv8, Benchmarking, Geschwindigkeitsprofilierung, Genauigkeitsprofilierung, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO-Exportformate
----
+______________________________________________________________________
+
+## comments: true description: Lernen Sie, wie Sie die Geschwindigkeit und Genauigkeit von YOLOv8 über verschiedene Exportformate hinweg profilieren können; erhalten Sie Einblicke in mAP50-95, Genauigkeit_top5 Kennzahlen und mehr. keywords: Ultralytics, YOLOv8, Benchmarking, Geschwindigkeitsprofilierung, Genauigkeitsprofilierung, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO-Exportformate
 
 # Modell-Benchmarking mit Ultralytics YOLO
 
@@ -10,7 +8,7 @@ keywords: Ultralytics, YOLOv8, Benchmarking, Geschwindigkeitsprofilierung, Genau
 
 ## Einführung
 
-Nachdem Ihr Modell trainiert und validiert wurde, ist der nächste logische Schritt, seine Leistung in verschiedenen realen Szenarien zu bewerten. Der Benchmark-Modus in Ultralytics YOLOv8 dient diesem Zweck, indem er einen robusten Rahmen für die Beurteilung von Geschwindigkeit und Genauigkeit Ihres Modells über eine Reihe von Exportformaten hinweg bietet.
+Nachdem Ihr Model trainiert und validiert wurde, ist der nächste logische Schritt, seine Leistung in verschiedenen realen Szenarien zu bewerten. Der Benchmark-Modus in Ultralytics YOLOv8 dient diesem Zweck, indem er einen robusten Rahmen für die Beurteilung von Geschwindigkeit und Genauigkeit Ihres Models über eine Reihe von Exportformaten hinweg bietet.
 
 ## Warum ist Benchmarking entscheidend?
 
@@ -34,8 +32,10 @@ Nachdem Ihr Modell trainiert und validiert wurde, ist der nächste logische Schr
 
 !!! Tip "Tipp"
 
-    * Exportieren Sie in ONNX oder OpenVINO für bis zu 3x CPU-Beschleunigung.
-    * Exportieren Sie in TensorRT für bis zu 5x GPU-Beschleunigung.
+```
+* Exportieren Sie in ONNX oder OpenVINO für bis zu 3x CPU-Beschleunigung.
+* Exportieren Sie in TensorRT für bis zu 5x GPU-Beschleunigung.
+```
 
 ## Anwendungsbeispiele
 
@@ -43,29 +43,31 @@ Führen Sie YOLOv8n-Benchmarks auf allen unterstützten Exportformaten einschlie
 
 !!! Example "Beispiel"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # Benchmark auf GPU
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # Benchmark auf GPU
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## Argumente
 
 Argumente wie `model`, `data`, `imgsz`, `half`, `device` und `verbose` bieten Benutzern die Flexibilität, die Benchmarks auf ihre spezifischen Bedürfnisse abzustimmen und die Leistung verschiedener Exportformate mühelos zu vergleichen.
 
 | Schlüssel | Wert    | Beschreibung                                                                         |
-|-----------|---------|--------------------------------------------------------------------------------------|
+| --------- | ------- | ------------------------------------------------------------------------------------ |
 | `model`   | `None`  | Pfad zur Modelldatei, z. B. yolov8n.pt, yolov8n.yaml                                 |
-| `data`    | `None`  | Pfad zur YAML, die das Benchmarking-Dataset referenziert (unter `val`-Kennzeichnung) |
-| `imgsz`   | `640`   | Bildgröße als Skalar oder Liste (h, w), z. B. (640, 480)                             |
+| `data`    | `None`  | Pfad zur YAML, die das Benchmarking-Dataset referenziert (under `val`-Kennzeichnung) |
+| `imgsz`   | `640`   | Bildgröße also Scalar oder Liste (h, w), z. B. (640, 480)                             |
 | `half`    | `False` | FP16-Quantisierung                                                                   |
 | `int8`    | `False` | INT8-Quantisierung                                                                   |
 | `device`  | `None`  | Gerät zum Ausführen, z. B. CUDA device=0 oder device=0,1,2,3 oder device=cpu         |
@@ -75,8 +77,8 @@ Argumente wie `model`, `data`, `imgsz`, `half`, `device` und `verbose` bieten Be
 
 Benchmarks werden automatisch auf allen möglichen Exportformaten unten ausgeführt.
 
-| Format                                                             | `format`-Argument | Modell                    | Metadaten | Argumente                                           |
-|--------------------------------------------------------------------|-------------------|---------------------------|-----------|-----------------------------------------------------|
+| Format                                                             | `format`-Argument | Model                    | Metadaten | Argumente                                           |
+| ------------------------------------------------------------------ | ----------------- | ------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅         | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

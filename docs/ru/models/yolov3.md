@@ -1,8 +1,6 @@
----
-comments: true
-description: Получите обзор моделей YOLOv3, YOLOv3-Ultralytics и YOLOv3u. Узнайте о их основных функциях, использовании и поддерживаемых задачах для обнаружения объектов.
-keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Обнаружение объектов, Вывод, Обучение, Ultralytics
----
+______________________________________________________________________
+
+## comments: true description: Получите обзор моделей YOLOv3, YOLOv3-Ultralytics и YOLOv3u. Узнайте о их основных функциях, использовании и поддерживаемых задачах для обнаружения объектов. keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Обнаружение объектов, Вывод, Обучение, Ultralytics
 
 # YOLOv3, YOLOv3-Ultralytics и YOLOv3u
 
@@ -33,7 +31,7 @@ keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Обнаружение объек
 Все три модели поддерживают полный набор режимов, обеспечивая гибкость на разных этапах развертывания и разработки моделей. Эти режимы включают [Вывод](../modes/predict.md), [Проверку](../modes/val.md), [Обучение](../modes/train.md) и [Экспорт](../modes/export.md), что позволяет пользователям полноценно использовать эти модели для эффективного обнаружения объектов.
 
 | Тип модели         | Поддерживаемые задачи                      | Вывод | Проверка | Обучение | Экспорт |
-|--------------------|--------------------------------------------|-------|----------|----------|---------|
+| ------------------ | ------------------------------------------ | ----- | -------- | -------- | ------- |
 | YOLOv3             | [Обнаружение объектов](../tasks/detect.md) | ✅     | ✅        | ✅        | ✅       |
 | YOLOv3-Ultralytics | [Обнаружение объектов](../tasks/detect.md) | ✅     | ✅        | ✅        | ✅       |
 | YOLOv3u            | [Обнаружение объектов](../tasks/detect.md) | ✅     | ✅        | ✅        | ✅       |
@@ -46,37 +44,39 @@ keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Обнаружение объек
 
 !!! Example "Пример"
 
-    === "Python"
+````
+=== "Python"
 
-        В Python можно передавать предварительно обученные модели `*.pt` PyTorch и конфигурационные файлы `*.yaml` в класс `YOLO()`, чтобы создать экземпляр модели:
+    В Python можно передавать предварительно обученные модели `*.pt` PyTorch и конфигурационные файлы `*.yaml` в класс `YOLO()`, чтобы создать экземпляр модели:
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Загрузка предварительно обученной модели YOLOv3n на наборе данных COCO
-        model = YOLO('yolov3n.pt')
+    # Загрузка предварительно обученной модели YOLOv3n на наборе данных COCO
+    model = YOLO('yolov3n.pt')
 
-        # Отображение информации о модели (необязательно)
-        model.info()
+    # Отображение информации о модели (необязательно)
+    model.info()
 
-        # Обучение модели на примере набора данных COCO8 в течение 100 эпох
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # Обучение модели на примере набора данных COCO8 в течение 100 эпох
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # Выполнение вывода модели YOLOv3n на изображении 'bus.jpg'
-        results = model('path/to/bus.jpg')
-        ```
+    # Выполнение вывода модели YOLOv3n на изображении 'bus.jpg'
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        Имеются команды интерфейса командной строки для прямого запуска моделей:
+    Имеются команды интерфейса командной строки для прямого запуска моделей:
 
-        ```bash
-        # Загрузить предварительно обученную модель YOLOv3n на наборе данных COCO и обучить ее на примере набора данных COCO8 в течение 100 эпох
-        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # Загрузить предварительно обученную модель YOLOv3n на наборе данных COCO и обучить ее на примере набора данных COCO8 в течение 100 эпох
+    yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # Загрузить предварительно обученную модель YOLOv3n на наборе данных COCO и выполнить вывод на изображении 'bus.jpg'
-        yolo predict model=yolov3n.pt source=path/to/bus.jpg
-        ```
+    # Загрузить предварительно обученную модель YOLOv3n на наборе данных COCO и выполнить вывод на изображении 'bus.jpg'
+    yolo predict model=yolov3n.pt source=path/to/bus.jpg
+    ```
+````
 
 ## Цитаты и благодарности
 
@@ -84,15 +84,17 @@ keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Обнаружение объек
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{redmon2018yolov3,
-          title={YOLOv3: An Incremental Improvement},
-          author={Redmon, Joseph and Farhadi, Ali},
-          journal={arXiv preprint arXiv:1804.02767},
-          year={2018}
-        }
-        ```
+    ```bibtex
+    @article{redmon2018yolov3,
+      title={YOLOv3: An Incremental Improvement},
+      author={Redmon, Joseph and Farhadi, Ali},
+      journal={arXiv preprint arXiv:1804.02767},
+      year={2018}
+    }
+    ```
+````
 
 Благодарим Джозефа Редмона и Али Фархади за разработку оригинальной модели YOLOv3.

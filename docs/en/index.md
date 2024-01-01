@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore a complete guide to Ultralytics YOLOv8, a high-speed, high-accuracy object detection & image segmentation model. Installation, prediction, training tutorials and more.
-keywords: Ultralytics, YOLOv8, object detection, image segmentation, machine learning, deep learning, computer vision, YOLOv8 installation, YOLOv8 prediction, YOLOv8 training, YOLO history, YOLO licenses
----
+______________________________________________________________________
+
+## comments: true description: Explore a complete guide to Ultralytics YOLOv8, a high-speed, high-accuracy object detection & image segmentation model. Installation, prediction, training tutorials and more. keywords: Ultralytics, YOLOv8, object detection, image segmentation, machine learning, deep learning, computer vision, YOLOv8 installation, YOLOv8 prediction, YOLOv8 training, YOLO history, YOLO licenses
 
 <div align="center">
   <p>
@@ -41,10 +39,10 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 
 ## Where to Start
 
-- **Install** `ultralytics` with pip and get up and running in minutes &nbsp; [:material-clock-fast: Get Started](quickstart.md){ .md-button }
-- **Predict** new images and videos with YOLOv8 &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
-- **Train** a new YOLOv8 model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
-- **Explore** YOLOv8 tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
+- **Install** `ultralytics` with pip and get up and running in minutes   [:material-clock-fast: Get Started](quickstart.md){ .md-button }
+- **Predict** new images and videos with YOLOv8   [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
+- **Train** a new YOLOv8 model on your own custom dataset   [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
+- **Explore** YOLOv8 tasks like segment, classify, pose and track   [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
 
 <p align="center">
   <br>

@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how to use Roboflow with Ultralytics for labeling and managing images for use in training, and for evaluating model performance.
-keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data management, image labeling
----
+______________________________________________________________________
+
+## comments: true description: Learn how to use Roboflow with Ultralytics for labeling and managing images for use in training, and for evaluating model performance. keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data management, image labeling
 
 # Roboflow
 
@@ -10,7 +8,9 @@ keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data
 
 !!! Note
 
-    Ultralytics offers two licensing options: the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an OSI-approved open-source license ideal for students and enthusiasts, and the [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services. For more details see [Ultralytics Licensing](https://ultralytics.com/license).
+```
+Ultralytics offers two licensing options: the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an OSI-approved open-source license ideal for students and enthusiasts, and the [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services. For more details see [Ultralytics Licensing](https://ultralytics.com/license).
+```
 
 In this guide, we are going to showcase how to find, label, and organize data for use in training a custom Ultralytics YOLOv8 model. Use the table of contents below to jump directly to a specific section:
 
@@ -31,7 +31,6 @@ Universe is an online repository with over 250,000 vision datasets totalling ove
 </p>
 
 With a [free Roboflow account](https://app.roboflow.com/?ref=ultralytics), you can export any dataset available on Universe. To export a dataset, click the "Download this Dataset" button on any dataset.
-
 
 <p align="center">
 <img src="https://media.roboflow.com/ultralytics/rf_dataset.png" alt="Roboflow Universe dataset export" width="800">

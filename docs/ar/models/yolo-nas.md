@@ -1,8 +1,6 @@
----
-comments: true
-description: استكشف التوثيق المفصل لـ YOLO-NAS ، وهو نموذج كشف الكائنات المتطور. تعلم المزيد عن ميزاته والطرز المدربة مسبقًا واستخدامه مع واجهة برمجة Ultralytics Python وأكثر من ذلك.
-keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث في الهندسة العصبية, واجهة برمجة Ultralytics Python, نموذج YOLO, الطرز المدربة مسبقًا, كمّية, التحسين, COCO, Objects365, Roboflow 100
----
+______________________________________________________________________
+
+## comments: true description: استكشف التوثيق المفصل لـ YOLO-NAS ، وهو نموذج كشف الكائنات المتطور. تعلم المزيد عن ميزاته والطرز المدربة مسبقًا واستخدامه مع واجهة برمجة Ultralytics Python وأكثر من ذلك. keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث في الهندسة العصبية, واجهة برمجة Ultralytics Python, نموذج YOLO, الطرز المدربة مسبقًا, كمّية, التحسين, COCO, Objects365, Roboflow 100
 
 # YOLO-NAS
 
@@ -10,8 +8,7 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 
 تم تطوير YOLO-NAS بواسطة ديسي ايه اي ، وهو نموذج استشعار الكائنات الطائرة للأمام الذي يقدم تطورًا مبتكرًا. إنه منتج تكنولوجيا بحث الهندسة العصبية المتقدمة ، المصممة بعناية لمعالجة القيود التي كانت تعاني منها النماذج السابقة YOLO. مع تحسينات كبيرة في دعم التمثيل الكموني وتنازلات الدقة والتأخير ، يمثل YOLO-NAS قفزة كبيرة في كشف الكائنات.
 
-![نموذج صورة مثال](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png)
-**نظرة عامة على YOLO-NAS.** يستخدم YOLO-NAS كتلًا تفاعلية للتمثيل الكموني وتمثيل كمي للحصول على أداء مثلى. يواجه النموذج ، عند تحويله إلى الإصدار المكون من 8 بت ، انخفاضًا طفيفًا في الدقة ، وهو تحسين كبير على النماذج الأخرى. تتوج هذه التطورات بتصميم متفوق ذي قدرات استشعار للكائنات لا مثيل لها وأداء متميز.
+![نموذج صورة مثال](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png) **نظرة عامة على YOLO-NAS.** يستخدم YOLO-NAS كتلًا تفاعلية للتمثيل الكموني وتمثيل كمي للحصول على أداء مثلى. يواجه النموذج ، عند تحويله إلى الإصدار المكون من 8 بت ، انخفاضًا طفيفًا في الدقة ، وهو تحسين كبير على النماذج الأخرى. تتوج هذه التطورات بتصميم متفوق ذي قدرات استشعار للكائنات لا مثيل لها وأداء متميز.
 
 ### المزايا الرئيسية
 
@@ -24,7 +21,7 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 استمتع بقوة كشف الكائنات من الجيل القادم مع الطرز المدربة مسبقًا لـ YOLO-NAS التي يوفرها Ultralytics. تم تصميم هذه الطرز لتقديم أداء متفوق من حيث السرعة والدقة. اختر من بين مجموعة متنوعة من الخيارات المصممة وفقًا لاحتياجاتك الخاصة:
 
 | الطراز           | مؤشر التقدير المتوسط (mAP) | تأخر الوقت (ms) |
-|------------------|----------------------------|-----------------|
+| ---------------- | -------------------------- | --------------- |
 | YOLO-NAS S       | 47.5                       | 3.21            |
 | YOLO-NAS M       | 51.55                      | 5.85            |
 | YOLO-NAS L       | 52.22                      | 7.87            |
@@ -46,39 +43,41 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 
 !!! Example "مثال"
 
-    يوفر هذا المثال رمز بسيط لعملية الكشف والتحقق لـ YOLO-NAS. لمعالجة نتائج الاستدلال ، انظر وضع [توقع](../modes/predict.md). لاستخدام YOLO-NAS مع وضعيات إضافية ، انظر [توصيف](../modes/val.md) و[تصدير](../modes/export.md). لا يدعم نظام YOLO-NAS على حزمة `ultralytics` عملية التدريب.
+````
+يوفر هذا المثال رمز بسيط لعملية الكشف والتحقق لـ YOLO-NAS. لمعالجة نتائج الاستدلال ، انظر وضع [توقع](../modes/predict.md). لاستخدام YOLO-NAS مع وضعيات إضافية ، انظر [توصيف](../modes/val.md) و[تصدير](../modes/export.md). لا يدعم نظام YOLO-NAS على حزمة `ultralytics` عملية التدريب.
 
-    === "Python"
+=== "Python"
 
-        يمكن تمرير نماذج PyTorch المدربة مسبقًا `*.pt` إلى فئة `NAS()` لإنشاء نموذج في Python:
+    يمكن تمرير نماذج PyTorch المدربة مسبقًا `*.pt` إلى فئة `NAS()` لإنشاء نموذج في Python:
 
-        ```python
-        from ultralytics import NAS
+    ```python
+    from ultralytics import NAS
 
-        # تحميل نموذج YOLO-NAS-s المدرب مسبقًا على COCO
-        model = NAS('yolo_nas_s.pt')
+    # تحميل نموذج YOLO-NAS-s المدرب مسبقًا على COCO
+    model = NAS('yolo_nas_s.pt')
 
-        # عرض معلومات النموذج (اختياري)
-        model.info()
+    # عرض معلومات النموذج (اختياري)
+    model.info()
 
-        # التحقق من صحة النموذج على مجموعة بيانات مثال COCO8
-        results = model.val(data='coco8.yaml')
+    # التحقق من صحة النموذج على مجموعة بيانات مثال COCO8
+    results = model.val(data='coco8.yaml')
 
-        # تشغيل استدلال باستخدام نموذج YOLO-NAS-s على صورة 'bus.jpg'
-        results = model('path/to/bus.jpg'))
-        ```
+    # تشغيل استدلال باستخدام نموذج YOLO-NAS-s على صورة 'bus.jpg'
+    results = model('path/to/bus.jpg'))
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        تتوفر أوامر CLI لتشغيل النماذج مباشرة:
+    تتوفر أوامر CLI لتشغيل النماذج مباشرة:
 
-        ```bash
-        # تحميل نموذج YOLO-NAS-s المدرب مسبقًا على COCO والتحقق من أدائه على مجموعة بيانات مثال COCO8
-        yolo val model=yolo_nas_s.pt data=coco8.yaml
+    ```bash
+    # تحميل نموذج YOLO-NAS-s المدرب مسبقًا على COCO والتحقق من أدائه على مجموعة بيانات مثال COCO8
+    yolo val model=yolo_nas_s.pt data=coco8.yaml
 
-        # تحميل نموذج YOLO-NAS-s المدرب مسبقًا على COCO والتنبؤ بالاستدلال على صورة 'bus.jpg'
-        yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
-        ```
+    # تحميل نموذج YOLO-NAS-s المدرب مسبقًا على COCO والتنبؤ بالاستدلال على صورة 'bus.jpg'
+    yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
+    ```
+````
 
 ## المهام والأوضاع المدعومة
 
@@ -91,7 +90,7 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 أدناه نظرة عامة مفصلة عن كل نموذج ، بما في ذلك روابط أوزانهم المدربين مسبقًا ، والمهام التي يدعمونها ، وتوافقهم مع وضعيات التشغيل المختلفة.
 
 | نوع النموذج | أوزان مدربة مسبقًا                                                                            | المهام المدعومة                    | الاستدلال | التحقق | التدريب | التصدير |
-|-------------|-----------------------------------------------------------------------------------------------|------------------------------------|-----------|--------|---------|---------|
+| ----------- | --------------------------------------------------------------------------------------------- | ---------------------------------- | --------- | ------ | ------- | ------- |
 | YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
 | YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
 | YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
@@ -102,19 +101,21 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{supergradients,
-              doi = {10.5281/ZENODO.7789328},
-              url = {https://zenodo.org/record/7789328},
-              author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
-              title = {Super-Gradients},
-              publisher = {GitHub},
-              journal = {GitHub repository},
-              year = {2021},
-        }
-        ```
+    ```bibtex
+    @misc{supergradients,
+          doi = {10.5281/ZENODO.7789328},
+          url = {https://zenodo.org/record/7789328},
+          author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
+          title = {Super-Gradients},
+          publisher = {GitHub},
+          journal = {GitHub repository},
+          year = {2021},
+    }
+    ```
+````
 
 نعبر عن امتناننا لفريق [SuperGradients](https://github.com/Deci-AI/super-gradients/) في Deci AI لجهودهم في إنشاء وصيانة هذة الموارد القيمة لمجتمع رؤية الحاسوب. نعتقد أن YOLO-NAS ، بتصميمه المبتكر وقدرته الاستشعار المتفوقة للكائنات ، سيصبح أداة حاسمة للمطورين والباحثين على حد سواء.
 

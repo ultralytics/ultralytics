@@ -1,8 +1,6 @@
----
-comments: true
-description: اكتشف كيفية استخدام وضع التنبؤ YOLOv8 لمهام مختلفة. تعرّف على مصادر التنبؤ المختلفة مثل الصور ومقاطع الفيديو وتنسيقات البيانات المختلفة.
-keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ، مهام التنبؤ، وضع التدفق، معالجة الصور، معالجة الفيديو، التعلم الآلي، الذكاء الاصطناعي
----
+______________________________________________________________________
+
+## comments: true description: اكتشف كيفية استخدام وضع التنبؤ YOLOv8 لمهام مختلفة. تعرّف على مصادر التنبؤ المختلفة مثل الصور ومقاطع الفيديو وتنسيقات البيانات المختلفة. keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ، مهام التنبؤ، وضع التدفق، معالجة الصور، معالجة الفيديو، التعلم الآلي، الذكاء الاصطناعي
 
 # التنبؤ بالنموذج باستخدام Ultralytics YOLO
 
@@ -26,7 +24,7 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
 ## التطبيقات في العالم الحقيقي
 
 |                      التصنيع                      |                       الرياضة                        |                   السلامة                   |
-|:-------------------------------------------------:|:----------------------------------------------------:|:-------------------------------------------:|
+| :-----------------------------------------------: | :--------------------------------------------------: | :-----------------------------------------: |
 | ![Vehicle Spare Parts Detection][car spare parts] | ![Football Player Detection][football player detect] | ![People Fall Detection][human fall detect] |
 |               كشف قطع غيار المركبات               |                 كشف لاعبي كرة القدم                  |              كشف سقوط الأشخاص               |
 
@@ -52,41 +50,43 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
 
 !!! Example "التنبؤ"
 
-    === "العودة بقائمة واحدة باستخدام `stream=False`"
-        ```python
-        from ultralytics import YOLO
+````
+=== "العودة بقائمة واحدة باستخدام `stream=False`"
+    ```python
+    from ultralytics import YOLO
 
-        # تحميل نموذج
-        model = YOLO('yolov8n.pt')  # نموذج YOLOv8n المُدرَّب مسبقًا
+    # تحميل نموذج
+    model = YOLO('yolov8n.pt')  # نموذج YOLOv8n المُدرَّب مسبقًا
 
-        # تشغيل التنبؤ بدُفعة على قائمة من الصور
-        results = model(['im1.jpg', 'im2.jpg'])  # العودة بقائمة من كائنات 'النتائج'
+    # تشغيل التنبؤ بدُفعة على قائمة من الصور
+    results = model(['im1.jpg', 'im2.jpg'])  # العودة بقائمة من كائنات 'النتائج'
 
-        # معالجة قائمة النتائج
-        for result in results:
-            boxes = result.boxes  # كائن Boxes لمخرجات bbox
-            masks = result.masks  # كائن Masks لمخرجات قنوات الفصل العنقودي
-            keypoints = result.keypoints  # كائن Keypoints لمخرجات الاتجاهات
-            probs = result.probs  # كائن Probs لمخرجات التصنيف
-        ```
+    # معالجة قائمة النتائج
+    for result in results:
+        boxes = result.boxes  # كائن Boxes لمخرجات bbox
+        masks = result.masks  # كائن Masks لمخرجات قنوات الفصل العنقودي
+        keypoints = result.keypoints  # كائن Keypoints لمخرجات الاتجاهات
+        probs = result.probs  # كائن Probs لمخرجات التصنيف
+    ```
 
-    === "العودة بمُنشئ فعال مع `stream=True`"
-        ```python
-        from ultralytics import YOLO
+=== "العودة بمُنشئ فعال مع `stream=True`"
+    ```python
+    from ultralytics import YOLO
 
-        # تحميل نموذج
-        model = YOLO('yolov8n.pt')  # نموذج YOLOv8n المُدرَّب مسبقًا
+    # تحميل نموذج
+    model = YOLO('yolov8n.pt')  # نموذج YOLOv8n المُدرَّب مسبقًا
 
-        # تشغيل التنبؤ بدُفعة على قائمة من الصور
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # العودة بمُنشئ فعال لكائنات 'النتائج'
+    # تشغيل التنبؤ بدُفعة على قائمة من الصور
+    results = model(['im1.jpg', 'im2.jpg'], stream=True)  # العودة بمُنشئ فعال لكائنات 'النتائج'
 
-        # معالجة المُنشئ الفعال
-        for result in results:
-            boxes = result.boxes  # كائن Boxes لمخرجات bbox
-            masks = result.masks  # كائن Masks لمخرجات قنوات الفصل العنقودي
-            keypoints = result.keypoints  # كائن Keypoints لمخرجات الاتجاهات
-            probs = result.probs  # كائن Probs لمخرجات التصنيف
-        ```
+    # معالجة المُنشئ الفعال
+    for result in results:
+        boxes = result.boxes  # كائن Boxes لمخرجات bbox
+        masks = result.masks  # كائن Masks لمخرجات قنوات الفصل العنقودي
+        keypoints = result.keypoints  # كائن Keypoints لمخرجات الاتجاهات
+        probs = result.probs  # كائن Probs لمخرجات التصنيف
+    ```
+````
 
 ## مصادر التنبؤ
 
@@ -94,10 +94,12 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
 
 !!! Tip "طراز"
 
-    استخدم `stream=True` لمعالجة مقاطع الفيديو الطويلة أو مجموعات البيانات الكبيرة لإدارة الذاكرة بكفاءة. عندما تكون القيمة مساوية لـ `stream=False`، يتم تخزين النتائج لجميع الإطارات أو نقاط البيانات في الذاكرة، والتي يمكن أن تتراكم بسرعة وتُسبِّب أخطاء الذاكرة غير الكافية للمدخلات الكبيرة. على النقيض من ذلك، يستخدم التدفق `stream=True` مولدًا يُبقي نتائج الإطار الحالي أو نقطة البيانات الحالية في الذاكرة فقط، مما يقلل بشكل كبير من استهلاك الذاكرة ويمنع مشكلات عدم كفاية الذاكرة.
+```
+استخدم `stream=True` لمعالجة مقاطع الفيديو الطويلة أو مجموعات البيانات الكبيرة لإدارة الذاكرة بكفاءة. عندما تكون القيمة مساوية لـ `stream=False`، يتم تخزين النتائج لجميع الإطارات أو نقاط البيانات في الذاكرة، والتي يمكن أن تتراكم بسرعة وتُسبِّب أخطاء الذاكرة غير الكافية للمدخلات الكبيرة. على النقيض من ذلك، يستخدم التدفق `stream=True` مولدًا يُبقي نتائج الإطار الحالي أو نقطة البيانات الحالية في الذاكرة فقط، مما يقلل بشكل كبير من استهلاك الذاكرة ويمنع مشكلات عدم كفاية الذاكرة.
+```
 
 | مصدر             | الوسيط                                     | النوع           | الملاحظات                                                                                    |
-|------------------|--------------------------------------------|-----------------|----------------------------------------------------------------------------------------------|
+| ---------------- | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------------- |
 | صورة             | `'صورة.jpg'`                               | `str` or `Path` | ملف صورة واحدة.                                                                              |
 | رابط URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`           | رابط URL لصورة ما.                                                                           |
 | لقطة شاشة برمجية | `'الشاشة'`                                 | `str`           | قم بالتقاط لقطة شاشة برمجية.                                                                 |
@@ -117,101 +119,101 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
 
 !!! Example "مصادر التنبؤ"
 
-    === "الصورة"
-        قم بأجراء عملية التنبؤ على ملف صورة.
-        ```python
-        from ultralytics import YOLO
+````
+=== "الصورة"
+    قم بأجراء عملية التنبؤ على ملف صورة.
+    ```python
+    from ultralytics import YOLO
 
-        # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+    # تحميل نموذج YOLOv8n المدرب مسبقًا
+    model = YOLO('yolov8n.pt')
 
-        # تنشيط عملية التنبؤ لملف الصورة
-        source = 'المسار/إلى/الصورة.jpg'
+    # تنشيط عملية التنبؤ لملف الصورة
+    source = 'المسار/إلى/الصورة.jpg'
 
-        # الجمع بين التنبؤ على المصدر
-        results = model(source)  # قائمة كائنات النتائج
-        ```
+    # الجمع بين التنبؤ على المصدر
+    results = model(source)  # قائمة كائنات النتائج
+    ```
 
-    === "لقطة شاشة برمجية"
-        قم بأجراء عملية التنبؤ على محتوى الشاشة الحالي كلقطة شاشة.
-        ```python
-        from ultralytics import YOLO
+=== "لقطة شاشة برمجية"
+    قم بأجراء عملية التنبؤ على محتوى الشاشة الحالي كلقطة شاشة.
+    ```python
+    from ultralytics import YOLO
 
-        # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+    # تحميل نموذج YOLOv8n المدرب مسبقًا
+    model = YOLO('yolov8n.pt')
 
-        # تعريف اللقطة الحالية كمصدر
-        source = 'الشاشة'
+    # تعريف اللقطة الحالية كمصدر
+    source = 'الشاشة'
 
-        # الجمع بين التنبؤ على المصدر
-        results = model(source)  # قائمة كائنات النتائج
-        ```
+    # الجمع بين التنبؤ على المصدر
+    results = model(source)  # قائمة كائنات النتائج
+    ```
 
-    === "رابط URL"
-        قم بأجراء عملية التنبؤ على صورة موجودة على الإنترنت أو فيديو.
-        ```python
-        from ultralytics import YOLO
+=== "رابط URL"
+    قم بأجراء عملية التنبؤ على صورة موجودة على الإنترنت أو فيديو.
+    ```python
+    from ultralytics import YOLO
 
-        # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+    # تحميل نموذج YOLOv8n المدرب مسبقًا
+    model = YOLO('yolov8n.pt')
 
-        # تعريف رابط الصورة أو الفيديو على الإنترنت
-        source = 'https://ultralytics.com/images/bus.jpg'
+    # تعريف رابط الصورة أو الفيديو على الإنترنت
+    source = 'https://ultralytics.com/images/bus.jpg'
 
-        # الجمع بين التنبؤ على المصدر
-        results = model(source)  # قائمة كائنات النتائج
-        ```
+    # الجمع بين التنبؤ على المصدر
+    results = model(source)  # قائمة كائنات النتائج
+    ```
 
-    === "PIL"
-        قم بأجراء عملية التنبؤ على صورة مفتوحة بواسطة مكتبة Python Imaging Library (PIL).
-        ```python
-        from PIL import Image
-        from ultralytics import YOLO
+=== "PIL"
+    قم بأجراء عملية التنبؤ على صورة مفتوحة بواسطة مكتبة Python Imaging Library (PIL).
+    ```python
+    from PIL import Image
+    from ultralytics import YOLO
 
-        # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+    # تحميل نموذج YOLOv8n المدرب مسبقًا
+    model = YOLO('yolov8n.pt')
 
-        # فتح صورة باستخدام PIL
-        source = Image.open('المسار/إلى/الصورة.jpg')
+    # فتح صورة باستخدام PIL
+    source = Image.open('المسار/إلى/الصورة.jpg')
 
-        # الجمع بين التنبؤ على المصدر
-        results = model(source)  # قائمة كائنات النتائج
-        ```
+    # الجمع بين التنبؤ على المصدر
+    results = model(source)  # قائمة كائنات النتائج
+    ```
 
-    === "OpenCV"
-        قم بأجراء عملية التنبؤ على صورة مُقروءة بواسطة OpenCV.
-        ```python
-        import cv2
-        from ultralytics import YOLO
+=== "OpenCV"
+    قم بأجراء عملية التنبؤ على صورة مُقروءة بواسطة OpenCV.
+    ```python
+    import cv2
+    from ultralytics import YOLO
 
-        # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+    # تحميل نموذج YOLOv8n المدرب مسبقًا
+    model = YOLO('yolov8n.pt')
 
-        # قراءة صورة باستخدام OpenCV
-        source = cv2.imread('المسار/إلى/الصورة.jpg')
+    # قراءة صورة باستخدام OpenCV
+    source = cv2.imread('المسار/إلى/الصورة.jpg')
 
-        # الجمع بين التنبؤ على المصدر
-        results = model(source)  # قائمة كائنات النتائج
-        ```
+    # الجمع بين التنبؤ على المصدر
+    results = model(source)  # قائمة كائنات النتائج
+    ```
 
-    === "numpy"
-        قم بأجراء عملية التنبؤ على صورة مُمثلة كمصفوفة numpy.
-        ```python
-        import numpy as np
-        from ultralytics import YOLO
+=== "numpy"
+    قم بأجراء عملية التنبؤ على صورة مُمثلة كمصفوفة numpy.
+    ```python
+    import numpy as np
+    from ultralytics import YOLO
 
-        # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+    # تحميل نموذج YOLOv8n المدرب مسبقًا
+    model = YOLO('yolov8n.pt')
 
-        # إنشاء مصفوفة numpy عشوائية في صيغة HWC (640, 640, 3) بقيم بين [0, 255] ونوع uint8
-        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+    # إنشاء مصفوفة numpy عشوائية في صيغة HWC (640, 640, 3) بقيم بين [0, 255] ونوع uint8
+    source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
 
-        # الجمع بين التنبؤ على المصدر
-        results = model(source)  # قائمة كائنات النتائج
-        ```
+    # الجمع بين التنبؤ على المصدر
+    results = model(source)  # قائمة كائنات النتائج
+    ```
+````
 
 [car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
-
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
-
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43

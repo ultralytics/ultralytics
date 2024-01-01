@@ -1,8 +1,6 @@
----
-comments: true
-description: Erkunden Sie verschiedene von Ultralytics unterstützte Computer Vision Datensätze für Objekterkennung, Segmentierung, Posenschätzung, Bildklassifizierung und Multi-Objekt-Verfolgung.
-keywords: Computer Vision, Datensätze, Ultralytics, YOLO, Objekterkennung, Instanzsegmentierung, Posenschätzung, Bildklassifizierung, Multi-Objekt-Verfolgung
----
+______________________________________________________________________
+
+## comments: true description: Erkunden Sie verschiedene von Ultralytics unterstützte Computer Vision Datensätze für Objekterkennung, Segmentierung, Posenschätzung, Bildklassifizierung und Multi-Objekt-Verfolgung. keywords: Computer Vision, Datensätze, Ultralytics, YOLO, Objekterkennung, Instanzsegmentierung, Posenschätzung, Bildklassifizierung, Multi-Objekt-Verfolgung
 
 # Übersicht über Datensätze
 
@@ -10,11 +8,13 @@ Ultralytics bietet Unterstützung für verschiedene Datensätze an, um Computerv
 
 !!! Note "Hinweis"
 
-    🚧 Unsere mehrsprachige Dokumentation befindet sich derzeit im Aufbau und wir arbeiten intensiv an deren Verbesserung. Vielen Dank für Ihre Geduld! 🙏
+```
+🚧 Unsere mehrsprachige Dokumentation befindet sich derzeit im Aufbau und wir arbeiten intensiv an deren Verbesserung. Vielen Dank für Ihre Geduld! 🙏
+```
 
 ## [Erkennungsdatensätze](../../datasets/detect/index.md)
 
-Die Objekterkennung mittels Bounding Box ist eine Computervisionstechnik, die das Erkennen und Lokalisieren von Objekten in einem Bild anhand des Zeichnens einer Bounding Box um jedes Objekt beinhaltet.
+Die Objekterkennung mittels Bounding Box ist eine Computervisionstechnik, die das Erkennen und Lokalisieren von Objekten in einem Bild anhand des Zeichnens einer Bounding Box um jedes Object beinhaltet.
 
 - [Argoverse](../../datasets/detect/argoverse.md): Ein Datensatz mit 3D-Tracking- und Bewegungsvorhersagedaten aus städtischen Umgebungen mit umfassenden Annotationen.
 - [COCO](../../datasets/detect/coco.md): Ein umfangreicher Datensatz für Objekterkennung, Segmentierung und Beschreibung mit über 200.000 beschrifteten Bildern.
@@ -36,7 +36,7 @@ Die Instanzsegmentierung ist eine Computervisionstechnik, die das Identifizieren
 
 ## [Posenschätzung](../../datasets/pose/index.md)
 
-Die Posenschätzung ist eine Technik, die verwendet wird, um die Position des Objekts relativ zur Kamera oder zum Weltkoordinatensystem zu bestimmen.
+Die Posenschätzung ist eine Technique, die verwendet wird, um die Position des Objekts relative zur Kamera oder zum Weltkoordinatensystem zu bestimmen.
 
 - [COCO](../../datasets/pose/coco.md): Ein großer Datensatz mit menschlichen Pose-Annotationen für Posenschätzungsaufgaben.
 - [COCO8-pose](../../datasets/pose/coco8-pose.md): Ein kleinerer Datensatz für Posenschätzungsaufgaben, der eine Teilmenge von 8 COCO-Bildern mit menschlichen Pose-Annotationen enthält.
@@ -59,7 +59,7 @@ Die Bildklassifizierung ist eine Computervisionsaufgabe, bei der ein Bild basier
 
 ## [Orientierte Bounding Boxes (OBB)](../../datasets/obb/index.md)
 
-Orientierte Bounding Boxes (OBB) ist eine Methode in der Computervision für die Erkennung von geneigten Objekten in Bildern mithilfe von rotierten Bounding Boxen, die oft auf Luft- und Satellitenbilder angewendet wird.
+Orientierte Bounding Boxes (OBB) ist eine Method in der Computervision für die Erkennung von geneigten Objekten in Bildern mithilfe von rotierten Bounding Boxen, die oft auf Luft- und Satellitenbilder angewendet wird.
 
 - [DOTAv2](../../datasets/obb/dota-v2.md): Ein beliebter OBB-Datensatz für Luftbildaufnahmen mit 1,7 Millionen Instanzen und 11.268 Bildern.
 
@@ -80,19 +80,19 @@ Das Bereitstellen eines neuen Datensatzes umfasst mehrere Schritte, um sicherzus
 
 2. **Bilder annotieren**: Annotieren Sie diese Bilder mit Bounding Boxen, Segmenten oder Schlüsselpunkten, je nach Aufgabe.
 
-3. **Annotationen exportieren**: Konvertieren Sie diese Annotationen in das von Ultralytics unterstützte YOLO *.txt-Dateiformat.
+3. **Annotationen exportieren**: Konvertieren Sie diese Annotationen in das von Ultralytics unterstützte YOLO \*.txt-Dateiformat.
 
 4. **Datensatz organisieren**: Ordnen Sie Ihren Datensatz in die richtige Ordnerstruktur an. Sie sollten übergeordnete Verzeichnisse `train/` und `val/` haben, und innerhalb dieser je ein Unterverzeichnis `images/` und `labels/`.
 
-    ```
-    dataset/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    └── val/
-        ├── images/
-        └── labels/
-    ```
+   ```
+   dataset/
+   ├── train/
+   │   ├── images/
+   │   └── labels/
+   └── val/
+       ├── images/
+       └── labels/
+   ```
 
 5. **Eine `data.yaml`-Datei erstellen**: Erstellen Sie in Ihrem Stammverzeichnis des Datensatzes eine Datei `data.yaml`, die den Datensatz, die Klassen und andere notwendige Informationen beschreibt.
 
@@ -106,22 +106,24 @@ Das Bereitstellen eines neuen Datensatzes umfasst mehrere Schritte, um sicherzus
 
 !!! Example "Optimieren und Zippen eines Datensatzes"
 
-    === "Python"
+````
+=== "Python"
 
-    ```python
-    from pathlib import Path
-    from ultralytics.data.utils import compress_one_image
-    from ultralytics.utils.downloads import zip_directory
+```python
+from pathlib import Path
+from ultralytics.data.utils import compress_one_image
+from ultralytics.utils.downloads import zip_directory
 
-    # Definieren des Verzeichnisses des Datensatzes
-    path = Path('Pfad/zum/Datensatz')
+# Definieren des Verzeichnisses des Datensatzes
+path = Path('Pfad/zum/Datensatz')
 
-    # Bilder im Datensatz optimieren (optional)
-    for f in path.rglob('*.jpg'):
-        compress_one_image(f)
+# Bilder im Datensatz optimieren (optional)
+for f in path.rglob('*.jpg'):
+    compress_one_image(f)
 
-    # Datensatz in 'Pfad/zum/Datensatz.zip' zippen
-    zip_directory(path)
-    ```
+# Datensatz in 'Pfad/zum/Datensatz.zip' zippen
+zip_directory(path)
+```
+````
 
 Indem Sie diesen Schritten folgen, können Sie einen neuen Datensatz beitragen, der gut in die bestehende Struktur von Ultralytics integriert wird.

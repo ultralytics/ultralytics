@@ -1,8 +1,6 @@
----
-comments: true
-description: YOLOv8의 다양한 내보내기 형식에 걸쳐 속도 및 정확성을 프로파일링하는 방법을 알아보고, mAP50-95, accuracy_top5 메트릭 및 기타에 대한 통찰을 얻으십시오.
-keywords: Ultralytics, YOLOv8, 벤치마킹, 속도 프로파일링, 정확도 프로파일링, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO 내보내기 형식
----
+______________________________________________________________________
+
+## comments: true description: YOLOv8의 다양한 내보내기 형식에 걸쳐 속도 및 정확성을 프로파일링하는 방법을 알아보고, mAP50-95, accuracy_top5 메트릭 및 기타에 대한 통찰을 얻으십시오. keywords: Ultralytics, YOLOv8, 벤치마킹, 속도 프로파일링, 정확도 프로파일링, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO 내보내기 형식
 
 # Ultralytics YOLO를 사용한 모델 벤치마킹
 
@@ -34,8 +32,10 @@ keywords: Ultralytics, YOLOv8, 벤치마킹, 속도 프로파일링, 정확도 �
 
 !!! Tip "팁"
 
-    * CPU 속도 향상을 위해 ONNX 또는 OpenVINO로 내보내기.
-    * GPU 속도 향상을 위해 TensorRT로 내보내기.
+```
+* CPU 속도 향상을 위해 ONNX 또는 OpenVINO로 내보내기.
+* GPU 속도 향상을 위해 TensorRT로 내보내기.
+```
 
 ## 사용 예제
 
@@ -43,26 +43,28 @@ YOLOv8n 벤치마킹을 ONNX, TensorRT 등 모든 지원되는 내보내기 형�
 
 !!! Example "예제"
 
-    === "파이썬"
+````
+=== "파이썬"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # GPU에서 벤치마킹
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # GPU에서 벤치마킹
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## 인수
 
 `model`, `data`, `imgsz`, `half`, `device`, `verbose`와 같은 인수들은 사용자들이 벤치마킹을 특정 필요에 맞게 조정하고 쉽게 다른 내보내기 형식의 성능을 비교할 수 있도록 유연성을 제공합니다.
 
 | 키         | 값       | 설명                                                       |
-|-----------|---------|----------------------------------------------------------|
+| --------- | ------- | -------------------------------------------------------- |
 | `model`   | `None`  | 모델 파일 경로, 예: yolov8n.pt, yolov8n.yaml                    |
 | `data`    | `None`  | 벤치마킹 데이터 세트를 참조하는 YAML 경로 ('val' 레이블 아래)                 |
 | `imgsz`   | `640`   | 스칼라 또는 (h, w) 리스트 형태의 이미지 크기, 예: (640, 480)              |
@@ -76,7 +78,7 @@ YOLOv8n 벤치마킹을 ONNX, TensorRT 등 모든 지원되는 내보내기 형�
 벤치마크는 아래에 나와있는 가능한 모든 내보내기 형식에서 자동으로 실행을 시도합니다.
 
 | 형식                                                                 | `format` 인자   | 모델                        | 메타데이터 | 인수                                                  |
-|--------------------------------------------------------------------|---------------|---------------------------|-------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ------------- | ------------------------- | ----- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n.pt`              | ✅     | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

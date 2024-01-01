@@ -1,8 +1,6 @@
----
-comments: true
-description: Navigate through supported dataset formats, methods to utilize them and how to add your own datasets. Get insights on porting or converting label formats.
-keywords: Ultralytics, YOLO, datasets, object detection, dataset formats, label formats, data conversion
----
+______________________________________________________________________
+
+## comments: true description: Navigate through supported dataset formats, methods to utilize them and how to add your own datasets. Get insights on porting or converting label formats. keywords: Ultralytics, YOLO, datasets, object detection, dataset formats, label formats, data conversion
 
 # Object Detection Datasets Overview
 
@@ -12,7 +10,7 @@ Training a robust and accurate object detection model requires a comprehensive d
 
 ### Ultralytics YOLO format
 
-The Ultralytics YOLO format is a dataset configuration format that allows you to define the dataset root directory, the relative paths to training/validation/testing image directories or *.txt files containing image paths, and a dictionary of class names. Here is an example:
+The Ultralytics YOLO format is a dataset configuration format that allows you to define the dataset root directory, the relative paths to training/validation/testing image directories or \*.txt files containing image paths, and a dictionary of class names. Here is an example:
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
@@ -50,23 +48,25 @@ Here's how you can use these formats to train your model:
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # Train the model
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Supported Datasets
 
@@ -95,13 +95,15 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.data.converter import convert_coco
+    ```python
+    from ultralytics.data.converter import convert_coco
 
-        convert_coco(labels_dir='path/to/coco/annotations/')
-        ```
+    convert_coco(labels_dir='path/to/coco/annotations/')
+    ```
+````
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
 

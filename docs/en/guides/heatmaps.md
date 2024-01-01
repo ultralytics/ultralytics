@@ -1,8 +1,6 @@
----
-comments: true
-description: Advanced Data Visualization with Ultralytics YOLOv8 Heatmaps
-keywords: Ultralytics, YOLOv8, Advanced Data Visualization, Heatmap Technology, Object Detection and Tracking, Jupyter Notebook, Python SDK, Command Line Interface
----
+______________________________________________________________________
+
+## comments: true description: Advanced Data Visualization with Ultralytics YOLOv8 Heatmaps keywords: Ultralytics, YOLOv8, Advanced Data Visualization, Heatmap Technology, Object Detection and Tracking, Jupyter Notebook, Python SDK, Command Line Interface
 
 # Advanced Data Visualization: Heatmaps using Ultralytics YOLOv8 🚀
 
@@ -30,216 +28,221 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 ## Real World Applications
 
 |                                                                 Transportation                                                                  |                                                                 Retail                                                                  |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------:|
+| :---------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics YOLOv8 Transportation Heatmap](https://github.com/RizwanMunawar/ultralytics/assets/62513924/288d7053-622b-4452-b4e4-1f41aeb764aa) | ![Ultralytics YOLOv8 Retail Heatmap](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a9139af0-2cb7-41fe-a0d5-29a300dee768) |
 |                                                    Ultralytics YOLOv8 Transportation Heatmap                                                    |                                                    Ultralytics YOLOv8 Retail Heatmap                                                    |
 
 ???+ tip "heatmap_alpha"
 
-    heatmap_alpha value should be in range (0.0 - 1.0)
+```
+heatmap_alpha value should be in range (0.0 - 1.0)
+```
 
 ???+ tip "decay_factor"
 
-    Used for removal of heatmap after object removed from frame, value should be in range (0.0 - 1.0)
-
+```
+Used for removal of heatmap after object removed from frame, value should be in range (0.0 - 1.0)
+```
 
 !!! Example "Heatmaps using Ultralytics YOLOv8 Example"
 
-    === "Heatmap"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import heatmap
-        import cv2
+````
+=== "Heatmap"
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.solutions import heatmap
+    import cv2
 
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+    model = YOLO("yolov8n.pt")
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-        # Video writer
-        video_writer = cv2.VideoWriter("heatmap_output.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+    # Video writer
+    video_writer = cv2.VideoWriter("heatmap_output.avi",
+                                   cv2.VideoWriter_fourcc(*'mp4v'),
+                                   int(cap.get(5)),
+                                   (int(cap.get(3)), int(cap.get(4))))
 
-        # Init heatmap
-        heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
-                             view_img=True,
-                             shape="circle")
+    # Init heatmap
+    heatmap_obj = heatmap.Heatmap()
+    heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
+                         imw=cap.get(4),  # should same as cap height
+                         imh=cap.get(3),  # should same as cap width
+                         view_img=True,
+                         shape="circle")
 
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False)
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
+        tracks = model.track(im0, persist=True, show=False)
 
-            im0 = heatmap_obj.generate_heatmap(im0, tracks)
-            video_writer.write(im0)
+        im0 = heatmap_obj.generate_heatmap(im0, tracks)
+        video_writer.write(im0)
 
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
 
-        ```
+    ```
 
-    === "Line Counting"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import heatmap
-        import cv2
+=== "Line Counting"
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.solutions import heatmap
+    import cv2
 
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+    model = YOLO("yolov8n.pt")
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-        # Video writer
-        video_writer = cv2.VideoWriter("heatmap_output.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+    # Video writer
+    video_writer = cv2.VideoWriter("heatmap_output.avi",
+                                   cv2.VideoWriter_fourcc(*'mp4v'),
+                                   int(cap.get(5)),
+                                   (int(cap.get(3)), int(cap.get(4))))
 
-        line_points = [(256, 409), (694, 532)]  # line for object counting
+    line_points = [(256, 409), (694, 532)]  # line for object counting
 
-        # Init heatmap
-        heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
-                             view_img=True,
-                             shape="circle",
-                             count_reg_pts=line_points)
+    # Init heatmap
+    heatmap_obj = heatmap.Heatmap()
+    heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
+                         imw=cap.get(4),  # should same as cap height
+                         imh=cap.get(3),  # should same as cap width
+                         view_img=True,
+                         shape="circle",
+                         count_reg_pts=line_points)
 
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False)
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
+        tracks = model.track(im0, persist=True, show=False)
 
-            im0 = heatmap_obj.generate_heatmap(im0, tracks)
-            video_writer.write(im0)
+        im0 = heatmap_obj.generate_heatmap(im0, tracks)
+        video_writer.write(im0)
 
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
+    ```
 
-    === "Region Counting"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import heatmap
-        import cv2
+=== "Region Counting"
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.solutions import heatmap
+    import cv2
 
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+    model = YOLO("yolov8n.pt")
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-        # Video writer
-        video_writer = cv2.VideoWriter("heatmap_output.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+    # Video writer
+    video_writer = cv2.VideoWriter("heatmap_output.avi",
+                                   cv2.VideoWriter_fourcc(*'mp4v'),
+                                   int(cap.get(5)),
+                                   (int(cap.get(3)), int(cap.get(4))))
 
-        # Define region points
-        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+    # Define region points
+    region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
-        # Init heatmap
-        heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
-                             view_img=True,
-                             shape="circle",
-                             count_reg_pts=region_points)
+    # Init heatmap
+    heatmap_obj = heatmap.Heatmap()
+    heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
+                         imw=cap.get(4),  # should same as cap height
+                         imh=cap.get(3),  # should same as cap width
+                         view_img=True,
+                         shape="circle",
+                         count_reg_pts=region_points)
 
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False)
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
+        tracks = model.track(im0, persist=True, show=False)
 
-            im0 = heatmap_obj.generate_heatmap(im0, tracks)
-            video_writer.write(im0)
+        im0 = heatmap_obj.generate_heatmap(im0, tracks)
+        video_writer.write(im0)
 
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
+    ```
 
-    === "Im0"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import heatmap
-        import cv2
+=== "Im0"
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.solutions import heatmap
+    import cv2
 
-        model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
+    model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
 
-        im0 = cv2.imread("path/to/image.png")  # path to image file
+    im0 = cv2.imread("path/to/image.png")  # path to image file
 
-        # Heatmap Init
-        heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                                     imw=im0.shape[0],  # should same as im0 width
-                                     imh=im0.shape[1],  # should same as im0 height
-                                     view_img=True,
-                                     shape="circle")
+    # Heatmap Init
+    heatmap_obj = heatmap.Heatmap()
+    heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
+                                 imw=im0.shape[0],  # should same as im0 width
+                                 imh=im0.shape[1],  # should same as im0 height
+                                 view_img=True,
+                                 shape="circle")
 
 
-        results = model.track(im0, persist=True)
-        im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
-        cv2.imwrite("ultralytics_output.png", im0)
-        ```
+    results = model.track(im0, persist=True)
+    im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
+    cv2.imwrite("ultralytics_output.png", im0)
+    ```
 
-    === "Specific Classes"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import heatmap
-        import cv2
+=== "Specific Classes"
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.solutions import heatmap
+    import cv2
 
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+    model = YOLO("yolov8n.pt")
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-        # Video writer
-        video_writer = cv2.VideoWriter("heatmap_output.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+    # Video writer
+    video_writer = cv2.VideoWriter("heatmap_output.avi",
+                                   cv2.VideoWriter_fourcc(*'mp4v'),
+                                   int(cap.get(5)),
+                                   (int(cap.get(3)), int(cap.get(4))))
 
-        classes_for_heatmap = [0, 2]  # classes for heatmap
+    classes_for_heatmap = [0, 2]  # classes for heatmap
 
-        # Init heatmap
-        heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
-                             view_img=True,
-                             shape="circle")
+    # Init heatmap
+    heatmap_obj = heatmap.Heatmap()
+    heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
+                         imw=cap.get(4),  # should same as cap height
+                         imh=cap.get(3),  # should same as cap width
+                         view_img=True,
+                         shape="circle")
 
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False,
-                                 classes=classes_for_heatmap)
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
+        tracks = model.track(im0, persist=True, show=False,
+                             classes=classes_for_heatmap)
 
-            im0 = heatmap_obj.generate_heatmap(im0, tracks)
-            video_writer.write(im0)
+        im0 = heatmap_obj.generate_heatmap(im0, tracks)
+        video_writer.write(im0)
 
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
+    ```
+````
 
 ### Arguments `set_args`
 
 | Name                | Type           | Default           | Description                                               |
-|---------------------|----------------|-------------------|-----------------------------------------------------------|
+| ------------------- | -------------- | ----------------- | --------------------------------------------------------- |
 | view_img            | `bool`         | `False`           | Display the frame with heatmap                            |
 | colormap            | `cv2.COLORMAP` | `None`            | cv2.COLORMAP for heatmap                                  |
 | imw                 | `int`          | `None`            | Width of Heatmap                                          |
@@ -257,19 +260,19 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
+| Name      | Type    | Default        | Description                                                   |
+| --------- | ------- | -------------- | ------------------------------------------------------------- |
+| `source`  | `im0`   | `None`         | source directory for images or videos                         |
+| `persist` | `bool`  | `False`        | persisting tracks between frames                              |
+| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                      |
+| `conf`    | `float` | `0.3`          | Confidence Threshold                                          |
+| `iou`     | `float` | `0.5`          | IOU Threshold                                                 |
+| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=\[0,2,3\] |
 
 ### Heatmap COLORMAPs
 
 | Colormap Name                   | Description                            |
-|---------------------------------|----------------------------------------|
+| ------------------------------- | -------------------------------------- |
 | `cv::COLORMAP_AUTUMN`           | Autumn color map                       |
 | `cv::COLORMAP_BONE`             | Bone color map                         |
 | `cv::COLORMAP_JET`              | Jet color map                          |

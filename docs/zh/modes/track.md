@@ -1,8 +1,6 @@
----
-comments: true
-description: 学习如何使用Ultralytics YOLO进行视频流中的物体追踪。指南包括使用不同的追踪器和自定义追踪器配置。
-keywords: Ultralytics, YOLO, 物体追踪, 视频流, BoT-SORT, ByteTrack, Python 指南, CLI 指南
----
+______________________________________________________________________
+
+## comments: true description: 学习如何使用Ultralytics YOLO进行视频流中的物体追踪。指南包括使用不同的追踪器和自定义追踪器配置。 keywords: Ultralytics, YOLO, 物体追踪, 视频流, BoT-SORT, ByteTrack, Python 指南, CLI 指南
 
 # 使用Ultralytics YOLO进行多物体追踪
 
@@ -33,7 +31,7 @@ Ultralytics 追踪器的输出与标准的物体检测结果一致，但增加�
 ## 实际应用场景
 
 |                                                    交通运输                                                    |                                                     零售                                                     |                                                    水产养殖                                                    |
-|:----------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------:|
+| :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
 | ![车辆追踪](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![人员追踪](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![鱼类追踪](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
 |                                                    车辆追踪                                                    |                                                    人员追踪                                                    |                                                    鱼类追踪                                                    |
 
@@ -49,8 +47,8 @@ Ultralytics YOLO扩展了其物体检测功能，以提供强大且多功能的�
 
 Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置文件如`tracker=tracker_type.yaml`来启用：
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - 使用 `botsort.yaml` 启用此追踪器。
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - 使用 `bytetrack.yaml` 启用此追踪器。
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - 使用 `botsort.yaml` 启用此追踪器。
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - 使用 `bytetrack.yaml` 启用此追踪器。
 
 默认追踪器是BoT-SORT。
 
@@ -60,34 +58,36 @@ Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 加载官方或自定义模型
-        model = YOLO('yolov8n.pt')  # 加载一个官方的检测模型
-        model = YOLO('yolov8n-seg.pt')  # 加载一个官方的分割模型
-        model = YOLO('yolov8n-pose.pt')  # 加载一个官方的姿态模型
-        model = YOLO('path/to/best.pt')  # 加载一个自定义训练的模型
+    # 加载官方或自定义模型
+    model = YOLO('yolov8n.pt')  # 加载一个官方的检测模型
+    model = YOLO('yolov8n-seg.pt')  # 加载一个官方的分割模型
+    model = YOLO('yolov8n-pose.pt')  # 加载一个官方的姿态模型
+    model = YOLO('path/to/best.pt')  # 加载一个自定义训练的模型
 
-        # 使用模型进行追踪
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # 使用默认追踪器进行追踪
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # 使用ByteTrack追踪器进行追踪
-        ```
+    # 使用模型进行追踪
+    results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # 使用默认追踪器进行追踪
+    results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # 使用ByteTrack追踪器进行追踪
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # 使用命令行界面进行各种模型的追踪
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # 官方检测模型
-        yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # 官方分割模型
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # 官方姿态模型
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # 自定义训练模型
+    ```bash
+    # 使用命令行界面进行各种模型的追踪
+    yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # 官方检测模型
+    yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # 官方分割模型
+    yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # 官方姿态模型
+    yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # 自定义训练模型
 
-        # 使用ByteTrack追踪器进行追踪
-        yolo track model=path/to/best.pt tracker="bytetrack.yaml"
-        ```
+    # 使用ByteTrack追踪器进行追踪
+    yolo track model=path/to/best.pt tracker="bytetrack.yaml"
+    ```
+````
 
 如上所述，Detect、Segment和Pose模型在视频或流媒体源上运行时均可进行追踪。
 
@@ -99,22 +99,24 @@ Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 配置追踪参数并运行追踪器
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
-        ```
+    # 配置追踪参数并运行追踪器
+    model = YOLO('yolov8n.pt')
+    results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # 使用命令行界面配置追踪参数并运行追踪器
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
-        ```
+    ```bash
+    # 使用命令行界面配置追踪参数并运行追踪器
+    yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
+    ```
+````
 
 ### 选择追踪器
 
@@ -122,22 +124,24 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 加载模型并使用自定义配置文件运行追踪器
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
-        ```
+    # 加载模型并使用自定义配置文件运行追踪器
+    model = YOLO('yolov8n.pt')
+    results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # 使用命令行界面加载模型并使用自定义配置文件运行追踪器
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
-        ```
+    ```bash
+    # 使用命令行界面加载模型并使用自定义配置文件运行追踪器
+    yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
+    ```
+````
 
 有关追踪参数的全面列表，请参考[ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)页面。
 
@@ -149,43 +153,45 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
 
 !!! Example "带追踪功能的流循环"
 
-    ```python
-    import cv2
-    from ultralytics import YOLO
+````
+```python
+import cv2
+from ultralytics import YOLO
 
-    # 加载YOLOv8模型
-    model = YOLO('yolov8n.pt')
+# 加载YOLOv8模型
+model = YOLO('yolov8n.pt')
 
-    # 打开视频文件
-    video_path = "path/to/video.mp4"
-    cap = cv2.VideoCapture(video_path)
+# 打开视频文件
+video_path = "path/to/video.mp4"
+cap = cv2.VideoCapture(video_path)
 
-    # 循环遍历视频帧
-    while cap.isOpened():
-        # 从视频读取一帧
-        success, frame = cap.read()
+# 循环遍历视频帧
+while cap.isOpened():
+    # 从视频读取一帧
+    success, frame = cap.read()
 
-        if success:
-            # 在帧上运行YOLOv8追踪，持续追踪帧间的物体
-            results = model.track(frame, persist=True)
+    if success:
+        # 在帧上运行YOLOv8追踪，持续追踪帧间的物体
+        results = model.track(frame, persist=True)
 
-            # 在帧上展示结果
-            annotated_frame = results[0].plot()
+        # 在帧上展示结果
+        annotated_frame = results[0].plot()
 
-            # 展示带注释的帧
-            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+        # 展示带注释的帧
+        cv2.imshow("YOLOv8 Tracking", annotated_frame)
 
-            # 如果按下'q'则退出循环
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-        else:
-            # 如果视频结束则退出循环
+        # 如果按下'q'则退出循环
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
+    else:
+        # 如果视频结束则退出循环
+        break
 
-    # 释放视频捕获对象并关闭显示窗口
-    cap.release()
-    cv2.destroyAllWindows()
-    ```
+# 释放视频捕获对象并关闭显示窗口
+cap.release()
+cv2.destroyAllWindows()
+```
+````
 
 请注意从`model(frame)`更改为`model.track(frame)`的变化，这使能够启用物体追踪而不只是简单的检测。这个修改的脚本将在视频的每一帧上运行追踪器，可视化结果，并在窗口中显示它们。通过按'q'可以退出循环。
 
@@ -197,66 +203,68 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
 
 !!! Example "在多个视频帧上绘制追踪路径"
 
-    ```python
-    from collections import defaultdict
+````
+```python
+from collections import defaultdict
 
-    import cv2
-    import numpy as np
+import cv2
+import numpy as np
 
-    from ultralytics import YOLO
+from ultralytics import YOLO
 
-    # 加载YOLOv8模型
-    model = YOLO('yolov8n.pt')
+# 加载YOLOv8模型
+model = YOLO('yolov8n.pt')
 
-    # 打开视频文件
-    video_path = "path/to/video.mp4"
-    cap = cv2.VideoCapture(video_path)
+# 打开视频文件
+video_path = "path/to/video.mp4"
+cap = cv2.VideoCapture(video_path)
 
-    # 存储追踪历史
-    track_history = defaultdict(lambda: [])
+# 存储追踪历史
+track_history = defaultdict(lambda: [])
 
-    # 循环遍历视频帧
-    while cap.isOpened():
-        # 从视频读取一帧
-        success, frame = cap.read()
+# 循环遍历视频帧
+while cap.isOpened():
+    # 从视频读取一帧
+    success, frame = cap.read()
 
-        if success:
-            # 在帧上运行YOLOv8追踪，持续追踪帧间的物体
-            results = model.track(frame, persist=True)
+    if success:
+        # 在帧上运行YOLOv8追踪，持续追踪帧间的物体
+        results = model.track(frame, persist=True)
 
-            # 获取框和追踪ID
-            boxes = results[0].boxes.xywh.cpu()
-            track_ids = results[0].boxes.id.int().cpu().tolist()
+        # 获取框和追踪ID
+        boxes = results[0].boxes.xywh.cpu()
+        track_ids = results[0].boxes.id.int().cpu().tolist()
 
-            # 在帧上展示结果
-            annotated_frame = results[0].plot()
+        # 在帧上展示结果
+        annotated_frame = results[0].plot()
 
-            # 绘制追踪路径
-            for box, track_id in zip(boxes, track_ids):
-                x, y, w, h = box
-                track = track_history[track_id]
-                track.append((float(x), float(y)))  # x, y中心点
-                if len(track) > 30:  # 在90帧中保留90个追踪点
-                    track.pop(0)
+        # 绘制追踪路径
+        for box, track_id in zip(boxes, track_ids):
+            x, y, w, h = box
+            track = track_history[track_id]
+            track.append((float(x), float(y)))  # x, y中心点
+            if len(track) > 30:  # 在90帧中保留90个追踪点
+                track.pop(0)
 
-                # 绘制追踪线
-                points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-                cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
+            # 绘制追踪线
+            points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+            cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
 
-            # 展示带注释的帧
-            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+        # 展示带注释的帧
+        cv2.imshow("YOLOv8 Tracking", annotated_frame)
 
-            # 如果按下'q'则退出循环
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-        else:
-            # 如果视频结束则退出循环
+        # 如果按下'q'则退出循环
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
+    else:
+        # 如果视频结束则退出循环
+        break
 
-    # 释放视频捕获对象并关闭显示窗口
-    cap.release()
-    cv2.destroyAllWindows()
-    ```
+# 释放视频捕获对象并关闭显示窗口
+cap.release()
+cv2.destroyAllWindows()
+```
+````
 
 ### 多线程追踪
 

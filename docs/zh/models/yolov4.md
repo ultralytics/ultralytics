@@ -1,15 +1,12 @@
----
-comments: true
-description: 通过我们详细的YOLOv4指南，探索最先进的实时目标检测器。了解其建筑亮点，创新功能和应用示例。
-keywords: ultralytics, YOLOv4, 目标检测, 神经网络, 实时检测, 目标检测器, 机器学习
----
+______________________________________________________________________
+
+## comments: true description: 通过我们详细的YOLOv4指南，探索最先进的实时目标检测器。了解其建筑亮点，创新功能和应用示例。 keywords: ultralytics, YOLOv4, 目标检测, 神经网络, 实时检测, 目标检测器, 机器学习
 
 # YOLOv4：高速和精确的目标检测
 
 欢迎来到Ultralytics关于YOLOv4的文档页面，YOLOv4是由Alexey Bochkovskiy于2020年在 [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet) 发布的最先进的实时目标检测器。YOLOv4旨在提供速度和准确性的最佳平衡，使其成为许多应用的优秀选择。
 
-![YOLOv4架构图](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png)
-**YOLOv4架构图**。展示了YOLOv4的复杂网络设计，包括主干，颈部和头部组件以及它们相互连接的层，以实现最佳的实时目标检测。
+![YOLOv4架构图](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png) **YOLOv4架构图**。展示了YOLOv4的复杂网络设计，包括主干，颈部和头部组件以及它们相互连接的层，以实现最佳的实时目标检测。
 
 ## 简介
 
@@ -55,17 +52,19 @@ YOLOv4是一种强大而高效的目标检测模型，它在速度和准确性�
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{bochkovskiy2020yolov4,
-              title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
-              author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
-              year={2020},
-              eprint={2004.10934},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{bochkovskiy2020yolov4,
+          title={YOLOv4: Optimal Speed and Accuracy of Object Detection},
+          author={Alexey Bochkovskiy and Chien-Yao Wang and Hong-Yuan Mark Liao},
+          year={2020},
+          eprint={2004.10934},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 YOLOv4的原始论文可以在[arXiv](https://arxiv.org/abs/2004.10934)上找到。作者已经公开了他们的工作，代码库可以在[GitHub](https://github.com/AlexeyAB/darknet)上获取。我们赞赏他们在推动该领域方面的努力，并使他们的工作对广大社区产生影响。

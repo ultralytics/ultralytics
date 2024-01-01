@@ -1,8 +1,6 @@
----
-comments: true
-description: A comprehensive guide on various performance metrics related to YOLOv8, their significance, and how to interpret them.
-keywords: YOLOv8, Performance metrics, Object detection, Intersection over Union (IoU), Average Precision (AP), Mean Average Precision (mAP), Precision, Recall, Validation mode, Ultralytics
----
+______________________________________________________________________
+
+## comments: true description: A comprehensive guide on various performance metrics related to YOLOv8, their significance, and how to interpret them. keywords: YOLOv8, Performance metrics, Object detection, Intersection over Union (IoU), Average Precision (AP), Mean Average Precision (mAP), Precision, Recall, Validation mode, Ultralytics
 
 # Performance Metrics Deep Dive
 
@@ -46,13 +44,13 @@ One of the sections of the output is the class-wise breakdown of performance met
 
 - **Box(P, R, mAP50, mAP50-95)**: This metric provides insights into the model's performance in detecting objects:
 
-    - **P (Precision)**: The accuracy of the detected objects, indicating how many detections were correct.
+  - **P (Precision)**: The accuracy of the detected objects, indicating how many detections were correct.
 
-    - **R (Recall)**: The ability of the model to identify all instances of objects in the images.
+  - **R (Recall)**: The ability of the model to identify all instances of objects in the images.
 
-    - **mAP50**: Mean average precision calculated at an intersection over union (IoU) threshold of 0.50. It's a measure of the model's accuracy considering only the "easy" detections.
+  - **mAP50**: Mean average precision calculated at an intersection over union (IoU) threshold of 0.50. It's a measure of the model's accuracy considering only the "easy" detections.
 
-    - **mAP50-95**: The average of the mean average precision calculated at varying IoU thresholds, ranging from 0.50 to 0.95. It gives a comprehensive view of the model's performance across different levels of detection difficulty.
+  - **mAP50-95**: The average of the mean average precision calculated at varying IoU thresholds, ranging from 0.50 to 0.95. It gives a comprehensive view of the model's performance across different levels of detection difficulty.
 
 #### Speed Metrics
 

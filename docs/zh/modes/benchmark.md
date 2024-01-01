@@ -1,8 +1,6 @@
----
-comments: 真
-description: 了解如何评估YOLOv8在各种导出格式下的速度和准确性，获取mAP50-95、accuracy_top5等指标的洞察。
-keywords: Ultralytics, YOLOv8, 基准测试, 速度分析, 准确性分析, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO导出格式
----
+______________________________________________________________________
+
+## comments: 真 description: 了解如何评估YOLOv8在各种导出格式下的速度和准确性，获取mAP50-95、accuracy_top5等指标的洞察。 keywords: Ultralytics, YOLOv8, 基准测试, 速度分析, 准确性分析, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, YOLO导出格式
 
 # 使用Ultralytics YOLO进行模型基准测试
 
@@ -34,8 +32,10 @@ keywords: Ultralytics, YOLOv8, 基准测试, 速度分析, 准确性分析, mAP5
 
 !!! 技巧 "提示"
 
-    * 导出到ONNX或OpenVINO可实现高达3倍CPU速度提升。
-    * 导出到TensorRT可实现高达5倍GPU速度提升。
+```
+* 导出到ONNX或OpenVINO可实现高达3倍CPU速度提升。
+* 导出到TensorRT可实现高达5倍GPU速度提升。
+```
 
 ## 使用示例
 
@@ -43,26 +43,28 @@ keywords: Ultralytics, YOLOv8, 基准测试, 速度分析, 准确性分析, mAP5
 
 !!! Example "示例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # 在GPU上进行基准测试
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # 在GPU上进行基准测试
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## 参数
 
 参数如 `model`、`data`、`imgsz`、`half`、`device` 和 `verbose` 等，为用户提供了灵活性，以便根据具体需求微调基准测试，并轻松比较不同导出格式的性能。
 
 | 键         | 值       | 描述                                                 |
-|-----------|---------|----------------------------------------------------|
+| --------- | ------- | -------------------------------------------------- |
 | `model`   | `None`  | 模型文件路径，如 yolov8n.pt, yolov8n.yaml                  |
 | `data`    | `None`  | 引用基准测试数据集的YAML路径（标记为 `val`）                        |
 | `imgsz`   | `640`   | 图像大小作为标量或（h, w）列表，如 (640, 480)                     |
@@ -76,7 +78,7 @@ keywords: Ultralytics, YOLOv8, 基准测试, 速度分析, 准确性分析, mAP5
 基准测试将尝试在下方列出的所有可能的导出格式上自动运行。
 
 | 格式                                                                 | `format` 参数   | 模型                        | 元数据 | 参数                                                  |
-|--------------------------------------------------------------------|---------------|---------------------------|-----|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ------------- | ------------------------- | --- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n.pt`              | ✅   | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n.torchscript`     | ✅   | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n.onnx`            | ✅   | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

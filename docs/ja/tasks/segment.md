@@ -1,8 +1,6 @@
----
-comments: true
-description: Ultralytics YOLOを使用してインスタンスセグメンテーションモデルを使いこなす方法を学びましょう。トレーニング、バリデーション、画像予測、モデルエクスポートに関する指示が含まれています。
-keywords: yolov8, インスタンスセグメンテーション, Ultralytics, COCOデータセット, 画像セグメンテーション, オブジェクト検出, モデルトレーニング, モデルバリデーション, 画像予測, モデルエクスポート
----
+______________________________________________________________________
+
+## comments: true description: Ultralytics YOLOを使用してインスタンスセグメンテーションモデルを使いこなす方法を学びましょう。トレーニング、バリデーション、画像予測、モデルエクスポートに関する指示が含まれています。 keywords: yolov8, インスタンスセグメンテーション, Ultralytics, COCOデータセット, 画像セグメンテーション, オブジェクト検出, モデルトレーニング, モデルバリデーション, 画像予測, モデルエクスポート
 
 # インスタンスセグメンテーション
 
@@ -25,7 +23,9 @@ keywords: yolov8, インスタンスセグメンテーション, Ultralytics, CO
 
 !!! Tip "ヒント"
 
-    YOLOv8セグメントモデルは`-seg`サフィックスを使用し、つまり`yolov8n-seg.pt`などは[COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)で事前トレーニングされています。
+```
+YOLOv8セグメントモデルは`-seg`サフィックスを使用し、つまり`yolov8n-seg.pt`などは[COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)で事前トレーニングされています。
+```
 
 ## [モデル](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -34,17 +34,15 @@ keywords: yolov8, インスタンスセグメンテーション, Ultralytics, CO
 [モデル](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)は初回使用時に最新のUltralytics[リリース](https://github.com/ultralytics/assets/releases)から自動的にダウンロードされます。
 
 | モデル                                                                                          | サイズ<br><sup>(ピクセル) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | スピード<br><sup>CPU ONNX<br>(ms) | スピード<br><sup>A100 TensorRT<br>(ms) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|--------------------|----------------------|-----------------------|-------------------------------|------------------------------------|-------------------|-------------------|
+| -------------------------------------------------------------------------------------------- | ------------------ | -------------------- | --------------------- | ----------------------------- | ---------------------------------- | ----------------- | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                | 36.7                 | 30.5                  | 96.1                          | 1.21                               | 3.4               | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                | 44.6                 | 36.8                  | 155.7                         | 1.47                               | 11.8              | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                | 49.9                 | 40.8                  | 317.0                         | 2.18                               | 27.3              | 110.2             |
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640                | 52.3                 | 42.6                  | 572.4                         | 2.79                               | 46.0              | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8              | 344.1             |
 
-- **mAP<sup>val</sup>**の値は[COCO val2017](http://cocodataset.org)データセットでの単一モデル単一スケールの値です。
-  <br>再現するには `yolo val segment data=coco.yaml device=0`
-- **スピード**は[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)インスタンスを使用してCOCO val画像で平均化されます。
-  <br>再現するには `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
+- \*\*mAP<sup>val</sup>\*\*の値は[COCO val2017](http://cocodataset.org)データセットでの単一モデル単一スケールの値です。 <br>再現するには `yolo val segment data=coco.yaml device=0`
+- **スピード**は[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)インスタンスを使用してCOCO val画像で平均化されます。 <br>再現するには `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
 
 ## トレーニング
 
@@ -52,31 +50,33 @@ COCO128-segデータセットで、画像サイズ640でYOLOv8n-segを100エポ�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n-seg.yaml')  # YAMLから新しいモデルをビルド
-        model = YOLO('yolov8n-seg.pt')  # 事前トレーニングされたモデルをロード(トレーニングに推奨)
-        model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # YAMLからビルドしウェイトを移行
+    # モデルをロード
+    model = YOLO('yolov8n-seg.yaml')  # YAMLから新しいモデルをビルド
+    model = YOLO('yolov8n-seg.pt')  # 事前トレーニングされたモデルをロード(トレーニングに推奨)
+    model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # YAMLからビルドしウェイトを移行
 
-        # モデルをトレーニング
-        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # モデルをトレーニング
+    results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # YAMLから新しいモデルをビルドしゼロからトレーニングを開始
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
+    ```bash
+    # YAMLから新しいモデルをビルドしゼロからトレーニングを開始
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
 
-        # 事前トレーニング済みの*.ptモデルからトレーニングを開始
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+    # 事前トレーニング済みの*.ptモデルからトレーニングを開始
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
 
-        # YAMLから新しいモデルをビルドし、事前トレーニング済みウェイトを移行してトレーニングを開始
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
-        ```
+    # YAMLから新しいモデルをビルドし、事前トレーニング済みウェイトを移行してトレーニングを開始
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
+    ```
+````
 
 ### データセットフォーマット
 
@@ -88,32 +88,34 @@ YOLOセグメンテーションデータセットのフォーマットの詳細�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n-seg.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')  # カスタムモデルをロード
+    # モデルをロード
+    model = YOLO('yolov8n-seg.pt')  # 公式モデルをロード
+    model = YOLO('path/to/best.pt')  # カスタムモデルをロード
 
-        # モデルを評価
-        metrics = model.val()  # 引数は必要なし、データセットと設定は記憶している
-        metrics.box.map    # map50-95(B)
-        metrics.box.map50  # map50(B)
-        metrics.box.map75  # map75(B)
-        metrics.box.maps   # 各カテゴリのmap50-95(B)のリスト
-        metrics.seg.map    # map50-95(M)
-        metrics.seg.map50  # map50(M)
-        metrics.seg.map75  # map75(M)
-        metrics.seg.maps   # 各カテゴリのmap50-95(M)のリスト
-        ```
-    === "CLI"
+    # モデルを評価
+    metrics = model.val()  # 引数は必要なし、データセットと設定は記憶している
+    metrics.box.map    # map50-95(B)
+    metrics.box.map50  # map50(B)
+    metrics.box.map75  # map75(B)
+    metrics.box.maps   # 各カテゴリのmap50-95(B)のリスト
+    metrics.seg.map    # map50-95(M)
+    metrics.seg.map50  # map50(M)
+    metrics.seg.map75  # map75(M)
+    metrics.seg.maps   # 各カテゴリのmap50-95(M)のリスト
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment val model=yolov8n-seg.pt  # 公式モデルを評価
-        yolo segment val model=path/to/best.pt  # カスタムモデルを評価
-        ```
+    ```bash
+    yolo segment val model=yolov8n-seg.pt  # 公式モデルを評価
+    yolo segment val model=path/to/best.pt  # カスタムモデルを評価
+    ```
+````
 
 ## 予測
 
@@ -121,24 +123,26 @@ YOLOセグメンテーションデータセットのフォーマットの詳細�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n-seg.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')  # カスタムモデルをロード
+    # モデルをロード
+    model = YOLO('yolov8n-seg.pt')  # 公式モデルをロード
+    model = YOLO('path/to/best.pt')  # カスタムモデルをロード
 
-        # モデルで予測
-        results = model('https://ultralytics.com/images/bus.jpg')  # 画像で予測
-        ```
-    === "CLI"
+    # モデルで予測
+    results = model('https://ultralytics.com/images/bus.jpg')  # 画像で予測
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # 公式モデルで予測
-        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # カスタムモデルで予測
-        ```
+    ```bash
+    yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # 公式モデルで予測
+    yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # カスタムモデルで予測
+    ```
+````
 
 `predict`モードの完全な詳細は、[予測](https://docs.ultralytics.com/modes/predict/)ページにて確認できます。
 
@@ -148,29 +152,31 @@ YOLOv8n-segモデルをONNX、CoreMLなどの別の形式にエクスポート�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロード
-        model = YOLO('yolov8n-seg.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')  # カスタムトレーニングされたモデルをロード
+    # モデルをロード
+    model = YOLO('yolov8n-seg.pt')  # 公式モデルをロード
+    model = YOLO('path/to/best.pt')  # カスタムトレーニングされたモデルをロード
 
-        # モデルをエクスポート
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # モデルをエクスポート
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-seg.pt format=onnx  # 公式モデルをエクスポート
-        yolo export model=path/to/best.pt format=onnx  # カスタムトレーニングされたモデルをエクスポート
-        ```
+    ```bash
+    yolo export model=yolov8n-seg.pt format=onnx  # 公式モデルをエクスポート
+    yolo export model=path/to/best.pt format=onnx  # カスタムトレーニングされたモデルをエクスポート
+    ```
+````
 
 ご利用可能なYOLOv8-segエクスポート形式は以下の表に示されています。エクスポートされたモデルに直接予測または評価が可能です、つまり `yolo predict model=yolov8n-seg.onnx`。エクスポートが完了した後に、モデルの使用例が表示されます。
 
 | 形式                                                                 | `format`引数    | モデル                           | メタデータ | 引数                                                  |
-|--------------------------------------------------------------------|---------------|-------------------------------|-------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ------------- | ----------------------------- | ----- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-seg.pt`              | ✅     | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-seg.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-seg.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

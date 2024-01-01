@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how COCO, a leading dataset for object detection and segmentation, integrates with Ultralytics. Discover ways to use it for training YOLO models.
-keywords: Ultralytics, COCO dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
----
+______________________________________________________________________
+
+## comments: true description: Learn how COCO, a leading dataset for object detection and segmentation, integrates with Ultralytics. Discover ways to use it for training YOLO models. keywords: Ultralytics, COCO dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
 
 # COCO Dataset
 
@@ -33,9 +31,11 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 !!! Example "ultralytics/cfg/datasets/coco.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/coco.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/coco.yaml"
+```
+````
 
 ## Usage
 
@@ -43,24 +43,26 @@ To train a YOLOv8n model on the COCO dataset for 100 epochs with an image size o
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='coco.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='coco.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=coco.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=coco.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Images and Annotations
 
@@ -78,17 +80,19 @@ If you use the COCO dataset in your research or development work, please cite th
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{lin2015microsoft,
-              title={Microsoft COCO: Common Objects in Context},
-              author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
-              year={2015},
-              eprint={1405.0312},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{lin2015microsoft,
+          title={Microsoft COCO: Common Objects in Context},
+          author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
+          year={2015},
+          eprint={1405.0312},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).

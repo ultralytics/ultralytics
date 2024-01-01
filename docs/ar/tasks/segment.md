@@ -1,8 +1,6 @@
----
-comments: true
-description: تعلم كيفية استخدام نماذج فصل الأشكال الفردية مع Ultralytics YOLO. تعليمات حول التدريب والتحقق من الصحة وتوقع الصورة وتصدير النموذج.
-keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مجموعة بيانات COCO ، تجزئة الصورة ، كشف الكائنات ، تدريب النموذج ، التحقق من صحة النموذج ، توقع الصورة ، تصدير النموذج
----
+______________________________________________________________________
+
+## comments: true description: تعلم كيفية استخدام نماذج فصل الأشكال الفردية مع Ultralytics YOLO. تعليمات حول التدريب والتحقق من الصحة وتوقع الصورة وتصدير النموذج. keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مجموعة بيانات COCO ، تجزئة الصورة ، كشف الكائنات ، تدريب النموذج ، التحقق من صحة النموذج ، توقع الصورة ، تصدير النموذج
 
 # فصل الأشكال الفردية
 
@@ -25,7 +23,9 @@ keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مج�
 
 !!! Tip "نصيحة"
 
-    تستخدم نماذج YOLOv8 Seg اللاحقة `-seg`، أي `yolov8n-seg.pt` وتكون مدربة مسبقًا على [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+```
+تستخدم نماذج YOLOv8 Seg اللاحقة `-seg`، أي `yolov8n-seg.pt` وتكون مدربة مسبقًا على [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+```
 
 ## [النماذج](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -34,18 +34,15 @@ keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مج�
 تتم تنزيل [النماذج](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) تلقائيًا من [الإصدار](https://github.com/ultralytics/assets/releases) الأخير لـ Ultralytics عند أول استخدام.
 
 | النموذج                                                                                      | الحجم<br><sup>بكسل | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | السرعة<br><sup>CPU ONNX<br>(مللي ثانية) | السرعة<br><sup>A100 TensorRT<br>(مللي ثانية) | المعلمات<br><sup>(مليون) | FLOPs<br><sup>(مليار) |
-|----------------------------------------------------------------------------------------------|--------------------|----------------------|-----------------------|-----------------------------------------|----------------------------------------------|--------------------------|-----------------------|
+| -------------------------------------------------------------------------------------------- | ------------------ | -------------------- | --------------------- | --------------------------------------- | -------------------------------------------- | ------------------------ | --------------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                | 36.7                 | 30.5                  | 96.1                                    | 1.21                                         | 3.4                      | 12.6                  |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                | 44.6                 | 36.8                  | 155.7                                   | 1.47                                         | 11.8                     | 42.6                  |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                | 49.9                 | 40.8                  | 317.0                                   | 2.18                                         | 27.3                     | 110.2                 |
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640                | 52.3                 | 42.6                  | 572.4                                   | 2.79                                         | 46.0                     | 220.5                 |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                | 53.4                 | 43.4                  | 712.1                                   | 4.02                                         | 71.8                     | 344.1                 |
 
-- تُستخدم قيم **mAP<sup>val</sup>** لنموذج واحد وحجم واحد على مجموعة بيانات [COCO val2017](http://cocodataset.org).
-  <br>يمكن إعادة إنتاجها باستخدام `yolo val segment data=coco.yaml device=0`
-- **تُحسب السرعة** كمتوسط على صور COCO val باستخدام [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
-  instance.
-  <br>يمكن إعادة إنتاجها باستخدام `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
+- تُستخدم قيم **mAP<sup>val</sup>** لنموذج واحد وحجم واحد على مجموعة بيانات [COCO val2017](http://cocodataset.org). <br>يمكن إعادة إنتاجها باستخدام `yolo val segment data=coco.yaml device=0`
+- **تُحسب السرعة** كمتوسط على صور COCO val باستخدام [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>يمكن إعادة إنتاجها باستخدام `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
 
 ## التدريب
 
@@ -53,31 +50,33 @@ keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مج�
 
 !!! Example "مثال"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # قم بتحميل النموذج
-        model = YOLO('yolov8n-seg.yaml')  # قم ببناء نموذج جديد من ملف YAML
-        model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج مدرب مسبقًا (موصى به للتدريب)
-        model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # قم ببنائه من YAML ونقل الوزن
+    # قم بتحميل النموذج
+    model = YOLO('yolov8n-seg.yaml')  # قم ببناء نموذج جديد من ملف YAML
+    model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج مدرب مسبقًا (موصى به للتدريب)
+    model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # قم ببنائه من YAML ونقل الوزن
 
-        # قم بتدريب النموذج
-        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # قم بتدريب النموذج
+    results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # قم ببناء نموذج جديد من ملف YAML وبدء التدريب من البداية
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
+    ```bash
+    # قم ببناء نموذج جديد من ملف YAML وبدء التدريب من البداية
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml epochs=100 imgsz=640
 
-        # قم ببدء التدريب من نموذج *.pt مدرب مسبقًا
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+    # قم ببدء التدريب من نموذج *.pt مدرب مسبقًا
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
 
-        # قم ببناء نموذج جديد من YAML ونقل الأوزان المدربة مسبَقًا إليه وابدأ التدريب
-        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
-        ```
+    # قم ببناء نموذج جديد من YAML ونقل الأوزان المدربة مسبَقًا إليه وابدأ التدريب
+    yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
+    ```
+````
 
 ### تنسيق مجموعة البيانات
 
@@ -89,32 +88,34 @@ keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مج�
 
 !!! Example "مثال"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # قم بتحميل النموذج
-        model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج رسمي
-        model = YOLO('path/to/best.pt')  # قم بتحميل نموذج مخصص
+    # قم بتحميل النموذج
+    model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج رسمي
+    model = YOLO('path/to/best.pt')  # قم بتحميل نموذج مخصص
 
-        # قم بالتحقق من النموذج
-        metrics = model.val()  # لا حاجة إلى أي وسيطة ، يتذكر النموذج بيانات التدريب والوسيطات كسمات النموذج
-        metrics.box.map    # map50-95(B)
-        metrics.box.map50  # map50(B)
-        metrics.box.map75  # map75(B)
-        metrics.box.maps   # قائمة تحتوي على map50-95(B) لكل فئة
-        metrics.seg.map    # map50-95(M)
-        metrics.seg.map50  # map50(M)
-        metrics.seg.map75  # map75(M)
-        metrics.seg.maps   # قائمة تحتوي على map50-95(M) لكل فئة
-        ```
-    === "CLI"
+    # قم بالتحقق من النموذج
+    metrics = model.val()  # لا حاجة إلى أي وسيطة ، يتذكر النموذج بيانات التدريب والوسيطات كسمات النموذج
+    metrics.box.map    # map50-95(B)
+    metrics.box.map50  # map50(B)
+    metrics.box.map75  # map75(B)
+    metrics.box.maps   # قائمة تحتوي على map50-95(B) لكل فئة
+    metrics.seg.map    # map50-95(M)
+    metrics.seg.map50  # map50(M)
+    metrics.seg.map75  # map75(M)
+    metrics.seg.maps   # قائمة تحتوي على map50-95(M) لكل فئة
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment val model=yolov8n-seg.pt  # التحقق من النموذج الرسمي
-        yolo segment val model=path/to/best.pt  # التحقق من النموذج المخصص
-        ```
+    ```bash
+    yolo segment val model=yolov8n-seg.pt  # التحقق من النموذج الرسمي
+    yolo segment val model=path/to/best.pt  # التحقق من النموذج المخصص
+    ```
+````
 
 ## التنبؤ
 
@@ -122,24 +123,26 @@ keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مج�
 
 !!! Example "مثال"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # قم بتحميل النموذج
-        model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج رسمي
-        model = YOLO('path/to/best.pt')  # قم بتحميل نموذج مخصص
+    # قم بتحميل النموذج
+    model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج رسمي
+    model = YOLO('path/to/best.pt')  # قم بتحميل نموذج مخصص
 
-        # التنبؤ باستخدام النموذج
-        results = model('https://ultralytics.com/images/bus.jpg')  # التنبؤ على صورة
-        ```
-    === "CLI"
+    # التنبؤ باستخدام النموذج
+    results = model('https://ultralytics.com/images/bus.jpg')  # التنبؤ على صورة
+    ```
+=== "CLI"
 
-        ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # التنبؤ باستخدام النموذج الرسمي
-        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # التنبؤ باستخدام النموذج المخصص
-        ```
+    ```bash
+    yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # التنبؤ باستخدام النموذج الرسمي
+    yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # التنبؤ باستخدام النموذج المخصص
+    ```
+````
 
 انظر تفاصيل "التنبؤ" الكاملة في [الصفحة](https://docs.ultralytics.com/modes/predict/).
 
@@ -149,29 +152,31 @@ keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مج�
 
 !!! Example "مثال"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # قم بتحميل النموذج
-        model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج رسمي
-        model = YOLO('path/to/best.pt')  # قم بتحميل نموذج مدرب مخصص
+    # قم بتحميل النموذج
+    model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج رسمي
+    model = YOLO('path/to/best.pt')  # قم بتحميل نموذج مدرب مخصص
 
-        # قم بتصدير النموذج
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # قم بتصدير النموذج
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-seg.pt format=onnx  # تصدير نموذج رسمي
-        yolo export model=path/to/best.pt format=onnx  # تصدير نموذج مدرب مخصص
-        ```
+    ```bash
+    yolo export model=yolov8n-seg.pt format=onnx  # تصدير نموذج رسمي
+    yolo export model=path/to/best.pt format=onnx  # تصدير نموذج مدرب مخصص
+    ```
+````
 
 صيغ تصدير YOLOv8-seg المتاحة في الجدول أدناه. يمكنك التنبؤ أو التحقق من صحة الموديل المصدر بشكل مباشر ، أي `yolo predict model=yolov8n-seg.onnx`. يتم عرض أمثلة عن الاستخدام لنموذجك بعد اكتمال التصدير.
 
 | الصيغة                                                             | `format` Argument | النموذج                       | التعليمات | الخيارات                                        |
-|--------------------------------------------------------------------|-------------------|-------------------------------|-----------|-------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ----------------------------- | --------- | ----------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-seg.pt`              | ✅         | -                                               |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-seg.torchscript`     | ✅         | `الحجم ، الأمان`                                |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-seg.onnx`            | ✅         | `الحجم ، half ، dynamic ، simplify ، opset`     |

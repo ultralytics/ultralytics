@@ -1,8 +1,6 @@
----
-comments: true
-description: Instance Segmentation with Object Tracking using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Instance Segmentation, Object Detection, Object Tracking, Segbbox, Computer Vision, Notebook, IPython Kernel, CLI, Python SDK
----
+______________________________________________________________________
+
+## comments: true description: Instance Segmentation with Object Tracking using Ultralytics YOLOv8 keywords: Ultralytics, YOLOv8, Instance Segmentation, Object Detection, Object Tracking, Segbbox, Computer Vision, Notebook, IPython Kernel, CLI, Python SDK
 
 # Instance Segmentation and Tracking using Ultralytics YOLOv8 🚀
 
@@ -19,104 +17,106 @@ There are two types of instance segmentation tracking available in the Ultralyti
 ## Samples
 
 |                                                          Instance Segmentation                                                          |                                                           Instance Segmentation + Object Tracking                                                            |
-|:---------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics Instance Segmentation](https://github.com/RizwanMunawar/ultralytics/assets/62513924/d4ad3499-1f33-4871-8fbc-1be0b2643aa2) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/2e5c38cc-fd5c-4145-9682-fa94ae2010a0) |
-|                                                  Ultralytics Instance Segmentation 😍                                                   |                                                  Ultralytics Instance Segmentation with Object Tracking 🔥                                                   |
+|                                                   Ultralytics Instance Segmentation 😍                                                   |                                                   Ultralytics Instance Segmentation with Object Tracking 🔥                                                   |
 
 !!! Example "Instance Segmentation and Tracking"
 
-    === "Instance Segmentation"
-        ```python
-        import cv2
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+````
+=== "Instance Segmentation"
+    ```python
+    import cv2
+    from ultralytics import YOLO
+    from ultralytics.utils.plotting import Annotator, colors
 
-        model = YOLO("yolov8n-seg.pt")
-        names = model.model.names
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+    model = YOLO("yolov8n-seg.pt")
+    names = model.model.names
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
 
-        out = cv2.VideoWriter('instance-segmentation.avi',
-                              cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+    out = cv2.VideoWriter('instance-segmentation.avi',
+                          cv2.VideoWriter_fourcc(*'MJPG'),
+                          30, (int(cap.get(3)), int(cap.get(4))))
 
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
+    while True:
+        ret, im0 = cap.read()
+        if not ret:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
 
-            results = model.predict(im0)
-            clss = results[0].boxes.cls.cpu().tolist()
-            masks = results[0].masks.xy
+        results = model.predict(im0)
+        clss = results[0].boxes.cls.cpu().tolist()
+        masks = results[0].masks.xy
 
-            annotator = Annotator(im0, line_width=2)
+        annotator = Annotator(im0, line_width=2)
 
-            for mask, cls in zip(masks, clss):
-                annotator.seg_bbox(mask=mask,
-                                   mask_color=colors(int(cls), True),
-                                   det_label=names[int(cls)])
+        for mask, cls in zip(masks, clss):
+            annotator.seg_bbox(mask=mask,
+                               mask_color=colors(int(cls), True),
+                               det_label=names[int(cls)])
 
-            out.write(im0)
-            cv2.imshow("instance-segmentation", im0)
+        out.write(im0)
+        cv2.imshow("instance-segmentation", im0)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-        out.release()
-        cap.release()
-        cv2.destroyAllWindows()
+    out.release()
+    cap.release()
+    cv2.destroyAllWindows()
 
-        ```
+    ```
 
-    === "Instance Segmentation with Object Tracking"
-        ```python
-        import cv2
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+=== "Instance Segmentation with Object Tracking"
+    ```python
+    import cv2
+    from ultralytics import YOLO
+    from ultralytics.utils.plotting import Annotator, colors
 
-        from collections import defaultdict
+    from collections import defaultdict
 
-        track_history = defaultdict(lambda: [])
+    track_history = defaultdict(lambda: [])
 
-        model = YOLO("yolov8n-seg.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+    model = YOLO("yolov8n-seg.pt")
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
 
-        out = cv2.VideoWriter('instance-segmentation-object-tracking.avi',
-                              cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+    out = cv2.VideoWriter('instance-segmentation-object-tracking.avi',
+                          cv2.VideoWriter_fourcc(*'MJPG'),
+                          30, (int(cap.get(3)), int(cap.get(4))))
 
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
+    while True:
+        ret, im0 = cap.read()
+        if not ret:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
 
-            results = model.track(im0, persist=True)
-            masks = results[0].masks.xy
-            track_ids = results[0].boxes.id.int().cpu().tolist()
+        results = model.track(im0, persist=True)
+        masks = results[0].masks.xy
+        track_ids = results[0].boxes.id.int().cpu().tolist()
 
-            annotator = Annotator(im0, line_width=2)
+        annotator = Annotator(im0, line_width=2)
 
-            for mask, track_id in zip(masks, track_ids):
-                annotator.seg_bbox(mask=mask,
-                                   mask_color=colors(track_id, True),
-                                   track_label=str(track_id))
+        for mask, track_id in zip(masks, track_ids):
+            annotator.seg_bbox(mask=mask,
+                               mask_color=colors(track_id, True),
+                               track_label=str(track_id))
 
-            out.write(im0)
-            cv2.imshow("instance-segmentation-object-tracking", im0)
+        out.write(im0)
+        cv2.imshow("instance-segmentation-object-tracking", im0)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-        out.release()
-        cap.release()
-        cv2.destroyAllWindows()
-        ```
+    out.release()
+    cap.release()
+    cv2.destroyAllWindows()
+    ```
+````
 
 ### `seg_bbox` Arguments
 
 | Name          | Type    | Default         | Description                            |
-|---------------|---------|-----------------|----------------------------------------|
+| ------------- | ------- | --------------- | -------------------------------------- |
 | `mask`        | `array` | `None`          | Segmentation mask coordinates          |
 | `mask_color`  | `tuple` | `(255, 0, 255)` | Mask color for every segmented box     |
 | `det_label`   | `str`   | `None`          | Label for segmented object             |

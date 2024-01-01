@@ -1,8 +1,6 @@
----
-comments: true
-description: YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u에 대한 개요를 얻으세요. 물체 탐지를 위한 주요 기능, 사용법 및 지원 작업에 대해 알아보세요.
-keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, 물체 탐지, 추론, 훈련, Ultralytics
----
+______________________________________________________________________
+
+## comments: true description: YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u에 대한 개요를 얻으세요. 물체 탐지를 위한 주요 기능, 사용법 및 지원 작업에 대해 알아보세요. keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, 물체 탐지, 추론, 훈련, Ultralytics
 
 # YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u
 
@@ -32,11 +30,11 @@ YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u 시리즈는 물체 탐지 작업을 위�
 
 세 가지 모델은 [추론](../modes/predict.md), [유효성 검사](../modes/val.md), [훈련](../modes/train.md) 및 [내보내기](../modes/export.md)와 같은 포괄적인 모드를 지원하여 효과적인 물체 탐지를 위한 완벽한 도구 세트를 제공합니다.
 
-| 모델 유형              | 지원되는 작업                     | 추론 | 유효성 검사 | 훈련 | 내보내기 |
-|--------------------|-----------------------------|----|--------|----|------|
-| YOLOv3             | [물체 탐지](../tasks/detect.md) | ✅  | ✅      | ✅  | ✅    |
-| YOLOv3-Ultralytics | [물체 탐지](../tasks/detect.md) | ✅  | ✅      | ✅  | ✅    |
-| YOLOv3u            | [물체 탐지](../tasks/detect.md) | ✅  | ✅      | ✅  | ✅    |
+| 모델 유형              | 지원되는 작업                     | 추론  | 유효성 검사 | 훈련  | 내보내기 |
+| ------------------ | --------------------------- | --- | ------ | --- | ---- |
+| YOLOv3             | [물체 탐지](../tasks/detect.md) | ✅   | ✅      | ✅   | ✅    |
+| YOLOv3-Ultralytics | [물체 탐지](../tasks/detect.md) | ✅   | ✅      | ✅   | ✅    |
+| YOLOv3u            | [물체 탐지](../tasks/detect.md) | ✅   | ✅      | ✅   | ✅    |
 
 이 표는 각 YOLOv3 버전의 기능을 한 눈에 보여주며, 물체 탐지 워크플로우의 다양한 작업 및 운영 모드에 대해 다양성과 적합성을 강조합니다.
 
@@ -46,37 +44,39 @@ YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u 시리즈는 물체 탐지 작업을 위�
 
 !!! Example "예제"
 
-    === "Python"
+````
+=== "Python"
 
-        Python에서 PyTorch 사전 훈련된 `*.pt` 모델 및 설정 `*.yaml` 파일을 YOLO() 클래스에 전달하여 모델 인스턴스를 만들 수 있습니다.
+    Python에서 PyTorch 사전 훈련된 `*.pt` 모델 및 설정 `*.yaml` 파일을 YOLO() 클래스에 전달하여 모델 인스턴스를 만들 수 있습니다.
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # COCO 사전 훈련된 YOLOv3n 모델 로드
-        model = YOLO('yolov3n.pt')
+    # COCO 사전 훈련된 YOLOv3n 모델 로드
+    model = YOLO('yolov3n.pt')
 
-        # 모델 정보 표시 (선택 사항)
-        model.info()
+    # 모델 정보 표시 (선택 사항)
+    model.info()
 
-        # COCO8 예제 데이터셋에서 100 epoch 동안 모델 훈련
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # COCO8 예제 데이터셋에서 100 epoch 동안 모델 훈련
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # YOLOv3n 모델로 'bus.jpg' 이미지에 추론 실행
-        results = model('path/to/bus.jpg')
-        ```
+    # YOLOv3n 모델로 'bus.jpg' 이미지에 추론 실행
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        CLI 명령어를 사용하여 모델을 직접 실행할 수 있습니다.
+    CLI 명령어를 사용하여 모델을 직접 실행할 수 있습니다.
 
-        ```bash
-        # COCO 사전 훈련된 YOLOv3n 모델 로드하고 COCO8 예제 데이터셋에서 100 epoch 동안 훈련
-        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # COCO 사전 훈련된 YOLOv3n 모델 로드하고 COCO8 예제 데이터셋에서 100 epoch 동안 훈련
+    yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # COCO 사전 훈련된 YOLOv3n 모델 로드하고 'bus.jpg' 이미지에 추론 실행
-        yolo predict model=yolov3n.pt source=path/to/bus.jpg
-        ```
+    # COCO 사전 훈련된 YOLOv3n 모델 로드하고 'bus.jpg' 이미지에 추론 실행
+    yolo predict model=yolov3n.pt source=path/to/bus.jpg
+    ```
+````
 
 ## 인용 및 감사의 글
 
@@ -84,15 +84,17 @@ YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u 시리즈는 물체 탐지 작업을 위�
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{redmon2018yolov3,
-          title={YOLOv3: An Incremental Improvement},
-          author={Redmon, Joseph and Farhadi, Ali},
-          journal={arXiv preprint arXiv:1804.02767},
-          year={2018}
-        }
-        ```
+    ```bibtex
+    @article{redmon2018yolov3,
+      title={YOLOv3: An Incremental Improvement},
+      author={Redmon, Joseph and Farhadi, Ali},
+      journal={arXiv preprint arXiv:1804.02767},
+      year={2018}
+    }
+    ```
+````
 
 Joseph Redmon과 Ali Farhadi에게 원본 YOLOv3 개발에 대한 감사의 글을 전합니다.

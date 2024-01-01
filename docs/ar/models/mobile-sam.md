@@ -1,8 +1,6 @@
----
-comments: true
-description: تعرّف على MobileSAM وتطبيقه، وقارنه مع SAM الأصلي، وكيفية تنزيله واختباره في إطار Ultralytics. قم بتحسين تطبيقاتك المحمولة اليوم.
-keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، Arxiv، GPU، API، مُشفّر الصورة، فك تشفير القناع، تنزيل النموذج، طريقة الاختبار
----
+______________________________________________________________________
+
+## comments: true description: تعرّف على MobileSAM وتطبيقه، وقارنه مع SAM الأصلي، وكيفية تنزيله واختباره في إطار Ultralytics. قم بتحسين تطبيقاتك المحمولة اليوم. keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، Arxiv، GPU، API، مُشفّر الصورة، فك تشفير القناع، تنزيل النموذج، طريقة الاختبار
 
 ![شعار MobileSAM](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true)
 
@@ -21,7 +19,7 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 يُعرض في هذا الجدول النماذج المتاحة مع وزنها المدرب مسبقًا، والمهام التي تدعمها، وتوافقها مع أوضاع التشغيل المختلفة مثل [الاستدلال](../modes/predict.md)، [التحقق](../modes/val.md)، [التدريب](../modes/train.md)، و [التصدير](../modes/export.md)، حيث يُشير إيموجي ✅ للأوضاع المدعومة وإيموجي ❌ للأوضاع غير المدعومة.
 
 | نوع النموذج | الأوزان المدربة مسبقًا | المهام المدعومة                      | الاستدلال | التحقق | التدريب | التصدير |
-|-------------|------------------------|--------------------------------------|-----------|--------|---------|---------|
+| ----------- | ---------------------- | ------------------------------------ | --------- | ------ | ------- | ------- |
 | MobileSAM   | `mobile_sam.pt`        | [تجزئة العناصر](../tasks/segment.md) | ✅         | ❌      | ❌       | ✅       |
 
 ## التحويل من SAM إلى MobileSAM
@@ -33,21 +31,21 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 يوفر الجدول التالي مقارنة بين مُشفرات الصور القائمة على ViT:
 
 | مُشفّر الصورة | SAM الأصلي     | MobileSAM    |
-|---------------|----------------|--------------|
+| ------------- | -------------- | ------------ |
 | العوامل       | 611 مليون      | 5 مليون      |
 | السرعة        | 452 مللي ثانية | 8 مللي ثانية |
 
 يستخدم SَM الأصلي و MobileSAM نفس فك تشفير القناع الذي يعتمد على التوجيه بواسطة الرموز:
 
 | فك تشفير القناع | SAM الأصلي   | MobileSAM    |
-|-----------------|--------------|--------------|
+| --------------- | ------------ | ------------ |
 | العوامل         | 3.876 مليون  | 3.876 مليون  |
 | السرعة          | 4 مللي ثانية | 4 مللي ثانية |
 
 فيما يلي مقارنة لكامل سير العمل:
 
 | السير الكامل (التشفير+الفك) | SAM الأصلي     | MobileSAM     |
-|-----------------------------|----------------|---------------|
+| --------------------------- | -------------- | ------------- |
 | العوامل                     | 615 مليون      | 9.66 مليون    |
 | السرعة                      | 456 مللي ثانية | 12 مللي ثانية |
 
@@ -71,31 +69,35 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 
 !!! Example "مثال"
 
-    === "Python"
-        ```python
-        from ultralytics import SAM
+````
+=== "Python"
+    ```python
+    from ultralytics import SAM
 
-        # تحميل النموذج
-        model = SAM('mobile_sam.pt')
+    # تحميل النموذج
+    model = SAM('mobile_sam.pt')
 
-        # توقع جزء بناءً على نقطة محفز
-        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
-        ```
+    # توقع جزء بناءً على نقطة محفز
+    model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+    ```
+````
 
 ### الصندوق ككلمة محفز
 
 !!! Example "مثال"
 
-    === "Python"
-        ```python
-        from ultralytics import SAM
+````
+=== "Python"
+    ```python
+    from ultralytics import SAM
 
-        # تحميل النموذج
-        model = SAM('mobile_sam.pt')
+    # تحميل النموذج
+    model = SAM('mobile_sam.pt')
 
-        # توقع جزء بناءً على صندوق محفز
-        model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
-        ```
+    # توقع جزء بناءً على صندوق محفز
+    model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+    ```
+````
 
 لقد قمنا بتنفيذ "MobileSAM" و "SAM" باستخدام نفس API. لمزيد من معلومات الاستخدام، يُرجى الاطّلاع على [صفحة SAM](sam.md).
 
@@ -105,12 +107,14 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{mobile_sam,
-          title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
-          author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
-          journal={arXiv preprint arXiv:2306.14289},
-          year={2023}
-        }
+    ```bibtex
+    @article{mobile_sam,
+      title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
+      author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
+      journal={arXiv preprint arXiv:2306.14289},
+      year={2023}
+    }
+````

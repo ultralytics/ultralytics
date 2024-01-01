@@ -1,8 +1,6 @@
----
-comments: true
-description: استكشف نموذج Meituan YOLOv6 للكشف عن الكائنات الحديثة، والذي يوفر توازنًا مذهلاً بين السرعة والدقة، مما يجعله الخيار الأمثل لتطبيقات الوقت الحقيقي. تعرّف على الميزات والنماذج المُدربة مسبقًا واستخدام Python.
-keywords: Meituan YOLOv6، الكشف عن الكائنات، Ultralytics، YOLOv6 docs، Bi-directional Concatenation، تدريب بمساعدة العناصر، النماذج المدربة مسبقا، تطبيقات الوقت الحقيقي
----
+______________________________________________________________________
+
+## comments: true description: استكشف نموذج Meituan YOLOv6 للكشف عن الكائنات الحديثة، والذي يوفر توازنًا مذهلاً بين السرعة والدقة، مما يجعله الخيار الأمثل لتطبيقات الوقت الحقيقي. تعرّف على الميزات والنماذج المُدربة مسبقًا واستخدام Python. keywords: Meituan YOLOv6، الكشف عن الكائنات، Ultralytics، YOLOv6 docs، Bi-directional Concatenation، تدريب بمساعدة العناصر، النماذج المدربة مسبقا، تطبيقات الوقت الحقيقي
 
 # Meituan YOLOv6
 
@@ -10,9 +8,7 @@ keywords: Meituan YOLOv6، الكشف عن الكائنات، Ultralytics، YOLO
 
 [Meituan](https://about.meituan.com/) YOLOv6 هو منظّف الكائنات الحديثة الحديثة الذي يُقدم توازنًا ملحوظًا بين السرعة والدقة، مما يجعله خيارًا شائعًا لتطبيقات الوقت الحقيقي. يُقدم هذا النموذج العديد من التحسينات الملحوظة في بنيته ونظام التدريب، بما في ذلك تطبيق وحدة Bi-directional Concatenation (BiC)، واستراتيجية AAT (anchor-aided training) التي تعتمد على العناصر، وتصميم محسّن للأساس والرقبة لتحقيق أداء على مجموعة بيانات COCO يفوق جميع النماذج الأخرى.
 
-![Meituan YOLOv6](https://user-images.githubusercontent.com/26833433/240750495-4da954ce-8b3b-41c4-8afd-ddb74361d3c2.png)
-![Model example image](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png)
-**نظرة عامة على YOLOv6.** مخطط بنية النموذج يوضح المكونات المعاد تصميمها واستراتيجيات التدريب التي أدت إلى تحسينات أداء كبيرة. (أ) الرقبة الخاصة بـ YOLOv6 (N و S معروضان). لاحظ أنه بالنسبة لم/n، يتم استبدال RepBlocks بـ CSPStackRep. (ب) هيكل وحدة BiC. (ج) مكون SimCSPSPPF. ([المصدر](https://arxiv.org/pdf/2301.05586.pdf)).
+![Meituan YOLOv6](https://user-images.githubusercontent.com/26833433/240750495-4da954ce-8b3b-41c4-8afd-ddb74361d3c2.png) ![Model example image](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png) **نظرة عامة على YOLOv6.** مخطط بنية النموذج يوضح المكونات المعاد تصميمها واستراتيجيات التدريب التي أدت إلى تحسينات أداء كبيرة. (أ) الرقبة الخاصة بـ YOLOv6 (N و S معروضان). لاحظ أنه بالنسبة لم/n، يتم استبدال RepBlocks بـ CSPStackRep. (ب) هيكل وحدة BiC. (ج) مكون SimCSPSPPF. ([المصدر](https://arxiv.org/pdf/2301.05586.pdf)).
 
 ### ميزات رئيسية
 
@@ -39,44 +35,46 @@ keywords: Meituan YOLOv6، الكشف عن الكائنات، Ultralytics، YOLO
 
 !!! Example "مثال"
 
-    === "Python"
+````
+=== "Python"
 
-        يمكن تمرير النماذج المدرّبة مسبقًا بتنسيق `*.pt` في PyTorch وملفات التكوين `*.yaml` لفئة `YOLO()` لإنشاء نموذج في Python:
+    يمكن تمرير النماذج المدرّبة مسبقًا بتنسيق `*.pt` في PyTorch وملفات التكوين `*.yaml` لفئة `YOLO()` لإنشاء نموذج في Python:
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # إنشاء نموذج YOLOv6n من البداية
-        model = YOLO('yolov6n.yaml')
+    # إنشاء نموذج YOLOv6n من البداية
+    model = YOLO('yolov6n.yaml')
 
-        # عرض معلومات النموذج (اختياري)
-        model.info()
+    # عرض معلومات النموذج (اختياري)
+    model.info()
 
-        # تدريب النموذج على مجموعة بيانات مثال COCO8 لمدة 100 دورة تدريب
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # تدريب النموذج على مجموعة بيانات مثال COCO8 لمدة 100 دورة تدريب
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # تشغيل الاستنتاج بنموذج YOLOv6n على صورة 'bus.jpg'
-        results = model('path/to/bus.jpg')
-        ```
+    # تشغيل الاستنتاج بنموذج YOLOv6n على صورة 'bus.jpg'
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        يمكن استخدام أوامر CLI لتشغيل النماذج مباشرةً:
+    يمكن استخدام أوامر CLI لتشغيل النماذج مباشرةً:
 
-        ```bash
-        # إنشاء نموذج YOLOv6n من البداية وتدريبه باستخدام مجموعة بيانات مثال COCO8 لمدة 100 دورة تدريب
-        yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # إنشاء نموذج YOLOv6n من البداية وتدريبه باستخدام مجموعة بيانات مثال COCO8 لمدة 100 دورة تدريب
+    yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
 
-        # إنشاء نموذج YOLOv6n من البداية وتشغيل الاستنتاج على صورة 'bus.jpg'
-        yolo predict model=yolov6n.yaml source=path/to/bus.jpg
-        ```
+    # إنشاء نموذج YOLOv6n من البداية وتشغيل الاستنتاج على صورة 'bus.jpg'
+    yolo predict model=yolov6n.yaml source=path/to/bus.jpg
+    ```
+````
 
 ## المهام والأوضاع المدعومة
 
 تقدم سلسلة YOLOv6 مجموعة من النماذج، والتي تم تحسينها للكشف عن الكائنات عالي الأداء. تلبي هذه النماذج احتياجات الكمبيوتيشن المتنوعة ومتطلبات الدقة، مما يجعلها متعددة الاستخدامات في مجموعة واسعة من التطبيقات.
 
 | نوع النموذج | الأوزان المدربة مسبقًا | المهام المدعومة                         | الاستنتاج | التحقق | التدريب | التصدير |
-|-------------|------------------------|-----------------------------------------|-----------|--------|---------|---------|
+| ----------- | ---------------------- | --------------------------------------- | --------- | ------ | ------- | ------- |
 | YOLOv6-N    | `yolov6-n.pt`          | [الكشف عن الكائنات](../tasks/detect.md) | ✅         | ✅      | ✅       | ✅       |
 | YOLOv6-S    | `yolov6-s.pt`          | [الكشف عن الكائنات](../tasks/detect.md) | ✅         | ✅      | ✅       | ✅       |
 | YOLOv6-M    | `yolov6-m.pt`          | [الكشف عن الكائنات](../tasks/detect.md) | ✅         | ✅      | ✅       | ✅       |
@@ -91,17 +89,19 @@ keywords: Meituan YOLOv6، الكشف عن الكائنات، Ultralytics، YOLO
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{li2023yolov6,
-              title={YOLOv6 v3.0: A Full-Scale Reloading},
-              author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
-              year={2023},
-              eprint={2301.05586},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
-        }
-        ```
+    ```bibtex
+    @misc{li2023yolov6,
+          title={YOLOv6 v3.0: A Full-Scale Reloading},
+          author={Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu},
+          year={2023},
+          eprint={2301.05586},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+````
 
 يمكن العثور على الورقة الأصلية لـ YOLOv6 على [arXiv](https://arxiv.org/abs/2301.05586). نشر المؤلفون عملهم بشكل عام، ويمكن الوصول إلى الشيفرة المصدرية على [GitHub](https://github.com/meituan/YOLOv6). نحن نقدّر جهودهم في تطوير هذا المجال وجعل عملهم متاحًا للمجتمع بأسره.

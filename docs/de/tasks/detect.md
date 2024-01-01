@@ -1,8 +1,6 @@
----
-comments: true
-description: Offizielle Dokumentation für YOLOv8 von Ultralytics. Erfahren Sie, wie Sie Modelle trainieren, validieren, vorhersagen und in verschiedenen Formaten exportieren. Einschließlich detaillierter Leistungsstatistiken.
-keywords: YOLOv8, Ultralytics, Objekterkennung, vortrainierte Modelle, Training, Validierung, Vorhersage, Modell-Export, COCO, ImageNet, PyTorch, ONNX, CoreML
----
+______________________________________________________________________
+
+## comments: true description: Offizielle Dokumentation für YOLOv8 von Ultralytics. Erfahren Sie, wie Sie Modelle trainieren, validieren, vorhersagen und in verschiedenen Formaten exportieren. Einschließlich detaillierter Leistungsstatistiken. keywords: YOLOv8, Ultralytics, Objekterkennung, vortrainierte Modelle, Training, Validierung, Vorhersage, Modell-Export, COCO, ImageNet, PyTorch, ONNX, CoreML
 
 # Objekterkennung
 
@@ -10,7 +8,7 @@ keywords: YOLOv8, Ultralytics, Objekterkennung, vortrainierte Modelle, Training,
 
 Objekterkennung ist eine Aufgabe, die das Identifizieren der Position und Klasse von Objekten in einem Bild oder Videostream umfasst.
 
-Die Ausgabe eines Objekterkenners ist eine Menge von Begrenzungsrahmen, die die Objekte im Bild umschließen, zusammen mit Klassenbezeichnungen und Vertrauenswerten für jedes Feld. Objekterkennung ist eine gute Wahl, wenn Sie Objekte von Interesse in einer Szene identifizieren müssen, aber nicht genau wissen müssen, wo das Objekt ist oder wie seine genaue Form ist.
+Die Ausgabe eines Objekterkenners ist eine Menge von Begrenzungsrahmen, die die Objekte im Bild umschließen, zusammen mit Klassenbezeichnungen und Vertrauenswerten für jedes Field. Objekterkennung ist eine gute Wahl, wenn Sie Objekte von Interesse in einer Scene identifizieren müssen, aber nicht genau wissen müssen, wo das Object ist oder wie seine genaue Form ist.
 
 <p align="center">
   <br>
@@ -20,12 +18,14 @@ Die Ausgabe eines Objekterkenners ist eine Menge von Begrenzungsrahmen, die die 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Sehen Sie:</strong> Objekterkennung mit vortrainiertem Ultralytics YOLOv8 Modell.
+  <strong>Sehen Sie:</strong> Objekterkennung mit vortrainiertem Ultralytics YOLOv8 Model.
 </p>
 
 !!! Tip "Tipp"
 
-    YOLOv8 Detect Modelle sind die Standard YOLOv8 Modelle, zum Beispiel `yolov8n.pt`, und sind vortrainiert auf dem [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)-Datensatz.
+```
+YOLOv8 Detect Modelle sind die Standard YOLOv8 Modelle, zum Beispiel `yolov8n.pt`, und sind vortrainiert auf dem [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml)-Datensatz.
+```
 
 ## [Modelle](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -33,18 +33,16 @@ Hier werden die vortrainierten YOLOv8 Detect Modelle gezeigt. Detect, Segment un
 
 [Modelle](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) werden automatisch von der neuesten Ultralytics [Veröffentlichung](https://github.com/ultralytics/assets/releases) bei Erstbenutzung heruntergeladen.
 
-| Modell                                                                               | Größe<br><sup>(Pixel) | mAP<sup>val<br>50-95 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|--------------------------------------------------------------------------------------|-----------------------|----------------------|------------------------------------------|-----------------------------------------------|--------------------|-------------------|
+| Model                                                                               | Größe<br><sup>(Pixel) | mAP<sup>val<br>50-95 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ---------------------------------------- | --------------------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                                     | 0.99                                          | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                                    | 1.20                                          | 11.2               | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                   | 50.2                 | 234.7                                    | 1.83                                          | 25.9               | 78.9              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640                   | 52.9                 | 375.2                                    | 2.39                                          | 43.7               | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                   | 53.9                 | 479.1                                    | 3.53                                          | 68.2               | 257.8             |
 
-- **mAP<sup>val</sup>** Werte sind für Single-Modell Single-Scale auf dem [COCO val2017](http://cocodataset.org) Datensatz.
-  <br>Reproduzieren mit `yolo val detect data=coco.yaml device=0`
-- **Geschwindigkeit** gemittelt über COCO Val Bilder mit einer [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)-Instanz.
-  <br>Reproduzieren mit `yolo val detect data=coco128.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** Werte sind für Single-Modell Single-Scale auf dem [COCO val2017](http://cocodataset.org) Datensatz. <br>Reproduzieren mit `yolo val detect data=coco.yaml device=0`
+- **Geschwindigkeit** gemittelt über COCO Val Bilder mit einer [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)-Instanz. <br>Reproduzieren mit `yolo val detect data=coco128.yaml batch=1 device=0|cpu`
 
 ## Training
 
@@ -52,31 +50,33 @@ YOLOv8n auf dem COCO128-Datensatz für 100 Epochen bei Bildgröße 640 trainiere
 
 !!! Example "Beispiel"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n.yaml')  # ein neues Modell aus YAML aufbauen
-        model = YOLO('yolov8n.pt')  # ein vortrainiertes Modell laden (empfohlen für Training)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # aus YAML aufbauen und Gewichte übertragen
+    # Model laden
+    model = YOLO('yolov8n.yaml')  # ein neues Model aus YAML aufbauen
+    model = YOLO('yolov8n.pt')  # ein vortrainiertes Model laden (empfohlen für Training)
+    model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # aus YAML aufbauen und Gewichte übertragen
 
-        # Das Modell trainieren
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # Das Model trainieren
+    results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # Ein neues Modell aus YAML aufbauen und Training von Grund auf starten
-        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+    ```bash
+    # Ein neues Model aus YAML aufbauen und Training von Grund auf starten
+    yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
 
-        # Training von einem vortrainierten *.pt Modell starten
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+    # Training von einem vortrainierten *.pt Model starten
+    yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
 
-        # Ein neues Modell aus YAML aufbauen, vortrainierte Gewichte übertragen und Training starten
-        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
-        ```
+    # Ein neues Model aus YAML aufbauen, vortrainierte Gewichte übertragen und Training starten
+    yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ### Datenformat
 
@@ -84,32 +84,34 @@ Das Datenformat für YOLO-Erkennungsdatensätze finden Sie detailliert im [Datas
 
 ## Validierung
 
-Genauigkeit des trainierten YOLOv8n-Modells auf dem COCO128-Datensatz validieren. Es müssen keine Argumente übergeben werden, da das `modell` seine Trainingsdaten und Argumente als Modellattribute beibehält.
+Genauigkeit des trainierten YOLOv8n-Modells auf dem COCO128-Datensatz validieren. Es müssen keine Argumente übergeben werden, da das `model` seine Trainingsdaten und Argumente also Modellattribute beibehält.
 
 !!! Example "Beispiel"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n.pt')  # ein offizielles Modell laden
-        model = YOLO('pfad/zum/besten.pt')  # ein benutzerdefiniertes Modell laden
+    # Model laden
+    model = YOLO('yolov8n.pt')  # ein offizielles Model laden
+    model = YOLO('pfad/zum/besten.pt')  # ein benutzerdefiniertes Model laden
 
-        # Das Modell validieren
-        metrics = model.val()  # keine Argumente nötig, Datensatz und Einstellungen erinnert
-        metrics.box.map    # map50-95
-        metrics.box.map50  # map50
-        metrics.box.map75  # map75
-        metrics.box.maps   # eine Liste enthält map50-95 jeder Kategorie
-        ```
-    === "CLI"
+    # Das Model validieren
+    metrics = model.val()  # keine Argumente nötig, Datensatz und Einstellungen erinnert
+    metrics.box.map    # map50-95
+    metrics.box.map50  # map50
+    metrics.box.map75  # map75
+    metrics.box.maps   # eine Liste enthält map50-95 jeder Kategorie
+    ```
+=== "CLI"
 
-        ```bash
-        yolo detect val model=yolov8n.pt  # offizielles Modell validieren
-        yolo detect val model=pfad/zum/besten.pt  # benutzerdefiniertes Modell validieren
-        ```
+    ```bash
+    yolo detect val model=yolov8n.pt  # offizielles Model validieren
+    yolo detect val model=pfad/zum/besten.pt  # benutzerdefiniertes Model validieren
+    ```
+````
 
 ## Vorhersage
 
@@ -117,24 +119,26 @@ Ein trainiertes YOLOv8n-Modell verwenden, um Vorhersagen auf Bildern durchzufüh
 
 !!! Example "Beispiel"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n.pt')  # ein offizielles Modell laden
-        model = YOLO('pfad/zum/besten.pt')  # ein benutzerdefiniertes Modell laden
+    # Model laden
+    model = YOLO('yolov8n.pt')  # ein offizielles Model laden
+    model = YOLO('pfad/zum/besten.pt')  # ein benutzerdefiniertes Model laden
 
-        # Mit dem Modell vorhersagen
-        results = model('https://ultralytics.com/images/bus.jpg')  # Vorhersage auf einem Bild
-        ```
-    === "CLI"
+    # Mit dem Model vorhersagen
+    results = model('https://ultralytics.com/images/bus.jpg')  # Vorhersage auf einem Bild
+    ```
+=== "CLI"
 
-        ```bash
-        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # Vorhersage mit offiziellem Modell
-        yolo detect predict model=pfad/zum/besten.pt source='https://ultralytics.com/images/bus.jpg'  # Vorhersage mit benutzerdefiniertem Modell
-        ```
+    ```bash
+    yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # Vorhersage mit offiziellem Model
+    yolo detect predict model=pfad/zum/besten.pt source='https://ultralytics.com/images/bus.jpg'  # Vorhersage mit benutzerdefiniertem Model
+    ```
+````
 
 Volle Details über den `predict`-Modus finden Sie auf der [Predict-Seite](https://docs.ultralytics.com/modes/predict/).
 
@@ -144,29 +148,31 @@ Ein YOLOv8n-Modell in ein anderes Format wie ONNX, CoreML usw. exportieren.
 
 !!! Example "Beispiel"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n.pt')  # ein offizielles Modell laden
-        model = YOLO('pfad/zum/besten.pt')  # ein benutzerdefiniert trainiertes Modell laden
+    # Model laden
+    model = YOLO('yolov8n.pt')  # ein offizielles Model laden
+    model = YOLO('pfad/zum/besten.pt')  # ein benutzerdefiniert trainiertes Model laden
 
-        # Das Modell exportieren
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # Das Model exportieren
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n.pt format=onnx  # offizielles Modell exportieren
-        yolo export model=pfad/zum/besten.pt format=onnx  # benutzerdefiniert trainiertes Modell exportieren
-        ```
+    ```bash
+    yolo export model=yolov8n.pt format=onnx  # offizielles Model exportieren
+    yolo export model=pfad/zum/besten.pt format=onnx  # benutzerdefiniert trainiertes Model exportieren
+    ```
+````
 
-Verfügbare YOLOv8 Exportformate sind in der untenstehenden Tabelle aufgeführt. Sie können direkt auf den exportierten Modellen Vorhersagen treffen oder diese validieren, zum Beispiel `yolo predict model=yolov8n.onnx`. Verwendungsbeispiele werden für Ihr Modell nach Abschluss des Exports angezeigt.
+Verfügbare YOLOv8 Exportformate sind in der untenstehenden Tabelle aufgeführt. Sie können direkt auf den exportierten Modellen Vorhersagen treffen oder diese validieren, zum Beispiel `yolo predict model=yolov8n.onnx`. Verwendungsbeispiele werden für Ihr Model nach Abschluss des Exports angezeigt.
 
-| Format                                                             | `format`-Argument | Modell                    | Metadaten | Argumente                                           |
-|--------------------------------------------------------------------|-------------------|---------------------------|-----------|-----------------------------------------------------|
+| Format                                                             | `format`-Argument | Model                    | Metadaten | Argumente                                           |
+| ------------------------------------------------------------------ | ----------------- | ------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅         | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

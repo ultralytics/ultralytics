@@ -1,8 +1,6 @@
----
-comments: true
-description: Aprenda sobre los modelos de clasificación de imágenes YOLOv8 Classify. Obtenga información detallada sobre la Lista de Modelos Preentrenados y cómo Entrenar, Validar, Predecir y Exportar modelos.
-keywords: Ultralytics, YOLOv8, Clasificación de imágenes, Modelos preentrenados, YOLOv8n-cls, Entrenamiento, Validación, Predicción, Exportación de modelos
----
+______________________________________________________________________
+
+## comments: true description: Aprenda sobre los modelos de clasificación de imágenes YOLOv8 Classify. Obtenga información detallada sobre la Lista de Modelos Preentrenados y cómo Entrenar, Validar, Predecir y Exportar modelos. keywords: Ultralytics, YOLOv8, Clasificación de imágenes, Modelos preentrenados, YOLOv8n-cls, Entrenamiento, Validación, Predicción, Exportación de modelos
 
 # Clasificación de Imágenes
 
@@ -14,7 +12,9 @@ La salida de un clasificador de imágenes es una única etiqueta de clase y una 
 
 !!! Tip "Consejo"
 
-    Los modelos YOLOv8 Classify utilizan el sufijo `-cls`, por ejemplo, `yolov8n-cls.pt` y están preentrenados en [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+```
+Los modelos YOLOv8 Classify utilizan el sufijo `-cls`, por ejemplo, `yolov8n-cls.pt` y están preentrenados en [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+```
 
 ## [Modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -23,17 +23,15 @@ Los modelos Classify preentrenados YOLOv8 se muestran aquí. Los modelos Detect,
 Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) se descargan automáticamente desde el último [lanzamiento](https://github.com/ultralytics/assets/releases) de Ultralytics en el primer uso.
 
 | Modelo                                                                                       | Tamaño<br><sup>(píxeles) | Exactitud<br><sup>top1 | Exactitud<br><sup>top5 | Velocidad<br><sup>CPU ONNX<br>(ms) | Velocidad<br><sup>A100 TensorRT<br>(ms) | Parámetros<br><sup>(M) | FLOPs<br><sup>(B) en 640 |
-|----------------------------------------------------------------------------------------------|--------------------------|------------------------|------------------------|------------------------------------|-----------------------------------------|------------------------|--------------------------|
+| -------------------------------------------------------------------------------------------- | ------------------------ | ---------------------- | ---------------------- | ---------------------------------- | --------------------------------------- | ---------------------- | ------------------------ |
 | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                      | 66.6                   | 87.0                   | 12.9                               | 0.31                                    | 2.7                    | 4.3                      |
 | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                      | 72.3                   | 91.1                   | 23.4                               | 0.35                                    | 6.4                    | 13.5                     |
 | [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                      | 76.4                   | 93.2                   | 85.4                               | 0.62                                    | 17.0                   | 42.7                     |
 | [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                      | 78.0                   | 94.1                   | 163.0                              | 0.87                                    | 37.5                   | 99.7                     |
 | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                      | 78.4                   | 94.3                   | 232.0                              | 1.01                                    | 57.4                   | 154.8                    |
 
-- Los valores de **Exactitud** son las precisiones de los modelos en el conjunto de datos de validación de [ImageNet](https://www.image-net.org/).
-  <br>Para reproducir usar `yolo val classify data=path/to/ImageNet device=0`
-- **Velocidad** promediada sobre imágenes de validación de ImageNet usando una instancia de [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
-  <br>Para reproducir usar `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
+- Los valores de **Exactitud** son las precisiones de los modelos en el conjunto de datos de validación de [ImageNet](https://www.image-net.org/). <br>Para reproducir usar `yolo val classify data=path/to/ImageNet device=0`
+- **Velocidad** promediada sobre imágenes de validación de ImageNet usando una instancia de [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) <br>Para reproducir usar `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 
 ## Entrenamiento
 
@@ -41,32 +39,34 @@ Entrena el modelo YOLOv8n-cls en el conjunto de datos MNIST160 durante 100 époc
 
 !!! Example "Ejemplo"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n-cls.yaml')  # construir un nuevo modelo desde YAML
-        model = YOLO('yolov8n-cls.pt')  # cargar un modelo preentrenado (recomendado para entrenamiento)
-        model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # construir desde YAML y transferir pesos
+    # Cargar un modelo
+    model = YOLO('yolov8n-cls.yaml')  # construir un nuevo modelo desde YAML
+    model = YOLO('yolov8n-cls.pt')  # cargar un modelo preentrenado (recomendado para entrenamiento)
+    model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # construir desde YAML y transferir pesos
 
-        # Entrenar el modelo
-        results = model.train(data='mnist160', epochs=100, imgsz=64)
-        ```
+    # Entrenar el modelo
+    results = model.train(data='mnist160', epochs=100, imgsz=64)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Construir un nuevo modelo desde YAML y empezar entrenamiento desde cero
-        yolo classify train data=mnist160 model=yolov8n-cls.yaml epochs=100 imgsz=64
+    ```bash
+    # Construir un nuevo modelo desde YAML y empezar entrenamiento desde cero
+    yolo classify train data=mnist160 model=yolov8n-cls.yaml epochs=100 imgsz=64
 
-        # Empezar entrenamiento desde un modelo *.pt preentrenado
-        yolo classify train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
+    # Empezar entrenamiento desde un modelo *.pt preentrenado
+    yolo classify train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
 
-        # Construir un nuevo modelo desde YAML, transferir pesos preentrenados e iniciar entrenamiento
-        yolo classify train data=mnist160 model=yolov8n-cls.yaml pretrained=yolov8n-cls.pt epochs=100 imgsz=64
-        ```
+    # Construir un nuevo modelo desde YAML, transferir pesos preentrenados e iniciar entrenamiento
+    yolo classify train data=mnist160 model=yolov8n-cls.yaml pretrained=yolov8n-cls.pt epochs=100 imgsz=64
+    ```
+````
 
 ### Formato del conjunto de datos
 
@@ -78,26 +78,28 @@ Validar la exactitud del modelo YOLOv8n-cls entrenado en el conjunto de datos MN
 
 !!! Example "Ejemplo"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n-cls.pt')  # cargar un modelo oficial
-        model = YOLO('path/to/best.pt')  # cargar un modelo personalizado
+    # Cargar un modelo
+    model = YOLO('yolov8n-cls.pt')  # cargar un modelo official
+    model = YOLO('path/to/best.pt')  # cargar un modelo personalizado
 
-        # Validar el modelo
-        metrics = model.val()  # no se necesitan argumentos, el conjunto de datos y configuraciones se recuerdan
-        metrics.top1   # precisión top1
-        metrics.top5   # precisión top5
-        ```
-    === "CLI"
+    # Validar el modelo
+    metrics = model.val()  # no se necesitan argumentos, el conjunto de datos y configuraciones se recuerdan
+    metrics.top1   # precisión top1
+    metrics.top5   # precisión top5
+    ```
+=== "CLI"
 
-        ```bash
-        yolo classify val model=yolov8n-cls.pt  # validar modelo oficial
-        yolo classify val model=path/to/best.pt  # validar modelo personalizado
-        ```
+    ```bash
+    yolo classify val model=yolov8n-cls.pt  # validar modelo official
+    yolo classify val model=path/to/best.pt  # validar modelo personalizado
+    ```
+````
 
 ## Predicción
 
@@ -105,24 +107,26 @@ Usar un modelo YOLOv8n-cls entrenado para realizar predicciones en imágenes.
 
 !!! Example "Ejemplo"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n-cls.pt')  # cargar un modelo oficial
-        model = YOLO('path/to/best.pt')  # cargar un modelo personalizado
+    # Cargar un modelo
+    model = YOLO('yolov8n-cls.pt')  # cargar un modelo official
+    model = YOLO('path/to/best.pt')  # cargar un modelo personalizado
 
-        # Predecir con el modelo
-        results = model('https://ultralytics.com/images/bus.jpg')  # predecir en una imagen
-        ```
-    === "CLI"
+    # Predecir con el modelo
+    results = model('https://ultralytics.com/images/bus.jpg')  # predecir en una imagen
+    ```
+=== "CLI"
 
-        ```bash
-        yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo oficial
-        yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo personalizado
-        ```
+    ```bash
+    yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo official
+    yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo personalizado
+    ```
+````
 
 Ver detalles completos del modo `predict` en la página de [Predicción](https://docs.ultralytics.com/modes/predict/).
 
@@ -132,29 +136,31 @@ Exportar un modelo YOLOv8n-cls a un formato diferente como ONNX, CoreML, etc.
 
 !!! Example "Ejemplo"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n-cls.pt')  # cargar un modelo oficial
-        model = YOLO('path/to/best.pt')  # cargar un modelo entrenado personalizado
+    # Cargar un modelo
+    model = YOLO('yolov8n-cls.pt')  # cargar un modelo official
+    model = YOLO('path/to/best.pt')  # cargar un modelo entrenado personalizado
 
-        # Exportar el modelo
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # Exportar el modelo
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-cls.pt format=onnx  # exportar modelo oficial
-        yolo export model=path/to/best.pt format=onnx  # exportar modelo entrenado personalizado
-        ```
+    ```bash
+    yolo export model=yolov8n-cls.pt format=onnx  # exportar modelo official
+    yolo export model=path/to/best.pt format=onnx  # exportar modelo entrenado personalizado
+    ```
+````
 
 Los formatos de exportación disponibles para YOLOv8-cls se encuentran en la tabla a continuación. Puede predecir o validar directamente en modelos exportados, por ejemplo, `yolo predict model=yolov8n-cls.onnx`. Ejemplos de uso se muestran para su modelo después de que se completa la exportación.
 
 | Formato                                                            | Argumento `format` | Modelo                        | Metadatos | Argumentos                                          |
-|--------------------------------------------------------------------|--------------------|-------------------------------|-----------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ------------------ | ----------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n-cls.pt`              | ✅         | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n-cls.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n-cls.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

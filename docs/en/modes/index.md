@@ -1,8 +1,6 @@
----
-comments: true
-description: From training to tracking, make the most of YOLOv8 with Ultralytics. Get insights and examples for each supported mode including validation, export, and benchmarking.
-keywords: Ultralytics, YOLOv8, Machine Learning, Object Detection, Training, Validation, Prediction, Export, Tracking, Benchmarking
----
+______________________________________________________________________
+
+## comments: true description: From training to tracking, make the most of YOLOv8 with Ultralytics. Get insights and examples for each supported mode including validation, export, and benchmarking. keywords: Ultralytics, YOLOv8, Machine Learning, Object Detection, Training, Validation, Prediction, Export, Tracking, Benchmarking
 
 # Ultralytics YOLOv8 Modes
 
@@ -68,7 +66,6 @@ Track mode is used for tracking objects in real-time using a YOLOv8 model. In th
 
 ## [Benchmark](benchmark.md)
 
-Benchmark mode is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection, segmentation and pose)
-or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
+Benchmark mode is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection, segmentation and pose) or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
 
 [Benchmark Examples](benchmark.md){ .md-button }

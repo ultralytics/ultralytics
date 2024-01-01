@@ -1,8 +1,6 @@
----
-comments: true
-description: استكشف FastSAM ، وهو حلاً مبنيًا على الشبكات العصبية السريعة لتجزئة الكائنات في الوقت الحقيقي في الصور. تفاعل المستخدم المحسّن ، والكفاءة الحسابية ، والقابلية للتكيف في مهام الرؤية المختلفة.
-keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على الشبكات العصبية السريعة ، قسيمة الكائنات ، حلاً في الوقت الحقيقي ، Ultralytics ، مهام الرؤية ، معالجة الصور ، تطبيقات صناعية ، تفاعل المستخدم
----
+______________________________________________________________________
+
+## comments: true description: استكشف FastSAM ، وهو حلاً مبنيًا على الشبكات العصبية السريعة لتجزئة الكائنات في الوقت الحقيقي في الصور. تفاعل المستخدم المحسّن ، والكفاءة الحسابية ، والقابلية للتكيف في مهام الرؤية المختلفة. keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على الشبكات العصبية السريعة ، قسيمة الكائنات ، حلاً في الوقت الحقيقي ، Ultralytics ، مهام الرؤية ، معالجة الصور ، تطبيقات صناعية ، تفاعل المستخدم
 
 # نموذج تجزئة أي شيء بسرعة عالية (FastSAM)
 
@@ -35,7 +33,7 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 يعرض هذا الجدول النماذج المتاحة مع أوزانها المحددة ، والمهام التي تدعمها ، ومدى توافقها مع أوضاع التشغيل المختلفة مثل [الاستنتاج](../modes/predict.md) ، [التحقق](../modes/val.md) ، [التدريب](../modes/train.md) ، و[التصدير](../modes/export.md) ، مشار إليها برموز الـ✅ للأوضاع المدعومة والرموز ❌ للأوضاع غير المدعومة.
 
 | نوع النموذج | أوزان تم تدريبها مسبقًا | المهام المدعومة                       | الاستنتاج | التحقق | التدريب | التصدير |
-|-------------|-------------------------|---------------------------------------|-----------|--------|---------|---------|
+| ----------- | ----------------------- | ------------------------------------- | --------- | ------ | ------- | ------- |
 | FastSAM-s   | `FastSAM-s.pt`          | [تجزئة المثيلات](../tasks/segment.md) | ✅         | ❌      | ❌       | ✅       |
 | FastSAM-x   | `FastSAM-x.pt`          | [تجزئة المثيلات](../tasks/segment.md) | ✅         | ❌      | ❌       | ✅       |
 
@@ -49,42 +47,44 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 
 !!! Example "مثال"
 
-    === "بايثون"
-        ```python
-        from ultralytics import FastSAM
-        from ultralytics.models.fastsam import FastSAMPrompt
+````
+=== "بايثون"
+    ```python
+    from ultralytics import FastSAM
+    from ultralytics.models.fastsam import FastSAMPrompt
 
-        # حدد مصدر التوقع
-        source = 'path/to/bus.jpg'
+    # حدد مصدر التوقع
+    source = 'path/to/bus.jpg'
 
-        # قم بإنشاء نموذج FastSAM
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+    # قم بإنشاء نموذج FastSAM
+    model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
 
-        # تنفيذ توقعات على صورة
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+    # تنفيذ توقعات على صورة
+    everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
-        # قم بتجهيز كائن معالج مع قواعد التوقع
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+    # قم بتجهيز كائن معالج مع قواعد التوقع
+    prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
 
-        # التوقع باستخدام كل شيء
-        ann = prompt_process.everything_prompt()
+    # التوقع باستخدام كل شيء
+    ann = prompt_process.everything_prompt()
 
-        # bbox الشكل الافتراضي [0،0،0،0] -> [x1،y1،x2،y2]
-        ann = prompt_process.box_prompt(bbox=[200، 200، 300، 300])
+    # bbox الشكل الافتراضي [0،0،0،0] -> [x1،y1،x2،y2]
+    ann = prompt_process.box_prompt(bbox=[200، 200، 300، 300])
 
-        # التوقع النصي
-        ann = prompt_process.text_prompt(text='صورة لكلب')
+    # التوقع النصي
+    ann = prompt_process.text_prompt(text='صورة لكلب')
 
-        # التوقع النقطي
-        ann = prompt_process.point_prompt(points=[[200، 200]]، pointlabel=[1])
-        prompt_process.plot(annotations=ann، output='./')
-        ```
+    # التوقع النقطي
+    ann = prompt_process.point_prompt(points=[[200، 200]]، pointlabel=[1])
+    prompt_process.plot(annotations=ann، output='./')
+    ```
 
-    === "CLI"
-        ```bash
-        # قم بتحميل نموذج FastSAM وتجزئة كل شيء به
-        yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
-        ```
+=== "CLI"
+    ```bash
+    # قم بتحميل نموذج FastSAM وتجزئة كل شيء به
+    yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
+    ```
+````
 
 توضح هذه المقاطع البساطة في تحميل نموذج مدرب مسبقًا وتنفيذ توقع على صورة.
 
@@ -94,22 +94,24 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 
 !!! Example "مثال"
 
-    === "بايثون"
-        ```python
-        from ultralytics import FastSAM
+````
+=== "بايثون"
+    ```python
+    from ultralytics import FastSAM
 
-        # قم بإنشاء نموذج FastSAM
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+    # قم بإنشاء نموذج FastSAM
+    model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
 
-        # قم بتنفيذ التحقق من النموذج
-        results = model.val(data='coco8-seg.yaml')
-        ```
+    # قم بتنفيذ التحقق من النموذج
+    results = model.val(data='coco8-seg.yaml')
+    ```
 
-    === "CLI"
-        ```bash
-        # قم بتحميل نموذج FastSAM وأجرِ التحقق منه بخصوص مجموعة البيانات مثال كوكو 8 بحجم صورة 640
-        yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
-        ```
+=== "CLI"
+    ```bash
+    # قم بتحميل نموذج FastSAM وأجرِ التحقق منه بخصوص مجموعة البيانات مثال كوكو 8 بحجم صورة 640
+    yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
+    ```
+````
 
 يرجى ملاحظة أن الـ FastSAM يدعم فقط الكشف والتجزئة لفئة واحدة من الكائن. هذا يعني أنه سيتعرف ويجزء جميع الكائنات على أنها نفس الفئة. لذلك ، عند إعداد مجموعة البيانات ، يجب تحويل جميع معرفات فئة الكائن إلى 0.
 
@@ -120,23 +122,27 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 ### التثبيت
 
 1. استنسخ مستودع FastSAM:
+
    ```shell
    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
    ```
 
 2. أنشئ بيئة Conda وفعّلها بـ Python 3.9:
+
    ```shell
    conda create -n FastSAM python=3.9
    conda activate FastSAM
    ```
 
 3. انتقل إلى المستودع المنسخ وقم بتثبيت الحزم المطلوبة:
+
    ```shell
    cd FastSAM
    pip install -r requirements.txt
    ```
 
 4. قم بتثبيت نموذج CLIP:
+
    ```shell
    pip install git+https://github.com/openai/CLIP.git
    ```
@@ -147,25 +153,29 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 
 2. استخدم FastSAM للتوقع. أمثلة الأوامر:
 
-    - تجزئة كل شيء في صورة:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+   - تجزئة كل شيء في صورة:
 
-    - تجزئة كائنات محددة باستخدام تعليمات النص:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "الكلب الأصفر"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+     ```
 
-    - تجزئة كائنات داخل مربع محدد (تقديم إحداثيات الصندوق في تنسيق xywh):
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+   - تجزئة كائنات محددة باستخدام تعليمات النص:
 
-    - تجزئة كائنات قرب النقاط المحددة:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "الكلب الأصفر"
+     ```
+
+   - تجزئة كائنات داخل مربع محدد (تقديم إحداثيات الصندوق في تنسيق xywh):
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+     ```
+
+   - تجزئة كائنات قرب النقاط المحددة:
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+     ```
 
 بالإضافة إلى ذلك ، يمكنك تجربة FastSAM من خلال [Colab demo](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) أو على [HuggingFace web demo](https://huggingface.co/spaces/An-619/FastSAM) لتجربة بصرية.
 
@@ -175,17 +185,19 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 
 !!! Quote ""
 
-    === "بيب تيكس"
+````
+=== "بيب تيكس"
 
-      ```bibtex
-      @misc{zhao2023fast,
-            title={Fast Segment Anything},
-            author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
-            year={2023},
-            eprint={2306.12156},
-            archivePrefix={arXiv},
-            primaryClass={cs.CV}
-      }
-      ```
+  ```bibtex
+  @misc{zhao2023fast,
+        title={Fast Segment Anything},
+        author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
+        year={2023},
+        eprint={2306.12156},
+        archivePrefix={arXiv},
+        primaryClass={cs.CV}
+  }
+  ```
+````
 
 يمكن العثور على ورقة FastSAM الأصلية على [arXiv](https://arxiv.org/abs/2306.12156). قام الأباء بجعل أعمالهم متاحة للجمهور ، ويمكن الوصول إلى قاعدة الكود على [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). نقدر جهودهم في تطوير المجال وجعل أعمالهم متاحة للمجتمع الأوسع.

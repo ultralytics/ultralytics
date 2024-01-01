@@ -1,13 +1,14 @@
----
-description: Learn about the download utilities in Ultralytics YOLO, featuring functions like is_url, check_disk_space, get_github_assets, and download.
-keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_github_assets, download, documentation
----
+______________________________________________________________________
+
+## description: Learn about the download utilities in Ultralytics YOLO, featuring functions like is_url, check_disk_space, get_github_assets, and download. keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_github_assets, download, documentation
 
 # Reference for `ultralytics/utils/downloads.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/downloads.py) 🛠️. Thank you 🙏!
+```
+This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/downloads.py) 🛠️. Thank you 🙏!
+```
 
 <br><br>
 

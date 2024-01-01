@@ -1,8 +1,6 @@
----
-comments: true
-description: Explore diferentes conjuntos de datos de visión por computadora soportados por Ultralytics para la detección de objetos, segmentación, estimación de poses, clasificación de imágenes y seguimiento de múltiples objetos.
-keywords: visión por computadora, conjuntos de datos, Ultralytics, YOLO, detección de objetos, segmentación de instancias, estimación de poses, clasificación de imágenes, seguimiento de múltiples objetos
----
+______________________________________________________________________
+
+## comments: true description: Explore diferentes conjuntos de datos de visión por computadora soportados por Ultralytics para la detección de objetos, segmentación, estimación de poses, clasificación de imágenes y seguimiento de múltiples objetos. keywords: visión por computadora, conjuntos de datos, Ultralytics, YOLO, detección de objetos, segmentación de instancias, estimación de poses, clasificación de imágenes, seguimiento de múltiples objetos
 
 # Resumen de Conjuntos de Datos
 
@@ -10,7 +8,9 @@ Ultralytics brinda soporte para varios conjuntos de datos para facilitar tareas 
 
 !!! Note "Nota"
 
-    🚧 Nuestra documentación multilingüe está actualmente en construcción y estamos trabajando arduamente para mejorarla. ¡Gracias por su paciencia! 🙏
+```
+🚧 Nuestra documentación multilingüe está actualmente en construcción y estamos trabajando arduamente para mejorarla. ¡Gracias por su paciencia! 🙏
+```
 
 ## [Conjuntos de Datos de Detección](../../datasets/detect/index.md)
 
@@ -24,7 +24,7 @@ La detección de objetos con cuadros delimitadores es una técnica de visión po
 - [OpenImagesV7](../../datasets/detect/open-images-v7.md): Un conjunto de datos completo de Google con 1.7 millones de imágenes de entrenamiento y 42 mil imágenes de validación.
 - [SKU-110K](../../datasets/detect/sku-110k.md): Un conjunto de datos que presenta detección de objetos densa en entornos minoristas con más de 11 mil imágenes y 1.7 millones de cuadros delimitadores.
 - [VisDrone](../../datasets/detect/visdrone.md): Un conjunto de datos que contiene datos de detección de objetos y seguimiento de múltiples objetos de imágenes capturadas por drones con más de 10 mil imágenes y secuencias de video.
-- [VOC](../../datasets/detect/voc.md): El conjunto de datos de Clases de Objetos Visuales de Pascal (VOC) para la detección de objetos y segmentación con 20 clases de objetos y más de 11 mil imágenes.
+- [VOC](../../datasets/detect/voc.md): El conjunto de datos de Clases de Objetos Visuals de Pascal (VOC) para la detección de objetos y segmentación con 20 clases de objetos y más de 11 mil imágenes.
 - [xView](../../datasets/detect/xview.md): Un conjunto de datos para la detección de objetos en imágenes aéreas con 60 categorías de objetos y más de un millón de objetos anotados.
 
 ## [Conjuntos de Datos de Segmentación de Instancias](../../datasets/segment/index.md)
@@ -76,23 +76,23 @@ Contribuir con un nuevo conjunto de datos implica varios pasos para garantizar q
 
 ### Pasos para Contribuir con un Nuevo Conjunto de Datos
 
-1. **Recolectar Imágenes**: Reúne las imágenes que pertenecen al conjunto de datos. Estas podrían ser recopiladas de varias fuentes, tales como bases de datos públicas o tu propia colección.
+1. **Recolectar Imágenes**: Reúne las imágenes que pertenecen al conjunto de datos. Estas podrían set recopiladas de varias fuentes, tales como bases de datos públicas o tu propia colección.
 
 2. **Annotar Imágenes**: Anota estas imágenes con cuadros delimitadores, segmentos o puntos clave, dependiendo de la tarea.
 
-3. **Exportar Anotaciones**: Convierte estas anotaciones en el formato de archivo *.txt de YOLO que Ultralytics soporta.
+3. **Exportar Anotaciones**: Convierte estas anotaciones en el formato de archivo \*.txt de YOLO que Ultralytics soporta.
 
 4. **Organizar Conjunto de Datos**: Organiza tu conjunto de datos en la estructura de carpetas correcta. Deberías tener directorios de nivel superior `train/` y `val/`, y dentro de cada uno, un subdirectorio `images/` y `labels/`.
 
-    ```
-    dataset/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    └── val/
-        ├── images/
-        └── labels/
-    ```
+   ```
+   dataset/
+   ├── train/
+   │   ├── images/
+   │   └── labels/
+   └── val/
+       ├── images/
+       └── labels/
+   ```
 
 5. **Crear un Archivo `data.yaml`**: En el directorio raíz de tu conjunto de datos, crea un archivo `data.yaml` que describa el conjunto de datos, clases y otra información necesaria.
 
@@ -106,22 +106,24 @@ Contribuir con un nuevo conjunto de datos implica varios pasos para garantizar q
 
 !!! Example "Optimizar y Comprimir un Conjunto de Datos"
 
-    === "Python"
+````
+=== "Python"
 
-    ```python
-    from pathlib import Path
-    from ultralytics.data.utils import compress_one_image
-    from ultralytics.utils.downloads import zip_directory
+```python
+from pathlib import Path
+from ultralytics.data.utils import compress_one_image
+from ultralytics.utils.downloads import zip_directory
 
-    # Definir el directorio del conjunto de datos
-    path = Path('ruta/al/conjunto-de-datos')
+# Definir el directorio del conjunto de datos
+path = Path('ruta/al/conjunto-de-datos')
 
-    # Optimizar imágenes en el conjunto de datos (opcional)
-    for f in path.rglob('*.jpg'):
-        compress_one_image(f)
+# Optimizar imágenes en el conjunto de datos (opcional)
+for f in path.rglob('*.jpg'):
+    compress_one_image(f)
 
-    # Comprimir el conjunto de datos en 'ruta/al/conjunto-de-datos.zip'
-    zip_directory(path)
-    ```
+# Comprimir el conjunto de datos en 'ruta/al/conjunto-de-datos.zip'
+zip_directory(path)
+```
+````
 
 Siguiendo estos pasos, puedes contribuir con un nuevo conjunto de datos que se integre bien con la estructura existente de Ultralytics.

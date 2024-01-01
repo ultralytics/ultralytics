@@ -1,8 +1,6 @@
----
-comments: true
-description: Ultralytics가 지원하는 객체 탐지, 세분화, 자세 추정, 이미지 분류, 다중 객체 추적을 위한 다양한 컴퓨터 비전 데이터셋에 대한 탐색입니다.
-keywords: 컴퓨터 비전, 데이터셋, Ultralytics, YOLO, 객체 탐지, 인스턴스 세분화, 자세 추정, 이미지 분류, 다중 객체 추적
----
+______________________________________________________________________
+
+## comments: true description: Ultralytics가 지원하는 객체 탐지, 세분화, 자세 추정, 이미지 분류, 다중 객체 추적을 위한 다양한 컴퓨터 비전 데이터셋에 대한 탐색입니다. keywords: 컴퓨터 비전, 데이터셋, Ultralytics, YOLO, 객체 탐지, 인스턴스 세분화, 자세 추정, 이미지 분류, 다중 객체 추적
 
 # 데이터셋 개요
 
@@ -10,7 +8,9 @@ Ultralytics는 탐지, 인스턴스 세분화, 자세 추정, 분류 및 다중 
 
 !!! Note "노트"
 
-    🚧 다국어 문서 작업은 현재 진행 중이며, 우리는 이를 개선하기 위해 노력하고 있습니다. 인내해 주셔서 감사합니다! 🙏
+```
+🚧 다국어 문서 작업은 현재 진행 중이며, 우리는 이를 개선하기 위해 노력하고 있습니다. 인내해 주셔서 감사합니다! 🙏
+```
 
 ## [탐지 데이터셋](../../datasets/detect/index.md)
 
@@ -80,19 +80,19 @@ Ultralytics는 탐지, 인스턴스 세분화, 자세 추정, 분류 및 다중 
 
 2. **이미지 주석 달기**: 이러한 이미지에 작업에 따라 바운딩 박스, 세그먼트 또는 키포인트로 주석을 답니다.
 
-3. **주석 내보내기**: 이 주석들을 Ultralytics가 지원하는 YOLO *.txt 파일 형식으로 변환합니다.
+3. **주석 내보내기**: 이 주석들을 Ultralytics가 지원하는 YOLO \*.txt 파일 형식으로 변환합니다.
 
 4. **데이터셋 구성**: 데이터셋을 올바른 폴더 구조로 배열합니다. 'train/'과 'val/' 상위 디렉토리를 갖고 있어야 하며, 각각 'images/' 및 'labels/' 하위 디렉토리가 있어야 합니다.
 
-    ```
-    dataset/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    └── val/
-        ├── images/
-        └── labels/
-    ```
+   ```
+   dataset/
+   ├── train/
+   │   ├── images/
+   │   └── labels/
+   └── val/
+       ├── images/
+       └── labels/
+   ```
 
 5. **`data.yaml` 파일 생성**: 데이터셋의 루트 디렉토리에서 데이터셋, 클래스 및 기타 필요한 정보를 설명하는 `data.yaml` 파일을 만듭니다.
 
@@ -106,22 +106,24 @@ Ultralytics는 탐지, 인스턴스 세분화, 자세 추정, 분류 및 다중 
 
 !!! Example "데이터셋 최적화 및 압축"
 
-    === "Python"
+````
+=== "Python"
 
-    ```python
-    from pathlib import Path
-    from ultralytics.data.utils import compress_one_image
-    from ultralytics.utils.downloads import zip_directory
+```python
+from pathlib import Path
+from ultralytics.data.utils import compress_one_image
+from ultralytics.utils.downloads import zip_directory
 
-    # 데이터셋 디렉토리 정의
-    path = Path('path/to/dataset')
+# 데이터셋 디렉토리 정의
+path = Path('path/to/dataset')
 
-    # 데이터셋의 이미지 최적화 (선택사항)
-    for f in path.rglob('*.jpg'):
-        compress_one_image(f)
+# 데이터셋의 이미지 최적화 (선택사항)
+for f in path.rglob('*.jpg'):
+    compress_one_image(f)
 
-    # 'path/to/dataset.zip'으로 데이터셋 압축
-    zip_directory(path)
-    ```
+# 'path/to/dataset.zip'으로 데이터셋 압축
+zip_directory(path)
+```
+````
 
 이 단계들을 따르면 Ultralytics의 기존 구조와 잘 통합되는 새로운 데이터셋을 기여할 수 있습니다.

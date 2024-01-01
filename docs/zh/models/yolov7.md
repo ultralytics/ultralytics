@@ -1,15 +1,12 @@
----
-comments: true
-description: 探索YOLOv7，一个实时物体检测器。了解其卓越的速度，令人印象深刻的精确度和独特的可训练无需付费优化聚焦点。
-keywords: YOLOv7，实时物体检测器，State-of-the-art，Ultralytics，MS COCO数据集，模型重新参数化，动态标签分配，扩展缩放，复合缩放
----
+______________________________________________________________________
+
+## comments: true description: 探索YOLOv7，一个实时物体检测器。了解其卓越的速度，令人印象深刻的精确度和独特的可训练无需付费优化聚焦点。 keywords: YOLOv7，实时物体检测器，State-of-the-art，Ultralytics，MS COCO数据集，模型重新参数化，动态标签分配，扩展缩放，复合缩放
 
 # YOLOv7：可训练无需付费
 
 YOLOv7是一种实时物体检测器的最新技术，其速度和准确度超过了目前已知的所有物体检测器，速度范围在5 FPS到160 FPS之间。在GPU V100上，它在所有已知实时物体检测器中具有最高的准确度（56.8％AP），且帧率达到30 FPS或更高。此外，YOLOv7在速度和准确度方面也优于其他物体检测器，如YOLOR，YOLOX，缩放后的YOLOv4，YOLOv5等等。该模型是从头开始使用MS COCO数据集进行训练的，而没有使用其他数据集或预训练权重。YOLOv7的源代码可在GitHub上获得。
 
-![YOLOv7与SOTA物体检测器的比较](https://github.com/ultralytics/ultralytics/assets/26833433/5e1e0420-8122-4c79-b8d0-2860aa79af92)
-**最先进物体检测器的比较**。从表2的结果可以看出，所提出的方法在速度和准确度的均衡上最佳。将YOLOv7-tiny-SiLU与YOLOv5-N（r6.1）进行比较，我们的方法在AP上快了127 FPS，准确度提高了10.7％。此外，YOLOv7在161 FPS的帧率下具有51.4％的AP，而具有相同AP的PPYOLOE-L仅具有78 FPS的帧率。在参数使用方面，YOLOv7比PPYOLOE-L少了41％。将YOLOv7-X与114 FPS的推理速度与YOLOv5-L（r6.1）的99 FPS的推理速度进行比较，YOLOv7-X可以提高3.9％的AP。如果将YOLOv7-X与类似规模的YOLOv5-X（r6.1）进行比较，YOLOv7-X的推理速度比YOLOv5-X快31 FPS。此外，就参数和计算量而言，与YOLOv5-X（r6.1）相比，YOLOv7-X减少了22％的参数和8％的计算量，但AP提高了2.2％（[来源](https://arxiv.org/pdf/2207.02696.pdf)）。
+![YOLOv7与SOTA物体检测器的比较](https://github.com/ultralytics/ultralytics/assets/26833433/5e1e0420-8122-4c79-b8d0-2860aa79af92) **最先进物体检测器的比较**。从表2的结果可以看出，所提出的方法在速度和准确度的均衡上最佳。将YOLOv7-tiny-SiLU与YOLOv5-N（r6.1）进行比较，我们的方法在AP上快了127 FPS，准确度提高了10.7％。此外，YOLOv7在161 FPS的帧率下具有51.4％的AP，而具有相同AP的PPYOLOE-L仅具有78 FPS的帧率。在参数使用方面，YOLOv7比PPYOLOE-L少了41％。将YOLOv7-X与114 FPS的推理速度与YOLOv5-L（r6.1）的99 FPS的推理速度进行比较，YOLOv7-X可以提高3.9％的AP。如果将YOLOv7-X与类似规模的YOLOv5-X（r6.1）进行比较，YOLOv7-X的推理速度比YOLOv5-X快31 FPS。此外，就参数和计算量而言，与YOLOv5-X（r6.1）相比，YOLOv7-X减少了22％的参数和8％的计算量，但AP提高了2.2％（[来源](https://arxiv.org/pdf/2207.02696.pdf)）。
 
 ## 概述
 
@@ -51,15 +48,17 @@ YOLOv7引入了几个关键特性：
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{wang2022yolov7,
-          title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
-          author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
-          journal={arXiv preprint arXiv:2207.02696},
-          year={2022}
-        }
-        ```
+    ```bibtex
+    @article{wang2022yolov7,
+      title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
+      author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
+      journal={arXiv preprint arXiv:2207.02696},
+      year={2022}
+    }
+    ```
+````
 
 YOLOv7的原始论文可以在[arXiv](https://arxiv.org/pdf/2207.02696.pdf)上找到。作者已将其工作公开，并且代码库可在[GitHub](https://github.com/WongKinYiu/yolov7)中访问。我们感谢他们在推动该领域发展并使其工作对广大社区可访问的努力。

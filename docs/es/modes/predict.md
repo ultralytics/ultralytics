@@ -1,8 +1,6 @@
----
-comments: true
-description: Descubra cómo utilizar el modo predictivo de YOLOv8 para diversas tareas. Aprenda acerca de diferentes fuentes de inferencia como imágenes, videos y formatos de datos.
-keywords: Ultralytics, YOLOv8, modo predictivo, fuentes de inferencia, tareas de predicción, modo de transmisión, procesamiento de imágenes, procesamiento de videos, aprendizaje automático, IA
----
+______________________________________________________________________
+
+## comments: true description: Descubra cómo utilizar el modo predictivo de YOLOv8 para diversas tareas. Aprenda acerca de diferentes fuentes de inferencia como imágenes, videos y formatos de datos. keywords: Ultralytics, YOLOv8, modo predictivo, fuentes de inferencia, tareas de predicción, modo de transmisión, procesamiento de imágenes, procesamiento de videos, aprendizaje automático, IA
 
 # Predicción del Modelo con YOLO de Ultralytics
 
@@ -10,7 +8,7 @@ keywords: Ultralytics, YOLOv8, modo predictivo, fuentes de inferencia, tareas de
 
 ## Introducción
 
-En el mundo del aprendizaje automático y la visión por computadora, el proceso de dar sentido a los datos visuales se denomina 'inferencia' o 'predicción'. YOLOv8 de Ultralytics ofrece una característica poderosa conocida como **modo predictivo** que está diseñada para inferencias de alto rendimiento y en tiempo real en una amplia gama de fuentes de datos.
+En el mundo del aprendizaje automático y la visión por computadora, el proceso de dar sentido a los datos visuals se denomina 'inferencia' o 'predicción'. YOLOv8 de Ultralytics ofrece una característica poderosa conocida como **modo predictivo** que está diseñada para inferencias de alto rendimiento y en tiempo real en una amplia gama de fuentes de datos.
 
 <p align="center">
   <br>
@@ -26,7 +24,7 @@ En el mundo del aprendizaje automático y la visión por computadora, el proceso
 ## Aplicaciones en el Mundo Real
 
 |                                                                Manufactura                                                                |                                                                Deportes                                                                |                                                               Seguridad                                                               |
-|:-----------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|
+| :---------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
 | ![Detección de Repuestos de Vehículos](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Detección de Jugadores de Fútbol](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![Detección de Caídas de Personas](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
 |                                                    Detección de Repuestos de Vehículos                                                    |                                                    Detección de Jugadores de Fútbol                                                    |                                                    Detección de Caídas de Personas                                                    |
 
@@ -41,52 +39,54 @@ Estas son algunas razones para considerar el modo predictivo de YOLOv8 para sus 
 
 ### Características Principales del Modo Predictivo
 
-El modo predictivo de YOLOv8 está diseñado para ser robusto y versátil, y cuenta con:
+El modo predictivo de YOLOv8 está diseñado para set robusto y versátil, y cuenta con:
 
 - **Compatibilidad con Múltiples Fuentes de Datos:** Ya sea que sus datos estén en forma de imágenes individuales, una colección de imágenes, archivos de video o transmisiones de video en tiempo real, el modo predictivo le tiene cubierto.
 - **Modo de Transmisión:** Utilice la función de transmisión para generar un generador eficiente de memoria de objetos `Results`. Active esto configurando `stream=True` en el método de llamada del predictor.
 - **Procesamiento por Lotes:** La capacidad de procesar múltiples imágenes o fotogramas de video en un solo lote, acelerando aún más el tiempo de inferencia.
-- **Amigable para la Integración:** Se integra fácilmente con pipelines de datos existentes y otros componentes de software, gracias a su API flexible.
+- **Amigable para la Integración:** Se integra fácilmente con pipelines de datos existentes y otros components de software, gracias a su API flexible.
 
 Los modelos YOLO de Ultralytics devuelven ya sea una lista de objetos `Results` de Python, o un generador de objetos `Results` de Python eficiente en memoria cuando se pasa `stream=True` al modelo durante la inferencia:
 
 !!! Example "Predict"
 
-    === "Devolver una lista con `stream=False`"
-        ```python
-        from ultralytics import YOLO
+````
+=== "Devolver una lista con `stream=False`"
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n.pt')  # modelo YOLOv8n preentrenado
+    # Cargar un modelo
+    model = YOLO('yolov8n.pt')  # modelo YOLOv8n preentrenado
 
-        # Ejecutar inferencia por lotes en una lista de imágenes
-        results = model(['im1.jpg', 'im2.jpg'])  # devuelve una lista de objetos Results
+    # Ejecutar inferencia por lotes en una lista de imágenes
+    results = model(['im1.jpg', 'im2.jpg'])  # devuelve una lista de objetos Results
 
-        # Procesar lista de resultados
-        for result in results:
-            boxes = result.boxes  # Objeto Boxes para salidas de bbox
-            masks = result.masks  # Objeto Masks para salidas de máscaras de segmentación
-            keypoints = result.keypoints  # Objeto Keypoints para salidas de postura
-            probs = result.probs  # Objeto Probs para salidas de clasificación
-        ```
+    # Procesar lista de resultados
+    for result in results:
+        boxes = result.boxes  # Objeto Boxes para salidas de bbox
+        masks = result.masks  # Objeto Masks para salidas de máscaras de segmentación
+        keypoints = result.keypoints  # Objeto Keypoints para salidas de postura
+        probs = result.probs  # Objeto Probs para salidas de clasificación
+    ```
 
-    === "Devolver un generador con `stream=True`"
-        ```python
-        from ultralytics import YOLO
+=== "Devolver un generador con `stream=True`"
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar un modelo
-        model = YOLO('yolov8n.pt')  # modelo YOLOv8n preentrenado
+    # Cargar un modelo
+    model = YOLO('yolov8n.pt')  # modelo YOLOv8n preentrenado
 
-        # Ejecutar inferencia por lotes en una lista de imágenes
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # devuelve un generador de objetos Results
+    # Ejecutar inferencia por lotes en una lista de imágenes
+    results = model(['im1.jpg', 'im2.jpg'], stream=True)  # devuelve un generador de objetos Results
 
-        # Procesar generador de resultados
-        for result in results:
-            boxes = result.boxes  # Objeto Boxes para salidas de bbox
-           .masks = result.masks  # Objeto Masks para salidas de máscaras de segmentación
-            keypoints = result.keypoints  # Objeto Keypoints para salidas de postura
-            probs = result.probs  # Objeto Probs para salidas de clasificación
-        ```
+    # Procesar generador de resultados
+    for result in results:
+        boxes = result.boxes  # Objeto Boxes para salidas de bbox
+       .masks = result.masks  # Objeto Masks para salidas de máscaras de segmentación
+        keypoints = result.keypoints  # Objeto Keypoints para salidas de postura
+        probs = result.probs  # Objeto Probs para salidas de clasificación
+    ```
+````
 
 ## Fuentes de Inferencia
 
@@ -94,10 +94,12 @@ YOLOv8 puede procesar diferentes tipos de fuentes de entrada para la inferencia,
 
 !!! Tip "Consejo"
 
-    Utilice `stream=True` para procesar videos largos o conjuntos de datos grandes para gestionar eficientemente la memoria. Cuando `stream=False`, los resultados de todos los fotogramas o puntos de datos se almacenan en la memoria, lo que puede aumentar rápidamente y causar errores de memoria insuficiente para entradas grandes. En contraste, `stream=True` utiliza un generador, que solo mantiene los resultados del fotograma o punto de datos actual en la memoria, reduciendo significativamente el consumo de memoria y previniendo problemas de falta de memoria.
+```
+Utilice `stream=True` para procesar videos largos o conjuntos de datos grandes para gestionar eficientemente la memoria. Cuando `stream=False`, los resultados de todos los fotogramas o puntos de datos se almacenan en la memoria, lo que puede aumentar rápidamente y causar errores de memoria insuficiente para entradas grandes. En contraste, `stream=True` utilize un generador, que solo mantiene los resultados del fotograma o punto de datos actual en la memoria, reduciendo significativamente el consumo de memoria y previniendo problemas de falta de memoria.
+```
 
 | Fuente              | Argumento                                  | Tipo           | Notas                                                                                                                           |
-|---------------------|--------------------------------------------|----------------|---------------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | ------------------------------------------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | imagen              | `'image.jpg'`                              | `str` o `Path` | Archivo único de imagen.                                                                                                        |
 | URL                 | `'https://ultralytics.com/images/bus.jpg'` | `str`          | URL a una imagen.                                                                                                               |
 | captura de pantalla | `'screen'`                                 | `str`          | Captura una captura de pantalla.                                                                                                |
@@ -117,111 +119,113 @@ A continuación se muestran ejemplos de código para usar cada tipo de fuente:
 
 !!! Example "Fuentes de predicción"
 
-    === "imagen"
-        Ejecute inferencia en un archivo de imagen.
-        ```python
-        from ultralytics import YOLO
+````
+=== "imagen"
+    Ejecute inferencia en un archivo de imagen.
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar el modelo YOLOv8n preentrenado
-        model = YOLO('yolov8n.pt')
+    # Cargar el modelo YOLOv8n preentrenado
+    model = YOLO('yolov8n.pt')
 
-        # Definir la ruta al archivo de imagen
-        source = 'ruta/a/imagen.jpg'
+    # Definir la ruta al archivo de imagen
+    source = 'ruta/a/imagen.jpg'
 
-        # Ejecutar inferencia en la fuente
-        results = model(source)  # lista de objetos Results
-        ```
+    # Ejecutar inferencia en la fuente
+    results = model(source)  # lista de objetos Results
+    ```
 
-    === "captura de pantalla"
-        Ejecute inferencia en el contenido actual de la pantalla como captura de pantalla.
-        ```python
-        from ultralytics import YOLO
+=== "captura de pantalla"
+    Ejecute inferencia en el contenido actual de la pantalla como captura de pantalla.
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar el modelo YOLOv8n preentrenado
-        model = YOLO('yolov8n.pt')
+    # Cargar el modelo YOLOv8n preentrenado
+    model = YOLO('yolov8n.pt')
 
-        # Definir captura de pantalla actual como fuente
-        source = 'screen'
+    # Definir captura de pantalla actual como fuente
+    source = 'screen'
 
-        # Ejecutar inferencia en la fuente
-        results = model(source)  # lista de objetos Results
-        ```
+    # Ejecutar inferencia en la fuente
+    results = model(source)  # lista de objetos Results
+    ```
 
-    === "URL"
-        Ejecute inferencia en una imagen o video alojados remotamente a través de URL.
-        ```python
-        from ultralytics import YOLO
+=== "URL"
+    Ejecute inferencia en una imagen o video alojados remotamente a través de URL.
+    ```python
+    from ultralytics import YOLO
 
-        # Cargar el modelo YOLOv8n preentrenado
-        model = YOLO('yolov8n.pt')
+    # Cargar el modelo YOLOv8n preentrenado
+    model = YOLO('yolov8n.pt')
 
-        # Definir URL remota de imagen o video
-        source = 'https://ultralytics.com/images/bus.jpg'
+    # Definir URL remota de imagen o video
+    source = 'https://ultralytics.com/images/bus.jpg'
 
-        # Ejecutar inferencia en la fuente
-        results = model(source)  # lista de objetos Results
-        ```
+    # Ejecutar inferencia en la fuente
+    results = model(source)  # lista de objetos Results
+    ```
 
-    === "PIL"
-        Ejecute inferencia en una imagen abierta con la Biblioteca de Imágenes de Python (PIL).
-        ```python
-        from PIL import Image
-        from ultralytics import YOLO
+=== "PIL"
+    Ejecute inferencia en una imagen abierta con la Biblioteca de Imágenes de Python (PIL).
+    ```python
+    from PIL import Image
+    from ultralytics import YOLO
 
-        # Cargar el modelo YOLOv8n preentrenado
-        model = YOLO('yolov8n.pt')
+    # Cargar el modelo YOLOv8n preentrenado
+    model = YOLO('yolov8n.pt')
 
-        # Abrir una imagen usando PIL
-        source = Image.open('ruta/a/imagen.jpg')
+    # Abrir una imagen usando PIL
+    source = Image.open('ruta/a/imagen.jpg')
 
-        # Ejecutar inferencia en la fuente
-        results = model(source)  # lista de objetos Results
-        ```
+    # Ejecutar inferencia en la fuente
+    results = model(source)  # lista de objetos Results
+    ```
 
-    === "OpenCV"
-        Ejecute inferencia en una imagen leída con OpenCV.
-        ```python
-        import cv2
-        from ultralytics import YOLO
+=== "OpenCV"
+    Ejecute inferencia en una imagen leída con OpenCV.
+    ```python
+    import cv2
+    from ultralytics import YOLO
 
-        # Cargar el modelo YOLOv8n preentrenado
-        model = YOLO('yolov8n.pt')
+    # Cargar el modelo YOLOv8n preentrenado
+    model = YOLO('yolov8n.pt')
 
-        # Leer una imagen usando OpenCV
-        source = cv2.imread('ruta/a/imagen.jpg')
+    # Leer una imagen usando OpenCV
+    source = cv2.imread('ruta/a/imagen.jpg')
 
-        # Ejecutar inferencia en la fuente
-        results = model(source)  # lista de objetos Results
-        ```
+    # Ejecutar inferencia en la fuente
+    results = model(source)  # lista de objetos Results
+    ```
 
-    === "numpy"
-        Ejecute inferencia en una imagen representada como un array de numpy.
-        ```python
-        import numpy as np
-        from ultralytics import YOLO
+=== "numpy"
+    Ejecute inferencia en una imagen representada como un array de numpy.
+    ```python
+    import numpy as np
+    from ultralytics import YOLO
 
-        # Cargar el modelo YOLOv8n preentrenado
-        model = YOLO('yolov8n.pt')
+    # Cargar el modelo YOLOv8n preentrenado
+    model = YOLO('yolov8n.pt')
 
-        # Crear un array aleatorio de numpy con forma HWC (640, 640, 3) con valores en rango [0, 255] y tipo uint8
-        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+    # Crear un array aleatorio de numpy con forma HWC (640, 640, 3) con valores en rango [0, 255] y tipo uint8
+    source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
 
-        # Ejecutar inferencia en la fuente
-        results = model(source)  # lista de objetos Results
-        ```
+    # Ejecutar inferencia en la fuente
+    results = model(source)  # lista de objetos Results
+    ```
 
-    === "torch"
-        Ejecute inferencia en una imagen representada como un tensor de PyTorch.
-        ```python
-        import torch
-        from ultralytics import YOLO
+=== "torch"
+    Ejecute inferencia en una imagen representada como un tensor de PyTorch.
+    ```python
+    import torch
+    from ultralytics import YOLO
 
-        # Cargar el modelo YOLOv8n preentrenado
-        model = YOLO('yolov8n.pt')
+    # Cargar el modelo YOLOv8n preentrenado
+    model = YOLO('yolov8n.pt')
 
-        # Crear un tensor aleatorio de torch con forma BCHW (1, 3, 640, 640) con valores en rango [0, 1] y tipo float32
-        source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+    # Crear un tensor aleatorio de torch con forma BCHW (1, 3, 640, 640) con valores en rango [0, 1] y tipo float32
+    source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
 
-        # Ejecutar inferencia en la fuente
-        results = model(source)  # lista de objetos Results
-        ```
+    # Ejecutar inferencia en la fuente
+    results = model(source)  # lista de objetos Results
+    ```
+````

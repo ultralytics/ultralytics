@@ -1,8 +1,6 @@
----
-comments: true
-description: Learn how to streamline and optimize your YOLOv8 model training with ClearML. This guide provides insights into integrating ClearML's MLOps tools for efficient model training, from initial setup to advanced experiment tracking and model management.
-keywords: Ultralytics, YOLOv8, Object Detection, ClearML, Model Training, MLOps, Experiment Tracking, Workflow Optimization
----
+______________________________________________________________________
+
+## comments: true description: Learn how to streamline and optimize your YOLOv8 model training with ClearML. This guide provides insights into integrating ClearML's MLOps tools for efficient model training, from initial setup to advanced experiment tracking and model management. keywords: Ultralytics, YOLOv8, Object Detection, ClearML, Model Training, MLOps, Experiment Tracking, Workflow Optimization
 
 # Training YOLOv8 with ClearML: Streamlining Your MLOps Workflow
 
@@ -28,12 +26,14 @@ To install the required packages, run:
 
 !!! Tip "Installation"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Install the required packages for YOLOv8 and ClearML
-        pip install ultralytics clearml
-        ```
+    ```bash
+    # Install the required packages for YOLOv8 and ClearML
+    pip install ultralytics clearml
+    ```
+````
 
 For detailed instructions and best practices related to the installation process, be sure to check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
@@ -45,12 +45,14 @@ Begin by initializing the ClearML SDK in your environment. The â€˜clearml-initâ€
 
 !!! Tip "Initial SDK Setup"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Initialize your ClearML SDK setup process
-        clearml-init
-        ```
+    ```bash
+    # Initialize your ClearML SDK setup process
+    clearml-init
+    ```
+````
 
 After executing this command, visit the [ClearML Settings page](https://app.clear.ml/settings/workspace-configuration). Navigate to the top right corner and select "Settings." Go to the "Workspace" section and click on "Create new credentials." Use the credentials provided in the "Create Credentials" pop-up to complete the setup as instructed, depending on whether you are configuring ClearML in a Jupyter Notebook or a local Python environment.
 
@@ -60,32 +62,34 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 !!! Example "Usage"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from clearml import Task
-        from ultralytics import YOLO
+    ```python
+    from clearml import Task
+    from ultralytics import YOLO
 
-        # Step 1: Creating a ClearML Task
-        task = Task.init(
-            project_name="my_project",
-            task_name="my_yolov8_task"
-        )
+    # Step 1: Creating a ClearML Task
+    task = Task.init(
+        project_name="my_project",
+        task_name="my_yolov8_task"
+    )
 
-        # Step 2: Selecting the YOLOv8 Model
-        model_variant = "yolov8n"
-        task.set_parameter("model_variant", model_variant)
+    # Step 2: Selecting the YOLOv8 Model
+    model_variant = "yolov8n"
+    task.set_parameter("model_variant", model_variant)
 
-        # Step 3: Loading the YOLOv8 Model
-        model = YOLO(f'{model_variant}.pt')
+    # Step 3: Loading the YOLOv8 Model
+    model = YOLO(f'{model_variant}.pt')
 
-        # Step 4: Setting Up Training Arguments
-        args = dict(data="coco128.yaml", epochs=16)
-        task.connect(args)
+    # Step 4: Setting Up Training Arguments
+    args = dict(data="coco128.yaml", epochs=16)
+    task.connect(args)
 
-        # Step 5: Initiating Model Training
-        results = model.train(**args)
-        ```
+    # Step 5: Initiating Model Training
+    results = model.train(**args)
+    ```
+````
 
 ### Understanding the Code
 
@@ -119,24 +123,29 @@ By clicking on the URL link to the ClearML results page in the output of the usa
 #### Key Features of the ClearML Results Page
 
 - **Real-Time Metrics Tracking**
-    - Track critical metrics like loss, accuracy, and validation scores as they occur.
-    - Provides immediate feedback for timely model performance adjustments.
+
+  - Track critical metrics like loss, accuracy, and validation scores as they occur.
+  - Provides immediate feedback for timely model performance adjustments.
 
 - **Experiment Comparison**
-    - Compare different training runs side-by-side.
-    - Essential for hyperparameter tuning and identifying the most effective models.
+
+  - Compare different training runs side-by-side.
+  - Essential for hyperparameter tuning and identifying the most effective models.
 
 - **Detailed Logs and Outputs**
-    - Access comprehensive logs, graphical representations of metrics, and console outputs.
-    - Gain a deeper understanding of model behavior and issue resolution.
+
+  - Access comprehensive logs, graphical representations of metrics, and console outputs.
+  - Gain a deeper understanding of model behavior and issue resolution.
 
 - **Resource Utilization Monitoring**
-    - Monitor the utilization of computational resources, including CPU, GPU, and memory.
-    - Key to optimizing training efficiency and costs.
+
+  - Monitor the utilization of computational resources, including CPU, GPU, and memory.
+  - Key to optimizing training efficiency and costs.
 
 - **Model Artifacts Management**
-    - View, download, and share model artifacts like trained models and checkpoints.
-    - Enhances collaboration and streamlines model deployment and sharing.
+
+  - View, download, and share model artifacts like trained models and checkpoints.
+  - Enhances collaboration and streamlines model deployment and sharing.
 
 For a visual walkthrough of what the ClearML Results Page looks like, watch the video below:
 

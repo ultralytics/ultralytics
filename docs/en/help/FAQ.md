@@ -1,8 +1,6 @@
----
-comments: true
-description: Find solutions to your common Ultralytics YOLO related queries. Learn about hardware requirements, fine-tuning YOLO models, conversion to ONNX/TensorFlow, and more.
-keywords: Ultralytics, YOLO, FAQ, hardware requirements, ONNX, TensorFlow, real-time detection, YOLO accuracy
----
+______________________________________________________________________
+
+## comments: true description: Find solutions to your common Ultralytics YOLO related queries. Learn about hardware requirements, fine-tuning YOLO models, conversion to ONNX/TensorFlow, and more. keywords: Ultralytics, YOLO, FAQ, hardware requirements, ONNX, TensorFlow, real-time detection, YOLO accuracy
 
 # Ultralytics YOLO Frequently Asked Questions (FAQ)
 

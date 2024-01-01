@@ -1,8 +1,6 @@
----
-comments: true
-description: Discover the versatile Tiger-Pose dataset, perfect for testing and debugging pose detection models. Learn how to get started with YOLOv8-pose model training.
-keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, model training, YAML
----
+______________________________________________________________________
+
+## comments: true description: Discover the versatile Tiger-Pose dataset, perfect for testing and debugging pose detection models. Learn how to get started with YOLOv8-pose model training. keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, model training, YAML
 
 # Tiger-Pose Dataset
 
@@ -12,8 +10,7 @@ keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, mode
 
 Despite its manageable size of 210 images, tiger-pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for pose estimation.
 
-This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.com)
-and [YOLOv8](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.com) and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 <p align="center">
   <br>
@@ -32,9 +29,11 @@ A YAML (Yet Another Markup Language) file serves as the means to specify the con
 
 !!! Example "ultralytics/cfg/datasets/tiger-pose.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/tiger-pose.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/tiger-pose.yaml"
+```
+````
 
 ## Usage
 
@@ -42,24 +41,26 @@ To train a YOLOv8n-pose model on the Tiger-Pose dataset for 100 epochs with an i
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='tiger-pose.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='tiger-pose.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo task=pose mode=train data=tiger-pose.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo task=pose mode=train data=tiger-pose.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Images and Annotations
 
@@ -75,24 +76,26 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
 
 !!! Example "Inference Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('path/to/best.pt')  # load a tiger-pose trained model
+    # Load a model
+    model = YOLO('path/to/best.pt')  # load a tiger-pose trained model
 
-        # Run inference
-        results = model.predict(source="https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUYdGlnZXIgd2Fsa2luZyByZWZlcmVuY2Ug" show=True)
-        ```
+    # Run inference
+    results = model.predict(source="https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUYdGlnZXIgd2Fsa2luZyByZWZlcmVuY2Ug" show=True)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Run inference using a tiger-pose trained model
-        yolo task=pose mode=predict source="https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUYdGlnZXIgd2Fsa2luZyByZWZlcmVuY2Ug" show=True model="path/to/best.pt"
-        ```
+    ```bash
+    # Run inference using a tiger-pose trained model
+    yolo task=pose mode=predict source="https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUYdGlnZXIgd2Fsa2luZyByZWZlcmVuY2Ug" show=True model="path/to/best.pt"
+    ```
+````
 
 ## Citations and Acknowledgments
 

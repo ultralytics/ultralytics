@@ -1,8 +1,6 @@
----
-comments: true
-description: Aprenda a avaliar a velocidade e a precisão do YOLOv8 em diversos formatos de exportação; obtenha informações sobre métricas mAP50-95, accuracy_top5 e mais.
-keywords: Ultralytics, YOLOv8, benchmarking, perfilagem de velocidade, perfilagem de precisão, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, formatos de exportação YOLO
----
+______________________________________________________________________
+
+## comments: true description: Aprenda a avaliar a velocidade e a precisão do YOLOv8 em diversos formatos de exportação; obtenha informações sobre métricas mAP50-95, accuracy_top5 e mais. keywords: Ultralytics, YOLOv8, benchmarking, perfilagem de velocidade, perfilagem de precisão, mAP50-95, accuracy_top5, ONNX, OpenVINO, TensorRT, formatos de exportação YOLO
 
 # Benchmarking de Modelos com o Ultralytics YOLO
 
@@ -34,8 +32,10 @@ Uma vez que seu modelo esteja treinado e validado, o próximo passo lógico é a
 
 !!! Tip "Dica"
 
-    * Exporte para ONNX ou OpenVINO para acelerar até 3x a velocidade em CPU.
-    * Exporte para TensorRT para acelerar até 5x em GPU.
+```
+* Exporte para ONNX ou OpenVINO para acelerar até 3x a velocidade em CPU.
+* Exporte para TensorRT para acelerar até 5x em GPU.
+```
 
 ## Exemplos de Uso
 
@@ -43,40 +43,42 @@ Execute benchmarks do YOLOv8n em todos os formatos de exportação suportados in
 
 !!! Example "Exemplo"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # Benchmark na GPU
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # Benchmark na GPU
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## Argumentos
 
 Argumentos como `model`, `data`, `imgsz`, `half`, `device` e `verbose` proporcionam aos usuários flexibilidade para ajustar os benchmarks às suas necessidades específicas e comparar o desempenho de diferentes formatos de exportação com facilidade.
 
 | Chave     | Valor   | Descrição                                                                              |
-|-----------|---------|----------------------------------------------------------------------------------------|
+| --------- | ------- | -------------------------------------------------------------------------------------- |
 | `model`   | `None`  | caminho para o arquivo do modelo, ou seja, yolov8n.pt, yolov8n.yaml                    |
 | `data`    | `None`  | caminho para o YAML com dataset de benchmarking (sob o rótulo `val`)                   |
 | `imgsz`   | `640`   | tamanho da imagem como um escalar ou lista (h, w), ou seja, (640, 480)                 |
 | `half`    | `False` | quantização FP16                                                                       |
 | `int8`    | `False` | quantização INT8                                                                       |
 | `device`  | `None`  | dispositivo para execução, ou seja, dispositivo cuda=0 ou device=0,1,2,3 ou device=cpu |
-| `verbose` | `False` | não continuar em erro (bool), ou limiar mínimo para val (float)                        |
+| `verbose` | `False` | não continuar em error (bool), ou limiar mínimo para val (float)                        |
 
 ## Formatos de Exportação
 
 Os benchmarks tentarão executar automaticamente em todos os possíveis formatos de exportação listados abaixo.
 
 | Formato                                                               | Argumento `format` | Modelo                    | Metadados | Argumentos                                          |
-|-----------------------------------------------------------------------|--------------------|---------------------------|-----------|-----------------------------------------------------|
+| --------------------------------------------------------------------- | ------------------ | ------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                       | -                  | `yolov8n.pt`              | ✅         | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)               | `torchscript`      | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                              | `onnx`             | `yolov8n.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

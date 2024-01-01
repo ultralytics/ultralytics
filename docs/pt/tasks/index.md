@@ -1,19 +1,19 @@
----
-comments: true
-description: Aprenda sobre as principais tarefas de visão computacional que o YOLOv8 pode realizar, incluindo detecção, segmentação, classificação e estimativa de pose. Entenda seus usos em seus projetos de IA.
-keywords: Ultralytics, YOLOv8, Detecção, Segmentação, Classificação, Estimativa de Pose, Framework de IA, Tarefas de Visão Computacional
----
+______________________________________________________________________
+
+## comments: true description: Aprenda sobre as principais tarefas de visão computacional que o YOLOv8 pode realizar, incluindo detecção, segmentação, classificação e estimativa de pose. Entenda seus usos em seus projetos de IA. keywords: Ultralytics, YOLOv8, Detecção, Segmentação, Classificação, Estimativa de Pose, Framework de IA, Tarefas de Visão Computacional
 
 # Tarefas do Ultralytics YOLOv8
 
 <br>
 <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png" alt="Tarefas suportadas pelo Ultralytics YOLO">
 
-YOLOv8 é um framework de IA que suporta múltiplas tarefas de **visão computacional**. O framework pode ser usado para realizar [detecção](detect.md), [segmentação](segment.md), [classificação](classify.md) e estimativa de [pose](pose.md). Cada uma dessas tarefas tem um objetivo e caso de uso diferente.
+YOLOv8 é um framework de IA que suporta múltiplas tarefas de **visão computacional**. O framework pode set usado para realizar [detecção](detect.md), [segmentação](segment.md), [classificação](classify.md) e estimativa de [pose](pose.md). Cada uma dessas tarefas tem um objetivo e caso de uso diferente.
 
 !!! Note "Nota"
 
-    🚧 Nossa documentação multilíngue está atualmente em construção e estamos trabalhando para aprimorá-la. Agradecemos sua paciência! 🙏
+```
+🚧 Nossa documentação multilíngue está atualmente em construção e estamos trabalhando para aprimorá-la. Agradecemos sua paciência! 🙏
+```
 
 <p align="center">
   <br>
@@ -40,7 +40,7 @@ Segmentação é uma tarefa que envolve segmentar uma imagem em diferentes regi�
 
 ## [Classificação](classify.md)
 
-Classificação é uma tarefa que envolve classificar uma imagem em diferentes categorias. YOLOv8 pode ser usado para classificar imagens com base em seu conteúdo. Utiliza uma variante da arquitetura EfficientNet para realizar a classificação.
+Classificação é uma tarefa que envolve classificar uma imagem em diferentes categorias. YOLOv8 pode set usado para classificar imagens com base em seu conteúdo. Utilize uma variante da arquitetura EfficientNet para realizar a classificação.
 
 [Exemplos de Classificação](classify.md){ .md-button }
 

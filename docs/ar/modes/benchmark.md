@@ -1,8 +1,6 @@
----
-comments: true
-description: تعرف على كيفية قياس سرعة ودقة YOLOv8 عبر تنسيقات التصدير المختلفة. احصل على رؤى حول مقاييس mAP50-95 وaccuracy_top5 والمزيد.
-keywords: Ultralytics، YOLOv8، اختبار الأداء، قياس السرعة، قياس الدقة، مقاييس mAP50-95 وaccuracy_top5، ONNX، OpenVINO، TensorRT، تنسيقات تصدير YOLO
----
+______________________________________________________________________
+
+## comments: true description: تعرف على كيفية قياس سرعة ودقة YOLOv8 عبر تنسيقات التصدير المختلفة. احصل على رؤى حول مقاييس mAP50-95 وaccuracy_top5 والمزيد. keywords: Ultralytics، YOLOv8، اختبار الأداء، قياس السرعة، قياس الدقة، مقاييس mAP50-95 وaccuracy_top5، ONNX، OpenVINO، TensorRT، تنسيقات تصدير YOLO
 
 # اختبار النموذج باستخدام Ultralytics YOLO
 
@@ -34,8 +32,10 @@ keywords: Ultralytics، YOLOv8، اختبار الأداء، قياس السرع
 
 !!! Tip "نصيحة"
 
-    * قم بتصدير إلى نموذج ONNX أو OpenVINO لزيادة سرعة وحدة المعالجة المركزية بمقدار 3 مرات.
-    * قم بتصدير إلى نموذج TensorRT لزيادة سرعة وحدة المعالجة الرسومية بمقدار 5 مرات.
+```
+* قم بتصدير إلى نموذج ONNX أو OpenVINO لزيادة سرعة وحدة المعالجة المركزية بمقدار 3 مرات.
+* قم بتصدير إلى نموذج TensorRT لزيادة سرعة وحدة المعالجة الرسومية بمقدار 5 مرات.
+```
 
 ## أمثلة على الاستخدام
 
@@ -43,26 +43,28 @@ keywords: Ultralytics، YOLOv8، اختبار الأداء، قياس السرع
 
 !!! Example "مثال"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # اختبار على وحدة المعالجة الرسومية
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # اختبار على وحدة المعالجة الرسومية
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## وسيطات
 
 توفر الوسائط مثل `model` و `data` و `imgsz` و `half` و `device` و `verbose` مرونة للمستخدمين لضبط الاختبارات حسب احتياجاتهم المحددة ومقارنة أداء تنسيقات التصدير المختلفة بسهولة.
 
 | المفتاح   | القيمة  | الوصف                                                                                             |
-|-----------|---------|---------------------------------------------------------------------------------------------------|
+| --------- | ------- | ------------------------------------------------------------------------------------------------- |
 | `model`   | `None`  | مسار إلى ملف النموذج ، على سبيل المثال yolov8n.pt ، yolov8n.yaml                                  |
 | `data`    | `None`  | مسار إلى YAML يشير إلى مجموعة بيانات اختبار الأداء (بتحتوى على بيانات `val`)                      |
 | `imgsz`   | `640`   | حجم الصورة كرقم ، أو قائمة (h ، w) ، على سبيل المثال (640، 480)                                   |
@@ -76,7 +78,7 @@ keywords: Ultralytics، YOLOv8، اختبار الأداء، قياس السرع
 سيحاول التطبيق تشغيل الاختبارات تلقائيًا على جميع صيغ التصدير الممكنة الموجودة أدناه.
 
 | Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
-|--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ------------------------- | -------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

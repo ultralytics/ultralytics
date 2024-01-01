@@ -1,8 +1,6 @@
----
-comments: true
-description: UltralyticsがサポートするYOLOファミリー、SAM、MobileSAM、FastSAM、YOLO-NAS、RT-DETRモデルの多様な範囲を探索し、CLIおよびPythonの使用例で始めましょう。
-keywords: Ultralytics, ドキュメント, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, モデル, アーキテクチャ, Python, CLI
----
+______________________________________________________________________
+
+## comments: true description: UltralyticsがサポートするYOLOファミリー、SAM、MobileSAM、FastSAM、YOLO-NAS、RT-DETRモデルの多様な範囲を探索し、CLIおよびPythonの使用例で始めましょう。 keywords: Ultralytics, ドキュメント, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, モデル, アーキテクチャ, Python, CLI
 
 # Ultralyticsがサポートするモデル
 
@@ -10,21 +8,23 @@ Ultralyticsのモデルドキュメントへようこそ！我々は、[オブ�
 
 !!! Note "注意"
 
-    🚧 現在、さまざまな言語でのドキュメントを構築中であり、改善に努めています。ご理解ありがとうございます！🙏
+```
+🚧 現在、さまざまな言語でのドキュメントを構築中であり、改善に努めています。ご理解ありがとうございます！🙏
+```
 
 ## 特集モデル
 
 ここではサポートされている主要なモデルをいくつか紹介します：
 
-1. **[YOLOv3](yolov3.md)**：Joseph RedmonによるYOLOモデルファミリーの第三世代で、効率的なリアルタイムオブジェクト検出能力で知られています。
-2. **[YOLOv4](yolov4.md)**：2020年にAlexey BochkovskiyによってリリースされたYOLOv3のdarknetネイティブアップデートです。
-3. **[YOLOv5](yolov5.md)**：UltralyticsによるYOLOアーキテクチャの改良版で、以前のバージョンと比較してパフォーマンスと速度のトレードオフが向上しています。
-4. **[YOLOv6](yolov6.md)**：2022年に[美団](https://about.meituan.com/)によってリリースされ、同社の多数の自動配送ロボットで使用されています。
-5. **[YOLOv7](yolov7.md)**：YOLOv4の著者によって2022年にリリースされたYOLOモデルのアップデートです。
-6. **[YOLOv8](yolov8.md) 新機能 🚀**：YOLOファミリーの最新バージョンで、例えばインスタンスセグメンテーション、ポーズ/キーポイント推定、分類などの機能が強化されています。
-7. **[Segment Anything Model (SAM)](sam.md)**：MetaのSegment Anything Model (SAM)です。
-8. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**：慶應義塾大学によるモバイルアプリケーションのためのMobileSAMです。
-9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**：中国科学院自動化研究所、画像及びビデオ解析グループのFastSAMです。
+01. **[YOLOv3](yolov3.md)**：Joseph RedmonによるYOLOモデルファミリーの第三世代で、効率的なリアルタイムオブジェクト検出能力で知られています。
+02. **[YOLOv4](yolov4.md)**：2020年にAlexey BochkovskiyによってリリースされたYOLOv3のdarknetネイティブアップデートです。
+03. **[YOLOv5](yolov5.md)**：UltralyticsによるYOLOアーキテクチャの改良版で、以前のバージョンと比較してパフォーマンスと速度のトレードオフが向上しています。
+04. **[YOLOv6](yolov6.md)**：2022年に[美団](https://about.meituan.com/)によってリリースされ、同社の多数の自動配送ロボットで使用されています。
+05. **[YOLOv7](yolov7.md)**：YOLOv4の著者によって2022年にリリースされたYOLOモデルのアップデートです。
+06. **[YOLOv8](yolov8.md) 新機能 🚀**：YOLOファミリーの最新バージョンで、例えばインスタンスセグメンテーション、ポーズ/キーポイント推定、分類などの機能が強化されています。
+07. **[Segment Anything Model (SAM)](sam.md)**：MetaのSegment Anything Model (SAM)です。
+08. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**：慶應義塾大学によるモバイルアプリケーションのためのMobileSAMです。
+09. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**：中国科学院自動化研究所、画像及びビデオ解析グループのFastSAMです。
 10. **[YOLO-NAS](yolo-nas.md)**：YOLO Neural Architecture Search (NAS)モデルです。
 11. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**：百度のPaddlePaddle Realtime Detection Transformer (RT-DETR)モデルです。
 
@@ -47,37 +47,39 @@ Ultralyticsのモデルドキュメントへようこそ！我々は、[オブ�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        PyTorchの事前訓練済み`*.pt`モデルや構成`*.yaml`ファイルは、`YOLO()`、`SAM()`、`NAS()`、`RTDETR()`クラスに渡して、Pythonでモデルインスタンスを作成することができます：
+    PyTorchの事前訓練済み`*.pt`モデルや構成`*.yaml`ファイルは、`YOLO()`、`SAM()`、`NAS()`、`RTDETR()`クラスに渡して、Pythonでモデルインスタンスを作成することができます：
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # COCOで事前訓練されたYOLOv8nモデルをロードする
-        model = YOLO('yolov8n.pt')
+    # COCOで事前訓練されたYOLOv8nモデルをロードする
+    model = YOLO('yolov8n.pt')
 
-        # モデル情報を表示する（任意）
-        model.info()
+    # モデル情報を表示する（任意）
+    model.info()
 
-        # モデルをCOCO8の例示データセットで100エポックトレーニングする
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # モデルをCOCO8の例示データセットで100エポックトレーニングする
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # 'bus.jpg'画像でYOLOv8nモデルを用いた推論を実行する
-        results = model('path/to/bus.jpg')
-        ```
+    # 'bus.jpg'画像でYOLOv8nモデルを用いた推論を実行する
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        モデルを直接実行するためのCLIコマンドが利用可能です：
+    モデルを直接実行するためのCLIコマンドが利用可能です：
 
-        ```bash
-        # COCOで事前訓練されたYOLOv8nモデルをロードし、COCO8の例示データセットで100エポックトレーニングする
-        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # COCOで事前訓練されたYOLOv8nモデルをロードし、COCO8の例示データセットで100エポックトレーニングする
+    yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # COCOで事前訓練されたYOLOv8nモデルをロードし、'bus.jpg'画像で推論を実行する
-        yolo predict model=yolov8n.pt source=path/to/bus.jpg
-        ```
+    # COCOで事前訓練されたYOLOv8nモデルをロードし、'bus.jpg'画像で推論を実行する
+    yolo predict model=yolov8n.pt source=path/to/bus.jpg
+    ```
+````
 
 ## 新しいモデルの貢献
 

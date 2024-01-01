@@ -1,8 +1,6 @@
----
-comments: true
-description: 了解 YOLOv8 能够执行的基础计算机视觉任务，包括检测、分割、分类和姿态估计。理解它们在你的 AI 项目中的应用。
-keywords: Ultralytics, YOLOv8, 检测, 分割, 分类, 姿态估计, AI 框架, 计算机视觉任务
----
+______________________________________________________________________
+
+## comments: true description: 了解 YOLOv8 能够执行的基础计算机视觉任务，包括检测、分割、分类和姿态估计。理解它们在你的 AI 项目中的应用。 keywords: Ultralytics, YOLOv8, 检测, 分割, 分类, 姿态估计, AI 框架, 计算机视觉任务
 
 # Ultralytics YOLOv8 任务
 

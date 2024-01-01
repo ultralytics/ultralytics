@@ -1,6 +1,8 @@
-from ultralytics import YOLO
-import streamlit as st
 import cv2
+import streamlit as st
+
+from ultralytics import YOLO
+
 
 # load model function (#used)
 def load_model(model_path):
@@ -16,14 +18,16 @@ def load_model(model_path):
     model = YOLO(model_path)
     return model
 
+
 # display tracker option (#used)
 def display_tracker_options():
-    display_tracker = st.radio("Display Tracker", ('Yes', 'No'))
+    display_tracker = st.radio('Display Tracker', ('Yes', 'No'))
     is_display_tracker = True if display_tracker == 'Yes' else False
     if is_display_tracker:
-        tracker_type = st.radio("Tracker", ("bytetrack.yaml", "botsort.yaml"))
+        tracker_type = st.radio('Tracker', ('bytetrack.yaml', 'botsort.yaml'))
         return is_display_tracker, tracker_type
     return is_display_tracker, None
+
 
 # detected frames display (#used)
 def display_detected_frames(conf, model, st_frame, image):
@@ -42,17 +46,12 @@ def display_detected_frames(conf, model, st_frame, image):
     """
 
     # Resize the image to a standard size
-    image = cv2.resize(image, (720, int(720*(9/16))))
+    image = cv2.resize(image, (720, int(720 * (9 / 16))))
 
     # Display object tracking, if specified
-        # Predict the objects in the image using the YOLOv8 model
+    # Predict the objects in the image using the YOLOv8 model
     res = model.predict(image, conf=conf)
 
     # # Plot the detected objects on the video frame
     res_plotted = res[0].plot()
-    st_frame.image(res_plotted,
-                   caption='Detected Video',
-                   channels="BGR",
-                   use_column_width=True
-                   )
-    
+    st_frame.image(res_plotted, caption='Detected Video', channels='BGR', use_column_width=True)

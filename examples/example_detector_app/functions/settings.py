@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Get the absolute path of the current file
 file_path = Path(__file__).resolve()
@@ -43,7 +43,7 @@ ROOT = root_path.relative_to(Path.cwd())
 # MODEL_DIR = ROOT / 'weights'
 DETECTION_MODEL = 'C:\\Users\\BAB AL SAFA\\Desktop\\MINE\\Detector-App\\weights\\yolov8n.pt'
 # In case of your custome model comment out the line above and
-# Place your custom model pt file name at the line below 
+# Place your custom model pt file name at the line below
 # DETECTION_MODEL = MODEL_DIR / 'my_detection_model.pt'
 
 # SEGMENTATION_MODEL = MODEL_DIR / 'yolov8n-seg.pt'

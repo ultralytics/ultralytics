@@ -54,13 +54,9 @@ ABOUT_APP = '''
                     <i>NB: Test the app automatically here:</i>
         </div>'''
 
-
-
-
-
 ABOUT_DEV = '''
-        <div class="nice-div">          
-                    <br/>   
+        <div class="nice-div">
+                    <br/>
                     I am a passionate and results-driven Data Scientist with a strong background in analyzing complex data sets and deriving valuable insights to drive business growth. With a deep understanding of machine learning algorithms, and data visualization techniques,
                     I thrive on solving intricate problems and uncovering hidden patterns to optimize decision-making processes.
                     <br/>
@@ -93,8 +89,6 @@ ABOUT_DEV = '''
             </div>
                 '''
 
-
-
 STYLE = '''
         <style>
             .nice-div {
@@ -111,7 +105,7 @@ STYLE = '''
                 font-family: 'Pacifico', cursive;
                 font-size: 20px;
                 color: #003366;
-                
+
                 height: 100vh;
             }
             a {
@@ -121,12 +115,11 @@ STYLE = '''
             }
         </style>'''
 
-
 LINK = '''
         <head>
                 <!-- Add font awesome icon library -->
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        </head>   
+        </head>
                 <div class="links">
                     <b> Follow/Reach out to me on:<b>
                     <ul>
@@ -135,5 +128,3 @@ LINK = '''
                     </ul>
                 </div>
                 '''
-
-

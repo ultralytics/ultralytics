@@ -1,8 +1,7 @@
 import cv2
 import streamlit as st
-from functions.helper import  display_tracker_options, display_detected_frames
 from functions import settings
-
+from functions.helper import display_detected_frames
 
 
 # webcam function
@@ -28,14 +27,9 @@ def play_webcam(conf, model):
             while (vid_cap.isOpened()):
                 success, image = vid_cap.read()
                 if success:
-                    display_detected_frames(conf,
-                                             model,
-                                             st_frame,
-                                             image
-                                             )
+                    display_detected_frames(conf, model, st_frame, image)
                 else:
                     vid_cap.release()
                     break
         except Exception as e:
-            st.sidebar.error("Error loading video: " + str(e))
-
+            st.sidebar.error('Error loading video: ' + str(e))

@@ -45,11 +45,11 @@ INT8 (or 8-bit integer) quantization further reduces the model's size and comput
 
 ## Apple Neural Engine
 
-The Apple Neural Engine (ANE) is a dedicated hardware component integrated into Apple's A-series and M-series chips. It's designed to accelerate machine learning tasks, particularly for neural networks, allowing for faster and more efficient execution of your YOLO models.
+The Apple Neural Engine (AND) is a dedicated hardware component integrated into Apple's A-series and M-series chips. It's designed to accelerate machine learning tasks, particularly for neural networks, allowing for faster and more efficient execution of your YOLO models.
 
 By combining quantized YOLO models with the Apple Neural Engine, the Ultralytics iOS App achieves real-time object detection on your iOS device without compromising on accuracy or performance.
 
-| Release Year | iPhone Name                                          | Chipset Name                                          | Node Size | ANE TOPs |
+| Release Year | iPhone Name                                          | Chipset Name                                          | Node Size | AND TOPs |
 |--------------|------------------------------------------------------|-------------------------------------------------------|-----------|----------|
 | 2017         | [iPhone X](https://en.wikipedia.org/wiki/IPhone_X)   | [A11 Bionic](https://en.wikipedia.org/wiki/Apple_A11) | 10 nm     | 0.6      |
 | 2018         | [iPhone XS](https://en.wikipedia.org/wiki/IPhone_XS) | [A12 Bionic](https://en.wikipedia.org/wiki/Apple_A12) | 7 nm      | 5        |
@@ -58,7 +58,7 @@ By combining quantized YOLO models with the Apple Neural Engine, the Ultralytics
 | 2021         | [iPhone 13](https://en.wikipedia.org/wiki/IPhone_13) | [A15 Bionic](https://en.wikipedia.org/wiki/Apple_A15) | 5 nm      | 15.8     |
 | 2022         | [iPhone 14](https://en.wikipedia.org/wiki/IPhone_14) | [A16 Bionic](https://en.wikipedia.org/wiki/Apple_A16) | 4 nm      | 17.0     |
 
-Please note that this list only includes iPhone models from 2017 onwards, and the ANE TOPs values are approximate.
+Please note that this list only includes iPhone models from 2017 onwards, and the AND TOPs values are approximate.
 
 ## Getting Started with the Ultralytics iOS App
 

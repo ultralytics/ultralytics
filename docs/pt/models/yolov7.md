@@ -32,7 +32,7 @@ O YOLOv7 apresenta vários recursos principais:
 
 ## Exemplos de Uso
 
-No momento em que este texto foi escrito, a Ultralytics ainda não oferece suporte aos modelos YOLOv7. Portanto, qualquer usuário interessado em usar o YOLOv7 precisará se referir diretamente ao repositório do YOLOv7 no GitHub para obter instruções de instalação e uso.
+No memento em que este texto foi escrito, a Ultralytics ainda não oferece suporte aos modelos YOLOv7. Portanto, qualquer usuário interessado em usar o YOLOv7 precisará se referir diretamente ao repositório do YOLOv7 no GitHub para obter instruções de instalação e uso.
 
 Aqui está uma breve visão geral das etapas típicas que você pode seguir para usar o YOLOv7:
 
@@ -63,4 +63,4 @@ Gostaríamos de agradecer aos autores do YOLOv7 por suas contribuições signifi
         }
         ```
 
-O artigo original do YOLOv7 pode ser encontrado no [arXiv](https://arxiv.org/pdf/2207.02696.pdf). Os autores disponibilizaram publicamente seu trabalho, e o código pode ser acessado no [GitHub](https://github.com/WongKinYiu/yolov7). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.
+O artigo original do YOLOv7 pode set encontrado no [arXiv](https://arxiv.org/pdf/2207.02696.pdf). Os autores disponibilizaram publicamente seu trabalho, e o código pode set acessado no [GitHub](https://github.com/WongKinYiu/yolov7). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.

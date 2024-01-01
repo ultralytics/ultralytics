@@ -12,14 +12,14 @@ O Meituan YOLOv6 é um detector de objetos de ponta que oferece um equilíbrio n
 
 ![Meituan YOLOv6](https://user-images.githubusercontent.com/26833433/240750495-4da954ce-8b3b-41c4-8afd-ddb74361d3c2.png)
 ![Modelo exemplo de imagem](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png)
-**Visão geral do YOLOv6.** Diagrama da arquitetura do modelo mostrando os componentes de rede redesenhados e as estratégias de treinamento que levaram a melhorias significativas no desempenho. (a) O pescoço do YOLOv6 (N e S são mostrados). RepBlocks é substituída por CSPStackRep para M/L. (b) A estrutura de um módulo BiC. (c) Um bloco SimCSPSPPF. ([fonte](https://arxiv.org/pdf/2301.05586.pdf)).
+**Visão geral do YOLOv6.** Diagram da arquitetura do modelo mostrando os components de rede redesenhados e as estratégias de treinamento que levaram a melhorias significativas no desempenho. (a) O pescoço do YOLOv6 (N e S são mostrados). RepBlocks é substituída por CSPStackRep para M/L. (b) A estrutura de um módulo BiC. (c) Um bloco SimCSPSPPF. ([fonte](https://arxiv.org/pdf/2301.05586.pdf)).
 
 ### Principais Características
 
 - **Módulo de Concatenação Bidirecional (BiC):** O YOLOv6 introduz um módulo BiC no pescoço do detector, aprimorando os sinais de localização e oferecendo ganhos de desempenho com uma degradação de velocidade insignificante.
 - **Estratégia de Treinamento Assistido por Âncora (AAT):** Este modelo propõe AAT para aproveitar os benefícios dos paradigmas baseados em âncoras e sem âncoras sem comprometer a eficiência da inferência.
 - **Design de Espinha Dorsal e Pescoço Aprimorado:** Ao aprofundar o YOLOv6 para incluir mais uma etapa na espinha dorsal e no pescoço, este modelo alcança desempenho de última geração no conjunto de dados COCO com entrada de alta resolução.
-- **Estratégia de Auto-Destilação:** Uma nova estratégia de auto-destilação é implementada para aumentar o desempenho de modelos menores do YOLOv6, aprimorando o ramo auxiliar de regressão durante o treinamento e removendo-o durante a inferência para evitar uma queda significativa na velocidade.
+- **Estratégia de Auto-Destilação:** Uma nova estratégia de auto-destilação é implementada para aumentar o desempenho de modelos menores do YOLOv6, aprimorando o ramo auxiliary de regressão durante o treinamento e removendo-o durante a inferência para evitar uma queda significativa na velocidade.
 
 ## Métricas de Desempenho
 
@@ -41,7 +41,7 @@ Este exemplo fornece exemplos simples de treinamento e inferência do YOLOv6. Pa
 
     === "Python"
 
-        Modelos pré-treinados `*.pt` do PyTorch, assim como arquivos de configuração `*.yaml`, podem ser passados à classe `YOLO()` para criar uma instância do modelo em Python:
+        Modelos pré-treinados `*.pt` do PyTorch, assim como arquivos de configuração `*.yaml`, podem set passados à classe `YOLO()` para criar uma instância do modelo em Python:
 
         ```python
         from ultralytics import YOLO
@@ -61,7 +61,7 @@ Este exemplo fornece exemplos simples de treinamento e inferência do YOLOv6. Pa
 
     === "CLI"
 
-        Comandos da CLI estão disponíveis para executar diretamente os modelos:
+        Commandos da CLI estão disponíveis para executar diretamente os modelos:
 
         ```bash
         # Constrói um modelo YOLOv6n do zero e o treina no conjunto de dados de exemplo COCO8 por 100 épocas
@@ -104,4 +104,4 @@ Gostaríamos de agradecer aos autores por suas contribuições significativas no
         }
         ```
 
-    O artigo original do YOLOv6 pode ser encontrado no [arXiv](https://arxiv.org/abs/2301.05586). Os autores disponibilizaram publicamente seu trabalho, e o código pode ser acessado no [GitHub](https://github.com/meituan/YOLOv6). Agradecemos seus esforços em avançar no campo e disponibilizar seu trabalho para a comunidade em geral.
+    O artigo original do YOLOv6 pode set encontrado no [arXiv](https://arxiv.org/abs/2301.05586). Os autores disponibilizaram publicamente seu trabalho, e o código pode set acessado no [GitHub](https://github.com/meituan/YOLOv6). Agradecemos seus esforços em avançar no campo e disponibilizar seu trabalho para a comunidade em geral.

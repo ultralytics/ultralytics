@@ -1,29 +1,29 @@
 ---
 comments: true
 description: ¡Explora las emocionantes características de YOLOv8, la última versión de nuestro detector de objetos en tiempo real! Aprende cómo las arquitecturas avanzadas, los modelos preentrenados y el equilibrio óptimo entre precisión y velocidad hacen de YOLOv8 la elección perfecta para tus tareas de detección de objetos.
-keywords: YOLOv8, Ultralytics, detector de objetos en tiempo real, modelos preentrenados, documentación, detección de objetos, serie YOLO, arquitecturas avanzadas, precisión, velocidad
+keywords: YOLOv8, Ultralytics, detector de objetos en tiempo real, modelos preentrenados, documentación, detección de objetos, series YOLO, arquitecturas avanzadas, precisión, velocidad
 ---
 
 # YOLOv8
 
 ## Descripción general
 
-YOLOv8 es la última versión de la serie YOLO de detectores de objetos en tiempo real, ofreciendo un rendimiento de vanguardia en términos de precisión y velocidad. Basándose en los avances de las versiones anteriores de YOLO, YOLOv8 presenta nuevas características y optimizaciones que lo convierten en una opción ideal para diversas tareas de detección de objetos en una amplia gama de aplicaciones.
+YOLOv8 es la última versión de la series YOLO de detectores de objetos en tiempo real, ofreciendo un rendimiento de vanguardia en términos de precisión y velocidad. Basándose en los advances de las versiones anteriores de YOLO, YOLOv8 presenta nuevas características y optimizaciones que lo convierten en una opción ideal para diversas tareas de detección de objetos en una amplia gama de aplicaciones.
 
 ![Ultralytics YOLOv8](https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png)
 
 ## Características principales
 
-- **Arquitecturas avanzadas de columna vertebral y cuello:** YOLOv8 utiliza arquitecturas de columna vertebral y cuello de última generación, lo que resulta en una mejor extracción de características y rendimiento de detección de objetos.
+- **Arquitecturas avanzadas de columna vertebral y cuello:** YOLOv8 utilize arquitecturas de columna vertebral y cuello de última generación, lo que resulta en una mejor extracción de características y rendimiento de detección de objetos.
 - **Cabeza Ultralytics dividida sin anclaje:** YOLOv8 adopta una cabeza Ultralytics dividida sin anclaje, lo que contribuye a una mejor precisión y a un proceso de detección más eficiente en comparación con los enfoques basados en anclaje.
 - **Equilibrio optimizado entre precisión y velocidad:** Con un enfoque en mantener un equilibrio óptimo entre precisión y velocidad, YOLOv8 es adecuado para tareas de detección de objetos en tiempo real en diversas áreas de aplicación.
 - **Variedad de modelos preentrenados:** YOLOv8 ofrece una variedad de modelos preentrenados para adaptarse a diversas tareas y requisitos de rendimiento, lo que facilita encontrar el modelo adecuado para tu caso de uso específico.
 
 ## Tareas y modos compatibles
 
-La serie YOLOv8 ofrece una amplia gama de modelos, cada uno especializado en tareas específicas en visión por computadora. Estos modelos están diseñados para adaptarse a diversos requisitos, desde la detección de objetos hasta tareas más complejas como la segmentación de instancias, la detección de poses/puntos clave y la clasificación.
+La series YOLOv8 ofrece una amplia gama de modelos, cada uno especializado en tareas específicas en visión por computadora. Estos modelos están diseñados para adaptarse a diversos requisitos, desde la detección de objetos hasta tareas más complejas como la segmentación de instancias, la detección de poses/puntos clave y la clasificación.
 
-Cada variante de la serie YOLOv8 está optimizada para su respectiva tarea, garantizando un alto rendimiento y precisión. Además, estos modelos son compatibles con varios modos operativos, incluyendo [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md) y [Export](../modes/export.md), lo que facilita su uso en diferentes etapas de implementación y desarrollo.
+Cada variante de la series YOLOv8 está optimizada para su respectiva tarea, garantizando un alto rendimiento y precisión. Además, estos modelos son compatibles con varios modos operativos, incluyendo [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md) y [Export](../modes/export.md), lo que facilita su uso en diferentes etapas de implementación y desarrollo.
 
 | Modelo      | Nombres de archivo                                                                                             | Tarea                                             | Inferencia | Validación | Entrenamiento | Exportación |
 |-------------|----------------------------------------------------------------------------------------------------------------|---------------------------------------------------|------------|------------|---------------|-------------|
@@ -32,7 +32,7 @@ Cada variante de la serie YOLOv8 está optimizada para su respectiva tarea, gara
 | YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [Pose/Puntos clave](../tasks/pose.md)             | ✅          | ✅          | ✅             | ✅           |
 | YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [Clasificación](../tasks/classify.md)             | ✅          | ✅          | ✅             | ✅           |
 
-Esta tabla proporciona una descripción general de las variantes de modelos YOLOv8, resaltando su aplicabilidad en tareas específicas y su compatibilidad con varios modos operativos como Inferencia, Validación, Entrenamiento y Exportación. Muestra la versatilidad y robustez de la serie YOLOv8, haciéndolos adecuados para una variedad de aplicaciones en visión por computadora.
+Esta tabla proporciona una descripción general de las variantes de modelos YOLOv8, resaltando su aplicabilidad en tareas específicas y su compatibilidad con varios modos operativos como Inferencia, Validación, Entrenamiento y Exportación. Muestra la versatilidad y robustez de la series YOLOv8, haciéndolos adecuados para una variedad de aplicaciones en visión por computadora.
 
 ## Métricas de rendimiento
 
@@ -129,7 +129,7 @@ Ten en cuenta que el siguiente ejemplo es para modelos de detección YOLOv8. Par
 
     === "CLI"
 
-        Hay comandos de CLI disponibles para ejecutar directamente los modelos:
+        Hay commandos de CLI disponibles para ejecutar directamente los modelos:
 
         ```bash
         # Carga un modelo YOLOv8n preentrenado en COCO y entrénalo en el conjunto de datos de ejemplo COCO8 durante 100 épocas

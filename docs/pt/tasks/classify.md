@@ -70,11 +70,11 @@ Treine o modelo YOLOv8n-cls no dataset MNIST160 por 100 épocas com tamanho de i
 
 ### Formato do dataset
 
-O formato do dataset de classificação YOLO pode ser encontrado em detalhes no [Guia de Datasets](../../../datasets/classify/index.md).
+O formato do dataset de classificação YOLO pode set encontrado em detalhes no [Guia de Datasets](../../../datasets/classify/index.md).
 
 ## Val
 
-Valide a acurácia do modelo YOLOv8n-cls treinado no dataset MNIST160. Não é necessário passar argumento, pois o `modelo` retém seus dados de treinamento e argumentos como atributos do modelo.
+Valid a acurácia do modelo YOLOv8n-cls treinado no dataset MNIST160. Não é necessário passar argumento, pois o `modelo` retém seus dados de treinamento e argumentos como atributos do modelo.
 
 !!! Example "Exemplo"
 
@@ -84,7 +84,7 @@ Valide a acurácia do modelo YOLOv8n-cls treinado no dataset MNIST160. Não é n
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-cls.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-cls.pt')  # carregar um modelo official
         model = YOLO('path/to/best.pt')  # carregar um modelo personalizado
 
         # Validar o modelo
@@ -95,7 +95,7 @@ Valide a acurácia do modelo YOLOv8n-cls treinado no dataset MNIST160. Não é n
     === "CLI"
 
         ```bash
-        yolo classify val model=yolov8n-cls.pt  # validar modelo oficial
+        yolo classify val model=yolov8n-cls.pt  # validar modelo official
         yolo classify val model=path/to/best.pt  # validar modelo personalizado
         ```
 
@@ -111,7 +111,7 @@ Use um modelo YOLOv8n-cls treinado para realizar previsões em imagens.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-cls.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-cls.pt')  # carregar um modelo official
         model = YOLO('path/to/best.pt')  # carregar um modelo personalizado
 
         # Prever com o modelo
@@ -120,7 +120,7 @@ Use um modelo YOLOv8n-cls treinado para realizar previsões em imagens.
     === "CLI"
 
         ```bash
-        yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # prever com modelo oficial
+        yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # prever com modelo official
         yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # prever com modelo personalizado
         ```
 
@@ -138,7 +138,7 @@ Exporte um modelo YOLOv8n-cls para um formato diferente, como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-cls.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-cls.pt')  # carregar um modelo official
         model = YOLO('path/to/best.pt')  # carregar um modelo treinado personalizado
 
         # Exportar o modelo
@@ -147,7 +147,7 @@ Exporte um modelo YOLOv8n-cls para um formato diferente, como ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-cls.pt format=onnx  # exportar modelo oficial
+        yolo export model=yolov8n-cls.pt format=onnx  # exportar modelo official
         yolo export model=path/to/best.pt format=onnx  # exportar modelo treinado personalizado
         ```
 

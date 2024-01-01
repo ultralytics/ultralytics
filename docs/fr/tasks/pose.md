@@ -6,11 +6,11 @@ keywords: Ultralytics, YOLO, YOLOv8, estimation de pose, détection de points cl
 
 # Estimation de Pose
 
-![Estimation de pose exemples](https://user-images.githubusercontent.com/26833433/243418616-9811ac0b-a4a7-452a-8aba-484ba32bb4a8.png)
+![Estimation de pose examples](https://user-images.githubusercontent.com/26833433/243418616-9811ac0b-a4a7-452a-8aba-484ba32bb4a8.png)
 
 L'estimation de pose est une tâche qui consiste à identifier l'emplacement de points spécifiques dans une image, souvent appelés points clés. Ces points clés peuvent représenter différentes parties de l'objet telles que les articulations, les repères ou d'autres caractéristiques distinctives. L'emplacement des points clés est généralement représenté par un ensemble de coordonnées 2D `[x, y]` ou 3D `[x, y, visible]`.
 
-La sortie d'un modèle d'estimation de pose est un ensemble de points représentant les points clés sur un objet dans l'image, généralement accompagnés des scores de confiance pour chaque point. L'estimation de pose est un bon choix lorsque vous avez besoin d'identifier des parties spécifiques d'un objet dans une scène, et leur emplacement les uns par rapport aux autres.
+La sortie d'un modèle d'estimation de pose est un ensemble de points représentant les points clés sur un object dans l'image, généralement accompagnés des scores de confiance pour chaque point. L'estimation de pose est un bon choix lorsque vous avez besoin d'identifier des parties spécifiques d'un object dans une scène, et leur emplacement les uns par rapport aux autres.
 
 ![Regardez : Estimation de Pose avec Ultralytics YOLOv8](https://www.youtube.com/embed/Y28xXQmju64?si=pCY4ZwejZFu6Z4kZ)
 
@@ -42,7 +42,7 @@ Les [Modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/
 
 Entraînez un modèle YOLOv8-pose sur le jeu de données COCO128-pose.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -72,13 +72,13 @@ Entraînez un modèle YOLOv8-pose sur le jeu de données COCO128-pose.
 
 ### Format du jeu de données
 
-Le format du jeu de données YOLO pose peut être trouvé en détail dans le [Guide des jeux de données](../../../datasets/pose/index.md). Pour convertir votre jeu de données existant à partir d'autres formats (comme COCO, etc.) vers le format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) d'Ultralytics.
+Le format du jeu de données YOLO pose peut être trouvé en détail dans le [Guide des jeux de données](../../../datasets/pose/index.md). Pour convertir votre jeu de données existent à partir d'autres formats (comme COCO, etc.) vers le format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) d'Ultralytics.
 
 ## Val
 
 Validez la précision du modèle YOLOv8n-pose entraîné sur le jeu de données COCO128-pose. Aucun argument n'est nécessaire car le `modèle` conserve ses données d'entraînement et arguments en tant qu'attributs du modèle.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -107,7 +107,7 @@ Validez la précision du modèle YOLOv8n-pose entraîné sur le jeu de données 
 
 Utilisez un modèle YOLOv8n-pose entraîné pour exécuter des prédictions sur des images.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -128,13 +128,13 @@ Utilisez un modèle YOLOv8n-pose entraîné pour exécuter des prédictions sur 
         yolo pose predict model=chemin/vers/best.pt source='https://ultralytics.com/images/bus.jpg'  # prédire avec modèle personnalisé
         ```
 
-Consultez les détails complets du mode `predict` sur la page [Prédire](https://docs.ultralytics.com/modes/predict/).
+Consultez les détails completes du mode `predict` sur la page [Prédire](https://docs.ultralytics.com/modes/predict/).
 
 ## Exportation
 
 Exportez un modèle YOLOv8n Pose dans un autre format tel que ONNX, CoreML, etc.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -155,7 +155,7 @@ Exportez un modèle YOLOv8n Pose dans un autre format tel que ONNX, CoreML, etc.
         yolo export model=chemin/vers/best.pt format=onnx  # exporter modèle personnalisé entraîné
         ```
 
-Les formats d'exportation YOLOv8-pose disponibles sont dans le tableau ci-dessous. Vous pouvez prédire ou valider directement sur des modèles exportés, par exemple `yolo predict model=yolov8n-pose.onnx`. Des exemples d'utilisation sont montrés pour votre modèle après la fin de l'exportation.
+Les formats d'exportation YOLOv8-pose disponibles sont dans le tableau ci-dessous. Vous pouvez prédire ou valider directement sur des modèles exportés, par example `yolo predict model=yolov8n-pose.onnx`. Des examples d'utilisation sont montrés pour votre modèle après la fin de l'exportation.
 
 | Format                                                             | Argument `format` | Modèle                         | Métadonnées | Arguments                                           |
 |--------------------------------------------------------------------|-------------------|--------------------------------|-------------|-----------------------------------------------------|
@@ -173,4 +173,4 @@ Les formats d'exportation YOLOv8-pose disponibles sont dans le tableau ci-dessou
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-pose_paddle_model/`   | ✅           | `imgsz`                                             |
 | [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-pose_ncnn_model/`     | ✅           | `imgsz`, `half`                                     |
 
-Consultez les détails complets de `export` sur la page [Exporter](https://docs.ultralytics.com/modes/export/).
+Consultez les détails completes de `export` sur la page [Exporter](https://docs.ultralytics.com/modes/export/).

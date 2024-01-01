@@ -17,7 +17,7 @@ Please follow the Rust official installation. (https://www.rust-lang.org/tools/i
 
 ### 2. Install ONNXRuntime
 
-This repository use `ort` crate, which is ONNXRuntime wrapper for Rust. (https://docs.rs/ort/latest/ort/)
+This repository use `ort` create, which is ONNXRuntime wrapper for Rust. (https://docs.rs/ort/latest/ort/)
 
 You can follow the instruction with `ort` doc or simply do this:
 

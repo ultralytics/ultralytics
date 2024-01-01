@@ -12,11 +12,11 @@ El Modelo para Segmentar Cualquier Cosa Rápidamente (FastSAM) es una solución 
 
 ## Descripción general
 
-FastSAM está diseñado para abordar las limitaciones del [Modelo para Segmentar Cualquier Cosa (SAM)](sam.md), un modelo Transformer pesado con requerimientos sustanciales de recursos computacionales. FastSAM divide la tarea de segmentar cualquier cosa en dos etapas secuenciales: segmentación de todas las instancias y selección basada en indicaciones. La primera etapa utiliza [YOLOv8-seg](../tasks/segment.md) para producir las máscaras de segmentación de todas las instancias en la imagen. En la segunda etapa, produce la región de interés correspondiente a la indicación.
+FastSAM está diseñado para abordar las limitaciones del [Modelo para Segmentar Cualquier Cosa (SAM)](sam.md), un modelo Transformer pesado con requerimientos sustanciales de recursos computacionales. FastSAM divide la tarea de segmentar cualquier cosa en dos etapas secuenciales: segmentación de todas las instancias y selección basada en indicaciones. La primera etapa utilize [YOLOv8-seg](../tasks/segment.md) para producir las máscaras de segmentación de todas las instancias en la imagen. En la segunda etapa, produce la región de interés correspondiente a la indicación.
 
 ## Características principales
 
-1. **Solución en tiempo real:** Al aprovechar la eficiencia computacional de las CNN, FastSAM proporciona una solución en tiempo real para la tarea de segmentar cualquier cosa, lo que lo hace valioso para aplicaciones industriales que requieren resultados rápidos.
+1. **Solución en tiempo real:** Al aprovechar la eficiencia computacional de las CNN, FastSAM proporciona una solución en tiempo real para la tarea de segmentar cualquier cosa, lo que lo have valioso para aplicaciones industriales que requieren resultados rápidos.
 
 2. **Eficiencia y rendimiento:** FastSAM ofrece una reducción significativa en las demandas computacionales y de recursos sin comprometer la calidad del rendimiento. Alcanza un rendimiento comparable al de SAM, pero con recursos computacionales drásticamente reducidos, lo que permite su aplicación en tiempo real.
 
@@ -41,11 +41,11 @@ Esta tabla presenta los modelos disponibles con sus pesos pre-entrenados especí
 
 ## Ejemplos de uso
 
-Los modelos FastSAM son fáciles de integrar en tus aplicaciones Python. Ultralytics proporciona una API y comandos de línea de comandos (CLI) fáciles de usar para agilizar el desarrollo.
+Los modelos FastSAM son fáciles de integrar en tus aplicaciones Python. Ultralytics proporciona una API y commandos de línea de commandos (CLI) fáciles de usar para agilizar el desarrollo.
 
 ### Uso de predicción
 
-Para realizar la detección de objetos en una imagen, utiliza el método `predict` de la siguiente manera:
+Para realizar la detección de objetos en una imagen, utilize el método `predict` de la siguiente manera:
 
 !!! Example "Ejemplo"
 
@@ -73,7 +73,7 @@ Para realizar la detección de objetos en una imagen, utiliza el método `predic
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
         # Indicación de texto
-        ann = prompt_process.text_prompt(text='una foto de un perro')
+        ann = prompt_process.text_prompt(text='una photo de un perro')
 
         # Indicación de punto
         # puntos predeterminados [[0,0]] [[x1,y1],[x2,y2]]
@@ -115,7 +115,7 @@ La validación del modelo en un conjunto de datos se puede realizar de la siguie
 
 Ten en cuenta que FastSAM solo admite la detección y segmentación de una sola clase de objeto. Esto significa que reconocerá y segmentará todos los objetos como si fueran de la misma clase. Por lo tanto, al preparar el conjunto de datos, debes convertir todos los IDs de categoría de objetos a 0.
 
-## Uso oficial de FastSAM
+## Uso official de FastSAM
 
 FastSAM también está disponible directamente en el repositorio [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-IVA-Lab/FastSAM). Aquí hay una descripción general breve de los pasos típicos que podrías seguir para usar FastSAM:
 
@@ -147,7 +147,7 @@ FastSAM también está disponible directamente en el repositorio [https://github
 
 1. Descarga un [punto de control del modelo](https://drive.google.com/file/d/1m1sjY4ihXBU1fZXdQ-Xdj-mDltW-2Rqv/view?usp=sharing).
 
-2. Utiliza FastSAM para inferencia. Ejemplos de comandos:
+2. Utilize FastSAM para inferencia. Ejemplos de commandos:
 
     - Segmentar todo en una imagen:
       ```shell
@@ -190,4 +190,4 @@ Nos gustaría agradecer a los autores de FastSAM por sus importantes contribucio
       }
       ```
 
-El artículo original de FastSAM se puede encontrar en [arXiv](https://arxiv.org/abs/2306.12156). Los autores han puesto su trabajo a disposición del público, y el código base se puede acceder en [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). Agradecemos sus esfuerzos para avanzar en el campo y hacer que su trabajo sea accesible a la comunidad en general.
+El artículo original de FastSAM se puede encontrar en [arXiv](https://arxiv.org/abs/2306.12156). Los autores han puesto su trabajo a disposición del público, y el código base se puede acceder en [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). Agradecemos sus esfuerzos para avanzar en el campo y hacer que su trabajo sea accessible a la comunidad en general.

@@ -11,13 +11,13 @@ keywords: YOLO-NAS, Deci AI, detecção de objetos, aprendizado profundo, busca 
 Desenvolvido pela Deci AI, o YOLO-NAS é um modelo de detecção de objetos inovador. É o produto da tecnologia avançada de Busca de Arquitetura Neural, meticulosamente projetado para superar as limitações dos modelos YOLO anteriores. Com melhorias significativas no suporte à quantização e compromisso entre precisão e latência, o YOLO-NAS representa um grande avanço na detecção de objetos.
 
 ![Exemplo de imagem do modelo](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png)
-**Visão geral do YOLO-NAS.** O YOLO-NAS utiliza blocos que suportam quantização e quantização seletiva para obter um desempenho ideal. O modelo, quando convertido para sua versão quantizada INT8, apresenta uma queda mínima na precisão, uma melhoria significativa em relação a outros modelos. Esses avanços culminam em uma arquitetura superior com capacidades de detecção de objetos sem precedentes e desempenho excepcional.
+**Visão geral do YOLO-NAS.** O YOLO-NAS utilize blocos que suportam quantização e quantização seletiva para obter um desempenho ideal. O modelo, quando convertido para sua versão quantizada INT8, apresenta uma queda mínima na precisão, uma melhoria significativa em relação a outros modelos. Esses avanços culminam em uma arquitetura superior com capacidades de detecção de objetos sem precedentes e desempenho excepcional.
 
 ### Principais Características
 
 - **Bloco Básico Amigável para Quantização:** O YOLO-NAS introduz um novo bloco básico que é amigo da quantização, abordando uma das limitações significativas dos modelos YOLO anteriores.
-- **Treinamento e Quantização Sofisticados:** O YOLO-NAS utiliza esquemas avançados de treinamento e quantização pós-treinamento para melhorar o desempenho.
-- **Otimização AutoNAC e Pré-Treinamento:** O YOLO-NAS utiliza a otimização AutoNAC e é pré-treinado em conjuntos de dados proeminentes, como COCO, Objects365 e Roboflow 100. Esse pré-treinamento torna o modelo extremamente adequado para tarefas de detecção de objetos em ambientes de produção.
+- **Treinamento e Quantização Sofisticados:** O YOLO-NAS utilize esquemas avançados de treinamento e quantização pós-treinamento para melhorar o desempenho.
+- **Otimização AutoNAC e Pré-Treinamento:** O YOLO-NAS utilize a otimização AutoNAC e é pré-treinado em conjuntos de dados proeminentes, como COCO, Objects365 e Roboflow 100. Esse pré-treinamento torna o modelo extremamente adequado para tarefas de detecção de objetos em ambientes de produção.
 
 ## Modelos Pré-Treinados
 
@@ -50,7 +50,7 @@ Neste exemplo, validamos o YOLO-NAS-s no conjunto de dados COCO8.
 
     === "Python"
 
-        Arquivos de modelos pré-treinados `*.pt` do PyTorch podem ser passados para a classe `NAS()` para criar uma instância do modelo em Python:
+        Arquivos de modelos pré-treinados `*.pt` do PyTorch podem set passados para a classe `NAS()` para criar uma instância do modelo em Python:
 
         ```python
         from ultralytics import NAS
@@ -70,7 +70,7 @@ Neste exemplo, validamos o YOLO-NAS-s no conjunto de dados COCO8.
 
     === "CLI"
 
-        Comandos de CLI estão disponíveis para executar diretamente os modelos:
+        Commandos de CLI estão disponíveis para executar diretamente os modelos:
 
         ```bash
         # Carrega um modelo YOLO-NAS-s pré-treinado no COCO e valida seu desempenho no conjunto de dados de exemplo COCO8
@@ -88,7 +88,7 @@ Oferecemos três variantes dos modelos YOLO-NAS: Pequeno (s), Médio (m) e Grand
 - **YOLO-NAS-m**: Oferece uma abordagem equilibrada, adequada para detecção de objetos em geral com maior precisão.
 - **YOLO-NAS-l**: Adaptado para cenários que requerem a maior precisão, onde os recursos computacionais são menos restritos.
 
-Abaixo está uma visão geral detalhada de cada modelo, incluindo links para seus pesos pré-treinados, as tarefas que eles suportam e sua compatibilidade com diferentes modos de operação.
+Abaixo está uma visão geral detalhada de cada modelo, incluindo links para seus pesos pré-treinados, as tarefas que else suportam e sua compatibilidade com diferentes modos de operação.
 
 | Tipo de Modelo | Pesos Pré-Treinados                                                                           | Tarefas Suportadas                        | Inferência | Validação | Treinamento | Exportação |
 |----------------|-----------------------------------------------------------------------------------------------|-------------------------------------------|------------|-----------|-------------|------------|

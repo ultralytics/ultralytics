@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO, Objektverfolgung, Videostreams, BoT-SORT, ByteTrack
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/243418637-1d6250fd-1515-4c10-a844-a32818ae6d46.png" alt="Beispiele für Multi-Objektverfolgung">
 
-Objektverfolgung im Bereich der Videoanalytik ist eine essentielle Aufgabe, die nicht nur den Standort und die Klasse von Objekten innerhalb des Frames identifiziert, sondern auch eine eindeutige ID für jedes erkannte Objekt, während das Video fortschreitet, erhält. Die Anwendungsmöglichkeiten sind grenzenlos – von Überwachung und Sicherheit bis hin zur Echtzeitsportanalytik.
+Objektverfolgung im Bereich der Videoanalytik ist eine essentielle Aufgabe, die nicht nur den Standort und die Klasse von Objekten innerhalb des Frames identifiziert, sondern auch eine eindeutige ID für jedes erkannte Object, während das Video fortschreitet, erhält. Die Anwendungsmöglichkeiten sind grenzenlos – von Überwachung und Sicherheit bis hin zur Echtzeitsportanalytik.
 
 ## Warum Ultralytics YOLO für Objektverfolgung wählen?
 
@@ -65,13 +65,13 @@ Um den Tracker auf Videostreams auszuführen, verwenden Sie ein trainiertes Erke
         ```python
         from ultralytics import YOLO
 
-        # Laden Sie ein offizielles oder individuelles Modell
+        # Laden Sie ein offizielles oder individuelles Model
         model = YOLO('yolov8n.pt')  # Laden Sie ein offizielles Erkennungsmodell
         model = YOLO('yolov8n-seg.pt')  # Laden Sie ein offizielles Segmentierungsmodell
         model = YOLO('yolov8n-pose.pt')  # Laden Sie ein offizielles Posierungsmodell
-        model = YOLO('path/to/best.pt')  # Laden Sie ein individuell trainiertes Modell
+        model = YOLO('path/to/best.pt')  # Laden Sie ein individuell trainiertes Model
 
-        # Führen Sie die Verfolgung mit dem Modell durch
+        # Führen Sie die Verfolgung mit dem Model durch
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Verfolgung mit Standardtracker
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # Verfolgung mit ByteTrack-Tracker
         ```
@@ -83,7 +83,7 @@ Um den Tracker auf Videostreams auszuführen, verwenden Sie ein trainiertes Erke
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # Offizielles Erkennungsmodell
         yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Offizielles Segmentierungsmodell
         yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # Offizielles Posierungsmodell
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Individuell trainiertes Modell
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Individuell trainiertes Model
 
         # Verfolgung mit ByteTrack-Tracker
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -127,7 +127,7 @@ Ultralytics ermöglicht es Ihnen auch, eine modifizierte Tracker-Konfigurationsd
         ```python
         from ultralytics import YOLO
 
-        # Laden Sie das Modell und führen Sie den Tracker mit einer individuellen Konfigurationsdatei aus
+        # Laden Sie das Model und führen Sie den Tracker mit einer individuellen Konfigurationsdatei aus
         model = YOLO('yolov8n.pt')
         results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
         ```
@@ -135,7 +135,7 @@ Ultralytics ermöglicht es Ihnen auch, eine modifizierte Tracker-Konfigurationsd
     === "CLI"
 
         ```bash
-        # Laden Sie das Modell und führen Sie den Tracker mit einer individuellen Konfigurationsdatei über die Befehlszeilenschnittstelle aus
+        # Laden Sie das Model und führen Sie den Tracker mit einer individuellen Konfigurationsdatei über die Befehlszeilenschnittstelle aus
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
         ```
 
@@ -179,7 +179,7 @@ Hier ist ein Python-Skript, das OpenCV (`cv2`) und YOLOv8 verwendet, um Objektve
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:
-            # Beenden Sie die Schleife, wenn das Ende des Videos erreicht ist
+            # Beenden Sie die Schleife, wenn das End des Videos erreicht ist
             break
 
     # Geben Sie das Videoaufnahmeobjekt frei und schließen Sie das Anzeigefenster

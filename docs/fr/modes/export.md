@@ -10,7 +10,7 @@ keywords: YOLO, YOLOv8, Ultralytics, Exportation de modèle, ONNX, TensorRT, Cor
 
 ## Introduction
 
-L'objectif ultime de l'entraînement d'un modèle est de le déployer pour des applications dans le monde réel. Le mode d'exportation de Ultralytics YOLOv8 offre une large gamme d'options pour exporter votre modèle entraîné dans différents formats, le rendant déployable sur diverses plateformes et appareils. Ce guide complet vise à vous guider à travers les nuances de l'exportation de modèles, en montrant comment atteindre une compatibilité et des performances maximales.
+L'objectif ultime de l'entraînement d'un modèle est de le déployer pour des applications dans le monde réel. Le mode d'exportation de Ultralytics YOLOv8 offre une large gamme d'options pour exporter votre modèle entraîné dans différents formats, le rendant déployable sur diverses plateformes et appareils. Ce guide complete vice à vous guider à travers les nuances de l'exportation de modèles, en montrant comment atteindre une compatibilité et des performances maximales.
 
 <p align="center">
   <br>
@@ -27,7 +27,7 @@ L'objectif ultime de l'entraînement d'un modèle est de le déployer pour des a
 
 - **Polyvalence :** Exportation vers plusieurs formats, y compris ONNX, TensorRT, CoreML et plus encore.
 - **Performance :** Gagnez jusqu'à 5 fois la vitesse d'une GPU avec TensorRT et 3 fois la vitesse d'une CPU avec ONNX ou OpenVINO.
-- **Compatibilité :** Rendez votre modèle universellement déployable sur de nombreux environnements matériels et logiciels.
+- **Compatibilité :** Rendez votre modèle universellement déployable sur de nombreux environments matériels et logiciels.
 - **Facilité d'utilisation :** Interface en ligne de commande (CLI) et API Python simples pour une exportation rapide et directe du modèle.
 
 ### Caractéristiques clés du mode d'exportation
@@ -37,18 +37,18 @@ Voici quelques-unes des fonctionnalités remarquables :
 - **Exportation en un clic :** Commandes simples pour exporter vers différents formats.
 - **Exportation groupée :** Exportez des modèles capables d'inférence par lot.
 - **Inférence optimisée :** Les modèles exportés sont optimisés pour des temps d'inférence plus rapides.
-- **Vidéos tutorielles :** Guides détaillés et tutoriels pour une expérience d'exportation fluide.
+- **Vidéos tutorielles :** Guides détaillés et tutorials pour une expérience d'exportation fluide.
 
 !!! astuce "Conseil"
 
     * Exportez vers ONNX ou OpenVINO pour une accélération de la CPU jusqu'à 3 fois.
     * Exportez vers TensorRT pour une accélération de la GPU jusqu'à 5 fois.
 
-## Exemples d'utilisation
+## Examples d'utilisation
 
 Exportez un modèle YOLOv8n vers un format différent tel que ONNX ou TensorRT. Voir la section Arguments ci-dessous pour une liste complète des arguments d'exportation.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -71,7 +71,7 @@ Exportez un modèle YOLOv8n vers un format différent tel que ONNX ou TensorRT. 
 
 ## Arguments
 
-Les paramètres d'exportation pour les modèles YOLO se réfèrent aux diverses configurations et options utilisées pour sauvegarder ou exporter le modèle pour utilisation dans d'autres environnements ou plateformes. Ces paramètres peuvent affecter la performance, la taille et la compatibilité du modèle avec différents systèmes. Certains paramètres d'exportation YOLO courants incluent le format du fichier modèle exporté (par exemple, ONNX, TensorFlow SavedModel), le dispositif sur lequel le modèle sera exécuté (par exemple, CPU, GPU), et la présence de fonctionnalités supplémentaires telles que des masques ou des étiquettes multiples par boîte. D'autres facteurs qui peuvent affecter le processus d'exportation incluent la tâche spécifique pour laquelle le modèle est utilisé et les exigences ou contraintes de l'environnement ou de la plateforme cible. Il est important de considérer et de configurer ces paramètres avec soin pour s'assurer que le modèle exporté est optimisé pour le cas d'utilisation visé et peut être utilisé efficacement dans l'environnement cible.
+Les paramètres d'exportation pour les modèles YOLO se réfèrent aux diverses configurations et options utilisées pour sauvegarder ou exporter le modèle pour utilisation dans d'autres environments ou plateformes. Ces paramètres peuvent affecter la performance, la taille et la compatibilité du modèle avec différents systèmes. Certains paramètres d'exportation YOLO courants incluent le format du fichier modèle exporté (par example, ONNX, TensorFlow SavedModel), le dispositif sur lequel le modèle sera exécuté (par example, CPU, GPU), et la présence de fonctionnalités supplémentaires telles que des masques ou des étiquettes multiples par boîte. D'autres facteurs qui peuvent affecter le processus d'exportation incluent la tâche spécifique pour laquelle le modèle est utilisé et les exigences ou contraintes de l'environnement ou de la plateforme cible. Il est important de considérer et de configurer ces paramètres avec soin pour s'assurer que le modèle exporté est optimisé pour le cas d'utilisation visé et peut être utilisé efficacement dans l'environnement cible.
 
 | Clé         | Valeur          | Description                                                                      |
 |-------------|-----------------|----------------------------------------------------------------------------------|

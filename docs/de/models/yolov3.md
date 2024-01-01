@@ -20,11 +20,11 @@ Dieses Dokument bietet eine Übersicht über drei eng verwandte Modelle zur Obje
 
 ## Wichtigste Funktionen
 
-- **YOLOv3:** Einführung der Verwendung von drei unterschiedlichen Skalen für die Erkennung unter Verwendung von drei verschiedenen Größen von Erkennungskernen: 13x13, 26x26 und 52x52. Dadurch wurde die Erkennungsgenauigkeit für Objekte unterschiedlicher Größe erheblich verbessert. Darüber hinaus fügte YOLOv3 Funktionen wie Mehrfachkennzeichnungen für jeden Begrenzungsrahmen und ein besseres Feature-Extraktionsnetzwerk hinzu.
+- **YOLOv3:** Einführung der Verwendung von drei unterschiedlichen Skalen für die Erkennung under Verwendung von drei verschiedenen Größen von Erkennungskernen: 13x13, 26x26 und 52x52. Dadurch wurde die Erkennungsgenauigkeit für Objekte unterschiedlicher Größe erheblich verbessert. Darüber hinaus fügte YOLOv3 Funktionen wie Mehrfachkennzeichnungen für jeden Begrenzungsrahmen und ein besseres Feature-Extraktionsnetzwerk hinzu.
 
-- **YOLOv3-Ultralytics:** Ultralytics' Implementierung von YOLOv3 bietet die gleiche Leistung wie das ursprüngliche Modell, bietet jedoch zusätzliche Unterstützung für weitere vortrainierte Modelle, zusätzliche Trainingsmethoden und einfachere Anpassungsoptionen. Dadurch wird es vielseitiger und benutzerfreundlicher für praktische Anwendungen.
+- **YOLOv3-Ultralytics:** Ultralytics' Implementierung von YOLOv3 bietet die gleiche Leistung wie das ursprüngliche Model, bietet jedoch zusätzliche Unterstützung für weitere vortrainierte Modelle, zusätzliche Trainingsmethoden und einfachere Anpassungsoptionen. Dadurch wird es vielseitiger und benutzerfreundlicher für praktische Anwendungen.
 
-- **YOLOv3u:** Dieses aktualisierte Modell enthält den anchor-freien, objektfreien Split Head aus YOLOv8. Durch die Beseitigung der Notwendigkeit vordefinierter Ankerfelder und Objektheitsscores kann dieses Entwurfsmerkmal für den Erkennungskopf die Fähigkeit des Modells verbessern, Objekte unterschiedlicher Größe und Form zu erkennen. Dadurch wird YOLOv3u robuster und genauer für Aufgaben der Objekterkennung.
+- **YOLOv3u:** Dieses aktualisierte Model enthält den anchor-freien, objektfreien Split Head aus YOLOv8. Durch die Beseitigung der Notwendigkeit vordefinierter Ankerfelder und Objektheitsscores kann dieses Entwurfsmerkmal für den Erkennungskopf die Fähigkeit des Models verbessern, Objekte unterschiedlicher Größe und Form zu erkennen. Dadurch wird YOLOv3u robuster und genauer für Aufgaben der Objekterkennung.
 
 ## Unterstützte Aufgaben und Modi
 
@@ -56,10 +56,10 @@ Dieses Beispiel enthält einfache Trainings- und Inferenzbeispiele für YOLOv3. 
         # Lade ein vortrainiertes YOLOv3n-Modell für COCO
         model = YOLO('yolov3n.pt')
 
-        # Zeige Informationen zum Modell an (optional)
+        # Zeige Informationen zum Model an (optional)
         model.info()
 
-        # Trainiere das Modell mit dem COCO8-Beispieldatensatz für 100 Epochen
+        # Trainiere das Model mit dem COCO8-Beispieldatensatz für 100 Epochen
         results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
         # Führe Inferenz mit dem YOLOv3n-Modell auf dem Bild "bus.jpg" durch

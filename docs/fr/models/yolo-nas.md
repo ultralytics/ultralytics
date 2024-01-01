@@ -10,14 +10,14 @@ keywords: YOLO-NAS, Deci AI, détection d'objets, apprentissage profond, recherc
 
 Développé par Deci AI, YOLO-NAS est un modèle de détection d'objets révolutionnaire. Il est le fruit d'une technologie avancée de recherche architecturale neuronale, minutieusement conçu pour pallier les limitations des précédents modèles YOLO. Avec des améliorations significatives en matière de prise en charge de la quantification et de compromis entre précision et latence, YOLO-NAS représente une avancée majeure en matière de détection d'objets.
 
-![Exemple de modèle](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png)
-**Aperçu de YOLO-NAS**. YOLO-NAS utilise des blocs adaptés à la quantification et une quantification sélective pour des performances optimales. Le modèle, une fois converti en version quantifiée INT8, présente une baisse de précision minimale, ce qui constitue une amélioration significative par rapport aux autres modèles. Ces avancées aboutissent à une architecture supérieure offrant des capacités de détection d'objets inégalées et des performances exceptionnelles.
+![Example de modèle](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png)
+**Aperçu de YOLO-NAS**. YOLO-NAS utilise des blocks adaptés à la quantification et une quantification sélective pour des performances optimales. Le modèle, une fois converti en version quantifiée INT8, présente une baisse de précision minimale, ce qui constitute une amélioration significative par rapport aux autres modèles. Ces avancées aboutissent à une architecture supérieure offrant des capacités de détection d'objets inégalées et des performances exceptionnelles.
 
 ### Fonctionnalités clés
 
-- **Bloc de base compatible avec la quantification:** YOLO-NAS introduit un nouveau bloc de base adapté à la quantification, ce qui permet de pallier l'une des principales limitations des précédents modèles YOLO.
+- **Block de base compatible avec la quantification:** YOLO-NAS introduit un nouveau block de base adapté à la quantification, ce qui permet de pallier l'une des principales limitations des précédents modèles YOLO.
 - **Entraînement sophistiqué et quantification:** YOLO-NAS utilise des schémas d'entraînement avancés et une quantification après l'entraînement pour améliorer les performances.
-- **Optimisation AutoNAC et pré-entraînement:** YOLO-NAS utilise l'optimisation AutoNAC et est pré-entraîné sur des ensembles de données renommés tels que COCO, Objects365 et Roboflow 100. Ce pré-entraînement le rend extrêmement adapté aux tâches de détection d'objets ultérieures dans des environnements de production.
+- **Optimisation AutoNAC et pré-entraînement:** YOLO-NAS utilise l'optimisation AutoNAC et est pré-entraîné sur des ensembles de données renommés tels que COCO, Objects365 et Roboflow 100. Ce pré-entraînement le rend extrêmement adapté aux tâches de détection d'objets ultérieures dans des environments de production.
 
 ## Modèles pré-entraînés
 
@@ -34,19 +34,19 @@ Découvrez la puissance de la détection d'objets de nouvelle génération avec 
 
 Chaque variante de modèle est conçue pour offrir un équilibre entre la précision moyenne (mAP) et la latence, vous permettant ainsi d'optimiser vos tâches de détection d'objets en termes de performance et de vitesse.
 
-## Exemples d'utilisation
+## Examples d'utilisation
 
 Ultralytics a rendu les modèles YOLO-NAS faciles à intégrer dans vos applications Python grâce à notre package Python `ultralytics`. Le package fournit une interface conviviale pour simplifier le processus.
 
-Les exemples suivants montrent comment utiliser les modèles YOLO-NAS avec le package `ultralytics` pour l'inférence et la validation :
+Les examples suivants montrent comment utiliser les modèles YOLO-NAS avec le package `ultralytics` pour l'inférence et la validation :
 
-### Exemples d'inférence et de validation
+### Examples d'inférence et de validation
 
-Dans cet exemple, nous validons YOLO-NAS-s sur l'ensemble de données COCO8.
+Dans cet example, nous validons YOLO-NAS-s sur l'ensemble de données COCO8.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
-    Cet exemple fournit un code simple pour l'inférence et la validation de YOLO-NAS. Pour gérer les résultats de l'inférence, consultez le mode [Predict](../modes/predict.md). Pour utiliser YOLO-NAS avec des modes supplémentaires, consultez [Val](../modes/val.md) et [Export](../modes/export.md). L'entraînement n'est pas pris en charge pour YOLO-NAS avec le package `ultralytics`.
+    Cet example fournit un code simple pour l'inférence et la validation de YOLO-NAS. Pour gérer les résultats de l'inférence, consultez le mode [Predict](../modes/predict.md). Pour utiliser YOLO-NAS avec des modes supplémentaires, consultez [Val](../modes/val.md) et [Export](../modes/export.md). L'entraînement n'est pas pris en charge pour YOLO-NAS avec le package `ultralytics`.
 
     === "Python"
 
@@ -58,7 +58,7 @@ Dans cet exemple, nous validons YOLO-NAS-s sur l'ensemble de données COCO8.
         # Charger un modèle YOLO-NAS-s pré-entraîné sur COCO
         model = NAS('yolo_nas_s.pt')
 
-        # Afficher les informations sur le modèle (facultatif)
+        # Afficher les information sur le modèle (facultatif)
         model.info()
 
         # Valider le modèle sur l'ensemble de données COCO8
@@ -84,9 +84,9 @@ Dans cet exemple, nous validons YOLO-NAS-s sur l'ensemble de données COCO8.
 
 Nous proposons trois variantes des modèles YOLO-NAS : Small (s), Medium (m) et Large (l). Chaque variante est conçue pour répondre à des besoins computationnels et de performances différents :
 
-- **YOLO-NAS-s** : Optimisé pour les environnements où les ressources computationnelles sont limitées mais l'efficacité est primordiale.
-- **YOLO-NAS-m** : Offre une approche équilibrée, adaptée à la détection d'objets polyvalente avec une précision accrue.
-- **YOLO-NAS-l** : Adapté aux scénarios nécessitant la plus haute précision, où les ressources computationnelles sont moins contraignantes.
+- **YOLO-NAS-s** : Optimisé pour les environments où les resources computationnelles sont limitées mais l'efficacité est primordiale.
+- **YOLO-NAS-m** : Offre une approach équilibrée, adaptée à la détection d'objets polyvalente avec une précision accrue.
+- **YOLO-NAS-l** : Adapté aux scénarios nécessitant la plus haute précision, où les resources computationnelles sont moins contraignantes.
 
 Voici un aperçu détaillé de chaque modèle, comprenant des liens vers leurs poids pré-entraînés, les tâches qu'ils prennent en charge et leur compatibilité avec différents modes opérationnels.
 
@@ -116,6 +116,6 @@ Si vous utilisez YOLO-NAS dans vos travaux de recherche ou de développement, ve
         }
         ```
 
-Nous exprimons notre gratitude à l'équipe [Super-Gradients](https://github.com/Deci-AI/super-gradients/) de Deci AI pour ses efforts dans la création et la maintenance de cette précieuse ressource pour la communauté de la vision par ordinateur. Nous sommes convaincus que YOLO-NAS, avec son architecture innovante et ses capacités de détection d'objets supérieures, deviendra un outil essentiel pour les développeurs et les chercheurs.
+Nous exprimons notre gratitude à l'équipe [Super-Gradients](https://github.com/Deci-AI/super-gradients/) de Deci AI pour ses efforts dans la création et la maintenance de cette précieuse resource pour la communauté de la vision par ordinateur. Nous sommes convaincus que YOLO-NAS, avec son architecture innovante et ses capacités de détection d'objets supérieures, deviendra un outil essentiel pour les développeurs et les chercheurs.
 
-*keywords: YOLO-NAS, Deci AI, détection d'objets, apprentissage profond, recherche architecturale neuronale, API Python d'Ultralytics, modèle YOLO, SuperGradients, modèles pré-entraînés, bloc de base compatible avec la quantification, schémas d'entraînement avancés, quantification après l'entraînement, optimisation AutoNAC, COCO, Objects365, Roboflow 100*
+*keywords: YOLO-NAS, Deci AI, détection d'objets, apprentissage profond, recherche architecturale neuronale, API Python d'Ultralytics, modèle YOLO, SuperGradients, modèles pré-entraînés, block de base compatible avec la quantification, schémas d'entraînement avancés, quantification après l'entraînement, optimisation AutoNAC, COCO, Objects365, Roboflow 100*

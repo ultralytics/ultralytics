@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLOv8, Detecção, Segmentação, Classificação, Estim
 <br>
 <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png" alt="Tarefas suportadas pelo Ultralytics YOLO">
 
-YOLOv8 é um framework de IA que suporta múltiplas tarefas de **visão computacional**. O framework pode ser usado para realizar [detecção](detect.md), [segmentação](segment.md), [classificação](classify.md) e estimativa de [pose](pose.md). Cada uma dessas tarefas tem um objetivo e caso de uso diferente.
+YOLOv8 é um framework de IA que suporta múltiplas tarefas de **visão computacional**. O framework pode set usado para realizar [detecção](detect.md), [segmentação](segment.md), [classificação](classify.md) e estimativa de [pose](pose.md). Cada uma dessas tarefas tem um objetivo e caso de uso diferente.
 
 !!! Note "Nota"
 
@@ -40,7 +40,7 @@ Segmentação é uma tarefa que envolve segmentar uma imagem em diferentes regi�
 
 ## [Classificação](classify.md)
 
-Classificação é uma tarefa que envolve classificar uma imagem em diferentes categorias. YOLOv8 pode ser usado para classificar imagens com base em seu conteúdo. Utiliza uma variante da arquitetura EfficientNet para realizar a classificação.
+Classificação é uma tarefa que envolve classificar uma imagem em diferentes categorias. YOLOv8 pode set usado para classificar imagens com base em seu conteúdo. Utilize uma variante da arquitetura EfficientNet para realizar a classificação.
 
 [Exemplos de Classificação](classify.md){ .md-button }
 

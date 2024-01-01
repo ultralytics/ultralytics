@@ -48,7 +48,7 @@ Este exemplo apresenta exemplos simples de treinamento e inferência do YOLOv3. 
 
     === "Python"
 
-        Modelos pré-treinados do PyTorch `*.pt`, bem como arquivos de configuração `*.yaml`, podem ser passados para a classe `YOLO()` para criar uma instância do modelo em Python:
+        Modelos pré-treinados do PyTorch `*.pt`, bem como arquivos de configuração `*.yaml`, podem set passados para a classe `YOLO()` para criar uma instância do modelo em Python:
 
         ```python
         from ultralytics import YOLO
@@ -68,7 +68,7 @@ Este exemplo apresenta exemplos simples de treinamento e inferência do YOLOv3. 
 
     === "CLI"
 
-        Comandos CLI estão disponíveis para executar diretamente os modelos:
+        Commandos CLI estão disponíveis para executar diretamente os modelos:
 
         ```bash
         # Carregue um modelo YOLOv3n pré-treinado na COCO e treine-o no conjunto de dados de exemplo COCO8 por 100 épocas

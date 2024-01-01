@@ -11,13 +11,13 @@ keywords: Meituan YOLOv6, détection d'objets, Ultralytics, YOLOv6 docs, Bi-dire
 [Meituan](https://about.meituan.com/) YOLOv6 est un détecteur d'objets de pointe qui offre un équilibre remarquable entre vitesse et précision, ce qui en fait un choix populaire pour les applications en temps réel. Ce modèle introduit plusieurs améliorations remarquables sur son architecture et son schéma d'entraînement, notamment la mise en œuvre d'un module de concaténation bidirectionnelle (BiC), d'une stratégie d'entraînement assistée par ancrage (AAT) et d'une conception améliorée de l'épine dorsale et du cou pour une précision de pointe sur l'ensemble de données COCO.
 
 ![Meituan YOLOv6](https://user-images.githubusercontent.com/26833433/240750495-4da954ce-8b3b-41c4-8afd-ddb74361d3c2.png)
-![Exemple d'image du modèle](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png)
-**Aperçu de YOLOv6.** Diagramme de l'architecture du modèle montrant les composants du réseau redessinés et les stratégies d'entraînement qui ont conduit à d'importantes améliorations des performances. (a) L'épine dorsale de YOLOv6 (N et S sont indiqués). Notez que pour M/L, RepBlocks est remplacé par CSPStackRep. (b) La structure d'un module BiC. (c) Un bloc SimCSPSPPF. ([source](https://arxiv.org/pdf/2301.05586.pdf)).
+![Example d'image du modèle](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png)
+**Aperçu de YOLOv6.** Diagramme de l'architecture du modèle montrant les composants du réseau redessinés et les stratégies d'entraînement qui ont conduit à d'importantes améliorations des performances. (a) L'épine dorsale de YOLOv6 (N et S sont indiqués). Notez que pour M/L, RepBlocks est remplacé par CSPStackRep. (b) La structure d'un module BiC. (c) Un block SimCSPSPPF. ([source](https://arxiv.org/pdf/2301.05586.pdf)).
 
 ### Caractéristiques principales
 
 - **Module de concaténation bidirectionnelle (BiC) :** YOLOv6 introduit un module BiC dans le cou du détecteur, améliorant les signaux de localisation et offrant des gains de performance avec une dégradation de vitesse négligeable.
-- **Stratégie d'entraînement assistée par ancrage (AAT) :** Ce modèle propose AAT pour profiter des avantages des paradigmes basés sur ancrage et sans ancrage sans compromettre l'efficacité de l'inférence.
+- **Stratégie d'entraînement assistée par ancrage (AAT) :** Ce modèle propose AAT pour profiter des advantages des paradigmes basés sur ancrage et sans ancrage sans compromettre l'efficacité de l'inférence.
 - **Conception améliorée de l'épine dorsale et du cou :** En approfondissant YOLOv6 pour inclure une autre étape dans l'épine dorsale et le cou, ce modèle atteint des performances de pointe sur l'ensemble de données COCO avec une entrée haute résolution.
 - **Stratégie d'autodistillation :** Une nouvelle stratégie d'autodistillation est mise en œuvre pour améliorer les performances des modèles plus petits de YOLOv6, en améliorant la branche de régression auxiliaire pendant l'entraînement et en la supprimant lors de l'inférence afin d'éviter une baisse notable de la vitesse.
 
@@ -33,11 +33,11 @@ YOLOv6 propose différents modèles pré-entraînés avec différentes échelles
 
 YOLOv6 propose également des modèles quantifiés pour différentes précisions et des modèles optimisés pour les plates-formes mobiles.
 
-## Exemples d'utilisation
+## Examples d'utilisation
 
-Cet exemple fournit des exemples simples d'entraînement et d'inférence de YOLOv6. Pour une documentation complète sur ces exemples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
+Cet example fournit des examples simples d'entraînement et d'inférence de YOLOv6. Pour une documentation complète sur ces examples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -49,7 +49,7 @@ Cet exemple fournit des exemples simples d'entraînement et d'inférence de YOLO
         # Créer un modèle YOLOv6n à partir de zéro
         model = YOLO('yolov6n.yaml')
 
-        # Afficher les informations sur le modèle (facultatif)
+        # Afficher les information sur le modèle (facultatif)
         model.info()
 
         # Entraîner le modèle sur l'ensemble de données d'exemple COCO8 pendant 100 epochs

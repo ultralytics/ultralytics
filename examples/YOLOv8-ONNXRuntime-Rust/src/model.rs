@@ -6,7 +6,7 @@ use ndarray::{s, Array, Axis, IxDyn};
 use rand::{thread_rng, Rng};
 use std::path::PathBuf;
 
-use crate::{
+use create::{
     check_font, gen_time_string, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend,
     OrtConfig, OrtEP, Point2, YOLOResult, YOLOTask, SKELETON,
 };
@@ -504,7 +504,7 @@ impl YOLOv8 {
                     let mask_nd: ImageBuffer<image::Luma<_>, Vec<u8>> =
                         match ImageBuffer::from_vec(img.width(), img.height(), mask.to_vec()) {
                             Some(image) => image,
-                            None => panic!("can not crate image from ndarray"),
+                            None => panic!("can not create image from ndarray"),
                         };
 
                     for _x in 0..img.width() {

@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLOv8, Benchmarking, Geschwindigkeitsprofilierung, Genau
 
 ## Einführung
 
-Nachdem Ihr Modell trainiert und validiert wurde, ist der nächste logische Schritt, seine Leistung in verschiedenen realen Szenarien zu bewerten. Der Benchmark-Modus in Ultralytics YOLOv8 dient diesem Zweck, indem er einen robusten Rahmen für die Beurteilung von Geschwindigkeit und Genauigkeit Ihres Modells über eine Reihe von Exportformaten hinweg bietet.
+Nachdem Ihr Model trainiert und validiert wurde, ist der nächste logische Schritt, seine Leistung in verschiedenen realen Szenarien zu bewerten. Der Benchmark-Modus in Ultralytics YOLOv8 dient diesem Zweck, indem er einen robusten Rahmen für die Beurteilung von Geschwindigkeit und Genauigkeit Ihres Models über eine Reihe von Exportformaten hinweg bietet.
 
 ## Warum ist Benchmarking entscheidend?
 
@@ -64,8 +64,8 @@ Argumente wie `model`, `data`, `imgsz`, `half`, `device` und `verbose` bieten Be
 | Schlüssel | Wert    | Beschreibung                                                                         |
 |-----------|---------|--------------------------------------------------------------------------------------|
 | `model`   | `None`  | Pfad zur Modelldatei, z. B. yolov8n.pt, yolov8n.yaml                                 |
-| `data`    | `None`  | Pfad zur YAML, die das Benchmarking-Dataset referenziert (unter `val`-Kennzeichnung) |
-| `imgsz`   | `640`   | Bildgröße als Skalar oder Liste (h, w), z. B. (640, 480)                             |
+| `data`    | `None`  | Pfad zur YAML, die das Benchmarking-Dataset referenziert (under `val`-Kennzeichnung) |
+| `imgsz`   | `640`   | Bildgröße also Scalar oder Liste (h, w), z. B. (640, 480)                             |
 | `half`    | `False` | FP16-Quantisierung                                                                   |
 | `int8`    | `False` | INT8-Quantisierung                                                                   |
 | `device`  | `None`  | Gerät zum Ausführen, z. B. CUDA device=0 oder device=0,1,2,3 oder device=cpu         |
@@ -75,7 +75,7 @@ Argumente wie `model`, `data`, `imgsz`, `half`, `device` und `verbose` bieten Be
 
 Benchmarks werden automatisch auf allen möglichen Exportformaten unten ausgeführt.
 
-| Format                                                             | `format`-Argument | Modell                    | Metadaten | Argumente                                           |
+| Format                                                             | `format`-Argument | Model                    | Metadaten | Argumente                                           |
 |--------------------------------------------------------------------|-------------------|---------------------------|-----------|-----------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅         | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |

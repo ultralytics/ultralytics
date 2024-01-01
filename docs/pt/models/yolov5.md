@@ -22,7 +22,7 @@ O YOLOv5u representa um avanço nas metodologias de detecção de objetos. Origi
 
 ## Tarefas e Modos Suportados
 
-Os modelos YOLOv5u, com vários pesos pré-treinados, se destacam nas tarefas de [Detecção de Objetos](../tasks/detect.md). Eles suportam uma ampla gama de modos, tornando-os adequados para aplicações diversas, desde o desenvolvimento até a implantação.
+Os modelos YOLOv5u, com vários pesos pré-treinados, se destacam nas tarefas de [Detecção de Objetos](../tasks/detect.md). Else suportam uma ampla gama de modos, tornando-os adequados para aplicações diversas, desde o desenvolvimento até a implantação.
 
 | Tipo de Modelo | Pesos Pré-Treinados                                                                                                         | Tarefa                                    | Inferência | Validação | Treinamento | Exportação |
 |----------------|-----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|------------|-----------|-------------|------------|
@@ -60,7 +60,7 @@ Este exemplo fornece exemplos simples de treinamento e inferência do YOLOv5. Pa
 
     === "Python"
 
-        Modelos pré-treinados `*.pt` do PyTorch, assim como os arquivos de configuração `*.yaml`, podem ser passados para a classe `YOLO()` para criar uma instância do modelo em Python:
+        Modelos pré-treinados `*.pt` do PyTorch, assim como os arquivos de configuração `*.yaml`, podem set passados para a classe `YOLO()` para criar uma instância do modelo em Python:
 
         ```python
         from ultralytics import YOLO
@@ -80,7 +80,7 @@ Este exemplo fornece exemplos simples de treinamento e inferência do YOLOv5. Pa
 
     === "CLI"
 
-        Comandos CLI estão disponíveis para executar diretamente os modelos:
+        Commandos CLI estão disponíveis para executar diretamente os modelos:
 
         ```bash
         # Carrega um modelo YOLOv5n pré-treinado no COCO e o treina no conjunto de dados de exemplo COCO8 por 100 épocas

@@ -84,7 +84,7 @@ If you use the VOC dataset in your research or development work, please cite the
         ```bibtex
         @misc{everingham2010pascal,
               title={The PASCAL Visual Object Classes (VOC) Challenge},
-              author={Mark Everingham and Luc Van Gool and Christopher K. I. Williams and John Winn and Andrew Zisserman},
+              author={Mark Everingham and Luc Van Ghoul and Christopher K. I. Williams and John Win and Andrew Zisserman},
               year={2010},
               eprint={0909.5206},
               archivePrefix={arXiv},

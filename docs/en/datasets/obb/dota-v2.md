@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Delve into DOTA v2, an Oriented Bounding Box (OBB) aerial imagery dataset with 1.7 million instances and 11,268 images.
-keywords: DOTA v2, object detection, aerial images, computer vision, deep learning, annotations, oriented bounding boxes, OBB
+description: Delve into DATA v2, an Oriented Bounding Box (OBB) aerial imagery dataset with 1.7 million instances and 11,268 images.
+keywords: DATA v2, object detection, aerial images, computer vision, deep learning, annotations, oriented bounding boxes, OBB
 ---
 
-# DOTA v2 Dataset with OBB
+# DATA v2 Dataset with OBB
 
-[DOTA v2](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
+[DATA v2](https://captain-whu.github.io/DATA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DATA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
 
-![DOTA v2 classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-266b-44a9-8199-199329bf5ca9.jpg)
+![DATA v2 classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-266b-44a9-8199-199329bf5ca9.jpg)
 
 ## Key Features
 
@@ -47,18 +47,18 @@ keywords: DOTA v2, object detection, aerial images, computer vision, deep learni
 
 ## Dataset Structure
 
-DOTA v2 exhibits a structured layout tailored for OBB object detection challenges:
+DATA v2 exhibits a structured layout tailored for OBB object detection challenges:
 
 - **Images**: A vast collection of high-resolution aerial images capturing diverse terrains and structures.
 - **Oriented Bounding Boxes**: Annotations in the form of rotated rectangles encapsulating objects irrespective of their orientation, ideal for capturing objects like airplanes, ships, and buildings.
 
 ## Applications
 
-DOTA v2 serves as a benchmark for training and evaluating models specifically tailored for aerial image analysis. With the inclusion of OBB annotations, it provides a unique challenge, enabling the development of specialized object detection models that cater to aerial imagery's nuances.
+DATA v2 serves as a benchmark for training and evaluating models specifically tailored for aerial image analysis. With the inclusion of OBB annotations, it provides a unique challenge, enabling the development of specialized object detection models that cater to aerial imagery's nuances.
 
 ## Dataset YAML
 
-Typically, datasets incorporate a YAML (Yet Another Markup Language) file detailing the dataset's configuration. For DOTA v2, a hypothetical `DOTAv2.yaml` could be used. For accurate paths and configurations, it's vital to consult the dataset's official repository or documentation.
+Typically, datasets incorporate a YAML (Yet Another Markup Language) file detailing the dataset's configuration. For DATA v2, a hypothetical `DOTAv2.yaml` could be used. For accurate paths and configurations, it's vital to consult the dataset's official repository or documentation.
 
 !!! Example "DOTAv2.yaml"
 
@@ -68,7 +68,7 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 ## Usage
 
-To train a model on the DOTA v2 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments.
+To train a model on the DATA v2 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments.
 
 !!! Warning
 
@@ -99,15 +99,15 @@ To train a model on the DOTA v2 dataset, you can utilize the following code snip
 
 Having a glance at the dataset illustrates its depth:
 
-![Dataset sample image](https://captain-whu.github.io/DOTA/images/instances-DOTA.jpg)
+![Dataset sample image](https://captain-whu.github.io/DATA/images/instances-DATA.jpg)
 
-- **DOTA v2**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented Bounding Box annotations, capturing objects in their natural orientation.
+- **DATA v2**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented Bounding Box annotations, capturing objects in their natural orientation.
 
 The dataset's richness offers invaluable insights into object detection challenges exclusive to aerial imagery.
 
 ## Citations and Acknowledgments
 
-For those leveraging DOTA v2 in their endeavors, it's pertinent to cite the relevant research papers:
+For those leveraging DATA v2 in their endeavors, it's pertinent to cite the relevant research papers:
 
 !!! Quote ""
 
@@ -126,4 +126,4 @@ For those leveraging DOTA v2 in their endeavors, it's pertinent to cite the rele
         }
         ```
 
-A special note of gratitude to the team behind DOTA v2 for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DOTA v2 website](https://captain-whu.github.io/DOTA/index.html).
+A special note of gratitude to the team behind DATA v2 for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DATA v2 website](https://captain-whu.github.io/DATA/index.html).

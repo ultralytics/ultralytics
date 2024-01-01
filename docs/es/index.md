@@ -35,9 +35,9 @@ keywords: Ultralytics, YOLOv8, detección de objetos, segmentación de imágenes
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Abrir en Kaggle"></a>
 </div>
 
-Presentamos [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), la última versión del aclamado modelo para detección de objetos y segmentación de imágenes en tiempo real. YOLOv8 está construido sobre avances de vanguardia en aprendizaje profundo y visión por computadora, ofreciendo un rendimiento sin paralelo en términos de velocidad y precisión. Su diseño simplificado lo hace adecuado para varias aplicaciones y fácilmente adaptable a diferentes plataformas de hardware, desde dispositivos de borde hasta API en la nube.
+Presentamos [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), la última versión del aclamado modelo para detección de objetos y segmentación de imágenes en tiempo real. YOLOv8 está construido sobre advances de vanguardia en aprendizaje profundo y visión por computadora, ofreciendo un rendimiento sin paralelo en términos de velocidad y precisión. Su diseño simplificado lo have adecuado para varias aplicaciones y fácilmente adaptable a diferentes plataformas de hardware, desde dispositivos de borde hasta API en la nube.
 
-Explore los documentos de YOLOv8, un recurso integral diseñado para ayudarle a comprender y utilizar sus características y capacidades. Independientemente de que sea un practicante experimentado en aprendizaje automático o nuevo en el campo, este centro tiene como objetivo maximizar el potencial de YOLOv8 en sus proyectos.
+Explore los documentos de YOLOv8, un recurso integral diseñado para ayudarle a comprender y utilizar sus características y capacidades. Independientemente de que sea un practicante experimentado en aprendizaje automático o nuevo en el campo, este centro tiene como objetivo maximizar el potential de YOLOv8 en sus proyectos.
 
 !!! Note "Nota"
 
@@ -65,11 +65,11 @@ Explore los documentos de YOLOv8, un recurso integral diseñado para ayudarle a 
 
 [YOLO](https://arxiv.org/abs/1506.02640) (You Only Look Once), un modelo popular de detección de objetos y segmentación de imágenes, fue desarrollado por Joseph Redmon y Ali Farhadi en la Universidad de Washington. Lanzado en 2015, YOLO rápidamente ganó popularidad por su alta velocidad y precisión.
 
-- [YOLOv2](https://arxiv.org/abs/1612.08242), lanzado en 2016, mejoró el modelo original incorporando normalización por lotes, cajas ancla y clústeres de dimensiones.
+- [YOLOv2](https://arxiv.org/abs/1612.08242), lanzado en 2016, mejoró el modelo original incorporando normalización por lotes, cajas ancla y clústeres de dimensions.
 - [YOLOv3](https://pjreddie.com/media/files/papers/YOLOv3.pdf), lanzado en 2018, mejoró aún más el rendimiento del modelo usando una red dorsal más eficiente, múltiples anclas y agrupación piramidal espacial.
 - [YOLOv4](https://arxiv.org/abs/2004.10934) fue lanzado en 2020, introduciendo innovaciones como la ampliación de datos del mosaico, un nuevo cabezal de detección sin ancla y una nueva función de pérdida.
 - [YOLOv5](https://github.com/ultralytics/yolov5) mejoró aún más el rendimiento del modelo y agregó nuevas características como la optimización de hiperparámetros, seguimiento de experimentos integrados y exportación automática a formatos de exportación populares.
-- [YOLOv6](https://github.com/meituan/YOLOv6) fue publicado en código abierto por [Meituan](https://about.meituan.com/) en 2022 y se utiliza en muchos de los robots de entrega autónomos de la empresa.
+- [YOLOv6](https://github.com/meituan/YOLOv6) fue publicado en código abierto por [Meituan](https://about.meituan.com/) en 2022 y se utilize en muchos de los robots de entrega autónomos de la empresa.
 - [YOLOv7](https://github.com/WongKinYiu/yolov7) añadió tareas adicionales como la estimación de posturas en el conjunto de datos COCO keypoints.
 - [YOLOv8](https://github.com/ultralytics/ultralytics) es la última versión de YOLO de Ultralytics. Como un modelo de vanguardia y del estado del arte (SOTA), YOLOv8 se basa en el éxito de las versiones anteriores, introduciendo nuevas características y mejoras para obtener un rendimiento mejorado, flexibilidad y eficiencia. YOLOv8 soporta una gama completa de tareas de IA de visión, incluyendo [detección](tasks/detect.md), [segmentación](tasks/segment.md), [estimación de pose](tasks/pose.md), [seguimiento](modes/track.md) y [clasificación](tasks/classify.md). Esta versatilidad permite a los usuarios aprovechar las capacidades de YOLOv8 en una amplia gama de aplicaciones y dominios.
 
@@ -78,6 +78,6 @@ Explore los documentos de YOLOv8, un recurso integral diseñado para ayudarle a 
 Ultralytics ofrece dos opciones de licencia para acomodar casos de uso diversos:
 
 - **Licencia AGPL-3.0**: Esta licencia de código abierto aprobada por [OSI](https://opensource.org/licenses/) es ideal para estudiantes y entusiastas, promoviendo la colaboración abierta y el intercambio de conocimiento. Consulte el archivo [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) para obtener más detalles.
-- **Licencia Empresarial**: Diseñada para uso comercial, esta licencia permite la integración sin problemas de software de Ultralytics y modelos de IA en bienes y servicios comerciales, eludiendo los requisitos de código abierto de AGPL-3.0. Si su escenario implica la incorporación de nuestras soluciones en una oferta comercial, póngase en contacto a través de [Licencias de Ultralytics](https://ultralytics.com/license).
+- **Licencia Empresarial**: Diseñada para uso commercial, esta licencia permite la integración sin problemas de software de Ultralytics y modelos de IA en bienes y servicios comerciales, eludiendo los requisitos de código abierto de AGPL-3.0. Si su escenario implica la incorporación de nuestras soluciones en una oferta commercial, póngase en contacto a través de [Licencias de Ultralytics](https://ultralytics.com/license).
 
-Nuestra estrategia de licenciamiento está diseñada para asegurar que cualquier mejora a nuestros proyectos de código abierto se devuelva a la comunidad. Mantenemos los principios del código abierto cerca de nuestros corazones ❤️, y nuestra misión es garantizar que nuestras contribuciones puedan ser utilizadas y ampliadas de formas que sean beneficiosas para todos.
+Nuestra estrategia de licenciamiento está diseñada para asegurar que cualquier mejora a nuestros proyectos de código abierto se devuelva a la comunidad. Mantenemos los principios del código abierto cerca de nuestros corazones ❤️, y nuestra misión es garantizar que nuestras contribuciones puedan set utilizadas y ampliadas de formas que sean beneficiosas para todos.

@@ -34,13 +34,13 @@ La detección es la tarea principal soportada por YOLOv8. Implica detectar objet
 
 ## [Segmentación](segment.md)
 
-La segmentación es una tarea que implica segmentar una imagen en diferentes regiones basadas en el contenido de la imagen. A cada región se le asigna una etiqueta basada en su contenido. Esta tarea es útil en aplicaciones tales como segmentación de imágenes y imágenes médicas. YOLOv8 utiliza una variante de la arquitectura U-Net para realizar la segmentación.
+La segmentación es una tarea que implica segmentar una imagen en diferentes regiones basadas en el contenido de la imagen. A cada región se le asigna una etiqueta basada en su contenido. Esta tarea es útil en aplicaciones tales como segmentación de imágenes y imágenes médicas. YOLOv8 utilize una variante de la arquitectura U-Net para realizar la segmentación.
 
 [Ejemplos de Segmentación](segment.md){ .md-button }
 
 ## [Clasificación](classify.md)
 
-La clasificación es una tarea que implica clasificar una imagen en diferentes categorías. YOLOv8 puede usarse para clasificar imágenes basadas en su contenido. Utiliza una variante de la arquitectura EfficientNet para realizar la clasificación.
+La clasificación es una tarea que implica clasificar una imagen en diferentes categorías. YOLOv8 puede usarse para clasificar imágenes basadas en su contenido. Utilize una variante de la arquitectura EfficientNet para realizar la clasificación.
 
 [Ejemplos de Clasificación](classify.md){ .md-button }
 

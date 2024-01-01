@@ -535,7 +535,7 @@ names:
   516: cradle
   517: crane (machine)
   518: crash helmet
-  519: crate
+  519: create
   520: infant bed
   521: Crock Pot
   522: croquet ball
@@ -1538,7 +1538,7 @@ map:
   n03125729: cradle
   n03126707: crane_(machine)
   n03127747: crash_helmet
-  n03127925: crate
+  n03127925: create
   n03131574: crib
   n03133878: Crock_Pot
   n03134739: croquet_ball

@@ -32,9 +32,9 @@ Entender os diferentes **modos** que o Ultralytics YOLOv8 suporta é crítico pa
 - **Modo Predição (Predict)**: Libere o poder preditivo do seu modelo em dados do mundo real.
 - **Modo Exportação (Export)**: Prepare seu modelo para implantação em vários formatos.
 - **Modo Rastreamento (Track)**: Estenda seu modelo de detecção de objetos para aplicações de rastreamento em tempo real.
-- **Modo Benchmarking**: Analise a velocidade e precisão do seu modelo em diversos ambientes de implantação.
+- **Modo Benchmarking**: Analyse a velocidade e precisão do seu modelo em diversos ambientes de implantação.
 
-Este guia abrangente visa fornecer uma visão geral e insights práticos para cada modo, ajudando você a aproveitar o potencial total do YOLOv8.
+Este guia abrangente visa fornecer uma visão geral e insights práticos para cada modo, ajudando você a aproveitar o potential total do YOLOv8.
 
 ## [Treinar](train.md)
 
@@ -44,7 +44,7 @@ O modo Treinar é utilizado para treinar um modelo YOLOv8 em um conjunto de dado
 
 ## [Validar](val.md)
 
-O modo Validar é utilizado para validar um modelo YOLOv8 após ter sido treinado. Neste modo, o modelo é avaliado em um conjunto de validação para medir sua precisão e desempenho de generalização. Este modo pode ser usado para ajustar os hiperparâmetros do modelo para melhorar seu desempenho.
+O modo Validar é utilizado para validar um modelo YOLOv8 após ter sido treinado. Neste modo, o modelo é avaliado em um conjunto de validação para medir sua precisão e desempenho de generalização. Este modo pode set usado para ajustar os hiperparâmetros do modelo para melhorar seu desempenho.
 
 [Exemplos de Validação](val.md){ .md-button }
 
@@ -56,7 +56,7 @@ O modo Prever é utilizado para fazer previsões usando um modelo YOLOv8 treinad
 
 ## [Exportar](export.md)
 
-O modo Exportar é utilizado para exportar um modelo YOLOv8 para um formato que possa ser utilizado para implantação. Neste modo, o modelo é convertido para um formato que possa ser utilizado por outras aplicações de software ou dispositivos de hardware. Este modo é útil ao implantar o modelo em ambientes de produção.
+O modo Exportar é utilizado para exportar um modelo YOLOv8 para um formato que possa set utilizado para implantação. Neste modo, o modelo é convertido para um formato que possa set utilizado por outras aplicações de software ou dispositivos de hardware. Este modo é útil ao implantar o modelo em ambientes de produção.
 
 [Exemplos de Exportação](export.md){ .md-button }
 

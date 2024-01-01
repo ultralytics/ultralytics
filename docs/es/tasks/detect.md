@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Documentación oficial de YOLOv8 de Ultralytics. Aprende a entrenar, validar, predecir y exportar modelos en varios formatos. Incluyendo estadísticas detalladas de rendimiento.
+description: Documentación official de YOLOv8 de Ultralytics. Aprende a entrenar, validar, predecir y exportar modelos en varios formatos. Incluyendo estadísticas detalladas de rendimiento.
 keywords: YOLOv8, Ultralytics, detección de objetos, modelos preentrenados, entrenamiento, validación, predicción, exportación de modelos, COCO, ImageNet, PyTorch, ONNX, CoreML
 ---
 
@@ -94,7 +94,7 @@ Valida la precisión del modelo YOLOv8n entrenado en el conjunto de datos COCO12
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n.pt')  # cargar un modelo official
         model = YOLO('ruta/a/mejor.pt')  # cargar un modelo personalizado
 
         # Validar el modelo
@@ -107,13 +107,13 @@ Valida la precisión del modelo YOLOv8n entrenado en el conjunto de datos COCO12
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # validar modelo oficial
+        yolo detect val model=yolov8n.pt  # validar modelo official
         yolo detect val model=ruta/a/mejor.pt  # validar modelo personalizado
         ```
 
 ## Predicción
 
-Utiliza un modelo YOLOv8n entrenado para realizar predicciones en imágenes.
+Utilize un modelo YOLOv8n entrenado para realizar predicciones en imágenes.
 
 !!! Example "Ejemplo"
 
@@ -123,7 +123,7 @@ Utiliza un modelo YOLOv8n entrenado para realizar predicciones en imágenes.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n.pt')  # cargar un modelo official
         model = YOLO('ruta/a/mejor.pt')  # cargar un modelo personalizado
 
         # Predecir con el modelo
@@ -132,7 +132,7 @@ Utiliza un modelo YOLOv8n entrenado para realizar predicciones en imágenes.
     === "CLI"
 
         ```bash
-        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo oficial
+        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo official
         yolo detect predict model=ruta/a/mejor.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo personalizado
         ```
 
@@ -150,7 +150,7 @@ Exporta un modelo YOLOv8n a un formato diferente como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n.pt')  # cargar un modelo official
         model = YOLO('ruta/a/mejor.pt')  # cargar un modelo entrenado personalizado
 
         # Exportar el modelo
@@ -159,7 +159,7 @@ Exporta un modelo YOLOv8n a un formato diferente como ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # exportar modelo oficial
+        yolo export model=yolov8n.pt format=onnx  # exportar modelo official
         yolo export model=ruta/a/mejor.pt format=onnx  # exportar modelo entrenado personalizado
         ```
 

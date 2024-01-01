@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::YOLOTask;
+use create::YOLOTask;
 
 #[derive(Parser, Clone)]
 #[command(author, version, about, long_about = None)]

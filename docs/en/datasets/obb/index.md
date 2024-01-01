@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Dive deep into various oriented bounding box (OBB) dataset formats compatible with Ultralytics YOLO models. Grasp the nuances of using and converting datasets to this format.
-keywords: Ultralytics, YOLO, oriented bounding boxes, OBB, dataset formats, label formats, DOTA v2, data conversion
+keywords: Ultralytics, YOLO, oriented bounding boxes, OBB, dataset formats, label formats, DATA v2, data conversion
 ---
 
 # Oriented Bounding Box (OBB) Datasets Overview
@@ -57,7 +57,7 @@ To train a model using these OBB formats:
 
 Currently, the following datasets with Oriented Bounding Boxes are supported:
 
-- [**DOTA v2**](dota-v2.md): DOTA (A Large-scale Dataset for Object Detection in Aerial Images) version 2, emphasizes detection from aerial perspectives and contains oriented bounding boxes with 1.7 million instances and 11,268 images.
+- [**DATA v2**](dota-v2.md): DATA (A Large-scale Dataset for Object Detection in Aerial Images) version 2, emphasizes detection from aerial perspectives and contains oriented bounding boxes with 1.7 million instances and 11,268 images.
 
 ### Incorporating your own OBB dataset
 
@@ -65,9 +65,9 @@ For those looking to introduce their own datasets with oriented bounding boxes, 
 
 ## Convert Label Formats
 
-### DOTA Dataset Format to YOLO OBB Format
+### DATA Dataset Format to YOLO OBB Format
 
-Transitioning labels from the DOTA dataset format to the YOLO OBB format can be achieved with this script:
+Transitioning labels from the DATA dataset format to the YOLO OBB format can be achieved with this script:
 
 !!! Example
 
@@ -79,6 +79,6 @@ Transitioning labels from the DOTA dataset format to the YOLO OBB format can be 
         convert_dota_to_yolo_obb('path/to/DOTA')
         ```
 
-This conversion mechanism is instrumental for datasets in the DOTA format, ensuring alignment with the Ultralytics YOLO OBB format.
+This conversion mechanism is instrumental for datasets in the DATA format, ensuring alignment with the Ultralytics YOLO OBB format.
 
 It's imperative to validate the compatibility of the dataset with your model and adhere to the necessary format conventions. Properly structured datasets are pivotal for training efficient object detection models with oriented bounding boxes.

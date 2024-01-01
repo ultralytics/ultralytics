@@ -6,22 +6,22 @@ keywords: Ultralytics, Bildsegmentierung, Segment Anything Model, SAM, SA-1B-Dat
 
 # Segment Anything Model (SAM)
 
-Willkommen an der Spitze der Bildsegmentierung mit dem Segment Anything Model (SAM). Dieses revolutionäre Modell hat mit promptabler Bildsegmentierung und Echtzeit-Performance neue Standards in diesem Bereich gesetzt.
+Willkommen an der Spitze der Bildsegmentierung mit dem Segment Anything Model (SAM). Dieses revolutionäre Model hat mit promptabler Bildsegmentierung und Echtzeit-Performance neue Standards in diesem Bereich gesetzt.
 
 ## Einführung in SAM: Das Segment Anything Model
 
-Das Segment Anything Model (SAM) ist ein innovatives Bildsegmentierungsmodell, das promptable Segmentierung ermöglicht und so eine beispiellose Vielseitigkeit bei der Bildanalyse bietet. SAM bildet das Herzstück der Segment Anything Initiative, einem bahnbrechenden Projekt, das ein neuartiges Modell, eine neue Aufgabe und einen neuen Datensatz für die Bildsegmentierung einführt.
+Das Segment Anything Model (SAM) ist ein innovatives Bildsegmentierungsmodell, das promptable Segmentierung ermöglicht und so eine beispiellose Vielseitigkeit bei der Bildanalyse bietet. SAM bildet das Herzstück der Segment Anything Initiative, einem bahnbrechenden Projekt, das ein neuartiges Model, eine neue Aufgabe und einen neuen Datensatz für die Bildsegmentierung einführt.
 
-Dank seiner fortschrittlichen Konstruktion kann SAM sich an neue Bildverteilungen und Aufgaben anpassen, auch ohne Vorwissen. Das wird als Zero-Shot-Transfer bezeichnet. Trainiert wurde SAM auf dem umfangreichen [SA-1B-Datensatz](https://ai.facebook.com/datasets/segment-anything/), der über 1 Milliarde Masken auf 11 Millionen sorgfältig kuratierten Bildern enthält. SAM hat beeindruckende Zero-Shot-Performance gezeigt und in vielen Fällen frühere vollständig überwachte Ergebnisse übertroffen.
+Dank seiner fortschrittlichen Konstruktion kann SAM sich an neue Bildverteilungen und Aufgaben anpassen, auch ohne Vorwissen. Das wird also Zero-Shot-Transfer bezeichnet. Trainiert wurde SAM auf dem umfangreichen [SA-1B-Datensatz](https://ai.facebook.com/datasets/segment-anything/), der über 1 Milliarde Masken auf 11 Millionen sorgfältig kuratierten Bildern enthält. SAM hat beeindruckende Zero-Shot-Performance gezeigt und in vielen Fällen frühere vollständig überwachte Ergebnisse übertroffen.
 
 ![Beispielbild aus dem Datensatz](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg)
 Beispielimagen mit überlagernden Masken aus unserem neu eingeführten Datensatz SA-1B. SA-1B enthält 11 Millionen diverse, hochauflösende, lizenzierte und die Privatsphäre schützende Bilder und 1,1 Milliarden qualitativ hochwertige Segmentierungsmasken. Diese wurden vollautomatisch von SAM annotiert und sind nach menschlichen Bewertungen und zahlreichen Experimenten von hoher Qualität und Vielfalt. Die Bilder sind nach der Anzahl der Masken pro Bild gruppiert (im Durchschnitt sind es etwa 100 Masken pro Bild).
 
 ## Hauptmerkmale des Segment Anything Model (SAM)
 
-- **Promptable Segmentierungsaufgabe:** SAM wurde mit der Ausführung einer promptable Segmentierungsaufgabe entwickelt, wodurch es valide Segmentierungsmasken aus beliebigen Prompts generieren kann, z. B. räumlichen oder textuellen Hinweisen zur Identifizierung eines Objekts.
+- **Promptable Segmentierungsaufgabe:** SAM wurde mit der Ausführung einer promptable Segmentierungsaufgabe entwickelt, wodurch es valid Segmentierungsmasken aus beliebigen Prompts generieren kann, z. B. räumlichen oder textuellen Hinweisen zur Identifizierung eines Objekts.
 - **Fortgeschrittene Architektur:** Das Segment Anything Model verwendet einen leistungsfähigen Bild-Encoder, einen Prompt-Encoder und einen leichten Masken-Decoder. Diese einzigartige Architektur ermöglicht flexibles Prompting, Echtzeitmaskenberechnung und Berücksichtigung von Mehrdeutigkeiten in Segmentierungsaufgaben.
-- **Der SA-1B-Datensatz:** Eingeführt durch das Segment Anything Projekt, enthält der SA-1B-Datensatz über 1 Milliarde Masken auf 11 Millionen Bildern. Als bisher größter Segmentierungsdatensatz liefert er SAM eine vielfältige und umfangreiche Datenquelle für das Training.
+- **Der SA-1B-Datensatz:** Eingeführt durch das Segment Anything Projekt, enthält der SA-1B-Datensatz über 1 Milliarde Masken auf 11 Millionen Bildern. Also bisher größter Segmentierungsdatensatz liefert er SAM eine vielfältige und umfangreiche Datenquelle für das Training.
 - **Zero-Shot-Performance:** SAM zeigt herausragende Zero-Shot-Performance in verschiedenen Segmentierungsaufgaben und ist damit ein einsatzbereites Werkzeug für vielfältige Anwendungen mit minimalem Bedarf an prompt engineering.
 
 Für eine detaillierte Betrachtung des Segment Anything Models und des SA-1B-Datensatzes besuchen Sie bitte die [Segment Anything Website](https://segment-anything.com) und lesen Sie das Forschungspapier [Segment Anything](https://arxiv.org/abs/2304.02643).
@@ -37,7 +37,7 @@ Diese Tabelle zeigt die verfügbaren Modelle mit ihren spezifischen vortrainiert
 
 ## Wie man SAM verwendet: Vielseitigkeit und Power in der Bildsegmentierung
 
-Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden, die über die Trainingsdaten hinausgehen. Dazu gehören Kantenerkennung, Generierung von Objektvorschlägen, Instanzsegmentierung und vorläufige Text-to-Mask-Vorhersage. Mit prompt engineering kann SAM sich schnell an neue Aufgaben und Datenverteilungen anpassen und sich so als vielseitiges und leistungsstarkes Werkzeug für alle Anforderungen der Bildsegmentierung etablieren.
+Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden, die über die Trainingsdaten hinausgehen. Dazu gehören Kantenerkennung, Generierung von Objektvorschlägen, Instanzsegmentierung und vorläufige Text-to-Mask-Vorhersage. Mit prompt engineering kann SAM sich schnell an neue Aufgaben und Datenverteilungen anpassen und sich so also vielseitiges und leistungsstarkes Werkzeug für alle Anforderungen der Bildsegmentierung etablieren.
 
 ### Beispiel für SAM-Vorhersage
 
@@ -50,7 +50,7 @@ Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden
         ```python
         from ultralytics import SAM
 
-        # Modell laden
+        # Model laden
         model = SAM('sam_b.pt')
 
         # Modellinformationen anzeigen (optional)
@@ -72,7 +72,7 @@ Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden
         ```python
         from ultralytics import SAM
 
-        # Modell laden
+        # Model laden
         model = SAM('sam_b.pt')
 
         # Modellinformationen anzeigen (optional)
@@ -129,13 +129,13 @@ Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- Weitere zusätzliche Argumente für `Alles segmentieren` finden Sie in der [`Predictor/generate` Referenz](../../../reference/models/sam/predict.md).
+- Weitere zusätzliche Argumente für `Alles segmentieren` finden Sie in der [`Predictor/generate` Reference](../../../reference/models/sam/predict.md).
 
 ## Vergleich von SAM und YOLOv8
 
 Hier vergleichen wir Meta's kleinstes SAM-Modell, SAM-b, mit Ultralytics kleinstem Segmentierungsmodell, [YOLOv8n-seg](../tasks/segment.md):
 
-| Modell                                         | Größe                         | Parameter                    | Geschwindigkeit (CPU)                  |
+| Model                                         | Größe                         | Parameter                    | Geschwindigkeit (CPU)                  |
 |------------------------------------------------|-------------------------------|------------------------------|----------------------------------------|
 | Meta's SAM-b                                   | 358 MB                        | 94,7 M                       | 51096 ms/pro Bild                      |
 | [MobileSAM](mobile-sam.md)                     | 40,7 MB                       | 10,1 M                       | 46122 ms/pro Bild                      |
@@ -175,11 +175,11 @@ Die Tests wurden auf einem Apple M2 MacBook aus dem Jahr 2023 mit 16 GB RAM durc
 
 ## Auto-Annotierung: Der schnelle Weg zu Segmentierungsdatensätzen
 
-Die Auto-Annotierung ist eine wichtige Funktion von SAM, mit der Benutzer mithilfe eines vortrainierten Detektionsmodells einen [Segmentierungsdatensatz](https://docs.ultralytics.com/datasets/segment) generieren können. Diese Funktion ermöglicht eine schnelle und genaue Annotation einer großen Anzahl von Bildern, ohne dass zeitaufwändiges manuelles Labeling erforderlich ist.
+Die Auto-Annotierung ist eine wichtige Function von SAM, mit der Benutzer mithilfe eines vortrainierten Detektionsmodells einen [Segmentierungsdatensatz](https://docs.ultralytics.com/datasets/segment) generieren können. Diese Function ermöglicht eine schnelle und genaue Annotation einer großen Anzahl von Bildern, ohne dass zeitaufwändiges manuelles Labeling erforderlich ist.
 
 ### Generieren Sie Ihren Segmentierungsdatensatz mit einem Detektionsmodell
 
-Um Ihren Datensatz mit dem Ultralytics-Framework automatisch zu annotieren, verwenden Sie die `auto_annotate` Funktion wie folgt:
+Um Ihren Datensatz mit dem Ultralytics-Framework automatisch zu annotieren, verwenden Sie die `auto_annotate` Function wie folgt:
 
 !!! Example "Beispiel"
 
@@ -192,15 +192,15 @@ Um Ihren Datensatz mit dem Ultralytics-Framework automatisch zu annotieren, verw
 
 | Argument   | Typ                 | Beschreibung                                                                                                              | Standard     |
 |------------|---------------------|---------------------------------------------------------------------------------------------------------------------------|--------------|
-| data       | str                 | Pfad zu einem Ordner, der die zu annotierenden Bilder enthält.                                                            |              |
+| data       | str                 | Pfad zu einem Order, der die zu annotierenden Bilder enthält.                                                            |              |
 | det_model  | str, optional       | Vortrainiertes YOLO-Detektionsmodell. Standardmäßig 'yolov8x.pt'.                                                         | 'yolov8x.pt' |
 | sam_model  | str, optional       | Vortrainiertes SAM-Segmentierungsmodell. Standardmäßig 'sam_b.pt'.                                                        | 'sam_b.pt'   |
 | device     | str, optional       | Gerät, auf dem die Modelle ausgeführt werden. Standardmäßig ein leerer String (CPU oder GPU, falls verfügbar).            |              |
 | output_dir | str, None, optional | Verzeichnis zum Speichern der annotierten Ergebnisse. Standardmäßig ein 'labels'-Ordner im selben Verzeichnis wie 'data'. | None         |
 
-Die `auto_annotate` Funktion nimmt den Pfad zu Ihren Bildern entgegen, mit optionalen Argumenten für das vortrainierte Detektions- und SAM-Segmentierungsmodell, das Gerät, auf dem die Modelle ausgeführt werden sollen, und das Ausgabeverzeichnis, in dem die annotierten Ergebnisse gespeichert werden sollen.
+Die `auto_annotate` Function nimmt den Pfad zu Ihren Bildern entgegen, mit optionalen Argumenten für das vortrainierte Detektions- und SAM-Segmentierungsmodell, das Gerät, auf dem die Modelle ausgeführt werden sollen, und das Ausgabeverzeichnis, in dem die annotierten Ergebnisse gespeichert werden sollen.
 
-Die Auto-Annotierung mit vortrainierten Modellen kann die Zeit und den Aufwand für die Erstellung hochwertiger Segmentierungsdatensätze erheblich reduzieren. Diese Funktion ist besonders vorteilhaft für Forscher und Entwickler, die mit großen Bildersammlungen arbeiten. Sie ermöglicht es ihnen, sich auf die Modellentwicklung und -bewertung zu konzentrieren, anstatt auf die manuelle Annotation.
+Die Auto-Annotierung mit vortrainierten Modellen kann die Zeit und den Aufwand für die Erstellung hochwertiger Segmentierungsdatensätze erheblich reduzieren. Diese Function ist besonders vorteilhaft für Forscher und Entwickler, die mit großen Bildersammlungen arbeiten. Sie ermöglicht es ihnen, sich auf die Modellentwicklung und -bewertung zu konzentrieren, anstatt auf die manuelle Annotation.
 
 ## Zitate und Danksagungen
 
@@ -221,6 +221,6 @@ Wenn Sie SAM in Ihrer Forschungs- oder Entwicklungsarbeit nützlich finden, erw�
         }
         ```
 
-Wir möchten Meta AI für die Erstellung und Pflege dieser wertvollen Ressource für die Computer Vision Community danken.
+Wir möchten Meta AI für die Erstellung und Pflege dieser wertvollen Resource für die Computer Vision Community danken.
 
 *Stichworte: Segment Anything, Segment Anything Model, SAM, Meta SAM, Bildsegmentierung, Promptable Segmentierung, Zero-Shot-Performance, SA-1B-Datensatz, fortschrittliche Architektur, Auto-Annotierung, Ultralytics, vortrainierte Modelle, SAM Base, SAM Large, Instanzsegmentierung, Computer Vision, Künstliche Intelligenz, maschinelles Lernen, Datenannotation, Segmentierungsmasken, Detektionsmodell, YOLO Detektionsmodell, Bibtex, Meta AI.*

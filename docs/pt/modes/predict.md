@@ -41,12 +41,12 @@ Aqui está o porquê de você considerar o modo predict do YOLOv8 para suas dive
 
 ### Recursos Chave do Modo Predict
 
-O modo predict do YOLOv8 é projetado para ser robusto e versátil, apresentando:
+O modo predict do YOLOv8 é projetado para set robusto e versátil, apresentando:
 
 - **Compatibilidade com Múltiplas Fontes de Dados:** Se seus dados estão na forma de imagens individuais, uma coleção de imagens, arquivos de vídeo ou transmissões de vídeo em tempo real, o modo predict atende a todas as necessidades.
 - **Modo de Streaming:** Use o recurso de streaming para gerar um gerador eficiente de memória de objetos `Results`. Ative isso definindo `stream=True` no método de chamada do preditor.
 - **Processamento em Lote:** A capacidade de processar várias imagens ou quadros de vídeo em um único lote, acelerando ainda mais o tempo de inferência.
-- **Integração Amigável:** Integração fácil com pipelines de dados existentes e outros componentes de software, graças à sua API flexível.
+- **Integração Amigável:** Integração fácil com pipelines de dados existentes e outros components de software, graças à sua API flexível.
 
 Os modelos Ultralytics YOLO retornam ou uma lista de objetos `Results` em Python, ou um gerador em Python eficiente de memória de objetos `Results` quando `stream=True` é passado para o modelo durante a inferência:
 
@@ -90,11 +90,11 @@ Os modelos Ultralytics YOLO retornam ou uma lista de objetos `Results` em Python
 
 ## Fontes de Inferência
 
-O YOLOv8 pode processar diferentes tipos de fontes de entrada para inferência, conforme mostrado na tabela abaixo. As fontes incluem imagens estáticas, transmissões de vídeo e vários formatos de dados. A tabela também indica se cada fonte pode ser usada no modo de streaming com o argumento `stream=True` ✅. O modo de streaming é benéfico para processar vídeos ou transmissões ao vivo, pois cria um gerador de resultados em vez de carregar todos os quadros na memória.
+O YOLOv8 pode processar diferentes tipos de fontes de entrada para inferência, conforme mostrado na tabela abaixo. As fontes incluem imagens estáticas, transmissões de vídeo e vários formatos de dados. A tabela também indica se cada fonte pode set usada no modo de streaming com o argumento `stream=True` ✅. O modo de streaming é benéfico para processar vídeos ou transmissões ao vivo, pois cria um gerador de resultados em vez de carregar todos os quadros na memória.
 
 !!! Tip "Dica"
 
-    Use `stream=True` para processar vídeos longos ou grandes conjuntos de dados para gerenciar a memória de forma eficiente. Quando `stream=False`, os resultados de todos os quadros ou pontos de dados são armazenados na memória, o que pode aumentar rapidamente e causar erros de falta de memória para grandes entradas. Em contraste, `stream=True` utiliza um gerador, que mantém apenas os resultados do quadro atual ou ponto de dados na memória, reduzindo significativamente o consumo de memória e prevenindo problemas de falta dela.
+    Use `stream=True` para processar vídeos longos ou grandes conjuntos de dados para gerenciar a memória de forma eficiente. Quando `stream=False`, os resultados de todos os quadros ou pontos de dados são armazenados na memória, o que pode aumentar rapidamente e causar errors de falta de memória para grandes entradas. Em contraste, `stream=True` utilize um gerador, que mantém apenas os resultados do quadro atual ou ponto de dados na memória, reduzindo significativamente o consumo de memória e prevenindo problemas de falta dela.
 
 | Fonte           | Argumento                                  | Tipo            | Notas                                                                                                                   |
 |-----------------|--------------------------------------------|-----------------|-------------------------------------------------------------------------------------------------------------------------|
@@ -108,7 +108,7 @@ O YOLOv8 pode processar diferentes tipos de fontes de entrada para inferência, 
 | CSV             | `'sources.csv'`                            | `str` ou `Path` | Arquivo CSV contendo caminhos para imagens, vídeos ou diretórios.                                                       |
 | vídeo ✅         | `'video.mp4'`                              | `str` ou `Path` | Arquivo de vídeo em formatos como MP4, AVI, etc.                                                                        |
 | diretório ✅     | `'path/'`                                  | `str` ou `Path` | Caminho para um diretório contendo imagens ou vídeos.                                                                   |
-| glob ✅          | `'path/*.jpg'`                             | `str`           | Padrão glob para combinar vários arquivos. Use o caractere `*` como curinga.                                            |
+| glob ✅          | `'path/*.jpg'`                             | `str`           | Padrão glob para combinar vários arquivos. Use o character `*` como curinga.                                            |
 | YouTube ✅       | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL para um vídeo do YouTube.                                                                                           |
 | stream ✅        | `'rtsp://example.com/media.mp4'`           | `str`           | URL para protocolos de streaming como RTSP, RTMP, TCP ou um endereço IP.                                                |
 | multi-stream ✅  | `'list.streams'`                           | `str` ou `Path` | Arquivo de texto `*.streams` com uma URL de stream por linha, ou seja, 8 streams serão executados em lote de tamanho 8. |

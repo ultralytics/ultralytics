@@ -1,7 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from typing import Union
+
 from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
+
+from ultralytics.models.yolo.classify import ClassificationPredictor
+
+from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -149,8 +155,41 @@ def on_train_end(trainer):
     wb.run.finish()  # required or run continues on dashboard
 
 
+class WandBCallback:
+    def __init__(self):
+        self.classification_prediction_table = wb.Table(
+            columns=[
+                "Model-Name",
+                "Image",
+                "Predicted-Category",
+                "Prediction-Confidence",
+                "Top-5-Prediction-Categories",
+                "Top-5-Prediction-Confindence",
+                "Probabilities",
+                "Speed",
+            ]
+        )
+
+    def on_predict_start(self, predictor: ClassificationPredictor):
+        wb.run or wb.init(project='YOLOv8', job_type="predict_" + predictor.args.task, config=vars(predictor.args))
+
+    def on_predict_end(self, predictor: ClassificationPredictor):
+        if wb.run:
+            for result in predictor.results:
+                if predictor.args.task == "classify":
+                    self.classification_prediction_table = plot_classification_predictions(
+                        result, predictor.args.model, self.classification_prediction_table
+                    )
+                    wb.log({"Prediction-Table": self.classification_prediction_table})
+            wb.run.finish()
+
+
+wb_stateful_callback = WandBCallback()
+
 callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_epoch_end': on_train_epoch_end,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_train_end': on_train_end} if wb else {}
+    'on_train_end': on_train_end,
+    'on_predict_start': wb_stateful_callback.on_predict_start,
+    'on_predict_end': wb_stateful_callback.on_predict_end} if wb else {}

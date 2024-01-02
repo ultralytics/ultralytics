@@ -61,19 +61,18 @@ def plot_similar_images(similar_set):
     empty_boxes = [[]]
     images = similar_set.get('im_file', [])
     bboxes = similar_set.get('bboxes', []) if similar_set.get('bboxes') is not empty_boxes else []
-    labels = similar_set.get('labels', [])
     masks = similar_set.get('masks') if similar_set.get('masks')[0] != empty_masks else []
     kpts = similar_set.get('keypoints') if similar_set.get('keypoints')[0] != empty_masks else []
     cls = similar_set.get('cls', [])
 
-    # NOTE: use plot_images, only support detection labels for now.
+    plot_size = 640
     imgs, batch_idx, plot_boxes, plot_masks, plot_kpts = [], [], [], [], []
     for i, imf in enumerate(images):
         im = cv2.imread(imf)
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         h, w = im.shape[:2]
-        r = min(640 / h, 640 / w)
-        imgs.append(LetterBox(center=False)(image=im).transpose(2, 0, 1))
+        r = min(plot_size / h, plot_size / w)
+        imgs.append(LetterBox(plot_size, center=False)(image=im).transpose(2, 0, 1))
         if len(bboxes) > i and len(bboxes[i]) > 0:
             box = np.array(bboxes[i], dtype=np.float32)
             box[:, [0, 2]] *= r
@@ -81,7 +80,7 @@ def plot_similar_images(similar_set):
             plot_boxes.append(box)
         if len(masks) > i and len(masks[i]) > 0:
             mask = np.array(masks[i], dtype=np.uint8)[0]
-            plot_masks.append(LetterBox(center=False)(image=mask))
+            plot_masks.append(LetterBox(plot_size, center=False)(image=mask))
         if len(kpts) > i and kpts[i] is not None:
             kpt = np.array(kpts[i], dtype=np.float32)
             kpt[:, :, :2] *= r
@@ -89,9 +88,9 @@ def plot_similar_images(similar_set):
         batch_idx.append(np.ones(len(np.array(bboxes[i], dtype=np.float32))) * i)
     from ultralytics.utils.ops import xyxy2xywh
     imgs = np.stack(imgs, axis=0)
-    masks = np.stack(plot_masks, axis=0) if len(plot_masks) > 0 else []
-    kpts = np.concatenate(plot_kpts, axis=0) if len(plot_kpts) > 0 else []
-    boxes = xyxy2xywh(np.concatenate(plot_boxes, axis=0)) if len(plot_boxes) > 0 else []
+    masks = np.stack(plot_masks, axis=0) if len(plot_masks) > 0 else np.zeros(0, dtype=np.uint8)
+    kpts = np.concatenate(plot_kpts, axis=0) if len(plot_kpts) > 0 else np.zeros((0, 51), dtype=np.float32)
+    boxes = xyxy2xywh(np.concatenate(plot_boxes, axis=0)) if len(plot_boxes) > 0 else np.zeros(0, dtype=np.float32)
     batch_idx = np.concatenate(batch_idx, axis=0)
     cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 

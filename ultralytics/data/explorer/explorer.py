@@ -69,7 +69,7 @@ class Explorer:
 
         self.table = None
 
-    def create_embeddings_table(self, force=False, split='train', verbose=False):
+    def create_embeddings_table(self, force=False, split='train'):
         if (self.table is not None and not force):
             logger.info('Table already exists. Reusing it. Pass force=True to overwrite it.')
             return

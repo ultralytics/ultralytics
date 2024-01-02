@@ -31,11 +31,11 @@ class ExplorerDataset(YOLODataset):
     def load_image(self, i):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
-        if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
+        if im is None: # not cached in RAM
+            if fn.exists(): # load npy
                 im = np.load(fn)
             else:  # read image
-                im = cv2.imread(f)  # BGR
+                im = cv2.imread(f) # BGR
                 if im is None:
                     raise FileNotFoundError(f'Image Not Found {f}')
             h0, w0 = im.shape[:2]  # orig hw
@@ -60,7 +60,7 @@ class Explorer:
 
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
         self.connection = lancedb.connect(uri)
-        self.table_name = Path(data).name
+        self.table_name = Path(data).stem
         self.sim_idx_table_name = f'{self.table_name}_sim_idx'
         self.model = YOLO(model)
         self.data = data  # None
@@ -105,7 +105,7 @@ class Explorer:
         self.table:LanceTable = table
 
     @staticmethod
-    def _yield_batches(dataset, data_info, model, exclude_keys: List):
+    def _yield_batches(dataset:ExplorerDataset, data_info, model, exclude_keys: List):
         # Implement Batching
         for i in tqdm(range(len(dataset))):
             batch = dataset[i]

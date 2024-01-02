@@ -224,3 +224,4 @@ A continuación se muestran ejemplos de código para usar cada tipo de fuente:
 
         # Ejecutar inferencia en la fuente
         results = model(source)  # lista de objetos Results
+        ```

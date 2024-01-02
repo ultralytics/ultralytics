@@ -579,6 +579,8 @@ class Exporter:
     def export_engine(self, prefix=colorstr('TensorRT:')):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != 'cpu', "export running on CPU but must be on GPU, i.e. use 'device=0'"
+        f_onnx, _ = self.export_onnx()  # run before trt import https://github.com/ultralytics/ultralytics/issues/7016
+
         try:
             import tensorrt as trt  # noqa
         except ImportError:
@@ -587,8 +589,8 @@ class Exporter:
             import tensorrt as trt  # noqa
 
         check_version(trt.__version__, '7.0.0', hard=True)  # require tensorrt>=7.0.0
+
         self.args.simplify = True
-        f_onnx, _ = self.export_onnx()
 
         LOGGER.info(f'\n{prefix} starting export with TensorRT {trt.__version__}...')
         assert Path(f_onnx).exists(), f'failed to export ONNX file: {f_onnx}'

@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-#
+
 # Overview:
 # This pyproject.toml file manages the build, packaging, and distribution of the Ultralytics library.
 # It defines essential project metadata, dependencies, and settings used to develop and deploy the library.

@@ -121,7 +121,6 @@ class BaseTrainer:
 
         self.trainset, self.testset = self.get_dataset(self.data)
         self.ema = None
-        self.resume = False
 
         # Optimization utils init
         self.lf = None

@@ -10,27 +10,28 @@ from tqdm import tqdm
 from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils import IterableSimpleNamespace
 from ultralytics.utils.checks import check_requirements
 
-from ultralytics.models.yolo.model import YOLO
 from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
 
 check_requirements('lancedb')
 import lancedb
-from lancedb.table import LanceTable
 import pyarrow as pa
+from lancedb.table import LanceTable
+
 
 class ExplorerDataset(YOLODataset):
-    
-    def __init__(self, *args, data:dict=None, **kwargs) -> None:
+
+    def __init__(self, *args, data: dict = None, **kwargs) -> None:
         task = kwargs.pop('task', 'detect')
         logger.info(f'ExplorerDataset task: {task}')
         super().__init__(*args, data=data, use_keypoints=task == 'pose', use_segments=task == 'segment', **kwargs)
 
     # NOTE: Load the image directly without any resize operations.
-    def load_image(self, i:int) -> Union[tuple[np.ndarray], tuple[int,int], tuple[int,int]]:
+    def load_image(self, i: int) -> Union[tuple[np.ndarray], tuple[int, int], tuple[int, int]]:
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
@@ -44,8 +45,8 @@ class ExplorerDataset(YOLODataset):
             return im, (h0, w0), im.shape[:2]
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
-    
-    def build_transforms(self, hyp:IterableSimpleNamespace=None):
+
+    def build_transforms(self, hyp: IterableSimpleNamespace = None):
         transforms = Format(
             bbox_format='xyxy',
             normalize=False,
@@ -59,11 +60,11 @@ class ExplorerDataset(YOLODataset):
 
 
 class Explorer:
-    
+
     def __init__(self,
-                 data:str='coco128.yaml',
-                 model:str='yolov8n.pt',
-                 uri:str='~/ultralytics/explorer') -> None:
+                 data: str = 'coco128.yaml',
+                 model: str = 'yolov8n.pt',
+                 uri: str = '~/ultralytics/explorer') -> None:
         self.connection = lancedb.connect(uri)
         self.table_name = Path(data).stem
         self.sim_idx_table_name = f'{self.table_name}_sim_idx'
@@ -72,8 +73,8 @@ class Explorer:
         self.choice_set = None
         self.sim_index = None
         self.table = None
-    
-    def create_embeddings_table(self, force:bool=False, split:str='train') -> None:
+
+    def create_embeddings_table(self, force: bool = False, split: str = 'train') -> None:
         if (self.table is not None and not force):
             logger.info('Table already exists. Reusing it. Pass force=True to overwrite it.')
             return
@@ -109,7 +110,7 @@ class Explorer:
         self.table: LanceTable = table
 
     @staticmethod
-    def _yield_batches(dataset:ExplorerDataset, data_info:dict, model:YOLO, exclude_keys:list[str]):
+    def _yield_batches(dataset: ExplorerDataset, data_info: dict, model: YOLO, exclude_keys: list[str]):
         # Implement Batching
         for i in tqdm(range(len(dataset))):
             batch = dataset[i]
@@ -118,10 +119,8 @@ class Explorer:
             batch = sanitize_batch(batch, data_info)
             batch['vector'] = model.embed(batch['im_file'], verbose=False)[0].detach().tolist()
             yield [batch]
-    
-    def query(self,
-              imgs:Union[str, np.ndarray, list[str], list[np.ndarray]]=None,
-              limit:int=25) -> pa.Table:
+
+    def query(self, imgs: Union[str, np.ndarray, list[str], list[np.ndarray]] = None, limit: int = 25) -> pa.Table:
         """
         Query the table for similar images. Accepts a single image or a list of images.
 
@@ -147,8 +146,8 @@ class Explorer:
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()
         query = self.table.search(embeds).limit(limit).to_arrow()
         return query
-    
-    def sql_query(self, query:str) -> pa.Table:
+
+    def sql_query(self, query: str) -> pa.Table:
         """
         Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
 
@@ -170,11 +169,11 @@ class Explorer:
             raise ValueError('Table is not created. Please create the table first.')
 
         return self.table.to_lance().to_table(filter=query).to_arrow()
-    
+
     def get_similar(self,
-                    img:Union[str, np.ndarray, list[str], list[np.ndarray], None]=None,
-                    idx:Union[int, list[int], None]=None,
-                    limit:int=25):
+                    img: Union[str, np.ndarray, list[str], list[np.ndarray], None] = None,
+                    idx: Union[int, list[int], None] = None,
+                    limit: int = 25):
         """
         Query the table for similar images. Accepts a single image or a list of images.
 
@@ -193,10 +192,10 @@ class Explorer:
         similar = self.query(img, limit=limit)
 
         return similar
-    
+
     def show_similar(self,
-                     img:Union[str, np.ndarray, list[str], list[np.ndarray], None]=None,
-                     idx:Union[int, list[int], None]=None,
+                     img: Union[str, np.ndarray, list[str], list[np.ndarray], None] = None,
+                     idx: Union[int, list[int], None] = None,
                      limit=25):
         """
         Plot the similar images. Accepts images or indexes.
@@ -212,11 +211,11 @@ class Explorer:
         cv2.imshow('Similar Images', img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-    
+
     def plot_similar(self,
-                     img:Union[str, np.ndarray, list[str], list[np.ndarray], None],
-                     idx:Union[int, list[int], None]=None,
-                     limit:int=25):
+                     img: Union[str, np.ndarray, list[str], list[np.ndarray], None],
+                     idx: Union[int, list[int], None] = None,
+                     limit: int = 25):
         """
         Plot the similar images. Accepts images or indexes.
 
@@ -232,8 +231,8 @@ class Explorer:
         similar = self.get_similar(img, idx, limit)
         img = plot_similar_images(similar)
         return img
-    
-    def similarity_index(self, max_dist:float=0.2, top_k:float=None, force:bool=True) -> pa.Table:
+
+    def similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = True) -> pa.Table:
         """
         Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
         are thres% or more similar to the image at a given index.
@@ -280,8 +279,8 @@ class Explorer:
         self.sim_index = sim_table
 
         return sim_table.to_arrow()
-    
-    def plot_similarity_index(self, max_dist:float=0.2, top_k:float=None, force:bool=False) -> None:
+
+    def plot_similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> None:
         """
         Plot the similarity index of all the images in the table. Here, the index will contain the data points that are
         thres% or more similar to the image at a given index.
@@ -307,8 +306,8 @@ class Explorer:
 
         # Show the plot
         plt.show()
-    
-    def visualize(self, result:pa.Table) -> None:
+
+    def visualize(self, result: pa.Table) -> None:
         """
         Visualize the results of a query.
 
@@ -316,11 +315,10 @@ class Explorer:
             result (arrow table): Arrow table containing the results of a query.
         """
         # TODO:
-        raise NotImplementedError("Method not yet available")
-    
-    def _check_imgs_or_idxs(self,
-                            img:Union[str, np.ndarray, list[str], list[np.ndarray], None],
-                            idx:Union[int, list[int], None]):
+        raise NotImplementedError('Method not yet available')
+
+    def _check_imgs_or_idxs(self, img: Union[str, np.ndarray, list[str], list[np.ndarray], None],
+                            idx: Union[int, list[int], None]):
         if img is None and idx is None:
             raise ValueError('Either img or idx must be provided.')
         if img is not None and idx is not None:

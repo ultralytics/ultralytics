@@ -1,21 +1,18 @@
-import math
 from typing import List
-
+from pathlib import Path
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import Annotator, colors, plot_images
 
 check_requirements('lancedb')
 from lancedb.pydantic import LanceModel, Vector
 
 
-def get_schema(vector_size):
+def get_table_schema(vector_size):
 
     class Schema(LanceModel):
         im_file: str
@@ -26,6 +23,14 @@ def get_schema(vector_size):
         keypoints: List[List[List[float]]]
         vector: Vector(vector_size)
 
+    return Schema
+
+def get_sim_index_schema():
+    class Schema(LanceModel):
+        idx: int
+        im_file: str
+        count: int
+        sim_im_files: List[str]
     return Schema
 
 
@@ -59,63 +64,37 @@ def plot_similar_images(similar_set):
     cls = similar_set.get('cls', [])
 
     # NOTE: use plot_images, only support detection labels for now.
-    # imgs, boxes, batch_idx = [], [], []
-    # for i, imf in enumerate(images):
-    #     im = cv2.imread(imf)
-    #     im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-    #     h, w = im.shape[:2]
-    #     r = min(640 / h, 640 / w)
-    #     imgs.append(LetterBox(center=False)(image=im).transpose(2, 0, 1))
-    #     box = np.array(bboxes[i], dtype=np.float32)
-    #     box[:, [0, 2]] *= r
-    #     box[:, [1, 3]] *= r
-    #     boxes.append(box)
-    #     batch_idx.append(np.ones(len(box)) * i)
-    # from ultralytics.utils.ops import xyxy2xywh
-    # imgs = np.stack(imgs, axis=0)
-    # boxes = xyxy2xywh(np.concatenate(boxes, axis=0))
-    # batch_idx = np.concatenate(batch_idx, axis=0)
-    # cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
-    # plot_images(imgs, batch_idx, cls, bboxes=boxes)
-    # import time
-    # time.sleep(3)  # waiting for the plot process
-    # exit()
-    # handle empty
+    imgs, batch_idx, plot_boxes, plot_masks, plot_kpts = [], [], [], [], []
+    for i, imf in enumerate(images):
+        im = cv2.imread(imf)
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        h, w = im.shape[:2]
+        r = min(640 / h, 640 / w)
+        imgs.append(LetterBox(center=False)(image=im).transpose(2, 0, 1))
+        if len(bboxes) > i and len(bboxes[i]) > 0:
+            box = np.array(bboxes[i], dtype=np.float32)
+            box[:, [0, 2]] *= r
+            box[:, [1, 3]] *= r
+            plot_boxes.append(box)
+        if len(masks) > i and len(masks[i]) > 0:
+            mask = np.array(masks[i], dtype=np.uint8)[0]
+            plot_masks.append(LetterBox(center=False)(image=mask))
+        if len(kpts) > i and kpts[i] is not None:
+            kpt = np.array(kpts[i], dtype=np.float32)
+            kpt[:, :, :2] *= r
+            plot_kpts.append(kpt)
+        batch_idx.append(np.ones(len(np.array(bboxes[i], dtype=np.float32))) * i)
+    from ultralytics.utils.ops import xyxy2xywh
+    imgs = np.stack(imgs, axis=0)
+    masks = np.stack(plot_masks, axis=0) if len(plot_masks) > 0 else []
+    kpts = np.concatenate(plot_kpts, axis=0) if len(plot_kpts) > 0 else []
+    boxes = xyxy2xywh(np.concatenate(plot_boxes, axis=0)) if len(plot_boxes) > 0 else []
+    batch_idx = np.concatenate(batch_idx, axis=0)
+    cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 
-    resized_images = []
-    if len(images) == 0:
-        logger.info('No similar images found')
-        return
+    fname = "temp_exp_grid.jpg"
+    img = plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, fname=fname).join()
+    img = cv2.imread(fname)
+    Path(fname).unlink()
+    return img
 
-    for idx, img in enumerate(images):
-        img = cv2.imread(img)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        if labels:
-            ann = Annotator(img)
-            if len(bboxes) > idx:
-                [
-                    ann.box_label(bbox, label, color=colors(cls, True))
-                    for bbox, label, cls in zip(bboxes[idx], labels[idx], cls[idx])]
-            if len(masks) > idx:
-                mask = torch.tensor(np.array(masks[idx]))
-                img = LetterBox(mask.shape[1:])(image=ann.result())
-                im_gpu = torch.as_tensor(img, dtype=torch.float16, device=mask.data.device).permute(
-                    2, 0, 1).flip(0).contiguous() / 255
-                ann.masks(mask, colors=[colors(x, True) for x in cls[idx]], im_gpu=im_gpu)
-            if len(kpts) > idx:
-                [ann.kpts(torch.tensor(np.array(kpt))) for kpt in kpts[idx]]
-
-            img = ann.result()
-        resized_images.append(img)
-
-    # Create a grid of the images
-    cols = 10 if len(resized_images) > 10 else max(2, len(resized_images))
-    rows = max(1, math.ceil(len(resized_images) / cols))
-    fig, axes = plt.subplots(nrows=rows, ncols=cols)
-    fig.subplots_adjust(hspace=0, wspace=0)
-    for i, ax in enumerate(axes.ravel()):
-        if i < len(resized_images):
-            ax.imshow(resized_images[i])
-        ax.axis('off')
-    # Display the grid of images
-    plt.show()

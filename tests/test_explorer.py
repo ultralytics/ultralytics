@@ -10,6 +10,8 @@ def test_similarity():
     assert len(similar) == 25
     similar = exp.get_similar(idx=[1, 2], limit=10)
     assert len(similar) == 10
+    sim_idx = exp.similarity_index()
+    assert len(sim_idx) > 0
 
 
 def test_det():

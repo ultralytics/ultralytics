@@ -22,13 +22,14 @@ import lancedb
 import pyarrow as pa
 from lancedb.table import LanceTable
 
+
 class ExplorerDataset(YOLODataset):
-    
+
     def __init__(self, *args, data: dict = None, **kwargs) -> None:
         task = kwargs.pop('task', 'detect')
         logger.info(f'ExplorerDataset task: {task}')
         super().__init__(*args, data=data, use_keypoints=task == 'pose', use_segments=task == 'segment', **kwargs)
-    
+
     # NOTE: Load the image directly without any resize operations.
     def load_image(self, i: int) -> Union[tuple[np.ndarray], tuple[int, int], tuple[int, int]]:
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
@@ -42,9 +43,9 @@ class ExplorerDataset(YOLODataset):
                     raise FileNotFoundError(f'Image Not Found {f}')
             h0, w0 = im.shape[:2]  # orig hw
             return im, (h0, w0), im.shape[:2]
-        
+
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
-    
+
     def build_transforms(self, hyp: IterableSimpleNamespace = None):
         transforms = Format(
             bbox_format='xyxy',
@@ -57,8 +58,9 @@ class ExplorerDataset(YOLODataset):
         )
         return transforms
 
+
 class Explorer:
-    
+
     def __init__(self,
                  data: str = 'coco128.yaml',
                  model: str = 'yolov8n.pt',
@@ -71,7 +73,7 @@ class Explorer:
         self.choice_set = None
         self.sim_index = None
         self.table = None
-    
+
     def create_embeddings_table(self, force: bool = False, split: str = 'train') -> None:
         if (self.table is not None and not force):
             logger.info('Table already exists. Reusing it. Pass force=True to overwrite it.')
@@ -82,18 +84,18 @@ class Explorer:
             return
         if self.data is None:
             raise ValueError('Data must be provided to create embeddings table')
-        
+
         data_info = check_det_dataset(self.data)
         if split not in data_info:
             raise ValueError(
                 f'Split {split} is not found in the dataset. Available keys in the dataset are {list(data_info.keys())}'
             )
-        
+
         choice_set = data_info[split]
         choice_set = choice_set if isinstance(choice_set, list) else [choice_set]
         self.choice_set = choice_set
         dataset = ExplorerDataset(img_path=choice_set, data=data_info, augment=False, cache=False, task=self.model.task)
-        
+
         # Create the table schema
         batch = dataset[0]
         vector_size = self.model.embed(batch['im_file'], verbose=False)[0].shape[0]
@@ -104,9 +106,9 @@ class Explorer:
                                 data_info,
                                 self.model,
                                 exclude_keys=['img', 'ratio_pad', 'resized_shape', 'ori_shape', 'batch_idx']))
-        
+
         self.table: LanceTable = table
-    
+
     @staticmethod
     def _yield_batches(dataset: ExplorerDataset, data_info: dict, model: YOLO, exclude_keys: list[str]):
         # Implement Batching
@@ -117,15 +119,15 @@ class Explorer:
             batch = sanitize_batch(batch, data_info)
             batch['vector'] = model.embed(batch['im_file'], verbose=False)[0].detach().tolist()
             yield [batch]
-    
+
     def query(self, imgs: Union[str, np.ndarray, list[str], list[np.ndarray]] = None, limit: int = 25) -> pa.Table:
         """
         Query the table for similar images. Accepts a single image or a list of images.
-        
+
         Args:
             imgs (str or list): Path to the image or a list of paths to the images.
             limit (int): Number of results to return.
-        
+
         Returns:
             An arrow table containing the results. Supports converting to:
                 - pandas dataframe: `result.to_pandas()`
@@ -144,17 +146,17 @@ class Explorer:
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()
         query = self.table.search(embeds).limit(limit).to_arrow()
         return query
-    
+
     def sql_query(self, query: str) -> pa.Table:
         """
         Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
-        
+
         Args:
             query (str): SQL query to run.
-        
+
         Returns:
             An arrow table containing the results.
-        
+
         Example:
             ```python
             exp = Explorer()
@@ -165,22 +167,22 @@ class Explorer:
         """
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
-        
+
         return self.table.to_lance().to_table(filter=query).to_arrow()
-    
+
     def get_similar(self,
                     img: Union[str, np.ndarray, list[str], list[np.ndarray], None] = None,
                     idx: Union[int, list[int], None] = None,
                     limit: int = 25):
         """
         Query the table for similar images. Accepts a single image or a list of images.
-        
+
         Args:
             img (str or list): Path to the image or a list of paths to the images.
             idx (int or list): Index of the image in the table or a list of indexes.
             plot_labels (bool): Whether to plot the labels or not.
             limit (int): Number of results to return. Defaults to 25.
-        
+
         Returns:
             An arrow table containing the results.
                 - pandas dataframe: `result.to_pandas()`
@@ -188,16 +190,16 @@ class Explorer:
         """
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
-        
+
         return similar
-    
+
     def show_similar(self,
                      img: Union[str, np.ndarray, list[str], list[np.ndarray], None] = None,
                      idx: Union[int, list[int], None] = None,
                      limit=25):
         """
         Plot the similar images. Accepts images or indexes.
-        
+
         Args:
             img (str or list): Path to the image or a list of paths to the images.
             idx (int or list): Index of the image in the table or a list of indexes.
@@ -209,38 +211,38 @@ class Explorer:
         cv2.imshow('Similar Images', img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-    
+
     def plot_similar(self,
                      img: Union[str, np.ndarray, list[str], list[np.ndarray], None],
                      idx: Union[int, list[int], None] = None,
                      limit: int = 25):
         """
         Plot the similar images. Accepts images or indexes.
-        
+
         Args:
             img (str): Path to the image or a list of paths to the images.
             idx (int or list): Index of the image in the table or a list of indexes.
             plot_labels (bool): Whether to plot the labels or not.
             limit (int): Number of results to return. Defaults to 25.
-        
+
         Returns:
             cv2 image
         """
         similar = self.get_similar(img, idx, limit)
         img = plot_similar_images(similar)
         return img
-    
+
     def similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = True) -> pa.Table:
         """
         Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
         are thres% or more similar to the image at a given index.
-        
+
         Args:
             thres (float): Threshold for similarity. Defaults to 0.9.
             max_dist (float): Percentage of data points to consider. Defaults to 0.01.
             top_k (float): Percentage of data points to consider. Defaults to 0.01.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
-        
+
         Returns:
             A pyarrow table containing the similarity index. It can be converted to pandas, pylist or pydict by using
         """
@@ -259,11 +261,11 @@ class Explorer:
         features = self.table.to_lance().to_table(columns=['vector', 'im_file']).to_pydict()
         im_files = features['im_file']
         embeddings = features['vector']
-        
+
         sim_table = self.connection.create_table(self.sim_idx_table_name,
                                                  schema=get_sim_index_schema(),
                                                  mode='overwrite')
-        
+
         def _yield_sim_idx():
             for i in tqdm(range(len(embeddings))):
                 sim_idx = self.table.search(embeddings[i]).limit(top_k).to_df().query(f'_distance <= {max_dist}')
@@ -272,17 +274,17 @@ class Explorer:
                     'im_file': im_files[i],
                     'count': len(sim_idx),
                     'sim_im_files': sim_idx['im_file'].tolist()}]
-        
+
         sim_table.add(_yield_sim_idx())
         self.sim_index = sim_table
-        
+
         return sim_table.to_arrow()
-    
+
     def plot_similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> None:
         """
         Plot the similarity index of all the images in the table. Here, the index will contain the data points that are
         thres% or more similar to the image at a given index.
-        
+
         Args:
             thres (float): Threshold for similarity. Defaults to 0.9.
             top_k (float): Percentage of data points to consider. Defaults to 0.01.
@@ -291,30 +293,30 @@ class Explorer:
         sim_idx = self.similarity_index(max_dist=max_dist, top_k=top_k, force=force)
         sim_count = sim_idx.to_pydict()['count']
         sim_count = np.array(sim_count)
-        
+
         indices = np.arange(len(sim_count))
-        
+
         # Create the bar plot
         plt.bar(indices, sim_count)
-        
+
         # Customize the plot (optional)
         plt.xlabel('data idx')
         plt.ylabel('Count')
         plt.title('Similarity Count')
-        
+
         # Show the plot
         plt.show()
-    
+
     def visualize(self, result: pa.Table) -> None:
         """
         Visualize the results of a query.
-        
+
         Args:
             result (arrow table): Arrow table containing the results of a query.
         """
         # TODO:
         raise NotImplementedError('Method not yet available')
-    
+
     def _check_imgs_or_idxs(self, img: Union[str, np.ndarray, list[str], list[np.ndarray], None],
                             idx: Union[int, list[int], None]):
         if img is None and idx is None:
@@ -324,6 +326,6 @@ class Explorer:
         if idx is not None:
             idx = idx if isinstance(idx, list) else [idx]
             img = self.table.to_lance().take(idx, columns=['im_file']).to_pydict()['im_file']
-        
+
         img = img if isinstance(img, list) else [img]
         return img

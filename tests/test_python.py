@@ -471,7 +471,7 @@ def test_nn_modules_conv():
     DWConvTranspose2d(c1, c2)(x)
     ConvTranspose(c1, c2)(x)
     Focus(c1, c2)(x)
-    CBAM(c1)(x)
+    CBAM(c1, c2)(x)
 
     # Fuse ops
     m = Conv2(c1, c2)

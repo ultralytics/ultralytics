@@ -275,7 +275,7 @@ class Explorer:
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
         """
         sim_idx = self.similarity_index(max_dist=max_dist, top_k=top_k, force=force)
-        sim_count = sim_idx.to_lance().to_table(columns=['count']).to_pydict()['count']
+        sim_count = sim_idx.to_pydict()['count']
         sim_count = np.array(sim_count)
 
         indices = np.arange(len(sim_count))
@@ -290,9 +290,6 @@ class Explorer:
 
         # Show the plot
         plt.show()
-
-
-
 
 
     def visualize(self, result):

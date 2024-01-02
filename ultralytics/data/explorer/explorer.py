@@ -28,16 +28,16 @@ class ExplorerDataset(YOLODataset):
         task = kwargs.pop('task', 'detect')
         logger.info(f'ExplorerDataset task: {task}')
         super().__init__(*args, data=data, use_keypoints=task == 'pose', use_segments=task == 'segment', **kwargs)
-    
+
     # NOTE: Load the image directly without any resize operations.
     def load_image(self, i:int) -> Union[tuple[np.ndarray], tuple[int,int], tuple[int,int]]:
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
-        if im is None: # not cached in RAM
-            if fn.exists(): # load npy
+        if im is None:  # not cached in RAM
+            if fn.exists():  # load npy
                 im = np.load(fn)
             else:  # read image
-                im = cv2.imread(f) # BGR
+                im = cv2.imread(f)  # BGR
                 if im is None:
                     raise FileNotFoundError(f'Image Not Found {f}')
             h0, w0 = im.shape[:2]  # orig hw
@@ -56,6 +56,7 @@ class ExplorerDataset(YOLODataset):
             mask_overlap=hyp.overlap_mask,
         )
         return transforms
+
 
 class Explorer:
     
@@ -82,18 +83,18 @@ class Explorer:
             return
         if self.data is None:
             raise ValueError('Data must be provided to create embeddings table')
-        
+
         data_info = check_det_dataset(self.data)
         if split not in data_info:
             raise ValueError(
                 f'Split {split} is not found in the dataset. Available keys in the dataset are {list(data_info.keys())}'
             )
-        
+
         choice_set = data_info[split]
         choice_set = choice_set if isinstance(choice_set, list) else [choice_set]
         self.choice_set = choice_set
         dataset = ExplorerDataset(img_path=choice_set, data=data_info, augment=False, cache=False, task=self.model.task)
-        
+
         # Create the table schema
         batch = dataset[0]
         vector_size = self.model.embed(batch['im_file'], verbose=False)[0].shape[0]
@@ -104,9 +105,9 @@ class Explorer:
                                 data_info,
                                 self.model,
                                 exclude_keys=['img', 'ratio_pad', 'resized_shape', 'ori_shape', 'batch_idx']))
-        
-        self.table:LanceTable = table
-    
+
+        self.table: LanceTable = table
+
     @staticmethod
     def _yield_batches(dataset:ExplorerDataset, data_info:dict, model:YOLO, exclude_keys:list[str]):
         # Implement Batching

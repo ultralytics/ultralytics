@@ -127,7 +127,7 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         wide_cstr[ModelPathSize] = L'\0';
         const wchar_t* modelPath = wide_cstr;
 #else
-        const char* modelPath = iParams.ModelPath.c_str();
+        const char* modelPath = iParams.modelPath.c_str();
 #endif // _WIN32
 
         session = new Ort::Session(env, modelPath, sessionOption);

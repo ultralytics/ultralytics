@@ -256,15 +256,18 @@ class RepConv(nn.Module):
         if hasattr(self, 'id_tensor'):
             self.__delattr__('id_tensor')
 
+
 class ChannelAttention(nn.Module):
+
     def __init__(self, in_planes, ratio=16):
         """
         Initialize the Channel Attention module.
+
         Args:
             in_planes (int): Number of input channels.
             ratio (int): Reduction ratio for the hidden channels in the channel attention block.
         """
-        super(ChannelAttention, self).__init__()
+        super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.f1 = nn.Conv2d(in_planes, in_planes // ratio, 1, bias=False)
@@ -275,6 +278,7 @@ class ChannelAttention(nn.Module):
     def forward(self, x):
         """
         Forward pass of the Channel Attention module.
+
         Args:
             x (torch.Tensor): Input tensor.
         Returns:
@@ -288,13 +292,15 @@ class ChannelAttention(nn.Module):
 
 
 class SpatialAttention(nn.Module):
+
     def __init__(self, kernel_size=7):
         """
         Initialize the Spatial Attention module.
+
         Args:
             kernel_size (int): Size of the convolutional kernel for spatial attention.
         """
-        super(SpatialAttention, self).__init__()
+        super().__init__()
         assert kernel_size in (3, 7), 'kernel size must be 3 or 7'
         padding = 3 if kernel_size == 7 else 1
         self.conv = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
@@ -303,6 +309,7 @@ class SpatialAttention(nn.Module):
     def forward(self, x):
         """
         Forward pass of the Spatial Attention module.
+
         Args:
             x (torch.Tensor): Input tensor.
         Returns:
@@ -321,6 +328,7 @@ class CBAM(nn.Module):
     def __init__(self, c1, c2, kernel_size=3, shortcut=True, g=1, e=0.5, ratio=16):
         """
         Initialize the CBAM (Convolutional Block Attention Module) .
+
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output channels.
@@ -330,7 +338,7 @@ class CBAM(nn.Module):
             e (float): Expansion factor for hidden channels.
             ratio (int): Reduction ratio for the hidden channels in the channel attention block.
         """
-        super(CBAM, self).__init__()
+        super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1)
         self.cv2 = Conv(c_, c2, 3, 1, g=g)
@@ -341,6 +349,7 @@ class CBAM(nn.Module):
     def forward(self, x):
         """
         Forward pass of the CBAM .
+
         Args:
             x (torch.Tensor): Input tensor.
         Returns:

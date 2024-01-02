@@ -158,7 +158,6 @@ Inference arguments:
 | `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
 | `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
-| `crop_fraction` | `float`        | `1.0`                  | image crop fraction for classification evaluation/inference (0-1)          |
 
 Visualization arguments:
 
@@ -197,7 +196,6 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 | `plots`         | `False` | save plots and images during train/val                             |
 | `rect`          | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`         | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
-| `crop_fraction` | `1.0`   | image crop fraction for classification evaluation/inference (0-1)  |
 
 [Val Guide](../modes/val.md){ .md-button }
 

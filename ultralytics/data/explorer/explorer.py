@@ -161,7 +161,7 @@ class Explorer:
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
 
-        return self.table.to_lance.to_table(filter=query).to_arrow()
+        return self.table.to_lance().to_table(filter=query).to_arrow()
     
     def get_similar(self, img=None, idx=None, limit=25):
         """

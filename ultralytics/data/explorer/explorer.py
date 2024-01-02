@@ -21,12 +21,12 @@ import lancedb
 from lancedb.table import LanceTable
 
 class ExplorerDataset(YOLODataset):
-
+    
     def __init__(self, *args, data=None, **kwargs):
         task = kwargs.pop('task', 'detect')
         logger.info(f'ExplorerDataset task: {task}')
         super().__init__(*args, data=data, use_keypoints=task == 'pose', use_segments=task == 'segment', **kwargs)
-
+    
     # NOTE: Load the image directly without any resize operations.
     def load_image(self, i):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
@@ -42,7 +42,7 @@ class ExplorerDataset(YOLODataset):
             return im, (h0, w0), im.shape[:2]
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
-
+    
     def build_transforms(self, hyp=None):
         transforms = Format(
             bbox_format='xyxy',
@@ -55,9 +55,8 @@ class ExplorerDataset(YOLODataset):
         )
         return transforms
 
-
 class Explorer:
-
+    
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
         self.connection = lancedb.connect(uri)
         self.table_name = Path(data).stem
@@ -66,9 +65,8 @@ class Explorer:
         self.data = data  # None
         self.choice_set = None
         self.sim_index = None
-
         self.table = None
-
+    
     def create_embeddings_table(self, force=False, split='train'):
         if (self.table is not None and not force):
             logger.info('Table already exists. Reusing it. Pass force=True to overwrite it.')
@@ -79,18 +77,18 @@ class Explorer:
             return
         if self.data is None:
             raise ValueError('Data must be provided to create embeddings table')
-
+        
         data_info = check_det_dataset(self.data)
         if split not in data_info:
             raise ValueError(
                 f'Split {split} is not found in the dataset. Available keys in the dataset are {list(data_info.keys())}'
             )
-
+        
         choice_set = data_info[split]
         choice_set = choice_set if isinstance(choice_set, list) else [choice_set]
         self.choice_set = choice_set
         dataset = ExplorerDataset(img_path=choice_set, data=data_info, augment=False, cache=False, task=self.model.task)
-
+        
         # Create the table schema
         batch = dataset[0]
         vector_size = self.model.embed(batch['im_file'], verbose=False)[0].shape[0]
@@ -101,9 +99,9 @@ class Explorer:
                                 data_info,
                                 self.model,
                                 exclude_keys=['img', 'ratio_pad', 'resized_shape', 'ori_shape', 'batch_idx']))
-
+        
         self.table:LanceTable = table
-
+    
     @staticmethod
     def _yield_batches(dataset:ExplorerDataset, data_info, model, exclude_keys: List):
         # Implement Batching
@@ -114,7 +112,7 @@ class Explorer:
             batch = sanitize_batch(batch, data_info)
             batch['vector'] = model.embed(batch['im_file'], verbose=False)[0].detach().tolist()
             yield [batch]
-
+    
     def query(self, imgs=None, limit=25):
         """
         Query the table for similar images. Accepts a single image or a list of images.
@@ -141,7 +139,7 @@ class Explorer:
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()
         query = self.table.search(embeds).limit(limit).to_arrow()
         return query
-
+    
     def sql_query(self, query):
         """
         Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
@@ -164,7 +162,7 @@ class Explorer:
             raise ValueError('Table is not created. Please create the table first.')
 
         return self.table.to_lance.to_table(filter=query).to_arrow()
-
+    
     def get_similar(self, img=None, idx=None, limit=25):
         """
         Query the table for similar images. Accepts a single image or a list of images.
@@ -184,7 +182,7 @@ class Explorer:
         similar = self.query(img, limit=limit)
 
         return similar
-
+    
     def show_similar(self, img=None, idx=None, limit=25):
         """
         Plot the similar images. Accepts images or indexes.
@@ -200,7 +198,7 @@ class Explorer:
         cv2.imshow('Similar Images', img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-
+    
     def plot_similar(self, img=None, idx=None, limit=25):
         """
         Plot the similar images. Accepts images or indexes.
@@ -217,7 +215,7 @@ class Explorer:
         similar = self.get_similar(img, idx, limit)
         img = plot_similar_images(similar)
         return img
-
+    
     def similarity_index(self, max_dist=0.2, top_k=None, force=True):
         """
         Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
@@ -265,7 +263,7 @@ class Explorer:
         self.sim_index = sim_table
 
         return sim_table.to_arrow()
-
+    
     def plot_similarity_index(self, max_dist=0.2, top_k=None, force=False):
         """
         Plot the similarity index of all the images in the table. Here, the index will contain the data points that are
@@ -292,7 +290,7 @@ class Explorer:
 
         # Show the plot
         plt.show()
-
+    
     def visualize(self, result):
         """
         Visualize the results of a query.
@@ -302,7 +300,7 @@ class Explorer:
         """
         # TODO:
         pass
-
+    
     def _check_imgs_or_idxs(self, img, idx):
         if img is None and idx is None:
             raise ValueError('Either img or idx must be provided.')

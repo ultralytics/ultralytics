@@ -18,7 +18,7 @@ from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, 
 
 check_requirements('lancedb')
 import lancedb
-
+from lancedb.table import LanceTable
 
 class ExplorerDataset(YOLODataset):
 
@@ -102,7 +102,7 @@ class Explorer:
                                 self.model,
                                 exclude_keys=['img', 'ratio_pad', 'resized_shape', 'ori_shape', 'batch_idx']))
 
-        self.table = table
+        self.table:LanceTable = table
 
     @staticmethod
     def _yield_batches(dataset, data_info, model, exclude_keys: List):
@@ -252,7 +252,7 @@ class Explorer:
                                                  schema=get_sim_index_schema(),
                                                  mode='overwrite')
 
-        def _yeild_sim_idx():
+        def _yield_sim_idx():
             for i in tqdm(range(len(embeddings))):
                 sim_idx = self.table.search(embeddings[i]).limit(top_k).to_df().query(f'_distance <= {max_dist}')
                 yield [{
@@ -261,7 +261,7 @@ class Explorer:
                     'count': len(sim_idx),
                     'sim_im_files': sim_idx['im_file'].tolist()}]
 
-        sim_table.add(_yeild_sim_idx())
+        sim_table.add(_yield_sim_idx())
         self.sim_index = sim_table
 
         return sim_table.to_arrow()

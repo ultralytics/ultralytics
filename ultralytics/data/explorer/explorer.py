@@ -28,7 +28,7 @@ class ExplorerDataset(YOLODataset):
         task = kwargs.pop('task', 'detect')
         logger.info(f'ExplorerDataset task: {task}')
         super().__init__(*args, data=data, use_keypoints=task == 'pose', use_segments=task == 'segment', **kwargs)
-
+    
     # NOTE: Load the image directly without any resize operations.
     def load_image(self, i:int) -> Union[tuple[np.ndarray], tuple[int,int], tuple[int,int]]:
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
@@ -42,7 +42,7 @@ class ExplorerDataset(YOLODataset):
                     raise FileNotFoundError(f'Image Not Found {f}')
             h0, w0 = im.shape[:2]  # orig hw
             return im, (h0, w0), im.shape[:2]
-
+        
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
     
     def build_transforms(self, hyp:IterableSimpleNamespace=None):
@@ -56,7 +56,6 @@ class ExplorerDataset(YOLODataset):
             mask_overlap=hyp.overlap_mask,
         )
         return transforms
-
 
 class Explorer:
     
@@ -89,7 +88,7 @@ class Explorer:
             raise ValueError(
                 f'Split {split} is not found in the dataset. Available keys in the dataset are {list(data_info.keys())}'
             )
-
+        
         choice_set = data_info[split]
         choice_set = choice_set if isinstance(choice_set, list) else [choice_set]
         self.choice_set = choice_set
@@ -105,9 +104,9 @@ class Explorer:
                                 data_info,
                                 self.model,
                                 exclude_keys=['img', 'ratio_pad', 'resized_shape', 'ori_shape', 'batch_idx']))
-
+        
         self.table: LanceTable = table
-
+    
     @staticmethod
     def _yield_batches(dataset:ExplorerDataset, data_info:dict, model:YOLO, exclude_keys:list[str]):
         # Implement Batching
@@ -266,7 +265,7 @@ class Explorer:
         sim_table = self.connection.create_table(self.sim_idx_table_name,
                                                  schema=get_sim_index_schema(),
                                                  mode='overwrite')
-
+        
         def _yield_sim_idx():
             for i in tqdm(range(len(embeddings))):
                 sim_idx = self.table.search(embeddings[i]).limit(top_k).to_df().query(f'_distance <= {max_dist}')

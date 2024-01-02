@@ -97,7 +97,7 @@ class Explorer:
         Schema = get_table_schema(vector_size)
         table = self.connection.create_table(self.table_name, schema=Schema, mode='overwrite')
         table.add(
-            self._yeild_batches(dataset,
+            self._yield_batches(dataset,
                                 data_info,
                                 self.model,
                                 exclude_keys=['img', 'ratio_pad', 'resized_shape', 'ori_shape', 'batch_idx']))
@@ -105,7 +105,7 @@ class Explorer:
         self.table = table
 
     @staticmethod
-    def _yeild_batches(dataset, data_info, model, exclude_keys: List):
+    def _yield_batches(dataset, data_info, model, exclude_keys: List):
         # Implement Batching
         for i in tqdm(range(len(dataset))):
             batch = dataset[i]

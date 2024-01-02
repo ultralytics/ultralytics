@@ -327,7 +327,7 @@ class CBAM(nn.Module):
     # ch_in, ch_out, shortcut, groups, expansion, ratio, kernel_size
     def __init__(self, c1, c2, kernel_size=3, shortcut=True, g=1, e=0.5, ratio=16):
         """
-        Initialize the CBAM (Convolutional Block Attention Module) .
+        Initialize the CBAM (Convolutional Block Attention Module)
 
         Args:
             c1 (int): Number of input channels.

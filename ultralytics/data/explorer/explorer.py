@@ -199,6 +199,7 @@ class Explorer:
         img = plot_similar_images(similar)
         cv2.imshow('Similar Images', img)
         cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def plot_similar(self, img=None, idx=None, limit=25):
         """

@@ -180,22 +180,22 @@ Visualization arguments:
 
 The val (validation) settings for YOLO models involve various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO validation settings include batch size, validation frequency during training, and performance evaluation metrics. Other factors affecting the validation process include the validation dataset's size and composition, as well as the specific task the model is employed for. Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the validation dataset and detect and prevent overfitting.
 
-| Key             | Value   | Description                                                        |
-|-----------------|---------|--------------------------------------------------------------------|
-| `data`          | `None`  | path to data file, i.e. coco128.yaml                               |
-| `imgsz`         | `640`   | size of input images as integer                                    |
-| `batch`         | `16`    | number of images per batch (-1 for AutoBatch)                      |
-| `save_json`     | `False` | save results to JSON file                                          |
-| `save_hybrid`   | `False` | save hybrid version of labels (labels + additional predictions)    |
-| `conf`          | `0.001` | object confidence threshold for detection                          |
-| `iou`           | `0.6`   | intersection over union (IoU) threshold for NMS                    |
-| `max_det`       | `300`   | maximum number of detections per image                             |
-| `half`          | `True`  | use half precision (FP16)                                          |
-| `device`        | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
-| `dnn`           | `False` | use OpenCV DNN for ONNX inference                                  |
-| `plots`         | `False` | save plots and images during train/val                             |
-| `rect`          | `False` | rectangular val with each batch collated for minimum padding       |
-| `split`         | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
+| Key            | Value   | Description                                                        |
+|----------------|---------|--------------------------------------------------------------------|
+| `data`         | `None`  | path to data file, i.e. coco128.yaml                               |
+| `imgsz`        | `640`   | size of input images as integer                                    |
+| `batch`        | `16`    | number of images per batch (-1 for AutoBatch)                      |
+| `save_json`    | `False` | save results to JSON file                                          |
+| `save_hybrid`  | `False` | save hybrid version of labels (labels + additional predictions)    |
+| `conf`         | `0.001` | object confidence threshold for detection                          |
+| `iou`          | `0.6`   | intersection over union (IoU) threshold for NMS                    |
+| `max_det`      | `300`   | maximum number of detections per image                             |
+| `half`         | `True`  | use half precision (FP16)                                          |
+| `device`       | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
+| `dnn`          | `False` | use OpenCV DNN for ONNX inference                                  |
+| `plots`        | `False` | save plots and images during train/val                             |
+| `rect`         | `False` | rectangular val with each batch collated for minimum padding       |
+| `split`        | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
 
 [Val Guide](../modes/val.md){ .md-button }
 
@@ -240,7 +240,6 @@ Augmentation settings for YOLO models refer to the various transformations and m
 | `copy_paste`    | `0.0`           | segment copy-paste (probability)                                               |
 | `auto_augment`  | `'randaugment'` | auto augmentation policy for classification (randaugment, autoaugment, augmix) |
 | `erasing`       | `0.4`           | probability o random erasing during classification training (0-1) training     |
-| `crop_fraction` | `1.0`           | image crop fraction for classification evaluation/inference (0-1)              |
 
 ## Logging, checkpoints, plotting and file management
 

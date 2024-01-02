@@ -1,12 +1,12 @@
-from typing import List
 from pathlib import Path
+from typing import List
+
 import cv2
 import numpy as np
 
 from ultralytics.data.augment import LetterBox
-from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.plotting import Annotator, colors, plot_images
+from ultralytics.utils.plotting import plot_images
 
 check_requirements('lancedb')
 from lancedb.pydantic import LanceModel, Vector
@@ -25,12 +25,15 @@ def get_table_schema(vector_size):
 
     return Schema
 
+
 def get_sim_index_schema():
+
     class Schema(LanceModel):
         idx: int
         im_file: str
         count: int
         sim_im_files: List[str]
+
     return Schema
 
 
@@ -92,9 +95,8 @@ def plot_similar_images(similar_set):
     batch_idx = np.concatenate(batch_idx, axis=0)
     cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 
-    fname = "temp_exp_grid.jpg"
+    fname = 'temp_exp_grid.jpg'
     img = plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, fname=fname).join()
     img = cv2.imread(fname)
     Path(fname).unlink()
     return img
-

@@ -4,8 +4,8 @@ from typing import List
 import cv2
 import numpy as np
 import torch
-from tqdm import tqdm
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
@@ -14,7 +14,7 @@ from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
 
 from ...models.yolo.model import YOLO
-from .utils import get_table_schema, get_sim_index_schema, plot_similar_images, sanitize_batch
+from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
 
 check_requirements('lancedb')
 import lancedb
@@ -199,7 +199,7 @@ class Explorer:
         img = plot_similar_images(similar)
         cv2.imshow('Similar Images', img)
         cv2.waitKey(0)
-    
+
     def plot_similar(self, img=None, idx=None, limit=25):
         """
         Plot the similar images. Accepts images or indexes.
@@ -209,7 +209,7 @@ class Explorer:
             idx (int or list): Index of the image in the table or a list of indexes.
             plot_labels (bool): Whether to plot the labels or not.
             limit (int): Number of results to return. Defaults to 25.
-        
+
         Returns:
             cv2 image
         """
@@ -219,45 +219,46 @@ class Explorer:
 
     def similarity_index(self, max_dist=0.2, top_k=None, force=True):
         """
-        Calculate the similarity index of all the images in the table. Here, the index will contain
-        the data points that are thres% or more similar to the image at a given index.
+        Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
+        are thres% or more similar to the image at a given index.
 
         Args:
             thres (float): Threshold for similarity. Defaults to 0.9.
             max_dist (float): Percentage of data points to consider. Defaults to 0.01.
             top_k (float): Percentage of data points to consider. Defaults to 0.01.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
-        
+
         Returns:
-            A pyarrow table containing the similarity index. It can be converted to pandas, pylist or pydict by using 
+            A pyarrow table containing the similarity index. It can be converted to pandas, pylist or pydict by using
         """
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
         if self.sim_index is not None and not force:
             logger.info('Similarity matrix already exists. Reusing it. Pass force=True to overwrite it.')
             return self.sim_index.to_arrow()
-        if top_k and not (top_k <= 1.0 and top_k >=0.0):
+        if top_k and not (top_k <= 1.0 and top_k >= 0.0):
             raise ValueError(f'top_k must be between 0.0 and 1.0. Got {top_k}')
         if max_dist < 0.0:
             raise ValueError(f'max_dist must be greater than 0. Got {max_dist}')
-        
+
         top_k = int(top_k * len(self.table)) if top_k else len(self.table)
         top_k = max(top_k, 1)
         features = self.table.to_lance().to_table(columns=['vector', 'im_file']).to_pydict()
         im_files = features['im_file']
         embeddings = features['vector']
-        
-        sim_table = self.connection.create_table(self.sim_idx_table_name, schema=get_sim_index_schema(), mode='overwrite')
+
+        sim_table = self.connection.create_table(self.sim_idx_table_name,
+                                                 schema=get_sim_index_schema(),
+                                                 mode='overwrite')
 
         def _yeild_sim_idx():
             for i in tqdm(range(len(embeddings))):
-                sim_idx = self.table.search(embeddings[i]).limit(top_k).to_df().query(f"_distance <= {max_dist}")
+                sim_idx = self.table.search(embeddings[i]).limit(top_k).to_df().query(f'_distance <= {max_dist}')
                 yield [{
                     'idx': i,
                     'im_file': im_files[i],
                     'count': len(sim_idx),
-                    'sim_im_files': sim_idx["im_file"].tolist()
-                }]
+                    'sim_im_files': sim_idx['im_file'].tolist()}]
 
         sim_table.add(_yeild_sim_idx())
         self.sim_index = sim_table
@@ -266,8 +267,8 @@ class Explorer:
 
     def plot_similarity_index(self, max_dist=0.2, top_k=None, force=False):
         """
-        Plot the similarity index of all the images in the table. Here, the index will contain
-        the data points that are thres% or more similar to the image at a given index.
+        Plot the similarity index of all the images in the table. Here, the index will contain the data points that are
+        thres% or more similar to the image at a given index.
 
         Args:
             thres (float): Threshold for similarity. Defaults to 0.9.
@@ -290,10 +291,6 @@ class Explorer:
 
         # Show the plot
         plt.show()
-
-
-
-
 
     def visualize(self, result):
         """

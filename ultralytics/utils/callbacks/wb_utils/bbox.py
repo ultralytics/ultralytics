@@ -144,7 +144,7 @@ def plot_bbox_predictions(
     return image, boxes["predictions"], mean_confidence_map
 
 
-def plot_validation_results(
+def plot_detection_validation_results(
     dataloader: Any,
     class_label_map: Dict,
     model_name: str,

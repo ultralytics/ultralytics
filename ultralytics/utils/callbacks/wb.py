@@ -8,12 +8,12 @@ from ultralytics.utils.torch_utils import model_info_for_loggers
 from ultralytics.models.yolo.classify import ClassificationPredictor
 from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer
 from ultralytics.models.yolo.pose import PosePredictor
-from ultralytics.models.yolo.segment import SegmentationPredictor
+from ultralytics.models.yolo.segment import SegmentationPredictor, SegmentationTrainer
 
 from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
-from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_validation_results
+from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_detection_validation_results
 from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions
-from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions
+from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results
 
 PREDICTOR_DTYPE = Union[DetectionPredictor, ClassificationPredictor, PosePredictor, SegmentationPredictor]
 
@@ -133,6 +133,10 @@ class WandBCallbackState:
         self.wandb_table = None
         self.predictor = None
         self.mode = None
+        self.predictor_dict = {
+            'detect': DetectionPredictor,
+            'segment': SegmentationPredictor,
+        }
 
     def on_pretrain_routine_start(self, trainer: DetectionTrainer):
         """Initiate and start project if module is present."""
@@ -142,7 +146,7 @@ class WandBCallbackState:
             name=trainer.args.name,
             config=vars(trainer.args),
             job_type="train_" + trainer.args.task)
-        if trainer.args.task == 'detect':
+        if trainer.args.task in ['detect', 'segment']:
             self.wandb_table = wb.Table(columns=[
                 "Model-Name",
                 "Epoch",
@@ -159,15 +163,25 @@ class WandBCallbackState:
         _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
         if trainer.epoch == 0:
             wb.run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
+        dataloader = trainer.validator.dataloader
+        class_label_map = trainer.validator.names
+        overrides = trainer.args
+        overrides.conf = 0.1
+        if self.predictor is None:
+            self.predictor = self.predictor_dict[trainer.args.task](overrides=overrides)
+            self.predictor.callbacks = {}
         if trainer.args.task == 'detect':
-            dataloader = trainer.validator.dataloader
-            class_label_map = trainer.validator.names
-            overrides = trainer.args
-            overrides.conf = 0.1
-            if self.predictor is None:
-                self.predictor = DetectionPredictor(overrides=overrides)
-                self.predictor.callbacks = {}
-            self.wandb_table = plot_validation_results(
+            self.wandb_table = plot_detection_validation_results(
+                dataloader=dataloader,
+                class_label_map=class_label_map,
+                model_name=trainer.args.model,
+                predictor=self.predictor,
+                table=self.wandb_table,
+                max_validation_batches=1,
+                epoch=trainer.epoch,
+            )
+        elif trainer.args.task == "segment":
+            self.wandb_table = plot_segmentation_validation_results(
                 dataloader=dataloader,
                 class_label_map=class_label_map,
                 model_name=trainer.args.model,

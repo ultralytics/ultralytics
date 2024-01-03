@@ -16,6 +16,7 @@ from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions
 from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results
 
 PREDICTOR_DTYPE = Union[DetectionPredictor, ClassificationPredictor, PosePredictor, SegmentationPredictor]
+TRAINER_DTYPE = Union[DetectionTrainer, SegmentationTrainer]
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -138,7 +139,7 @@ class WandBCallbackState:
             'segment': SegmentationPredictor,
         }
 
-    def on_pretrain_routine_start(self, trainer: DetectionTrainer):
+    def on_pretrain_routine_start(self, trainer: TRAINER_DTYPE):
         """Initiate and start project if module is present."""
         self.mode = trainer.args.mode
         wb.run or wb.init(
@@ -157,7 +158,7 @@ class WandBCallbackState:
                 "Speed",
             ])
 
-    def on_fit_epoch_end(self, trainer: DetectionTrainer):
+    def on_fit_epoch_end(self, trainer: TRAINER_DTYPE):
         wb.run.log(trainer.metrics, step=trainer.epoch + 1)
         _log_plots(trainer.plots, step=trainer.epoch + 1)
         _log_plots(trainer.validator.plots, step=trainer.epoch + 1)

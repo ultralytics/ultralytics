@@ -61,19 +61,20 @@ def plot_pose_validation_results(
 ) -> wb.Table:
     data_idx = 0
     for batch_idx, batch in enumerate(dataloader):
-        for img_idx, image_path in enumerate(batch["im_file"]):
-            prediction_result = predictor(image_path)[0].to("cpu")
+        prediction_results = predictor(batch["im_file"])
+        for img_idx, prediction_result in enumerate(prediction_results):
+            prediction_result = prediction_result.to("cpu")
             table_row = plot_pose_predictions(
                 prediction_result, model_name, visualize_skeleton
             )
             ground_truth_image = wb.Image(
                 annotate_keypoint_batch(
-                    image_path, batch["keypoints"][img_idx], visualize_skeleton
+                    batch["im_file"][img_idx], batch["keypoints"][img_idx], visualize_skeleton
                 ),
                 boxes={
                     "ground-truth": {
                         "box_data": get_ground_truth_bbox_annotations(
-                            img_idx, image_path, batch, class_label_map
+                            img_idx, batch["im_file"][img_idx], batch, class_label_map
                         ),
                         "class_labels": class_label_map,
                     },

@@ -10,11 +10,6 @@ from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer,
 from ultralytics.models.yolo.pose import PosePredictor, PoseTrainer, PoseValidator
 from ultralytics.models.yolo.segment import SegmentationPredictor, SegmentationTrainer, SegmentationValidator
 
-from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions, plot_classification_validation_results
-from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_detection_validation_results
-from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions, plot_pose_validation_results
-from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results
-
 PREDICTOR_DTYPE = Union[DetectionPredictor, ClassificationPredictor, PosePredictor, SegmentationPredictor]
 TRAINER_DTYPE = Union[DetectionTrainer, SegmentationTrainer, PoseTrainer, ClassificationTrainer]
 VALIDATOR_DTYPE = Union[DetectionValidator, SegmentationValidator, PoseValidator, ClassificationValidator]
@@ -28,6 +23,11 @@ try:
 
     import numpy as np
     import pandas as pd
+
+    from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions, plot_classification_validation_results
+    from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_detection_validation_results
+    from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions, plot_pose_validation_results
+    from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results
 
     _processed_plots = {}
 

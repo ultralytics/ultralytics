@@ -1,10 +1,12 @@
 from pathlib import Path
 from typing import List
+from io import BytesIO
 
 import cv2
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
+from PIL import Image
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
@@ -62,8 +64,8 @@ class Explorer:
 
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
         self.connection = lancedb.connect(uri)
-        self.table_name = Path(data).name
-        self.sim_idx_table_name = f'{self.table_name}_sim_idx'
+        self.table_name = Path(data).name.lower()
+        self.sim_idx_table_name = f'{self.table_name}_sim_idx'.lower()
         self.model = YOLO(model)
         self.data = data  # None
         self.choice_set = None
@@ -173,7 +175,30 @@ class Explorer:
         if query.startswith('WHERE'):
             query = f"SELECT * FROM 'table' {query}"
 
-        return duckdb.sql(query).to_df()
+        return duckdb.sql(query).arrow()
+    
+    def plot_sql_query(self, query, labels=True):
+        """
+        Plot the results of a SQL-Like query on the table. 
+        Args:
+            query (str): SQL query to run.
+            labels (bool): Whether to plot the labels or not.
+
+        Returns:
+            PIL Image containing the plot.
+
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            query = 'SELECT * FROM table WHERE labels LIKE "%person%"'
+            result = exp.plot_sql_query(query)
+            ```
+        """
+        result = self.sql_query(query)
+        img = plot_similar_images(result, plot_labels=labels)
+        img = Image.fromarray(img)
+        return img
 
     def get_similar(self, img=None, idx=None, limit=25):
         """
@@ -195,7 +220,7 @@ class Explorer:
 
         return similar
 
-    def show_similar(self, img=None, idx=None, limit=25):
+    def plot_similar(self, img=None, idx=None, limit=25, labels=True):
         """
         Plot the similar images. Accepts images or indexes.
 
@@ -204,27 +229,13 @@ class Explorer:
             idx (int or list): Index of the image in the table or a list of indexes.
             plot_labels (bool): Whether to plot the labels or not.
             limit (int): Number of results to return. Defaults to 25.
-        """
-        similar = self.get_similar(img, idx, limit)
-        img = plot_similar_images(similar)
-        cv2.imshow('Similar Images', img)
-        cv2.waitKey(0)
-
-    def plot_similar(self, img=None, idx=None, limit=25):
-        """
-        Plot the similar images. Accepts images or indexes.
-
-        Args:
-            img (str or list): Path to the image or a list of paths to the images.
-            idx (int or list): Index of the image in the table or a list of indexes.
-            plot_labels (bool): Whether to plot the labels or not.
-            limit (int): Number of results to return. Defaults to 25.
-
+        
         Returns:
-            cv2 image
+            PIL Image containing the plot.
         """
         similar = self.get_similar(img, idx, limit)
-        img = plot_similar_images(similar)
+        img = plot_similar_images(similar, plot_labels=labels)
+        img = Image.fromarray(img)
         return img
 
     def similarity_index(self, max_dist=0.2, top_k=None, force=True):
@@ -298,19 +309,13 @@ class Explorer:
         plt.xlabel('data idx')
         plt.ylabel('Count')
         plt.title('Similarity Count')
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
 
-        # Show the plot
-        plt.show()
-
-    def visualize(self, result):
-        """
-        Visualize the results of a query.
-
-        Args:
-            result (arrow table): Arrow table containing the results of a query.
-        """
-        # TODO:
-        pass
+        # Use Pillow to open the image from the buffer
+        image = Image.open(buffer)
+        return image
 
     def _check_imgs_or_idxs(self, img, idx):
         if img is None and idx is None:
@@ -323,3 +328,19 @@ class Explorer:
 
         img = img if isinstance(img, list) else [img]
         return img
+
+    def visualize(self, result):
+        """
+        Visualize the results of a query.
+
+        Args:
+            result (arrow table): Arrow table containing the results of a query.
+        """
+        # TODO:
+        pass
+
+    def generate_report(self, result):
+        """
+        Generate a report of the dataset
+        """
+        pass

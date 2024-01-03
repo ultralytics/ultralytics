@@ -49,12 +49,13 @@ def sanitize_batch(batch, dataset_info):
     return batch
 
 
-def plot_similar_images(similar_set):
+def plot_similar_images(similar_set, plot_labels=True):
     """
     Plot images from the similar set.
 
     Args:
         similar_set (list): Pyarrow table containing the similar data points
+        plot_labels (bool): Whether to plot labels or not
     """
     similar_set = similar_set.to_pydict()
     empty_masks = [[[]]]
@@ -73,18 +74,19 @@ def plot_similar_images(similar_set):
         h, w = im.shape[:2]
         r = min(plot_size / h, plot_size / w)
         imgs.append(LetterBox(plot_size, center=False)(image=im).transpose(2, 0, 1))
-        if len(bboxes) > i and len(bboxes[i]) > 0:
-            box = np.array(bboxes[i], dtype=np.float32)
-            box[:, [0, 2]] *= r
-            box[:, [1, 3]] *= r
-            plot_boxes.append(box)
-        if len(masks) > i and len(masks[i]) > 0:
-            mask = np.array(masks[i], dtype=np.uint8)[0]
-            plot_masks.append(LetterBox(plot_size, center=False)(image=mask))
-        if len(kpts) > i and kpts[i] is not None:
-            kpt = np.array(kpts[i], dtype=np.float32)
-            kpt[:, :, :2] *= r
-            plot_kpts.append(kpt)
+        if plot_labels:
+            if len(bboxes) > i and len(bboxes[i]) > 0:
+                box = np.array(bboxes[i], dtype=np.float32)
+                box[:, [0, 2]] *= r
+                box[:, [1, 3]] *= r
+                plot_boxes.append(box)
+            if len(masks) > i and len(masks[i]) > 0:
+                mask = np.array(masks[i], dtype=np.uint8)[0]
+                plot_masks.append(LetterBox(plot_size, center=False)(image=mask))
+            if len(kpts) > i and kpts[i] is not None:
+                kpt = np.array(kpts[i], dtype=np.float32)
+                kpt[:, :, :2] *= r
+                plot_kpts.append(kpt)
         batch_idx.append(np.ones(len(np.array(bboxes[i], dtype=np.float32))) * i)
     from ultralytics.utils.ops import xyxy2xywh
     imgs = np.stack(imgs, axis=0)
@@ -95,7 +97,7 @@ def plot_similar_images(similar_set):
     cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 
     fname = 'temp_exp_grid.jpg'
-    img = plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, fname=fname).join()
+    img = plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, fname=fname, max_subplots=len(images)).join()
     img = cv2.imread(fname)
     Path(fname).unlink()
     return img

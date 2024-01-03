@@ -18,8 +18,8 @@ from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, 
 
 check_requirements('lancedb')
 check_requirements('duckdb')
-import lancedb
 import duckdb
+import lancedb
 
 
 class ExplorerDataset(YOLODataset):
@@ -164,14 +164,15 @@ class Explorer:
         """
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
-        
+
         # Note: using filter pushdown would be a better long term solution. Temporarily using duckdb for this.
         table = self.table.to_arrow()  # noqa
         if not query.startswith('SELECT') and not query.startswith('WHERE'):
-            raise ValueError('Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause.')
+            raise ValueError(
+                'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause.')
         if query.startswith('WHERE'):
             query = f"SELECT * FROM 'table' {query}"
-            
+
         return duckdb.sql(query).to_df()
 
     def get_similar(self, img=None, idx=None, limit=25):

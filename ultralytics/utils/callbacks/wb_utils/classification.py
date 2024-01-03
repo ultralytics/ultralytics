@@ -49,7 +49,7 @@ def plot_classification_validation_results(
     for batch_idx, batch in enumerate(dataloader):
         image_batch = batch["img"].numpy()
         ground_truth = batch["cls"].numpy().tolist()
-        max_validation_batches = min(max_validation_batches, image_batch.shape[0])
+        max_validation_batches = min(max_validation_batches, image_batch.shape[0]) if max_validation_batches != -1 else image_batch.shape[0]
         images = [np.transpose(image_batch[img_idx], (1, 2, 0)) for img_idx in range(max_validation_batches)]
         prediction_results = predictor(images)
         for img_idx in range(max_validation_batches):

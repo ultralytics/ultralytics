@@ -9,6 +9,7 @@ from ultralytics.utils.torch_utils import model_info_for_loggers
 from ultralytics.models.yolo.classify import ClassificationPredictor
 
 from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
+from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -159,29 +160,39 @@ def on_train_end(trainer):
 def on_predict_start(predictor: ClassificationPredictor):
     wb.run or wb.init(project='YOLOv8', job_type="predict_" + predictor.args.task, config=vars(predictor.args))
 
-def on_predict_end(predictor: ClassificationPredictor, table: wb.Table):
+
+def on_predict_end(predictor: ClassificationPredictor):
     if wb.run:
         for result in predictor.results:
             if predictor.args.task == "classify":
-                table = plot_classification_predictions(
-                    result, predictor.args.model, table
+                table = wb.Table(
+                    columns=[
+                        "Model-Name",
+                        "Image",
+                        "Predicted-Category",
+                        "Prediction-Confidence",
+                        "Top-5-Prediction-Categories",
+                        "Top-5-Prediction-Confindence",
+                        "Probabilities",
+                        "Speed",
+                    ]
                 )
-                wb.log({"Prediction-Table": table})
+                table = plot_classification_predictions(result, predictor.args.model, table)
+            elif predictor.args.task == "detect":
+                table = wb.Table(
+                    columns=[
+                        "Model-Name",
+                        "Image",
+                        "Number-of-Predictions",
+                        "Mean-Confidence",
+                        "Speed",
+                    ]
+                )
+                table = plot_bbox_predictions(result, predictor.args.model, table)
+        if len(table.data) > 0:
+            wb.log({"Prediction-Table": table})
         wb.run.finish()
 
-
-classification_prediction_table = wb.Table(
-    columns=[
-        "Model-Name",
-        "Image",
-        "Predicted-Category",
-        "Prediction-Confidence",
-        "Top-5-Prediction-Categories",
-        "Top-5-Prediction-Confindence",
-        "Probabilities",
-        "Speed",
-    ]
-)
 
 callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
@@ -189,4 +200,4 @@ callbacks = {
     'on_fit_epoch_end': on_fit_epoch_end,
     'on_train_end': on_train_end,
     'on_predict_start': on_predict_start,
-    'on_predict_end': partial(on_predict_end, table=classification_prediction_table)} if wb else {}
+    'on_predict_end': on_predict_end} if wb else {}

@@ -11,6 +11,7 @@ from ultralytics.models.yolo.classify import ClassificationPredictor
 from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
 from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions
 from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions
+from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -203,6 +204,17 @@ def on_predict_end(predictor: ClassificationPredictor):
                 )
                 table = plot_pose_predictions(
                     result, predictor.args.model, table=table, visualize_skeleton=True)
+            elif predictor.args.task == "segment":
+                table = wb.Table(
+                    columns=[
+                        "Model-Name",
+                        "Image",
+                        "Number-of-Predictions",
+                        "Mean-Confidence",
+                        "Speed",
+                    ]
+                )
+                table = plot_mask_predictions(result, predictor.args.model, table)
         if len(table.data) > 0:
             wb.log({"Prediction-Table": table})
         wb.run.finish()

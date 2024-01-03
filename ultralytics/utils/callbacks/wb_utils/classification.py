@@ -49,9 +49,11 @@ def plot_classification_validation_results(
     for batch_idx, batch in enumerate(dataloader):
         image_batch = batch["img"].numpy()
         ground_truth = batch["cls"].numpy().tolist()
-        for img_idx in range(image_batch.shape[0]):
-            image = np.transpose(image_batch[img_idx], (1, 2, 0))
-            prediction_result = predictor(image)[0]
+        max_validation_batches = min(max_validation_batches, image_batch.shape[0])
+        images = [np.transpose(image_batch[img_idx], (1, 2, 0)) for img_idx in range(max_validation_batches)]
+        prediction_results = predictor(images)
+        for img_idx in range(max_validation_batches):
+            prediction_result = prediction_results[img_idx]
             class_id_to_label, table_row = plot_classification_predictions(
                 prediction_result, model_name
             )
@@ -61,6 +63,4 @@ def plot_classification_validation_results(
             table_row = [model_name] + table_row
             table.add_data(*table_row)
             data_idx += 1
-        if batch_idx + 1 == max_validation_batches:
-            break
     return table

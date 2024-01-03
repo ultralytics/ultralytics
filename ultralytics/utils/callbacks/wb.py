@@ -1,18 +1,17 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from functools import partial
 from typing import Union
 
 from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 from ultralytics.models.yolo.classify import ClassificationPredictor
-from ultralytics.models.yolo.detect import DetectionPredictor
+from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer
 from ultralytics.models.yolo.pose import PosePredictor
 from ultralytics.models.yolo.segment import SegmentationPredictor
 
 from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
-from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions
+from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_validation_results
 from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions
 from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions
 
@@ -120,20 +119,6 @@ def _log_plots(plots, step):
             _processed_plots[name] = timestamp
 
 
-def on_pretrain_routine_start(trainer):
-    """Initiate and start project if module is present."""
-    wb.run or wb.init(project=trainer.args.project or 'YOLOv8', name=trainer.args.name, config=vars(trainer.args))
-
-
-def on_fit_epoch_end(trainer):
-    """Logs training metrics and model information at the end of an epoch."""
-    wb.run.log(trainer.metrics, step=trainer.epoch + 1)
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
-    _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
-    if trainer.epoch == 0:
-        wb.run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
-
-
 def on_train_epoch_end(trainer):
     """Log metrics and save images at the end of each training epoch."""
     wb.run.log(trainer.label_loss_items(trainer.tloss, prefix='train'), step=trainer.epoch + 1)
@@ -143,95 +128,149 @@ def on_train_epoch_end(trainer):
     print(trainer.args)
 
 
-def on_train_end(trainer):
-    """Save the best model as an artifact at end of training."""
-    _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
-    art = wb.Artifact(type='model', name=f'run_{wb.run.id}_model')
-    if trainer.best.exists():
-        art.add_file(trainer.best)
-        wb.run.log_artifact(art, aliases=['best'])
-    for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
-        x, y, x_title, y_title = curve_values
-        _plot_curve(
-            x,
-            y,
-            names=list(trainer.validator.metrics.names.values()),
-            id=f'curves/{curve_name}',
-            title=curve_name,
-            x_title=x_title,
-            y_title=y_title,
-        )
-    wb.run.finish()  # required or run continues on dashboard
+class WandBCallbackState:
+    def __init__(self):
+        self.wandb_table = None
+        self.predictor = None
+        self.mode = None
+
+    def on_pretrain_routine_start(self, trainer: DetectionTrainer):
+        """Initiate and start project if module is present."""
+        self.mode = trainer.args.mode
+        wb.run or wb.init(
+            project=trainer.args.project or 'YOLOv8',
+            name=trainer.args.name,
+            config=vars(trainer.args),
+            job_type="train_" + trainer.args.task)
+        if trainer.args.task == 'detect':
+            self.wandb_table = wb.Table(columns=[
+                "Model-Name",
+                "Epoch",
+                "Data-Index",
+                "Batch-Index",
+                "Image",
+                "Mean-Confidence",
+                "Speed",
+            ])
+
+    def on_fit_epoch_end(self, trainer: DetectionTrainer):
+        wb.run.log(trainer.metrics, step=trainer.epoch + 1)
+        _log_plots(trainer.plots, step=trainer.epoch + 1)
+        _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
+        if trainer.epoch == 0:
+            wb.run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
+        if trainer.args.task == 'detect':
+            dataloader = trainer.validator.dataloader
+            class_label_map = trainer.validator.names
+            overrides = trainer.args
+            overrides.conf = 0.1
+            if self.predictor is None:
+                self.predictor = DetectionPredictor(overrides=overrides)
+                self.predictor.callbacks = {}
+            self.wandb_table = plot_validation_results(
+                dataloader=dataloader,
+                class_label_map=class_label_map,
+                model_name=trainer.args.model,
+                predictor=self.predictor,
+                table=self.wandb_table,
+                max_validation_batches=1,
+                epoch=trainer.epoch,
+            )
+
+    def on_train_end(self, trainer):
+        """Save the best model as an artifact at end of training."""
+        _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
+        _log_plots(trainer.plots, step=trainer.epoch + 1)
+        art = wb.Artifact(type='model', name=f'run_{wb.run.id}_model')
+        if trainer.best.exists():
+            art.add_file(trainer.best)
+            wb.run.log_artifact(art, aliases=['best'])
+        for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
+            x, y, x_title, y_title = curve_values
+            _plot_curve(
+                x,
+                y,
+                names=list(trainer.validator.metrics.names.values()),
+                id=f'curves/{curve_name}',
+                title=curve_name,
+                x_title=x_title,
+                y_title=y_title,
+            )
+        wb.log({"Validation-Table": self.wandb_table})
+        wb.run.finish()  # required or run continues on dashboard
+
+    def on_predict_start(self, predictor: ClassificationPredictor):
+        wb.run or wb.init(project='YOLOv8', job_type="predict_" + predictor.args.task, config=vars(predictor.args))
+        if predictor.args.task == "classify":
+            self.wandb_table = wb.Table(
+                columns=[
+                    "Model-Name",
+                    "Image",
+                    "Predicted-Category",
+                    "Prediction-Confidence",
+                    "Top-5-Prediction-Categories",
+                    "Top-5-Prediction-Confindence",
+                    "Probabilities",
+                    "Speed",
+                ]
+            )
+        elif predictor.args.task == "detect":
+            self.wandb_table = wb.Table(
+                columns=[
+                    "Model-Name",
+                    "Image",
+                    "Number-of-Predictions",
+                    "Mean-Confidence",
+                    "Speed",
+                ]
+            )
+        elif predictor.args.task == "pose":
+            self.wandb_table = wb.Table(
+                columns=[
+                    "Model-Name",
+                    "Image-Prediction",
+                    "Num-Instances",
+                    "Mean-Confidence",
+                    "Speed",
+                ]
+            )
+        elif predictor.args.task == "segment":
+            self.wandb_table = wb.Table(
+                columns=[
+                    "Model-Name",
+                    "Image",
+                    "Number-of-Predictions",
+                    "Mean-Confidence",
+                    "Speed",
+                ]
+            )
+
+    def on_predict_end(self, predictor: PREDICTOR_DTYPE):
+        if wb.run:
+            for result in predictor.results:
+                if predictor.args.task == "classify":
+                    self.wandb_table = plot_classification_predictions(
+                        result, predictor.args.model, self.wandb_table)
+                elif predictor.args.task == "detect":
+                    self.wandb_table = plot_bbox_predictions(
+                        result, predictor.args.model, self.wandb_table)
+                elif predictor.args.task == "pose":
+                    self.wandb_table = plot_pose_predictions(
+                        result, predictor.args.model, table=self.wandb_table, visualize_skeleton=True)
+                elif predictor.args.task == "segment":
+                    self.wandb_table = plot_mask_predictions(
+                        result, predictor.args.model, self.wandb_table)
+            if len(self.wandb_table.data) > 0:
+                wb.log({"Prediction-Table": self.wandb_table})
+            wb.run.finish()
 
 
-def on_predict_start(predictor: ClassificationPredictor):
-    wb.run or wb.init(project='YOLOv8', job_type="predict_" + predictor.args.task, config=vars(predictor.args))
-
-
-def on_predict_end(predictor: PREDICTOR_DTYPE):
-    if wb.run:
-        for result in predictor.results:
-            if predictor.args.task == "classify":
-                wandb_table = wb.Table(
-                    columns=[
-                        "Model-Name",
-                        "Image",
-                        "Predicted-Category",
-                        "Prediction-Confidence",
-                        "Top-5-Prediction-Categories",
-                        "Top-5-Prediction-Confindence",
-                        "Probabilities",
-                        "Speed",
-                    ]
-                )
-                wandb_table = plot_classification_predictions(result, predictor.args.model, wandb_table)
-            elif predictor.args.task == "detect":
-                wandb_table = wb.Table(
-                    columns=[
-                        "Model-Name",
-                        "Image",
-                        "Number-of-Predictions",
-                        "Mean-Confidence",
-                        "Speed",
-                    ]
-                )
-                wandb_table = plot_bbox_predictions(result, predictor.args.model, wandb_table)
-            elif predictor.args.task == "pose":
-                wandb_table = wb.Table(
-                    columns=[
-                        "Model-Name",
-                        "Image-Prediction",
-                        "Num-Instances",
-                        "Mean-Confidence",
-                        "Speed",
-                    ]
-                )
-                wandb_table = plot_pose_predictions(
-                    result, predictor.args.model, table=wandb_table, visualize_skeleton=True)
-            elif predictor.args.task == "segment":
-                wandb_table = wb.Table(
-                    columns=[
-                        "Model-Name",
-                        "Image",
-                        "Number-of-Predictions",
-                        "Mean-Confidence",
-                        "Speed",
-                    ]
-                )
-                wandb_table = plot_mask_predictions(result, predictor.args.model, wandb_table)
-        if len(wandb_table.data) > 0:
-            wb.log({"Prediction-Table": wandb_table})
-        wb.run.finish()
-
-
-wandb_table = None
-
+wandb_callback_state = WandBCallbackState()
 callbacks = {
-    'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_pretrain_routine_start': wandb_callback_state.on_pretrain_routine_start,
     'on_train_epoch_end': on_train_epoch_end,
-    'on_fit_epoch_end': on_fit_epoch_end,
-    'on_train_end': on_train_end,
-    'on_predict_start': on_predict_start,
-    'on_predict_end': on_predict_end
+    'on_fit_epoch_end': wandb_callback_state.on_fit_epoch_end,
+    'on_train_end': wandb_callback_state.on_train_end,
+    'on_predict_start': wandb_callback_state.on_predict_start,
+    'on_predict_end': wandb_callback_state.on_predict_end
 } if wb else {}

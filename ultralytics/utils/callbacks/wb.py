@@ -10,6 +10,7 @@ from ultralytics.models.yolo.classify import ClassificationPredictor
 
 from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
 from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions
+from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -163,6 +164,7 @@ def on_predict_start(predictor: ClassificationPredictor):
 
 def on_predict_end(predictor: ClassificationPredictor):
     if wb.run:
+        table = wb.Table()
         for result in predictor.results:
             if predictor.args.task == "classify":
                 table = wb.Table(
@@ -189,6 +191,18 @@ def on_predict_end(predictor: ClassificationPredictor):
                     ]
                 )
                 table = plot_bbox_predictions(result, predictor.args.model, table)
+            elif predictor.args.task == "pose":
+                table = wb.Table(
+                    columns=[
+                        "Model-Name",
+                        "Image-Prediction",
+                        "Num-Instances",
+                        "Mean-Confidence",
+                        "Speed",
+                    ]
+                )
+                table = plot_pose_predictions(
+                    result, predictor.args.model, table=table, visualize_skeleton=True)
         if len(table.data) > 0:
             wb.log({"Prediction-Table": table})
         wb.run.finish()
@@ -200,4 +214,5 @@ callbacks = {
     'on_fit_epoch_end': on_fit_epoch_end,
     'on_train_end': on_train_end,
     'on_predict_start': on_predict_start,
-    'on_predict_end': on_predict_end} if wb else {}
+    'on_predict_end': on_predict_end
+} if wb else {}

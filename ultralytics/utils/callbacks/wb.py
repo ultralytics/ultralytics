@@ -5,12 +5,12 @@ from typing import Union
 from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
-from ultralytics.models.yolo.classify import ClassificationPredictor
+from ultralytics.models.yolo.classify import ClassificationPredictor, ClassificationTrainer
 from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer
 from ultralytics.models.yolo.pose import PosePredictor, PoseTrainer
 from ultralytics.models.yolo.segment import SegmentationPredictor, SegmentationTrainer
 
-from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
+from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions, plot_classification_validation_results
 from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_detection_validation_results
 from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions, plot_pose_validation_results
 from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results
@@ -138,6 +138,7 @@ class WandBCallbackState:
             'detect': DetectionPredictor,
             'segment': SegmentationPredictor,
             'pose': PosePredictor,
+            'classify': ClassificationPredictor,
         }
 
     def on_pretrain_routine_start(self, trainer: TRAINER_DTYPE):
@@ -171,6 +172,23 @@ class WandBCallbackState:
                     "Image-Prediction",
                     "Num-Instances",
                     "Mean-Confidence",
+                    "Speed",
+                ]
+            )
+        elif trainer.args.task == "classify":
+            self.wandb_table = wb.Table(
+                columns=[
+                    "Model-Name",
+                    "Epoch",
+                    "Data-Index",
+                    "Batch-Index",
+                    "Image",
+                    "Ground-Truth-Category",
+                    "Predicted-Category",
+                    "Prediction-Confidence",
+                    "Top-5-Prediction-Categories",
+                    "Top-5-Prediction-Confindence",
+                    "Probabilities",
                     "Speed",
                 ]
             )
@@ -219,6 +237,17 @@ class WandBCallbackState:
                 max_validation_batches=1,
                 epoch=trainer.epoch,
             )
+        elif trainer.args.task == "classify":
+            self.wandb_table = (
+                plot_classification_validation_results(
+                    dataloader=dataloader,
+                    model_name=trainer.args.model,
+                    predictor=self.predictor,
+                    table=self.wandb_table,
+                    max_validation_batches=1,
+                    epoch=trainer.epoch,
+                )
+            )
 
     def on_train_end(self, trainer):
         """Save the best model as an artifact at end of training."""
@@ -239,7 +268,7 @@ class WandBCallbackState:
                 x_title=x_title,
                 y_title=y_title,
             )
-        wb.log({"Validation-Table": self.wandb_table})
+        wb.log({"Train-Validation-Table": self.wandb_table})
         wb.run.finish()  # required or run continues on dashboard
 
     def on_predict_start(self, predictor: ClassificationPredictor):

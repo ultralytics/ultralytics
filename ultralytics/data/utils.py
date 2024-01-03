@@ -289,7 +289,7 @@ def check_det_dataset(dataset, autodownload=True):
     # Set paths
     data['path'] = path  # download scripts
     for k in data.keys():
-        if k in ['train', 'val', 'test'] or k.startswith('test_'): # prepend path
+        if k in ['train', 'val', 'test'] or k.startswith('test_'):  # prepend path
             if isinstance(data[k], str):
                 x = (path / data[k]).resolve()
                 if not x.exists() and data[k].startswith('../'):

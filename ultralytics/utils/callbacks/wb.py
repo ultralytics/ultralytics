@@ -7,16 +7,16 @@ from ultralytics.utils.torch_utils import model_info_for_loggers
 
 from ultralytics.models.yolo.classify import ClassificationPredictor
 from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer
-from ultralytics.models.yolo.pose import PosePredictor
+from ultralytics.models.yolo.pose import PosePredictor, PoseTrainer
 from ultralytics.models.yolo.segment import SegmentationPredictor, SegmentationTrainer
 
 from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
 from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_detection_validation_results
-from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions
+from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions, plot_pose_validation_results
 from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results
 
 PREDICTOR_DTYPE = Union[DetectionPredictor, ClassificationPredictor, PosePredictor, SegmentationPredictor]
-TRAINER_DTYPE = Union[DetectionTrainer, SegmentationTrainer]
+TRAINER_DTYPE = Union[DetectionTrainer, SegmentationTrainer, PoseTrainer]
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -137,6 +137,7 @@ class WandBCallbackState:
         self.predictor_dict = {
             'detect': DetectionPredictor,
             'segment': SegmentationPredictor,
+            'pose': PosePredictor,
         }
 
     def on_pretrain_routine_start(self, trainer: TRAINER_DTYPE):
@@ -148,15 +149,31 @@ class WandBCallbackState:
             config=vars(trainer.args),
             job_type="train_" + trainer.args.task)
         if trainer.args.task in ['detect', 'segment']:
-            self.wandb_table = wb.Table(columns=[
-                "Model-Name",
-                "Epoch",
-                "Data-Index",
-                "Batch-Index",
-                "Image",
-                "Mean-Confidence",
-                "Speed",
-            ])
+            self.wandb_table = wb.Table(
+                columns=[
+                    "Model-Name",
+                    "Epoch",
+                    "Data-Index",
+                    "Batch-Index",
+                    "Image",
+                    "Mean-Confidence",
+                    "Speed",
+                ]
+            )
+        elif trainer.args.task == "pose":
+            self.wandb_table = wb.Table(
+                columns=[
+                    "Model-Name",
+                    "Epoch",
+                    "Data-Index",
+                    "Batch-Index",
+                    "Image-Ground-Truth",
+                    "Image-Prediction",
+                    "Num-Instances",
+                    "Mean-Confidence",
+                    "Speed",
+                ]
+            )
 
     def on_fit_epoch_end(self, trainer: TRAINER_DTYPE):
         wb.run.log(trainer.metrics, step=trainer.epoch + 1)
@@ -187,6 +204,17 @@ class WandBCallbackState:
                 class_label_map=class_label_map,
                 model_name=trainer.args.model,
                 predictor=self.predictor,
+                table=self.wandb_table,
+                max_validation_batches=1,
+                epoch=trainer.epoch,
+            )
+        elif trainer.args.task == "pose":
+            self.wandb_table = plot_pose_validation_results(
+                dataloader=dataloader,
+                class_label_map=class_label_map,
+                model_name=trainer.args.model,
+                predictor=self.predictor,
+                visualize_skeleton=True,
                 table=self.wandb_table,
                 max_validation_batches=1,
                 epoch=trainer.epoch,

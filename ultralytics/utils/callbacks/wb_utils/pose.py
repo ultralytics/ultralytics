@@ -47,3 +47,43 @@ def plot_pose_predictions(
         table.add_data(*table_row)
         return table
     return table_row
+
+
+def plot_pose_validation_results(
+    dataloader,
+    class_label_map,
+    model_name: str,
+    predictor: PosePredictor,
+    visualize_skeleton: bool,
+    table: wb.Table,
+    max_validation_batches: int,
+    epoch: Optional[int] = None,
+) -> wb.Table:
+    data_idx = 0
+    for batch_idx, batch in enumerate(dataloader):
+        for img_idx, image_path in enumerate(batch["im_file"]):
+            prediction_result = predictor(image_path)[0].to("cpu")
+            table_row = plot_pose_predictions(
+                prediction_result, model_name, visualize_skeleton
+            )
+            ground_truth_image = wb.Image(
+                annotate_keypoint_batch(
+                    image_path, batch["keypoints"][img_idx], visualize_skeleton
+                ),
+                boxes={
+                    "ground-truth": {
+                        "box_data": get_ground_truth_bbox_annotations(
+                            img_idx, image_path, batch, class_label_map
+                        ),
+                        "class_labels": class_label_map,
+                    },
+                },
+            )
+            table_row = [data_idx, batch_idx, ground_truth_image] + table_row[1:]
+            table_row = [epoch] + table_row if epoch is not None else table_row
+            table_row = [model_name] + table_row
+            table.add_data(*table_row)
+            data_idx += 1
+        if batch_idx + 1 == max_validation_batches:
+            break
+    return table

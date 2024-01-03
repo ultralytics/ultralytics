@@ -12,6 +12,8 @@ def test_similarity():
     assert len(similar) == 10
     sim_idx = exp.similarity_index()
     assert len(sim_idx) > 0
+    sql = exp.sql_query("WHERE labels LIKE '%person%'")
+    len(sql) > 0
 
 
 def test_det():

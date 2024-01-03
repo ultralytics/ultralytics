@@ -68,4 +68,4 @@ Nous tenons à remercier les auteurs de YOLOv4 pour leurs contributions importan
         }
         ```
 
-L'article original de YOLOv4 peut être consulté sur [arXiv](https://arxiv.org/pdf/2004.10934.pdf). Les auteurs ont rendu leur travail accessible au public, et le code source peut être consulté sur [GitHub](https://github.com/AlexeyAB/darknet). Nous apprécions leurs efforts pour faire progresser le domaine et rendre leur travail accessible à la communauté élargie.
+L'article original de YOLOv4 peut être consulté sur [arXiv](https://arxiv.org/abs/2004.10934). Les auteurs ont rendu leur travail accessible au public, et le code source peut être consulté sur [GitHub](https://github.com/AlexeyAB/darknet). Nous apprécions leurs efforts pour faire progresser le domaine et rendre leur travail accessible à la communauté élargie.

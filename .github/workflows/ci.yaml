@@ -107,7 +107,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" coverage --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
           # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
           # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
           yolo export format=tflite imgsz=32 || true

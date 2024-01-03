@@ -569,8 +569,7 @@ def plot_images(images,
                 fname='images.jpg',
                 names=None,
                 on_plot=None,
-                max_subplots=16
-                ):
+                max_subplots=16):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()

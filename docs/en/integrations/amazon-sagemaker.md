@@ -8,7 +8,7 @@ keywords: YOLOv8, Ultralytics, Amazon SageMaker, AWS, CloudFormation, AWS CDK, P
 
 Deploying advanced computer vision models like [Ultralytics’ YOLOv8](https://github.com/ultralytics/ultralytics) on Amazon SageMaker Endpoints opens up a wide range of possibilities for various machine learning applications. The key to effectively using these models lies in understanding their setup, configuration, and deployment processes. YOLOv8 becomes even more powerful when integrated seamlessly with Amazon SageMaker, a robust and scalable machine learning service by AWS.
 
-This guide will take you through the process of deploying YOLOv8 PyTorch models on Amazon SageMaker Endpoints step by step. You'll learn the essentials of preparing your AWS environment, configuring the model appropriately, and using tools like AWS CloudFormation and the AWS Cloud Development Kit (CDK) for deployment. 
+This guide will take you through the process of deploying YOLOv8 PyTorch models on Amazon SageMaker Endpoints step by step. You'll learn the essentials of preparing your AWS environment, configuring the model appropriately, and using tools like AWS CloudFormation and the AWS Cloud Development Kit (CDK) for deployment.
 
 ## Amazon SageMaker
 
@@ -20,11 +20,11 @@ This guide will take you through the process of deploying YOLOv8 PyTorch models 
 
 ## Deploying YOLOv8 on Amazon SageMaker Endpoints
 
-Deploying YOLOv8 on Amazon SageMaker lets you use its managed environment for real-time inference and take advantage of features like autoscaling. Take a look at the AWS architecture below. 
+Deploying YOLOv8 on Amazon SageMaker lets you use its managed environment for real-time inference and take advantage of features like autoscaling. Take a look at the AWS architecture below.
 
 <p align="center">
   <img width="640" src="https://d2908q01vomqb2.cloudfront.net/f1f836cb4ea6efb2a0b1b99f41ad8b103eff4b59/2023/02/28/ML13353_AWSArchitecture-1024x605.png" alt="AWS Architecture">
-</p> 
+</p>
 
 ### Step 1: Setup Your AWS Environment
 
@@ -142,7 +142,7 @@ Now that your YOLOv8 model is deployed, it's important to test its performance a
 
 <p align="center">
   <img width="640" src="https://d2908q01vomqb2.cloudfront.net/f1f836cb4ea6efb2a0b1b99f41ad8b103eff4b59/2023/02/28/ML13353_InferenceOutput.png" alt="Testing Results YOLOv8">
-</p>  
+</p>
 
 - Clean-Up Resources: The test notebook will also guide you through the process of cleaning up the endpoint and the hosted model. This is an important step to manage costs and resources effectively, especially if you do not plan to use the deployed model immediately.
 

@@ -7,11 +7,16 @@ from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 from ultralytics.models.yolo.classify import ClassificationPredictor
+from ultralytics.models.yolo.detect import DetectionPredictor
+from ultralytics.models.yolo.pose import PosePredictor
+from ultralytics.models.yolo.segment import SegmentationPredictor
 
 from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions
 from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions
 from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions
 from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions
+
+PREDICTOR_DTYPE = Union[DetectionPredictor, ClassificationPredictor, PosePredictor, SegmentationPredictor]
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -135,6 +140,7 @@ def on_train_epoch_end(trainer):
     wb.run.log(trainer.lr, step=trainer.epoch + 1)
     if trainer.epoch == 1:
         _log_plots(trainer.plots, step=trainer.epoch + 1)
+    print(trainer.args)
 
 
 def on_train_end(trainer):
@@ -163,7 +169,7 @@ def on_predict_start(predictor: ClassificationPredictor):
     wb.run or wb.init(project='YOLOv8', job_type="predict_" + predictor.args.task, config=vars(predictor.args))
 
 
-def on_predict_end(predictor: ClassificationPredictor):
+def on_predict_end(predictor: PREDICTOR_DTYPE):
     if wb.run:
         for result in predictor.results:
             if predictor.args.task == "classify":

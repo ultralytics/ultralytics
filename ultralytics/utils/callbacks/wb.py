@@ -165,10 +165,9 @@ def on_predict_start(predictor: ClassificationPredictor):
 
 def on_predict_end(predictor: ClassificationPredictor):
     if wb.run:
-        table = wb.Table()
         for result in predictor.results:
             if predictor.args.task == "classify":
-                table = wb.Table(
+                wandb_table = wb.Table(
                     columns=[
                         "Model-Name",
                         "Image",
@@ -180,9 +179,9 @@ def on_predict_end(predictor: ClassificationPredictor):
                         "Speed",
                     ]
                 )
-                table = plot_classification_predictions(result, predictor.args.model, table)
+                wandb_table = plot_classification_predictions(result, predictor.args.model, wandb_table)
             elif predictor.args.task == "detect":
-                table = wb.Table(
+                wandb_table = wb.Table(
                     columns=[
                         "Model-Name",
                         "Image",
@@ -191,9 +190,9 @@ def on_predict_end(predictor: ClassificationPredictor):
                         "Speed",
                     ]
                 )
-                table = plot_bbox_predictions(result, predictor.args.model, table)
+                wandb_table = plot_bbox_predictions(result, predictor.args.model, wandb_table)
             elif predictor.args.task == "pose":
-                table = wb.Table(
+                wandb_table = wb.Table(
                     columns=[
                         "Model-Name",
                         "Image-Prediction",
@@ -202,10 +201,10 @@ def on_predict_end(predictor: ClassificationPredictor):
                         "Speed",
                     ]
                 )
-                table = plot_pose_predictions(
-                    result, predictor.args.model, table=table, visualize_skeleton=True)
+                wandb_table = plot_pose_predictions(
+                    result, predictor.args.model, table=wandb_table, visualize_skeleton=True)
             elif predictor.args.task == "segment":
-                table = wb.Table(
+                wandb_table = wb.Table(
                     columns=[
                         "Model-Name",
                         "Image",
@@ -214,11 +213,13 @@ def on_predict_end(predictor: ClassificationPredictor):
                         "Speed",
                     ]
                 )
-                table = plot_mask_predictions(result, predictor.args.model, table)
-        if len(table.data) > 0:
-            wb.log({"Prediction-Table": table})
+                wandb_table = plot_mask_predictions(result, predictor.args.model, wandb_table)
+        if len(wandb_table.data) > 0:
+            wb.log({"Prediction-Table": wandb_table})
         wb.run.finish()
 
+
+wandb_table = None
 
 callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,

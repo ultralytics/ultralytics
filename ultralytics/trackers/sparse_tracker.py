@@ -2,11 +2,11 @@
 # Please follow the repo https://github.com/hustvl/SparseTrack to compile GMC mosule before using SparseTracker
 import numpy as np
 
-from . import pbcvt 
+from . import pbcvt
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
-from .utils.matching import *
 from .utils.kalman_filter import KalmanFilterXYWH
+from .utils.matching import *
 
 
 class DSTrack(STrack):
@@ -74,7 +74,7 @@ class DSTrack(STrack):
         """Obtain the pseudo depth of each object."""
         ret = self.tlwh.copy()
         cx = ret[0] + 0.5 * ret[2]
-        y2 = ret[1] +  ret[3]
+        y2 = ret[1] + ret[3]
         lendth = 2000 - y2
         return np.asarray([cx, y2, lendth], dtype=float)
 
@@ -88,6 +88,7 @@ class DSTrack(STrack):
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
         return ret
+
 
 class SparseTracker(BYTETracker):
     """
@@ -115,11 +116,12 @@ class SparseTracker(BYTETracker):
     Note:
         Please follow the repo https://github.com/hustvl/SparseTrack to compile GMC mosule before using SparseTracker.
     """
+
     def __init__(self, args, frame_rate=30):
         """Initialize a YOLOv8 object to track objects with given arguments and frame rate."""
         super().__init__(args, frame_rate)
 
-        self.det_thresh = args.track_thresh + 0.1          
+        self.det_thresh = args.track_thresh + 0.1
         self.pre_img = None
         self.down_scale = args.down_scale
         self.layers = args.depth_levels
@@ -127,7 +129,7 @@ class SparseTracker(BYTETracker):
     def get_kalmanfilter(self):
         """Returns an instance of KalmanFilterXYWH for object tracking."""
         return KalmanFilterXYWH()
-    
+
     def get_deep_range(self, obj, step):
         """Divide the depth intervals and obtain a target subset mask in each interval."""
         col = []
@@ -136,50 +138,51 @@ class SparseTracker(BYTETracker):
             col.append(lend)
         max_len, mix_len = max(col), min(col)
         if max_len != mix_len:
-            deep_range =np.arange(mix_len, max_len, (max_len - mix_len + 1) / step)
+            deep_range = np.arange(mix_len, max_len, (max_len - mix_len + 1) / step)
             if deep_range[-1] < max_len:
-                deep_range = np.concatenate([deep_range, np.array([max_len],)])
+                deep_range = np.concatenate([deep_range, np.array([max_len], )])
                 deep_range[0] = np.floor(deep_range[0])
                 deep_range[-1] = np.ceil(deep_range[-1])
-        else:    
-            deep_range = [mix_len,] 
-        mask = self.get_sub_mask(deep_range, col)      
+        else:
+            deep_range = [
+                mix_len, ]
+        mask = self.get_sub_mask(deep_range, col)
         return mask
-    
+
     def get_sub_mask(self, deep_range, col):
         """Obtain a mask of the target subset for the corresponding depth range."""
-        mix_len=deep_range[0]
-        max_len=deep_range[-1]
+        mix_len = deep_range[0]
+        max_len = deep_range[-1]
         if max_len == mix_len:
-            lc = mix_len   
+            lc = mix_len
         mask = []
         for d in deep_range:
             if d > deep_range[0] and d < deep_range[-1]:
-                mask.append((col >= lc) & (col < d)) 
+                mask.append((col >= lc) & (col < d))
                 lc = d
             elif d == deep_range[-1]:
-                mask.append((col >= lc) & (col <= d)) 
-                lc = d 
+                mask.append((col >= lc) & (col <= d))
+                lc = d
             else:
                 lc = d
                 continue
         return mask
-    
+
     def DCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, is_fuse):
         """Depth cascade matching."""
         if len(detections) > 0:
-            det_mask = self.get_deep_range(detections, levels) 
+            det_mask = self.get_deep_range(detections, levels)
         else:
             det_mask = []
 
-        if len(tracks)!=0:
+        if len(tracks) != 0:
             track_mask = self.get_deep_range(tracks, levels)
         else:
             track_mask = []
 
         u_detection, u_tracks, res_det, res_track = [], [], [], []
         if len(track_mask) != 0:
-            if  len(track_mask) < len(det_mask):
+            if len(track_mask) < len(det_mask):
                 for i in range(len(det_mask) - len(track_mask)):
                     idx = np.argwhere(det_mask[len(track_mask) + i] == True)
                     for idd in idx:
@@ -189,12 +192,12 @@ class SparseTracker(BYTETracker):
                     idx = np.argwhere(track_mask[len(det_mask) + i] == True)
                     for idd in idx:
                         res_track.append(tracks[idd[0]])
-        
+
             for dm, tm in zip(det_mask, track_mask):
                 det_idx = np.argwhere(dm == True)
                 trk_idx = np.argwhere(tm == True)
-                
-                # search det 
+
+                # search det
                 det_ = []
                 for idd in det_idx:
                     det_.append(detections[idd[0]])
@@ -205,7 +208,7 @@ class SparseTracker(BYTETracker):
                     track_.append(tracks[idt[0]])
                 # update trk
                 track_ = track_ + u_tracks
-                
+
                 dists = iou_distance(track_, det_)
                 if (not self.args.mot20) and is_fuse:
                     dists = fuse_score(dists, det_)
@@ -221,21 +224,21 @@ class SparseTracker(BYTETracker):
                         refind_stracks.append(track)
                 u_tracks = [track_[t] for t in u_track_]
                 u_detection = [det_[t] for t in u_det_]
-                
+
             u_tracks = u_tracks + res_track
             u_detection = u_detection + res_det
 
         else:
             u_detection = detections
-            
+
         return activated_starcks, refind_stracks, u_tracks, u_detection
 
-    def update(self, results, curr_img = None):
+    def update(self, results, curr_img=None):
         """Updates object tracker with new detections and returns tracked object bounding boxes."""
         self.frame_id += 1
         if self.frame_id == 1:
             self.pre_img = None
-            
+
         # init stracks
         activated_starcks = []
         refind_stracks = []
@@ -259,7 +262,7 @@ class SparseTracker(BYTETracker):
         scores_second = scores[inds_second]
         cls_keep = cls[remain_inds]
         cls_second = cls[inds_second]
-        
+
         # tracks preprocess
         unconfirmed = []
         tracked_stracks = []  # type: list[DSTrack]
@@ -268,69 +271,63 @@ class SparseTracker(BYTETracker):
                 unconfirmed.append(track)
             else:
                 tracked_stracks.append(track)
-        
+
         # init high-score dets
         if len(dets) > 0:
-            detections = [DSTrack(tlbr, s, c) for
-                          (tlbr, s, c) in zip(dets, scores_keep, cls_keep)]   
+            detections = [DSTrack(tlbr, s, c) for (tlbr, s, c) in zip(dets, scores_keep, cls_keep)]
         else:
             detections = []
 
-        # get strack_pool   
+        # get strack_pool
         strack_pool = self.joint_stracks(tracked_stracks, self.lost_stracks)
-        
+
         # predict the current location with KF
         DSTrack.multi_predict(strack_pool)
-        
+
         # use GMC: for mot20 dancetrack--unenabled GMC: 368 - 373
         if self.pre_img is not None:
             warp = pbcvt.GMC(curr_img, self.pre_img, self.down_scale)
         else:
-            warp = np.eye(3,3)
+            warp = np.eye(3, 3)
         DSTrack.multi_gmc(strack_pool, warp[:2, :])
         DSTrack.multi_gmc(unconfirmed, warp[:2, :])
-        
+
         # DCM
-        activated_starcks, refind_stracks, u_track, u_detection_high = self.DCM(
-                                                                                detections, 
-                                                                                strack_pool, 
+        activated_starcks, refind_stracks, u_track, u_detection_high = self.DCM(detections,
+                                                                                strack_pool,
                                                                                 activated_starcks,
-                                                                                refind_stracks, 
-                                                                                self.layers, 
-                                                                                self.args.match_thresh, 
-                                                                                is_fuse=True)  
-            
-            
+                                                                                refind_stracks,
+                                                                                self.layers,
+                                                                                self.args.match_thresh,
+                                                                                is_fuse=True)
+
         # association the untrack to the low score detections
         if len(dets_second) > 0:
-            '''Detections'''
-            detections_second = [DSTrack(tlbr, s, c) for
-                          (tlbr, s, c) in zip(dets_second, scores_second, cls_second)]
+            """Detections."""
+            detections_second = [DSTrack(tlbr, s, c) for (tlbr, s, c) in zip(dets_second, scores_second, cls_second)]
         else:
             detections_second = []
-        r_tracked_stracks = [t for t in u_track if t.state == TrackState.Tracked]   
-        
+        r_tracked_stracks = [t for t in u_track if t.state == TrackState.Tracked]
+
         # DCM
-        activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(
-                                                                                detections_second, 
-                                                                                r_tracked_stracks, 
-                                                                                activated_starcks, 
-                                                                                refind_stracks, 
-                                                                                self.args.depth_levels_low, 
-                                                                                0.3, 
-                                                                                is_fuse=False) 
+        activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(detections_second,
+                                                                                r_tracked_stracks,
+                                                                                activated_starcks,
+                                                                                refind_stracks,
+                                                                                self.args.depth_levels_low,
+                                                                                0.3,
+                                                                                is_fuse=False)
         for track in u_strack:
             if not track.state == TrackState.Lost:
                 track.mark_lost()
-                lost_stracks.append(track)  
+                lost_stracks.append(track)
 
-        
-        # Deal with unconfirmed tracks, usually tracks with only one beginning frame 
-        detections = [d for d in u_detection_high ]
+        # Deal with unconfirmed tracks, usually tracks with only one beginning frame
+        detections = [d for d in u_detection_high]
         dists = iou_distance(unconfirmed, detections)
         if not self.args.mot20:
             dists = fuse_score(dists, detections)
-        matches, u_unconfirmed, u_detection = linear_assignment(dists, thresh = self.args.confirm_thresh) 
+        matches, u_unconfirmed, u_detection = linear_assignment(dists, thresh=self.args.confirm_thresh)
         for itracked, idet in matches:
             unconfirmed[itracked].update(detections[idet], self.frame_id)
             activated_starcks.append(unconfirmed[itracked])
@@ -338,7 +335,6 @@ class SparseTracker(BYTETracker):
             track = unconfirmed[it]
             track.mark_removed()
             removed_stracks.append(track)
-
         """ Step 4: Init new stracks"""
         for inew in u_detection:
             track = detections[inew]
@@ -379,7 +375,7 @@ class SparseTracker(BYTETracker):
     def multi_predict(self, tracks):
         """Predict and track multiple objects with YOLOv8 model."""
         DSTrack.multi_predict(tracks)
-    
+
     @staticmethod
     def reset_id():
         """Resets the ID counter of DSTrack."""

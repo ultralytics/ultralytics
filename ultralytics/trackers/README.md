@@ -29,6 +29,7 @@ Ultralytics YOLO supports the following tracking algorithms. They can be enabled
 
 - [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Use `botsort.yaml` to enable this tracker.
 - [ByteTrack](https://github.com/ifzhang/ByteTrack) - Use `bytetrack.yaml` to enable this tracker.
+- [SparseTrack](https://github.com/hustvl/SparseTrack) - Use `sparsetrack.yaml` to enable this tracker.
 
 The default tracker is BoT-SORT.
 

@@ -127,7 +127,6 @@ def on_train_epoch_end(trainer):
     wb.run.log(trainer.lr, step=trainer.epoch + 1)
     if trainer.epoch == 1:
         _log_plots(trainer.plots, step=trainer.epoch + 1)
-    print(trainer.args)
 
 
 class WandBCallbackState:

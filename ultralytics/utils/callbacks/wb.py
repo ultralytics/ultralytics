@@ -240,15 +240,13 @@ class WandBCallbackState:
                 epoch=trainer.epoch,
             )
         elif trainer.args.task == "classify":
-            self.wandb_train_val_table = (
-                plot_classification_validation_results(
-                    dataloader=dataloader,
-                    model_name=trainer.args.model,
-                    predictor=self.predictor,
-                    table=self.wandb_train_val_table,
-                    max_validation_batches=1,
-                    epoch=trainer.epoch,
-                )
+            self.wandb_train_val_table = plot_classification_validation_results(
+                dataloader=dataloader,
+                model_name=trainer.args.model,
+                predictor=self.predictor,
+                table=self.wandb_train_val_table,
+                max_validation_batches=1,
+                epoch=trainer.epoch,
             )
 
     def on_train_end(self, trainer):

@@ -98,8 +98,9 @@ def plot_segmentation_validation_results(
 ):
     data_idx = 0
     for batch_idx, batch in enumerate(dataloader):
-        for img_idx, image_path in enumerate(batch["im_file"]):
-            prediction_result = predictor(image_path)[0]
+        prediction_results = predictor(batch["im_file"])
+        for img_idx, prediction_result in enumerate(prediction_results):
+            prediction_result = prediction_result.to("cpu")
             (
                 _,
                 prediction_mask_data,
@@ -108,10 +109,10 @@ def plot_segmentation_validation_results(
             ) = plot_mask_predictions(prediction_result, model_name)
             try:
                 ground_truth_data = get_ground_truth_bbox_annotations(
-                    img_idx, image_path, batch, class_label_map
+                    img_idx, batch["im_file"][img_idx], batch, class_label_map
                 )
                 wandb_image = wb.Image(
-                    image_path,
+                    batch["im_file"][img_idx],
                     boxes={
                         "ground-truth": {
                             "box_data": ground_truth_data,

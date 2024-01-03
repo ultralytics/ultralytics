@@ -66,7 +66,7 @@ class RegressionValidator(BaseValidator):
 
     def get_stats(self):
         """Returns a dictionary of metrics obtained by processing targets and predictions."""
-        self.metrics.process(self.targets, self.pred)
+        self.metrics.process(self.targets, self.pred, self.img_names)
         return self.metrics.results_dict
 
     def build_dataset(self, img_path):

@@ -1099,10 +1099,20 @@ class RegressMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.task = 'regress'
 
-    def process(self, targets, pred):
+    def threshold(self, target):
+        return (4. + 0.1 * target)
+
+    def process(self, targets, pred, img_names):
         """Target classes and predicted classes."""
         targets, pred = torch.cat(targets), torch.cat(pred)
+        img_names = [im_n for row in img_names for im_n in row]
         diff_t = torch.sub(targets, pred)
+        outlier_ind = [i for i in range(len(diff_t)) if diff_t[i] > self.threshold(targets[i])]
+        outlier_ims = [img_names[i] for i in outlier_ind]
+        outlier_ims_path = str(Path(outlier_ims[0]).parent) + "/outlier_ims.txt"
+        with open(outlier_ims_path, "w") as fo:
+            for oi in outlier_ims:
+                fo.write(oi + "\n")
         self.mae = torch.mean(torch.abs(diff_t)).tolist()
         self.mse = torch.mean(torch.mul(diff_t, diff_t)).tolist()
 

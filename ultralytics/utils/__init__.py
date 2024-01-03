@@ -117,6 +117,7 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
+        """Initialize custom Ultralytics tqdm class with different default arguments."""
         # Set new default values (these can still be overridden when calling TQDM)
         kwargs['disable'] = not VERBOSE or kwargs.get('disable', False)  # logical 'and' with default value if passed
         kwargs.setdefault('bar_format', TQDM_BAR_FORMAT)  # override default value if passed
@@ -124,8 +125,7 @@ class TQDM(tqdm_original):
 
 
 class SimpleClass:
-    """
-    Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
+    """Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
     access methods for easier debugging and usage.
     """
 
@@ -154,8 +154,7 @@ class SimpleClass:
 
 
 class IterableSimpleNamespace(SimpleNamespace):
-    """
-    Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
+    """Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
     enables usage with dict() and for loops.
     """
 
@@ -226,25 +225,46 @@ def plt_settings(rcparams=None, backend='Agg'):
 
 
 def set_logging(name=LOGGING_NAME, verbose=True):
-    """Sets up logging for the given name."""
-    rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
-    level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            name: {
-                'format': '%(message)s'}},
-        'handlers': {
-            name: {
-                'class': 'logging.StreamHandler',
-                'formatter': name,
-                'level': level}},
-        'loggers': {
-            name: {
-                'level': level,
-                'handlers': [name],
-                'propagate': False}}})
+    """Sets up logging for the given name with UTF-8 encoding support."""
+    level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
+
+    # Configure the console (stdout) encoding to UTF-8
+    formatter = logging.Formatter('%(message)s')  # Default formatter
+    if WINDOWS and sys.stdout.encoding != 'utf-8':
+        try:
+            if hasattr(sys.stdout, 'reconfigure'):
+                sys.stdout.reconfigure(encoding='utf-8')
+            elif hasattr(sys.stdout, 'buffer'):
+                import io
+                sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+            else:
+                sys.stdout.encoding = 'utf-8'
+        except Exception as e:
+            print(f'Creating custom formatter for non UTF-8 environments due to {e}')
+
+            class CustomFormatter(logging.Formatter):
+
+                def format(self, record):
+                    return emojis(super().format(record))
+
+            formatter = CustomFormatter('%(message)s')  # Use CustomFormatter to eliminate UTF-8 output as last recourse
+
+    # Create and configure the StreamHandler
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(level)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(stream_handler)
+    logger.propagate = False
+    return logger
+
+
+# Set logger
+LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
+for logger in 'sentry_sdk', 'urllib3.connectionpool':
+    logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=''):
@@ -252,32 +272,11 @@ def emojis(string=''):
     return string.encode().decode('ascii', 'ignore') if WINDOWS else string
 
 
-class EmojiFilter(logging.Filter):
-    """
-    A custom logging filter class for removing emojis in log messages.
-
-    This filter is particularly useful for ensuring compatibility with Windows terminals
-    that may not support the display of emojis in log messages.
-    """
-
-    def filter(self, record):
-        """Filter logs by emoji unicode characters on windows."""
-        record.msg = emojis(record.msg)
-        return super().filter(record)
-
-
-# Set logger
-set_logging(LOGGING_NAME, verbose=VERBOSE)  # run before defining LOGGER
-LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
-if WINDOWS:  # emoji-safe logging
-    LOGGER.addFilter(EmojiFilter())
-
-
 class ThreadingLocked:
     """
-    A decorator class for ensuring thread-safe execution of a function or method.
-    This class can be used as a decorator to make sure that if the decorated function
-    is called from multiple threads, only one thread at a time will be able to execute the function.
+    A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator
+    to make sure that if the decorated function is called from multiple threads, only one thread at a time will be able
+    to execute the function.
 
     Attributes:
         lock (threading.Lock): A lock object used to manage access to the decorated function.
@@ -294,13 +293,16 @@ class ThreadingLocked:
     """
 
     def __init__(self):
+        """Initializes the decorator class for thread-safe execution of a function or method."""
         self.lock = threading.Lock()
 
     def __call__(self, f):
+        """Run thread-safe execution of function or method."""
         from functools import wraps
 
         @wraps(f)
         def decorated(*args, **kwargs):
+            """Applies thread-safety to the decorated function or method."""
             with self.lock:
                 return f(*args, **kwargs)
 
@@ -327,8 +329,9 @@ def yaml_save(file='data.yaml', data=None, header=''):
         file.parent.mkdir(parents=True, exist_ok=True)
 
     # Convert Path objects to strings
+    valid_types = int, float, str, bool, list, tuple, dict, type(None)
     for k, v in data.items():
-        if isinstance(v, Path):
+        if not isinstance(v, valid_types):
             data[k] = str(v)
 
     # Dump data to file in YAML format
@@ -423,8 +426,7 @@ def is_kaggle():
 
 def is_jupyter():
     """
-    Check if the current script is running inside a Jupyter Notebook.
-    Verified on Colab, Jupyterlab, Kaggle, Paperspace.
+    Check if the current script is running inside a Jupyter Notebook. Verified on Colab, Jupyterlab, Kaggle, Paperspace.
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
@@ -516,20 +518,20 @@ def is_pytest_running():
     return ('PYTEST_CURRENT_TEST' in os.environ) or ('pytest' in sys.modules) or ('pytest' in Path(sys.argv[0]).stem)
 
 
-def is_github_actions_ci() -> bool:
+def is_github_action_running() -> bool:
     """
-    Determine if the current environment is a GitHub Actions CI Python runner.
+    Determine if the current environment is a GitHub Actions runner.
 
     Returns:
-        (bool): True if the current environment is a GitHub Actions CI Python runner, False otherwise.
+        (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
-    return 'GITHUB_ACTIONS' in os.environ and 'RUNNER_OS' in os.environ and 'RUNNER_TOOL_CACHE' in os.environ
+    return 'GITHUB_ACTIONS' in os.environ and 'GITHUB_WORKFLOW' in os.environ and 'RUNNER_OS' in os.environ
 
 
 def is_git_dir():
     """
-    Determines whether the current file is part of a git repository.
-    If the current file is not part of a git repository, returns None.
+    Determines whether the current file is part of a git repository. If the current file is not part of a git
+    repository, returns None.
 
     Returns:
         (bool): True if current file is part of a git repository.
@@ -539,8 +541,8 @@ def is_git_dir():
 
 def get_git_dir():
     """
-    Determines whether the current file is part of a git repository and if so, returns the repository root directory.
-    If the current file is not part of a git repository, returns None.
+    Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
+    the current file is not part of a git repository, returns None.
 
     Returns:
         (Path | None): Git root directory if found or None if not found.
@@ -577,7 +579,8 @@ def get_git_branch():
 
 
 def get_default_args(func):
-    """Returns a dictionary of default arguments for a function.
+    """
+    Returns a dictionary of default arguments for a function.
 
     Args:
         func (callable): The function to inspect.
@@ -704,12 +707,16 @@ def remove_colorstr(input_string):
         >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
         >>> 'hello world'
     """
-    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    ansi_escape = re.compile(r'\x1B\[[0-9;]*[A-Za-z]')
     return ansi_escape.sub('', input_string)
 
 
 class TryExcept(contextlib.ContextDecorator):
-    """YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager."""
+    """
+    YOLOv8 TryExcept class.
+
+    Use as @TryExcept() decorator or 'with TryExcept():' context manager.
+    """
 
     def __init__(self, msg='', verbose=True):
         """Initialize TryExcept class with optional message and verbosity settings."""
@@ -728,7 +735,11 @@ class TryExcept(contextlib.ContextDecorator):
 
 
 def threaded(func):
-    """Multi-threads a target function and returns thread. Usage: @threaded decorator."""
+    """
+    Multi-threads a target function and returns thread.
+
+    Use as @threaded decorator.
+    """
 
     def wrapper(*args, **kwargs):
         """Multi-threads a given function and returns the thread."""
@@ -808,10 +819,6 @@ def set_sentry():
             ignore_errors=[KeyboardInterrupt, FileNotFoundError])
         sentry_sdk.set_user({'id': SETTINGS['uuid']})  # SHA-256 anonymized UUID hash
 
-        # Disable all sentry logging
-        for logger in 'sentry_sdk', 'sentry_sdk.errors':
-            logging.getLogger(logger).setLevel(logging.CRITICAL)
-
 
 class SettingsManager(dict):
     """
@@ -823,6 +830,9 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version='0.0.4'):
+        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
+        file.
+        """
         import copy
         import hashlib
 
@@ -916,9 +926,11 @@ def url2file(url):
 PREFIX = colorstr('Ultralytics: ')
 SETTINGS = SettingsManager()  # initialize settings
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
+WEIGHTS_DIR = Path(SETTINGS['weights_dir'])  # global weights directory
+RUNS_DIR = Path(SETTINGS['runs_dir'])  # global runs directory
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
     'Docker' if is_docker() else platform.system()
-TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
+TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches

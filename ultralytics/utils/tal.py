@@ -61,8 +61,8 @@ class TaskAlignedAssigner(nn.Module):
     """
     A task-aligned assigner for object detection.
 
-    This class assigns ground-truth (gt) objects to anchors based on the task-aligned metric,
-    which combines both classification and localization information.
+    This class assigns ground-truth (gt) objects to anchors based on the task-aligned metric, which combines both
+    classification and localization information.
 
     Attributes:
         topk (int): The number of top candidates to consider.
@@ -85,8 +85,8 @@ class TaskAlignedAssigner(nn.Module):
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
         """
-        Compute the task-aligned assignment.
-        Reference https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
+        Compute the task-aligned assignment. Reference code is available at
+        https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py.
 
         Args:
             pd_scores (Tensor): shape(bs, num_total_anchors, num_classes)
@@ -193,7 +193,7 @@ class TaskAlignedAssigner(nn.Module):
             # Expand topk_idxs for each value of k and add 1 at the specified positions
             count_tensor.scatter_add_(-1, topk_idxs[:, :, k:k + 1], ones)
         # count_tensor.scatter_add_(-1, topk_idxs, torch.ones_like(topk_idxs, dtype=torch.int8, device=topk_idxs.device))
-        # filter invalid bboxes
+        # Filter invalid bboxes
         count_tensor.masked_fill_(count_tensor > 1, 0)
 
         return count_tensor.to(metrics.dtype)

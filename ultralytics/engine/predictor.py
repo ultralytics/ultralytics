@@ -12,7 +12,7 @@ Usage - sources:
                                                 list.streams                    # list of streams
                                                 'path/*.jpg'                    # glob
                                                 'https://youtu.be/LNwODJXcvt4'  # YouTube
-                                                'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+                                                'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP, TCP stream
 
 Usage - formats:
     $ yolo mode=predict model=yolov8n.pt                 # PyTorch
@@ -28,6 +28,7 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
+import threading
 from pathlib import Path
 
 import cv2
@@ -58,7 +59,7 @@ Example:
 
 class BasePredictor:
     """
-    BasePredictor
+    BasePredictor.
 
     A base class for creating predictors.
 
@@ -97,7 +98,7 @@ class BasePredictor:
         self.imgsz = None
         self.device = None
         self.dataset = None
-        self.vid_path, self.vid_writer = None, None
+        self.vid_path, self.vid_writer, self.vid_frame = None, None, None
         self.plotted_img = None
         self.data_path = None
         self.source_type = None
@@ -106,10 +107,12 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+        self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
-        """Prepares input image before inference.
+        """
+        Prepares input image before inference.
 
         Args:
             im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
@@ -128,9 +131,10 @@ class BasePredictor:
         return im
 
     def inference(self, im, *args, **kwargs):
+        """Runs inference on a given image using the specified model and arguments."""
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
-        return self.model(im, augment=self.args.augment, visualize=visualize)
+        return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
     def pre_transform(self, im):
         """
@@ -166,7 +170,7 @@ class BasePredictor:
         if self.args.save or self.args.show:  # Add bbox to image
             plot_args = {
                 'line_width': self.args.line_width,
-                'boxes': self.args.boxes,
+                'boxes': self.args.show_boxes,
                 'conf': self.args.show_conf,
                 'labels': self.args.show_labels}
             if not self.args.retina_masks:
@@ -194,7 +198,11 @@ class BasePredictor:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
-        """Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode."""
+        """
+        Method used for CLI prediction.
+
+        It uses always generator as outputs as not required by CLI mode.
+        """
         gen = self.stream_inference(source, model)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
@@ -213,7 +221,9 @@ class BasePredictor:
                                                   len(self.dataset) > 1000 or  # images
                                                   any(getattr(self.dataset, 'video_flag', [False]))):  # videos
             LOGGER.warning(STREAM_WARNING)
-        self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
+        self.vid_path = [None] * self.dataset.bs
+        self.vid_writer = [None] * self.dataset.bs
+        self.vid_frame = [None] * self.dataset.bs
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
@@ -225,64 +235,69 @@ class BasePredictor:
         if not self.model:
             self.setup_model(model)
 
-        # Setup source every time predict is called
-        self.setup_source(source if source is not None else self.args.source)
+        with self._lock:  # for thread-safe inference
+            # Setup source every time predict is called
+            self.setup_source(source if source is not None else self.args.source)
 
-        # Check if save_dir/ label file exists
-        if self.args.save or self.args.save_txt:
-            (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
+            # Check if save_dir/ label file exists
+            if self.args.save or self.args.save_txt:
+                (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-        # Warmup model
-        if not self.done_warmup:
-            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
-            self.done_warmup = True
+            # Warmup model
+            if not self.done_warmup:
+                self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
+                self.done_warmup = True
 
-        self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
-        self.run_callbacks('on_predict_start')
-        for batch in self.dataset:
-            self.run_callbacks('on_predict_batch_start')
-            self.batch = batch
-            path, im0s, vid_cap, s = batch
+            self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
+            self.run_callbacks('on_predict_start')
 
-            # Preprocess
-            with profilers[0]:
-                im = self.preprocess(im0s)
+            for batch in self.dataset:
+                self.run_callbacks('on_predict_batch_start')
+                self.batch = batch
+                path, im0s, vid_cap, s = batch
 
-            # Inference
-            with profilers[1]:
-                preds = self.inference(im, *args, **kwargs)
+                # Preprocess
+                with profilers[0]:
+                    im = self.preprocess(im0s)
 
-            # Postprocess
-            with profilers[2]:
-                self.results = self.postprocess(preds, im, im0s)
-            self.run_callbacks('on_predict_postprocess_end')
+                # Inference
+                with profilers[1]:
+                    preds = self.inference(im, *args, **kwargs)
+                    if self.args.embed:
+                        yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embedding tensors
+                        continue
 
-            # Visualize, save, write results
-            n = len(im0s)
-            for i in range(n):
-                self.seen += 1
-                self.results[i].speed = {
-                    'preprocess': profilers[0].dt * 1E3 / n,
-                    'inference': profilers[1].dt * 1E3 / n,
-                    'postprocess': profilers[2].dt * 1E3 / n}
-                p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
-                p = Path(p)
+                # Postprocess
+                with profilers[2]:
+                    self.results = self.postprocess(preds, im, im0s)
 
-                if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                    s += self.write_results(i, self.results, (p, im, im0))
-                if self.args.save or self.args.save_txt:
-                    self.results[i].save_dir = self.save_dir.__str__()
-                if self.args.show and self.plotted_img is not None:
-                    self.show(p)
-                if self.args.save and self.plotted_img is not None:
-                    self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+                self.run_callbacks('on_predict_postprocess_end')
+                # Visualize, save, write results
+                n = len(im0s)
+                for i in range(n):
+                    self.seen += 1
+                    self.results[i].speed = {
+                        'preprocess': profilers[0].dt * 1E3 / n,
+                        'inference': profilers[1].dt * 1E3 / n,
+                        'postprocess': profilers[2].dt * 1E3 / n}
+                    p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
+                    p = Path(p)
 
-            self.run_callbacks('on_predict_batch_end')
-            yield from self.results
+                    if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
+                        s += self.write_results(i, self.results, (p, im, im0))
+                    if self.args.save or self.args.save_txt:
+                        self.results[i].save_dir = self.save_dir.__str__()
+                    if self.args.show and self.plotted_img is not None:
+                        self.show(p)
+                    if self.args.save and self.plotted_img is not None:
+                        self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-            # Print time (inference-only)
-            if self.args.verbose:
-                LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
+                self.run_callbacks('on_predict_batch_end')
+                yield from self.results
+
+                # Print time (inference-only)
+                if self.args.verbose:
+                    LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
@@ -331,8 +346,12 @@ class BasePredictor:
         if self.dataset.mode == 'image':
             cv2.imwrite(save_path, im0)
         else:  # 'video' or 'stream'
+            frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[idx] != save_path:  # new video
                 self.vid_path[idx] = save_path
+                if self.args.save_frames:
+                    Path(frames_path).mkdir(parents=True, exist_ok=True)
+                    self.vid_frame[idx] = 0
                 if isinstance(self.vid_writer[idx], cv2.VideoWriter):
                     self.vid_writer[idx].release()  # release previous video writer
                 if vid_cap:  # video
@@ -342,9 +361,15 @@ class BasePredictor:
                 else:  # stream
                     fps, w, h = 30, im0.shape[1], im0.shape[0]
                 suffix, fourcc = ('.mp4', 'avc1') if MACOS else ('.avi', 'WMV2') if WINDOWS else ('.avi', 'MJPG')
-                save_path = str(Path(save_path).with_suffix(suffix))
-                self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
+                self.vid_writer[idx] = cv2.VideoWriter(str(Path(save_path).with_suffix(suffix)),
+                                                       cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
+            # Write video
             self.vid_writer[idx].write(im0)
+
+            # Write frame
+            if self.args.save_frames:
+                cv2.imwrite(f'{frames_path}{self.vid_frame[idx]}.jpg', im0)
+                self.vid_frame[idx] += 1
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""
@@ -352,7 +377,5 @@ class BasePredictor:
             callback(self)
 
     def add_callback(self, event: str, func):
-        """
-        Add callback
-        """
+        """Add callback."""
         self.callbacks[event].append(func)

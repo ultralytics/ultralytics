@@ -5,14 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from ultralytics.utils import ROOT
-from ultralytics.utils.torch_utils import init_seeds
-
-TMP = (ROOT / '../tests/tmp').resolve()  # temp directory for test files
+TMP = Path(__file__).resolve().parent / 'tmp'  # temp directory for test files
 
 
 def pytest_addoption(parser):
-    """Add custom command-line options to pytest.
+    """
+    Add custom command-line options to pytest.
 
     Args:
         parser (pytest.config.Parser): The pytest parser object.
@@ -21,7 +19,8 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    """Register custom markers to avoid pytest warnings.
+    """
+    Register custom markers to avoid pytest warnings.
 
     Args:
         config (pytest.config.Config): The pytest config object.
@@ -30,7 +29,8 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
-    """Setup hook to skip tests marked as slow if the --slow option is not provided.
+    """
+    Setup hook to skip tests marked as slow if the --slow option is not provided.
 
     Args:
         item (pytest.Item): The test item object.
@@ -62,6 +62,8 @@ def pytest_sessionstart(session):
     Args:
         session (pytest.Session): The pytest session object.
     """
+    from ultralytics.utils.torch_utils import init_seeds
+
     init_seeds()
     shutil.rmtree(TMP, ignore_errors=True)  # delete any existing tests/tmp directory
     TMP.mkdir(parents=True, exist_ok=True)  # create a new empty directory
@@ -79,10 +81,14 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         exitstatus (int): The exit status of the test run.
         config (pytest.config.Config): The pytest config object.
     """
+    from ultralytics.utils import WEIGHTS_DIR
+
     # Remove files
-    for file in ['bus.jpg', 'decelera_landscape_min.mov']:
+    models = [path for x in ['*.onnx', '*.torchscript'] for path in WEIGHTS_DIR.rglob(x)]
+    for file in ['bus.jpg', 'yolov8n.onnx', 'yolov8n.torchscript'] + models:
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
-    for directory in [ROOT / '../.pytest_cache', TMP]:
+    models = [path for x in ['*.mlpackage', '*_openvino_model'] for path in WEIGHTS_DIR.rglob(x)]
+    for directory in [TMP.parents[1] / '.pytest_cache', TMP] + models:
         shutil.rmtree(directory, ignore_errors=True)

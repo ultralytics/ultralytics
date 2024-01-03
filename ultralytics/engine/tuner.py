@@ -20,7 +20,6 @@ import random
 import shutil
 import subprocess
 import time
-import os
 
 import numpy as np
 import torch
@@ -32,32 +31,40 @@ from ultralytics.utils.plotting import plot_tune_results
 
 class Tuner:
     """
-     Class responsible for hyperparameter tuning of YOLO models.
+    Class responsible for hyperparameter tuning of YOLO models.
 
-     The class evolves YOLO model hyperparameters over a given number of iterations
-     by mutating them according to the search space and retraining the model to evaluate their performance.
+    The class evolves YOLO model hyperparameters over a given number of iterations
+    by mutating them according to the search space and retraining the model to evaluate their performance.
 
-     Attributes:
-         space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
-         tune_dir (Path): Directory where evolution logs and results will be saved.
-         tune_csv (Path): Path to the CSV file where evolution logs are saved.
+    Attributes:
+        space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
+        tune_dir (Path): Directory where evolution logs and results will be saved.
+        tune_csv (Path): Path to the CSV file where evolution logs are saved.
 
-     Methods:
-         _mutate(hyp: dict) -> dict:
-             Mutates the given hyperparameters within the bounds specified in `self.space`.
+    Methods:
+        _mutate(hyp: dict) -> dict:
+            Mutates the given hyperparameters within the bounds specified in `self.space`.
 
-         __call__():
-             Executes the hyperparameter evolution across multiple iterations.
+        __call__():
+            Executes the hyperparameter evolution across multiple iterations.
 
-     Example:
-         Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
-         ```python
-         from ultralytics import YOLO
+    Example:
+        Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+        ```python
+        from ultralytics import YOLO
 
-         model = YOLO('yolov8n.pt')
-         model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
-         ```
-     """
+        model = YOLO('yolov8n.pt')
+        model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+        ```
+
+        Tune with custom search space.
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO('yolov8n.pt')
+        model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
+        ```
+    """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):
         """
@@ -66,10 +73,9 @@ class Tuner:
         Args:
             args (dict, optional): Configuration for hyperparameter evolution.
         """
-        self.args = get_cfg(overrides=args)
-        self.space = {  # key: (min, max, gain(optional))
+        self.space = args.pop('space', None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
-            'lr0': (1e-5, 1e-1),
+            'lr0': (1e-5, 1e-1),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
             'lrf': (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
             'momentum': (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
             'weight_decay': (0.0, 0.001),  # optimizer weight decay 5e-4
@@ -86,13 +92,12 @@ class Tuner:
             'scale': (0.0, 0.95),  # image scale (+/- gain)
             'shear': (0.0, 10.0),  # image shear (+/- deg)
             'perspective': (0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
-            #'flipud': (0.0, 1.0),  # image flip up-down (probability)
+            'flipud': (0.0, 1.0),  # image flip up-down (probability)
             'fliplr': (0.0, 1.0),  # image flip left-right (probability)
             'mosaic': (0.0, 1.0),  # image mixup (probability)
             'mixup': (0.0, 1.0),  # image mixup (probability)
-            'copy_paste': (0.0, 1.0), # segment copy-paste (probability)
-            'close_mosaic': (0.0, args['epochs']/2)}  # disable mosaic augmentation for final epochs (0 to disable)
-            #'cos_lr': (0.0, 1.0)}  # cosine learning rate scheduler
+            'copy_paste': (0.0, 1.0)}  # segment copy-paste (probability)
+        self.args = get_cfg(overrides=args)
         self.tune_dir = get_save_dir(self.args, name='tune')
         self.tune_csv = self.tune_dir / 'tune_results.csv'
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -178,15 +183,14 @@ class Tuner:
             metrics = {}
             train_args = {**vars(self.args), **mutated_hyp}
             save_dir = get_save_dir(get_cfg(train_args))
+            weights_dir = save_dir / 'weights'
+            ckpt_file = weights_dir / ('best.pt' if (weights_dir / 'best.pt').exists() else 'last.pt')
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                weights_dir = save_dir / 'weights'
-                train_str_args = [
-                    *(f'{k}={v}' if k != 'device' else f'{k}=' + ",".join(map(str, v)) for k, v in train_args.items())]
-                cmd = ['yolo', 'train', *train_str_args]
-                os.system('/home-net/ierregue/project/detector/small-fast-detector/ultralytics/utils/tuner_workaround.sh ' + " ".join(cmd))
-                ckpt_file = weights_dir / ('best.pt' if (weights_dir / 'best.pt').exists() else 'last.pt')
+                cmd = ['yolo', 'train', *(f'{k}={v}' for k, v in train_args.items())]
+                return_code = subprocess.run(cmd, check=True).returncode
                 metrics = torch.load(ckpt_file)['train_metrics']
+                assert return_code == 0, 'training failed'
 
             except Exception as e:
                 LOGGER.warning(f'WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}')

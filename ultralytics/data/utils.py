@@ -18,7 +18,7 @@ from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, TQDM, clean_url, colorstr,
-                               emojis, yaml_load)
+                               emojis, yaml_load, yaml_save)
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes
@@ -115,17 +115,17 @@ def verify_image_label(args):
             if nl:
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
-                    assert (lb[:, 5::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
-                    assert (lb[:, 6::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
+                    points = lb[:, 5:].reshape(-1, ndim)[:, :2]
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
-                    assert (lb[:, 1:] <= 1).all(), \
-                        f'non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}'
-                    assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
+                    points = lb[:, 1:]
+                assert points.max() <= 1, f'non-normalized or out of bounds coordinates {points[points > 1]}'
+                assert lb.min() >= 0, f'negative label values {lb[lb < 0]}'
+
                 # All labels
-                max_cls = int(lb[:, 0].max())  # max label count
+                max_cls = lb[:, 0].max()  # max label count
                 assert max_cls <= num_cls, \
-                    f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
+                    f'Label class {int(max_cls)} exceeds dataset class count {num_cls}. ' \
                     f'Possible class labels are 0-{num_cls - 1}'
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
@@ -135,11 +135,10 @@ def verify_image_label(args):
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros(
-                    (0, 5), dtype=np.float32)
+                lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+            lb = np.zeros((0, (5 + nkpt * ndim) if keypoints else 5), dtype=np.float32)
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
@@ -155,28 +154,40 @@ def verify_image_label(args):
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
+    Convert a list of polygons to a binary mask of the specified image size.
+
     Args:
-        imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
-        color (int): color
-        downsample_ratio (int): downsample ratio
+        imgsz (tuple): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        color (int, optional): The color value to fill in the polygons on the mask. Defaults to 1.
+        downsample_ratio (int, optional): Factor by which to downsample the mask. Defaults to 1.
+
+    Returns:
+        (np.ndarray): A binary mask of the specified image size with the polygons filled in.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons, dtype=np.int32)
     polygons = polygons.reshape((polygons.shape[0], -1, 2))
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
-    # NOTE: fillPoly first then resize is trying to keep the same way of loss calculation when mask-ratio=1.
+    # Note: fillPoly first then resize is trying to keep the same loss calculation method when mask-ratio=1
     return cv2.resize(mask, (nw, nh))
 
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
     """
+    Convert a list of polygons to a set of binary masks of the specified image size.
+
     Args:
-        imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): each polygon is [N, M], N is number of polygons, M is number of points (M % 2 = 0)
-        color (int): color
-        downsample_ratio (int): downsample ratio
+        imgsz (tuple): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        color (int): The color value to fill in the polygons on the masks.
+        downsample_ratio (int, optional): Factor by which to downsample each mask. Defaults to 1.
+
+    Returns:
+        (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
     """
     return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 
@@ -206,7 +217,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers YAML files that have the samestem as the provided path. An AssertionError
+    performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
     is raised if no YAML file is found or if multiple YAML files are found.
 
     Args:
@@ -239,28 +250,26 @@ def check_det_dataset(dataset, autodownload=True):
         (dict): Parsed dataset information and paths.
     """
 
-    data = check_file(dataset)
+    file = check_file(dataset)
 
     # Download (optional)
     extract_dir = ''
-    if isinstance(data, (str, Path)) and (zipfile.is_zipfile(data) or is_tarfile(data)):
-        new_dir = safe_download(data, dir=DATASETS_DIR, unzip=True, delete=False)
-        data = find_dataset_yaml(DATASETS_DIR / new_dir)
-        extract_dir, autodownload = data.parent, False
+    if zipfile.is_zipfile(file) or is_tarfile(file):
+        new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
+        file = find_dataset_yaml(DATASETS_DIR / new_dir)
+        extract_dir, autodownload = file.parent, False
 
-    # Read YAML (optional)
-    if isinstance(data, (str, Path)):
-        data = yaml_load(data, append_filename=True)  # dictionary
+    # Read YAML
+    data = yaml_load(file, append_filename=True)  # dictionary
 
     # Checks
     for k in 'train', 'val':
         if k not in data:
-            if k == 'val' and 'validation' in data:
-                LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
-                data['val'] = data.pop('validation')  # replace 'validation' key with 'val' key
-            else:
+            if k != 'val' or 'validation' not in data:
                 raise SyntaxError(
                     emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs."))
+            LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
+            data['val'] = data.pop('validation')  # replace 'validation' key with 'val' key
     if 'names' not in data and 'nc' not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if 'names' in data and 'nc' in data and len(data['names']) != data['nc']:
@@ -274,9 +283,10 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Resolve paths
     path = Path(extract_dir or data.get('path') or Path(data.get('yaml_file', '')).parent)  # dataset root
-
     if not path.is_absolute():
         path = (DATASETS_DIR / path).resolve()
+
+    # Set paths
     data['path'] = path  # download scripts
     for k in 'train', 'val', 'test':
         if data.get(k):  # prepend path
@@ -289,7 +299,7 @@ def check_det_dataset(dataset, autodownload=True):
                 data[k] = [str((path / x).resolve()) for x in data[k]]
 
     # Parse YAML
-    train, val, test, s = (data.get(x) for x in ('train', 'val', 'test', 'download'))
+    val, s = (data.get(x) for x in ('val', 'download'))
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
@@ -393,7 +403,7 @@ class HUBDatasetStats:
     A class for generating HUB dataset JSON and `-hub` dataset directory.
 
     Args:
-        path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip). Default is 'coco128.yaml'.
+        path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip). Default is 'coco8.yaml'.
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
@@ -413,7 +423,7 @@ class HUBDatasetStats:
         ```
     """
 
-    def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
+    def __init__(self, path='coco8.yaml', task='detect', autodownload=False):
         """Initialize class."""
         path = Path(path).resolve()
         LOGGER.info(f'Starting HUB dataset checks for {path}....')
@@ -424,12 +434,14 @@ class HUBDatasetStats:
             data = check_cls_dataset(unzip_dir)
             data['path'] = unzip_dir
         else:  # detect, segment, pose
-            zipped, data_dir, yaml_path = self._unzip(Path(path))
+            _, data_dir, yaml_path = self._unzip(Path(path))
             try:
-                # data = yaml_load(check_yaml(yaml_path))  # data dict
-                data = check_det_dataset(yaml_path, autodownload)  # data dict
-                if zipped:
-                    data['path'] = data_dir
+                # Load YAML with checks
+                data = yaml_load(yaml_path)
+                data['path'] = ''  # strip path since YAML should be in dataset root for all HUB datasets
+                yaml_save(yaml_path, data)
+                data = check_det_dataset(yaml_path, autodownload)  # dict
+                data['path'] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
             except Exception as e:
                 raise Exception('error/HUB/dataset_stats/init') from e
 
@@ -439,7 +451,8 @@ class HUBDatasetStats:
         self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary
         self.data = data
 
-    def _unzip(self, path):
+    @staticmethod
+    def _unzip(path):
         """Unzip data.zip."""
         if not str(path).endswith('.zip'):  # path is data.yaml
             return False, None, path
@@ -548,9 +561,9 @@ class HUBDatasetStats:
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     """
-    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the
-    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will
-    not be resized.
+    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the Python
+    Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
+    resized.
 
     Args:
         f (str): The path to the input image file.

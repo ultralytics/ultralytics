@@ -144,7 +144,7 @@ class SegmentationValidator(DetectionValidator):
 
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
-        Return correct prediction matrix
+        Return correct prediction matrix.
 
         Args:
             detections (array[N, 6]), x1, y1, x2, y2, conf, class

@@ -80,8 +80,8 @@ def get_export(model_id='', format='torchscript'):
 
 def check_dataset(path='', task='detect'):
     """
-    Function for error-checking HUB dataset Zip file before upload. It checks a dataset for errors before it is
-    uploaded to the HUB. Usage examples are given below.
+    Function for error-checking HUB dataset Zip file before upload. It checks a dataset for errors before it is uploaded
+    to the HUB. Usage examples are given below.
 
     Args:
         path (str, optional): Path to data.zip (with data.yaml inside data.zip). Defaults to ''.

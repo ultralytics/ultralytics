@@ -31,14 +31,13 @@ def _log_images(imgs_dict, group=''):
 
 
 def _log_plot(title, plot_path):
-    """Log plots to the NeptuneAI experiment logger."""
     """
-        Log image as plot in the plot section of NeptuneAI
+    Log plots to the NeptuneAI experiment logger.
 
-        arguments:
-        title (str) Title of the plot
-        plot_path (PosixPath or str) Path to the saved image file
-        """
+    Args:
+        title (str): Title of the plot.
+        plot_path (PosixPath | str): Path to the saved image file.
+    """
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt
 

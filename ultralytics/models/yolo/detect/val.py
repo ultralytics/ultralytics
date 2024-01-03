@@ -12,7 +12,6 @@ from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
-from ultralytics.utils.torch_utils import de_parallel
 
 
 class DetectionValidator(BaseValidator):
@@ -61,9 +60,8 @@ class DetectionValidator(BaseValidator):
     def init_metrics(self, model):
         """Initialize evaluation metrics for YOLO."""
         val = self.data.get(self.args.split, '')  # validation path
-        self.is_coco = (isinstance(val, str) and 'coco' in val and val.endswith(f'{os.sep}val2017.txt')) or \
-                       os.path.isfile(os.path.join(self.data['path'], 'annotations', 'instances_val2017.json')) # is COCO
-        self.class_map = list(range(1000)) #ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
+        self.is_coco = isinstance(val, str) and 'coco' in val and val.endswith(f'{os.sep}val2017.txt')  # is COCO
+        self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1000))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.names = model.names
         self.nc = len(model.names)
@@ -192,8 +190,7 @@ class DetectionValidator(BaseValidator):
             mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
-        gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=gs)
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=self.stride)
 
     def get_dataloader(self, dataset_path, batch_size):
         """Construct and return dataloader."""
@@ -264,7 +261,6 @@ class DetectionValidator(BaseValidator):
                 eval.accumulate()
                 eval.summarize()
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
-                self.metrics.box.set_map_small_area(eval.stats[3])  # update mAP50-90Small
             except Exception as e:
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats

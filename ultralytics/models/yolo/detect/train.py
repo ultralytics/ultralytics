@@ -57,7 +57,7 @@ class DetectionTrainer(BaseTrainer):
         return batch
 
     def set_model_attributes(self):
-        """nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)."""
+        """Nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)."""
         # self.args.box *= 3 / nl  # scale to layers
         # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
         # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
@@ -80,8 +80,9 @@ class DetectionTrainer(BaseTrainer):
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
-        Returns a loss dict with labelled training loss items tensor. Not needed for classification but necessary for
-        segmentation & detection
+        Returns a loss dict with labelled training loss items tensor.
+
+        Not needed for classification but necessary for segmentation & detection
         """
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is not None:

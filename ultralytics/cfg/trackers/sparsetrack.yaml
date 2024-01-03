@@ -5,7 +5,7 @@ tracker_type: sparsetrack  # tracker type, ['botsort', 'bytetrack', 'sparsetrack
 track_thresh : 0.5
 track_buffer : 30  # buffer to calculate the time when to remove tracks
 match_thresh : 0.8  # threshold for matching tracks
-down_scale : 4
+down_scale : 4  # Downsampling rate when executing pbcvt.
 depth_levels : 1
 depth_levels_low : 12
 confirm_thresh : 0.7

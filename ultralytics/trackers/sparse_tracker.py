@@ -95,8 +95,8 @@ class SparseTracker(BYTETracker):
 
     Attributes:
         det_thresh (float): The threshold used for detection.
-        down_scale (int): .
-        layers (int): .
+        down_scale (int): Downsampling rate when executing pbcvt.
+        layers (int): The number of layers for depth cascading matching.
 
     Methods:
         update(results, curr_img=None): Updates object tracker with new detections.

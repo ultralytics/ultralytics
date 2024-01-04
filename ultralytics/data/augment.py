@@ -156,10 +156,16 @@ class Mosaic(BaseMixTransform):
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
+        # n is the expected number of images in the mosaic
+        # if batch size is lower than N, images will be re-used and it's going to be a waste of time
+        # disable mosaic buffer if batch size is lower than n
+        self.use_buffer = len(dataset.buffer) >= n
+        if self.use_buffer is False:
+            LOGGER.warning(f"WARNING ⚠️ Mosaic buffer disabled because batch size is too low ({len(dataset.buffer)} < {n}).")
 
-    def get_indexes(self, buffer=True):
+    def get_indexes(self):
         """Return a list of random indexes from the dataset."""
-        if buffer:  # select images from buffer
+        if self.use_buffer is True:  # select images from buffer
             return random.choices(list(self.dataset.buffer), k=self.n - 1)
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]

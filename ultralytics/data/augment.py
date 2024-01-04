@@ -161,7 +161,8 @@ class Mosaic(BaseMixTransform):
         # disable mosaic buffer if batch size is lower than n
         self.use_buffer = len(dataset.buffer) >= n
         if self.use_buffer is False:
-            LOGGER.warning(f"WARNING ⚠️ Mosaic buffer disabled because batch size is too low ({len(dataset.buffer)} < {n}).")
+            LOGGER.warning(
+                f'WARNING ⚠️ Mosaic buffer disabled because batch size is too low ({len(dataset.buffer)} < {n}).')
 
     def get_indexes(self):
         """Return a list of random indexes from the dataset."""

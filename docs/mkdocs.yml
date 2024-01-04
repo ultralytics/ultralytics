@@ -419,8 +419,8 @@ nav:
           - tasks: reference/nn/tasks.md
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
-          - object_counter: reference/solutions/object_counter.md
           - heatmap: reference/solutions/heatmap.md
+          - object_counter: reference/solutions/object_counter.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

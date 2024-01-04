@@ -289,6 +289,9 @@ nav:
       - ClearML: integrations/clearml.md
       - DVC: integrations/dvc.md
       - Weights & Biases: integrations/weights-biases.md
+      - Neural Magic: integrations/neural-magic.md
+      - TensorBoard: integrations/tensorboard.md
+      - Amazon SageMaker: integrations/amazon-sagemaker.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md
@@ -416,8 +419,8 @@ nav:
           - tasks: reference/nn/tasks.md
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
-          - object_counter: reference/solutions/object_counter.md
           - heatmap: reference/solutions/heatmap.md
+          - object_counter: reference/solutions/object_counter.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

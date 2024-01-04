@@ -127,7 +127,7 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         wide_cstr[ModelPathSize] = L'\0';
         const wchar_t* modelPath = wide_cstr;
 #else
-        const char* modelPath = iParams.ModelPath.c_str();
+        const char* modelPath = iParams.modelPath.c_str();
 #endif // _WIN32
 
         session = new Ort::Session(env, modelPath, sessionOption);
@@ -215,7 +215,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
     auto tensor_info = typeInfo.GetTensorTypeAndShapeInfo();
     std::vector<int64_t> outputNodeDims = tensor_info.GetShape();
     auto output = outputTensor.front().GetTensorMutableData<typename std::remove_pointer<N>::type>();
-    delete blob;
+    delete[] blob;
     switch (modelType)
     {
     case YOLO_DETECT_V8:

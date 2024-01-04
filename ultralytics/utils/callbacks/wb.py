@@ -211,6 +211,10 @@ class WandBCallbackState:
         if self.predictor is None:
             self.predictor = self.predictor_dict[trainer.args.task](overrides=overrides)
             self.predictor.callbacks = {}
+            self.predictor.args.save = False
+            self.predictor.args.save_txt = False
+            self.predictor.args.save_crop = False
+            self.predictor.args.verbose = None
         if trainer.args.task == 'detect':
             self.wandb_train_val_table = plot_detection_validation_results(
                 dataloader=dataloader,
@@ -225,7 +229,7 @@ class WandBCallbackState:
             self.wandb_train_val_table = plot_segmentation_validation_results(
                 dataloader=dataloader,
                 class_label_map=class_label_map,
-                model_name=trainer.args.model,
+                model_name=trainer.args.model, 
                 predictor=self.predictor,
                 table=self.wandb_train_val_table,
                 max_validation_batches=1,

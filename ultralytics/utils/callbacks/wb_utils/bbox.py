@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
+from tqdm.auto import tqdm
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.utils import ops
@@ -155,13 +156,16 @@ def plot_detection_validation_results(
 ) -> wandb.Table:
     """Plot validation results in a table."""
     data_idx = 0
+    num_dataloader_batches = len(dataloader.dataset) // dataloader.batch_size
+    max_validation_batches = min(max_validation_batches, num_dataloader_batches)
     for batch_idx, batch in enumerate(dataloader):
         prediction_results = predictor(batch["im_file"])
-        for img_idx, prediction_result in enumerate(prediction_results):
+        progress_bar_result_iterable = tqdm(
+            enumerate(prediction_results),
+            desc=f"Generating Visualizations for batch-{batch_idx + 1}/{max_validation_batches}")
+        for img_idx, prediction_result in progress_bar_result_iterable:
             prediction_result = prediction_result.to("cpu")
-            _, prediction_box_data, mean_confidence_map = plot_bbox_predictions(
-                prediction_result, model_name
-            )
+            _, prediction_box_data, mean_confidence_map = plot_bbox_predictions(prediction_result, model_name)
             try:
                 ground_truth_data = get_ground_truth_bbox_annotations(
                     img_idx, batch["im_file"][img_idx], batch, class_label_map

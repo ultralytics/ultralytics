@@ -113,6 +113,9 @@ fliplr: 0.5  # (float) image flip left-right (probability)
 mosaic: 1.0  # (float) image mosaic (probability)
 mixup: 0.0  # (float) image mixup (probability)
 copy_paste: 0.0  # (float) segment copy-paste (probability)
+auto_augment: randaugment  # (str) auto augmentation policy for classification (randaugment, autoaugment, augmix)
+erasing: 0.4  # (float) probability of random erasing during classification training (0-1)
+crop_fraction: 1.0  # (float) image crop fraction for classification evaluation/inference (0-1)
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg:  # (str, optional) for overriding defaults.yaml

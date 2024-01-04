@@ -168,9 +168,9 @@ class Yolov8TFLite:
         image = [image]
         image = np.stack(image)
         image = image[..., ::-1].transpose((0, 3, 1, 2))
-        iamge = np.ascontiguousarray(image)
+        img = np.ascontiguousarray(image)
         # n, h, w, c
-        image = iamge.astype(np.float32)
+        image = img.astype(np.float32)
         image_data = image / 255
         # Return the preprocessed image data
         return image_data

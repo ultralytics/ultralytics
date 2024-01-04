@@ -3,6 +3,7 @@ from typing import Any, Optional
 import wandb as wb
 import numpy as np
 from PIL import Image
+from tqdm.auto import tqdm
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.pose import PosePredictor
 from ultralytics.utils.plotting import Annotator
@@ -60,9 +61,14 @@ def plot_pose_validation_results(
     epoch: Optional[int] = None,
 ) -> wb.Table:
     data_idx = 0
+    num_dataloader_batches = len(dataloader.dataset) // dataloader.batch_size
+    max_validation_batches = min(max_validation_batches, num_dataloader_batches)
     for batch_idx, batch in enumerate(dataloader):
         prediction_results = predictor(batch["im_file"])
-        for img_idx, prediction_result in enumerate(prediction_results):
+        progress_bar_result_iterable = tqdm(
+            enumerate(prediction_results),
+            desc=f"Generating Visualizations for batch-{batch_idx + 1}/{max_validation_batches}")
+        for img_idx, prediction_result in progress_bar_result_iterable:
             prediction_result = prediction_result.to("cpu")
             table_row = plot_pose_predictions(
                 prediction_result, model_name, visualize_skeleton

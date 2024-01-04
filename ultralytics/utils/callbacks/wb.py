@@ -5,15 +5,13 @@ from typing import Union
 
 import torch
 
-from ultralytics.utils import SETTINGS, TESTS_RUNNING
-from ultralytics.utils.torch_utils import model_info_for_loggers
-
+from ultralytics.models.sam.predict import Predictor as SAMPredictor
 from ultralytics.models.yolo.classify import ClassificationPredictor, ClassificationTrainer, ClassificationValidator
 from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer, DetectionValidator
 from ultralytics.models.yolo.pose import PosePredictor, PoseTrainer, PoseValidator
 from ultralytics.models.yolo.segment import SegmentationPredictor, SegmentationTrainer, SegmentationValidator
-
-from ultralytics.models.sam.predict import Predictor as SAMPredictor
+from ultralytics.utils import SETTINGS, TESTS_RUNNING
+from ultralytics.utils.torch_utils import model_info_for_loggers
 
 PREDICTOR_DTYPE = Union[DetectionPredictor, ClassificationPredictor, PosePredictor, SegmentationPredictor, SAMPredictor]
 TRAINER_DTYPE = Union[DetectionTrainer, SegmentationTrainer, PoseTrainer, ClassificationTrainer]
@@ -29,10 +27,12 @@ try:
     import numpy as np
     import pandas as pd
 
-    from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions, plot_classification_validation_results
     from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_detection_validation_results
+    from ultralytics.utils.callbacks.wb_utils.classification import (plot_classification_predictions,
+                                                                     plot_classification_validation_results)
     from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions, plot_pose_validation_results
-    from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results, plot_sam_predictions
+    from ultralytics.utils.callbacks.wb_utils.segment import (plot_mask_predictions, plot_sam_predictions,
+                                                              plot_segmentation_validation_results)
 
     _processed_plots = {}
 
@@ -135,6 +135,7 @@ def on_train_epoch_end(trainer):
 
 
 class WandBCallbackState:
+
     def __init__(self):
         self.wandb_train_val_table = None
         self.wandb_prediction_table = None
@@ -146,60 +147,49 @@ class WandBCallbackState:
             'detect': DetectionPredictor,
             'segment': SegmentationPredictor,
             'pose': PosePredictor,
-            'classify': ClassificationPredictor,
-        }
+            'classify': ClassificationPredictor, }
 
     def on_pretrain_routine_start(self, trainer: TRAINER_DTYPE):
         """Initiate and start project if module is present."""
         self.mode = trainer.args.mode
-        wb.run or wb.init(
-            project=trainer.args.project or 'YOLOv8',
-            name=trainer.args.name,
-            config=vars(trainer.args),
-            job_type="train_" + trainer.args.task)
+        wb.run or wb.init(project=trainer.args.project or 'YOLOv8',
+                          name=trainer.args.name,
+                          config=vars(trainer.args),
+                          job_type='train_' + trainer.args.task)
         if trainer.args.task in ['detect', 'segment']:
-            self.wandb_train_val_table = wb.Table(
-                columns=[
-                    "Model-Name",
-                    "Epoch",
-                    "Data-Index",
-                    "Batch-Index",
-                    "Image",
-                    "Mean-Confidence",
-                    "Speed",
-                ]
-            )
-        elif trainer.args.task == "pose":
-            self.wandb_train_val_table = wb.Table(
-                columns=[
-                    "Model-Name",
-                    "Epoch",
-                    "Data-Index",
-                    "Batch-Index",
-                    "Image-Ground-Truth",
-                    "Image-Prediction",
-                    "Num-Instances",
-                    "Mean-Confidence",
-                    "Speed",
-                ]
-            )
-        elif trainer.args.task == "classify":
-            self.wandb_train_val_table = wb.Table(
-                columns=[
-                    "Model-Name",
-                    "Epoch",
-                    "Data-Index",
-                    "Batch-Index",
-                    "Image",
-                    "Ground-Truth-Category",
-                    "Predicted-Category",
-                    "Prediction-Confidence",
-                    "Top-5-Prediction-Categories",
-                    "Top-5-Prediction-Confindence",
-                    "Probabilities",
-                    "Speed",
-                ]
-            )
+            self.wandb_train_val_table = wb.Table(columns=[
+                'Model-Name',
+                'Epoch',
+                'Data-Index',
+                'Batch-Index',
+                'Image',
+                'Mean-Confidence',
+                'Speed', ])
+        elif trainer.args.task == 'pose':
+            self.wandb_train_val_table = wb.Table(columns=[
+                'Model-Name',
+                'Epoch',
+                'Data-Index',
+                'Batch-Index',
+                'Image-Ground-Truth',
+                'Image-Prediction',
+                'Num-Instances',
+                'Mean-Confidence',
+                'Speed', ])
+        elif trainer.args.task == 'classify':
+            self.wandb_train_val_table = wb.Table(columns=[
+                'Model-Name',
+                'Epoch',
+                'Data-Index',
+                'Batch-Index',
+                'Image',
+                'Ground-Truth-Category',
+                'Predicted-Category',
+                'Prediction-Confidence',
+                'Top-5-Prediction-Categories',
+                'Top-5-Prediction-Confindence',
+                'Probabilities',
+                'Speed', ])
 
     @torch.no_grad()
     def on_fit_epoch_end(self, trainer: TRAINER_DTYPE):
@@ -230,17 +220,17 @@ class WandBCallbackState:
                     max_validation_batches=1,
                     epoch=trainer.epoch,
                 )
-            elif trainer.args.task == "segment":
+            elif trainer.args.task == 'segment':
                 self.wandb_train_val_table = plot_segmentation_validation_results(
                     dataloader=dataloader,
                     class_label_map=class_label_map,
-                    model_name=trainer.args.model, 
+                    model_name=trainer.args.model,
                     predictor=self.predictor,
                     table=self.wandb_train_val_table,
                     max_validation_batches=1,
                     epoch=trainer.epoch,
                 )
-            elif trainer.args.task == "pose":
+            elif trainer.args.task == 'pose':
                 self.wandb_train_val_table = plot_pose_validation_results(
                     dataloader=dataloader,
                     class_label_map=class_label_map,
@@ -251,7 +241,7 @@ class WandBCallbackState:
                     max_validation_batches=1,
                     epoch=trainer.epoch,
                 )
-            elif trainer.args.task == "classify":
+            elif trainer.args.task == 'classify':
                 self.wandb_train_val_table = plot_classification_validation_results(
                     dataloader=dataloader,
                     model_name=trainer.args.model,
@@ -282,82 +272,71 @@ class WandBCallbackState:
             )
         if self.wandb_train_val_table is not None:
             if len(self.wandb_train_val_table.data) > 0:
-                wb.log({"Validation-Table": self.wandb_train_val_table})
+                wb.log({'Validation-Table': self.wandb_train_val_table})
         wb.run.finish()  # required or run continues on dashboard
 
     def on_predict_start(self, predictor: PREDICTOR_DTYPE):
-        wb.run or wb.init(project='YOLOv8', job_type="predict_" + predictor.args.task, config=vars(predictor.args))
-        if predictor.args.task == "classify":
-            self.wandb_prediction_table = wb.Table(
-                columns=[
-                    "Model-Name",
-                    "Image",
-                    "Predicted-Category",
-                    "Prediction-Confidence",
-                    "Top-5-Prediction-Categories",
-                    "Top-5-Prediction-Confindence",
-                    "Probabilities",
-                    "Speed",
-                ]
-            )
-        elif predictor.args.task == "detect":
-            self.wandb_prediction_table = wb.Table(
-                columns=[
-                    "Model-Name",
-                    "Image",
-                    "Number-of-Predictions",
-                    "Mean-Confidence",
-                    "Speed",
-                ]
-            )
-        elif predictor.args.task == "pose":
-            self.wandb_prediction_table = wb.Table(
-                columns=[
-                    "Model-Name",
-                    "Image-Prediction",
-                    "Num-Instances",
-                    "Mean-Confidence",
-                    "Speed",
-                ]
-            )
-        elif predictor.args.task == "segment":
+        wb.run or wb.init(project='YOLOv8', job_type='predict_' + predictor.args.task, config=vars(predictor.args))
+        if predictor.args.task == 'classify':
+            self.wandb_prediction_table = wb.Table(columns=[
+                'Model-Name',
+                'Image',
+                'Predicted-Category',
+                'Prediction-Confidence',
+                'Top-5-Prediction-Categories',
+                'Top-5-Prediction-Confindence',
+                'Probabilities',
+                'Speed', ])
+        elif predictor.args.task == 'detect':
+            self.wandb_prediction_table = wb.Table(columns=[
+                'Model-Name',
+                'Image',
+                'Number-of-Predictions',
+                'Mean-Confidence',
+                'Speed', ])
+        elif predictor.args.task == 'pose':
+            self.wandb_prediction_table = wb.Table(columns=[
+                'Model-Name',
+                'Image-Prediction',
+                'Num-Instances',
+                'Mean-Confidence',
+                'Speed', ])
+        elif predictor.args.task == 'segment':
             if isinstance(predictor, SegmentationPredictor):
-                self.wandb_prediction_table = wb.Table(
-                    columns=[
-                        "Model-Name",
-                        "Image",
-                        "Number-of-Predictions",
-                        "Mean-Confidence",
-                        "Speed",
-                    ]
-                )
+                self.wandb_prediction_table = wb.Table(columns=[
+                    'Model-Name',
+                    'Image',
+                    'Number-of-Predictions',
+                    'Mean-Confidence',
+                    'Speed', ])
             elif isinstance(predictor, SAMPredictor):
                 self.prompts = deepcopy(predictor.prompts)
-                self.wandb_prediction_table = wb.Table(
-                    columns=["Image"])
+                self.wandb_prediction_table = wb.Table(columns=['Image'])
 
     def on_predict_end(self, predictor: PREDICTOR_DTYPE):
         if wb.run:
             for result in predictor.results:
-                if predictor.args.task == "classify":
-                    self.wandb_prediction_table = plot_classification_predictions(
-                        result, predictor.args.model, self.wandb_prediction_table)
-                elif predictor.args.task == "detect":
-                    self.wandb_prediction_table = plot_bbox_predictions(
-                        result, predictor.args.model, self.wandb_prediction_table)
-                elif predictor.args.task == "pose":
-                    self.wandb_prediction_table = plot_pose_predictions(
-                        result, predictor.args.model, table=self.wandb_prediction_table, visualize_skeleton=True)
-                elif predictor.args.task == "segment":
+                if predictor.args.task == 'classify':
+                    self.wandb_prediction_table = plot_classification_predictions(result, predictor.args.model,
+                                                                                  self.wandb_prediction_table)
+                elif predictor.args.task == 'detect':
+                    self.wandb_prediction_table = plot_bbox_predictions(result, predictor.args.model,
+                                                                        self.wandb_prediction_table)
+                elif predictor.args.task == 'pose':
+                    self.wandb_prediction_table = plot_pose_predictions(result,
+                                                                        predictor.args.model,
+                                                                        table=self.wandb_prediction_table,
+                                                                        visualize_skeleton=True)
+                elif predictor.args.task == 'segment':
                     if isinstance(predictor, SegmentationPredictor):
-                        self.wandb_prediction_table = plot_mask_predictions(
-                            result, predictor.args.model, self.wandb_prediction_table)
+                        self.wandb_prediction_table = plot_mask_predictions(result, predictor.args.model,
+                                                                            self.wandb_prediction_table)
                     elif isinstance(predictor, SAMPredictor):
-                        self.wandb_prediction_table = plot_sam_predictions(
-                            result, self.prompts, self.wandb_prediction_table)
+                        self.wandb_prediction_table = plot_sam_predictions(result, self.prompts,
+                                                                           self.wandb_prediction_table)
             if self.wandb_prediction_table is not None:
                 if len(self.wandb_prediction_table.data) > 0:
-                    wb.log({"Prediction-Table": self.wandb_prediction_table})
+                    wb.log({'Prediction-Table': self.wandb_prediction_table})
             wb.run.finish()
 
 
@@ -368,5 +347,4 @@ callbacks = {
     'on_fit_epoch_end': wandb_callback_state.on_fit_epoch_end,
     'on_train_end': wandb_callback_state.on_train_end,
     'on_predict_start': wandb_callback_state.on_predict_start,
-    'on_predict_end': wandb_callback_state.on_predict_end
-} if wb else {}
+    'on_predict_end': wandb_callback_state.on_predict_end} if wb else {}

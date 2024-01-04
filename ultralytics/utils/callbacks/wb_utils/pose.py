@@ -1,13 +1,14 @@
 from typing import Any, Optional
 
-import wandb as wb
 import numpy as np
+import wandb as wb
 from PIL import Image
 from tqdm.auto import tqdm
+
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.pose import PosePredictor
-from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.callbacks.wb_utils.bbox import get_boxes, get_ground_truth_bbox_annotations
+from ultralytics.utils.plotting import Annotator
 
 
 def annotate_keypoint_results(result: Results, visualize_skeleton: bool):
@@ -33,17 +34,16 @@ def plot_pose_predictions(
     visualize_skeleton: bool,
     table: Optional[wb.Table] = None,
 ):
-    result = result.to("cpu")
+    result = result.to('cpu')
     boxes, mean_confidence_map = get_boxes(result)
     annotated_image = annotate_keypoint_results(result, visualize_skeleton)
     prediction_image = wb.Image(annotated_image, boxes=boxes)
     table_row = [
         model_name,
         prediction_image,
-        len(boxes["predictions"]["box_data"]),
+        len(boxes['predictions']['box_data']),
         mean_confidence_map,
-        result.speed,
-    ]
+        result.speed, ]
     if table is not None:
         table.add_data(*table_row)
         return table
@@ -64,27 +64,21 @@ def plot_pose_validation_results(
     num_dataloader_batches = len(dataloader.dataset) // dataloader.batch_size
     max_validation_batches = min(max_validation_batches, num_dataloader_batches)
     for batch_idx, batch in enumerate(dataloader):
-        prediction_results = predictor(batch["im_file"])
+        prediction_results = predictor(batch['im_file'])
         progress_bar_result_iterable = tqdm(
             enumerate(prediction_results),
-            desc=f"Generating Visualizations for batch-{batch_idx + 1}/{max_validation_batches}")
+            desc=f'Generating Visualizations for batch-{batch_idx + 1}/{max_validation_batches}')
         for img_idx, prediction_result in progress_bar_result_iterable:
-            prediction_result = prediction_result.to("cpu")
-            table_row = plot_pose_predictions(
-                prediction_result, model_name, visualize_skeleton
-            )
+            prediction_result = prediction_result.to('cpu')
+            table_row = plot_pose_predictions(prediction_result, model_name, visualize_skeleton)
             ground_truth_image = wb.Image(
-                annotate_keypoint_batch(
-                    batch["im_file"][img_idx], batch["keypoints"][img_idx], visualize_skeleton
-                ),
+                annotate_keypoint_batch(batch['im_file'][img_idx], batch['keypoints'][img_idx], visualize_skeleton),
                 boxes={
-                    "ground-truth": {
-                        "box_data": get_ground_truth_bbox_annotations(
-                            img_idx, batch["im_file"][img_idx], batch, class_label_map
-                        ),
-                        "class_labels": class_label_map,
-                    },
-                },
+                    'ground-truth': {
+                        'box_data':
+                        get_ground_truth_bbox_annotations(img_idx, batch['im_file'][img_idx], batch, class_label_map),
+                        'class_labels':
+                        class_label_map, }, },
             )
             table_row = [data_idx, batch_idx, ground_truth_image] + table_row[1:]
             table_row = [epoch] + table_row if epoch is not None else table_row

@@ -113,7 +113,7 @@ class Explorer:
     def _yeild_batches(self, dataset, data_info, model, exclude_keys: List):
         # Implement Batching
         for i in tqdm(range(len(dataset))):
-            self.progress = float(i+1) / len(dataset)
+            self.progress = float(i + 1) / len(dataset)
             batch = dataset[i]
             for k in exclude_keys:
                 batch.pop(k, None)

@@ -208,57 +208,58 @@ class WandBCallbackState:
         _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
         if trainer.epoch == 0:
             wb.run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
-        dataloader = trainer.validator.dataloader
-        class_label_map = trainer.validator.names
-        overrides = trainer.args
-        overrides.conf = 0.1
-        if self.predictor is None:
-            self.predictor = self.predictor_dict[trainer.args.task](overrides=overrides)
-            self.predictor.callbacks = {}
-            self.predictor.args.save = False
-            self.predictor.args.save_txt = False
-            self.predictor.args.save_crop = False
-            self.predictor.args.verbose = None
-        if trainer.args.task == 'detect':
-            self.wandb_train_val_table = plot_detection_validation_results(
-                dataloader=dataloader,
-                class_label_map=class_label_map,
-                model_name=trainer.args.model,
-                predictor=self.predictor,
-                table=self.wandb_train_val_table,
-                max_validation_batches=1,
-                epoch=trainer.epoch,
-            )
-        elif trainer.args.task == "segment":
-            self.wandb_train_val_table = plot_segmentation_validation_results(
-                dataloader=dataloader,
-                class_label_map=class_label_map,
-                model_name=trainer.args.model, 
-                predictor=self.predictor,
-                table=self.wandb_train_val_table,
-                max_validation_batches=1,
-                epoch=trainer.epoch,
-            )
-        elif trainer.args.task == "pose":
-            self.wandb_train_val_table = plot_pose_validation_results(
-                dataloader=dataloader,
-                class_label_map=class_label_map,
-                model_name=trainer.args.model,
-                predictor=self.predictor,
-                visualize_skeleton=True,
-                table=self.wandb_train_val_table,
-                max_validation_batches=1,
-                epoch=trainer.epoch,
-            )
-        elif trainer.args.task == "classify":
-            self.wandb_train_val_table = plot_classification_validation_results(
-                dataloader=dataloader,
-                model_name=trainer.args.model,
-                predictor=self.predictor,
-                table=self.wandb_train_val_table,
-                max_validation_batches=1,
-                epoch=trainer.epoch,
-            )
+        if isinstance(trainer, DetectionTrainer):
+            dataloader = trainer.validator.dataloader
+            class_label_map = trainer.validator.names
+            overrides = trainer.args
+            overrides.conf = 0.1
+            if self.predictor is None:
+                self.predictor = self.predictor_dict[trainer.args.task](overrides=overrides)
+                self.predictor.callbacks = {}
+                self.predictor.args.save = False
+                self.predictor.args.save_txt = False
+                self.predictor.args.save_crop = False
+                self.predictor.args.verbose = None
+            if trainer.args.task == 'detect':
+                self.wandb_train_val_table = plot_detection_validation_results(
+                    dataloader=dataloader,
+                    class_label_map=class_label_map,
+                    model_name=trainer.args.model,
+                    predictor=self.predictor,
+                    table=self.wandb_train_val_table,
+                    max_validation_batches=1,
+                    epoch=trainer.epoch,
+                )
+            elif trainer.args.task == "segment":
+                self.wandb_train_val_table = plot_segmentation_validation_results(
+                    dataloader=dataloader,
+                    class_label_map=class_label_map,
+                    model_name=trainer.args.model, 
+                    predictor=self.predictor,
+                    table=self.wandb_train_val_table,
+                    max_validation_batches=1,
+                    epoch=trainer.epoch,
+                )
+            elif trainer.args.task == "pose":
+                self.wandb_train_val_table = plot_pose_validation_results(
+                    dataloader=dataloader,
+                    class_label_map=class_label_map,
+                    model_name=trainer.args.model,
+                    predictor=self.predictor,
+                    visualize_skeleton=True,
+                    table=self.wandb_train_val_table,
+                    max_validation_batches=1,
+                    epoch=trainer.epoch,
+                )
+            elif trainer.args.task == "classify":
+                self.wandb_train_val_table = plot_classification_validation_results(
+                    dataloader=dataloader,
+                    model_name=trainer.args.model,
+                    predictor=self.predictor,
+                    table=self.wandb_train_val_table,
+                    max_validation_batches=1,
+                    epoch=trainer.epoch,
+                )
 
     def on_train_end(self, trainer):
         """Save the best model as an artifact at end of training."""
@@ -279,7 +280,9 @@ class WandBCallbackState:
                 x_title=x_title,
                 y_title=y_title,
             )
-        wb.log({"Validation-Table": self.wandb_train_val_table})
+        if self.wandb_train_val_table is not None:
+            if len(self.wandb_train_val_table.data) > 0:
+                wb.log({"Validation-Table": self.wandb_train_val_table})
         wb.run.finish()  # required or run continues on dashboard
 
     def on_predict_start(self, predictor: PREDICTOR_DTYPE):

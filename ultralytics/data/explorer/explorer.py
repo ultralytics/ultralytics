@@ -65,7 +65,8 @@ class Explorer:
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
         self.connection = lancedb.connect(uri)
         self.table_name = Path(data).name.lower() + '_' + model.lower()
-        self.sim_idx_base_name = f'{self.table_name}_sim_idx'.lower() # Use this name and append thres and top_k to reuse the table
+        self.sim_idx_base_name = f'{self.table_name}_sim_idx'.lower(
+        )  # Use this name and append thres and top_k to reuse the table
         self.model = YOLO(model)
         self.data = data  # None
         self.choice_set = None
@@ -268,7 +269,7 @@ class Explorer:
         if sim_idx_table_name in self.connection.table_names() and not force:
             logger.info('Similarity matrix already exists. Reusing it. Pass force=True to overwrite it.')
             return self.connection.open_table(sim_idx_table_name).to_pandas()
-        
+
         if top_k and not (top_k <= 1.0 and top_k >= 0.0):
             raise ValueError(f'top_k must be between 0.0 and 1.0. Got {top_k}')
         if max_dist < 0.0:
@@ -280,9 +281,7 @@ class Explorer:
         im_files = features['im_file']
         embeddings = features['vector']
 
-        sim_table = self.connection.create_table(sim_idx_table_name,
-                                                 schema=get_sim_index_schema(),
-                                                 mode='overwrite')
+        sim_table = self.connection.create_table(sim_idx_table_name, schema=get_sim_index_schema(), mode='overwrite')
 
         def _yeild_sim_idx():
             for i in tqdm(range(len(embeddings))):

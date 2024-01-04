@@ -224,21 +224,23 @@ Export settings for YOLO models encompass configurations and options related to 
 
 Augmentation settings for YOLO models refer to the various transformations and modifications applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each transformation is applied, and the presence of additional features such as masks or multiple labels per box. Other factors that may affect the augmentation process include the size and composition of the original dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
 
-| Key           | Value   | Description                                     |
-|---------------|---------|-------------------------------------------------|
-| `hsv_h`       | `0.015` | image HSV-Hue augmentation (fraction)           |
-| `hsv_s`       | `0.7`   | image HSV-Saturation augmentation (fraction)    |
-| `hsv_v`       | `0.4`   | image HSV-Value augmentation (fraction)         |
-| `degrees`     | `0.0`   | image rotation (+/- deg)                        |
-| `translate`   | `0.1`   | image translation (+/- fraction)                |
-| `scale`       | `0.5`   | image scale (+/- gain)                          |
-| `shear`       | `0.0`   | image shear (+/- deg)                           |
-| `perspective` | `0.0`   | image perspective (+/- fraction), range 0-0.001 |
-| `flipud`      | `0.0`   | image flip up-down (probability)                |
-| `fliplr`      | `0.5`   | image flip left-right (probability)             |
-| `mosaic`      | `1.0`   | image mosaic (probability)                      |
-| `mixup`       | `0.0`   | image mixup (probability)                       |
-| `copy_paste`  | `0.0`   | segment copy-paste (probability)                |
+| Key             | Value           | Description                                                                    |
+|-----------------|-----------------|--------------------------------------------------------------------------------|
+| `hsv_h`         | `0.015`         | image HSV-Hue augmentation (fraction)                                          |
+| `hsv_s`         | `0.7`           | image HSV-Saturation augmentation (fraction)                                   |
+| `hsv_v`         | `0.4`           | image HSV-Value augmentation (fraction)                                        |
+| `degrees`       | `0.0`           | image rotation (+/- deg)                                                       |
+| `translate`     | `0.1`           | image translation (+/- fraction)                                               |
+| `scale`         | `0.5`           | image scale (+/- gain)                                                         |
+| `shear`         | `0.0`           | image shear (+/- deg)                                                          |
+| `perspective`   | `0.0`           | image perspective (+/- fraction), range 0-0.001                                |
+| `flipud`        | `0.0`           | image flip up-down (probability)                                               |
+| `fliplr`        | `0.5`           | image flip left-right (probability)                                            |
+| `mosaic`        | `1.0`           | image mosaic (probability)                                                     |
+| `mixup`         | `0.0`           | image mixup (probability)                                                      |
+| `copy_paste`    | `0.0`           | segment copy-paste (probability)                                               |
+| `auto_augment`  | `'randaugment'` | auto augmentation policy for classification (randaugment, autoaugment, augmix) |
+| `erasing`       | `0.4`           | probability o random erasing during classification training (0-1) training     |
 
 ## Logging, checkpoints, plotting and file management
 

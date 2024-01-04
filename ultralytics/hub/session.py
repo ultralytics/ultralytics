@@ -103,6 +103,12 @@ class HUBTrainingSession:
             payload['lineage']['parent']['name'] = self.filename
 
         self.model.create_model(payload)
+
+        # Model could not be created
+        # TODO: improve error handling
+        if not self.model.id:
+            return
+
         self.model_url = f'{HUB_WEB_ROOT}/models/{self.model.id}'
 
         # Start heartbeats for HUB to monitor agent

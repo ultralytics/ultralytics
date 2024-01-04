@@ -90,7 +90,7 @@ class Annotator:
             if check_version(pil_version, '9.2.0'):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
-            self.im = im
+            self.im = im if im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
             self.sf = self.lw / 3  # font scale
         # Pose
@@ -569,8 +569,7 @@ def plot_images(images,
                 fname='images.jpg',
                 names=None,
                 on_plot=None,
-                max_subplots=16
-                ):
+                max_subplots=16):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()

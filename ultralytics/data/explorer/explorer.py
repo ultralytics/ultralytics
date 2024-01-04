@@ -1,6 +1,6 @@
+from io import BytesIO
 from pathlib import Path
 from typing import List
-from io import BytesIO
 
 import cv2
 import numpy as np
@@ -178,10 +178,10 @@ class Explorer:
             query = f"SELECT * FROM 'table' {query}"
         logger.info(f'Running query: {query}')
         return duckdb.sql(query).arrow()
-    
+
     def plot_sql_query(self, query, labels=True):
         """
-        Plot the results of a SQL-Like query on the table. 
+        Plot the results of a SQL-Like query on the table.
         Args:
             query (str): SQL query to run.
             labels (bool): Whether to plot the labels or not.
@@ -231,7 +231,7 @@ class Explorer:
             idx (int or list): Index of the image in the table or a list of indexes.
             plot_labels (bool): Whether to plot the labels or not.
             limit (int): Number of results to return. Defaults to 25.
-        
+
         Returns:
             PIL Image containing the plot.
         """
@@ -342,7 +342,5 @@ class Explorer:
         pass
 
     def generate_report(self, result):
-        """
-        Generate a report of the dataset
-        """
+        """Generate a report of the dataset."""
         pass

@@ -23,7 +23,7 @@ from matplotlib import font_manager
 
 from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, SimpleNamespace,
                                ThreadingLocked, TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
-                               is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
+                               is_github_action_running, is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
 
 
 def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
@@ -64,8 +64,8 @@ def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
 
 def parse_version(version='0.0.0') -> tuple:
     """
-    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
-    This function replaces deprecated 'pkg_resources.parse_version(v)'
+    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version. This
+    function replaces deprecated 'pkg_resources.parse_version(v)'.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu'
@@ -149,7 +149,8 @@ def check_version(current: str = '0.0.0',
                   required: str = '0.0.0',
                   name: str = 'version',
                   hard: bool = False,
-                  verbose: bool = False) -> bool:
+                  verbose: bool = False,
+                  msg: str = '') -> bool:
     """
     Check current version against the required version or range.
 
@@ -159,22 +160,23 @@ def check_version(current: str = '0.0.0',
         name (str, optional): Name to be used in warning message.
         hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
         verbose (bool, optional): If True, print warning message if requirement is not met.
+        msg (str, optional): Extra message to display if verbose.
 
     Returns:
         (bool): True if requirement is met, False otherwise.
 
     Example:
         ```python
-        # check if current version is exactly 22.04
+        # Check if current version is exactly 22.04
         check_version(current='22.04', required='==22.04')
 
-        # check if current version is greater than or equal to 22.04
+        # Check if current version is greater than or equal to 22.04
         check_version(current='22.10', required='22.04')  # assumes '>=' inequality if none passed
 
-        # check if current version is less than or equal to 22.04
+        # Check if current version is less than or equal to 22.04
         check_version(current='22.04', required='<=22.04')
 
-        # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        # Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
         ```
     """
@@ -194,11 +196,13 @@ def check_version(current: str = '0.0.0',
     if not required:  # if required is '' or None
         return True
 
+    op = ''
+    version = ''
     result = True
     c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     for r in required.strip(',').split(','):
-        op, v = re.match(r'([^0-9]*)([\d.]+)', r).groups()  # split '>=22.04' -> ('>=', '22.04')
-        v = parse_version(v)  # '1.2.3' -> (1, 2, 3)
+        op, version = re.match(r'([^0-9]*)([\d.]+)', r).groups()  # split '>=22.04' -> ('>=', '22.04')
+        v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
         if op == '==' and c != v:
             result = False
         elif op == '!=' and c == v:
@@ -212,11 +216,11 @@ def check_version(current: str = '0.0.0',
         elif op == '<' and not (c < v):
             result = False
     if not result:
-        warning_message = f'WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed'
+        warning = f'WARNING ⚠️ {name}{op}{version} is required, but {name}=={current} is currently installed {msg}'
         if hard:
-            raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
+            raise ModuleNotFoundError(emojis(warning))  # assert version requirements met
         if verbose:
-            LOGGER.warning(warning_message)
+            LOGGER.warning(warning)
     return result
 
 
@@ -372,8 +376,10 @@ def check_torchvision():
     Checks the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the provided compatibility table based on https://github.com/pytorch/vision#installation. The
-    compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
+    to the provided compatibility table based on:
+    https://github.com/pytorch/vision#installation.
+
+    The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
     """
 
@@ -424,14 +430,23 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
+def check_model_file_from_stem(model='yolov8n'):
+    """Return a model filename from a valid model stem."""
+    if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
+        return Path(model).with_suffix('.pt')  # add suffix, i.e. yolov8n -> yolov8n.pt
+    else:
+        return model
+
+
 def check_file(file, suffix='', download=True, hard=True):
     """Search/download file (if necessary) and return path."""
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
-    if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
+    if (not file or ('://' not in file and Path(file).exists()) or  # '://' check required in Windows Python<3.10
+            file.lower().startswith('grpc://')):  # file exists or gRPC Triton images
         return file
-    elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
+    elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://', 'tcp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).exists():
@@ -451,6 +466,23 @@ def check_file(file, suffix='', download=True, hard=True):
 def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
     """Search/download YAML file (if necessary) and return path, checking suffix."""
     return check_file(file, suffix, hard=hard)
+
+
+def check_is_path_safe(basedir, path):
+    """
+    Check if the resolved path is under the intended directory to prevent path traversal.
+
+    Args:
+        basedir (Path | str): The intended directory.
+        path (Path | str): The path to check.
+
+    Returns:
+        (bool): True if the path is safe, False otherwise.
+    """
+    base_dir_resolved = Path(basedir).resolve()
+    path_resolved = Path(path).resolve()
+
+    return path_resolved.is_file() and path_resolved.parts[:len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
 def check_imshow(warn=False):
@@ -524,12 +556,20 @@ def collect_system_info():
             is_met = '❌ '
         LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
 
+    if is_github_action_running():
+        LOGGER.info(f"\nRUNNER_OS: {os.getenv('RUNNER_OS')}\n"
+                    f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}\n"
+                    f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}\n"
+                    f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}\n"
+                    f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}\n"
+                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}\n")
+
 
 def check_amp(model):
     """
-    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model.
-    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
-    results, so AMP will be disabled during training.
+    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks
+    fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will
+    be disabled during training.
 
     Args:
         model (nn.Module): A YOLOv8 model instance.
@@ -606,7 +646,8 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
 
 
 def cuda_device_count() -> int:
-    """Get the number of NVIDIA GPUs available in the environment.
+    """
+    Get the number of NVIDIA GPUs available in the environment.
 
     Returns:
         (int): The number of NVIDIA GPUs available.
@@ -626,7 +667,8 @@ def cuda_device_count() -> int:
 
 
 def cuda_is_available() -> bool:
-    """Check if CUDA is available in the environment.
+    """
+    Check if CUDA is available in the environment.
 
     Returns:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.

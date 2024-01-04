@@ -8,10 +8,11 @@ import cv2
 import numpy as np
 import torch
 import torchvision
+from PIL import Image
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
 
-from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
+from .augment import Compose, Format, Instances, LetterBox, classify_augmentations, classify_transforms, v8_transforms
 from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
@@ -33,6 +34,7 @@ class YOLODataset(BaseDataset):
     """
 
     def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, **kwargs):
+        """Initializes the YOLODataset with optional configurations for segments and keypoints."""
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.data = data
@@ -40,7 +42,9 @@ class YOLODataset(BaseDataset):
         super().__init__(*args, **kwargs)
 
     def cache_labels(self, path=Path('./labels.cache')):
-        """Cache dataset labels, check images and read shapes.
+        """
+        Cache dataset labels, check images and read shapes.
+
         Args:
             path (Path): path where to save the cache file (default: Path('./labels.cache')).
         Returns:
@@ -157,9 +161,9 @@ class YOLODataset(BaseDataset):
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
-        """custom your label format here."""
+        """Custom your label format here."""
         # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
-        # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
+        # We can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop('bboxes')
         segments = label.pop('segments')
         keypoints = label.pop('keypoints', None)
@@ -222,19 +226,17 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
-        self.album_transforms = classify_albumentations(
-            augment=augment,
-            size=args.imgsz,
-            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
-            hflip=args.fliplr,
-            vflip=args.flipud,
-            hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
-            hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
-            hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
-            auto_aug=False) if augment else None
+        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+        self.torch_transforms = classify_augmentations(size=args.imgsz,
+                                                       scale=scale,
+                                                       hflip=args.fliplr,
+                                                       vflip=args.flipud,
+                                                       erasing=args.erasing,
+                                                       auto_augment=args.auto_augment,
+                                                       hsv_h=args.hsv_h,
+                                                       hsv_s=args.hsv_s,
+                                                       hsv_v=args.hsv_v) if augment else classify_transforms(
+                                                           size=args.imgsz, crop_fraction=args.crop_fraction)
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
@@ -247,13 +249,13 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR
-        if self.album_transforms:
-            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
-        else:
-            sample = self.torch_transforms(im)
+        # Convert NumPy array to PIL image
+        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        sample = self.torch_transforms(im)
         return {'img': sample, 'cls': j}
 
     def __len__(self) -> int:
+        """Return the total number of samples in the dataset."""
         return len(self.samples)
 
     def verify_images(self):
@@ -320,6 +322,16 @@ def save_dataset_cache_file(prefix, path, x):
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
+    """
+    Semantic Segmentation Dataset.
+
+    This class is responsible for handling datasets used for semantic segmentation tasks. It inherits functionalities
+    from the BaseDataset class.
+
+    Note:
+        This class is currently a placeholder and needs to be populated with methods and attributes for supporting
+        semantic segmentation tasks.
+    """
 
     def __init__(self):
         """Initialize a SemanticDataset object."""

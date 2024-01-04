@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Ultralytics Results, Boxes and Masks classes for handling inference results
+Ultralytics Results, Boxes and Masks classes for handling inference results.
 
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
@@ -15,15 +15,15 @@ import torch
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class BaseTensor(SimpleClass):
-    """
-    Base tensor class with additional methods for easy manipulation and device handling.
-    """
+    """Base tensor class with additional methods for easy manipulation and device handling."""
 
     def __init__(self, data, orig_shape) -> None:
-        """Initialize BaseTensor with data and original shape.
+        """
+        Initialize BaseTensor with data and original shape.
 
         Args:
             data (torch.Tensor | np.ndarray): Predictions, such as bboxes, masks and keypoints.
@@ -117,14 +117,25 @@ class Results(SimpleClass):
     def update(self, boxes=None, masks=None, probs=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
-            ops.clip_boxes(boxes, self.orig_shape)  # clip boxes
-            self.boxes = Boxes(boxes, self.orig_shape)
+            self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
         if masks is not None:
             self.masks = Masks(masks, self.orig_shape)
         if probs is not None:
             self.probs = probs
 
     def _apply(self, fn, *args, **kwargs):
+        """
+        Applies a function to all non-empty attributes and returns a new Results object with modified attributes. This
+        function is internally called by methods like .to(), .cuda(), .cpu(), etc.
+
+        Args:
+            fn (str): The name of the function to apply.
+            *args: Variable length argument list to pass to the function.
+            **kwargs: Arbitrary keyword arguments to pass to the function.
+
+        Returns:
+            Results: A new Results object with attributes modified by the applied function.
+        """
         r = self.new()
         for k in self._keys:
             v = getattr(self, k)
@@ -249,9 +260,7 @@ class Results(SimpleClass):
         return annotator.result()
 
     def verbose(self):
-        """
-        Return log string for each task.
-        """
+        """Return log string for each task."""
         log_string = ''
         probs = self.probs
         boxes = self.boxes
@@ -314,7 +323,7 @@ class Results(SimpleClass):
         for d in self.boxes:
             save_one_box(d.xyxy,
                          self.orig_img.copy(),
-                         file=Path(save_dir) / self.names[int(d.cls)] / f'{Path(file_name).stem}.jpg',
+                         file=Path(save_dir) / self.names[int(d.cls)] / f'{Path(file_name)}.jpg',
                          BGR=True)
 
     def tojson(self, normalize=False):
@@ -485,10 +494,14 @@ class Keypoints(BaseTensor):
         to(device, dtype): Returns a copy of the keypoints tensor with the specified device and dtype.
     """
 
+    @smart_inference_mode()  # avoid keypoints < conf in-place error
     def __init__(self, keypoints, orig_shape) -> None:
         """Initializes the Keypoints object with detection keypoints and original image size."""
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
+        if keypoints.shape[2] == 3:  # x, y, conf
+            mask = keypoints[..., 2] < 0.5  # points with conf < 0.5 (not visible)
+            keypoints[..., :2][mask] = 0
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
 
@@ -532,6 +545,7 @@ class Probs(BaseTensor):
     """
 
     def __init__(self, probs, orig_shape=None) -> None:
+        """Initialize the Probs class with classification probabilities and optional original shape of the image."""
         super().__init__(probs, orig_shape)
 
     @property

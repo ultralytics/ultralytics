@@ -6,13 +6,11 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, PoseModel,
 
 
 class YOLO(Model):
-    """
-    YOLO (You Only Look Once) object detection model.
-    """
+    """YOLO (You Only Look Once) object detection model."""
 
     @property
     def task_map(self):
-        """Map head to model, trainer, validator, and predictor classes"""
+        """Map head to model, trainer, validator, and predictor classes."""
         return {
             'classify': {
                 'model': ClassificationModel,

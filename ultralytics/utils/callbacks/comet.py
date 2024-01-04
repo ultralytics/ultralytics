@@ -26,31 +26,38 @@ except (ImportError, AssertionError):
 
 
 def _get_comet_mode():
+    """Returns the mode of comet set in the environment variables, defaults to 'online' if not set."""
     return os.getenv('COMET_MODE', 'online')
 
 
 def _get_comet_model_name():
+    """Returns the model name for Comet from the environment variable 'COMET_MODEL_NAME' or defaults to 'YOLOv8'."""
     return os.getenv('COMET_MODEL_NAME', 'YOLOv8')
 
 
 def _get_eval_batch_logging_interval():
+    """Get the evaluation batch logging interval from environment variable or use default value 1."""
     return int(os.getenv('COMET_EVAL_BATCH_LOGGING_INTERVAL', 1))
 
 
 def _get_max_image_predictions_to_log():
+    """Get the maximum number of image predictions to log from the environment variables."""
     return int(os.getenv('COMET_MAX_IMAGE_PREDICTIONS', 100))
 
 
 def _scale_confidence_score(score):
+    """Scales the given confidence score by a factor specified in an environment variable."""
     scale = float(os.getenv('COMET_MAX_CONFIDENCE_SCORE', 100.0))
     return score * scale
 
 
 def _should_log_confusion_matrix():
+    """Determines if the confusion matrix should be logged based on the environment variable settings."""
     return os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'false').lower() == 'true'
 
 
 def _should_log_image_predictions():
+    """Determines whether to log image predictions based on a specified environment variable."""
     return os.getenv('COMET_EVAL_LOG_IMAGE_PREDICTIONS', 'true').lower() == 'true'
 
 
@@ -104,9 +111,10 @@ def _fetch_trainer_metadata(trainer):
 
 
 def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad):
-    """YOLOv8 resizes images during training and the label values
-    are normalized based on this resized shape. This function rescales the
-    bounding box labels to the original image shape.
+    """
+    YOLOv8 resizes images during training and the label values are normalized based on this resized shape.
+
+    This function rescales the bounding box labels to the original image shape.
     """
 
     resized_image_height, resized_image_width = resized_image_shape

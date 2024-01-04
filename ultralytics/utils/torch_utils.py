@@ -15,6 +15,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, __version__
 from ultralytics.utils.checks import check_version
@@ -26,6 +27,9 @@ except ImportError:
 
 TORCH_1_9 = check_version(torch.__version__, '1.9.0')
 TORCH_2_0 = check_version(torch.__version__, '2.0.0')
+TORCHVISION_0_10 = check_version(torchvision.__version__, '0.10.0')
+TORCHVISION_0_11 = check_version(torchvision.__version__, '0.11.0')
+TORCHVISION_0_13 = check_version(torchvision.__version__, '0.13.0')
 
 
 @contextmanager
@@ -205,7 +209,11 @@ def fuse_deconv_and_bn(deconv, bn):
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
-    """Model information. imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]."""
+    """
+    Model information.
+
+    imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320].
+    """
     if not verbose:
         return
     n_p = get_num_params(model)  # number of parameters
@@ -307,8 +315,10 @@ def initialize_weights(model):
             m.inplace = True
 
 
-def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
-    # Scales img(bs,3,y,x) by ratio constrained to gs-multiple
+def scale_img(img, ratio=1.0, same_shape=False, gs=32):
+    """Scales and pads an image tensor of shape img(bs,3,y,x) based on given ratio and grid size gs, optionally
+    retaining the original shape.
+    """
     if ratio == 1.0:
         return img
     h, w = img.shape[2:]
@@ -357,7 +367,7 @@ def de_parallel(model):
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
     """Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf."""
-    return lambda x: ((1 - math.cos(x * math.pi / steps)) / 2) * (y2 - y1) + y1
+    return lambda x: max((1 - math.cos(x * math.pi / steps)) / 2, 0) * (y2 - y1) + y1
 
 
 def init_seeds(seed=0, deterministic=False):
@@ -517,13 +527,11 @@ def profile(input, ops, n=10, device=None):
 
 
 class EarlyStopping:
-    """
-    Early stopping class that stops training when a specified number of epochs have passed without improvement.
-    """
+    """Early stopping class that stops training when a specified number of epochs have passed without improvement."""
 
     def __init__(self, patience=50):
         """
-        Initialize early stopping object
+        Initialize early stopping object.
 
         Args:
             patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
@@ -535,7 +543,7 @@ class EarlyStopping:
 
     def __call__(self, epoch, fitness):
         """
-        Check whether to stop training
+        Check whether to stop training.
 
         Args:
             epoch (int): Current epoch of training

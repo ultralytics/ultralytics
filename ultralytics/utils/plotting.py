@@ -90,7 +90,7 @@ class Annotator:
             if check_version(pil_version, '9.2.0'):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
-            self.im = im
+            self.im = im if im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
             self.sf = self.lw / 3  # font scale
         # Pose
@@ -155,12 +155,12 @@ class Annotator:
         masks = masks.unsqueeze(3)  # shape(n,h,w,1)
         masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
 
-        inv_alph_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
+        inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
         mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
 
         im_gpu = im_gpu.flip(dims=[0])  # flip channel
         im_gpu = im_gpu.permute(1, 2, 0).contiguous()  # shape(h,w,3)
-        im_gpu = im_gpu * inv_alph_masks[-1] + mcs
+        im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
         im_mask = (im_gpu * 255)
         im_mask_np = im_mask.byte().cpu().numpy()
         self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)
@@ -258,6 +258,201 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
+    # Object Counting Annotator
+    def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
+        """
+        Draw region line
+        Args:
+            reg_pts (list): Region Points (for line 2 points, for region 4 points)
+            color (tuple): Region Color value
+            thickness (int): Region area thickness value
+        """
+        cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
+
+    def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
+        """
+        Draw centroid point and track trails
+        Args:
+            track (list): object tracking points for trails display
+            color (tuple): tracks line color
+            track_thickness (int): track line thickness value
+        """
+        points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+        cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
+        cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
+
+    def count_labels(self, in_count=0, out_count=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
+        """
+        Plot counts for object counter
+        Args:
+            in_count (int): in count value
+            out_count (int): out count value
+            count_txt_size (int): text size for counts display
+            color (tuple): background color of counts display
+            txt_color (tuple): text color of counts display
+        """
+        self.tf = count_txt_size
+        tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
+        tf = max(tl - 1, 1)
+        gap = int(24 * tl)  # gap between in_count and out_count based on line_thickness
+
+        # Get text size for in_count and out_count
+        t_size_in = cv2.getTextSize(str(in_count), 0, fontScale=tl / 2, thickness=tf)[0]
+        t_size_out = cv2.getTextSize(str(out_count), 0, fontScale=tl / 2, thickness=tf)[0]
+
+        # Calculate positions for in_count and out_count labels
+        text_width = max(t_size_in[0], t_size_out[0])
+        text_x1 = (self.im.shape[1] - text_width - 120 * self.tf) // 2 - gap
+        text_x2 = (self.im.shape[1] - text_width + 120 * self.tf) // 2 + gap
+        text_y = max(t_size_in[1], t_size_out[1])
+
+        # Create a rounded rectangle for in_count
+        cv2.rectangle(self.im, (text_x1 - 5, text_y - 5), (text_x1 + text_width + 7, text_y + t_size_in[1] + 7), color,
+                      -1)
+        cv2.putText(self.im,
+                    str(in_count), (text_x1, text_y + t_size_in[1]),
+                    0,
+                    tl / 2,
+                    txt_color,
+                    self.tf,
+                    lineType=cv2.LINE_AA)
+
+        # Create a rounded rectangle for out_count
+        cv2.rectangle(self.im, (text_x2 - 5, text_y - 5), (text_x2 + text_width + 7, text_y + t_size_out[1] + 7), color,
+                      -1)
+        cv2.putText(self.im,
+                    str(out_count), (text_x2, text_y + t_size_out[1]),
+                    0,
+                    tl / 2,
+                    txt_color,
+                    thickness=self.tf,
+                    lineType=cv2.LINE_AA)
+
+    @staticmethod
+    def estimate_pose_angle(a, b, c):
+        """Calculate the pose angle for object
+        Args:
+            a (float) : The value of pose point a
+            b (float): The value of pose point b
+            c (float): The value o pose point c
+        Returns:
+            angle (degree): Degree value of angle between three points
+        """
+        a, b, c = np.array(a), np.array(b), np.array(c)
+        radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
+        angle = np.abs(radians * 180.0 / np.pi)
+        if angle > 180.0:
+            angle = 360 - angle
+        return angle
+
+    def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2):
+        """
+        Draw specific keypoints for gym steps counting.
+
+        Args:
+            keypoints (list): list of keypoints data to be plotted
+            indices (list): keypoints ids list to be plotted
+            shape (tuple): imgsz for model inference
+            radius (int): Keypoint radius value
+        """
+        nkpts, ndim = keypoints.shape
+        nkpts == 17 and ndim == 3
+        for i, k in enumerate(keypoints):
+            if i in indices:
+                x_coord, y_coord = k[0], k[1]
+                if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
+                    if len(k) == 3:
+                        conf = k[2]
+                        if conf < 0.5:
+                            continue
+                    cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
+        return self.im
+
+    def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, line_thickness=2):
+        """
+        Plot the pose angle, count value and step stage.
+
+        Args:
+            angle_text (str): angle value for workout monitoring
+            count_text (str): counts value for workout monitoring
+            stage_text (str): stage decision for workout monitoring
+            center_kpt (int): centroid pose index for workout monitoring
+            line_thickness (int): thickness for text display
+        """
+        angle_text, count_text, stage_text = (f' {angle_text:.2f}', 'Steps : ' + f'{count_text}', f' {stage_text}')
+        font_scale = 0.6 + (line_thickness / 10.0)
+
+        # Draw angle
+        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, font_scale, line_thickness)
+        angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
+        angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
+        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (line_thickness * 2))
+        cv2.rectangle(self.im, angle_background_position, (angle_background_position[0] + angle_background_size[0],
+                                                           angle_background_position[1] + angle_background_size[1]),
+                      (255, 255, 255), -1)
+        cv2.putText(self.im, angle_text, angle_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+
+        # Draw Counts
+        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, font_scale, line_thickness)
+        count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
+        count_background_position = (angle_background_position[0],
+                                     angle_background_position[1] + angle_background_size[1] + 5)
+        count_background_size = (count_text_width + 10, count_text_height + 10 + (line_thickness * 2))
+
+        cv2.rectangle(self.im, count_background_position, (count_background_position[0] + count_background_size[0],
+                                                           count_background_position[1] + count_background_size[1]),
+                      (255, 255, 255), -1)
+        cv2.putText(self.im, count_text, count_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+
+        # Draw Stage
+        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, font_scale, line_thickness)
+        stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
+        stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
+        stage_background_size = (stage_text_width + 10, stage_text_height + 10)
+
+        cv2.rectangle(self.im, stage_background_position, (stage_background_position[0] + stage_background_size[0],
+                                                           stage_background_position[1] + stage_background_size[1]),
+                      (255, 255, 255), -1)
+        cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+
+    def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
+        """
+        Function for drawing segmented object in bounding box shape.
+
+        Args:
+            mask (list): masks data list for instance segmentation area plotting
+            mask_color (tuple): mask foreground color
+            det_label (str): Detection label text
+            track_label (str): Tracking label text
+        """
+        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
+
+        label = f'Track ID: {track_label}' if track_label else det_label
+        text_size, _ = cv2.getTextSize(label, 0, 0.7, 1)
+
+        cv2.rectangle(self.im, (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
+                      (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)), mask_color, -1)
+
+        cv2.putText(self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255),
+                    2)
+
+    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
+        """
+        Function for pinpoint human-vision eye mapping and plotting.
+
+        Args:
+            box (list): Bounding box coordinates
+            center_point (tuple): center point for vision eye view
+            color (tuple): object centroid and line color value
+            pin_color (tuple): visioneye point color value
+            thickness (int): int value for line thickness
+            pins_radius (int): visioneye point radius value
+        """
+        center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+        cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
+        cv2.circle(self.im, center_bbox, pins_radius, color, -1)
+        cv2.line(self.im, center_point, center_bbox, color, thickness)
+
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
 @plt_settings()
@@ -316,7 +511,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
 
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):
-    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
+    """
+    Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according
     to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
@@ -352,7 +548,7 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
     xyxy = ops.xywh2xyxy(b).long()
-    ops.clip_boxes(xyxy, im.shape)
+    xyxy = ops.clip_boxes(xyxy, im.shape)
     crop = im[int(xyxy[0, 1]):int(xyxy[0, 3]), int(xyxy[0, 0]):int(xyxy[0, 2]), ::(1 if BGR else -1)]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory

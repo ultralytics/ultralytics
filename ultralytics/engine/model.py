@@ -87,7 +87,7 @@ class Model(nn.Module):
             self.session = get_hub_session(model)
             model = self.session.model_file
 
-        elif SETTINGS['hub'] is True and task == 'train':
+        elif SETTINGS['hub'] is True:
             # Create a model in HUB
             try:
                 self.session = get_hub_session(model)
@@ -96,7 +96,7 @@ class Model(nn.Module):
                 pass
 
         # Check if Triton Server model
-        elif self.is_triton_model(model):
+        if self.is_triton_model(model):
             self.model = model
             self.task = task
             return
@@ -371,9 +371,13 @@ class Model(nn.Module):
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
 
-            # Create HUB model
+            # Create HUB
             if self.session and not self.session.model.id:
                 self.session.create_model(args)
+
+                # HUB model could not be created
+                if not self.session.model.id:
+                    self.session = None
 
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()

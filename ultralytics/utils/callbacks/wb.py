@@ -271,63 +271,8 @@ class WandBCallbackState:
                 x_title=x_title,
                 y_title=y_title,
             )
-        wb.log({"Train-Validation-Table": self.wandb_train_val_table, "Validation-Table": self.wandb_validation_table})
+        wb.log({"Validation-Table": self.wandb_train_val_table})
         wb.run.finish()  # required or run continues on dashboard
-
-    def on_val_start(self, validator: ClassificationValidator):
-        wb.run or wb.init(project='YOLOv8', job_type="validate_" + predictor.args.task, config=vars(predictor.args))
-        if validator.args.task == "classify":
-            self.wandb_validation_table = wb.Table(columns=[
-                "Model-Name",
-                "Data-Index",
-                "Batch-Index",
-                "Image",
-                "Predicted-Category",
-                "Ground-Truth-Category",
-                "Prediction-Confidence",
-                "Top-5-Prediction-Categories",
-                "Top-5-Prediction-Confindence",
-                "Probabilities",
-                "Speed",
-            ])
-        elif validator.args.task in ['detect', 'segment']:
-            self.wandb_validation_table = wb.Table(columns=[
-                "Model-Name",
-                "Data-Index",
-                "Batch-Index",
-                "Image",
-                "Mean-Confidence",
-                "Speed",
-            ])
-        elif validator.args.task == "pose":
-            self.wandb_validation_table = wb.Table(columns=[
-                "Model-Name",
-                "Data-Index",
-                "Batch-Index",
-                "Image-Ground-Truth",
-                "Image-Prediction",
-                "Num-Instances",
-                "Mean-Confidence",
-                "Speed",
-            ])
-
-    @torch.no_grad()
-    def on_val_end(self, validator: VALIDATOR_DTYPE):
-        dataloader = validator.dataloader
-        class_label_map = validator.names
-        overrides = validator.args
-        overrides.conf = 0.1
-        if self.predictor is None:
-            self.predictor = self.predictor_dict[validator.args.task](overrides=overrides)
-            self.predictor.callbacks = {}
-        if validator.args.task == "classify":
-            self.wandb_validation_table = plot_classification_validation_results(
-                dataloader=dataloader,
-                model_name=validator.args.model,
-                predictor=self.predictor,
-                table=self.wandb_validation_table,
-                max_validation_batches=-1,
-            )
 
     def on_predict_start(self, predictor: PREDICTOR_DTYPE):
         wb.run or wb.init(project='YOLOv8', job_type="predict_" + predictor.args.task, config=vars(predictor.args))
@@ -401,8 +346,6 @@ callbacks = {
     'on_train_epoch_end': on_train_epoch_end,
     'on_fit_epoch_end': wandb_callback_state.on_fit_epoch_end,
     'on_train_end': wandb_callback_state.on_train_end,
-    'on_val_start': wandb_callback_state.on_val_start,
-    'on_val_end': wandb_callback_state.on_val_end,
     'on_predict_start': wandb_callback_state.on_predict_start,
     'on_predict_end': wandb_callback_state.on_predict_end
 } if wb else {}

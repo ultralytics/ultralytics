@@ -194,47 +194,4 @@ def plot_detection_validation_results(
                 pass
         if batch_idx + 1 == max_validation_batches:
             break
-    
-    
-    
-    
-    
-    # for batch_idx, batch in enumerate(dataloader):
-    #     for img_idx, image_path in enumerate(batch["im_file"]):
-    #         prediction_result = predictor(image_path)[0]
-    #         _, prediction_box_data, mean_confidence_map = plot_bbox_predictions(
-    #             prediction_result, model_name
-    #         )
-    #         try:
-    #             ground_truth_data = get_ground_truth_bbox_annotations(
-    #                 img_idx, image_path, batch, class_label_map
-    #             )
-    #             wandb_image = wandb.Image(
-    #                 image_path,
-    #                 boxes={
-    #                     "ground-truth": {
-    #                         "box_data": ground_truth_data,
-    #                         "class_labels": class_label_map,
-    #                     },
-    #                     "predictions": {
-    #                         "box_data": prediction_box_data["box_data"],
-    #                         "class_labels": class_label_map,
-    #                     },
-    #                 },
-    #             )
-    #             table_rows = [
-    #                 data_idx,
-    #                 batch_idx,
-    #                 wandb_image,
-    #                 mean_confidence_map,
-    #                 prediction_result.speed,
-    #             ]
-    #             table_rows = [epoch] + table_rows if epoch is not None else table_rows
-    #             table_rows = [model_name] + table_rows
-    #             table.add_data(*table_rows)
-    #             data_idx += 1
-    #         except TypeError:
-    #             pass
-    #     if batch_idx + 1 == max_validation_batches:
-    #         break
     return table

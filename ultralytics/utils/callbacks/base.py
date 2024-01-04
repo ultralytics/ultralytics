@@ -213,9 +213,6 @@ def add_integration_callbacks(instance):
     elif 'Predictor' in instance.__class__.__name__:
         from .wb import callbacks as wb_cb
         callbacks_list.extend([wb_cb])
-    elif 'Validator' in instance.__class__.__name__:
-        from .wb import callbacks as wb_cb
-        callbacks_list.extend([wb_cb])
 
     # Add the callbacks to the callbacks dictionary
     for callbacks in callbacks_list:

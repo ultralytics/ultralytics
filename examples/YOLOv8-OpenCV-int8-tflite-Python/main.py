@@ -4,16 +4,23 @@ import cv2
 import numpy as np
 from tflite_runtime import interpreter as tflite
 
-from ultralytics.utils import ASSETS, yaml_load
+from ultralytics.utils import yaml_load
 from ultralytics.utils.checks import check_yaml
 
 # Declare as global variable can be updated based trained model image size
 img_width = 640
 img_height = 640
 
+
 class LetterBox:
 
-    def __init__(self, new_shape=(img_width, img_height), auto=False, scaleFill=False, scaleup=True, center=True, stride=32):
+    def __init__(self,
+                 new_shape=(img_width, img_height),
+                 auto=False,
+                 scaleFill=False,
+                 scaleup=True,
+                 center=True,
+                 stride=32):
         self.new_shape = new_shape
         self.auto = auto
         self.scaleFill = scaleFill
@@ -75,7 +82,8 @@ class LetterBox:
         labels['instances'].scale(*ratio)
         labels['instances'].add_padding(padw, padh)
         return labels
-    
+
+
 class Yolov8TFLite:
 
     def __init__(self, tflite_model, input_image, confidence_thres, iou_thres):
@@ -88,7 +96,7 @@ class Yolov8TFLite:
             confidence_thres: Confidence threshold for filtering detections.
             iou_thres: IoU (Intersection over Union) threshold for non-maximum suppression.
         """
-        
+
         self.tflite_model = tflite_model
         self.input_image = input_image
         self.confidence_thres = confidence_thres
@@ -134,8 +142,8 @@ class Yolov8TFLite:
         label_y = y1 - 10 if y1 - 10 > label_height else y1 + 10
 
         # Draw a filled rectangle as the background for the label text
-        cv2.rectangle(img, (int(label_x), int(label_y - label_height)), (int(label_x + label_width), int(label_y + label_height)), color,
-                      cv2.FILLED)
+        cv2.rectangle(img, (int(label_x), int(label_y - label_height)),
+                      (int(label_x + label_width), int(label_y + label_height)), color, cv2.FILLED)
 
         # Draw the label text on the image
         cv2.putText(img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
@@ -151,10 +159,10 @@ class Yolov8TFLite:
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
 
-        print("image befor", self.img)
+        print('image befor', self.img)
         # Get the height and width of the input image
         self.img_height, self.img_width = self.img.shape[:2]
-        
+
         letterbox = LetterBox(new_shape=[img_width, img_height], auto=False, stride=32)
         image = letterbox(image=self.img)
         image = [image]
@@ -162,7 +170,7 @@ class Yolov8TFLite:
         image = image[..., ::-1].transpose((0, 3, 1, 2))
         iamge = np.ascontiguousarray(image)
         # n, h, w, c
-        image = iamge.astype(np.float32)    
+        image = iamge.astype(np.float32)
         image_data = image / 255
         # Return the preprocessed image data
         return image_data
@@ -186,8 +194,8 @@ class Yolov8TFLite:
             pred = np.transpose(pred)
             for box in pred:
                 x, y, w, h = box[:4]
-                x1 = x - w/2
-                y1 = y - h/2
+                x1 = x - w / 2
+                y1 = y - h / 2
                 boxes.append([x1, y1, w, h])
                 idx = np.argmax(box[4:])
                 scores.append(box[idx + 4])
@@ -198,17 +206,18 @@ class Yolov8TFLite:
         for i in indices:
             # Get the box, score, and class ID corresponding to the index
             box = boxes[i]
-            gain = min(img_width/self.img_width, img_height/self.img_height)
-            pad = round((img_width - self.img_width * gain) / 2 - 0.1), round( (img_height - self.img_height * gain) / 2 - 0.1)
-            box[0] = (box[0] - pad[0])/gain
-            box[1] = (box[1] - pad[1])/gain
-            box[2] = box[2]/gain
-            box[3] = box[3]/gain
+            gain = min(img_width / self.img_width, img_height / self.img_height)
+            pad = round((img_width - self.img_width * gain) / 2 -
+                        0.1), round((img_height - self.img_height * gain) / 2 - 0.1)
+            box[0] = (box[0] - pad[0]) / gain
+            box[1] = (box[1] - pad[1]) / gain
+            box[2] = box[2] / gain
+            box[3] = box[3] / gain
             score = scores[i]
             class_id = class_ids[i]
             if scores[i] > 0.25:
                 print(box, score, class_id)
-            # Draw the detection on the input image
+                # Draw the detection on the input image
                 self.draw_detections(input_image, box, score, class_id)
 
         return input_image
@@ -242,8 +251,8 @@ class Yolov8TFLite:
         print(input_details[0]['index'])
         print(img_data.shape)
         img_data = img_data.transpose((0, 2, 3, 1))
-        print("img_data", img_data)
-        
+        print('img_data', img_data)
+
         scale, zero_point = input_details[0]['quantization']
         interpreter.set_tensor(input_details[0]['index'], img_data)
 
@@ -254,18 +263,22 @@ class Yolov8TFLite:
         output = interpreter.get_tensor(output_details[0]['index'])
         scale, zero_point = output_details[0]['quantization']
         output = (output.astype(np.float32) - zero_point) * scale
-        
+
         output[:, [0, 2]] *= img_width
         output[:, [1, 3]] *= img_height
         print(output)
         # Perform post-processing on the outputs to obtain output image.
         return self.postprocess(self.img, output)
 
+
 if __name__ == '__main__':
     # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='./yolov8n_full_integer_quant.tflite', help='Input your TFLite model.')
-    parser.add_argument('--img', type=str, default=str('./bus.jpg'), help='Path to input image.')
+    parser.add_argument('--model',
+                        type=str,
+                        default='./yolov8n_full_integer_quant.tflite',
+                        help='Input your TFLite model.')
+    parser.add_argument('--img', type=str, default='./bus.jpg', help='Path to input image.')
     parser.add_argument('--conf-thres', type=float, default=0.25, help='Confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.7, help='NMS IoU threshold')
     args = parser.parse_args()

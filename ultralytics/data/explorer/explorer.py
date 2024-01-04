@@ -64,7 +64,7 @@ class Explorer:
 
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
         self.connection = lancedb.connect(uri)
-        self.table_name = Path(data).name.lower()
+        self.table_name = Path(data).name.lower() + '_' + model.lower()
         self.sim_idx_table_name = f'{self.table_name}_sim_idx'.lower()
         self.model = YOLO(model)
         self.data = data  # None
@@ -72,6 +72,7 @@ class Explorer:
         self.sim_index = None
 
         self.table = None
+        self.progress = 0
 
     def create_embeddings_table(self, force=False, split='train'):
         if (self.table is not None and not force):
@@ -80,6 +81,7 @@ class Explorer:
         if self.table_name in self.connection.table_names() and not force:
             logger.info(f'Table {self.table_name} already exists. Reusing it. Pass force=True to overwrite it.')
             self.table = self.connection.open_table(self.table_name)
+            self.progress = 1
             return
         if self.data is None:
             raise ValueError('Data must be provided to create embeddings table')
@@ -108,10 +110,10 @@ class Explorer:
 
         self.table = table
 
-    @staticmethod
-    def _yeild_batches(dataset, data_info, model, exclude_keys: List):
+    def _yeild_batches(self, dataset, data_info, model, exclude_keys: List):
         # Implement Batching
         for i in tqdm(range(len(dataset))):
+            self.progress = float(i+1) / len(dataset)
             batch = dataset[i]
             for k in exclude_keys:
                 batch.pop(k, None)
@@ -174,7 +176,7 @@ class Explorer:
                 'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause.')
         if query.startswith('WHERE'):
             query = f"SELECT * FROM 'table' {query}"
-
+        logger.info(f'Running query: {query}')
         return duckdb.sql(query).arrow()
     
     def plot_sql_query(self, query, labels=True):

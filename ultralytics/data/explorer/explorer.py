@@ -69,7 +69,6 @@ class Explorer:
         self.model = YOLO(model)
         self.data = data  # None
         self.choice_set = None
-        self.sim_index = None
 
         self.table = None
         self.progress = 0
@@ -268,7 +267,8 @@ class Explorer:
         sim_idx_table_name = f'{self.sim_idx_base_name}_thres_{max_dist}_top_{top_k}'.lower()
         if sim_idx_table_name in self.connection.table_names() and not force:
             logger.info('Similarity matrix already exists. Reusing it. Pass force=True to overwrite it.')
-            return self.sim_index.to_pandas()
+            return self.connection.open_table(sim_idx_table_name).to_pandas()
+        
         if top_k and not (top_k <= 1.0 and top_k >= 0.0):
             raise ValueError(f'top_k must be between 0.0 and 1.0. Got {top_k}')
         if max_dist < 0.0:

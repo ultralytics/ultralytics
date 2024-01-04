@@ -1005,7 +1005,7 @@ def classify_transforms(
         crop_fraction (float): fraction of image to crop. default is 1.0.
 
     Returns:
-        T.Compose: torchvision transforms
+        (T.Compose): torchvision transforms
     """
 
     if isinstance(size, (tuple, list)):
@@ -1064,13 +1064,12 @@ def classify_augmentations(
         hsv_h (float): image HSV-Hue augmentation (fraction)
         hsv_s (float): image HSV-Saturation augmentation (fraction)
         hsv_v (float): image HSV-Value augmentation (fraction)
-        contrast (float): image contrast augmentation (fraction)
         force_color_jitter (bool): force to apply color jitter even if auto augment is enabled
         erasing (float): probability of random erasing
         interpolation (T.InterpolationMode): interpolation mode. default is T.InterpolationMode.BILINEAR.
 
     Returns:
-        T.Compose: torchvision transforms
+        (T.Compose): torchvision transforms
     """
     # Transforms to apply if albumentations not installed
     if not isinstance(size, int):

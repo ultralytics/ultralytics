@@ -35,7 +35,7 @@ YOLOv8 pretrained Obb models are shown here, which are pretrained on the [DOTAv1
 | [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024                  | <++>              | <++>                           | <++>                                | 69.5               | 676.7             |
 
 <!-- TODO: should we report multi-scale results only as they're better or both multi-scale and single-scale. -->
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
+- **mAP<sup>val</sup>** values are for single-model single-scale on [DOTAv1 test](http://cocodataset.org) dataset.
   <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0`
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.

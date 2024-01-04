@@ -306,7 +306,7 @@ class ConfusionMatrix:
         Args:
             detections (Array[N, 6]): Detected bounding boxes and their associated information.
                                       Each row should contain (x1, y1, x2, y2, conf, class).
-            gt_bboxes (Array[M, 4]): Ground truth bounding boxes with xyxy format. 
+            gt_bboxes (Array[M, 4]): Ground truth bounding boxes with xyxy format.
             gt_cls (Array[M]): The class labels.
         """
         if gt_cls.size(0) == 0:  # Check if labels is empty

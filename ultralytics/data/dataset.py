@@ -27,7 +27,7 @@ class YOLODataset(BaseDataset):
 
     Args:
         data (dict, optional): A dataset YAML dictionary. Defaults to None.
-        task (str): An explicit arg to point current task, Defaults to 'detect'. 
+        task (str): An explicit arg to point current task, Defaults to 'detect'.
 
     Returns:
         (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.

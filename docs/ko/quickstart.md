@@ -117,7 +117,7 @@ Ultralytics는 pip, conda, Docker를 포함한 다양한 설치 방법을 제공
 
         Docker 사용에 대한 고급 기능은 [Ultralytics Docker 가이드](https://docs.ultralytics.com/guides/docker-quickstart/)에서 더 탐구해보세요.
 
-`ultralytics`의 종속성 목록은 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 파일에서 확인할 수 있습니다. 위 예제에서는 모든 필요한 종속성을 설치합니다.
+`ultralytics`의 종속성 목록은 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) 파일에서 확인할 수 있습니다. 위 예제에서는 모든 필요한 종속성을 설치합니다.
 
 <p align="center">
   <br>
@@ -204,4 +204,4 @@ Ultralytics 명령줄 인터페이스(CLI)는 Python 환경이 필요 없이 단
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI 가이드](/../usage/cli.md){ .md-button .md-button--primary}
+[CLI 가이드](/../usage/cli.md){ .md-button }

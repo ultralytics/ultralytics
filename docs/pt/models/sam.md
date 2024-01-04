@@ -129,7 +129,7 @@ O Modelo de Segmentação de Qualquer Coisa pode ser utilizado para uma variedad
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
-- Mais argumentos adicionais para `Segmentar tudo` consulte a [Referência do `Predictor/generate`](../../reference/models/sam/predict.md).
+- Mais argumentos adicionais para `Segmentar tudo` consulte a [Referência do `Predictor/generate`](../../../reference/models/sam/predict.md).
 
 ## Comparação SAM vs. YOLOv8
 

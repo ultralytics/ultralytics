@@ -76,7 +76,7 @@ Ultralyticsはpip、conda、Dockerを含むさまざまなインストール方�
         pip install -e .
         ```
 
-必要な依存関係のリストについては、`ultralytics`の[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)ファイルを参照してください。上記の全ての例では、必要な依存関係を全てインストールします。
+必要な依存関係のリストについては、`ultralytics`の[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml)ファイルを参照してください。上記の全ての例では、必要な依存関係を全てインストールします。
 
 <p align="center">
   <br>
@@ -163,7 +163,7 @@ Ultralyticsコマンドラインインターフェース（CLI）を使用する
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLIガイド](/../usage/cli.md){ .md-button .md-button--primary}
+[CLIガイド](/../usage/cli.md){ .md-button }
 
 ## PythonでUltralyticsを使用
 

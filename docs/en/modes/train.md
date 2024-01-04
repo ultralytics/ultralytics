@@ -180,6 +180,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                              |
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
+| `time`            | `None`   | number of hours to train for, overrides epochs if supplied                                     |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training                    |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                                  |
 | `imgsz`           | `640`    | size of input images as integer                                                                |
@@ -223,6 +224,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                                     |
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                                               |
 | `val`             | `True`   | validate/test during training                                                                  |
+| `plots`           | `False`  | save plots and images during train/val                                                         |
 
 ## Logging
 

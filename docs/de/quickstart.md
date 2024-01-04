@@ -76,7 +76,7 @@ Ultralytics bietet verschiedene Installationsmethoden, darunter Pip, Conda und D
         pip install -e .
         ```
 
-Siehe die `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) Datei für eine Liste der Abhängigkeiten. Beachten Sie, dass alle oben genannten Beispiele alle erforderlichen Abhängigkeiten installieren.
+Siehe die `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) Datei für eine Liste der Abhängigkeiten. Beachten Sie, dass alle oben genannten Beispiele alle erforderlichen Abhängigkeiten installieren.
 
 <p align="center">
   <br>
@@ -163,7 +163,7 @@ Die Befehlszeilenschnittstelle (CLI) von Ultralytics ermöglicht einfache Einzei
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI-Leitfaden](/../usage/cli.md){ .md-button .md-button--primary}
+[CLI-Leitfaden](/../usage/cli.md){ .md-button }
 
 ## Ultralytics mit Python verwenden
 

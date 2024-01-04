@@ -15,6 +15,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, __version__
 from ultralytics.utils.checks import check_version
@@ -26,6 +27,9 @@ except ImportError:
 
 TORCH_1_9 = check_version(torch.__version__, '1.9.0')
 TORCH_2_0 = check_version(torch.__version__, '2.0.0')
+TORCHVISION_0_10 = check_version(torchvision.__version__, '0.10.0')
+TORCHVISION_0_11 = check_version(torchvision.__version__, '0.11.0')
+TORCHVISION_0_13 = check_version(torchvision.__version__, '0.13.0')
 
 
 @contextmanager
@@ -363,7 +367,7 @@ def de_parallel(model):
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
     """Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf."""
-    return lambda x: ((1 - math.cos(x * math.pi / steps)) / 2) * (y2 - y1) + y1
+    return lambda x: max((1 - math.cos(x * math.pi / steps)) / 2, 0) * (y2 - y1) + y1
 
 
 def init_seeds(seed=0, deterministic=False):

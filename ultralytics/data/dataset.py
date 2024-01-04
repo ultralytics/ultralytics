@@ -8,10 +8,11 @@ import cv2
 import numpy as np
 import torch
 import torchvision
+from PIL import Image
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
 
-from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
+from .augment import Compose, Format, Instances, LetterBox, classify_augmentations, classify_transforms, v8_transforms
 from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
@@ -225,19 +226,17 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
-        self.album_transforms = classify_albumentations(
-            augment=augment,
-            size=args.imgsz,
-            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
-            hflip=args.fliplr,
-            vflip=args.flipud,
-            hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
-            hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
-            hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
-            auto_aug=False) if augment else None
+        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+        self.torch_transforms = classify_augmentations(size=args.imgsz,
+                                                       scale=scale,
+                                                       hflip=args.fliplr,
+                                                       vflip=args.flipud,
+                                                       erasing=args.erasing,
+                                                       auto_augment=args.auto_augment,
+                                                       hsv_h=args.hsv_h,
+                                                       hsv_s=args.hsv_s,
+                                                       hsv_v=args.hsv_v) if augment else classify_transforms(
+                                                           size=args.imgsz, crop_fraction=args.crop_fraction)
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
@@ -250,10 +249,9 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR
-        if self.album_transforms:
-            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
-        else:
-            sample = self.torch_transforms(im)
+        # Convert NumPy array to PIL image
+        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        sample = self.torch_transforms(im)
         return {'img': sample, 'cls': j}
 
     def __len__(self) -> int:

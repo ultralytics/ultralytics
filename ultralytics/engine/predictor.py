@@ -98,7 +98,7 @@ class BasePredictor:
         self.imgsz = None
         self.device = None
         self.dataset = None
-        self.vid_path, self.vid_writer = None, None
+        self.vid_path, self.vid_writer, self.vid_frame = None, None, None
         self.plotted_img = None
         self.data_path = None
         self.source_type = None
@@ -134,7 +134,7 @@ class BasePredictor:
         """Runs inference on a given image using the specified model and arguments."""
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
-        return self.model(im, augment=self.args.augment, visualize=visualize)
+        return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
     def pre_transform(self, im):
         """
@@ -170,7 +170,7 @@ class BasePredictor:
         if self.args.save or self.args.show:  # Add bbox to image
             plot_args = {
                 'line_width': self.args.line_width,
-                'boxes': self.args.boxes,
+                'boxes': self.args.show_boxes,
                 'conf': self.args.show_conf,
                 'labels': self.args.show_labels}
             if not self.args.retina_masks:
@@ -210,8 +210,9 @@ class BasePredictor:
     def setup_source(self, source):
         """Sets up source and inference mode."""
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
-        self.transforms = getattr(self.model.model, 'transforms', classify_transforms(
-            self.imgsz[0])) if self.args.task == 'classify' else None
+        self.transforms = getattr(
+            self.model.model, 'transforms', classify_transforms(
+                self.imgsz[0], crop_fraction=self.args.crop_fraction)) if self.args.task == 'classify' else None
         self.dataset = load_inference_source(source=source,
                                              imgsz=self.imgsz,
                                              vid_stride=self.args.vid_stride,
@@ -221,7 +222,9 @@ class BasePredictor:
                                                   len(self.dataset) > 1000 or  # images
                                                   any(getattr(self.dataset, 'video_flag', [False]))):  # videos
             LOGGER.warning(STREAM_WARNING)
-        self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
+        self.vid_path = [None] * self.dataset.bs
+        self.vid_writer = [None] * self.dataset.bs
+        self.vid_frame = [None] * self.dataset.bs
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
@@ -261,6 +264,9 @@ class BasePredictor:
                 # Inference
                 with profilers[1]:
                     preds = self.inference(im, *args, **kwargs)
+                    if self.args.embed:
+                        yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embedding tensors
+                        continue
 
                 # Postprocess
                 with profilers[2]:
@@ -341,8 +347,12 @@ class BasePredictor:
         if self.dataset.mode == 'image':
             cv2.imwrite(save_path, im0)
         else:  # 'video' or 'stream'
+            frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[idx] != save_path:  # new video
                 self.vid_path[idx] = save_path
+                if self.args.save_frames:
+                    Path(frames_path).mkdir(parents=True, exist_ok=True)
+                    self.vid_frame[idx] = 0
                 if isinstance(self.vid_writer[idx], cv2.VideoWriter):
                     self.vid_writer[idx].release()  # release previous video writer
                 if vid_cap:  # video
@@ -352,9 +362,15 @@ class BasePredictor:
                 else:  # stream
                     fps, w, h = 30, im0.shape[1], im0.shape[0]
                 suffix, fourcc = ('.mp4', 'avc1') if MACOS else ('.avi', 'WMV2') if WINDOWS else ('.avi', 'MJPG')
-                save_path = str(Path(save_path).with_suffix(suffix))
-                self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
+                self.vid_writer[idx] = cv2.VideoWriter(str(Path(save_path).with_suffix(suffix)),
+                                                       cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
+            # Write video
             self.vid_writer[idx].write(im0)
+
+            # Write frame
+            if self.args.save_frames:
+                cv2.imwrite(f'{frames_path}{self.vid_frame[idx]}.jpg', im0)
+                self.vid_frame[idx] += 1
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

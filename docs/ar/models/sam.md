@@ -129,7 +129,7 @@ keywords: Ultralytics, قسيمة الصور, Segment Anything Model, SAM, سل�
         results = predictor(source="ultralytics/assets/zidane.jpg"، crop_n_layers=1، points_stride=64)
         ```
 
-- المزيد args إضافي للتقطيع كل شيء شاهد التوثيق مرجع [`السلبي/تقديم` مرجع](../../reference/models/sam/predict.md).
+- المزيد args إضافي للتقطيع كل شيء شاهد التوثيق مرجع [`السلبي/تقديم` مرجع](../../../reference/models/sam/predict.md).
 
 ## مقارنة SAM مقابل YOLOv8
 

@@ -16,27 +16,31 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Training Integrations
 
+- [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
+
 - [Comet ML](comet.md): Enhance your model development with Ultralytics by tracking, comparing, and optimizing your machine learning experiments.
 
-- [ClearML](https://clear.ml/): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
-
-- [DVC](https://dvc.org/): Implement version control for your Ultralytics machine learning projects, synchronizing data, code, and models effectively.
-
-- [Ultralytics HUB](https://hub.ultralytics.com): Access and contribute to a community of pre-trained Ultralytics models.
+- [DVC](dvc.md): Implement version control for your Ultralytics machine learning projects, synchronizing data, code, and models effectively.
 
 - [MLFlow](mlflow.md): Streamline the entire ML lifecycle of Ultralytics models, from experimentation and reproducibility to deployment.
+
+- [Ultralytics HUB](https://hub.ultralytics.com): Access and contribute to a community of pre-trained Ultralytics models.
 
 - [Neptune](https://neptune.ai/): Maintain a comprehensive log of your ML experiments with Ultralytics in this metadata store designed for MLOps.
 
 - [Ray Tune](ray-tune.md): Optimize the hyperparameters of your Ultralytics models at any scale.
 
-- [TensorBoard](https://tensorboard.dev/): Visualize your Ultralytics ML workflows, monitor model metrics, and foster team collaboration.
+- [TensorBoard](tensorboard.md): Visualize your Ultralytics ML workflows, monitor model metrics, and foster team collaboration.
 
-- [Weights & Biases (W&B)](https://wandb.ai/site): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
+- [Weights & Biases (W&B)](weights-biases.md): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
+
+- [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
 
 ## Deployment Integrations
 
-- [Neural Magic](https://neuralmagic.com/): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
+- [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
+
+- [OpenVino](openvino.md): OpenVINO is Intel's toolkit for optimizing and deploying computer vision models efficiently across various Intel hardware platforms.
 
 ### Export Formats
 
@@ -54,7 +58,7 @@ We also support a variety of model export formats for deployment in different en
 | [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n.pb`              | ❌        | `imgsz`                                             |
 | [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n.tflite`          | ✅        | `imgsz`, `half`, `int8`                             |
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`, `half`, `int8`                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
 | [NCNN](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 

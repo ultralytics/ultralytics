@@ -116,7 +116,7 @@ Ultralytics提供了多种安装方法，包括pip、conda和Docker。通过`ult
 
         欲了解进阶Docker使用方法，请探索[Ultralytics Docker指南](https://docs.ultralytics.com/guides/docker-quickstart/)。
 
-有关依赖项列表，请参见`ultralytics`的[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)文件。请注意，上述所有示例均安装了所有必需的依赖项。
+有关依赖项列表，请参见`ultralytics`的[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml)文件。请注意，上述所有示例均安装了所有必需的依赖项。
 
 <p align="center">
   <br>
@@ -203,7 +203,7 @@ Ultralytics命令行界面（CLI）允许您通过简单的单行命令使用，
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
     - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
-[CLI指南](/../usage/cli.md){ .md-button .md-button--primary}
+[CLI指南](/../usage/cli.md){ .md-button }
 
 ## 通过Python使用Ultralytics
 

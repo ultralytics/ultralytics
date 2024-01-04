@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from copy import deepcopy
 from typing import Union
 
 import torch
@@ -12,7 +13,9 @@ from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer,
 from ultralytics.models.yolo.pose import PosePredictor, PoseTrainer, PoseValidator
 from ultralytics.models.yolo.segment import SegmentationPredictor, SegmentationTrainer, SegmentationValidator
 
-PREDICTOR_DTYPE = Union[DetectionPredictor, ClassificationPredictor, PosePredictor, SegmentationPredictor]
+from ultralytics.models.sam.predict import Predictor as SAMPredictor
+
+PREDICTOR_DTYPE = Union[DetectionPredictor, ClassificationPredictor, PosePredictor, SegmentationPredictor, SAMPredictor]
 TRAINER_DTYPE = Union[DetectionTrainer, SegmentationTrainer, PoseTrainer, ClassificationTrainer]
 VALIDATOR_DTYPE = Union[DetectionValidator, SegmentationValidator, PoseValidator, ClassificationValidator]
 
@@ -29,7 +32,7 @@ try:
     from ultralytics.utils.callbacks.wb_utils.classification import plot_classification_predictions, plot_classification_validation_results
     from ultralytics.utils.callbacks.wb_utils.bbox import plot_bbox_predictions, plot_detection_validation_results
     from ultralytics.utils.callbacks.wb_utils.pose import plot_pose_predictions, plot_pose_validation_results
-    from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results
+    from ultralytics.utils.callbacks.wb_utils.segment import plot_mask_predictions, plot_segmentation_validation_results, plot_sam_predictions
 
     _processed_plots = {}
 
@@ -138,6 +141,7 @@ class WandBCallbackState:
         self.wandb_validation_table = None
         self.predictor = None
         self.mode = None
+        self.prompts = None
         self.predictor_dict = {
             'detect': DetectionPredictor,
             'segment': SegmentationPredictor,
@@ -314,15 +318,20 @@ class WandBCallbackState:
                 ]
             )
         elif predictor.args.task == "segment":
-            self.wandb_prediction_table = wb.Table(
-                columns=[
-                    "Model-Name",
-                    "Image",
-                    "Number-of-Predictions",
-                    "Mean-Confidence",
-                    "Speed",
-                ]
-            )
+            if isinstance(predictor, SegmentationPredictor):
+                self.wandb_prediction_table = wb.Table(
+                    columns=[
+                        "Model-Name",
+                        "Image",
+                        "Number-of-Predictions",
+                        "Mean-Confidence",
+                        "Speed",
+                    ]
+                )
+            elif isinstance(predictor, SAMPredictor):
+                self.prompts = deepcopy(predictor.prompts)
+                self.wandb_prediction_table = wb.Table(
+                    columns=["Image"])
 
     def on_predict_end(self, predictor: PREDICTOR_DTYPE):
         if wb.run:
@@ -337,10 +346,15 @@ class WandBCallbackState:
                     self.wandb_prediction_table = plot_pose_predictions(
                         result, predictor.args.model, table=self.wandb_prediction_table, visualize_skeleton=True)
                 elif predictor.args.task == "segment":
-                    self.wandb_prediction_table = plot_mask_predictions(
-                        result, predictor.args.model, self.wandb_prediction_table)
-            if len(self.wandb_prediction_table.data) > 0:
-                wb.log({"Prediction-Table": self.wandb_prediction_table})
+                    if isinstance(predictor, SegmentationPredictor):
+                        self.wandb_prediction_table = plot_mask_predictions(
+                            result, predictor.args.model, self.wandb_prediction_table)
+                    elif isinstance(predictor, SAMPredictor):
+                        self.wandb_prediction_table = plot_sam_predictions(
+                            result, self.prompts, self.wandb_prediction_table)
+            if self.wandb_prediction_table is not None:
+                if len(self.wandb_prediction_table.data) > 0:
+                    wb.log({"Prediction-Table": self.wandb_prediction_table})
             wb.run.finish()
 
 

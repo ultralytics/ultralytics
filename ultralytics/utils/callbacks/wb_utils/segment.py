@@ -88,6 +88,46 @@ def plot_mask_predictions(
     return image, masks, boxes["predictions"], mean_confidence_map
 
 
+def structure_prompts_and_image(image: np.array, prompt: Dict) -> Dict:
+    wb_box_data = []
+    if "bboxes" in prompt:
+        wb_box_data.append({
+            "position": {
+                "middle": [prompt["bboxes"][0], prompt["bboxes"][1]],
+                "width": prompt["bboxes"][2],
+                "height": prompt["bboxes"][3]
+            },
+            "domain": "pixel",
+            "class_id": 1,
+            "box_caption": "Prompt-Box",
+        })
+    wb_box_data = {
+        "prompts": {
+            "box_data": wb_box_data,
+            "class_labels": {1: "Prompt-Box"},
+        }
+    }
+    return image, wb_box_data
+
+
+def plot_sam_predictions(result: Results, prompt: Dict, table: wb.Table) -> wb.Table:
+    result = result.to("cpu")
+    image = result.orig_img[:, :, ::-1]
+    image, wb_box_data = structure_prompts_and_image(image, prompt)
+    image = wb.Image(
+        image,
+        boxes=wb_box_data,
+        masks={
+            "predictions": {
+                "mask_data": np.squeeze(result.masks.data.cpu().numpy().astype(int)),
+                "class_labels": {0: "Background", 1: "Prediction"},
+            }
+        }
+    )
+    table.add_data(image)
+    return table
+
+
 def plot_segmentation_validation_results(
     dataloader,
     class_label_map,

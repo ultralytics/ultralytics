@@ -88,8 +88,8 @@ def get_windows(im_size, crop_sizes=[1024], gaps=[200], im_rate_thr=0.6, eps=0.0
 
     Args:
         im_size (tuple): Original image size, (h, w).
-        crop_size (int): Crop size of windows.
-        gap (int): Gap between each crops.
+        crop_sizes (List(int)): Crop size of windows.
+        gaps (List(int)): Gap between each crops.
         im_rate_thr (float): Threshold of windows areas divided by image ares.
     """
     h, w = im_size

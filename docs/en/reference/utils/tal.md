@@ -15,11 +15,7 @@ keywords: Ultralytics, task aligned assigner, select highest overlaps, make anch
 
 <br><br>
 
-## ::: ultralytics.utils.tal.select_candidates_in_gts
-
-<br><br>
-
-## ::: ultralytics.utils.tal.select_highest_overlaps
+## ::: ultralytics.utils.tal.RotatedTaskAlignedAssigner
 
 <br><br>
 
@@ -32,5 +28,9 @@ keywords: Ultralytics, task aligned assigner, select highest overlaps, make anch
 <br><br>
 
 ## ::: ultralytics.utils.tal.bbox2dist
+
+<br><br>
+
+## ::: ultralytics.utils.tal.dist2rbox
 
 <br><br>

@@ -65,7 +65,7 @@ class Explorer:
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
         self.connection = lancedb.connect(uri)
         self.table_name = Path(data).name.lower() + '_' + model.lower()
-        self.sim_idx_table_name = f'{self.table_name}_sim_idx'.lower()
+        self.sim_idx_base_name = f'{self.table_name}_sim_idx'.lower() # Use this name and append thres and top_k to reuse the table
         self.model = YOLO(model)
         self.data = data  # None
         self.choice_set = None
@@ -148,12 +148,13 @@ class Explorer:
         query = self.table.search(embeds).limit(limit).to_arrow()
         return query
 
-    def sql_query(self, query):
+    def sql_query(self, query, return_type='pandas'):
         """
         Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
 
         Args:
             query (str): SQL query to run.
+            return_type (str): Type of the result to return. Can be either 'pandas' or 'arrow'. Defaults to 'pandas'.
 
         Returns:
             An arrow table containing the results.
@@ -177,7 +178,12 @@ class Explorer:
         if query.startswith('WHERE'):
             query = f"SELECT * FROM 'table' {query}"
         logger.info(f'Running query: {query}')
-        return duckdb.sql(query).arrow()
+
+        rs = duckdb.sql(query)
+        if return_type == 'pandas':
+            return rs.df()
+        elif return_type == 'arrow':
+            return rs.arrow()
 
     def plot_sql_query(self, query, labels=True):
         """
@@ -197,12 +203,12 @@ class Explorer:
             result = exp.plot_sql_query(query)
             ```
         """
-        result = self.sql_query(query)
+        result = self.sql_query(query, return_type='arrow')
         img = plot_similar_images(result, plot_labels=labels)
         img = Image.fromarray(img)
         return img
 
-    def get_similar(self, img=None, idx=None, limit=25):
+    def get_similar(self, img=None, idx=None, limit=25, return_type='pandas'):
         """
         Query the table for similar images. Accepts a single image or a list of images.
 
@@ -220,7 +226,10 @@ class Explorer:
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
 
-        return similar
+        if return_type == 'pandas':
+            return similar.to_pandas()
+        elif return_type == 'arrow':
+            return similar
 
     def plot_similar(self, img=None, idx=None, limit=25, labels=True):
         """
@@ -235,12 +244,12 @@ class Explorer:
         Returns:
             PIL Image containing the plot.
         """
-        similar = self.get_similar(img, idx, limit)
+        similar = self.get_similar(img, idx, limit, return_type='arrow')
         img = plot_similar_images(similar, plot_labels=labels)
         img = Image.fromarray(img)
         return img
 
-    def similarity_index(self, max_dist=0.2, top_k=None, force=True):
+    def similarity_index(self, max_dist=0.2, top_k=None, force=False):
         """
         Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
         are thres% or more similar to the image at a given index.
@@ -256,9 +265,10 @@ class Explorer:
         """
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
-        if self.sim_index is not None and not force:
+        sim_idx_table_name = f'{self.sim_idx_base_name}_thres_{max_dist}_top_{top_k}'.lower()
+        if sim_idx_table_name in self.connection.table_names() and not force:
             logger.info('Similarity matrix already exists. Reusing it. Pass force=True to overwrite it.')
-            return self.sim_index.to_arrow()
+            return self.sim_index.to_pandas()
         if top_k and not (top_k <= 1.0 and top_k >= 0.0):
             raise ValueError(f'top_k must be between 0.0 and 1.0. Got {top_k}')
         if max_dist < 0.0:
@@ -270,7 +280,7 @@ class Explorer:
         im_files = features['im_file']
         embeddings = features['vector']
 
-        sim_table = self.connection.create_table(self.sim_idx_table_name,
+        sim_table = self.connection.create_table(sim_idx_table_name,
                                                  schema=get_sim_index_schema(),
                                                  mode='overwrite')
 
@@ -286,7 +296,7 @@ class Explorer:
         sim_table.add(_yeild_sim_idx())
         self.sim_index = sim_table
 
-        return sim_table.to_arrow()
+        return sim_table.to_pandas()
 
     def plot_similarity_index(self, max_dist=0.2, top_k=None, force=False):
         """
@@ -299,7 +309,7 @@ class Explorer:
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
         """
         sim_idx = self.similarity_index(max_dist=max_dist, top_k=top_k, force=force)
-        sim_count = sim_idx.to_pydict()['count']
+        sim_count = sim_idx['count'].tolist()
         sim_count = np.array(sim_count)
 
         indices = np.arange(len(sim_count))

@@ -28,6 +28,16 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 * [YOLO Thread-Safe Inference](yolo-thread-safe-inference.md) 🚀 NEW: Guidelines for performing inference with YOLO models in a thread-safe manner. Learn the importance of thread safety and best practices to prevent race conditions and ensure consistent predictions.
 * [Isolating Segmentation Objects](isolating-segmentation-objects.md) 🚀 NEW: Step-by-step recipe and explanation on how to extract and/or isolate objects from images using Ultralytics Segmentation.
 
+## Real-World Projects
+
+* [Object Counting](object-counting.md) 🚀 NEW: Explore the process of real-time object counting with Ultralytics YOLOv8 and acquire the knowledge to effectively count objects in a live video stream.
+* [Workouts Monitoring](workouts-monitoring.md) 🚀 NEW: Discover the comprehensive approach to monitoring workouts with Ultralytics YOLOv8. Acquire the skills and insights necessary to effectively use YOLOv8 for tracking and analyzing various aspects of fitness routines in real time.
+* [Objects Counting in Regions](region-counting.md) 🚀 NEW: Explore counting objects in specific regions with Ultralytics YOLOv8 for precise and efficient object detection in varied areas.
+* [Security Alarm System](security-alarm-system.md) 🚀 NEW: Discover the process of creating a security alarm system with Ultralytics YOLOv8. This system triggers alerts upon detecting new objects in the frame. Subsequently, you can customize the code to align with your specific use case.
+* [Heatmaps](heatmaps.md) 🚀 NEW: Elevate your understanding of data with our Detection Heatmaps! These intuitive visual tools use vibrant color gradients to vividly illustrate the intensity of data values across a matrix. Essential in computer vision, heatmaps are skillfully designed to highlight areas of interest, providing an immediate, impactful way to interpret spatial information.
+* [Instance Segmentation with Object Tracking](instance-segmentation-and-tracking.md) 🚀 NEW: Explore our feature on Object Segmentation in Bounding Boxes Shape, providing a visual representation of precise object boundaries for enhanced understanding and analysis.
+* [VisionEye View Objects Mapping](vision-eye.md) 🚀 NEW: This feature aim computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
+
 ## Contribute to Our Guides
 
 We welcome contributions from the community! If you've mastered a particular aspect of Ultralytics YOLO that's not yet covered in our guides, we encourage you to share your expertise. Writing a guide is a great way to give back to the community and help us make our documentation more comprehensive and user-friendly.

@@ -434,7 +434,7 @@ class HUBDatasetStats:
             data = check_cls_dataset(unzip_dir)
             data['path'] = unzip_dir
         else:  # detect, segment, pose
-            zipped, data_dir, yaml_path = self._unzip(Path(path))
+            _, data_dir, yaml_path = self._unzip(Path(path))
             try:
                 # Load YAML with checks
                 data = yaml_load(yaml_path)
@@ -516,10 +516,7 @@ class HUBDatasetStats:
             else:
                 from ultralytics.data import YOLODataset
 
-                dataset = YOLODataset(img_path=self.data[split],
-                                      data=self.data,
-                                      use_segments=self.task == 'segment',
-                                      use_keypoints=self.task == 'pose')
+                dataset = YOLODataset(img_path=self.data[split], data=self.data, task=self.task)
                 x = np.array([
                     np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
                     for label in TQDM(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)

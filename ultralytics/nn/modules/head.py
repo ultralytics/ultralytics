@@ -7,14 +7,14 @@ import torch
 import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils.tal import TORCH_1_10, dist2bbox, make_anchors
+from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 
 from .block import DFL, Proto
 from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init_
 
-__all__ = 'Detect', 'Segment', 'Pose', 'Classify', 'RTDETRDecoder'
+__all__ = 'Detect', 'Segment', 'Pose', 'Classify', 'OBB', 'RTDETRDecoder'
 
 
 class Detect(nn.Module):
@@ -41,22 +41,24 @@ class Detect(nn.Module):
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        shape = x[0].shape  # BCHW
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-        if self.training:
+        if self.training:  # Training path
             return x
-        elif self.dynamic or self.shape != shape:
+
+        # Inference path
+        shape = x[0].shape  # BCHW
+        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
+        if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape
 
-        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
             box = x_cat[:, :self.reg_max * 4]
             cls = x_cat[:, self.reg_max * 4:]
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-        dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+        dbox = self.decode_bboxes(box)
 
         if self.export and self.format in ('tflite', 'edgetpu'):
             # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
@@ -78,6 +80,10 @@ class Detect(nn.Module):
         for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
             b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+
+    def decode_bboxes(self, bboxes):
+        """Decode bounding boxes."""
+        return dist2bbox(self.dfl(bboxes), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
 
 
 class Segment(Detect):
@@ -104,6 +110,35 @@ class Segment(Detect):
         if self.training:
             return x, mc, p
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
+
+
+class OBB(Detect):
+    """YOLOv8 OBB detection head for detection with rotation models."""
+
+    def __init__(self, nc=80, ne=1, ch=()):
+        super().__init__(nc, ch)
+        self.ne = ne  # number of extra parameters
+        self.detect = Detect.forward
+
+        c4 = max(ch[0] // 4, self.ne)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.ne, 1)) for x in ch)
+
+    def forward(self, x):
+        bs = x[0].shape[0]  # batch size
+        angle = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
+        # NOTE: set `angle` as an attribute so that `decode_bboxes` could use it.
+        angle = (angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
+        # angle = angle.sigmoid() * math.pi / 2  # [0, pi/2]
+        if not self.training:
+            self.angle = angle
+        x = self.detect(self, x)
+        if self.training:
+            return x, angle
+        return torch.cat([x, angle], 1) if self.export else (torch.cat([x[0], angle], 1), (x[1], angle))
+
+    def decode_bboxes(self, bboxes):
+        """Decode rotated bounding boxes."""
+        return dist2rbox(self.dfl(bboxes), self.angle, self.anchors.unsqueeze(0), dim=1) * self.strides
 
 
 class Pose(Detect):
@@ -141,7 +176,7 @@ class Pose(Detect):
         else:
             y = kpts.clone()
             if ndim == 3:
-                y[:, 2::3].sigmoid_()  # inplace sigmoid
+                y[:, 2::3] = y[:, 2::3].sigmoid()  # sigmoid (WARNING: inplace .sigmoid_() Apple MPS bug)
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
@@ -303,7 +338,7 @@ class RTDETRDecoder(nn.Module):
             grid_y, grid_x = torch.meshgrid(sy, sx, indexing='ij') if TORCH_1_10 else torch.meshgrid(sy, sx)
             grid_xy = torch.stack([grid_x, grid_y], -1)  # (h, w, 2)
 
-            valid_WH = torch.tensor([h, w], dtype=dtype, device=device)
+            valid_WH = torch.tensor([w, h], dtype=dtype, device=device)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
             wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0 ** i)
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)

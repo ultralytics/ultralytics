@@ -4,7 +4,7 @@ description: Learn how to train datasets on single or multiple GPUs using YOLOv5
 keywords: YOLOv5, multi-GPU Training, YOLOv5 training, deep learning, machine learning, object detection, Ultralytics
 ---
 
-📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s). UPDATED 25 December 2022.
+📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s).
 
 ## Before You Start
 
@@ -55,7 +55,7 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 
 The code above will use GPUs `0... (N-1)`.
 
-<details markdown>
+<details>
   <summary>Use specific GPUs (click to expand)</summary>
 
 You can do so by simply passing `--device` followed by your specific GPUs. For example, in the code below, we will use GPUs `2,3`.
@@ -66,7 +66,7 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 
 </details>
 
-<details markdown>
+<details>
   <summary>Use SyncBatchNorm (click to expand)</summary>
 
 [SyncBatchNorm](https://pytorch.org/docs/master/generated/torch.nn.SyncBatchNorm.html) could increase accuracy for multiple gpu training, however, it will slow down training by a significant factor. It is **only** available for Multiple GPU DistributedDataParallel training.
@@ -81,12 +81,12 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 
 </details>
 
-<details markdown>
+<details>
   <summary>Use Multiple machines (click to expand)</summary>
 
 This is **only** available for Multiple GPU DistributedDataParallel training.
 
-Before we continue, make sure the files on all machines are the same, dataset, codebase, etc. Afterwards, make sure the machines can communicate to each other.
+Before we continue, make sure the files on all machines are the same, dataset, codebase, etc. Afterward, make sure the machines can communicate to each other.
 
 You will have to choose a master machine(the machine that the others will talk to). Note down its address(`master_addr`) and choose a port(`master_port`). I will use `master_addr = 192.168.1.1` and `master_port = 1234` for the example below.
 
@@ -123,7 +123,7 @@ python -m torch.distributed.run --master_port 1234 --nproc_per_node 2 ...
 
 DDP profiling results on an [AWS EC2 P4d instance](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/) with 8x A100 SXM4-40GB for YOLOv5l for 1 COCO epoch.
 
-<details markdown>
+<details>
   <summary>Profiling code</summary>
 
 ```bash
@@ -153,12 +153,12 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 
 If an error occurs, please read the checklist below first! (It could save your time)
 
-<details markdown>
+<details>
   <summary>Checklist (click to expand) </summary>
 
 <ul>
     <li>Have you properly read this post?  </li>
-    <li>Have you tried to reclone the codebase? The code changes <b>daily</b>.</li>
+    <li>Have you tried to re-clone the codebase? The code changes <b>daily</b>.</li>
     <li>Have you tried to search for your error? Someone may have already encountered it in this repo or in another and have the solution. </li>
     <li>Have you installed all the requirements listed on top (including the correct Python and Pytorch versions)? </li>
     <li>Have you tried in other environments listed in the "Environments" section below? </li>
@@ -169,21 +169,22 @@ If you went through all the above, feel free to raise an Issue by giving as much
 
 </details>
 
-## Environments
+## Supported Environments
 
-YOLOv5 is designed to be run in the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Notebooks** with free GPU: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
-- **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial/)
-- **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/)
-- **Docker Image**. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
+- **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
+- **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)
+- **Docker**: [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
-## Status
+## Project Status
 
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
-If this badge is green, all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are currently passing. CI tests verify correct operation of YOLOv5 [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py) and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py) on macOS, Windows, and Ubuntu every 24 hours and on every commit.
+This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
 
 ## Credits
 
-I would like to thank @MagicFrogSJTU, who did all the heavy lifting, and @glenn-jocher for guiding us along the way.
+We would like to thank @MagicFrogSJTU, who did all the heavy lifting, and @glenn-jocher for guiding us along the way.

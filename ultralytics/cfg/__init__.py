@@ -13,18 +13,25 @@ from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CF
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
-TASKS = 'detect', 'segment', 'classify', 'pose'
-TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet10', 'pose': 'coco8-pose.yaml'}
+TASKS = 'detect', 'segment', 'classify', 'pose', 'obb'
+TASK2DATA = {
+    'detect': 'coco8.yaml',
+    'segment': 'coco8-seg.yaml',
+    'classify': 'imagenet10',
+    'pose': 'coco8-pose.yaml',
+    'obb': 'dota8-obb.yaml'}  # not implemented yet
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
     'classify': 'yolov8n-cls.pt',
-    'pose': 'yolov8n-pose.pt'}
+    'pose': 'yolov8n-pose.pt',
+    'obb': 'yolov8n-obb.pt'}
 TASK2METRIC = {
     'detect': 'metrics/mAP50-95(B)',
     'segment': 'metrics/mAP50-95(M)',
     'classify': 'metrics/accuracy_top1',
-    'pose': 'metrics/mAP50-95(P)'}
+    'pose': 'metrics/mAP50-95(P)',
+    'obb': 'metrics/mAP50-95(OBB)'}
 
 CLI_HELP_MSG = \
     f"""
@@ -63,7 +70,7 @@ CLI_HELP_MSG = \
     """
 
 # Define keys for arg type checks
-CFG_FLOAT_KEYS = 'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear'
+CFG_FLOAT_KEYS = 'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear', 'time'
 CFG_FRACTION_KEYS = ('dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr',
                      'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud',
                      'fliplr', 'mosaic', 'mixup', 'copy_paste', 'conf', 'iou', 'fraction')  # fraction floats 0.0 - 1.0
@@ -72,7 +79,7 @@ CFG_INT_KEYS = ('epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic'
 CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'rect', 'cos_lr', 'overlap_mask', 'val',
                  'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf', 'save_crop',
                  'save_frames', 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks',
-                 'show_boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile')
+                 'show_boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile', 'multi_scale')
 
 
 def cfg2dict(cfg):
@@ -437,7 +444,7 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides and 'resume' not in overrides:
-            overrides['data'] = TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
+            overrides['data'] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:

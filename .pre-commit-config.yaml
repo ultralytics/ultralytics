@@ -32,7 +32,7 @@ repos:
         name: Upgrade code
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
       - id: isort
         name: Sort imports
@@ -50,15 +50,12 @@ repos:
         name: MD formatting
         additional_dependencies:
           - mdformat-gfm
-          - mdformat-black
+          # - mdformat-black
+          # - mdformat-frontmatter
+        args:
+          - --wrap=no
         exclude: 'docs/.*\.md'
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        name: PEP8
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
@@ -72,6 +69,12 @@ repos:
     rev: v1.7.5
     hooks:
       - id: docformatter
+
+  - repo: https://github.com/hadialqattan/pycln
+    rev: v2.4.0
+    hooks:
+      - id: pycln
+        args: [--all]
 
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0

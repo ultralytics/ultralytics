@@ -134,7 +134,7 @@ class BasePredictor:
         """Runs inference on a given image using the specified model and arguments."""
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
-        return self.model(im, augment=self.args.augment, visualize=visualize)
+        return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
     def pre_transform(self, im):
         """
@@ -210,8 +210,9 @@ class BasePredictor:
     def setup_source(self, source):
         """Sets up source and inference mode."""
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
-        self.transforms = getattr(self.model.model, 'transforms', classify_transforms(
-            self.imgsz[0])) if self.args.task == 'classify' else None
+        self.transforms = getattr(
+            self.model.model, 'transforms', classify_transforms(
+                self.imgsz[0], crop_fraction=self.args.crop_fraction)) if self.args.task == 'classify' else None
         self.dataset = load_inference_source(source=source,
                                              imgsz=self.imgsz,
                                              vid_stride=self.args.vid_stride,
@@ -263,6 +264,9 @@ class BasePredictor:
                 # Inference
                 with profilers[1]:
                     preds = self.inference(im, *args, **kwargs)
+                    if self.args.embed:
+                        yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embedding tensors
+                        continue
 
                 # Postprocess
                 with profilers[2]:
@@ -345,9 +349,10 @@ class BasePredictor:
         else:  # 'video' or 'stream'
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[idx] != save_path:  # new video
-                Path(frames_path).mkdir(parents=True, exist_ok=True)
                 self.vid_path[idx] = save_path
-                self.vid_frame[idx] = 0
+                if self.args.save_frames:
+                    Path(frames_path).mkdir(parents=True, exist_ok=True)
+                    self.vid_frame[idx] = 0
                 if isinstance(self.vid_writer[idx], cv2.VideoWriter):
                     self.vid_writer[idx].release()  # release previous video writer
                 if vid_cap:  # video
@@ -363,8 +368,9 @@ class BasePredictor:
             self.vid_writer[idx].write(im0)
 
             # Write frame
-            cv2.imwrite(f'{frames_path}{self.vid_frame[idx]}.jpg', im0)
-            self.vid_frame[idx] += 1
+            if self.args.save_frames:
+                cv2.imwrite(f'{frames_path}{self.vid_frame[idx]}.jpg', im0)
+                self.vid_frame[idx] += 1
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

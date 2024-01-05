@@ -172,7 +172,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
         fold_lbl_distrb.loc[f'split_{n}'] = ratio
     ```
 
-The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
+   The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
 
 4. Next, we create the directories and dataset YAML files for each split.
 

@@ -505,9 +505,61 @@ def test_hub():
     smart_request('GET', 'http://github.com', progress=True)
 
 
+@pytest.fixture
+def image():
+    return cv2.imread(str(SOURCE))
+
+
+@pytest.mark.parametrize(
+    'auto_augment, erasing, force_color_jitter',
+    [
+        (None, 0.0, False),
+        ('randaugment', 0.5, True),
+        ('augmix', 0.2, False),
+        ('autoaugment', 0.0, True), ],
+)
+def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
+    import torchvision.transforms as T
+
+    from ultralytics.data.augment import classify_augmentations
+
+    transform = classify_augmentations(
+        size=224,
+        mean=(0.5, 0.5, 0.5),
+        std=(0.5, 0.5, 0.5),
+        scale=(0.08, 1.0),
+        ratio=(3.0 / 4.0, 4.0 / 3.0),
+        hflip=0.5,
+        vflip=0.5,
+        auto_augment=auto_augment,
+        hsv_h=0.015,
+        hsv_s=0.4,
+        hsv_v=0.4,
+        force_color_jitter=force_color_jitter,
+        erasing=erasing,
+        interpolation=T.InterpolationMode.BILINEAR,
+    )
+
+    transformed_image = transform(Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)))
+
+    assert transformed_image.shape == (3, 224, 224)
+    assert torch.is_tensor(transformed_image)
+    assert transformed_image.dtype == torch.float32
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 def test_model_tune():
     """Tune YOLO model for performance."""
     YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
     YOLO('yolov8n-cls.pt').tune(data='imagenet10', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
+
+
+def test_model_embeddings():
+    """Test YOLO model embeddings."""
+    model_detect = YOLO(MODEL)
+    model_segment = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
+
+    for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
+        assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
+        assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)

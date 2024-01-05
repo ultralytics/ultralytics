@@ -89,7 +89,7 @@ class Results(SimpleClass):
         _keys (tuple): A tuple of attribute names for non-empty attributes.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None) -> None:
+    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None) -> None:
         """Initialize the Results class."""
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
@@ -97,11 +97,12 @@ class Results(SimpleClass):
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
+        self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.speed = {'preprocess': None, 'inference': None, 'postprocess': None}  # milliseconds per image
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = 'boxes', 'masks', 'probs', 'keypoints'
+        self._keys = 'boxes', 'masks', 'probs', 'keypoints', 'obb'
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
@@ -218,7 +219,8 @@ class Results(SimpleClass):
             img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
         names = self.names
-        pred_boxes, show_boxes = self.boxes, boxes
+        is_obb = self.obb is not None
+        pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
         annotator = Annotator(
@@ -239,12 +241,13 @@ class Results(SimpleClass):
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
-        if pred_boxes and show_boxes:
+        if pred_boxes is not None and show_boxes:
             for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
-                annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+                box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
+                annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -390,7 +393,7 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, track_id, conf, cls
+        assert n in (6, 7), f'expected 6 or 7 values but got {n}'  # xyxy, track_id, conf, cls
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
         self.orig_shape = orig_shape
@@ -571,3 +574,77 @@ class Probs(BaseTensor):
     def top5conf(self):
         """Return the confidences of top 5."""
         return self.data[self.top5]
+
+
+class OBB(BaseTensor):
+    """
+    A class for storing and manipulating Oriented Bounding Boxes (OBB).
+
+    Args:
+        boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes,
+            with shape (num_boxes, 7) or (num_boxes, 8). The last two columns contain confidence and class values.
+            If present, the third last column contains track IDs, and the fifth column from the left contains rotation.
+        orig_shape (tuple): Original image size, in the format (height, width).
+
+    Attributes:
+        xywhr (torch.Tensor | numpy.ndarray): The boxes in [x_center, y_center, width, height, rotation] format.
+        conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
+        cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
+        id (torch.Tensor | numpy.ndarray): The track IDs of the boxes (if available).
+        xyxyxyxy (torch.Tensor | numpy.ndarray): The boxes in xyxyxyxy format normalized by original image size.
+        data (torch.Tensor): The raw OBB tensor (alias for `boxes`).
+
+    Methods:
+        cpu(): Move the object to CPU memory.
+        numpy(): Convert the object to a numpy array.
+        cuda(): Move the object to CUDA memory.
+        to(*args, **kwargs): Move the object to the specified device.
+    """
+
+    def __init__(self, boxes, orig_shape) -> None:
+        """Initialize the Boxes class."""
+        if boxes.ndim == 1:
+            boxes = boxes[None, :]
+        n = boxes.shape[-1]
+        assert n in (7, 8), f'expected 7 or 8 values but got {n}'  # xywh, rotation, track_id, conf, cls
+        super().__init__(boxes, orig_shape)
+        self.is_track = n == 8
+        self.orig_shape = orig_shape
+
+    @property
+    def xywhr(self):
+        """Return the rotated boxes in xywhr format."""
+        return self.data[:, :5]
+
+    @property
+    def conf(self):
+        """Return the confidence values of the boxes."""
+        return self.data[:, -2]
+
+    @property
+    def cls(self):
+        """Return the class values of the boxes."""
+        return self.data[:, -1]
+
+    @property
+    def id(self):
+        """Return the track IDs of the boxes (if available)."""
+        return self.data[:, -3] if self.is_track else None
+
+    @property
+    @lru_cache(maxsize=2)
+    def xyxyxyxy(self):
+        """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
+        return ops.xywhr2xyxyxyxy(self.xywhr)
+
+    @property
+    @lru_cache(maxsize=2)
+    def xyxy(self):
+        """Return the horizontal boxes in xyxy format, (N, 4)."""
+        # This way to fit both torch and numpy version
+        x1 = self.xyxyxyxy[..., 0].min(1).values
+        x2 = self.xyxyxyxy[..., 0].max(1).values
+        y1 = self.xyxyxyxy[..., 1].min(1).values
+        y2 = self.xyxyxyxy[..., 1].max(1).values
+        xyxy = [x1, y1, x2, y2]
+        return np.stack(xyxy, axis=-1) if isinstance(self.data, np.ndarray) else torch.stack(xyxy, dim=-1)

@@ -3,6 +3,7 @@
 import contextlib
 import shutil
 import sys
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
@@ -48,6 +49,9 @@ CLI_HELP_MSG = \
 
     4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
+    
+    6. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
+        yolo explorer
 
     5. Run special commands:
         yolo help
@@ -289,6 +293,12 @@ def handle_yolo_settings(args: List[str]) -> None:
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
+def handle_explorer():
+    """
+    Open the Ultralytics Explorer GUI.
+    """
+    dir = str(ROOT/ "data" / "explorer" / "gui" / "dash.py")
+    subprocess.run(["streamlit", "run", dir])
 
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""
@@ -341,7 +351,9 @@ def entrypoint(debug=''):
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'hub': lambda: handle_yolo_hub(args[1:]),
         'login': lambda: handle_yolo_hub(args),
-        'copy-cfg': copy_default_cfg}
+        'copy-cfg': copy_default_cfg,
+        'explorer': lambda: handle_explorer()
+    }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
     # Define common misuses of special commands, i.e. -h, -help, --help

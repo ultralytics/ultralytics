@@ -99,6 +99,7 @@ def plot_similar_images(similar_set, plot_labels=True):
     fname = 'temp_exp_grid.jpg'
     img = plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, fname=fname,
                       max_subplots=len(images)).join()
-    img = cv2.imread(fname)
+    img = cv2.imread(fname, cv2.IMREAD_COLOR)
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     Path(fname).unlink()
-    return img
+    return img_rgb

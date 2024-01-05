@@ -106,7 +106,7 @@ class Model(nn.Module):
 
         session = HUBTrainingSession(model)
         return session if session.client.authenticated else None
-    
+
     @staticmethod
     def is_triton_model(model):
         """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""

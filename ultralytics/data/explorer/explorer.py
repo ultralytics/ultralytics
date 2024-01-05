@@ -325,7 +325,7 @@ class Explorer:
 
         def _yeild_sim_idx():
             for i in tqdm(range(len(embeddings))):
-                sim_idx = self.table.search(embeddings[i]).limit(top_k).to_df().query(f'_distance <= {max_dist}')
+                sim_idx = self.table.search(embeddings[i]).limit(top_k).to_pandas().query(f'_distance <= {max_dist}')
                 yield [{
                     'idx': i,
                     'im_file': im_files[i],

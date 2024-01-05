@@ -148,7 +148,7 @@ class BasePredictor:
             (list): A list of transformed images.
         """
         same_shapes = all(x.shape == im[0].shape for x in im)
-        letterbox = LetterBox(self.imgsz, auto=same_shapes and self.model.pt, stride=self.model.stride)
+        letterbox = LetterBox(self.imgsz, auto=self.args.rect and same_shapes and self.model.pt, stride=self.model.stride)
         return [letterbox(image=x) for x in im]
 
     def write_results(self, idx, results, batch):

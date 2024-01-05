@@ -75,6 +75,20 @@ class Explorer:
         self.progress = 0
 
     def create_embeddings_table(self, force=False, split='train'):
+        """
+        Create LanceDB table containing the embeddings of the images in the dataset. The table will be reused if it 
+        already exists. Pass force=True to overwrite the existing table.
+
+        Args:
+            force (bool): Whether to overwrite the existing table or not. Defaults to False.
+            split (str): Split of the dataset to use. Defaults to 'train'.
+        
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            ```
+        """
         if (self.table is not None and not force):
             logger.info('Table already exists. Reusing it. Pass force=True to overwrite it.')
             return
@@ -103,14 +117,14 @@ class Explorer:
         Schema = get_table_schema(vector_size)
         table = self.connection.create_table(self.table_name, schema=Schema, mode='overwrite')
         table.add(
-            self._yeild_batches(dataset,
+            self._yield_batches(dataset,
                                 data_info,
                                 self.model,
                                 exclude_keys=['img', 'ratio_pad', 'resized_shape', 'ori_shape', 'batch_idx']))
 
         self.table = table
 
-    def _yeild_batches(self, dataset, data_info, model, exclude_keys: List):
+    def _yield_batches(self, dataset, data_info, model, exclude_keys: List):
         # Implement Batching
         for i in tqdm(range(len(dataset))):
             self.progress = float(i + 1) / len(dataset)
@@ -126,13 +140,20 @@ class Explorer:
         Query the table for similar images. Accepts a single image or a list of images.
 
         Args:
-            img (str or list): Path to the image or a list of paths to the images.
+            imgs (str or list): Path to the image or a list of paths to the images.
             limit (int): Number of results to return.
 
         Returns:
             An arrow table containing the results. Supports converting to:
                 - pandas dataframe: `result.to_pandas()`
                 - dict of lists: `result.to_pydict()`
+        
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            similar = exp.query(img='https://ultralytics.com/images/zidane.jpg')
+            ```
         """
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
@@ -215,13 +236,18 @@ class Explorer:
         Args:
             img (str or list): Path to the image or a list of paths to the images.
             idx (int or list): Index of the image in the table or a list of indexes.
-            plot_labels (bool): Whether to plot the labels or not.
             limit (int): Number of results to return. Defaults to 25.
+            return_type (str): Type of the result to return. Can be either 'pandas' or 'arrow'. Defaults to 'pandas'.
 
         Returns:
-            An arrow table containing the results.
-                - pandas dataframe: `result.to_pandas()`
-                - dict of lists: `result.to_pydict()`
+            A table or pandas dataframe containing the results.
+        
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
+            ```
         """
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
@@ -238,11 +264,18 @@ class Explorer:
         Args:
             img (str or list): Path to the image or a list of paths to the images.
             idx (int or list): Index of the image in the table or a list of indexes.
-            plot_labels (bool): Whether to plot the labels or not.
+            labels (bool): Whether to plot the labels or not.
             limit (int): Number of results to return. Defaults to 25.
 
         Returns:
             PIL Image containing the plot.
+        
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            similar = exp.plot_similar(img='https://ultralytics.com/images/zidane.jpg')
+            ```
         """
         similar = self.get_similar(img, idx, limit, return_type='arrow')
         img = plot_similar_images(similar, plot_labels=labels)
@@ -252,16 +285,23 @@ class Explorer:
     def similarity_index(self, max_dist=0.2, top_k=None, force=False):
         """
         Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
-        are thres% or more similar to the image at a given index.
+        are max_dist or closer to the image in the embedding space at a given index.
 
         Args:
-            thres (float): Threshold for similarity. Defaults to 0.9.
-            max_dist (float): Percentage of data points to consider. Defaults to 0.01.
-            top_k (float): Percentage of data points to consider. Defaults to 0.01.
+            max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
+            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
+                            vector search. Defaults to 0.01.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            A pyarrow table containing the similarity index. It can be converted to pandas, pylist or pydict by using
+            A pandas dataframe containing the similarity index.
+        
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            sim_idx = exp.similarity_index()
+            ```
         """
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
@@ -300,12 +340,23 @@ class Explorer:
     def plot_similarity_index(self, max_dist=0.2, top_k=None, force=False):
         """
         Plot the similarity index of all the images in the table. Here, the index will contain the data points that are
-        thres% or more similar to the image at a given index.
+        max_dist or closer to the image in the embedding space at a given index.
 
         Args:
-            thres (float): Threshold for similarity. Defaults to 0.9.
-            top_k (float): Percentage of data points to consider. Defaults to 0.01.
+            max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
+            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
+                            vector search. Defaults to 0.01.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
+        
+        Returns:
+            PIL Image containing the plot.
+
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            exp.plot_similarity_index()
+            ```
         """
         sim_idx = self.similarity_index(max_dist=max_dist, top_k=top_k, force=force)
         sim_count = sim_idx['count'].tolist()

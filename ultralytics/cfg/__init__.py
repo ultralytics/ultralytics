@@ -298,7 +298,7 @@ def handle_explorer():
     Open the Ultralytics Explorer GUI.
     """
     dir = str(ROOT/ "data" / "explorer" / "gui" / "dash.py")
-    subprocess.run(["streamlit", "run", dir])
+    subprocess.run(["streamlit", "run", dir,  "--server.maxMessageSize", "2048"])
 
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""

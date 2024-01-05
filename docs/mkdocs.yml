@@ -218,6 +218,10 @@ nav:
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:
       - datasets/index.md
+      - Explorer: 
+          - datasets/explorer/index.md
+          - Explorer API: datasets/explorer/api.md
+          - VOC Exploration Example: datasets/explorer/explorer.ipynb
       - Detection:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
@@ -491,6 +495,7 @@ plugins:
       add_image: True
       add_share_buttons: True
       default_image: https://github.com/ultralytics/ultralytics/assets/26833433/6d09221c-c52a-4234-9a5d-b862e93c6529
+  - mkdocs-jupyter
   - redirects:
       redirect_maps:
         callbacks.md: usage/callbacks.md

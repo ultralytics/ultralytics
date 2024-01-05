@@ -23,6 +23,10 @@ keywords: Ultralytics, Loss functions, VarifocalLoss, BboxLoss, v8DetectionLoss,
 
 <br><br>
 
+## ::: ultralytics.utils.loss.RotatedBboxLoss
+
+<br><br>
+
 ## ::: ultralytics.utils.loss.KeypointLoss
 
 <br><br>
@@ -40,5 +44,9 @@ keywords: Ultralytics, Loss functions, VarifocalLoss, BboxLoss, v8DetectionLoss,
 <br><br>
 
 ## ::: ultralytics.utils.loss.v8ClassificationLoss
+
+<br><br>
+
+## ::: ultralytics.utils.loss.v8OBBLoss
 
 <br><br>

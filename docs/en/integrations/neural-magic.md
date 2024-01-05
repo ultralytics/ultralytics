@@ -146,7 +146,7 @@ DeepSparse provides additional features for practical integration of YOLOv8 in a
 
         # For evaluating model performance on a dataset
         deepsparse.yolov8.eval --model_path "path/to/yolov8n.onnx"
-            ```
+        ```
 
 Running the annotate command processes your specified image, detecting objects, and saving the annotated image with bounding boxes and classifications. The annotated image will be stored in an annotation-results folder. This helps provide a visual representation of the model's detection capabilities.
 

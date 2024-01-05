@@ -8,9 +8,14 @@ keywords: Ultralytics, YOLOv5, Roboflow, data organization, data labelling, data
 
 You can now use Roboflow to organize, label, prepare, version, and host your datasets for training YOLOv5 🚀 models. Roboflow is free to use with YOLOv5 if you make your workspace public.
 
-!!! Warning
+!!! Question "Licensing"
 
-    Roboflow users can use Ultralytics under the [AGPL license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) or procure an [Enterprise license](https://ultralytics.com/license) directly from Ultralytics. Be aware that Roboflow does **not** provide Ultralytics licenses, and it is the responsibility of the user to ensure appropriate licensing.
+    Ultralytics offers two licensing options:
+
+    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an OSI-approved open-source license ideal for students and enthusiasts.
+    - The [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
+
+    For more details see [Ultralytics Licensing](https://ultralytics.com/license).
 
 ## Upload
 

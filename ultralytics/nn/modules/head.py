@@ -378,15 +378,14 @@ class RTDETRDecoder(nn.Module):
 
         # Query selection
         # (bs, num_queries)
-        k = min(self.num_queries, enc_outputs_scores.size(1))
-        topk_ind = torch.topk(enc_outputs_scores.max(-1).values, k, dim=1).indices.view(-1)
+        topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
         # (bs, num_queries)
-        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, k).view(-1)
+        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
         # (bs, num_queries, 256)
-        top_k_features = features[batch_ind, topk_ind].view(bs, k, -1)
+        top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         # (bs, num_queries, 4)
-        top_k_anchors = anchors[:, topk_ind].view(bs, k, -1)
+        top_k_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
 
         # Dynamic anchors + static content
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
@@ -394,7 +393,7 @@ class RTDETRDecoder(nn.Module):
         enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
-        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, k, -1)
+        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
         embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
         if self.training:

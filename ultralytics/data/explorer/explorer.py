@@ -76,13 +76,13 @@ class Explorer:
 
     def create_embeddings_table(self, force=False, split='train'):
         """
-        Create LanceDB table containing the embeddings of the images in the dataset. The table will be reused if it 
+        Create LanceDB table containing the embeddings of the images in the dataset. The table will be reused if it
         already exists. Pass force=True to overwrite the existing table.
 
         Args:
             force (bool): Whether to overwrite the existing table or not. Defaults to False.
             split (str): Split of the dataset to use. Defaults to 'train'.
-        
+
         Example:
             ```python
             exp = Explorer()
@@ -147,7 +147,7 @@ class Explorer:
             An arrow table containing the results. Supports converting to:
                 - pandas dataframe: `result.to_pandas()`
                 - dict of lists: `result.to_pydict()`
-        
+
         Example:
             ```python
             exp = Explorer()
@@ -241,7 +241,7 @@ class Explorer:
 
         Returns:
             A table or pandas dataframe containing the results.
-        
+
         Example:
             ```python
             exp = Explorer()
@@ -269,7 +269,7 @@ class Explorer:
 
         Returns:
             PIL Image containing the plot.
-        
+
         Example:
             ```python
             exp = Explorer()
@@ -295,7 +295,7 @@ class Explorer:
 
         Returns:
             A pandas dataframe containing the similarity index.
-        
+
         Example:
             ```python
             exp = Explorer()
@@ -347,7 +347,7 @@ class Explorer:
             top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
                             vector search. Defaults to 0.01.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
-        
+
         Returns:
             PIL Image containing the plot.
 

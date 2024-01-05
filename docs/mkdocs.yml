@@ -218,7 +218,7 @@ nav:
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:
       - datasets/index.md
-      - Explorer: 
+      - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
           - GUI Dashboard Demo: datasets/explorer/dash.md

@@ -13,18 +13,25 @@ from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CF
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
-TASKS = 'detect', 'segment', 'classify', 'pose'
-TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet10', 'pose': 'coco8-pose.yaml'}
+TASKS = 'detect', 'segment', 'classify', 'pose', 'obb'
+TASK2DATA = {
+    'detect': 'coco8.yaml',
+    'segment': 'coco8-seg.yaml',
+    'classify': 'imagenet10',
+    'pose': 'coco8-pose.yaml',
+    'obb': 'dota8-obb.yaml'}  # not implemented yet
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
     'classify': 'yolov8n-cls.pt',
-    'pose': 'yolov8n-pose.pt'}
+    'pose': 'yolov8n-pose.pt',
+    'obb': 'yolov8n-obb.pt'}
 TASK2METRIC = {
     'detect': 'metrics/mAP50-95(B)',
     'segment': 'metrics/mAP50-95(M)',
     'classify': 'metrics/accuracy_top1',
-    'pose': 'metrics/mAP50-95(P)'}
+    'pose': 'metrics/mAP50-95(P)',
+    'obb': 'metrics/mAP50-95(OBB)'}
 
 CLI_HELP_MSG = \
     f"""
@@ -72,7 +79,7 @@ CFG_INT_KEYS = ('epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic'
 CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'rect', 'cos_lr', 'overlap_mask', 'val',
                  'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf', 'save_crop',
                  'save_frames', 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks',
-                 'show_boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile')
+                 'show_boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile', 'multi_scale')
 
 
 def cfg2dict(cfg):

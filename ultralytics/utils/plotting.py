@@ -100,25 +100,35 @@ class Annotator:
         self.limb_color = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
         self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
 
-    def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
+    def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
         """Add one xyxy box to image with label."""
         if isinstance(box, torch.Tensor):
             box = box.tolist()
         if self.pil or not is_ascii(label):
-            self.draw.rectangle(box, width=self.lw, outline=color)  # box
+            if rotated:
+                p1 = box[0]
+                # NOTE: PIL-version polygon needs tuple type.
+                self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)
+            else:
+                p1 = (box[0], box[1])
+                self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
                 w, h = self.font.getsize(label)  # text width, height
-                outside = box[1] - h >= 0  # label fits outside box
+                outside = p1[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
-                    (box[0], box[1] - h if outside else box[1], box[0] + w + 1,
-                     box[1] + 1 if outside else box[1] + h + 1),
+                    (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
                 )
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
-                self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
+                self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-            cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            if rotated:
+                p1 = [int(b) for b in box[0]]
+                # NOTE: cv2-version polylines needs np.asarray type.
+                cv2.polylines(self.im, [np.asarray(box, dtype=np.int)], True, color, self.lw)
+            else:
+                p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
@@ -563,6 +573,7 @@ def plot_images(images,
                 batch_idx,
                 cls,
                 bboxes=np.zeros(0, dtype=np.float32),
+                confs=None,
                 masks=np.zeros(0, dtype=np.uint8),
                 kpts=np.zeros((0, 51), dtype=np.float32),
                 paths=None,
@@ -618,27 +629,29 @@ def plot_images(images,
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype('int')
+            labels = confs is None
 
             if len(bboxes):
-                boxes = ops.xywh2xyxy(bboxes[idx, :4]).T
-                labels = bboxes.shape[1] == 4  # labels if no conf column
-                conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
-
-                if boxes.shape[1]:
-                    if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
-                        boxes[[0, 2]] *= w  # scale to pixels
-                        boxes[[1, 3]] *= h
+                boxes = bboxes[idx]
+                conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
+                if len(boxes):
+                    if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
+                        boxes[:, [0, 2]] *= w  # scale to pixels
+                        boxes[:, [1, 3]] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
-                        boxes *= scale
-                boxes[[0, 2]] += x
-                boxes[[1, 3]] += y
-                for j, box in enumerate(boxes.T.tolist()):
+                        boxes[:, :4] *= scale
+                boxes[:, 0] += x
+                boxes[:, 1] += y
+                is_obb = boxes.shape[-1] == 5  # xywhr
+                boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
+                for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
-                        annotator.box_label(box, label, color=color)
+                        annotator.box_label(box, label, color=color, rotated=is_obb)
+
             elif len(classes):
                 for c in classes:
                     color = colors(c)
@@ -847,7 +860,18 @@ def output_to_target(output, max_det=300):
         j = torch.full((conf.shape[0], 1), i)
         targets.append(torch.cat((j, cls, ops.xyxy2xywh(box), conf), 1))
     targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:]
+    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
+
+
+def output_to_rotated_target(output, max_det=300):
+    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
+    targets = []
+    for i, o in enumerate(output):
+        box, conf, cls, angle = o[:max_det].cpu().split((4, 1, 1, 1), 1)
+        j = torch.full((conf.shape[0], 1), i)
+        targets.append(torch.cat((j, cls, box, angle, conf), 1))
+    targets = torch.cat(targets, 0).numpy()
+    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
 
 
 def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detect/exp')):

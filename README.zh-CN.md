@@ -175,17 +175,34 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 </details>
 
+<details><summary>旋转检测 (DOTAv1)</summary>
+
+查看[旋转检测文档](https://docs.ultralytics.com/tasks/obb/)以获取这些在[DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v1/)上训练的模型的使用示例，其中包括15个预训练类别。
+
+| 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>pose<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
+| -------------------------------------------------------------------------------------------- | --------------- | ------------------ | --------------------------- | -------------------------------- | -------------- | ----------------- |
+| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-obb.pt) | 1024            | \<++>              | \<++>                       | 3.2                              | 23.3           |                   |
+| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-obb.pt) | 1024            | \<++>              | \<++>                       | 11.4                             | 76.3           |                   |
+| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-obb.pt) | 1024            | \<++>              | \<++>                       | 26.4                             | 208.6          |                   |
+| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-obb.pt) | 1024            | \<++>              | \<++>                       | 44.5                             | 433.8          |                   |
+| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024            | \<++>              | \<++>                       | 69.5                             | 676.7          |                   |
+
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [DOTAv1](https://captain-whu.github.io/DOTA/index.html) 数据集上的结果。 <br>通过 `yolo val obb data=DOTAv1.yaml device=0` 复现
+- **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu` 复现
+
+</details>
+
 <details><summary>分类 (ImageNet)</summary>
 
 查看[分类文档](https://docs.ultralytics.com/tasks/classify/)以获取这些在[ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/)上训练的模型的使用示例，其中包括1000个预训练类别。
 
 | 模型                                                                                           | 尺寸<br><sup>(像素) | acc<br><sup>top1 | acc<br><sup>top5 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 | -------------------------------------------------------------------------------------------- | --------------- | ---------------- | ---------------- | --------------------------- | -------------------------------- | -------------- | ------------------------ |
-| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224             | 66.6             | 87.0             | 12.9                        | 0.31                             | 2.7            | 4.3                      |
-| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224             | 72.3             | 91.1             | 23.4                        | 0.35                             | 6.4            | 13.5                     |
-| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224             | 76.4             | 93.2             | 85.4                        | 0.62                             | 17.0           | 42.7                     |
-| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224             | 78.0             | 94.1             | 163.0                       | 0.87                             | 37.5           | 99.7                     |
-| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                       | 1.01                             | 57.4           | 154.8                    |
+| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224             | 69.0             | 88.3             | 12.9                        | 0.31                             | 2.7            | 4.3                      |
+| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224             | 73.8             | 91.7             | 23.4                        | 0.35                             | 6.4            | 13.5                     |
+| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224             | 76.8             | 93.5             | 85.4                        | 0.62                             | 17.0           | 42.7                     |
+| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224             | 76.8             | 93.5             | 163.0                       | 0.87                             | 37.5           | 99.7                     |
+| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 79.0             | 94.6             | 232.0                       | 1.01                             | 57.4           | 154.8                    |
 
 - **acc** 值是模型在 [ImageNet](https://www.image-net.org/) 数据集验证集上的准确率。 <br>通过 `yolo val classify data=path/to/ImageNet device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 ImageNet val 图像进行平均计算的。 <br>通过 `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu` 复现

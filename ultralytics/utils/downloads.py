@@ -266,6 +266,7 @@ def safe_download(url,
                   curl=False,
                   retry=3,
                   min_bytes=1E0,
+                  exist_ok=False,
                   progress=True):
     """
     Downloads files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
@@ -282,6 +283,7 @@ def safe_download(url,
         retry (int, optional): The number of times to retry the download in case of failure. Default: 3.
         min_bytes (float, optional): The minimum number of bytes that the downloaded file should have, to be considered
             a successful download. Default: 1E0.
+        exist_ok (bool, optional): Whether to overwrite existing contents during unzipping. Defaults to False.
         progress (bool, optional): Whether to display a progress bar during the download. Default: True.
 
     Example:
@@ -342,7 +344,7 @@ def safe_download(url,
 
         unzip_dir = (dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
         if is_zipfile(f):
-            unzip_dir = unzip_file(file=f, path=unzip_dir, progress=progress)  # unzip
+            unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
         elif f.suffix in ('.tar', '.gz'):
             LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
             subprocess.run(['tar', 'xf' if f.suffix == '.tar' else 'xfz', f, '--directory', unzip_dir], check=True)
@@ -437,7 +439,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0', **
         return str(file)
 
 
-def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=1, retry=3):
+def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=1, retry=3, exist_ok=False):
     """
     Downloads files from specified URLs to a given directory. Supports concurrent downloads if multiple threads are
     specified.
@@ -450,6 +452,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
         curl (bool, optional): Flag to use curl for downloading. Defaults to False.
         threads (int, optional): Number of threads to use for concurrent downloads. Defaults to 1.
         retry (int, optional): Number of retries in case of download failure. Defaults to 3.
+        exist_ok (bool, optional): Whether to overwrite existing contents during unzipping. Defaults to False.
 
     Example:
         ```python
@@ -461,11 +464,16 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
     if threads > 1:
         with ThreadPool(threads) as pool:
             pool.map(
-                lambda x: safe_download(
-                    url=x[0], dir=x[1], unzip=unzip, delete=delete, curl=curl, retry=retry, progress=threads <= 1),
-                zip(url, repeat(dir)))
+                lambda x: safe_download(url=x[0],
+                                        dir=x[1],
+                                        unzip=unzip,
+                                        delete=delete,
+                                        curl=curl,
+                                        retry=retry,
+                                        exist_ok=exist_ok,
+                                        progress=threads <= 1), zip(url, repeat(dir)))
             pool.close()
             pool.join()
     else:
         for u in [url] if isinstance(url, (str, Path)) else url:
-            safe_download(url=u, dir=dir, unzip=unzip, delete=delete, curl=curl, retry=retry)
+            safe_download(url=u, dir=dir, unzip=unzip, delete=delete, curl=curl, retry=retry, exist_ok=exist_ok)

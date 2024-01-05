@@ -37,6 +37,8 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 * [Heatmaps](heatmaps.md) 🚀 NEW: Elevate your understanding of data with our Detection Heatmaps! These intuitive visual tools use vibrant color gradients to vividly illustrate the intensity of data values across a matrix. Essential in computer vision, heatmaps are skillfully designed to highlight areas of interest, providing an immediate, impactful way to interpret spatial information.
 * [Instance Segmentation with Object Tracking](instance-segmentation-and-tracking.md) 🚀 NEW: Explore our feature on Object Segmentation in Bounding Boxes Shape, providing a visual representation of precise object boundaries for enhanced understanding and analysis.
 * [VisionEye View Objects Mapping](vision-eye.md) 🚀 NEW: This feature aim computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
+* [Speed Estimation](speed-estimation.md) 🚀 NEW: Speed estimation in computer vision relies on analyzing object motion through techniques like [object tracking](https://docs.ultralytics.com/modes/track/), crucial for applications like autonomous vehicles and traffic monitoring.
+* [Distance Calculation](distance-calculation.md) 🚀 NEW: Distance calculation, which involves measuring the separation between two objects within a defined space, is a crucial aspect. In the context of Ultralytics YOLOv8, the method employed for this involves using the bounding box centroid to determine the distance associated with user-highlighted bounding boxes.
 
 ## Contribute to Our Guides
 

@@ -52,7 +52,7 @@ class Model(nn.Module):
         list(ultralytics.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None) -> None:
+    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None, inputCh = 3) -> None:
         """
         Initializes the YOLO model.
 
@@ -72,6 +72,7 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
+        self.inputCh = inputCh
         model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com

@@ -115,7 +115,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ['loss']
-        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir)
+        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, image_transforms=self.image_transforms, inputCh=self.inputCh)
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
@@ -156,3 +156,5 @@ class ClassificationTrainer(BaseTrainer):
                 cls=batch['cls'].view(-1),  # warning: use .view(), not .squeeze() for Classify models
                 fname=self.save_dir / f'train_batch{ni}.jpg',
                 on_plot=self.on_plot)
+        else:
+            LOGGER.info("Skipping plotting training samples for images that do not have 3 input channels.")

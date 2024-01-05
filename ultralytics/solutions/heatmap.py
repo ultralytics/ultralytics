@@ -158,7 +158,11 @@ class Heatmap:
         """
         self.im0 = im0
         if tracks[0].boxes.id is None:
-            return self.im0
+            if self.view_img and self.env_check:
+                self.display_frames()
+                return
+            else:
+                return
 
         self.heatmap *= self.decay_factor  # decay factor
         self.extract_results(tracks)
@@ -240,22 +244,16 @@ class Heatmap:
                                         txt_color=self.count_txt_color,
                                         color=self.count_color)
 
-        im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
+        self.im0 = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 
         if self.env_check and self.view_img:
-            self.display_frames(im0_with_heatmap)
+            self.display_frames()
 
-        return im0_with_heatmap
+        return self.im0
 
-    @staticmethod
-    def display_frames(im0_with_heatmap):
-        """
-        Display heatmap.
-
-        Args:
-            im0_with_heatmap (nd array): Original Image with heatmap
-        """
-        cv2.imshow('Ultralytics Heatmap', im0_with_heatmap)
+    def display_frames(self):
+        """Display frame."""
+        cv2.imshow('Ultralytics Heatmap', self.im0)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             return

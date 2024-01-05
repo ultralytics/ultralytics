@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-#
+
 # Overview:
 # This pyproject.toml file manages the build, packaging, and distribution of the Ultralytics library.
 # It defines essential project metadata, dependencies, and settings used to develop and deploy the library.
@@ -159,6 +159,9 @@ space_between_ending_comma_and_closing_bracket = true
 split_before_closing_bracket = false
 split_before_first_argument = false
 
+[tool.ruff]
+line-length = 120
+
 [tool.docformatter]
 wrap-summaries = 120
 wrap-descriptions = 120
@@ -167,5 +170,5 @@ pre-summary-newline = true
 close-quotes-on-newline = true
 
 [tool.codespell]
-ignore-words-list = "crate,nd,strack,dota,ane,segway,fo,gool,winn"
-skip = '*.csv,*venv*,docs/de,docs/fr,docs/pt,docs/es,docs/mkdocs_de.yml'
+ignore-words-list = "crate,nd,strack,dota,ane,segway,fo,gool,winn,commend"
+skip = '*.csv,*venv*,docs/??/,docs/mkdocs_??.yml'

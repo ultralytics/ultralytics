@@ -27,9 +27,7 @@ import lancedb
 class ExplorerDataset(YOLODataset):
 
     def __init__(self, *args, data=None, **kwargs):
-        task = kwargs.pop('task', 'detect')
-        logger.info(f'ExplorerDataset task: {task}')
-        super().__init__(*args, data=data, use_keypoints=task == 'pose', use_segments=task == 'segment', **kwargs)
+        super().__init__(*args, data=data, **kwargs)
 
     # NOTE: Load the image directly without any resize operations.
     def load_image(self, i):

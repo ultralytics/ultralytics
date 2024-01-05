@@ -31,16 +31,13 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 |                                                                 Transportation                                                                  |                                                                 Retail                                                                  |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------:|
-| ![Ultralytics YOLOv8 Transportation Heatmap](https://github.com/RizwanMunawar/ultralytics/assets/62513924/288d7053-622b-4452-b4e4-1f41aeb764aa) | ![Ultralytics YOLOv8 Retail Heatmap](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a9139af0-2cb7-41fe-a0d5-29a300dee768) |
+| ![Ultralytics YOLOv8 Transportation Heatmap](https://github.com/RizwanMunawar/ultralytics/assets/62513924/288d7053-622b-4452-b4e4-1f41aeb764aa) | ![Ultralytics YOLOv8 Retail Heatmap](https://github.com/RizwanMunawar/ultralytics/assets/62513924/edef75ad-50a7-4c0a-be4a-a66cdfc12802) |
 |                                                    Ultralytics YOLOv8 Transportation Heatmap                                                    |                                                    Ultralytics YOLOv8 Retail Heatmap                                                    |
 
-???+ tip "heatmap_alpha"
 
-    heatmap_alpha value should be in range (0.0 - 1.0)
-
-???+ tip "decay_factor"
-
-    Used for removal of heatmap after object removed from frame, value should be in range (0.0 - 1.0)
+???+ tip "Heatmap Configuration"
+    - `heatmap_alpha`: Ensure this value is within the range (0.0 - 1.0).
+    - `decay_factor`: Used for removing heatmap after an object is no longer in the frame, its value should also be in the range (0.0 - 1.0).
 
 
 !!! Example "Heatmaps using Ultralytics YOLOv8 Example"

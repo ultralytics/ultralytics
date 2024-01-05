@@ -53,10 +53,11 @@ def query_form():
 
 
 def find_similar_imgs(imgs):
-    exp = st.session_state[f"explorer"]
-    similar = exp.get_similar(img=imgs, limit=st.session_state.get("limit"), return_type="arrow")
-    paths = similar.to_pydict()["im_file"]
-    st.session_state["imgs"] = paths
+    exp = st.session_state[f'explorer']
+    similar = exp.get_similar(img=imgs, limit=st.session_state.get('limit'), return_type='arrow')
+    paths = similar.to_pydict()['im_file']
+    st.session_state['imgs'] = paths
+
 
 def similarity_form(selected_imgs):
     st.write('Similarity Search')
@@ -96,9 +97,10 @@ def similarity_form(selected_imgs):
 def run_sql_query():
     query = st.session_state.get('query')
     if query.rstrip().lstrip():
-        exp = st.session_state[f"explorer"]
-        res = exp.sql_query(query, return_type="arrow")
-        st.session_state["imgs"] = res.to_pydict()["im_file"]
+        exp = st.session_state[f'explorer']
+        res = exp.sql_query(query, return_type='arrow')
+        st.session_state['imgs'] = res.to_pydict()['im_file']
+
 
 def reset_explorer():
     st.session_state['explorer'] = None
@@ -135,14 +137,12 @@ def layout():
         with subcol1:
             st.write('Max Images Displayed:')
         with subcol2:
-            num = st.number_input(
-                "Max Images Displayed",
-                min_value=0,
-                max_value=total_imgs,
-                value=min(500, total_imgs),
-                key="num_imgs_displayed",
-                label_visibility="collapsed"
-            )
+            num = st.number_input('Max Images Displayed',
+                                  min_value=0,
+                                  max_value=total_imgs,
+                                  value=min(500, total_imgs),
+                                  key='num_imgs_displayed',
+                                  label_visibility='collapsed')
         with subcol3:
             st.write('Start Index:')
         with subcol4:

@@ -281,6 +281,8 @@ nav:
           - Heatmaps: guides/heatmaps.md
           - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
           - VisionEye Mapping: guides/vision-eye.md
+          - Speed Estimation: guides/speed-estimation.md
+          - Distance Calculation: guides/distance-calculation.md
   - Integrations:
       - integrations/index.md
       - Comet ML: integrations/comet.md
@@ -429,6 +431,8 @@ nav:
       - ai_gym: reference/solutions/ai_gym.md
       - heatmap: reference/solutions/heatmap.md
       - object_counter: reference/solutions/object_counter.md
+      - speed_estimation: reference/solutions/speed_estimation.md
+      - distance_calculation: reference/solutions/distance_calculation.md
     - trackers:
       - basetrack: reference/trackers/basetrack.md
       - bot_sort: reference/trackers/bot_sort.md

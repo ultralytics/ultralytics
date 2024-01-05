@@ -198,7 +198,9 @@ class ObjectCounter:
                                     txt_color=self.count_txt_color,
                                     color=self.count_color)
 
-        if self.env_check and self.view_img:
+    def display_frames(self):
+        """Display frame."""
+        if self.env_check:
             cv2.namedWindow('Ultralytics YOLOv8 Object Counter')
             if len(self.reg_pts) == 4:  # only add mouse event If user drawn region
                 cv2.setMouseCallback('Ultralytics YOLOv8 Object Counter', self.mouse_event_for_region,
@@ -219,8 +221,15 @@ class ObjectCounter:
         self.im0 = im0  # store image
 
         if tracks[0].boxes.id is None:
-            return
+            if self.view_img:
+                self.display_frames()
+                return
+            else:
+                return
         self.extract_and_process_tracks(tracks)
+
+        if self.view_img:
+            self.display_frames()
         return self.im0
 
 

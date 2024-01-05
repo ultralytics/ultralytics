@@ -102,6 +102,7 @@ def run_sql_query():
 
 def reset_explorer():
     st.session_state['explorer'] = None
+    st.session_state['imgs'] = None
 
 
 def utralytics_explorer_docs_callback():

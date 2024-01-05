@@ -249,6 +249,7 @@ class BaseTrainer:
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+        self.stride = gs  # for multi-scale training
 
         # Batch size
         if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
@@ -258,7 +259,11 @@ class BaseTrainer:
         batch_size = self.batch_size // max(world_size, 1)
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')
         if RANK in (-1, 0):
-            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val')
+            # NOTE: When training DOTA dataset, double batch size could get OOM cause some images got more than 2000 objects.
+            self.test_loader = self.get_dataloader(self.testset,
+                                                   batch_size=batch_size if self.args.task == 'obb' else batch_size * 2,
+                                                   rank=-1,
+                                                   mode='val')
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))

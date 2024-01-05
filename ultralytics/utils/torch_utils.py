@@ -275,7 +275,7 @@ def model_info_for_loggers(trainer):
 def get_flops(model, imgsz=640):
     """Return a YOLO model's FLOPs."""
     if not thop:
-        return 0.0  # if not installed return 0 FLOPs
+        return 0.0  # if not installed return 0.0 GFLOPs
 
     try:
         model = de_parallel(model)

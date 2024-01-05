@@ -34,3 +34,7 @@ keywords: Ultralytics, engine, results, base tensor, boxes, keypoints
 ## ::: ultralytics.engine.results.Probs
 
 <br><br>
+
+## ::: ultralytics.engine.results.OBB
+
+<br><br>

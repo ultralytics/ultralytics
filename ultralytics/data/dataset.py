@@ -11,6 +11,7 @@ import torchvision
 from PIL import Image
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
+from ultralytics.utils.ops import resample_segments
 
 from .augment import Compose, Format, Instances, LetterBox, classify_augmentations, classify_transforms, v8_transforms
 from .base import BaseDataset
@@ -26,17 +27,17 @@ class YOLODataset(BaseDataset):
 
     Args:
         data (dict, optional): A dataset YAML dictionary. Defaults to None.
-        use_segments (bool, optional): If True, segmentation masks are used as labels. Defaults to False.
-        use_keypoints (bool, optional): If True, keypoints are used as labels. Defaults to False.
+        task (str): An explicit arg to point current task, Defaults to 'detect'.
 
     Returns:
         (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.
     """
 
-    def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, **kwargs):
+    def __init__(self, *args, data=None, task='detect', **kwargs):
         """Initializes the YOLODataset with optional configurations for segments and keypoints."""
-        self.use_segments = use_segments
-        self.use_keypoints = use_keypoints
+        self.use_segments = task == 'segment'
+        self.use_keypoints = task == 'pose'
+        self.use_obb = task == 'obb'
         self.data = data
         assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
         super().__init__(*args, **kwargs)
@@ -148,6 +149,7 @@ class YOLODataset(BaseDataset):
                    normalize=True,
                    return_mask=self.use_segments,
                    return_keypoint=self.use_keypoints,
+                   return_obb=self.use_obb,
                    batch_idx=True,
                    mask_ratio=hyp.mask_ratio,
                    mask_overlap=hyp.overlap_mask))
@@ -165,10 +167,19 @@ class YOLODataset(BaseDataset):
         # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
         # We can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop('bboxes')
-        segments = label.pop('segments')
+        segments = label.pop('segments', [])
         keypoints = label.pop('keypoints', None)
         bbox_format = label.pop('bbox_format')
         normalized = label.pop('normalized')
+
+        # NOTE: do NOT resample oriented boxes
+        segment_resamples = 100 if self.use_obb else 1000
+        if len(segments) > 0:
+            # list[np.array(1000, 2)] * num_samples
+            # (N, 1000, 2)
+            segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
+        else:
+            segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
         label['instances'] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
         return label
 
@@ -182,7 +193,7 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == 'img':
                 value = torch.stack(value, 0)
-            if k in ['masks', 'keypoints', 'bboxes', 'cls']:
+            if k in ['masks', 'keypoints', 'bboxes', 'cls', 'segments', 'obb']:
                 value = torch.cat(value, 0)
             new_batch[k] = value
         new_batch['batch_idx'] = list(new_batch['batch_idx'])

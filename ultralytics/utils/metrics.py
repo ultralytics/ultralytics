@@ -165,6 +165,92 @@ def kpt_iou(kpt1, kpt2, area, sigma, eps=1e-7):
     return (torch.exp(-e) * kpt_mask[:, None]).sum(-1) / (kpt_mask.sum(-1)[:, None] + eps)
 
 
+def _get_covariance_matrix(boxes):
+    """
+    Generating covariance matrix from obbs.
+
+    Args:
+        boxes (torch.Tensor): A tensor of shape (N, 5) representing rotated bounding boxes, with xywhr format.
+
+    Returns:
+        (torch.Tensor): Covariance metrixs corresponding to original rotated bounding boxes.
+    """
+    # Gaussian bounding boxes, ignored the center points(the first two columns) cause it's not needed here.
+    gbbs = torch.cat((torch.pow(boxes[:, 2:4], 2) / 12, boxes[:, 4:]), dim=-1)
+    a, b, c = gbbs.split(1, dim=-1)
+    return (
+        a * torch.cos(c) ** 2 + b * torch.sin(c) ** 2,
+        a * torch.sin(c) ** 2 + b * torch.cos(c) ** 2,
+        a * torch.cos(c) * torch.sin(c) - b * torch.sin(c) * torch.cos(c),
+    )
+
+
+def probiou(obb1, obb2, CIoU=False, eps=1e-7):
+    """
+    Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
+
+    Args:
+        obb1 (torch.Tensor): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
+        obb2 (torch.Tensor): A tensor of shape (N, 5) representing predicted obbs, with xywhr format.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (torch.Tensor): A tensor of shape (N, ) representing obb similarities.
+    """
+    x1, y1 = obb1[..., :2].split(1, dim=-1)
+    x2, y2 = obb2[..., :2].split(1, dim=-1)
+    a1, b1, c1 = _get_covariance_matrix(obb1)
+    a2, b2, c2 = _get_covariance_matrix(obb2)
+
+    t1 = (((a1 + a2) * (torch.pow(y1 - y2, 2)) + (b1 + b2) * (torch.pow(x1 - x2, 2))) /
+          ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.25
+    t2 = (((c1 + c2) * (x2 - x1) * (y1 - y2)) / ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.5
+    t3 = torch.log(((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2))) /
+                   (4 * torch.sqrt((a1 * b1 - torch.pow(c1, 2)).clamp_(0) *
+                                   (a2 * b2 - torch.pow(c2, 2)).clamp_(0)) + eps) + eps) * 0.5
+    bd = t1 + t2 + t3
+    bd = torch.clamp(bd, eps, 100.0)
+    hd = torch.sqrt(1.0 - torch.exp(-bd) + eps)
+    iou = 1 - hd
+    if CIoU:  # only include the wh aspect ratio part
+        w1, h1 = obb1[..., 2:4].split(1, dim=-1)
+        w2, h2 = obb2[..., 2:4].split(1, dim=-1)
+        v = (4 / math.pi ** 2) * (torch.atan(w2 / h2) - torch.atan(w1 / h1)).pow(2)
+        with torch.no_grad():
+            alpha = v / (v - iou + (1 + eps))
+        return iou - v * alpha  # CIoU
+    return iou
+
+
+def batch_probiou(obb1, obb2, eps=1e-7):
+    """
+    Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
+
+    Args:
+        obb1 (torch.Tensor): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
+        obb2 (torch.Tensor): A tensor of shape (M, 5) representing predicted obbs, with xywhr format.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (torch.Tensor): A tensor of shape (N, M) representing obb similarities.
+    """
+    x1, y1 = obb1[..., :2].split(1, dim=-1)
+    x2, y2 = (x.squeeze(-1)[None] for x in obb2[..., :2].split(1, dim=-1))
+    a1, b1, c1 = _get_covariance_matrix(obb1)
+    a2, b2, c2 = (x.squeeze(-1)[None] for x in _get_covariance_matrix(obb2))
+
+    t1 = (((a1 + a2) * (torch.pow(y1 - y2, 2)) + (b1 + b2) * (torch.pow(x1 - x2, 2))) /
+          ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.25
+    t2 = (((c1 + c2) * (x2 - x1) * (y1 - y2)) / ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.5
+    t3 = torch.log(((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2))) /
+                   (4 * torch.sqrt((a1 * b1 - torch.pow(c1, 2)).clamp_(0) *
+                                   (a2 * b2 - torch.pow(c2, 2)).clamp_(0)) + eps) + eps) * 0.5
+    bd = t1 + t2 + t3
+    bd = torch.clamp(bd, eps, 100.0)
+    hd = torch.sqrt(1.0 - torch.exp(-bd) + eps)
+    return 1 - hd
+
+
 def smooth_BCE(eps=0.1):
     """
     Computes smoothed positive and negative Binary Cross-Entropy targets.
@@ -213,17 +299,17 @@ class ConfusionMatrix:
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
             self.matrix[p][t] += 1
 
-    def process_batch(self, detections, labels):
+    def process_batch(self, detections, gt_bboxes, gt_cls):
         """
         Update confusion matrix for object detection task.
 
         Args:
             detections (Array[N, 6]): Detected bounding boxes and their associated information.
                                       Each row should contain (x1, y1, x2, y2, conf, class).
-            labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
-                                  Each row should contain (class, x1, y1, x2, y2).
+            gt_bboxes (Array[M, 4]): Ground truth bounding boxes with xyxy format.
+            gt_cls (Array[M]): The class labels.
         """
-        if labels.size(0) == 0:  # Check if labels is empty
+        if gt_cls.size(0) == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
                 detection_classes = detections[:, 5].int()
@@ -231,15 +317,15 @@ class ConfusionMatrix:
                     self.matrix[dc, self.nc] += 1  # false positives
             return
         if detections is None:
-            gt_classes = labels.int()
+            gt_classes = gt_cls.int()
             for gc in gt_classes:
                 self.matrix[self.nc, gc] += 1  # background FN
             return
 
         detections = detections[detections[:, 4] > self.conf]
-        gt_classes = labels[:, 0].int()
+        gt_classes = gt_cls.int()
         detection_classes = detections[:, 5].int()
-        iou = box_iou(labels[:, 1:], detections[:, :4])
+        iou = box_iou(gt_bboxes, detections[:, :4])
 
         x = torch.where(iou > self.iou_thres)
         if x[0].shape[0]:
@@ -814,12 +900,12 @@ class SegmentMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.task = 'segment'
 
-    def process(self, tp_b, tp_m, conf, pred_cls, target_cls):
+    def process(self, tp, tp_m, conf, pred_cls, target_cls):
         """
         Processes the detection and segmentation metrics over the given set of predictions.
 
         Args:
-            tp_b (list): List of True Positive boxes.
+            tp (list): List of True Positive boxes.
             tp_m (list): List of True Positive masks.
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
@@ -837,7 +923,7 @@ class SegmentMetrics(SimpleClass):
                                     prefix='Mask')[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
-        results_box = ap_per_class(tp_b,
+        results_box = ap_per_class(tp,
                                    conf,
                                    pred_cls,
                                    target_cls,
@@ -938,12 +1024,12 @@ class PoseMetrics(SegmentMetrics):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.task = 'pose'
 
-    def process(self, tp_b, tp_p, conf, pred_cls, target_cls):
+    def process(self, tp, tp_p, conf, pred_cls, target_cls):
         """
         Processes the detection and pose metrics over the given set of predictions.
 
         Args:
-            tp_b (list): List of True Positive boxes.
+            tp (list): List of True Positive boxes.
             tp_p (list): List of True Positive keypoints.
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
@@ -961,7 +1047,7 @@ class PoseMetrics(SegmentMetrics):
                                     prefix='Pose')[2:]
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
-        results_box = ap_per_class(tp_b,
+        results_box = ap_per_class(tp,
                                    conf,
                                    pred_cls,
                                    target_cls,
@@ -1057,6 +1143,73 @@ class ClassifyMetrics(SimpleClass):
     def keys(self):
         """Returns a list of keys for the results_dict property."""
         return ['metrics/accuracy_top1', 'metrics/accuracy_top5']
+
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+
+    @property
+    def curves_results(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+
+
+class OBBMetrics(SimpleClass):
+
+    def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+        self.save_dir = save_dir
+        self.plot = plot
+        self.on_plot = on_plot
+        self.names = names
+        self.box = Metric()
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+
+    def process(self, tp, conf, pred_cls, target_cls):
+        """Process predicted results for object detection and update metrics."""
+        results = ap_per_class(tp,
+                               conf,
+                               pred_cls,
+                               target_cls,
+                               plot=self.plot,
+                               save_dir=self.save_dir,
+                               names=self.names,
+                               on_plot=self.on_plot)[2:]
+        self.box.nc = len(self.names)
+        self.box.update(results)
+
+    @property
+    def keys(self):
+        """Returns a list of keys for accessing specific metrics."""
+        return ['metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)']
+
+    def mean_results(self):
+        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
+        return self.box.mean_results()
+
+    def class_result(self, i):
+        """Return the result of evaluating the performance of an object detection model on a specific class."""
+        return self.box.class_result(i)
+
+    @property
+    def maps(self):
+        """Returns mean Average Precision (mAP) scores per class."""
+        return self.box.maps
+
+    @property
+    def fitness(self):
+        """Returns the fitness of box object."""
+        return self.box.fitness()
+
+    @property
+    def ap_class_index(self):
+        """Returns the average precision index per class."""
+        return self.box.ap_class_index
+
+    @property
+    def results_dict(self):
+        """Returns dictionary of computed performance metrics and statistics."""
+        return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
     @property
     def curves(self):

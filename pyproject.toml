@@ -91,7 +91,7 @@ dev = [
     "coverage[toml]",
     "mkdocs-material",
     "mkdocstrings[python]",
-    mkdocs-jupyter", # for notebooks
+    "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
     "mkdocs-ultralytics-plugin>=0.0.34", # for meta descriptions and images, dates and authors
 ]

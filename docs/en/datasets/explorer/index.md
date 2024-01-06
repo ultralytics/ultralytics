@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Understand the Ultralytics Explorer tool and API.
-keywords: Ultralytics, YOLO, Semantic search, vector similarity search, datasets, training, YAML, keypoints, COCO-Pose, COCO8-Pose, data conversion
+description: Discover the Ultralytics Explorer, a versatile tool and Python API for CV dataset exploration, enabling semantic search, SQL queries, and vector similarity searches.
+keywords: Ultralytics Explorer, CV Dataset Tools, Semantic Search, SQL Dataset Queries, Vector Similarity, Python API, GUI Explorer, Dataset Analysis, YOLO Explorer, Data Insights
 ---
 
 # Ultralytics Explorer

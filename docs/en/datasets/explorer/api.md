@@ -1,3 +1,9 @@
+---
+comments: true
+description: Explore and analyze CV datasets with Ultralytics Explorer API, offering SQL, vector similarity, and semantic searches for efficient dataset insights.
+keywords: Ultralytics Explorer API, Dataset Exploration, SQL Queries, Vector Similarity Search, Semantic Search, Embeddings Table, Image Similarity, Python API for Datasets, CV Dataset Analysis, LanceDB Integration
+---
+
 # Ultralytics Explorer API
 
 ## Introduction

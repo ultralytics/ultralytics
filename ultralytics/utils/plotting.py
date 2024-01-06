@@ -579,7 +579,8 @@ def plot_images(images,
                 paths=None,
                 fname='images.jpg',
                 names=None,
-                on_plot=None):
+                on_plot=None,
+                max_subplots=16):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
@@ -595,7 +596,7 @@ def plot_images(images,
         batch_idx = batch_idx.cpu().numpy()
 
     max_size = 1920  # max image size
-    max_subplots = 16  # max image subplots, i.e. 4x4
+    max_subplots = max_subplots  # max image subplots, i.e. 4x4
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs ** 0.5)  # number of subplots (square)
@@ -685,7 +686,7 @@ def plot_images(images,
                     image_masks = np.where(image_masks == index, 1.0, 0.0)
 
                 im = np.asarray(annotator.im).copy()
-                for j, box in enumerate(boxes.T.tolist()):
+                for j in range(len(image_masks)):
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         color = colors(classes[j])
                         mh, mw = image_masks[j].shape

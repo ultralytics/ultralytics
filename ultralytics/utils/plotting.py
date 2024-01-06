@@ -596,7 +596,6 @@ def plot_images(images,
         batch_idx = batch_idx.cpu().numpy()
 
     max_size = 1920  # max image size
-    max_subplots = max_subplots  # max image subplots, i.e. 4x4
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs ** 0.5)  # number of subplots (square)
@@ -605,12 +604,9 @@ def plot_images(images,
 
     # Build Image
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
-    for i, im in enumerate(images):
-        if i == max_subplots:  # if last batch has fewer images than we expect
-            break
+    for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        im = im.transpose(1, 2, 0)
-        mosaic[y:y + h, x:x + w, :] = im
+        mosaic[y:y + h, x:x + w, :] = images[i].transpose(1, 2, 0)
 
     # Resize (optional)
     scale = max_size / ns / max(h, w)
@@ -622,7 +618,7 @@ def plot_images(images,
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
-    for i in range(i + 1):
+    for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:

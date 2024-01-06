@@ -48,7 +48,7 @@ Create embeddings for your dataset, search for similar images, run SQL queries a
 - **Predict** new images and videos with YOLOv8 &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
 - **Train** a new YOLOv8 model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
 - **Tasks** YOLOv8 tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
-- **Explorer** Explore your CV datasets using semantic search, SQL quries and other advanced technques. Comes with an in-browser GUI dashboard! Learn more [here](datasets/explorer). &nbsp; [:material-magnify-expand: Explore Explorer](datasets/explorer/index.md){ .md-button }
+- **Explorer** Explore your CV datasets using semantic search, SQL queries and other advanced technques. Comes with an in-browser GUI dashboard! Learn more [here](datasets/explorer). &nbsp; [:material-magnify-expand: Explore Explorer](datasets/explorer/index.md){ .md-button }
 
 <p align="center">
   <br>

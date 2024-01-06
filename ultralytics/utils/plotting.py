@@ -580,7 +580,8 @@ def plot_images(images,
                 fname='images.jpg',
                 names=None,
                 on_plot=None,
-                max_subplots=16):
+                max_subplots=16,
+                save=True):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
@@ -695,9 +696,12 @@ def plot_images(images,
                         with contextlib.suppress(Exception):
                             im[y:y + h, x:x + w, :][mask] = im[y:y + h, x:x + w, :][mask] * 0.4 + np.array(color) * 0.6
                 annotator.fromarray(im)
-    annotator.im.save(fname)  # save
-    if on_plot:
-        on_plot(fname)
+    if save:
+        annotator.im.save(fname)  # save
+        if on_plot:
+            on_plot(fname)
+    else:
+        return np.asarray(annotator.im)
 
 
 @plt_settings()

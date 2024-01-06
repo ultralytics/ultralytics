@@ -303,8 +303,8 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_explorer():
     """Open the Ultralytics Explorer GUI."""
-    dir = str(ROOT / 'data' / 'explorer' / 'gui' / 'dash.py')
-    subprocess.run(['streamlit', 'run', dir, '--server.maxMessageSize', '2048'])
+    checks.check_requirements('streamlit')
+    subprocess.run(['streamlit', 'run', ROOT / 'data/explorer/gui/dash.py', '--server.maxMessageSize', '2048'])
 
 
 def parse_key_value_pair(pair):

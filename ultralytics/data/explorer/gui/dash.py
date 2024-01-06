@@ -19,7 +19,7 @@ def _get_explorer():
     progress_bar = st.progress(0, text='Creating embeddings table...')
     while exp.progress < 1:
         time.sleep(0.1)
-        progress_bar.progress(exp.progress, text=f'Progress: {exp.progress*100}%')
+        progress_bar.progress(exp.progress, text=f'Progress: {exp.progress * 100}%')
     thread.join()
     st.session_state['explorer'] = exp
     progress_bar.empty()
@@ -53,7 +53,7 @@ def query_form():
 
 
 def find_similar_imgs(imgs):
-    exp = st.session_state[f'explorer']
+    exp = st.session_state['explorer']
     similar = exp.get_similar(img=imgs, limit=st.session_state.get('limit'), return_type='arrow')
     paths = similar.to_pydict()['im_file']
     st.session_state['imgs'] = paths
@@ -84,7 +84,7 @@ def similarity_form(selected_imgs):
             st.error('Select at least one image to search.')
 
 
-#def persist_reset_form():
+# def persist_reset_form():
 #    with st.form("persist_reset"):
 #        col1, col2 = st.columns([1, 1])
 #        with col1:
@@ -97,7 +97,7 @@ def similarity_form(selected_imgs):
 def run_sql_query():
     query = st.session_state.get('query')
     if query.rstrip().lstrip():
-        exp = st.session_state[f'explorer']
+        exp = st.session_state['explorer']
         res = exp.sql_query(query, return_type='arrow')
         st.session_state['imgs'] = res.to_pydict()['im_file']
 
@@ -165,12 +165,12 @@ def layout():
                 f'Total samples: {total_imgs}',
                 images=imgs_displayed,
                 use_container_width=False,
-                #indices=[i for i in range(num)] if select_all else None,
+                # indices=[i for i in range(num)] if select_all else None,
             )
 
     with col2:
         similarity_form(selected_imgs)
-        #display_labels = st.checkbox("Labels", value=False, key="display_labels")
+        # display_labels = st.checkbox("Labels", value=False, key="display_labels")
         utralytics_explorer_docs_callback()
 
 

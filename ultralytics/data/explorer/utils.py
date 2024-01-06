@@ -8,7 +8,7 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import plot_images
 
-check_requirements('lancedb')
+check_requirements(['lancedb', 'duckdb'])
 from lancedb.pydantic import LanceModel, Vector
 
 

@@ -1,8 +1,11 @@
 # Ultralytics Explorer API
+
 ## Introduction
+
 The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search and semantic search.
 
 ## Installation
+
 Explorer depends on external libraries for some of its functionality. These are automatically installed on usage. To manually install these dependencies, use the following command:
 
 ```bash
@@ -10,6 +13,7 @@ pip install ultralytics[explorer]
 ```
 
 ## Usage
+
 ```python
 from ultralytics import Explorer
 
@@ -27,11 +31,15 @@ dataframe = explorer.search_similar_images(idx=0)
 ```
 
 ## 1. Similarity Search
+
 Similarity search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings.
 One the embeddings table is built, you can get run semantic search in any of the following ways:
+
 - On a given index / list of indices in the dataset like - `exp.get_similar(idx=[1,10], limit=10)`
-- On any image/ list of images not in the dataset  - `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`
-In case of multiple inputs, the aggregade of their embeddings is used.
+- On any image/ list of images not in the dataset - `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`
+-
+
+In case of multiple inputs, the aggregate of their embeddings is used.
 
 You get a pandas dataframe with the `limit` number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering
 
@@ -76,6 +84,7 @@ You get a pandas dataframe with the `limit` number of most similar data points t
         ```
 
 ### Plotting Similar Images
+
 You can also plot the similar images using the `plot_similar` method. This method takes the same arguments as `get_similar` and plots the similar images in a grid.
 
 !!! Example "Plotting Similar Images"
@@ -107,6 +116,7 @@ You can also plot the similar images using the `plot_similar` method. This metho
         ```
 
 ## 2. SQL Querying
+
 You can run SQL queries on your dataset using the `sql_query` method. This method takes a SQL query as input and returns a pandas dataframe with the results.
 
 !!! Example "SQL Query"
@@ -123,6 +133,7 @@ You can run SQL queries on your dataset using the `sql_query` method. This metho
     ```
 
 ### Plotting SQL Query Results
+
 You can also plot the results of a SQL query using the `plot_sql_query` method. This method takes the same arguments as `sql_query` and plots the results in a grid.
 
 !!! Example "Plotting SQL Query Results"
@@ -139,6 +150,7 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
     ```
 
 ## 3. Working with embeddings Table (Advanced)
+
 You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table`
 
 !!! Tip "Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre and post filters, etc."
@@ -156,6 +168,7 @@ Here are some examples of what you can do with the table:
 ### Get raw Embeddings
 
 !!! Example
+
     ```python
     from ultralytics import Explorer
 
@@ -170,6 +183,7 @@ Here are some examples of what you can do with the table:
 ### Advanced Querying with pre and post filters
 
 !!! Example
+
     ```python
     from ultralytics import Explorer
 
@@ -183,6 +197,7 @@ Here are some examples of what you can do with the table:
     ```
 
 ### Create Vector Index
+
 When using large datasets, you can also create a dedicated vector index for faster querying. This is done using the `create_index` method on LanceDB table.
 
 ```python
@@ -193,20 +208,25 @@ Find more details on the type vector indices available and parameters [here](htt
 In the future, we will add support for creating vector indices directly from Explorer API.
 
 ## 4. Embeddings Applications
+
 You can use the embeddings table to perform a variety of exploratory analysis. Here are some examples:
 
 ### Similarity Index
+
 Explorer comes with a `similarity_index` operation:
+
 * It tries to estimate how similar each data point is with the rest of the dataset.
-*  It does that by counting how many image embeddings lie closer than `max_dist` to the current image in the generated embedding space, considering `top_k` similar images at a time.
+* It does that by counting how many image embeddings lie closer than `max_dist` to the current image in the generated embedding space, considering `top_k` similar images at a time.
 
 It returns a pandas dataframe with the following columns:
+
 * `idx`: Index of the image in the dataset
 * `im_file`: Path to the image file
 * `count`: Number of images in the dataset that are closer than `max_dist` to the current image
 * `sim_im_files`: List of paths to the `count` similar images
 
 !!! Tip
+
     For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`.
 
 !!! Example "Similarity Index"
@@ -219,6 +239,7 @@ It returns a pandas dataframe with the following columns:
 
     sim_idx = exp.similarity_index()
     ```
+
 You can use similarity index to build custom conditions to filter out the dataset. For example, you can filter out images that are not similar to any other image in the dataset using the following code:
 
 ```python
@@ -229,6 +250,7 @@ sim_idx['im_file'][sim_count > 30]
 ```
 
 ### Visualize Embedding Space
+
 You can also visualize the embedding space using the plotting tool of your choice. For example here is a simple example using matplotlib:
 
 ```python
@@ -241,7 +263,7 @@ from mpl_toolkits.mplot3d import Axes3D
 pca = PCA(n_components=3)
 reduced_data = pca.fit_transform(embeddings)
 
-# Create a 3D scatter plot using Matplotlib's Axes3D
+# Create a 3D scatter plot using Matplotlib Axes3D
 fig = plt.figure(figsize=(8, 6))
 ax = fig.add_subplot(111, projection='3d')
 
@@ -258,11 +280,12 @@ plt.show()
 Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the
 
 # Apps Built Using Ultralytics Explorer
+
 Try our GUI Demo based on Explorer API
 
-
 # Coming Soon
+
 - [ ] Merge specific labels from datasets. Example - Import all `person` labels from COCO and `car` labels from Cityscapes
 - [ ] Remove images that have a higher similarity index than the given threshold
 - [ ] Automatically persist new datasets after merging/removing entries
-- [ ] Advanced Dataset Visualations
+- [ ] Advanced Dataset Visualizations

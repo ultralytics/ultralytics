@@ -97,8 +97,8 @@ def test_fastsam(task='segment', model=WEIGHTS_DIR / 'FastSAM-s.pt', data='coco8
     ann = prompt_process.text_prompt(text='a photo of a dog')
 
     # Point prompt
-    # points default [[0,0]] [[x1,y1],[x2,y2]]
-    # point_label default [0] [1,0] 0:background, 1:foreground
+    # Points default [[0,0]] [[x1,y1],[x2,y2]]
+    # Point_label default [0] [1,0] 0:background, 1:foreground
     ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
     prompt_process.plot(annotations=ann, output='./')
 

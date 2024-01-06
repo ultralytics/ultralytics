@@ -67,11 +67,16 @@ class LoadStreams:
         self.mode = 'stream'
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
+
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
-        self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.imgs, self.fps, self.frames, self.threads, self.shape = [[]] * n, [0] * n, [0] * n, [None] * n, [[]] * n
+        self.fps = [0] * n  # frames per second
+        self.frames = [0] * n
+        self.threads = [None] * n
         self.caps = [None] * n  # video capture objects
+        self.imgs = [[] for _ in range(n)]  # images
+        self.shape = [[] for _ in range(n)]  # image shapes
+        self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
@@ -451,7 +456,7 @@ class LoadTensor:
             im = im.unsqueeze(0)
         if im.shape[2] % stride or im.shape[3] % stride:
             raise ValueError(s)
-        if im.max() > 1.0:
+        if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
             LOGGER.warning(f'WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. '
                            f'Dividing input by 255.')
             im = im.float() / 255.0
@@ -493,7 +498,7 @@ def autocast_list(source):
 LOADERS = LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots  # tuple
 
 
-def get_best_youtube_url(url, use_pafy=False):
+def get_best_youtube_url(url, use_pafy=True):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 

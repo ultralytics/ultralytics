@@ -44,7 +44,7 @@ jobs:
         python-version: ['3.12']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
@@ -56,14 +56,6 @@ jobs:
       - name: Check environment
         run: |
           yolo checks
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
           pip list
       - name: Test HUB training
         shell: python
@@ -107,7 +99,7 @@ jobs:
         model: [yolov8n]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
@@ -115,22 +107,13 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" coverage --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
           # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
           # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
-          # yolo settings tensorboard=False
           yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
           yolo checks
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
           pip list
       #      - name: Benchmark DetectionModel
       #        shell: bash
@@ -175,7 +158,7 @@ jobs:
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
@@ -183,26 +166,24 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |  # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
+          torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
-          else
-              pip install -e . pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
+              torch="torch==1.8.0 torchvision==0.9.0"
           fi
+          pip install -e . $torch pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
           pip list
       - name: Pytest tests
         shell: bash  # for Windows compatibility
-        run: pytest --cov=ultralytics/ --cov-report xml tests/
+        run: |
+          slow=""
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              pip install mlflow pycocotools 'ray[tune]'
+              slow="--slow"
+          fi
+          pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v3
@@ -222,14 +203,6 @@ jobs:
       - name: Check environment
         run: |
           yolo checks
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
           pip list
       - name: Pytest tests
         run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
@@ -241,7 +214,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule_disabled' || github.event.inputs.conda == 'true')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -252,7 +225,7 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
           mamba-version: "*"
@@ -264,19 +237,12 @@ jobs:
           conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
         run: |
-          conda install -c pytorch -c conda-forge pytorch torchvision ultralytics
+          conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
       - name: Install pip packages
         run: |
-          pip install pytest 'coremltools>=7.0' # 'openvino-dev>=2023.0'
+          pip install pytest 'coremltools>=7.0'
       - name: Check environment
         run: |
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
           conda list
       - name: Test CLI
         run: |
@@ -297,7 +263,7 @@ jobs:
       - name: PyTest
         run: |
           git clone https://github.com/ultralytics/ultralytics
-          pytest ultralytics/tests/test_cli.py  # full tests fail due to openvino export failure
+          pytest ultralytics/tests
 
   Summary:
     runs-on: ubuntu-latest

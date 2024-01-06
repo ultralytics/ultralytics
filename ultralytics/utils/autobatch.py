@@ -34,7 +34,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     Args:
         model (torch.nn.module): YOLO model to compute batch size for.
         imgsz (int, optional): The image size used as input for the YOLO model. Defaults to 640.
-        fraction (float, optional): The fraction of available CUDA memory to use. Defaults to 0.67.
+        fraction (float, optional): The fraction of available CUDA memory to use. Defaults to 0.60.
         batch_size (int, optional): The default batch size to use if an error is detected. Defaults to 16.
 
     Returns:

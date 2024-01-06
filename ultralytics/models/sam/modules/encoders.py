@@ -10,8 +10,22 @@ import torch.nn.functional as F
 from ultralytics.nn.modules import LayerNorm2d, MLPBlock
 
 
-# This class and its supporting functions below lightly adapted from the ViTDet backbone available at: https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py # noqa
 class ImageEncoderViT(nn.Module):
+    """
+    An image encoder using Vision Transformer (ViT) architecture for encoding an image into a compact latent space. The
+    encoder takes an image, splits it into patches, and processes these patches through a series of transformer blocks.
+    The encoded patches are then processed through a neck to generate the final encoded representation.
+
+    This class and its supporting functions below lightly adapted from the ViTDet backbone available at
+    https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py.
+
+    Attributes:
+        img_size (int): Dimension of input images, assumed to be square.
+        patch_embed (PatchEmbed): Module for patch embedding.
+        pos_embed (nn.Parameter, optional): Absolute positional embedding for patches.
+        blocks (nn.ModuleList): List of transformer blocks for processing patch embeddings.
+        neck (nn.Sequential): Neck module to further process the output.
+    """
 
     def __init__(
             self,
@@ -112,6 +126,22 @@ class ImageEncoderViT(nn.Module):
 
 
 class PromptEncoder(nn.Module):
+    """
+    Encodes different types of prompts, including points, boxes, and masks, for input to SAM's mask decoder. The encoder
+    produces both sparse and dense embeddings for the input prompts.
+
+    Attributes:
+        embed_dim (int): Dimension of the embeddings.
+        input_image_size (Tuple[int, int]): Size of the input image as (H, W).
+        image_embedding_size (Tuple[int, int]): Spatial size of the image embedding as (H, W).
+        pe_layer (PositionEmbeddingRandom): Module for random position embedding.
+        num_point_embeddings (int): Number of point embeddings for different types of points.
+        point_embeddings (nn.ModuleList): List of point embeddings.
+        not_a_point_embed (nn.Embedding): Embedding for points that are not a part of any label.
+        mask_input_size (Tuple[int, int]): Size of the input mask.
+        mask_downscaling (nn.Sequential): Neural network for downscaling the mask.
+        no_mask_embed (nn.Embedding): Embedding for cases where no mask is provided.
+    """
 
     def __init__(
         self,
@@ -276,11 +306,11 @@ class PositionEmbeddingRandom(nn.Module):
 
     def _pe_encoding(self, coords: torch.Tensor) -> torch.Tensor:
         """Positionally encode points that are normalized to [0,1]."""
-        # assuming coords are in [0, 1]^2 square and have d_1 x ... x d_n x 2 shape
+        # Assuming coords are in [0, 1]^2 square and have d_1 x ... x d_n x 2 shape
         coords = 2 * coords - 1
         coords = coords @ self.positional_encoding_gaussian_matrix
         coords = 2 * np.pi * coords
-        # outputs d_1 x ... x d_n x C shape
+        # Outputs d_1 x ... x d_n x C shape
         return torch.cat([torch.sin(coords), torch.cos(coords)], dim=-1)
 
     def forward(self, size: Tuple[int, int]) -> torch.Tensor:
@@ -382,6 +412,8 @@ class Attention(nn.Module):
         input_size: Optional[Tuple[int, int]] = None,
     ) -> None:
         """
+        Initialize Attention module.
+
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
@@ -401,7 +433,7 @@ class Attention(nn.Module):
         self.use_rel_pos = use_rel_pos
         if self.use_rel_pos:
             assert (input_size is not None), 'Input size must be provided if using relative positional encoding.'
-            # initialize relative positional embeddings
+            # Initialize relative positional embeddings
             self.rel_pos_h = nn.Parameter(torch.zeros(2 * input_size[0] - 1, head_dim))
             self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
 
@@ -474,8 +506,8 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[in
 
 def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
     """
-    Get relative positional embeddings according to the relative positions of
-        query and key sizes.
+    Get relative positional embeddings according to the relative positions of query and key sizes.
+
     Args:
         q_size (int): size of query q.
         k_size (int): size of key k.
@@ -514,8 +546,9 @@ def add_decomposed_rel_pos(
     k_size: Tuple[int, int],
 ) -> torch.Tensor:
     """
-    Calculate decomposed Relative Positional Embeddings from :paper:`mvitv2`.
-    https://github.com/facebookresearch/mvit/blob/19786631e330df9f3622e5402b4a419a263a2c80/mvit/models/attention.py   # noqa B950
+    Calculate decomposed Relative Positional Embeddings from mvitv2 paper at
+    https://github.com/facebookresearch/mvit/blob/main/mvit/models/attention.py.
+
     Args:
         attn (Tensor): attention map.
         q (Tensor): query q in the attention layer with shape (B, q_h * q_w, C).
@@ -555,6 +588,8 @@ class PatchEmbed(nn.Module):
             embed_dim: int = 768,
     ) -> None:
         """
+        Initialize PatchEmbed module.
+
         Args:
             kernel_size (Tuple): kernel size of the projection layer.
             stride (Tuple): stride of the projection layer.

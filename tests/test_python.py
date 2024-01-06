@@ -132,20 +132,32 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not ONLINE, reason='environment is offline')
+def test_youtube():
+    """
+    Test YouTube inference.
+
+    Marked --slow to reduce YouTube API rate limits risk.
+    """
+    model = YOLO(MODEL)
+    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96, save=True)
+
+
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason='directory is not writeable')
 def test_track_stream():
     """
-    Test YouTube streaming tracking (short 10 frame video) with non-default ByteTrack tracker.
+    Test streaming tracking (short 10 frame video) with non-default ByteTrack tracker.
 
     Note imgsz=160 required for tracking for higher confidence and better matches
     """
     import yaml
 
+    video_url = 'https://ultralytics.com/assets/decelera_portrait_min.mov'
     model = YOLO(MODEL)
-    model.predict('https://youtu.be/G17sBkb38XQ', imgsz=96, save=True)
-    model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='bytetrack.yaml')
-    model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker='botsort.yaml')
+    model.track(video_url, imgsz=160, tracker='bytetrack.yaml')
+    model.track(video_url, imgsz=160, tracker='botsort.yaml', save_frames=True)  # test frame saving also
 
     # Test Global Motion Compensation (GMC) methods
     for gmc in 'orb', 'sift', 'ecc':
@@ -155,7 +167,7 @@ def test_track_stream():
         data['gmc_method'] = gmc
         with open(tracker, 'w', encoding='utf-8') as f:
             yaml.safe_dump(data, f)
-        model.track('https://ultralytics.com/assets/decelera_portrait_min.mov', imgsz=160, tracker=tracker)
+        model.track(video_url, imgsz=160, tracker=tracker)
 
 
 def test_val():
@@ -368,10 +380,10 @@ def test_cfg_init():
 
 def test_utils_init():
     """Test initialization utilities."""
-    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_actions_ci
+    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_action_running
 
     get_ubuntu_version()
-    is_github_actions_ci()
+    is_github_action_running()
     get_git_origin_url()
     get_git_branch()
 
@@ -493,52 +505,61 @@ def test_hub():
     smart_request('GET', 'http://github.com', progress=True)
 
 
+@pytest.fixture
+def image():
+    return cv2.imread(str(SOURCE))
+
+
+@pytest.mark.parametrize(
+    'auto_augment, erasing, force_color_jitter',
+    [
+        (None, 0.0, False),
+        ('randaugment', 0.5, True),
+        ('augmix', 0.2, False),
+        ('autoaugment', 0.0, True), ],
+)
+def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
+    import torchvision.transforms as T
+
+    from ultralytics.data.augment import classify_augmentations
+
+    transform = classify_augmentations(
+        size=224,
+        mean=(0.5, 0.5, 0.5),
+        std=(0.5, 0.5, 0.5),
+        scale=(0.08, 1.0),
+        ratio=(3.0 / 4.0, 4.0 / 3.0),
+        hflip=0.5,
+        vflip=0.5,
+        auto_augment=auto_augment,
+        hsv_h=0.015,
+        hsv_s=0.4,
+        hsv_v=0.4,
+        force_color_jitter=force_color_jitter,
+        erasing=erasing,
+        interpolation=T.InterpolationMode.BILINEAR,
+    )
+
+    transformed_image = transform(Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)))
+
+    assert transformed_image.shape == (3, 224, 224)
+    assert torch.is_tensor(transformed_image)
+    assert transformed_image.dtype == torch.float32
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason='environment is offline')
-def test_triton():
-    """Test NVIDIA Triton Server functionalities."""
-    checks.check_requirements('tritonclient[all]')
-    import subprocess
-    import time
+def test_model_tune():
+    """Tune YOLO model for performance."""
+    YOLO('yolov8n-pose.pt').tune(data='coco8-pose.yaml', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
+    YOLO('yolov8n-cls.pt').tune(data='imagenet10', plots=False, imgsz=32, epochs=1, iterations=2, device='cpu')
 
-    from tritonclient.http import InferenceServerClient  # noqa
 
-    # Create variables
-    model_name = 'yolo'
-    triton_repo_path = TMP / 'triton_repo'
-    triton_model_path = triton_repo_path / model_name
+def test_model_embeddings():
+    """Test YOLO model embeddings."""
+    model_detect = YOLO(MODEL)
+    model_segment = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
 
-    # Export model to ONNX
-    f = YOLO(MODEL).export(format='onnx', dynamic=True)
-
-    # Prepare Triton repo
-    (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
-    Path(f).rename(triton_model_path / '1' / 'model.onnx')
-    (triton_model_path / 'config.pdtxt').touch()
-
-    # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-    tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'  # 6.4 GB
-
-    # Pull the image
-    subprocess.call(f'docker pull {tag}', shell=True)
-
-    # Run the Triton server and capture the container ID
-    container_id = subprocess.check_output(
-        f'docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models',
-        shell=True).decode('utf-8').strip()
-
-    # Wait for the Triton server to start
-    triton_client = InferenceServerClient(url='localhost:8000', verbose=False, ssl=False)
-
-    # Wait until model is ready
-    for _ in range(10):
-        with contextlib.suppress(Exception):
-            assert triton_client.is_model_ready(model_name)
-            break
-        time.sleep(1)
-
-    # Check Triton inference
-    YOLO(f'http://localhost:8000/{model_name}', 'detect')(SOURCE)  # exported model inference
-
-    # Kill and remove the container at the end of the test
-    subprocess.call(f'docker kill {container_id}', shell=True)
+    for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
+        assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
+        assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)

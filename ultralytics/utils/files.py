@@ -45,7 +45,7 @@ def spaces_in_path(path):
         with ultralytics.utils.files import spaces_in_path
 
         with spaces_in_path('/path/with spaces') as new_path:
-            # your code here
+            # Your code here
         ```
     """
 
@@ -107,7 +107,7 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
         # Method 1
         for n in range(2, 9999):
             p = f'{path}{sep}{n}{suffix}'  # increment path
-            if not os.path.exists(p):  #
+            if not os.path.exists(p):
                 break
         path = Path(p)
 

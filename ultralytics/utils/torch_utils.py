@@ -15,6 +15,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, __version__
 from ultralytics.utils.checks import check_version
@@ -26,6 +27,9 @@ except ImportError:
 
 TORCH_1_9 = check_version(torch.__version__, '1.9.0')
 TORCH_2_0 = check_version(torch.__version__, '2.0.0')
+TORCHVISION_0_10 = check_version(torchvision.__version__, '0.10.0')
+TORCHVISION_0_11 = check_version(torchvision.__version__, '0.11.0')
+TORCHVISION_0_13 = check_version(torchvision.__version__, '0.13.0')
 
 
 @contextmanager
@@ -270,16 +274,26 @@ def model_info_for_loggers(trainer):
 
 def get_flops(model, imgsz=640):
     """Return a YOLO model's FLOPs."""
+    if not thop:
+        return 0.0  # if not installed return 0.0 GFLOPs
+
     try:
         model = de_parallel(model)
         p = next(model.parameters())
-        stride = max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32  # max stride
-        im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
-        flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1E9 * 2 if thop else 0  # stride GFLOPs
-        imgsz = imgsz if isinstance(imgsz, list) else [imgsz, imgsz]  # expand if int/float
-        return flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
+        if not isinstance(imgsz, list):
+            imgsz = [imgsz, imgsz]  # expand if int/float
+        try:
+            # Use stride size for input tensor
+            stride = max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32  # max stride
+            im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
+            flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1E9 * 2  # stride GFLOPs
+            return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
+        except Exception:
+            # Use actual image size for input tensor (i.e. required for RTDETR models)
+            im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
+            return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1E9 * 2  # imgsz GFLOPs
     except Exception:
-        return 0
+        return 0.0
 
 
 def get_flops_with_torch_profiler(model, imgsz=640):
@@ -311,8 +325,10 @@ def initialize_weights(model):
             m.inplace = True
 
 
-def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
-    # Scales img(bs,3,y,x) by ratio constrained to gs-multiple
+def scale_img(img, ratio=1.0, same_shape=False, gs=32):
+    """Scales and pads an image tensor of shape img(bs,3,y,x) based on given ratio and grid size gs, optionally
+    retaining the original shape.
+    """
     if ratio == 1.0:
         return img
     h, w = img.shape[2:]
@@ -361,7 +377,7 @@ def de_parallel(model):
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
     """Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf."""
-    return lambda x: ((1 - math.cos(x * math.pi / steps)) / 2) * (y2 - y1) + y1
+    return lambda x: max((1 - math.cos(x * math.pi / steps)) / 2, 0) * (y2 - y1) + y1
 
 
 def init_seeds(seed=0, deterministic=False):

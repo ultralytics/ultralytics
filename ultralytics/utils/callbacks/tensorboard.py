@@ -58,9 +58,10 @@ def on_train_start(trainer):
         _log_tensorboard_graph(trainer)
 
 
-def on_batch_end(trainer):
-    """Logs scalar statistics at the end of a training batch."""
+def on_train_epoch_end(trainer):
+    """Logs scalar statistics at the end of a training epoch."""
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix='train'), trainer.epoch + 1)
+    _log_scalars(trainer.lr, trainer.epoch + 1)
 
 
 def on_fit_epoch_end(trainer):
@@ -72,4 +73,4 @@ callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_start': on_train_start,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_batch_end': on_batch_end} if SummaryWriter else {}
+    'on_train_epoch_end': on_train_epoch_end} if SummaryWriter else {}

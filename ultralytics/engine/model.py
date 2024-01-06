@@ -9,7 +9,6 @@ from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, checks, emojis, yaml_load
-from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
 class Model(nn.Module):
@@ -88,16 +87,14 @@ class Model(nn.Module):
             return
 
         # Load or create new YOLO model
-        suffix = Path(model).suffix
-        if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
-            model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
-        if suffix in ('.yaml', '.yml'):
+        model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
+        if Path(model).suffix in ('.yaml', '.yml'):
             self._new(model, task)
         else:
             self._load(model, task)
 
     def __call__(self, source=None, stream=False, **kwargs):
-        """Calls the 'predict' function with given arguments to perform object detection."""
+        """Calls the predict() method with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
 
     @staticmethod
@@ -105,7 +102,7 @@ class Model(nn.Module):
         """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
         from urllib.parse import urlsplit
         url = urlsplit(model)
-        return url.netloc and url.path and url.scheme in {'http', 'grfc'}
+        return url.netloc and url.path and url.scheme in {'http', 'grpc'}
 
     @staticmethod
     def is_hub_model(model):
@@ -203,6 +200,24 @@ class Model(nn.Module):
         """Fuse PyTorch Conv2d and BatchNorm2d layers."""
         self._check_is_pytorch_model()
         self.model.fuse()
+
+    def embed(self, source=None, stream=False, **kwargs):
+        """
+        Calls the predict() method and returns image embeddings.
+
+        Args:
+            source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
+                Accepts all source types accepted by the YOLO model.
+            stream (bool): Whether to stream the predictions or not. Defaults to False.
+            **kwargs : Additional keyword arguments passed to the predictor.
+                Check the 'configuration' section in the documentation for all available options.
+
+        Returns:
+            (List[torch.Tensor]): A list of image embeddings.
+        """
+        if not kwargs.get('embed'):
+            kwargs['embed'] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
+        return self.predict(source, stream, **kwargs)
 
     def predict(self, source=None, stream=False, predictor=None, **kwargs):
         """
@@ -328,7 +343,7 @@ class Model(nn.Module):
         checks.check_pip_update_available()
 
         overrides = yaml_load(checks.check_yaml(kwargs['cfg'])) if kwargs.get('cfg') else self.overrides
-        custom = {'data': TASK2DATA[self.task]}  # method defaults
+        custom = {'data': DEFAULT_CFG_DICT['data'] or TASK2DATA[self.task]}  # method defaults
         args = {**overrides, **custom, **kwargs, 'mode': 'train'}  # highest priority args on the right
         if args.get('resume'):
             args['resume'] = self.ckpt_path

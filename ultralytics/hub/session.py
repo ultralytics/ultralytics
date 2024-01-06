@@ -23,7 +23,7 @@ class HUBTrainingSession:
 
     Attributes:
         agent_id (str): Identifier for the instance communicating with the server.
-        model_id (str): Identifier for the YOLOv5 model being trained.
+        model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
         api_url (str): API URL for the model in Ultralytics HUB.
         auth_header (dict): Authentication header for the Ultralytics HUB API requests.

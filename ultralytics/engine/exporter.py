@@ -64,12 +64,12 @@ import torch
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.nn.autobackend import check_class_names
+from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
                                colorstr, get_default_args, yaml_save)
-from ultralytics.utils.checks import check_imgsz, check_requirements, check_version
+from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
@@ -140,7 +140,7 @@ class Exporter:
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
-            _callbacks (list, optional): List of callback functions. Defaults to None.
+            _callbacks (dict, optional): Dictionary of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
         if self.args.format.lower() in ('coreml', 'mlmodel'):  # fix attempt for protobuf<3.20.x errors
@@ -172,6 +172,8 @@ class Exporter:
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
 
         # Checks
+        if not hasattr(model, 'names'):
+            model.names = default_class_names()
         model.names = check_class_names(model.names)
         if self.args.half and onnx and self.device.type == 'cpu':
             LOGGER.warning('WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0')
@@ -450,27 +452,27 @@ class Exporter:
         f = Path(str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}'))
         f_ts = self.file.with_suffix('.torchscript')
 
-        pnnx_filename = 'pnnx.exe' if WINDOWS else 'pnnx'
-        if Path(pnnx_filename).is_file():
-            pnnx = pnnx_filename
-        elif (ROOT / pnnx_filename).is_file():
-            pnnx = ROOT / pnnx_filename
-        else:
+        name = Path('pnnx.exe' if WINDOWS else 'pnnx')  # PNNX filename
+        pnnx = name if name.is_file() else ROOT / name
+        if not pnnx.is_file():
             LOGGER.warning(
                 f'{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from '
                 'https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory '
                 f'or in {ROOT}. See PNNX repo for full installation instructions.')
-            _, assets = get_github_assets(repo='pnnx/pnnx', retry=True)
-            system = 'macos' if MACOS else 'ubuntu' if LINUX else 'windows'  # operating system
-            asset = [x for x in assets if system in x][0] if assets else \
-                f'https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20230816-{system}.zip'  # fallback
-            asset = attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
-            unzip_dir = Path(asset).with_suffix('')
-            pnnx = ROOT / pnnx_filename  # new location
-            (unzip_dir / pnnx_filename).rename(pnnx)  # move binary to ROOT
-            shutil.rmtree(unzip_dir)  # delete unzip dir
-            Path(asset).unlink()  # delete zip
-            pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
+            system = ['macos'] if MACOS else ['windows'] if WINDOWS else ['ubuntu', 'linux']  # operating system
+            try:
+                _, assets = get_github_assets(repo='pnnx/pnnx', retry=True)
+                url = [x for x in assets if any(s in x for s in system)][0]
+            except Exception as e:
+                url = f'https://github.com/pnnx/pnnx/releases/download/20231127/pnnx-20231127-{system[0]}.zip'
+                LOGGER.warning(f'{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}')
+            asset = attempt_download_asset(url, repo='pnnx/pnnx', release='latest')
+            if check_is_path_safe(Path.cwd(), asset):  # avoid path traversal security vulnerability
+                unzip_dir = Path(asset).with_suffix('')
+                (unzip_dir / name).rename(pnnx)  # move binary to ROOT
+                shutil.rmtree(unzip_dir)  # delete unzip dir
+                Path(asset).unlink()  # delete zip
+                pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
 
         ncnn_args = [
             f'ncnnparam={f / "model.ncnn.param"}',
@@ -577,6 +579,8 @@ class Exporter:
     def export_engine(self, prefix=colorstr('TensorRT:')):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != 'cpu', "export running on CPU but must be on GPU, i.e. use 'device=0'"
+        f_onnx, _ = self.export_onnx()  # run before trt import https://github.com/ultralytics/ultralytics/issues/7016
+
         try:
             import tensorrt as trt  # noqa
         except ImportError:
@@ -585,8 +589,8 @@ class Exporter:
             import tensorrt as trt  # noqa
 
         check_version(trt.__version__, '7.0.0', hard=True)  # require tensorrt>=7.0.0
+
         self.args.simplify = True
-        f_onnx, _ = self.export_onnx()
 
         LOGGER.info(f'\n{prefix} starting export with TensorRT {trt.__version__}...')
         assert Path(f_onnx).exists(), f'failed to export ONNX file: {f_onnx}'
@@ -656,10 +660,20 @@ class Exporter:
             cmds='--extra-index-url https://pypi.ngc.nvidia.com')  # onnx_graphsurgeon only on NVIDIA
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
+        check_version(tf.__version__,
+                      '<=2.13.1',
+                      name='tensorflow',
+                      verbose=True,
+                      msg='https://github.com/ultralytics/ultralytics/issues/5161')
         f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if f.is_dir():
             import shutil
             shutil.rmtree(f)  # delete output folder
+
+        # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
+        onnx2tf_file = Path('calibration_image_sample_data_20x128x128x3_float32.npy')
+        if not onnx2tf_file.exists():
+            attempt_download_asset(f'{onnx2tf_file}.zip', unzip=True, delete=True)
 
         # Export to ONNX
         self.args.simplify = True
@@ -772,7 +786,8 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr('TensorFlow.js:')):
         """YOLOv8 TensorFlow.js export."""
-        check_requirements('tensorflowjs')
+        # JAX bug requiring install constraints in https://github.com/google/jax/issues/18978
+        check_requirements(['jax<=0.4.21', 'jaxlib<=0.4.21', 'tensorflowjs'])
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 
@@ -786,8 +801,9 @@ class Exporter:
         outputs = ','.join(gd_outputs(gd))
         LOGGER.info(f'\n{prefix} output node names: {outputs}')
 
+        quantization = '--quantize_float16' if self.args.half else '--quantize_uint8' if self.args.int8 else ''
         with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
-            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} "{fpb_}" "{f_}"'
+            cmd = f'tensorflowjs_converter --input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
             LOGGER.info(f"{prefix} running '{cmd}'")
             subprocess.run(cmd, shell=True)
 

@@ -13,6 +13,15 @@ from ultralytics.utils import TQDM
 
 
 class FastSAMPrompt:
+    """
+    Fast Segment Anything Model class for image annotation and visualization.
+
+    Attributes:
+        device (str): Computing device ('cuda' or 'cpu').
+        results: Object detection or segmentation results.
+        source: Source image or image path.
+        clip: CLIP model for linear assignment.
+    """
 
     def __init__(self, source, results, device='cuda') -> None:
         """Initializes FastSAMPrompt with given source, results and device, and assigns clip for linear assignment."""
@@ -92,12 +101,26 @@ class FastSAMPrompt:
              better_quality=True,
              retina=False,
              with_contours=True):
+        """
+        Plots annotations, bounding boxes, and points on images and saves the output.
+
+        Args:
+            annotations (list): Annotations to be plotted.
+            output (str or Path): Output directory for saving the plots.
+            bbox (list, optional): Bounding box coordinates [x1, y1, x2, y2]. Defaults to None.
+            points (list, optional): Points to be plotted. Defaults to None.
+            point_label (list, optional): Labels for the points. Defaults to None.
+            mask_random_color (bool, optional): Whether to use random color for masks. Defaults to True.
+            better_quality (bool, optional): Whether to apply morphological transformations for better mask quality. Defaults to True.
+            retina (bool, optional): Whether to use retina mask. Defaults to False.
+            with_contours (bool, optional): Whether to plot contours. Defaults to True.
+        """
         pbar = TQDM(annotations, total=len(annotations))
         for ann in pbar:
             result_name = os.path.basename(ann.path)
             image = ann.orig_img[..., ::-1]  # BGR to RGB
             original_h, original_w = ann.orig_shape
-            # for macOS only
+            # For macOS only
             # plt.switch_backend('TkAgg')
             plt.figure(figsize=(original_w / 100, original_h / 100))
             # Add subplot with no margin.
@@ -160,6 +183,20 @@ class FastSAMPrompt:
         target_height=960,
         target_width=960,
     ):
+        """
+        Quickly shows the mask annotations on the given matplotlib axis.
+
+        Args:
+            annotation (array-like): Mask annotation.
+            ax (matplotlib.axes.Axes): Matplotlib axis.
+            random_color (bool, optional): Whether to use random color for masks. Defaults to False.
+            bbox (list, optional): Bounding box coordinates [x1, y1, x2, y2]. Defaults to None.
+            points (list, optional): Points to be plotted. Defaults to None.
+            pointlabel (list, optional): Labels for the points. Defaults to None.
+            retinamask (bool, optional): Whether to use retina mask. Defaults to True.
+            target_height (int, optional): Target height for resizing. Defaults to 960.
+            target_width (int, optional): Target width for resizing. Defaults to 960.
+        """
         n, h, w = annotation.shape  # batch, height, width
 
         areas = np.sum(annotation, axis=(1, 2))
@@ -305,7 +342,7 @@ class FastSAMPrompt:
             max_idx = scores.argsort()
             max_idx = max_idx[-1]
             max_idx += sum(np.array(filter_id) <= int(max_idx))
-            self.results[0].masks.data = torch.tensor(np.array([ann['segmentation'] for ann in annotations]))
+            self.results[0].masks.data = torch.tensor(np.array([annotations[max_idx]['segmentation']]))
         return self.results
 
     def everything_prompt(self):

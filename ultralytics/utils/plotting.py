@@ -125,7 +125,7 @@ class Annotator:
             if rotated:
                 p1 = [int(b) for b in box[0]]
                 # NOTE: cv2-version polylines needs np.asarray type.
-                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)
+                cv2.polylines(self.im, [np.asarray(box, dtype=np.int)], True, color, self.lw)
             else:
                 p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
                 cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)

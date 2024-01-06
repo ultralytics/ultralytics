@@ -141,8 +141,7 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
 ## 3. Working with embeddings Table (Advanced)
 You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table` 
 
-!!! "Tip"
-    Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre and post filters, etc.
+!!! Tip "Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre and post filters, etc."
 
     ```python
     from ultralytics import Explorer
@@ -155,6 +154,8 @@ You can also work with the embeddings table directly. Once the embeddings table 
 Here are some examples of what you can do with the table:
 
 ### Get raw Embeddings
+
+!!! Example
     ```python
     from ultralytics import Explorer
 
@@ -167,6 +168,8 @@ Here are some examples of what you can do with the table:
     ```
 
 ### Advanced Querying with pre and post filters
+
+!!! Example
     ```python
     from ultralytics import Explorer
 

@@ -59,7 +59,7 @@ keywords: YOLOv5u، كشف الكائنات، النماذج المدربة مس
 ```python
 from ultralytics import YOLO
 
-#قم بتحميل نموذج YOLOv5n المدرب مسبقًا على مجموعة بيانات COCO
+# قم بتحميل نموذج YOLOv5n المدرب مسبقًا على مجموعة بيانات COCO
 model = YOLO('yolov5n.pt')
 
 # قم بعرض معلومات النموذج (اختياري)

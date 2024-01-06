@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # PASCAL VOC dataset http://host.robots.ox.ac.uk/pascal/VOC by University of Oxford
+# Documentation: # Documentation: https://docs.ultralytics.com/datasets/detect/voc/
 # Example usage: yolo train data=VOC.yaml
 # parent
 # ├── ultralytics

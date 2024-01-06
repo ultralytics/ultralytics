@@ -12,10 +12,9 @@ from tqdm import tqdm
 from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
-
-from ...models.yolo.model import YOLO
 
 check_requirements(['lancedb', 'duckdb'])
 

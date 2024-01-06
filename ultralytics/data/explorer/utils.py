@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 from ultralytics.data.augment import LetterBox
+from ultralytics.utils.ops import xyxy2xywh
 from ultralytics.utils.plotting import plot_images
 
 
@@ -86,7 +87,6 @@ def plot_similar_images(similar_set, plot_labels=True):
                 kpt[:, :, :2] *= r
                 plot_kpts.append(kpt)
         batch_idx.append(np.ones(len(np.array(bboxes[i], dtype=np.float32))) * i)
-    from ultralytics.utils.ops import xyxy2xywh
     imgs = np.stack(imgs, axis=0)
     masks = np.stack(plot_masks, axis=0) if len(plot_masks) > 0 else np.zeros(0, dtype=np.uint8)
     kpts = np.concatenate(plot_kpts, axis=0) if len(plot_kpts) > 0 else np.zeros((0, 51), dtype=np.float32)
@@ -95,8 +95,8 @@ def plot_similar_images(similar_set, plot_labels=True):
     cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 
     fname = 'temp_exp_grid.jpg'
-    img = plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, fname=fname,
-                      max_subplots=len(images)).join()
+    plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, fname=fname,
+                max_subplots=len(images)).join()
     img = cv2.imread(fname, cv2.IMREAD_COLOR)
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     Path(fname).unlink()

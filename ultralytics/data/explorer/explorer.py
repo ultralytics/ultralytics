@@ -307,7 +307,7 @@ class Explorer:
             LOGGER.info('Similarity matrix already exists. Reusing it. Pass force=True to overwrite it.')
             return self.connection.open_table(sim_idx_table_name).to_pandas()
 
-        if top_k and not (top_k <= 1.0 and top_k >= 0.0):
+        if top_k and not (1.0 >= top_k >= 0.0):
             raise ValueError(f'top_k must be between 0.0 and 1.0. Got {top_k}')
         if max_dist < 0.0:
             raise ValueError(f'max_dist must be greater than 0. Got {max_dist}')

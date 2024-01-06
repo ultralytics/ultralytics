@@ -3,8 +3,6 @@ from pathlib import Path
 from typing import List
 
 import cv2
-import duckdb
-import lancedb
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
@@ -15,14 +13,20 @@ from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import LOGGER as logger
+from ultralytics.utils.checks import check_requirements
 
 from ...models.yolo.model import YOLO
 from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
+
+check_requirements(['lancedb', 'duckdb'])
+import duckdb
+import lancedb
 
 
 class ExplorerDataset(YOLODataset):
 
     def __init__(self, *args, data=None, **kwargs):
+
         super().__init__(*args, data=data, **kwargs)
 
     # NOTE: Load the image directly without any resize operations.

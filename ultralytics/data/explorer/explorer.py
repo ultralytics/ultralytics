@@ -13,8 +13,7 @@ from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
-from ultralytics.utils import LOGGER as logger
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils import LOGGER, checks
 
 from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
 
@@ -56,7 +55,7 @@ class ExplorerDataset(YOLODataset):
 class Explorer:
 
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
-        check_requirements(['lancedb', 'duckdb'])
+        checks.check_requirements(['lancedb', 'duckdb'])
         import lancedb
 
         self.connection = lancedb.connect(uri)
@@ -85,11 +84,11 @@ class Explorer:
             exp.create_embeddings_table()
             ```
         """
-        if (self.table is not None and not force):
-            logger.info('Table already exists. Reusing it. Pass force=True to overwrite it.')
+        if self.table is not None and not force:
+            LOGGER.info('Table already exists. Reusing it. Pass force=True to overwrite it.')
             return
         if self.table_name in self.connection.table_names() and not force:
-            logger.info(f'Table {self.table_name} already exists. Reusing it. Pass force=True to overwrite it.')
+            LOGGER.info(f'Table {self.table_name} already exists. Reusing it. Pass force=True to overwrite it.')
             self.table = self.connection.open_table(self.table_name)
             self.progress = 1
             return
@@ -196,7 +195,7 @@ class Explorer:
                 'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause.')
         if query.startswith('WHERE'):
             query = f"SELECT * FROM 'table' {query}"
-        logger.info(f'Running query: {query}')
+        LOGGER.info(f'Running query: {query}')
 
         rs = duckdb.sql(query)
         if return_type == 'pandas':
@@ -305,7 +304,7 @@ class Explorer:
             raise ValueError('Table is not created. Please create the table first.')
         sim_idx_table_name = f'{self.sim_idx_base_name}_thres_{max_dist}_top_{top_k}'.lower()
         if sim_idx_table_name in self.connection.table_names() and not force:
-            logger.info('Similarity matrix already exists. Reusing it. Pass force=True to overwrite it.')
+            LOGGER.info('Similarity matrix already exists. Reusing it. Pass force=True to overwrite it.')
             return self.connection.open_table(sim_idx_table_name).to_pandas()
 
         if top_k and not (top_k <= 1.0 and top_k >= 0.0):
@@ -321,7 +320,7 @@ class Explorer:
 
         sim_table = self.connection.create_table(sim_idx_table_name, schema=get_sim_index_schema(), mode='overwrite')
 
-        def _yeild_sim_idx():
+        def _yield_sim_idx():
             for i in tqdm(range(len(embeddings))):
                 sim_idx = self.table.search(embeddings[i]).limit(top_k).to_pandas().query(f'_distance <= {max_dist}')
                 yield [{
@@ -330,7 +329,7 @@ class Explorer:
                     'count': len(sim_idx),
                     'sim_im_files': sim_idx['im_file'].tolist()}]
 
-        sim_table.add(_yeild_sim_idx())
+        sim_table.add(_yield_sim_idx())
         self.sim_index = sim_table
 
         return sim_table.to_pandas()
@@ -342,8 +341,8 @@ class Explorer:
 
         Args:
             max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
-            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
-                            vector search. Defaults to 0.01.
+            top_k (float): Percentage of closest data points to consider when counting. Used to apply limit when
+                running vector search. Defaults to 0.01.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:

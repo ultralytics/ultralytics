@@ -177,7 +177,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 <details><summary>旋转检测 (DOTAv1)</summary>
 
-查看[旋转检测文档](https://docs.ultralytics.com/tasks/obb/)以获取这些在[DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v1/)上训练的模型的使用示例，其中包括15个预训练类别。
+查看[旋转检测文档](https://docs.ultralytics.com/tasks/obb/)以获取这些在[DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/)上训练的模型的使用示例，其中包括15个预训练类别。
 
 | 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>pose<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------- | ------------------ | --------------------------- | -------------------------------- | -------------- | ----------------- |

@@ -4,7 +4,6 @@
 import math
 import warnings
 from pathlib import Path
-import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1109,12 +1108,10 @@ class RegressMetrics(SimpleClass):
         diff_t = torch.sub(targets, pred)
         outlier_ind = [i for i in range(len(diff_t)) if diff_t[i] > self.threshold(targets[i])]
         outlier_ims = [img_names[i] for i in outlier_ind]
-        outlier_pre = [pred[i] for i in outlier_ind]
-        outlier_gt = [targets[i] for i in outlier_ind]
-        outlier_ims_path = "outlier_ims_mwr_sq4x_l1_loss.txt"
+        outlier_ims_path = str(Path(outlier_ims[0]).parent) + "/outlier_ims.txt"
         with open(outlier_ims_path, "w") as fo:
-            for i in range(len(outlier_ims)):
-                fo.write(outlier_ims[i] + ',' + str(outlier_gt[i].item()) + ',' + str(outlier_pre[i].item()) + "\n")
+            for oi in outlier_ims:
+                fo.write(oi + "\n")
         self.mae = torch.mean(torch.abs(diff_t)).tolist()
         self.mse = torch.mean(torch.mul(diff_t, diff_t)).tolist()
 

@@ -1,6 +1,6 @@
 # Ultralytics Explorer API
 ## Introduction
-The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search and semantic search. 
+The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search and semantic search.
 
 ## Installation
 Explorer depends on external libraries for some of its functionality. These are automatically installed on usage. To manually install these dependencies, use the following command:
@@ -41,7 +41,7 @@ You get a pandas dataframe with the `limit` number of most similar data points t
 
         ```python
         from ultralytics import Explorer
-        
+
         # create an Explorer object
         exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
         exp.create_embeddings_table()
@@ -62,7 +62,7 @@ You get a pandas dataframe with the `limit` number of most similar data points t
 
         ```python
         from ultralytics import Explorer
-        
+
         # create an Explorer object
         exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
         exp.create_embeddings_table()
@@ -84,7 +84,7 @@ You can also plot the similar images using the `plot_similar` method. This metho
 
         ```python
         from ultralytics import Explorer
-        
+
         # create an Explorer object
         exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
         exp.create_embeddings_table()
@@ -97,7 +97,7 @@ You can also plot the similar images using the `plot_similar` method. This metho
 
         ```python
         from ultralytics import Explorer
-        
+
         # create an Explorer object
         exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
         exp.create_embeddings_table()
@@ -113,7 +113,7 @@ You can run SQL queries on your dataset using the `sql_query` method. This metho
 
     ```python
     from ultralytics import Explorer
-    
+
     # create an Explorer object
     exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
     exp.create_embeddings_table()
@@ -129,7 +129,7 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
 
     ```python
     from ultralytics import Explorer
-    
+
     # create an Explorer object
     exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
     exp.create_embeddings_table()
@@ -139,14 +139,14 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
     ```
 
 ## 3. Working with embeddings Table (Advanced)
-You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table` 
+You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table`
 
 !!! "Tip"
     Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre and post filters, etc.
 
     ```python
     from ultralytics import Explorer
-    
+
     exp = Explorer()
     exp.create_embeddings_table()
     table = exp.table
@@ -203,8 +203,8 @@ It returns a pandas dataframe with the following columns:
 * `count`: Number of images in the dataset that are closer than `max_dist` to the current image
 * `sim_im_files`: List of paths to the `count` similar images
 
-!!! Tip 
-    For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`. 
+!!! Tip
+    For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`.
 
 !!! Example "Similarity Index"
 
@@ -252,7 +252,7 @@ ax.set_zlabel('Component 3')
 plt.show()
 ```
 
-Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the 
+Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the
 
 # Apps Built Using Ultralytics Explorer
 Try our GUI Demo based on Explorer API
@@ -263,4 +263,3 @@ Try our GUI Demo based on Explorer API
 - [ ] Remove images that have a higher similarity index than the given threshold
 - [ ] Automatically persist new datasets after merging/removing entries
 - [ ] Advanced Dataset Visualations
-

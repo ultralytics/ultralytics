@@ -24,6 +24,6 @@ yolo explorer
 ```
 
 ### Explorer API
-This is a Python API for Exploring your datasets. It also powers the GUI Explorer. You can use this to create your own exploratory notebooks or scripts to get insights into your datasets. 
+This is a Python API for Exploring your datasets. It also powers the GUI Explorer. You can use this to create your own exploratory notebooks or scripts to get insights into your datasets.
 
 Learn more about the Explorer API [here](api.md).

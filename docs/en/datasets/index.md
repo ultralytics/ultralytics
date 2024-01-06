@@ -8,6 +8,13 @@ keywords: computer vision, datasets, Ultralytics, YOLO, object detection, instan
 
 Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, instance segmentation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
 
+## 🌟 New: Ultralytics Explorer 🌟
+
+Create embeddings for your dataset, search for similar images, run SQL queries and perform semantic search. You can get started with our GUI app or build your own using the API. Learn more [here](explorer/index.md).
+
+- Try the [GUI Demo](explorer/index.md)
+- Learn more about the [Explorer API](explorer/index.md)
+
 ## [Detection Datasets](detect/index.md)
 
 Bounding box object detection is a computer vision technique that involves detecting and localizing objects in an image by drawing a bounding box around each object.

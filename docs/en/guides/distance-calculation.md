@@ -65,7 +65,6 @@ Measuring the gap between two objects is known as distance calculation within a 
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
 
-
 ### Optional Arguments `set_args`
 
 | Name           | Type   | Default         | Description                                            |

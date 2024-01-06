@@ -93,5 +93,12 @@ def plot_similar_images(similar_set, plot_labels=True):
     batch_idx = np.concatenate(batch_idx, axis=0)
     cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 
-    return plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, max_subplots=len(images),
-                       save=False).join()
+    return plot_images(imgs,
+                       batch_idx,
+                       cls,
+                       bboxes=boxes,
+                       masks=masks,
+                       kpts=kpts,
+                       max_subplots=len(images),
+                       save=False,
+                       threaded=False)

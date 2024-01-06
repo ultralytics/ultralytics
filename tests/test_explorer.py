@@ -1,4 +1,5 @@
 from ultralytics import Explorer
+from ultralytics.utils import ASSETS
 
 
 def test_similarity():
@@ -6,7 +7,7 @@ def test_similarity():
     exp.create_embeddings_table()
     similar = exp.get_similar(idx=1)
     assert len(similar) == 25
-    similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
+    similar = exp.get_similar(img=ASSETS / 'zidane.jpg')
     assert len(similar) == 25
     similar = exp.get_similar(idx=[1, 2], limit=10)
     assert len(similar) == 10

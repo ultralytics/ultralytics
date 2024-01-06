@@ -16,18 +16,12 @@ from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
 
-check_requirements(['lancedb', 'duckdb'])
-
-import duckdb
-import lancedb
-
 from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
 
 
 class ExplorerDataset(YOLODataset):
 
     def __init__(self, *args, data=None, **kwargs):
-
         super().__init__(*args, data=data, **kwargs)
 
     # NOTE: Load the image directly without any resize operations.
@@ -62,6 +56,9 @@ class ExplorerDataset(YOLODataset):
 class Explorer:
 
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
+        check_requirements(['lancedb', 'duckdb'])
+        import lancedb
+
         self.connection = lancedb.connect(uri)
         self.table_name = Path(data).name.lower() + '_' + model.lower()
         self.sim_idx_base_name = f'{self.table_name}_sim_idx'.lower(
@@ -187,6 +184,8 @@ class Explorer:
             result = exp.sql_query(query)
             ```
         """
+        import duckdb
+
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
 

@@ -196,29 +196,21 @@ class Regress(nn.Module):
         padding, and groups.
         """
         super().__init__()
-        c_ = 1280 # 2 * c1 # 128 # Reference design (https://github.com/ahmetozlu/nonlinear_regression_keras)
-        #c_2 = 256
-        self.conv1 = Conv(c1, c_, k, s, p, g) #128 output channels
+        c_ = 1280  # 128 # Reference design (https://github.com/ahmetozlu/nonlinear_regression_keras)
+        c_2 = 256
+        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
         #self.conv2 = Conv(c_, c_, k, s, p, g) #32 output channels
         #self.conv3 = Conv(c_ // 4, c_ // 16, k, s, p, g) #8 output channels
         self.pool = nn.AdaptiveAvgPool2d(1)
         self.drop = nn.Dropout(p=0.0, inplace=True)
-        #self.fc1 = FullConn(c_, c_)
-        self.conv2_postpool = Conv(c_, c2, k, s, p, g, act=False)
+        self.conv2_postpool = Conv(c_2, c2, k, s, p, g, act=False)
         #self.linear = nn.Linear(c_, c2)  #1 output channel
 
     def forward(self, x):
         """Performs a forward pass of the YOLO model on input image data."""
         if isinstance(x, list):
             x = torch.cat(x, 1)
-        x = self.conv1(x)
-        #x = self.conv2(x)
-        #x = self.conv3(x)
-        x = self.pool(x)#.flatten(1)
-        x = self.drop(x)
-        #x = self.fc1(x)
-        x = self.conv2_postpool(x)
-        #x = self.linear(x)
+        x = self.conv2_postpool(self.drop(self.pool(self.conv1(x))))
         return x
 
 class RTDETRDecoder(nn.Module):

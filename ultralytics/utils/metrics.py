@@ -1106,7 +1106,6 @@ class RegressMetrics(SimpleClass):
     def process(self, targets, pred, img_names):
         """Target classes and predicted classes."""
         targets, pred = torch.cat(targets), torch.cat(pred)
-        img_names = [im_n for row in img_names for im_n in row]
         diff_t = torch.sub(targets, pred)
         outlier_ind = [i for i in range(len(diff_t)) if diff_t[i] > self.threshold(targets[i])]
         outlier_ims = [img_names[i] for i in outlier_ind]

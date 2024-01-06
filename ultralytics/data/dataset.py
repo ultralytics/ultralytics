@@ -3,6 +3,7 @@ import contextlib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
+import os
 
 import cv2
 import numpy as np
@@ -326,6 +327,14 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
             cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
         """
         super().__init__(root=root)
+        classes, class_to_val = self.find_classes(self.root)
+        samples = self.make_dataset(self.root, class_to_val, self.extensions)
+
+        self.classes = classes
+        self.class_to_idx = class_to_val
+        self.samples = samples
+        self.targets = [s[1] for s in samples]
+        
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[:round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f'{prefix}: ') if prefix else ''
@@ -367,6 +376,18 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
+    
+    def find_classes(self, directory) :
+        """Finds the class folders in a dataset, and creates class_to_idx such that key:value is regression_value:regression_value
+        
+        Override of method belonging to :class:`~torchvision.datasets.DatasetFolder`
+        """
+        classes = sorted(entry.name for entry in os.scandir(directory) if entry.is_dir())
+        if not classes:
+            raise FileNotFoundError(f"Couldn't find any class folder in {directory}.")
+
+        class_to_val = {cls_name: int(cls_name) for cls_name in classes}
+        return classes, class_to_val
 
     def verify_images(self):
         """Verify all images in dataset."""

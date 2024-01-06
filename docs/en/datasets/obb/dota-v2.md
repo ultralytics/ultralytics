@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Delve into DOTA v2, an Oriented Bounding Box (OBB) aerial imagery dataset with 1.7 million instances and 11,268 images.
-keywords: DOTA v2, object detection, aerial images, computer vision, deep learning, annotations, oriented bounding boxes, OBB
+description: Delve into DOTA, an Oriented Bounding Box (OBB) aerial imagery dataset with 1.7 million instances and 11,268 images.
+keywords: DOTA v1, DOTA v1.5, DOTA v2, object detection, aerial images, computer vision, deep learning, annotations, oriented bounding boxes, OBB
 ---
 
-# DOTA v2 Dataset with OBB
+# DOTA Dataset with OBB
 
-[DOTA v2](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
+[DOTA](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
 
-![DOTA v2 classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-266b-44a9-8199-199329bf5ca9.jpg)
+![DOTA classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-266b-44a9-8199-199329bf5ca9.jpg)
 
 ## Key Features
 
@@ -47,28 +47,28 @@ keywords: DOTA v2, object detection, aerial images, computer vision, deep learni
 
 ## Dataset Structure
 
-DOTA v2 exhibits a structured layout tailored for OBB object detection challenges:
+DOTA exhibits a structured layout tailored for OBB object detection challenges:
 
 - **Images**: A vast collection of high-resolution aerial images capturing diverse terrains and structures.
 - **Oriented Bounding Boxes**: Annotations in the form of rotated rectangles encapsulating objects irrespective of their orientation, ideal for capturing objects like airplanes, ships, and buildings.
 
 ## Applications
 
-DOTA v2 serves as a benchmark for training and evaluating models specifically tailored for aerial image analysis. With the inclusion of OBB annotations, it provides a unique challenge, enabling the development of specialized object detection models that cater to aerial imagery's nuances.
+DOTA serves as a benchmark for training and evaluating models specifically tailored for aerial image analysis. With the inclusion of OBB annotations, it provides a unique challenge, enabling the development of specialized object detection models that cater to aerial imagery's nuances.
 
 ## Dataset YAML
 
-Typically, datasets incorporate a YAML (Yet Another Markup Language) file detailing the dataset's configuration. For DOTA v2, a hypothetical `DOTAv2.yaml` could be used. For accurate paths and configurations, it's vital to consult the dataset's official repository or documentation.
+Typically, datasets incorporate a YAML (Yet Another Markup Language) file detailing the dataset's configuration. For DOTA v1 and DOTA v1.5, Ultralytics provides `DOTAv1.yaml` and `DOTAv1.5.yaml` files. For additional details on these as well as DOTA v2 please consult DOTA's official repository and documentation.
 
-!!! Example "DOTAv2.yaml"
+!!! Example "DOTAv1.yaml"
 
     ```yaml
-    --8<-- "ultralytics/cfg/datasets/DOTAv2.yaml"
+    --8<-- "ultralytics/cfg/datasets/DOTAv1.yaml"
     ```
 
 ## Usage
 
-To train a model on the DOTA v2 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments.
+To train a model on the DOTA v1 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments.
 
 !!! Warning
 
@@ -85,14 +85,14 @@ To train a model on the DOTA v2 dataset, you can utilize the following code snip
         model = YOLO('yolov8n-obb.yaml')
 
         # Train the model on the DOTAv2 dataset
-        results = model.train(data='DOTAv2.yaml', epochs=100, imgsz=640)
+        results = model.train(data='DOTAv1.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
-        yolo detect train data=DOTAv2.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=DOTAv1.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -101,13 +101,13 @@ Having a glance at the dataset illustrates its depth:
 
 ![Dataset sample image](https://captain-whu.github.io/DOTA/images/instances-DOTA.jpg)
 
-- **DOTA v2**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented Bounding Box annotations, capturing objects in their natural orientation.
+- **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented Bounding Box annotations, capturing objects in their natural orientation.
 
 The dataset's richness offers invaluable insights into object detection challenges exclusive to aerial imagery.
 
 ## Citations and Acknowledgments
 
-For those leveraging DOTA v2 in their endeavors, it's pertinent to cite the relevant research papers:
+For those leveraging DOTA in their endeavors, it's pertinent to cite the relevant research papers:
 
 !!! Quote ""
 
@@ -126,4 +126,4 @@ For those leveraging DOTA v2 in their endeavors, it's pertinent to cite the rele
         }
         ```
 
-A special note of gratitude to the team behind DOTA v2 for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DOTA v2 website](https://captain-whu.github.io/DOTA/index.html).
+A special note of gratitude to the team behind the DOTA datasets for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DOTA website](https://captain-whu.github.io/DOTA/index.html).

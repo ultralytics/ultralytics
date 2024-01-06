@@ -65,8 +65,7 @@ theme:
 
 # Customization
 copyright: <a href="https://ultralytics.com" target="_blank">© 2023 Ultralytics Inc.</a> All rights reserved.
-extra:
-  # version:
+extra: # version:
   #   provider: mike  #  version drop-down menu
   robots: robots.txt
   analytics:
@@ -220,6 +219,11 @@ nav:
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:
       - datasets/index.md
+      - Explorer:
+          - datasets/explorer/index.md
+          - Explorer API: datasets/explorer/api.md
+          - GUI Dashboard Demo: datasets/explorer/dash.md
+          - VOC Exploration Example: datasets/explorer/explorer.ipynb
       - Detection:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
@@ -341,137 +345,137 @@ nav:
       - Inference API: hub/inference_api.md
 
   - Reference:
-    - cfg:
-      - __init__: reference/cfg/__init__.md
-    - data:
-      - annotator: reference/data/annotator.md
-      - augment: reference/data/augment.md
-      - base: reference/data/base.md
-      - build: reference/data/build.md
-      - converter: reference/data/converter.md
-      - dataset: reference/data/dataset.md
-      - loaders: reference/data/loaders.md
-      - split_dota: reference/data/split_dota.md
-      - utils: reference/data/utils.md
-    - engine:
-      - exporter: reference/engine/exporter.md
-      - model: reference/engine/model.md
-      - predictor: reference/engine/predictor.md
-      - results: reference/engine/results.md
-      - trainer: reference/engine/trainer.md
-      - tuner: reference/engine/tuner.md
-      - validator: reference/engine/validator.md
-    - hub:
-      - __init__: reference/hub/__init__.md
-      - auth: reference/hub/auth.md
-      - session: reference/hub/session.md
-      - utils: reference/hub/utils.md
-    - models:
-      - fastsam:
-        - model: reference/models/fastsam/model.md
-        - predict: reference/models/fastsam/predict.md
-        - prompt: reference/models/fastsam/prompt.md
-        - utils: reference/models/fastsam/utils.md
-        - val: reference/models/fastsam/val.md
-      - nas:
-        - model: reference/models/nas/model.md
-        - predict: reference/models/nas/predict.md
-        - val: reference/models/nas/val.md
-      - rtdetr:
-        - model: reference/models/rtdetr/model.md
-        - predict: reference/models/rtdetr/predict.md
-        - train: reference/models/rtdetr/train.md
-        - val: reference/models/rtdetr/val.md
-      - sam:
-        - amg: reference/models/sam/amg.md
-        - build: reference/models/sam/build.md
-        - model: reference/models/sam/model.md
-        - modules:
-          - decoders: reference/models/sam/modules/decoders.md
-          - encoders: reference/models/sam/modules/encoders.md
-          - sam: reference/models/sam/modules/sam.md
-          - tiny_encoder: reference/models/sam/modules/tiny_encoder.md
-          - transformer: reference/models/sam/modules/transformer.md
-        - predict: reference/models/sam/predict.md
+      - cfg:
+          - __init__: reference/cfg/__init__.md
+      - data:
+          - annotator: reference/data/annotator.md
+          - augment: reference/data/augment.md
+          - base: reference/data/base.md
+          - build: reference/data/build.md
+          - converter: reference/data/converter.md
+          - dataset: reference/data/dataset.md
+          - loaders: reference/data/loaders.md
+          - split_dota: reference/data/split_dota.md
+          - utils: reference/data/utils.md
+      - engine:
+          - exporter: reference/engine/exporter.md
+          - model: reference/engine/model.md
+          - predictor: reference/engine/predictor.md
+          - results: reference/engine/results.md
+          - trainer: reference/engine/trainer.md
+          - tuner: reference/engine/tuner.md
+          - validator: reference/engine/validator.md
+      - hub:
+          - __init__: reference/hub/__init__.md
+          - auth: reference/hub/auth.md
+          - session: reference/hub/session.md
+          - utils: reference/hub/utils.md
+      - models:
+          - fastsam:
+              - model: reference/models/fastsam/model.md
+              - predict: reference/models/fastsam/predict.md
+              - prompt: reference/models/fastsam/prompt.md
+              - utils: reference/models/fastsam/utils.md
+              - val: reference/models/fastsam/val.md
+          - nas:
+              - model: reference/models/nas/model.md
+              - predict: reference/models/nas/predict.md
+              - val: reference/models/nas/val.md
+          - rtdetr:
+              - model: reference/models/rtdetr/model.md
+              - predict: reference/models/rtdetr/predict.md
+              - train: reference/models/rtdetr/train.md
+              - val: reference/models/rtdetr/val.md
+          - sam:
+              - amg: reference/models/sam/amg.md
+              - build: reference/models/sam/build.md
+              - model: reference/models/sam/model.md
+              - modules:
+                  - decoders: reference/models/sam/modules/decoders.md
+                  - encoders: reference/models/sam/modules/encoders.md
+                  - sam: reference/models/sam/modules/sam.md
+                  - tiny_encoder: reference/models/sam/modules/tiny_encoder.md
+                  - transformer: reference/models/sam/modules/transformer.md
+              - predict: reference/models/sam/predict.md
+          - utils:
+              - loss: reference/models/utils/loss.md
+              - ops: reference/models/utils/ops.md
+          - yolo:
+              - classify:
+                  - predict: reference/models/yolo/classify/predict.md
+                  - train: reference/models/yolo/classify/train.md
+                  - val: reference/models/yolo/classify/val.md
+              - detect:
+                  - predict: reference/models/yolo/detect/predict.md
+                  - train: reference/models/yolo/detect/train.md
+                  - val: reference/models/yolo/detect/val.md
+              - model: reference/models/yolo/model.md
+              - obb:
+                  - predict: reference/models/yolo/obb/predict.md
+                  - train: reference/models/yolo/obb/train.md
+                  - val: reference/models/yolo/obb/val.md
+              - pose:
+                  - predict: reference/models/yolo/pose/predict.md
+                  - train: reference/models/yolo/pose/train.md
+                  - val: reference/models/yolo/pose/val.md
+              - segment:
+                  - predict: reference/models/yolo/segment/predict.md
+                  - train: reference/models/yolo/segment/train.md
+                  - val: reference/models/yolo/segment/val.md
+      - nn:
+          - autobackend: reference/nn/autobackend.md
+          - modules:
+              - block: reference/nn/modules/block.md
+              - conv: reference/nn/modules/conv.md
+              - head: reference/nn/modules/head.md
+              - transformer: reference/nn/modules/transformer.md
+              - utils: reference/nn/modules/utils.md
+          - tasks: reference/nn/tasks.md
+      - solutions:
+          - ai_gym: reference/solutions/ai_gym.md
+          - heatmap: reference/solutions/heatmap.md
+          - object_counter: reference/solutions/object_counter.md
+          - speed_estimation: reference/solutions/speed_estimation.md
+          - distance_calculation: reference/solutions/distance_calculation.md
+      - trackers:
+          - basetrack: reference/trackers/basetrack.md
+          - bot_sort: reference/trackers/bot_sort.md
+          - byte_tracker: reference/trackers/byte_tracker.md
+          - track: reference/trackers/track.md
+          - utils:
+              - gmc: reference/trackers/utils/gmc.md
+              - kalman_filter: reference/trackers/utils/kalman_filter.md
+              - matching: reference/trackers/utils/matching.md
       - utils:
-        - loss: reference/models/utils/loss.md
-        - ops: reference/models/utils/ops.md
-      - yolo:
-        - classify:
-          - predict: reference/models/yolo/classify/predict.md
-          - train: reference/models/yolo/classify/train.md
-          - val: reference/models/yolo/classify/val.md
-        - detect:
-          - predict: reference/models/yolo/detect/predict.md
-          - train: reference/models/yolo/detect/train.md
-          - val: reference/models/yolo/detect/val.md
-        - model: reference/models/yolo/model.md
-        - obb:
-          - predict: reference/models/yolo/obb/predict.md
-          - train: reference/models/yolo/obb/train.md
-          - val: reference/models/yolo/obb/val.md
-        - pose:
-          - predict: reference/models/yolo/pose/predict.md
-          - train: reference/models/yolo/pose/train.md
-          - val: reference/models/yolo/pose/val.md
-        - segment:
-          - predict: reference/models/yolo/segment/predict.md
-          - train: reference/models/yolo/segment/train.md
-          - val: reference/models/yolo/segment/val.md
-    - nn:
-      - autobackend: reference/nn/autobackend.md
-      - modules:
-        - block: reference/nn/modules/block.md
-        - conv: reference/nn/modules/conv.md
-        - head: reference/nn/modules/head.md
-        - transformer: reference/nn/modules/transformer.md
-        - utils: reference/nn/modules/utils.md
-      - tasks: reference/nn/tasks.md
-    - solutions:
-      - ai_gym: reference/solutions/ai_gym.md
-      - heatmap: reference/solutions/heatmap.md
-      - object_counter: reference/solutions/object_counter.md
-      - speed_estimation: reference/solutions/speed_estimation.md
-      - distance_calculation: reference/solutions/distance_calculation.md
-    - trackers:
-      - basetrack: reference/trackers/basetrack.md
-      - bot_sort: reference/trackers/bot_sort.md
-      - byte_tracker: reference/trackers/byte_tracker.md
-      - track: reference/trackers/track.md
-      - utils:
-        - gmc: reference/trackers/utils/gmc.md
-        - kalman_filter: reference/trackers/utils/kalman_filter.md
-        - matching: reference/trackers/utils/matching.md
-    - utils:
-      - __init__: reference/utils/__init__.md
-      - autobatch: reference/utils/autobatch.md
-      - benchmarks: reference/utils/benchmarks.md
-      - callbacks:
-        - base: reference/utils/callbacks/base.md
-        - clearml: reference/utils/callbacks/clearml.md
-        - comet: reference/utils/callbacks/comet.md
-        - dvc: reference/utils/callbacks/dvc.md
-        - hub: reference/utils/callbacks/hub.md
-        - mlflow: reference/utils/callbacks/mlflow.md
-        - neptune: reference/utils/callbacks/neptune.md
-        - raytune: reference/utils/callbacks/raytune.md
-        - tensorboard: reference/utils/callbacks/tensorboard.md
-        - wb: reference/utils/callbacks/wb.md
-      - checks: reference/utils/checks.md
-      - dist: reference/utils/dist.md
-      - downloads: reference/utils/downloads.md
-      - errors: reference/utils/errors.md
-      - files: reference/utils/files.md
-      - instance: reference/utils/instance.md
-      - loss: reference/utils/loss.md
-      - metrics: reference/utils/metrics.md
-      - ops: reference/utils/ops.md
-      - patches: reference/utils/patches.md
-      - plotting: reference/utils/plotting.md
-      - tal: reference/utils/tal.md
-      - torch_utils: reference/utils/torch_utils.md
-      - triton: reference/utils/triton.md
-      - tuner: reference/utils/tuner.md
+          - __init__: reference/utils/__init__.md
+          - autobatch: reference/utils/autobatch.md
+          - benchmarks: reference/utils/benchmarks.md
+          - callbacks:
+              - base: reference/utils/callbacks/base.md
+              - clearml: reference/utils/callbacks/clearml.md
+              - comet: reference/utils/callbacks/comet.md
+              - dvc: reference/utils/callbacks/dvc.md
+              - hub: reference/utils/callbacks/hub.md
+              - mlflow: reference/utils/callbacks/mlflow.md
+              - neptune: reference/utils/callbacks/neptune.md
+              - raytune: reference/utils/callbacks/raytune.md
+              - tensorboard: reference/utils/callbacks/tensorboard.md
+              - wb: reference/utils/callbacks/wb.md
+          - checks: reference/utils/checks.md
+          - dist: reference/utils/dist.md
+          - downloads: reference/utils/downloads.md
+          - errors: reference/utils/errors.md
+          - files: reference/utils/files.md
+          - instance: reference/utils/instance.md
+          - loss: reference/utils/loss.md
+          - metrics: reference/utils/metrics.md
+          - ops: reference/utils/ops.md
+          - patches: reference/utils/patches.md
+          - plotting: reference/utils/plotting.md
+          - tal: reference/utils/tal.md
+          - torch_utils: reference/utils/torch_utils.md
+          - triton: reference/utils/triton.md
+          - tuner: reference/utils/tuner.md
 
   - Help:
       - Help: help/index.md
@@ -503,6 +507,7 @@ plugins:
       add_image: True
       add_share_buttons: True
       default_image: https://github.com/ultralytics/ultralytics/assets/26833433/6d09221c-c52a-4234-9a5d-b862e93c6529
+  - mkdocs-jupyter
   - redirects:
       redirect_maps:
         callbacks.md: usage/callbacks.md

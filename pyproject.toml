@@ -106,9 +106,9 @@ export = [
 ]
 
 explorer = [
-    "lancedb", # Needed for Vector search
-    "duckdb", # Needed for SQL queries, supports lancedb tables
-    "streamlit", # Needed for gui
+    "lancedb",  # vector search
+    "duckdb",  # SQL queries, supports lancedb tables
+    "streamlit",  # visualizing with GUI
 ]
 
 # tensorflow>=2.4.1,<=2.13.1  # TF exports (-cpu, -aarch64, -macos)

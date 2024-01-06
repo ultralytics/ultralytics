@@ -24,10 +24,10 @@ explorer = Explorer(data='coco128.yaml', model='yolov8n.pt')
 explorer.create_embeddings_table()
 
 # Search for similar images to a given image/images
-dataframe = explorer.search_similar_images(img='path/to/image.jpg')
+dataframe = explorer.get_similar(img='path/to/image.jpg')
 
 # Or search for similar images to a given index/indices
-dataframe = explorer.search_similar_images(idx=0)
+dataframe = explorer.get_similar()(idx=0)
 ```
 
 ## 1. Similarity Search
@@ -153,7 +153,7 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
 
 You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table`
 
-!!! Tip "Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre and post filters, etc."
+!!! Tip "Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre- and post-filters, etc."
 
     ```python
     from ultralytics import Explorer

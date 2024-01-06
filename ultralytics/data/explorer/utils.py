@@ -3,13 +3,13 @@ from typing import List
 
 import cv2
 import numpy as np
-from lancedb.pydantic import LanceModel, Vector
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils.plotting import plot_images
 
 
 def get_table_schema(vector_size):
+    from lancedb.pydantic import LanceModel, Vector
 
     class Schema(LanceModel):
         im_file: str
@@ -24,6 +24,7 @@ def get_table_schema(vector_size):
 
 
 def get_sim_index_schema():
+    from lancedb.pydantic import LanceModel
 
     class Schema(LanceModel):
         idx: int

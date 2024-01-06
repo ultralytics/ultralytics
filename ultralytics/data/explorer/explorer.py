@@ -16,11 +16,13 @@ from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
 
 from ...models.yolo.model import YOLO
-from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
 
 check_requirements(['lancedb', 'duckdb'])
+
 import duckdb
 import lancedb
+
+from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
 
 
 class ExplorerDataset(YOLODataset):

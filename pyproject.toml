@@ -91,6 +91,7 @@ dev = [
     "coverage[toml]",
     "mkdocs-material",
     "mkdocstrings[python]",
+    "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
     "mkdocs-ultralytics-plugin>=0.0.34", # for meta descriptions and images, dates and authors
 ]
@@ -103,6 +104,13 @@ export = [
     "jaxlib<=0.4.21", # tensorflowjs bug https://github.com/google/jax/issues/18978
     "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
 ]
+
+explorer = [
+    "lancedb",  # vector search
+    "duckdb",  # SQL queries, supports lancedb tables
+    "streamlit",  # visualizing with GUI
+]
+
 # tensorflow>=2.4.1,<=2.13.1  # TF exports (-cpu, -aarch64, -macos)
 # tflite-support  # for TFLite model metadata
 # scikit-learn==0.19.2  # CoreML quantization

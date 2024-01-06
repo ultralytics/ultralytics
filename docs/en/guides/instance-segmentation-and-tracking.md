@@ -91,16 +91,18 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            results = model.track(im0, persist=True)
-            masks = results[0].masks.xy
-            track_ids = results[0].boxes.id.int().cpu().tolist()
-
             annotator = Annotator(im0, line_width=2)
 
-            for mask, track_id in zip(masks, track_ids):
-                annotator.seg_bbox(mask=mask,
-                                   mask_color=colors(track_id, True),
-                                   track_label=str(track_id))
+            results = model.track(im0, persist=True)
+
+            if results[0].boxes.id is not None:
+                masks = results[0].masks.xy
+                track_ids = results[0].boxes.id.int().cpu().tolist()
+
+                for mask, track_id in zip(masks, track_ids):
+                    annotator.seg_bbox(mask=mask,
+                                       mask_color=colors(track_id, True),
+                                       track_label=str(track_id))
 
             out.write(im0)
             cv2.imshow("instance-segmentation-object-tracking", im0)

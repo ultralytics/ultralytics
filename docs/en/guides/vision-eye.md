@@ -81,15 +81,17 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            results = model.track(im0, persist=True)
-            boxes = results[0].boxes.xyxy.cpu()
-            track_ids = results[0].boxes.id.int().cpu().tolist()
-
             annotator = Annotator(im0, line_width=2)
 
-            for box, track_id in zip(boxes, track_ids):
-                annotator.box_label(box, label=str(track_id), color=colors(int(track_id)))
-                annotator.visioneye(box, center_point)
+            results = model.track(im0, persist=True)
+            boxes = results[0].boxes.xyxy.cpu()
+
+            if results[0].boxes.id is not None:
+                track_ids = results[0].boxes.id.int().cpu().tolist()
+
+                for box, track_id in zip(boxes, track_ids):
+                    annotator.box_label(box, label=str(track_id), color=colors(int(track_id)))
+                    annotator.visioneye(box, center_point)
 
             out.write(im0)
             cv2.imshow("visioneye-pinpoint", im0)

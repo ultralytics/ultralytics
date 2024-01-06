@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # COCO 2017 dataset http://cocodataset.org by Microsoft
+# Documentation: https://docs.ultralytics.com/datasets/pose/coco/
 # Example usage: yolo train data=coco-pose.yaml
 # parent
 # ├── ultralytics

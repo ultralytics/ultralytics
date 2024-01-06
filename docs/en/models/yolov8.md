@@ -113,7 +113,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
     === "OBB (DOTAv1)"
 
-        See [Oriented Detection Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with these models trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v1/), which include 15 pre-trained classes.
+        See [Oriented Detection Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with these models trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/), which include 15 pre-trained classes.
 
         | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         |----------------------------------------------------------------------------------------------|-----------------------|-------------------|--------------------------------|-------------------------------------|--------------------|-------------------|

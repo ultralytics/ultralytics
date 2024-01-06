@@ -177,7 +177,7 @@ See [Pose Docs](https://docs.ultralytics.com/tasks/pose/) for usage examples wit
 
 <details><summary>Obb (DOTAv1)</summary>
 
-See [Obb Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with these models trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v1), which include 15 pre-trained classes.
+See [Obb Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with these models trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/), which include 15 pre-trained classes.
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------------- | ----------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |

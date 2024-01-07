@@ -1,5 +1,4 @@
 import getpass
-import os
 from typing import List
 
 import cv2
@@ -11,6 +10,7 @@ from ultralytics.utils import LOGGER as logger
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.ops import xyxy2xywh
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils import SETTINGS
 
 
 def get_table_schema(vector_size):
@@ -114,50 +114,52 @@ def prompt_sql_query(query):
     check_requirements('openai')
     from openai import OpenAI
 
-    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    if OPENAI_API_KEY is None:
-        logger.info('OPENAI_API_KEY not found in environment variables. Please input your API key.')
-        OPENAI_API_KEY = getpass.getpass('Enter your OpenAI API key: ')
-        os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
-    openai = OpenAI()
+    if not SETTINGS['openai_api_key']:
+        logger.warning('OpenAI API key not found in settings. Please enter your API key below.')
+        openai_api_key = getpass.getpass('OpenAI API key: ')
+        SETTINGS.update({'openai_api_key': openai_api_key})
+    openai = OpenAI(api_key=SETTINGS['openai_api_key'])
 
     messages = [
         {
             'role':
-            'system',
+                'system',
             'content':
-            '''
-            You are a helpful data scientist proficient in SQL. You need to output exactly one SQL query based on the following schema and a user request. You only need to output the format has be fixed like `SELECT * from 'table'`
-
-            Schema:
-            im_file: string not null
-            labels: list<item: string> not null
-            child 0, item: string
-            cls: list<item: int64> not null
-            child 0, item: int64
-            bboxes: list<item: list<item: double>> not null
-            child 0, item: list<item: double>
-                child 0, item: double
-            masks: list<item: list<item: list<item: int64>>> not null
-            child 0, item: list<item: list<item: int64>>
-                child 0, item: list<item: int64>
-                    child 0, item: int64
-            keypoints: list<item: list<item: list<item: double>>> not null
-            child 0, item: list<item: list<item: double>>
+                '''
+                You are a helpful data scientist proficient in SQL. You need to output exactly one SQL query based on 
+                the following schema and a user request. You only need to output the format with fixed selection 
+                statement that selects everything from "'table'", like `SELECT * from 'table'`
+    
+                Schema:
+                im_file: string not null
+                labels: list<item: string> not null
+                child 0, item: string
+                cls: list<item: int64> not null
+                child 0, item: int64
+                bboxes: list<item: list<item: double>> not null
                 child 0, item: list<item: double>
                     child 0, item: double
-            vector: fixed_size_list<item: float>[256] not null
-            child 0, item: float
-
-            Some details about the schema:
-            - the "labels" column contains the string values like 'person' and 'dog' for the respective objects in each image
-            - the "cls" column contains the integer values on these classes that map them the labels
-
-            Example of a correct query:
-            request - Get all data points that contain 2 or more people and at least one dog
-            correct query-
-            SELECT * FROM 'table' WHERE  ARRAY_LENGTH(cls) >= 2  AND ARRAY_LENGTH(FILTER(labels, x -> x = 'person')) >= 2  AND ARRAY_LENGTH(FILTER(labels, x -> x = 'dog')) >= 1;
-         '''},
+                masks: list<item: list<item: list<item: int64>>> not null
+                child 0, item: list<item: list<item: int64>>
+                    child 0, item: list<item: int64>
+                        child 0, item: int64
+                keypoints: list<item: list<item: list<item: double>>> not null
+                child 0, item: list<item: list<item: double>>
+                    child 0, item: list<item: double>
+                        child 0, item: double
+                vector: fixed_size_list<item: float>[256] not null
+                child 0, item: float
+    
+                Some details about the schema:
+                - the "labels" column contains the string values like 'person' and 'dog' for the respective objects 
+                    in each image
+                - the "cls" column contains the integer values on these classes that map them the labels
+    
+                Example of a correct query:
+                request - Get all data points that contain 2 or more people and at least one dog
+                correct query-
+                SELECT * FROM 'table' WHERE  ARRAY_LENGTH(cls) >= 2  AND ARRAY_LENGTH(FILTER(labels, x -> x = 'person')) >= 2  AND ARRAY_LENGTH(FILTER(labels, x -> x = 'dog')) >= 1;
+             '''},
         {
             'role': 'user',
             'content': f'{query}'}, ]

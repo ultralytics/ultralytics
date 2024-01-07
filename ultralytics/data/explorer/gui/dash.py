@@ -1,4 +1,3 @@
-import os
 import time
 from threading import Thread
 
@@ -7,6 +6,7 @@ import pandas as pd
 from ultralytics import Explorer
 from ultralytics.utils import ROOT
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils import SETTINGS
 
 check_requirements('streamlit')
 check_requirements('streamlit-select>=0.2')
@@ -38,9 +38,9 @@ def init_explorer_form():
     with st.form(key='explorer_init_form'):
         col1, col2 = st.columns(2)
         with col1:
-            dataset = st.selectbox('Select dataset', ds, key='dataset', index=ds.index('coco128.yaml'))
+            st.selectbox('Select dataset', ds, key='dataset', index=ds.index('coco128.yaml'))
         with col2:
-            model = st.selectbox('Select model', models, key='model')
+            st.selectbox('Select model', models, key='model')
         st.checkbox('Force recreate embeddings', key='force_recreate_embeddings')
 
         st.form_submit_button('Explore', on_click=_get_explorer)
@@ -76,12 +76,12 @@ def similarity_form(selected_imgs):
     with st.form('similarity_form'):
         subcol1, subcol2 = st.columns([1, 1])
         with subcol1:
-            limit = st.number_input('limit',
-                                    min_value=None,
-                                    max_value=None,
-                                    value=25,
-                                    label_visibility='collapsed',
-                                    key='limit')
+            st.number_input('limit',
+                            min_value=None,
+                            max_value=None,
+                            value=25,
+                            label_visibility='collapsed',
+                            key='limit')
 
         with subcol2:
             disabled = not len(selected_imgs)
@@ -116,19 +116,16 @@ def run_sql_query():
 
 
 def run_ai_query():
+    if not SETTINGS['openai_api_key']:
+        st.session_state['error'] = 'OpenAI API key not found in settings. Please run yolo settings openai_key="..."'
+        return
     st.session_state['error'] = None
-    if os.environ.get('OPENAI_API_KEY') is None:
-        st.error('''
-                 OPENAI_API_KEY not found in environment variables. Please set your API key.
-                 Run yolo explorer with OPENAI_API_KEY, `OPENAI_API_KEY=your_key streamlit run yolo_explorer.py`
-                  ''')
-
     query = st.session_state.get('ai_query')
     if query.rstrip().lstrip():
         exp = st.session_state['explorer']
         res = exp.ask_ai(query)
         if not isinstance(res, pd.DataFrame) or res.empty:
-            st.session_state['error'] = 'No results found. Try another query.'
+            st.session_state['error'] = 'No results found using AI generated query. Try another query or rerun it.'
             return
         st.session_state['imgs'] = res['im_file'].to_list()
 

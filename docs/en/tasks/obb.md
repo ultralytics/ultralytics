@@ -4,7 +4,7 @@ description: Learn how to use oriented object detection models with Ultralytics 
 keywords: yolov8, oriented object detection, Ultralytics, DOTA dataset, rotated object detection, object detection, model training, model validation, image prediction, model export
 ---
 
-# Oriented Object Detection
+# Oriented Bounding Boxes Object Detection
 
 <!-- obb task poster -->
 
@@ -24,17 +24,15 @@ YOLOv8 pretrained Obb models are shown here, which are pretrained on the [DOTAv1
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|-----------------------|-------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
-| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-obb.pt) | 1024                  | <++>              | <++>                           | <++>                                | 3.2                | 23.3              |
-| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-obb.pt) | 1024                  | <++>              | <++>                           | <++>                                | 11.4               | 76.3              |
-| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-obb.pt) | 1024                  | <++>              | <++>                           | <++>                                | 26.4               | 208.6             |
-| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-obb.pt) | 1024                  | <++>              | <++>                           | <++>                                | 44.5               | 433.8             |
-| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024                  | <++>              | <++>                           | <++>                                | 69.5               | 676.7             |
+| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>test<br>50   | Speed<br><sup>CPU ONNX<br>(ms)   | Speed<br><sup>A100 TensorRT<br>(ms)   | params<br><sup>(M)   | FLOPs<br><sup>(B) |
+|----------------------------------------------------------------------------------------------|-----------------------| -------------------- | -------------------------------- | ------------------------------------- | -------------------- | ----------------- |
+| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-obb.pt) | 1024                  | 76.9                 | 204.77                           | 3.57                                  | 3.1                  | 23.3              |
+| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-obb.pt) | 1024                  | 78.0                 | 424.88                           | 4.07                                  | 11.4                 | 76.3              |
+| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-obb.pt) | 1024                  | 80.5                 | 763.48                           | 7.61                                  | 26.4                 | 208.6             |
+| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-obb.pt) | 1024                  | 80.7                 | 1278.42                          | 11.83                                 | 44.5                 | 433.8             |
+| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024                  | 81.36                | 1759.10                          | 13.23                                 | 69.5                 | 676.7             |
 
-<!-- TODO: should we report multi-scale results only as they're better or both multi-scale and single-scale. -->
-
-- **mAP<sup>val</sup>** values are for single-model single-scale on [DOTAv1 test](http://cocodataset.org) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0`
+- **mAP<sup>test</sup>** values are for single-model multi-scale on [DOTAv1 test](http://cocodataset.org) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test`
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
 
 ## Train

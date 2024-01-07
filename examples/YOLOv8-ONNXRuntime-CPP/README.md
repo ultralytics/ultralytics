@@ -1,7 +1,6 @@
 # YOLOv8 OnnxRuntime C++
 
-<img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B">
-<img alt="Onnx-runtime" src="https://img.shields.io/badge/OnnxRuntime-717272.svg?logo=Onnx&logoColor=white">
+<img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="Onnx-runtime" src="https://img.shields.io/badge/OnnxRuntime-717272.svg?logo=Onnx&logoColor=white">
 
 This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX Runtime and OpenCV's API.
 
@@ -11,7 +10,7 @@ This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX
 - Faster than OpenCV's DNN inference on both CPU and GPU.
 - Supports FP32 and FP16 CUDA acceleration.
 
-## Note :coffee:
+## Note ☕
 
 1. Benefit for Ultralytics' latest release, a `Transpose` op is added to the YOLOv8 model, while make v8 and v5 has the same output shape. Therefore, you can run inference with YOLOv5/v7/v8 via this project.
 

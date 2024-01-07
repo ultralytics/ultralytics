@@ -7,10 +7,10 @@ import pandas as pd
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER as logger
+from ultralytics.utils import SETTINGS
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.ops import xyxy2xywh
 from ultralytics.utils.plotting import plot_images
-from ultralytics.utils import SETTINGS
 
 
 def get_table_schema(vector_size):
@@ -123,13 +123,13 @@ def prompt_sql_query(query):
     messages = [
         {
             'role':
-                'system',
+            'system',
             'content':
-                '''
-                You are a helpful data scientist proficient in SQL. You need to output exactly one SQL query based on 
-                the following schema and a user request. You only need to output the format with fixed selection 
+            '''
+                You are a helpful data scientist proficient in SQL. You need to output exactly one SQL query based on
+                the following schema and a user request. You only need to output the format with fixed selection
                 statement that selects everything from "'table'", like `SELECT * from 'table'`
-    
+
                 Schema:
                 im_file: string not null
                 labels: list<item: string> not null
@@ -149,12 +149,12 @@ def prompt_sql_query(query):
                         child 0, item: double
                 vector: fixed_size_list<item: float>[256] not null
                 child 0, item: float
-    
+
                 Some details about the schema:
-                - the "labels" column contains the string values like 'person' and 'dog' for the respective objects 
+                - the "labels" column contains the string values like 'person' and 'dog' for the respective objects
                     in each image
                 - the "cls" column contains the integer values on these classes that map them the labels
-    
+
                 Example of a correct query:
                 request - Get all data points that contain 2 or more people and at least one dog
                 correct query-

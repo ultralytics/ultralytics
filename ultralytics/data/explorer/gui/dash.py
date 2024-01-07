@@ -4,9 +4,8 @@ from threading import Thread
 import pandas as pd
 
 from ultralytics import Explorer
-from ultralytics.utils import ROOT
+from ultralytics.utils import ROOT, SETTINGS
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils import SETTINGS
 
 check_requirements('streamlit')
 check_requirements('streamlit-select>=0.2')

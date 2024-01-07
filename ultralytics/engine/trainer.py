@@ -111,6 +111,7 @@ class BaseTrainer:
 
         # Model and Dataset
         self.inputCh = 3 if self.args.inputCh is None else self.args.inputCh
+        self.colorConvOutputSize = 0 if self.args.colorConvOutputSize is None else self.args.colorConvOutputSize
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolov8n -> yolov8n.pt
         try:
             if self.args.task == 'classify':

@@ -48,7 +48,7 @@ class ClassificationTrainer(BaseTrainer):
     
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
-        model = ClassificationModel(cfg, self.inputCh, nc=self.data['nc'], verbose=verbose and RANK == -1)
+        model = ClassificationModel(cfg, self.inputCh, nc=self.data['nc'], verbose=verbose and RANK == -1, colorConvOutputSize=self.args.colorConvOutputSize)
         if weights:
             model.load(weights)
 

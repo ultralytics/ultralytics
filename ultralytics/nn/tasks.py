@@ -324,12 +324,12 @@ class PoseModel(DetectionModel):
 class ClassificationModel(BaseModel):
     """YOLOv8 classification model."""
 
-    def __init__(self, cfg='yolov8n-cls.yaml', ch=3, nc=None, verbose=True):
+    def __init__(self, cfg='yolov8n-cls.yaml', ch=3, nc=None, verbose=True, colorConvOutputSize=0):
         """Init ClassificationModel with YAML, channels, number of classes, verbose flag."""
         super().__init__()
-        self._from_yaml(cfg, ch, nc, verbose)
+        self._from_yaml(cfg, ch, nc, verbose, colorConvOutputSize)
 
-    def _from_yaml(self, cfg, ch, nc, verbose):
+    def _from_yaml(self, cfg, ch, nc, verbose, colorConvOutputSize):
         """Set YOLOv8 model configurations and define the model architecture."""
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
@@ -340,7 +340,7 @@ class ClassificationModel(BaseModel):
             self.yaml['nc'] = nc  # override YAML value
         elif not nc and not self.yaml.get('nc', None):
             raise ValueError('nc not specified. Must specify nc in model.yaml or function arguments.')
-        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose, colorConvOutputSize=colorConvOutputSize)  # model, savelist
         self.stride = torch.Tensor([1])  # no stride constraints
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.info()
@@ -650,7 +650,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     return model, ckpt
 
 
-def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
+def parse_model(d, ch, verbose=True, colorConvOutputSize=0):  # model_dict, input_channels(3), verbose, channels that should follow the (1x1) color convolution
     """Parse a YOLO model.yaml dictionary into a PyTorch model."""
     import ast
 
@@ -674,6 +674,15 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
+    if colorConvOutputSize != 0:
+        args = [ch[-1], colorConvOutputSize, 1, 1]
+        m_ = Conv(ch[-1], colorConvOutputSize, 1, 1)
+        m_.np = sum(x.numel() for x in m_.parameters())  # number params
+        layers.append(m_)
+        ch.append(colorConvOutputSize)
+        if verbose:
+            t = str(Conv)[8:-2].replace('__main__.', '')
+            LOGGER.info(f'{0:>3}{-1:>20}{1:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}')  # print
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
         m = getattr(torch.nn, m[3:]) if 'nn.' in m else globals()[m]  # get module
         for j, a in enumerate(args):

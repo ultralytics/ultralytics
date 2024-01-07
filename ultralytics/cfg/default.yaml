@@ -112,6 +112,7 @@ mosaic: 1.0  # (float) image mosaic (probability)
 mixup: 0.0  # (float) image mixup (probability)
 copy_paste: 0.0  # (float) segment copy-paste (probability)
 inputCh: 3  # (int) number of input channels
+colorConvOutputSize: 0  # (int) number of output channels from the 1x1 color convolution
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg:  # (str, optional) for overriding defaults.yaml

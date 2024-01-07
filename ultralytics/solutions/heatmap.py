@@ -120,7 +120,7 @@ class Heatmap:
                 self.counting_region = Polygon([(20, 400), (1260, 400)])  # dummy points
 
         # Heatmap new frame
-        self.heatmap = np.zeros((int(self.imw), int(self.imh)), dtype=np.float32)
+        self.heatmap = np.zeros((int(self.imh), int(self.imw)), dtype=np.float32)
 
         self.count_txt_thickness = count_txt_thickness
         self.count_txt_color = count_txt_color

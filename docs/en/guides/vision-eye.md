@@ -28,11 +28,11 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
         model = YOLO("yolov8n.pt")
         names = model.model.names
         cap = cv2.VideoCapture("path/to/video/file.mp4")
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        out = cv2.VideoWriter('visioneye-pinpoint.avi', cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+        out = cv2.VideoWriter('visioneye-pinpoint.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
 
-        center_point = (-10, int(cap.get(4)))
+        center_point = (-10, h)
 
         while True:
             ret, im0 = cap.read()
@@ -69,11 +69,11 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        out = cv2.VideoWriter('visioneye-pinpoint.avi', cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+        out = cv2.VideoWriter('visioneye-pinpoint.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
 
-        center_point = (-10, int(cap.get(4)))
+        center_point = (-10, h)
 
         while True:
             ret, im0 = cap.read()

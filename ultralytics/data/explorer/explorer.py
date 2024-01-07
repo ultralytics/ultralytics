@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import Union, Any
+from typing import Any, Union
 
 import cv2
 import numpy as np
@@ -137,7 +137,9 @@ class Explorer:
             batch['vector'] = model.embed(batch['im_file'], verbose=False)[0].detach().tolist()
             yield [batch]
 
-    def query(self, imgs: Union[str, np.ndarray, list[str], list[np.ndarray]] = None, limit: int = 25) -> Any: # pyarrow.Table
+    def query(self,
+              imgs: Union[str, np.ndarray, list[str], list[np.ndarray]] = None,
+              limit: int = 25) -> Any:  # pyarrow.Table
         """
         Query the table for similar images. Accepts a single image or a list of images.
 

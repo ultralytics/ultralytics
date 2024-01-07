@@ -51,6 +51,7 @@ repos:
         additional_dependencies:
           - mdformat-gfm
           - mdformat-frontmatter
+          - mdformat-mkdocs
         args:
           - --wrap=no
           - --number

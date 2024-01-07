@@ -38,8 +38,7 @@ dataframe = explorer.get_similar()(idx=0)
 
 ## 1. Similarity Search
 
-Similarity search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings.
-One the embeddings table is built, you can get run semantic search in any of the following ways:
+Similarity search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. One the embeddings table is built, you can get run semantic search in any of the following ways:
 
 - On a given index / list of indices in the dataset like - `exp.get_similar(idx=[1,10], limit=10)`
 - On any image/ list of images not in the dataset - `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`
@@ -210,8 +209,7 @@ When using large datasets, you can also create a dedicated vector index for fast
     table.create_index(num_partitions=..., num_sub_vectors=...)
 ```
 
-Find more details on the type vector indices available and parameters [here](https://lancedb.github.io/lancedb/ann_indexes/#types-of-index)
-In the future, we will add support for creating vector indices directly from Explorer API.
+Find more details on the type vector indices available and parameters [here](https://lancedb.github.io/lancedb/ann_indexes/#types-of-index) In the future, we will add support for creating vector indices directly from Explorer API.
 
 ## 4. Embeddings Applications
 
@@ -221,15 +219,15 @@ You can use the embeddings table to perform a variety of exploratory analysis. H
 
 Explorer comes with a `similarity_index` operation:
 
-* It tries to estimate how similar each data point is with the rest of the dataset.
-* It does that by counting how many image embeddings lie closer than `max_dist` to the current image in the generated embedding space, considering `top_k` similar images at a time.
+- It tries to estimate how similar each data point is with the rest of the dataset.
+- It does that by counting how many image embeddings lie closer than `max_dist` to the current image in the generated embedding space, considering `top_k` similar images at a time.
 
 It returns a pandas dataframe with the following columns:
 
-* `idx`: Index of the image in the dataset
-* `im_file`: Path to the image file
-* `count`: Number of images in the dataset that are closer than `max_dist` to the current image
-* `sim_im_files`: List of paths to the `count` similar images
+- `idx`: Index of the image in the dataset
+- `im_file`: Path to the image file
+- `count`: Number of images in the dataset that are closer than `max_dist` to the current image
+- `sim_im_files`: List of paths to the `count` similar images
 
 !!! Tip
 

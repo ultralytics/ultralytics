@@ -117,6 +117,7 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
   ![mixup](https://user-images.githubusercontent.com/31005897/159109361-3b24333b-f481-478b-ae00-df7838f0b5cd.png)
 
 - **Albumentations**: A powerful library for image augmenting that supports a wide variety of augmentation techniques.
+
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 
   ![hsv](https://user-images.githubusercontent.com/31005897/159109407-83d100ba-1aba-4f4b-aa03-4f048f815981.png)

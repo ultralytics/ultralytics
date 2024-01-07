@@ -45,7 +45,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(x) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FRAME_FPS))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Define region points
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
@@ -88,7 +88,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(x) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FRAME_FPS))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Define line points
         line_points = [(20, 400), (1080, 400)]
@@ -130,7 +130,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(x) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FRAME_FPS))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         line_points = [(20, 400), (1080, 400)]  # line or region points
         classes_to_count = [0, 2]  # person and car classes for count

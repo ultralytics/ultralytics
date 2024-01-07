@@ -402,7 +402,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            answer = exp.ask_ai('How many people are in the image?')
+            answer = exp.ask_ai('Show images with 1 person and 2 dogs')
             ```
         """
         result = prompt_sql_query(query)

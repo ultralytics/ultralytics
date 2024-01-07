@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import contextlib
 import glob
 import inspect
@@ -8,21 +9,75 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import time
+from importlib import metadata
 from pathlib import Path
 from typing import Optional
 
 import cv2
 import numpy as np
-import pkg_resources as pkg
-import psutil
 import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked,
-                               TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter,
-                               is_kaggle, is_online, is_pip_package, url2file)
+from ultralytics.utils import (ASSETS, AUTOINSTALL, LINUX, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, SimpleNamespace,
+                               ThreadingLocked, TryExcept, clean_url, colorstr, downloads, emojis, is_colab, is_docker,
+                               is_github_action_running, is_jupyter, is_kaggle, is_online, is_pip_package, url2file)
+
+
+def parse_requirements(file_path=ROOT.parent / 'requirements.txt', package=''):
+    """
+    Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
+
+    Args:
+        file_path (Path): Path to the requirements.txt file.
+        package (str, optional): Python package to use instead of requirements.txt file, i.e. package='ultralytics'.
+
+    Returns:
+        (List[Dict[str, str]]): List of parsed requirements as dictionaries with `name` and `specifier` keys.
+
+    Example:
+        ```python
+        from ultralytics.utils.checks import parse_requirements
+
+        parse_requirements(package='ultralytics')
+        ```
+    """
+
+    if package:
+        requires = [x for x in metadata.distribution(package).requires if 'extra == ' not in x]
+    else:
+        requires = Path(file_path).read_text().splitlines()
+
+    requirements = []
+    for line in requires:
+        line = line.strip()
+        if line and not line.startswith('#'):
+            line = line.split('#')[0].strip()  # ignore inline comments
+            match = re.match(r'([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?', line)
+            if match:
+                requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ''))
+
+    return requirements
+
+
+def parse_version(version='0.0.0') -> tuple:
+    """
+    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version. This
+    function replaces deprecated 'pkg_resources.parse_version(v)'.
+
+    Args:
+        version (str): Version string, i.e. '2.0.1+cpu'
+
+    Returns:
+        (tuple): Tuple of integers representing the numeric part of the version and the extra string, i.e. (2, 0, 1)
+    """
+    try:
+        return tuple(map(int, re.findall(r'\d+', version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
+    except Exception as e:
+        LOGGER.warning(f'WARNING ⚠️ failure for parse_version({version}), returning (0, 0, 0): {e}')
+        return 0, 0, 0
 
 
 def is_ascii(s) -> bool:
@@ -92,60 +147,80 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 def check_version(current: str = '0.0.0',
                   required: str = '0.0.0',
-                  name: str = 'version ',
+                  name: str = 'version',
                   hard: bool = False,
-                  verbose: bool = False) -> bool:
+                  verbose: bool = False,
+                  msg: str = '') -> bool:
     """
     Check current version against the required version or range.
 
     Args:
-        current (str): Current version.
+        current (str): Current version or package name to get version from.
         required (str): Required version or range (in pip-style format).
-        name (str): Name to be used in warning message.
-        hard (bool): If True, raise an AssertionError if the requirement is not met.
-        verbose (bool): If True, print warning message if requirement is not met.
+        name (str, optional): Name to be used in warning message.
+        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool, optional): If True, print warning message if requirement is not met.
+        msg (str, optional): Extra message to display if verbose.
 
     Returns:
         (bool): True if requirement is met, False otherwise.
 
     Example:
-        # check if current version is exactly 22.04
+        ```python
+        # Check if current version is exactly 22.04
         check_version(current='22.04', required='==22.04')
 
-        # check if current version is greater than or equal to 22.04
+        # Check if current version is greater than or equal to 22.04
         check_version(current='22.10', required='22.04')  # assumes '>=' inequality if none passed
 
-        # check if current version is less than or equal to 22.04
+        # Check if current version is less than or equal to 22.04
         check_version(current='22.04', required='<=22.04')
 
-        # check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        # Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         check_version(current='21.10', required='>20.04,<22.04')
+        ```
     """
-    current = pkg.parse_version(current)
-    constraints = re.findall(r'([<>!=]{1,2}\s*\d+\.\d+)', required) or [f'>={required}']
+    if not current:  # if current is '' or None
+        LOGGER.warning(f'WARNING ⚠️ invalid check_version({current}, {required}) requested, please check values.')
+        return True
+    elif not current[0].isdigit():  # current is package name rather than version string, i.e. current='ultralytics'
+        try:
+            name = current  # assigned package name to 'name' arg
+            current = metadata.version(current)  # get version string from package name
+        except metadata.PackageNotFoundError:
+            if hard:
+                raise ModuleNotFoundError(emojis(f'WARNING ⚠️ {current} package is required but not installed'))
+            else:
+                return False
 
+    if not required:  # if required is '' or None
+        return True
+
+    op = ''
+    version = ''
     result = True
-    for constraint in constraints:
-        op, version = re.match(r'([<>!=]{1,2})\s*(\d+\.\d+)', constraint).groups()
-        version = pkg.parse_version(version)
-        if op == '==' and current != version:
+    c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
+    for r in required.strip(',').split(','):
+        op, version = re.match(r'([^0-9]*)([\d.]+)', r).groups()  # split '>=22.04' -> ('>=', '22.04')
+        v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
+        if op == '==' and c != v:
             result = False
-        elif op == '!=' and current == version:
+        elif op == '!=' and c == v:
             result = False
-        elif op == '>=' and not (current >= version):
+        elif op in ('>=', '') and not (c >= v):  # if no constraint passed assume '>=required'
             result = False
-        elif op == '<=' and not (current <= version):
+        elif op == '<=' and not (c <= v):
             result = False
-        elif op == '>' and not (current > version):
+        elif op == '>' and not (c > v):
             result = False
-        elif op == '<' and not (current < version):
+        elif op == '<' and not (c < v):
             result = False
     if not result:
-        warning_message = f'WARNING ⚠️ {name}{required} is required, but {name}{current} is currently installed'
+        warning = f'WARNING ⚠️ {name}{op}{version} is required, but {name}=={current} is currently installed {msg}'
         if hard:
-            raise ModuleNotFoundError(emojis(warning_message))  # assert version requirements met
+            raise ModuleNotFoundError(emojis(warning))  # assert version requirements met
         if verbose:
-            LOGGER.warning(warning_message)
+            LOGGER.warning(warning)
     return result
 
 
@@ -177,7 +252,7 @@ def check_pip_update_available():
         with contextlib.suppress(Exception):
             from ultralytics import __version__
             latest = check_latest_pypi_version()
-            if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
+            if check_version(__version__, f'<{latest}'):  # check if current version is < latest version
                 LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
                             f"Update with 'pip install -U ultralytics'")
                 return True
@@ -253,29 +328,25 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         check_requirements(['numpy', 'ultralytics>=8.0.0'])
         ```
     """
+
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version
     check_torchvision()  # check torch-torchvision compatibility
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f'{prefix} {file} not found, check failed.'
-        with file.open() as f:
-            requirements = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements(f) if x.name not in exclude]
+        requirements = [f'{x.name}{x.specifier}' for x in parse_requirements(file) if x.name not in exclude]
     elif isinstance(requirements, str):
         requirements = [requirements]
 
     pkgs = []
     for r in requirements:
         r_stripped = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
+        match = re.match(r'([a-zA-Z0-9-_]+)([<>!=~]+.*)?', r_stripped)
+        name, required = match[1], match[2].strip() if match[2] else ''
         try:
-            pkg.require(r_stripped)  # exception if requirements not met
-        except pkg.DistributionNotFound:
-            try:  # attempt to import (slower but more accurate)
-                import importlib
-                importlib.import_module(next(pkg.parse_requirements(r_stripped)).name)
-            except ImportError:
-                pkgs.append(r)
-        except pkg.VersionConflict:
+            assert check_version(metadata.version(name), required)  # exception if requirements not met
+        except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
 
     s = ' '.join(f'"{x}"' for x in pkgs)  # console string
@@ -305,8 +376,10 @@ def check_torchvision():
     Checks the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the provided compatibility table based on https://github.com/pytorch/vision#installation. The
-    compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
+    to the provided compatibility table based on:
+    https://github.com/pytorch/vision#installation.
+
+    The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
     """
 
@@ -321,7 +394,7 @@ def check_torchvision():
 
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
-        if all(pkg.parse_version(v_torchvision) != pkg.parse_version(v) for v in compatible_versions):
+        if all(v_torchvision != v for v in compatible_versions):
             print(f'WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n'
                   f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
                   "'pip install -U torch torchvision' to update both.\n"
@@ -357,14 +430,23 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
+def check_model_file_from_stem(model='yolov8n'):
+    """Return a model filename from a valid model stem."""
+    if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
+        return Path(model).with_suffix('.pt')  # add suffix, i.e. yolov8n -> yolov8n.pt
+    else:
+        return model
+
+
 def check_file(file, suffix='', download=True, hard=True):
     """Search/download file (if necessary) and return path."""
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
-    if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
+    if (not file or ('://' not in file and Path(file).exists()) or  # '://' check required in Windows Python<3.10
+            file.lower().startswith('grpc://')):  # file exists or gRPC Triton images
         return file
-    elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
+    elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://', 'tcp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).exists():
@@ -386,6 +468,23 @@ def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
     return check_file(file, suffix, hard=hard)
 
 
+def check_is_path_safe(basedir, path):
+    """
+    Check if the resolved path is under the intended directory to prevent path traversal.
+
+    Args:
+        basedir (Path | str): The intended directory.
+        path (Path | str): The path to check.
+
+    Returns:
+        (bool): True if the path is safe, False otherwise.
+    """
+    base_dir_resolved = Path(basedir).resolve()
+    path_resolved = Path(path).resolve()
+
+    return path_resolved.is_file() and path_resolved.parts[:len(base_dir_resolved.parts)] == base_dir_resolved.parts
+
+
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
@@ -404,6 +503,8 @@ def check_imshow(warn=False):
 
 def check_yolo(verbose=True, device=''):
     """Return a human-readable YOLO software and hardware summary."""
+    import psutil
+
     from ultralytics.utils.torch_utils import select_device
 
     if is_jupyter():
@@ -428,11 +529,47 @@ def check_yolo(verbose=True, device=''):
     LOGGER.info(f'Setup complete ✅ {s}')
 
 
+def collect_system_info():
+    """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA."""
+
+    import psutil
+
+    from ultralytics.utils import ENVIRONMENT, is_git_dir
+    from ultralytics.utils.torch_utils import get_cpu_info
+
+    ram_info = psutil.virtual_memory().total / (1024 ** 3)  # Convert bytes to GB
+    check_yolo()
+    LOGGER.info(f"\n{'OS':<20}{platform.platform()}\n"
+                f"{'Environment':<20}{ENVIRONMENT}\n"
+                f"{'Python':<20}{sys.version.split()[0]}\n"
+                f"{'Install':<20}{'git' if is_git_dir() else 'pip' if is_pip_package() else 'other'}\n"
+                f"{'RAM':<20}{ram_info:.2f} GB\n"
+                f"{'CPU':<20}{get_cpu_info()}\n"
+                f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n")
+
+    for r in parse_requirements(package='ultralytics'):
+        try:
+            current = metadata.version(r.name)
+            is_met = '✅ ' if check_version(current, str(r.specifier), hard=True) else '❌ '
+        except metadata.PackageNotFoundError:
+            current = '(not installed)'
+            is_met = '❌ '
+        LOGGER.info(f'{r.name:<20}{is_met}{current}{r.specifier}')
+
+    if is_github_action_running():
+        LOGGER.info(f"\nRUNNER_OS: {os.getenv('RUNNER_OS')}\n"
+                    f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}\n"
+                    f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}\n"
+                    f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}\n"
+                    f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}\n"
+                    f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}\n")
+
+
 def check_amp(model):
     """
-    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model.
-    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
-    results, so AMP will be disabled during training.
+    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks
+    fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will
+    be disabled during training.
 
     Args:
         model (nn.Module): A YOLOv8 model instance.
@@ -472,9 +609,8 @@ def check_amp(model):
     except ConnectionError:
         LOGGER.warning(f'{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}')
     except (AttributeError, ModuleNotFoundError):
-        LOGGER.warning(
-            f'{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}'
-        )
+        LOGGER.warning(f'{prefix}checks skipped ⚠️. '
+                       f'Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}')
     except AssertionError:
         LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
                        f'NaN losses or zero-mAP results, so AMP will be disabled during training.')
@@ -507,3 +643,34 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
         file = Path(file).stem
     s = (f'{file}: ' if show_file else '') + (f'{func}: ' if show_func else '')
     LOGGER.info(colorstr(s) + ', '.join(f'{k}={strip_auth(v)}' for k, v in args.items()))
+
+
+def cuda_device_count() -> int:
+    """
+    Get the number of NVIDIA GPUs available in the environment.
+
+    Returns:
+        (int): The number of NVIDIA GPUs available.
+    """
+    try:
+        # Run the nvidia-smi command and capture its output
+        output = subprocess.check_output(['nvidia-smi', '--query-gpu=count', '--format=csv,noheader,nounits'],
+                                         encoding='utf-8')
+
+        # Take the first line and strip any leading/trailing white space
+        first_line = output.strip().split('\n')[0]
+
+        return int(first_line)
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+        return 0
+
+
+def cuda_is_available() -> bool:
+    """
+    Check if CUDA is available in the environment.
+
+    Returns:
+        (bool): True if one or more NVIDIA GPUs are available, False otherwise.
+    """
+    return cuda_device_count() > 0

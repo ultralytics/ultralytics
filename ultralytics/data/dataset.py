@@ -8,11 +8,12 @@ import cv2
 import numpy as np
 import torch
 import torchvision
-from tqdm import tqdm
+from PIL import Image
 
-from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, colorstr, is_dir_writeable
+from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
+from ultralytics.utils.ops import resample_segments
 
-from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
+from .augment import Compose, Format, Instances, LetterBox, classify_augmentations, classify_transforms, v8_transforms
 from .base import BaseDataset
 from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
 
@@ -26,22 +27,25 @@ class YOLODataset(BaseDataset):
 
     Args:
         data (dict, optional): A dataset YAML dictionary. Defaults to None.
-        use_segments (bool, optional): If True, segmentation masks are used as labels. Defaults to False.
-        use_keypoints (bool, optional): If True, keypoints are used as labels. Defaults to False.
+        task (str): An explicit arg to point current task, Defaults to 'detect'.
 
     Returns:
         (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.
     """
 
-    def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, **kwargs):
-        self.use_segments = use_segments
-        self.use_keypoints = use_keypoints
+    def __init__(self, *args, data=None, task='detect', **kwargs):
+        """Initializes the YOLODataset with optional configurations for segments and keypoints."""
+        self.use_segments = task == 'segment'
+        self.use_keypoints = task == 'pose'
+        self.use_obb = task == 'obb'
         self.data = data
         assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
         super().__init__(*args, **kwargs)
 
     def cache_labels(self, path=Path('./labels.cache')):
-        """Cache dataset labels, check images and read shapes.
+        """
+        Cache dataset labels, check images and read shapes.
+
         Args:
             path (Path): path where to save the cache file (default: Path('./labels.cache')).
         Returns:
@@ -60,7 +64,7 @@ class YOLODataset(BaseDataset):
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
                                              repeat(self.use_keypoints), repeat(len(self.data['names'])), repeat(nkpt),
                                              repeat(ndim)))
-            pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
+            pbar = TQDM(results, desc=desc, total=total)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
@@ -107,16 +111,15 @@ class YOLODataset(BaseDataset):
         nf, nm, ne, nc, n = cache.pop('results')  # found, missing, empty, corrupt, total
         if exists and LOCAL_RANK in (-1, 0):
             d = f'Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt'
-            tqdm(None, desc=self.prefix + d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)  # display results
+            TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
             if cache['msgs']:
                 LOGGER.info('\n'.join(cache['msgs']))  # display warnings
-        if nf == 0:  # number of labels found
-            raise FileNotFoundError(f'{self.prefix}No labels found in {cache_path}, can not start training. {HELP_URL}')
 
         # Read cache
         [cache.pop(k) for k in ('hash', 'version', 'msgs')]  # remove items
         labels = cache['labels']
-        assert len(labels), f'No valid labels found, please check your dataset. {HELP_URL}'
+        if not labels:
+            LOGGER.warning(f'WARNING ⚠️ No images found in {cache_path}, training may not work correctly. {HELP_URL}')
         self.im_files = [lb['im_file'] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments
@@ -130,10 +133,9 @@ class YOLODataset(BaseDataset):
             for lb in labels:
                 lb['segments'] = []
         if len_cls == 0:
-            raise ValueError(f'All labels empty in {cache_path}, can not start training without labels. {HELP_URL}')
+            LOGGER.warning(f'WARNING ⚠️ No labels found in {cache_path}, training may not work correctly. {HELP_URL}')
         return labels
 
-    # TODO: use hyp config to set all these augmentations
     def build_transforms(self, hyp=None):
         """Builds and appends transforms to the list."""
         if self.augment:
@@ -147,6 +149,7 @@ class YOLODataset(BaseDataset):
                    normalize=True,
                    return_mask=self.use_segments,
                    return_keypoint=self.use_keypoints,
+                   return_obb=self.use_obb,
                    batch_idx=True,
                    mask_ratio=hyp.mask_ratio,
                    mask_overlap=hyp.overlap_mask))
@@ -160,14 +163,23 @@ class YOLODataset(BaseDataset):
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
-        """custom your label format here."""
+        """Custom your label format here."""
         # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
-        # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
+        # We can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop('bboxes')
-        segments = label.pop('segments')
+        segments = label.pop('segments', [])
         keypoints = label.pop('keypoints', None)
         bbox_format = label.pop('bbox_format')
         normalized = label.pop('normalized')
+
+        # NOTE: do NOT resample oriented boxes
+        segment_resamples = 100 if self.use_obb else 1000
+        if len(segments) > 0:
+            # list[np.array(1000, 2)] * num_samples
+            # (N, 1000, 2)
+            segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
+        else:
+            segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
         label['instances'] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
         return label
 
@@ -181,7 +193,7 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == 'img':
                 value = torch.stack(value, 0)
-            if k in ['masks', 'keypoints', 'bboxes', 'cls']:
+            if k in ['masks', 'keypoints', 'bboxes', 'cls', 'segments', 'obb']:
                 value = torch.cat(value, 0)
             new_batch[k] = value
         new_batch['batch_idx'] = list(new_batch['batch_idx'])
@@ -225,19 +237,17 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        self.torch_transforms = classify_transforms(args.imgsz)
-        self.album_transforms = classify_albumentations(
-            augment=augment,
-            size=args.imgsz,
-            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
-            hflip=args.fliplr,
-            vflip=args.flipud,
-            hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
-            hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
-            hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
-            auto_aug=False) if augment else None
+        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+        self.torch_transforms = classify_augmentations(size=args.imgsz,
+                                                       scale=scale,
+                                                       hflip=args.fliplr,
+                                                       vflip=args.flipud,
+                                                       erasing=args.erasing,
+                                                       auto_augment=args.auto_augment,
+                                                       hsv_h=args.hsv_h,
+                                                       hsv_s=args.hsv_s,
+                                                       hsv_v=args.hsv_v) if augment else classify_transforms(
+                                                           size=args.imgsz, crop_fraction=args.crop_fraction)
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
@@ -246,17 +256,17 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
             if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f))
+                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR
-        if self.album_transforms:
-            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
-        else:
-            sample = self.torch_transforms(im)
+        # Convert NumPy array to PIL image
+        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        sample = self.torch_transforms(im)
         return {'img': sample, 'cls': j}
 
     def __len__(self) -> int:
+        """Return the total number of samples in the dataset."""
         return len(self.samples)
 
     def verify_images(self):
@@ -271,7 +281,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             nf, nc, n, samples = cache.pop('results')  # found, missing, empty, corrupt, total
             if LOCAL_RANK in (-1, 0):
                 d = f'{desc} {nf} images, {nc} corrupt'
-                tqdm(None, desc=d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)
+                TQDM(None, desc=d, total=n, initial=n)
                 if cache['msgs']:
                     LOGGER.info('\n'.join(cache['msgs']))  # display warnings
             return samples
@@ -280,7 +290,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         nf, nc, msgs, samples, x = 0, 0, [], [], {}
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
-            pbar = tqdm(results, desc=desc, total=len(self.samples), bar_format=TQDM_BAR_FORMAT)
+            pbar = TQDM(results, desc=desc, total=len(self.samples))
             for sample, nf_f, nc_f, msg in pbar:
                 if nf_f:
                     samples.append(sample)
@@ -323,6 +333,16 @@ def save_dataset_cache_file(prefix, path, x):
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
+    """
+    Semantic Segmentation Dataset.
+
+    This class is responsible for handling datasets used for semantic segmentation tasks. It inherits functionalities
+    from the BaseDataset class.
+
+    Note:
+        This class is currently a placeholder and needs to be populated with methods and attributes for supporting
+        semantic segmentation tasks.
+    """
 
     def __init__(self):
         """Initialize a SemanticDataset object."""

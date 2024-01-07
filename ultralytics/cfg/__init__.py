@@ -1,32 +1,38 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
-import re
 import shutil
+import subprocess
 import sys
-from difflib import get_close_matches
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, SETTINGS, SETTINGS_YAML,
-                               IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
-                               yaml_print)
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, ROOT, RUNS_DIR,
+                               SETTINGS, SETTINGS_YAML, TESTS_RUNNING, IterableSimpleNamespace, __version__, checks,
+                               colorstr, deprecation_warn, yaml_load, yaml_print)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
-TASKS = 'detect', 'segment', 'classify', 'pose'
-TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet100', 'pose': 'coco8-pose.yaml'}
+TASKS = 'detect', 'segment', 'classify', 'pose', 'obb'
+TASK2DATA = {
+    'detect': 'coco8.yaml',
+    'segment': 'coco8-seg.yaml',
+    'classify': 'imagenet10',
+    'pose': 'coco8-pose.yaml',
+    'obb': 'dota8-obb.yaml'}  # not implemented yet
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
     'classify': 'yolov8n-cls.pt',
-    'pose': 'yolov8n-pose.pt'}
+    'pose': 'yolov8n-pose.pt',
+    'obb': 'yolov8n-obb.pt'}
 TASK2METRIC = {
     'detect': 'metrics/mAP50-95(B)',
     'segment': 'metrics/mAP50-95(M)',
     'classify': 'metrics/accuracy_top1',
-    'pose': 'metrics/mAP50-95(P)'}
+    'pose': 'metrics/mAP50-95(P)',
+    'obb': 'metrics/mAP50-95(OBB)'}
 
 CLI_HELP_MSG = \
     f"""
@@ -43,13 +49,16 @@ CLI_HELP_MSG = \
         yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
+        yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
     3. Val a pretrained detection model at batch-size 1 and image size 640:
         yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
 
     4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
+
+    6. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
+        yolo explorer
 
     5. Run special commands:
         yolo help
@@ -65,7 +74,7 @@ CLI_HELP_MSG = \
     """
 
 # Define keys for arg type checks
-CFG_FLOAT_KEYS = 'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear'
+CFG_FLOAT_KEYS = 'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear', 'time'
 CFG_FRACTION_KEYS = ('dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr',
                      'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud',
                      'fliplr', 'mosaic', 'mixup', 'copy_paste', 'conf', 'iou', 'fraction')  # fraction floats 0.0 - 1.0
@@ -73,8 +82,8 @@ CFG_INT_KEYS = ('epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic'
                 'line_width', 'workspace', 'nbs', 'save_period')
 CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'rect', 'cos_lr', 'overlap_mask', 'val',
                  'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf', 'save_crop',
-                 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks', 'boxes', 'keras',
-                 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile')
+                 'save_frames', 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks',
+                 'show_boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'profile', 'multi_scale')
 
 
 def cfg2dict(cfg):
@@ -147,10 +156,28 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
+def get_save_dir(args, name=None):
+    """Return save_dir as created from train/val/predict arguments."""
+
+    if getattr(args, 'save_dir', None):
+        save_dir = args.save_dir
+    else:
+        from ultralytics.utils.files import increment_path
+
+        project = args.project or (ROOT.parent / 'tests/tmp/runs' if TESTS_RUNNING else RUNS_DIR) / args.task
+        name = name or args.name or f'{args.mode}'
+        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in (-1, 0) else True)
+
+    return Path(save_dir)
+
+
 def _handle_deprecation(custom):
-    """Hardcoded function to handle deprecated config keys"""
+    """Hardcoded function to handle deprecated config keys."""
 
     for key in custom.copy().keys():
+        if key == 'boxes':
+            deprecation_warn(key, 'show_boxes')
+            custom['show_boxes'] = custom.pop('boxes')
         if key == 'hide_labels':
             deprecation_warn(key, 'show_labels')
             custom['show_labels'] = custom.pop('hide_labels') == 'False'
@@ -166,17 +193,20 @@ def _handle_deprecation(custom):
 
 def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
-    This function checks for any mismatched keys between a custom configuration list and a base configuration list.
-    If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
+    This function checks for any mismatched keys between a custom configuration list and a base configuration list. If
+    any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
 
     Args:
         custom (dict): a dictionary of custom configuration options
         base (dict): a dictionary of base configuration options
+        e (Error, optional): An optional error that is passed by the calling function.
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
     mismatched = [k for k in custom_keys if k not in base_keys]
     if mismatched:
+        from difflib import get_close_matches
+
         string = ''
         for x in mismatched:
             matches = get_close_matches(x, base_keys)  # key list
@@ -188,9 +218,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' args in a list of strings.
-    The function considers cases where the first argument ends with '=' or the second starts with '=',
-    as well as when the middle one is an equals sign.
+    Merges arguments around isolated '=' args in a list of strings. The function considers cases where the first
+    argument ends with '=' or the second starts with '=', as well as when the middle one is an equals sign.
 
     Args:
         args (List[str]): A list of strings where each element is an argument.
@@ -272,21 +301,28 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
+def handle_explorer():
+    """Open the Ultralytics Explorer GUI."""
+    checks.check_requirements('streamlit')
+    subprocess.run(['streamlit', 'run', ROOT / 'data/explorer/gui/dash.py', '--server.maxMessageSize', '2048'])
+
+
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""
-    re.sub(r' *= *', '=', pair)  # remove spaces around equals sign
     k, v = pair.split('=', 1)  # split on first '=' sign
+    k, v = k.strip(), v.strip()  # remove spaces
     assert v, f"missing '{k}' value"
     return k, smart_value(v)
 
 
 def smart_value(v):
     """Convert a string to an underlying type such as int, float, bool, etc."""
-    if v.lower() == 'none':
+    v_lower = v.lower()
+    if v_lower == 'none':
         return None
-    elif v.lower() == 'true':
+    elif v_lower == 'true':
         return True
-    elif v.lower() == 'false':
+    elif v_lower == 'false':
         return False
     else:
         with contextlib.suppress(Exception):
@@ -316,16 +352,17 @@ def entrypoint(debug=''):
 
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
-        'checks': checks.check_yolo,
+        'checks': checks.collect_system_info,
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: handle_yolo_settings(args[1:]),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'hub': lambda: handle_yolo_hub(args[1:]),
         'login': lambda: handle_yolo_hub(args),
-        'copy-cfg': copy_default_cfg}
+        'copy-cfg': copy_default_cfg,
+        'explorer': lambda: handle_explorer()}
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
-    # Define common mis-uses of special commands, i.e. -h, -help, --help
+    # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
     special.update({k[:-1]: v for k, v in special.items() if len(k) > 1 and k.endswith('s')})  # singular
     special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}
@@ -341,7 +378,7 @@ def entrypoint(debug=''):
         if '=' in a:
             try:
                 k, v = parse_key_value_pair(a)
-                if k == 'cfg':  # custom.yaml passed
+                if k == 'cfg' and v is not None:  # custom.yaml passed
                     LOGGER.info(f'Overriding {DEFAULT_CFG_PATH} with {v}')
                     overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != 'cfg'}
                 else:
@@ -373,11 +410,7 @@ def entrypoint(debug=''):
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
     elif mode not in MODES:
-        if mode not in ('checks', checks):
-            raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
-        LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
-        checks.check_yolo()
-        return
+        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
 
     # Task
     task = overrides.pop('task', None)
@@ -393,13 +426,14 @@ def entrypoint(debug=''):
         model = 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     overrides['model'] = model
-    if 'rtdetr' in model.lower():  # guess architecture
+    stem = Path(model).stem.lower()
+    if 'rtdetr' in stem:  # guess architecture
         from ultralytics import RTDETR
         model = RTDETR(model)  # no task argument
-    elif 'fastsam' in model.lower():
+    elif 'fastsam' in stem:
         from ultralytics import FastSAM
         model = FastSAM(model)
-    elif 'sam' in model.lower():
+    elif 'sam' in stem:
         from ultralytics import SAM
         model = SAM(model)
     else:
@@ -421,7 +455,7 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides and 'resume' not in overrides:
-            overrides['data'] = TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
+            overrides['data'] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
@@ -429,8 +463,10 @@ def entrypoint(debug=''):
             LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    # getattr(model, mode)(**vars(get_cfg(overrides=overrides)))  # default args using default.yaml
     getattr(model, mode)(**overrides)  # default args from model
+
+    # Show help
+    LOGGER.info(f'💡 Learn more at https://docs.ultralytics.com/modes/{mode}')
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

@@ -12,11 +12,10 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.utils import LOGGER, TryExcept, plt_settings, threaded
+from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
 
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
-from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 
 
 class Colors:
@@ -77,6 +76,7 @@ class Annotator:
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         self.pil = pil or non_ascii
+        self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
         if self.pil:  # use PIL
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
             self.draw = ImageDraw.Draw(self.im)
@@ -90,8 +90,9 @@ class Annotator:
             if check_version(pil_version, '9.2.0'):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
-            self.im = im
-        self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
+            self.im = im if im.flags.writeable else im.copy()
+            self.tf = max(self.lw - 1, 1)  # font thickness
+            self.sf = self.lw / 3  # font scale
         # Pose
         self.skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8], [7, 9],
                          [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
@@ -99,37 +100,46 @@ class Annotator:
         self.limb_color = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
         self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
 
-    def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
+    def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
         """Add one xyxy box to image with label."""
         if isinstance(box, torch.Tensor):
             box = box.tolist()
         if self.pil or not is_ascii(label):
-            self.draw.rectangle(box, width=self.lw, outline=color)  # box
+            if rotated:
+                p1 = box[0]
+                # NOTE: PIL-version polygon needs tuple type.
+                self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)
+            else:
+                p1 = (box[0], box[1])
+                self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
                 w, h = self.font.getsize(label)  # text width, height
-                outside = box[1] - h >= 0  # label fits outside box
+                outside = p1[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
-                    (box[0], box[1] - h if outside else box[1], box[0] + w + 1,
-                     box[1] + 1 if outside else box[1] + h + 1),
+                    (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
                 )
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
-                self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
+                self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-            cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            if rotated:
+                p1 = [int(b) for b in box[0]]
+                # NOTE: cv2-version polylines needs np.asarray type.
+                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)
+            else:
+                p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
             if label:
-                tf = max(self.lw - 1, 1)  # font thickness
-                w, h = cv2.getTextSize(label, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
+                w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
                 p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
                 cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
                 cv2.putText(self.im,
                             label, (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
                             0,
-                            self.lw / 3,
+                            self.sf,
                             txt_color,
-                            thickness=tf,
+                            thickness=self.tf,
                             lineType=cv2.LINE_AA)
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
@@ -155,15 +165,15 @@ class Annotator:
         masks = masks.unsqueeze(3)  # shape(n,h,w,1)
         masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
 
-        inv_alph_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
+        inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
         mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
 
         im_gpu = im_gpu.flip(dims=[0])  # flip channel
         im_gpu = im_gpu.permute(1, 2, 0).contiguous()  # shape(h,w,3)
-        im_gpu = im_gpu * inv_alph_masks[-1] + mcs
+        im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
         im_mask = (im_gpu * 255)
         im_mask_np = im_mask.byte().cpu().numpy()
-        self.im[:] = im_mask_np if retina_masks else scale_image(im_mask_np, self.im.shape)
+        self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)
         if self.pil:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
@@ -241,15 +251,13 @@ class Annotator:
                 self.draw.text(xy, text, fill=txt_color, font=self.font)
         else:
             if box_style:
-                tf = max(self.lw - 1, 1)  # font thickness
-                w, h = cv2.getTextSize(text, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
+                w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 outside = xy[1] - h >= 3
                 p2 = xy[0] + w, xy[1] - h - 3 if outside else xy[1] + h + 3
                 cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
                 # Using `txt_color` for background and draw fg with white color
                 txt_color = (255, 255, 255)
-            tf = max(self.lw - 1, 1)  # font thickness
-            cv2.putText(self.im, text, xy, 0, self.lw / 3, txt_color, thickness=tf, lineType=cv2.LINE_AA)
+            cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
         """Update self.im from a numpy array."""
@@ -260,6 +268,201 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
+    # Object Counting Annotator
+    def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
+        """
+        Draw region line
+        Args:
+            reg_pts (list): Region Points (for line 2 points, for region 4 points)
+            color (tuple): Region Color value
+            thickness (int): Region area thickness value
+        """
+        cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
+
+    def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
+        """
+        Draw centroid point and track trails
+        Args:
+            track (list): object tracking points for trails display
+            color (tuple): tracks line color
+            track_thickness (int): track line thickness value
+        """
+        points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+        cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
+        cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
+
+    def count_labels(self, in_count=0, out_count=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
+        """
+        Plot counts for object counter
+        Args:
+            in_count (int): in count value
+            out_count (int): out count value
+            count_txt_size (int): text size for counts display
+            color (tuple): background color of counts display
+            txt_color (tuple): text color of counts display
+        """
+        self.tf = count_txt_size
+        tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
+        tf = max(tl - 1, 1)
+        gap = int(24 * tl)  # gap between in_count and out_count based on line_thickness
+
+        # Get text size for in_count and out_count
+        t_size_in = cv2.getTextSize(str(in_count), 0, fontScale=tl / 2, thickness=tf)[0]
+        t_size_out = cv2.getTextSize(str(out_count), 0, fontScale=tl / 2, thickness=tf)[0]
+
+        # Calculate positions for in_count and out_count labels
+        text_width = max(t_size_in[0], t_size_out[0])
+        text_x1 = (self.im.shape[1] - text_width - 120 * self.tf) // 2 - gap
+        text_x2 = (self.im.shape[1] - text_width + 120 * self.tf) // 2 + gap
+        text_y = max(t_size_in[1], t_size_out[1])
+
+        # Create a rounded rectangle for in_count
+        cv2.rectangle(self.im, (text_x1 - 5, text_y - 5), (text_x1 + text_width + 7, text_y + t_size_in[1] + 7), color,
+                      -1)
+        cv2.putText(self.im,
+                    str(in_count), (text_x1, text_y + t_size_in[1]),
+                    0,
+                    tl / 2,
+                    txt_color,
+                    self.tf,
+                    lineType=cv2.LINE_AA)
+
+        # Create a rounded rectangle for out_count
+        cv2.rectangle(self.im, (text_x2 - 5, text_y - 5), (text_x2 + text_width + 7, text_y + t_size_out[1] + 7), color,
+                      -1)
+        cv2.putText(self.im,
+                    str(out_count), (text_x2, text_y + t_size_out[1]),
+                    0,
+                    tl / 2,
+                    txt_color,
+                    thickness=self.tf,
+                    lineType=cv2.LINE_AA)
+
+    @staticmethod
+    def estimate_pose_angle(a, b, c):
+        """Calculate the pose angle for object
+        Args:
+            a (float) : The value of pose point a
+            b (float): The value of pose point b
+            c (float): The value o pose point c
+        Returns:
+            angle (degree): Degree value of angle between three points
+        """
+        a, b, c = np.array(a), np.array(b), np.array(c)
+        radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
+        angle = np.abs(radians * 180.0 / np.pi)
+        if angle > 180.0:
+            angle = 360 - angle
+        return angle
+
+    def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2):
+        """
+        Draw specific keypoints for gym steps counting.
+
+        Args:
+            keypoints (list): list of keypoints data to be plotted
+            indices (list): keypoints ids list to be plotted
+            shape (tuple): imgsz for model inference
+            radius (int): Keypoint radius value
+        """
+        nkpts, ndim = keypoints.shape
+        nkpts == 17 and ndim == 3
+        for i, k in enumerate(keypoints):
+            if i in indices:
+                x_coord, y_coord = k[0], k[1]
+                if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
+                    if len(k) == 3:
+                        conf = k[2]
+                        if conf < 0.5:
+                            continue
+                    cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
+        return self.im
+
+    def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, line_thickness=2):
+        """
+        Plot the pose angle, count value and step stage.
+
+        Args:
+            angle_text (str): angle value for workout monitoring
+            count_text (str): counts value for workout monitoring
+            stage_text (str): stage decision for workout monitoring
+            center_kpt (int): centroid pose index for workout monitoring
+            line_thickness (int): thickness for text display
+        """
+        angle_text, count_text, stage_text = (f' {angle_text:.2f}', 'Steps : ' + f'{count_text}', f' {stage_text}')
+        font_scale = 0.6 + (line_thickness / 10.0)
+
+        # Draw angle
+        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, font_scale, line_thickness)
+        angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
+        angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
+        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (line_thickness * 2))
+        cv2.rectangle(self.im, angle_background_position, (angle_background_position[0] + angle_background_size[0],
+                                                           angle_background_position[1] + angle_background_size[1]),
+                      (255, 255, 255), -1)
+        cv2.putText(self.im, angle_text, angle_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+
+        # Draw Counts
+        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, font_scale, line_thickness)
+        count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
+        count_background_position = (angle_background_position[0],
+                                     angle_background_position[1] + angle_background_size[1] + 5)
+        count_background_size = (count_text_width + 10, count_text_height + 10 + (line_thickness * 2))
+
+        cv2.rectangle(self.im, count_background_position, (count_background_position[0] + count_background_size[0],
+                                                           count_background_position[1] + count_background_size[1]),
+                      (255, 255, 255), -1)
+        cv2.putText(self.im, count_text, count_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+
+        # Draw Stage
+        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, font_scale, line_thickness)
+        stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
+        stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
+        stage_background_size = (stage_text_width + 10, stage_text_height + 10)
+
+        cv2.rectangle(self.im, stage_background_position, (stage_background_position[0] + stage_background_size[0],
+                                                           stage_background_position[1] + stage_background_size[1]),
+                      (255, 255, 255), -1)
+        cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+
+    def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
+        """
+        Function for drawing segmented object in bounding box shape.
+
+        Args:
+            mask (list): masks data list for instance segmentation area plotting
+            mask_color (tuple): mask foreground color
+            det_label (str): Detection label text
+            track_label (str): Tracking label text
+        """
+        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
+
+        label = f'Track ID: {track_label}' if track_label else det_label
+        text_size, _ = cv2.getTextSize(label, 0, 0.7, 1)
+
+        cv2.rectangle(self.im, (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
+                      (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)), mask_color, -1)
+
+        cv2.putText(self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255),
+                    2)
+
+    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
+        """
+        Function for pinpoint human-vision eye mapping and plotting.
+
+        Args:
+            box (list): Bounding box coordinates
+            center_point (tuple): center point for vision eye view
+            color (tuple): object centroid and line color value
+            pin_color (tuple): visioneye point color value
+            thickness (int): int value for line thickness
+            pins_radius (int): visioneye point radius value
+        """
+        center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+        cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
+        cv2.circle(self.im, center_bbox, pins_radius, color, -1)
+        cv2.line(self.im, center_point, center_bbox, color, thickness)
+
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
 @plt_settings()
@@ -268,8 +471,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
     import pandas as pd
     import seaborn as sn
 
-    # Filter matplotlib>=3.7.2 warning
+    # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
     warnings.filterwarnings('ignore', category=UserWarning, message='The figure layout has changed to tight')
+    warnings.filterwarnings('ignore', category=FutureWarning)
 
     # Plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
@@ -285,8 +489,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
     # Matplotlib labels
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
     y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
-    with contextlib.suppress(Exception):  # color histogram bars by class
-        [y[2].patches[i].set_color([x / 255 for x in colors(i)]) for i in range(nc)]  # known issue #3195
+    for i in range(nc):
+        y[2].patches[i].set_color([x / 255 for x in colors(i)])
     ax[0].set_ylabel('instances')
     if 0 < len(names) < 30:
         ax[0].set_xticks(range(len(names)))
@@ -298,7 +502,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
     # Rectangles
     boxes[:, 0:2] = 0.5  # center
-    boxes = xywh2xyxy(boxes) * 1000
+    boxes = ops.xywh2xyxy(boxes) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
     for cls, box in zip(cls[:500], boxes[:500]):
         ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
@@ -317,7 +521,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
 
 
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):
-    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
+    """
+    Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according
     to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
@@ -348,12 +553,12 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
 
     if not isinstance(xyxy, torch.Tensor):  # may be list
         xyxy = torch.stack(xyxy)
-    b = xyxy2xywh(xyxy.view(-1, 4))  # boxes
+    b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
-    xyxy = xywh2xyxy(b).long()
-    clip_boxes(xyxy, im.shape)
+    xyxy = ops.xywh2xyxy(b).long()
+    xyxy = ops.clip_boxes(xyxy, im.shape)
     crop = im[int(xyxy[0, 1]):int(xyxy[0, 3]), int(xyxy[0, 0]):int(xyxy[0, 2]), ::(1 if BGR else -1)]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
@@ -368,12 +573,15 @@ def plot_images(images,
                 batch_idx,
                 cls,
                 bboxes=np.zeros(0, dtype=np.float32),
+                confs=None,
                 masks=np.zeros(0, dtype=np.uint8),
                 kpts=np.zeros((0, 51), dtype=np.float32),
                 paths=None,
                 fname='images.jpg',
                 names=None,
-                on_plot=None):
+                on_plot=None,
+                max_subplots=16,
+                save=True):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
@@ -389,7 +597,6 @@ def plot_images(images,
         batch_idx = batch_idx.cpu().numpy()
 
     max_size = 1920  # max image size
-    max_subplots = 16  # max image subplots, i.e. 4x4
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs ** 0.5)  # number of subplots (square)
@@ -398,12 +605,9 @@ def plot_images(images,
 
     # Build Image
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
-    for i, im in enumerate(images):
-        if i == max_subplots:  # if last batch has fewer images than we expect
-            break
+    for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        im = im.transpose(1, 2, 0)
-        mosaic[y:y + h, x:x + w, :] = im
+        mosaic[y:y + h, x:x + w, :] = images[i].transpose(1, 2, 0)
 
     # Resize (optional)
     scale = max_size / ns / max(h, w)
@@ -415,7 +619,7 @@ def plot_images(images,
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
-    for i in range(i + 1):
+    for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
@@ -423,27 +627,29 @@ def plot_images(images,
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype('int')
+            labels = confs is None
 
             if len(bboxes):
-                boxes = xywh2xyxy(bboxes[idx, :4]).T
-                labels = bboxes.shape[1] == 4  # labels if no conf column
-                conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
-
-                if boxes.shape[1]:
-                    if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
-                        boxes[[0, 2]] *= w  # scale to pixels
-                        boxes[[1, 3]] *= h
+                boxes = bboxes[idx]
+                conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
+                if len(boxes):
+                    if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
+                        boxes[:, [0, 2]] *= w  # scale to pixels
+                        boxes[:, [1, 3]] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
-                        boxes *= scale
-                boxes[[0, 2]] += x
-                boxes[[1, 3]] += y
-                for j, box in enumerate(boxes.T.tolist()):
+                        boxes[:, :4] *= scale
+                boxes[:, 0] += x
+                boxes[:, 1] += y
+                is_obb = boxes.shape[-1] == 5  # xywhr
+                boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
+                for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
-                        annotator.box_label(box, label, color=color)
+                        annotator.box_label(box, label, color=color, rotated=is_obb)
+
             elif len(classes):
                 for c in classes:
                     color = colors(c)
@@ -477,7 +683,7 @@ def plot_images(images,
                     image_masks = np.where(image_masks == index, 1.0, 0.0)
 
                 im = np.asarray(annotator.im).copy()
-                for j, box in enumerate(boxes.T.tolist()):
+                for j in range(len(image_masks)):
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         color = colors(classes[j])
                         mh, mw = image_masks[j].shape
@@ -490,21 +696,34 @@ def plot_images(images,
                         with contextlib.suppress(Exception):
                             im[y:y + h, x:x + w, :][mask] = im[y:y + h, x:x + w, :][mask] * 0.4 + np.array(color) * 0.6
                 annotator.fromarray(im)
-    annotator.im.save(fname)  # save
-    if on_plot:
-        on_plot(fname)
+    if save:
+        annotator.im.save(fname)  # save
+        if on_plot:
+            on_plot(fname)
+    else:
+        return np.asarray(annotator.im)
 
 
 @plt_settings()
 def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, classify=False, on_plot=None):
     """
-    Plot training results from results CSV file.
+    Plot training results from a results CSV file. The function supports various types of data including segmentation,
+    pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
+
+    Args:
+        file (str, optional): Path to the CSV file containing the training results. Defaults to 'path/to/results.csv'.
+        dir (str, optional): Directory where the CSV file is located if 'file' is not provided. Defaults to ''.
+        segment (bool, optional): Flag to indicate if the data is for segmentation. Defaults to False.
+        pose (bool, optional): Flag to indicate if the data is for pose estimation. Defaults to False.
+        classify (bool, optional): Flag to indicate if the data is for classification. Defaults to False.
+        on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
+            Defaults to None.
 
     Example:
         ```python
         from ultralytics.utils.plotting import plot_results
 
-        plot_results('path/to/results.csv')
+        plot_results('path/to/results.csv', segment=True)
         ```
     """
     import pandas as pd
@@ -548,15 +767,112 @@ def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, 
         on_plot(fname)
 
 
+def plt_color_scatter(v, f, bins=20, cmap='viridis', alpha=0.8, edgecolors='none'):
+    """
+    Plots a scatter plot with points colored based on a 2D histogram.
+
+    Args:
+        v (array-like): Values for the x-axis.
+        f (array-like): Values for the y-axis.
+        bins (int, optional): Number of bins for the histogram. Defaults to 20.
+        cmap (str, optional): Colormap for the scatter plot. Defaults to 'viridis'.
+        alpha (float, optional): Alpha for the scatter plot. Defaults to 0.8.
+        edgecolors (str, optional): Edge colors for the scatter plot. Defaults to 'none'.
+
+    Examples:
+        >>> v = np.random.rand(100)
+        >>> f = np.random.rand(100)
+        >>> plt_color_scatter(v, f)
+    """
+
+    # Calculate 2D histogram and corresponding colors
+    hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
+    colors = [
+        hist[min(np.digitize(v[i], xedges, right=True) - 1, hist.shape[0] - 1),
+             min(np.digitize(f[i], yedges, right=True) - 1, hist.shape[1] - 1)] for i in range(len(v))]
+
+    # Scatter plot
+    plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
+
+
+def plot_tune_results(csv_file='tune_results.csv'):
+    """
+    Plot the evolution results stored in an 'tune_results.csv' file. The function generates a scatter plot for each key
+    in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
+
+    Args:
+        csv_file (str, optional): Path to the CSV file containing the tuning results. Defaults to 'tune_results.csv'.
+
+    Examples:
+        >>> plot_tune_results('path/to/tune_results.csv')
+    """
+
+    import pandas as pd
+    from scipy.ndimage import gaussian_filter1d
+
+    # Scatter plots for each hyperparameter
+    csv_file = Path(csv_file)
+    data = pd.read_csv(csv_file)
+    num_metrics_columns = 1
+    keys = [x.strip() for x in data.columns][num_metrics_columns:]
+    x = data.values
+    fitness = x[:, 0]  # fitness
+    j = np.argmax(fitness)  # max fitness index
+    n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
+    plt.figure(figsize=(10, 10), tight_layout=True)
+    for i, k in enumerate(keys):
+        v = x[:, i + num_metrics_columns]
+        mu = v[j]  # best single result
+        plt.subplot(n, n, i + 1)
+        plt_color_scatter(v, fitness, cmap='viridis', alpha=.8, edgecolors='none')
+        plt.plot(mu, fitness.max(), 'k+', markersize=15)
+        plt.title(f'{k} = {mu:.3g}', fontdict={'size': 9})  # limit to 40 characters
+        plt.tick_params(axis='both', labelsize=8)  # Set axis label size to 8
+        if i % n != 0:
+            plt.yticks([])
+
+    file = csv_file.with_name('tune_scatter_plots.png')  # filename
+    plt.savefig(file, dpi=200)
+    plt.close()
+    LOGGER.info(f'Saved {file}')
+
+    # Fitness vs iteration
+    x = range(1, len(fitness) + 1)
+    plt.figure(figsize=(10, 6), tight_layout=True)
+    plt.plot(x, fitness, marker='o', linestyle='none', label='fitness')
+    plt.plot(x, gaussian_filter1d(fitness, sigma=3), ':', label='smoothed', linewidth=2)  # smoothing line
+    plt.title('Fitness vs Iteration')
+    plt.xlabel('Iteration')
+    plt.ylabel('Fitness')
+    plt.grid(True)
+    plt.legend()
+
+    file = csv_file.with_name('tune_fitness.png')  # filename
+    plt.savefig(file, dpi=200)
+    plt.close()
+    LOGGER.info(f'Saved {file}')
+
+
 def output_to_target(output, max_det=300):
     """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
         box, conf, cls = o[:max_det, :6].cpu().split((4, 1, 1), 1)
         j = torch.full((conf.shape[0], 1), i)
-        targets.append(torch.cat((j, cls, xyxy2xywh(box), conf), 1))
+        targets.append(torch.cat((j, cls, ops.xyxy2xywh(box), conf), 1))
     targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:]
+    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
+
+
+def output_to_rotated_target(output, max_det=300):
+    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
+    targets = []
+    for i, o in enumerate(output):
+        box, conf, cls, angle = o[:max_det].cpu().split((4, 1, 1, 1), 1)
+        j = torch.full((conf.shape[0], 1), i)
+        targets.append(torch.cat((j, cls, box, angle, conf), 1))
+    targets = torch.cat(targets, 0).numpy()
+    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
 
 
 def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detect/exp')):

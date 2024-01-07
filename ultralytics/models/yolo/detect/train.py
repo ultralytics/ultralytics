@@ -1,8 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import math
+import random
 from copy import copy
 
 import numpy as np
+import torch.nn as nn
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
@@ -54,10 +57,20 @@ class DetectionTrainer(BaseTrainer):
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images by scaling and converting to float."""
         batch['img'] = batch['img'].to(self.device, non_blocking=True).float() / 255
+        if self.args.multi_scale:
+            imgs = batch['img']
+            sz = (random.randrange(self.args.imgsz * 0.5, self.args.imgsz * 1.5 + self.stride) // self.stride *
+                  self.stride)  # size
+            sf = sz / max(imgs.shape[2:])  # scale factor
+            if sf != 1:
+                ns = [math.ceil(x * sf / self.stride) * self.stride
+                      for x in imgs.shape[2:]]  # new shape (stretched to gs-multiple)
+                imgs = nn.functional.interpolate(imgs, size=ns, mode='bilinear', align_corners=False)
+            batch['img'] = imgs
         return batch
 
     def set_model_attributes(self):
-        """nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)."""
+        """Nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)."""
         # self.args.box *= 3 / nl  # scale to layers
         # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
         # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
@@ -76,12 +89,16 @@ class DetectionTrainer(BaseTrainer):
     def get_validator(self):
         """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
-        return yolo.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        return yolo.detect.DetectionValidator(self.test_loader,
+                                              save_dir=self.save_dir,
+                                              args=copy(self.args),
+                                              _callbacks=self.callbacks)
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
-        Returns a loss dict with labelled training loss items tensor. Not needed for classification but necessary for
-        segmentation & detection
+        Returns a loss dict with labelled training loss items tensor.
+
+        Not needed for classification but necessary for segmentation & detection
         """
         keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is not None:

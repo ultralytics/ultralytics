@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Benchmark a YOLO model formats for speed and accuracy
+Benchmark a YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
@@ -32,18 +32,17 @@ from pathlib import Path
 
 import numpy as np
 import torch.cuda
-from tqdm import tqdm
 
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, SETTINGS
+from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
 from ultralytics.utils.checks import check_requirements, check_yolo
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
 
 
-def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
+def benchmark(model=WEIGHTS_DIR / 'yolov8n.pt',
               data=None,
               imgsz=160,
               half=False,
@@ -101,10 +100,10 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             # Export
             if format == '-':
                 filename = model.ckpt_path or model.cfg
-                export = model  # PyTorch format
+                exported_model = model  # PyTorch format
             else:
                 filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
-                export = YOLO(filename, task=model.task)
+                exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
 
@@ -112,19 +111,19 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             assert model.task != 'pose' or i != 7, 'GraphDef Pose inference is not supported'
             assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
-            export.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half)
+            exported_model.predict(ASSETS / 'bus.jpg', imgsz=imgsz, device=device, half=half)
 
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
             key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
-            results = export.val(data=data,
-                                 batch=1,
-                                 imgsz=imgsz,
-                                 plots=False,
-                                 device=device,
-                                 half=half,
-                                 int8=int8,
-                                 verbose=False)
+            results = exported_model.val(data=data,
+                                         batch=1,
+                                         imgsz=imgsz,
+                                         plots=False,
+                                         device=device,
+                                         half=half,
+                                         int8=int8,
+                                         verbose=False)
             metric, speed = results.results_dict[key], results.speed['inference']
             y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
         except Exception as e:
@@ -182,17 +181,33 @@ class ProfileModels:
                  num_warmup_runs=10,
                  min_time=60,
                  imgsz=640,
+                 half=True,
                  trt=True,
                  device=None):
+        """
+        Initialize the ProfileModels class for profiling models.
+
+        Args:
+            paths (list): List of paths of the models to be profiled.
+            num_timed_runs (int, optional): Number of timed runs for the profiling. Default is 100.
+            num_warmup_runs (int, optional): Number of warmup runs before the actual profiling starts. Default is 10.
+            min_time (float, optional): Minimum time in seconds for profiling a model. Default is 60.
+            imgsz (int, optional): Size of the image used during profiling. Default is 640.
+            half (bool, optional): Flag to indicate whether to use half-precision floating point for profiling. Default is True.
+            trt (bool, optional): Flag to indicate whether to profile using TensorRT. Default is True.
+            device (torch.device, optional): Device used for profiling. If None, it is determined automatically. Default is None.
+        """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
         self.imgsz = imgsz
+        self.half = half
         self.trt = trt  # run TensorRT profiling
         self.device = device or torch.device(0 if torch.cuda.is_available() else 'cpu')
 
     def profile(self):
+        """Logs the benchmarking results of a model, checks metrics against floor and returns the results."""
         files = self.get_files()
 
         if not files:
@@ -209,12 +224,12 @@ class ProfileModels:
                 model_info = model.info()
                 if self.trt and self.device.type != 'cpu' and not engine_file.is_file():
                     engine_file = model.export(format='engine',
-                                               half=True,
+                                               half=self.half,
                                                imgsz=self.imgsz,
                                                device=self.device,
                                                verbose=False)
                 onnx_file = model.export(format='onnx',
-                                         half=True,
+                                         half=self.half,
                                          imgsz=self.imgsz,
                                          simplify=True,
                                          device=self.device,
@@ -234,6 +249,7 @@ class ProfileModels:
         return output
 
     def get_files(self):
+        """Returns a list of paths for all relevant model files given by the user."""
         files = []
         for path in self.paths:
             path = Path(path)
@@ -249,10 +265,14 @@ class ProfileModels:
         return [Path(file) for file in sorted(files)]
 
     def get_onnx_model_info(self, onnx_file: str):
+        """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
+        file.
+        """
         # return (num_layers, num_params, num_gradients, num_flops)
         return 0.0, 0.0, 0.0, 0.0
 
     def iterative_sigma_clipping(self, data, sigma=2, max_iters=3):
+        """Applies an iterative sigma clipping algorithm to the given data times number of iterations."""
         data = np.array(data)
         for _ in range(max_iters):
             mean, std = np.mean(data), np.std(data)
@@ -262,7 +282,8 @@ class ProfileModels:
             data = clipped_data
         return data
 
-    def profile_tensorrt_model(self, engine_file: str, eps: float = 1e-7):
+    def profile_tensorrt_model(self, engine_file: str, eps: float = 1e-3):
+        """Profiles the TensorRT model, measuring average run time and standard deviation among runs."""
         if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
 
@@ -283,14 +304,17 @@ class ProfileModels:
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(num_runs), desc=engine_file):
+        for _ in TQDM(range(num_runs), desc=engine_file):
             results = model(input_data, imgsz=self.imgsz, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
-    def profile_onnx_model(self, onnx_file: str, eps: float = 1e-7):
+    def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
+        """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run
+        times.
+        """
         check_requirements('onnxruntime')
         import onnxruntime as ort
 
@@ -334,7 +358,7 @@ class ProfileModels:
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(num_runs), desc=onnx_file):
+        for _ in TQDM(range(num_runs), desc=onnx_file):
             start_time = time.time()
             sess.run([output_name], {input_name: input_data})
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
@@ -343,10 +367,12 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
+        """Generates a formatted string for a table row that includes model performance and metric details."""
         layers, params, gradients, flops = model_info
         return f'| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |'
 
     def generate_results_dict(self, model_name, t_onnx, t_engine, model_info):
+        """Generates a dictionary of model details including name, parameters, GFLOPS and speed metrics."""
         layers, params, gradients, flops = model_info
         return {
             'model/name': model_name,
@@ -356,6 +382,7 @@ class ProfileModels:
             'model/speed_TensorRT(ms)': round(t_engine[0], 3)}
 
     def print_table(self, table_rows):
+        """Formats and prints a comparison table for different models with given statistics and performance data."""
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'GPU'
         header = f'| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |'
         separator = '|-------------|---------------------|--------------------|------------------------------|-----------------------------------|------------------|-----------------|'

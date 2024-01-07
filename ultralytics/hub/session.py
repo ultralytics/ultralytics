@@ -23,7 +23,7 @@ class HUBTrainingSession:
 
     Attributes:
         agent_id (str): Identifier for the instance communicating with the server.
-        model_id (str): Identifier for the YOLOv5 model being trained.
+        model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
         api_url (str): API URL for the model in Ultralytics HUB.
         auth_header (dict): Authentication header for the Ultralytics HUB API requests.
@@ -84,6 +84,7 @@ class HUBTrainingSession:
     def _handle_signal(self, signum, frame):
         """
         Handle kill signals and prevent heartbeats from being sent on Colab after termination.
+
         This method does not use frame, it is included as it is passed by signal.
         """
         if self.alive is True:
@@ -117,8 +118,7 @@ class HUBTrainingSession:
 
             if data['status'] == 'new':  # new model to start training
                 self.train_args = {
-                    # TODO: deprecate 'batch_size' key for 'batch' in 3Q23
-                    'batch': data['batch' if ('batch' in data) else 'batch_size'],
+                    'batch': data['batch_size'],  # note HUB argument is slightly different
                     'epochs': data['epochs'],
                     'imgsz': data['imgsz'],
                     'patience': data['patience'],
@@ -159,6 +159,7 @@ class HUBTrainingSession:
         data = {'epoch': epoch}
         if final:
             data.update({'type': 'final', 'map': map})
+            filesize = Path(weights).stat().st_size
             smart_request('post',
                           url,
                           data=data,
@@ -167,7 +168,7 @@ class HUBTrainingSession:
                           retry=10,
                           timeout=3600,
                           thread=False,
-                          progress=True,
+                          progress=filesize,
                           code=4)
         else:
             data.update({'type': 'epoch', 'isBest': bool(is_best)})

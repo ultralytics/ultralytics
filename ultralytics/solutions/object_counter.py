@@ -210,7 +210,7 @@ class ObjectCounter:
         elif not self.view_out_counts:
             counts_label = incount_label
         else:
-            counts_label = incount_label + " " + outcount_label
+            counts_label = incount_label + ' ' + outcount_label
 
         if counts_label is not None:
             self.annotator.count_labels(counts=counts_label,

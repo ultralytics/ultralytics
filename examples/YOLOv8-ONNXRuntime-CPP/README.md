@@ -69,27 +69,27 @@ Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind 
 
 1. Clone the repository to your local machine.
 
-1. Navigate to the root directory of the repository.
+2. Navigate to the root directory of the repository.
 
-1. Create a build directory and navigate to it:
+3. Create a build directory and navigate to it:
 
    ```console
    mkdir build && cd build
    ```
 
-1. Run CMake to generate the build files:
+4. Run CMake to generate the build files:
 
    ```console
    cmake ..
    ```
 
-1. Build the project:
+5. Build the project:
 
    ```console
    make
    ```
 
-1. The built executable should now be located in the `build` directory.
+6. The built executable should now be located in the `build` directory.
 
 ## Usage 🚀
 

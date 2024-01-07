@@ -32,7 +32,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 
         out = cv2.VideoWriter('visioneye-pinpoint.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
 
-        center_point = (-10, int(cap.get(4)))
+        center_point = (-10, h)
 
         while True:
             ret, im0 = cap.read()
@@ -73,7 +73,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 
         out = cv2.VideoWriter('visioneye-pinpoint.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
 
-        center_point = (-10, int(cap.get(4)))
+        center_point = (-10, h)
 
         while True:
             ret, im0 = cap.read()

@@ -66,7 +66,7 @@ For alternative installation methods including [Conda](https://anaconda.org/cond
 <details open>
 <summary>Usage</summary>
 
-#### CLI
+### CLI
 
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 
@@ -76,7 +76,7 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8 [CLI Docs](https://docs.ultralytics.com/usage/cli) for examples.
 
-#### Python
+### Python
 
 YOLOv8 may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
 
@@ -97,6 +97,18 @@ path = model.export(format="onnx")  # export the model to ONNX format
 See YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
 
 </details>
+
+### Notebooks
+
+Ultralytics provides interactive notebooks for YOLOv8, covering training, validation, tracking, and more. Each notebook is paired with a [YouTube](https://youtube.com/ultralytics) tutorial, making it easy to learn and implement advanced YOLOv8 features.
+
+| Docs                                                                                                | Notebook                                                                                                                                                                                                         |                                                                                                     YouTube                                                                                                     |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <a href="https://docs.ultralytics.com/modes/">YOLOv8 Train, Val, Predict and Export Modes</a>       | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>        | <a href="https://youtu.be/j8uQc0qB91s"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube Video"></center></a> |
+| <a href="https://docs.ultralytics.com/hub/quickstart/">Ultralytics HUB QuickStart</a>               | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>             | <a href="https://youtu.be/lveF9iCMIzc"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube Video"></center></a> |
+| <a href="https://docs.ultralytics.com/modes/track/">YOLOv8 Multi-Object Tracking in Videos</a>      | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/object_tracking.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> | <a href="https://youtu.be/hHyHmOtmEgs"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube Video"></center></a> |
+| <a href="https://docs.ultralytics.com/guides/object-counting/">YOLOv8 Object Counting in Videos</a> | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/object_counting.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> | <a href="https://youtu.be/Ag2e-5_NpS0"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube Video"></center></a> |
+| <a href="https://docs.ultralytics.com/guides/heatmaps/">YOLOv8 Heatmaps in Videos</a>               | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/heatmaps.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>        | <a href="https://youtu.be/4ezde5-nZZw"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube Video"></center></a> |
 
 ## <div align="center">Models</div>
 

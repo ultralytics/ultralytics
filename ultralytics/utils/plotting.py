@@ -125,7 +125,7 @@ class Annotator:
             if rotated:
                 p1 = [int(b) for b in box[0]]
                 # NOTE: cv2-version polylines needs np.asarray type.
-                cv2.polylines(self.im, [np.asarray(box, dtype=np.int)], True, color, self.lw)
+                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)
             else:
                 p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
                 cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
@@ -580,7 +580,8 @@ def plot_images(images,
                 fname='images.jpg',
                 names=None,
                 on_plot=None,
-                max_subplots=16):
+                max_subplots=16,
+                save=True):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
@@ -596,7 +597,6 @@ def plot_images(images,
         batch_idx = batch_idx.cpu().numpy()
 
     max_size = 1920  # max image size
-    max_subplots = max_subplots  # max image subplots, i.e. 4x4
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs ** 0.5)  # number of subplots (square)
@@ -605,12 +605,9 @@ def plot_images(images,
 
     # Build Image
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
-    for i, im in enumerate(images):
-        if i == max_subplots:  # if last batch has fewer images than we expect
-            break
+    for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        im = im.transpose(1, 2, 0)
-        mosaic[y:y + h, x:x + w, :] = im
+        mosaic[y:y + h, x:x + w, :] = images[i].transpose(1, 2, 0)
 
     # Resize (optional)
     scale = max_size / ns / max(h, w)
@@ -622,7 +619,7 @@ def plot_images(images,
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
-    for i in range(i + 1):
+    for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
@@ -699,9 +696,12 @@ def plot_images(images,
                         with contextlib.suppress(Exception):
                             im[y:y + h, x:x + w, :][mask] = im[y:y + h, x:x + w, :][mask] * 0.4 + np.array(color) * 0.6
                 annotator.fromarray(im)
-    annotator.im.save(fname)  # save
-    if on_plot:
-        on_plot(fname)
+    if save:
+        annotator.im.save(fname)  # save
+        if on_plot:
+            on_plot(fname)
+    else:
+        return np.asarray(annotator.im)
 
 
 @plt_settings()

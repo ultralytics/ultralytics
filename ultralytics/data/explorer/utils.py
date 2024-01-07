@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import List
 
 import cv2
@@ -94,10 +93,12 @@ def plot_similar_images(similar_set, plot_labels=True):
     batch_idx = np.concatenate(batch_idx, axis=0)
     cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 
-    fname = 'temp_exp_grid.jpg'
-    plot_images(imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, fname=fname,
-                max_subplots=len(images)).join()
-    img = cv2.imread(fname, cv2.IMREAD_COLOR)
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    Path(fname).unlink()
-    return img_rgb
+    return plot_images(imgs,
+                       batch_idx,
+                       cls,
+                       bboxes=boxes,
+                       masks=masks,
+                       kpts=kpts,
+                       max_subplots=len(images),
+                       save=False,
+                       threaded=False)

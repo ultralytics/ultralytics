@@ -51,17 +51,21 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
 
+        width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
+                                       int(fps),
                                        (int(cap.get(3)), int(cap.get(4))))
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+                             imw=width,  # should same as cap height
+                             imh=height,  # should same as cap width
                              view_img=True,
                              shape="circle")
 

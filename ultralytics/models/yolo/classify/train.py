@@ -110,7 +110,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ['loss']
-        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir)
+        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, _callbacks=self.callbacks)
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """

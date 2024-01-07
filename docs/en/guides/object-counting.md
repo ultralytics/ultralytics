@@ -167,7 +167,6 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Optional Arguments `set_args`
 
-
 | Name                | Type        | Default                    | Description                                   |
 |---------------------|-------------|----------------------------|-----------------------------------------------|
 | view_img            | `bool`      | `False`                    | Display frames with counts                    |

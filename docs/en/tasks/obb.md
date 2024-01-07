@@ -12,9 +12,7 @@ Oriented object detection goes a step further than object detection and introduc
 
 The output of an oriented object detector is a set of rotated bounding boxes that exactly enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know exactly where the object is or its exact shape.
 
-
 <!-- youtube video link for obb task -->
-
 
 !!! Tip "Tip"
 
@@ -36,15 +34,13 @@ YOLOv8 pretrained Obb models are shown here, which are pretrained on the [DOTAv1
 
 <!-- TODO: should we report multi-scale results only as they're better or both multi-scale and single-scale. -->
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [DOTAv1 test](http://cocodataset.org) dataset.
-  <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0`
-- **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
-  instance.
-  <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** values are for single-model single-scale on [DOTAv1 test](http://cocodataset.org) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0`
+- **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
 
 ## Train
 
 <!-- TODO: probably we should create a sample dataset like coco128.yaml, named dota128.yaml? -->
+
 Train YOLOv8n-obb on the dota128.yaml dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! Example

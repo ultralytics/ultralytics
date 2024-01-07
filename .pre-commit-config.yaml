@@ -52,7 +52,7 @@ repos:
           - mdformat-gfm
           - mdformat-frontmatter
         args:
-          - --wrap=no
+          - --wrap=no --number
         exclude: 'docs/.*\.md'
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 

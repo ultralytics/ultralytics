@@ -1,10 +1,9 @@
 from io import BytesIO
 from pathlib import Path
-from typing import Union
+from typing import Union, Any
 
 import cv2
 import numpy as np
-import pyarrow as pa
 import torch
 from matplotlib import pyplot as plt
 from pandas import DataFrame
@@ -138,7 +137,7 @@ class Explorer:
             batch['vector'] = model.embed(batch['im_file'], verbose=False)[0].detach().tolist()
             yield [batch]
 
-    def query(self, imgs: Union[str, np.ndarray, list[str], list[np.ndarray]] = None, limit: int = 25) -> pa.Table:
+    def query(self, imgs: Union[str, np.ndarray, list[str], list[np.ndarray]] = None, limit: int = 25) -> Any: # pyarrow.Table
         """
         Query the table for similar images. Accepts a single image or a list of images.
 
@@ -171,7 +170,7 @@ class Explorer:
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()
         return self.table.search(embeds).limit(limit).to_arrow()
 
-    def sql_query(self, query: str, return_type: str = 'pandas') -> Union[DataFrame, pa.Table]:
+    def sql_query(self, query: str, return_type: str = 'pandas') -> Union[DataFrame, Any, None]:
         """
         Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
 

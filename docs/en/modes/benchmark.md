@@ -45,8 +45,10 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 !!! Tip "Tip"
 
-    * Export to ONNX or OpenVINO for up to 3x CPU speedup.
-    * Export to TensorRT for up to 5x GPU speedup.
+```
+* Export to ONNX or OpenVINO for up to 3x CPU speedup.
+* Export to TensorRT for up to 5x GPU speedup.
+```
 
 ## Usage Examples
 
@@ -54,19 +56,21 @@ Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT 
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-        # Benchmark on GPU
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
-        ```
-    === "CLI"
+    # Benchmark on GPU
+    benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+    ```
+=== "CLI"
 
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
+````
 
 ## Arguments
 

@@ -30,24 +30,26 @@ To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='caltech256', epochs=100, imgsz=416)
-        ```
+    # Train the model
+    results = model.train(data='caltech256', epochs=100, imgsz=416)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
+    ```
+````
 
 ## Sample Images and Annotations
 
@@ -63,15 +65,17 @@ If you use the Caltech-256 dataset in your research or development work, please 
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{griffin2007caltech,
-                 title={Caltech-256 object category dataset},
-                 author={Griffin, Gregory and Holub, Alex and Perona, Pietro},
-                 year={2007}
-        }
-        ```
+    ```bibtex
+    @article{griffin2007caltech,
+             title={Caltech-256 object category dataset},
+             author={Griffin, Gregory and Holub, Alex and Perona, Pietro},
+             year={2007}
+    }
+    ```
+````
 
 We would like to acknowledge Gregory Griffin, Alex Holub, and Pietro Perona for creating and maintaining the Caltech-256 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the
 

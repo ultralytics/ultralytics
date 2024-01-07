@@ -60,29 +60,31 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 `names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.
 
-(Optional) if the points are symmetric then need flip_idx, like left-right side of human or face. For example if we assume five keypoints of facial landmark: [left eye, right eye, nose, left mouth, right mouth], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3] (just exchange the left-right index, i.e. 0-1 and 3-4, and do not modify others like nose in this example).
+(Optional) if the points are symmetric then need flip_idx, like left-right side of human or face. For example if we assume five keypoints of facial landmark: \[left eye, right eye, nose, left mouth, right mouth\], and the original index is \[0, 1, 2, 3, 4\], then flip_idx is \[1, 0, 2, 4, 3\] (just exchange the left-right index, i.e. 0-1 and 3-4, and do not modify others like nose in this example).
 
 ## Usage
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='coco128-pose.yaml', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # Train the model
+    results = model.train(data='coco128-pose.yaml', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Supported Datasets
 
@@ -127,12 +129,14 @@ Ultralytics provides a convenient conversion tool to convert labels from the pop
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics.data.converter import convert_coco
+    ```python
+    from ultralytics.data.converter import convert_coco
 
-        convert_coco(labels_dir='path/to/coco/annotations/', use_keypoints=True)
-        ```
+    convert_coco(labels_dir='path/to/coco/annotations/', use_keypoints=True)
+    ```
+````
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The `use_keypoints` parameter specifies whether to include keypoints (for pose estimation) in the converted labels.

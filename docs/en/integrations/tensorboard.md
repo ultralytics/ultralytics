@@ -28,12 +28,14 @@ To install the required package, run:
 
 !!! Tip "Installation"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Install the required package for YOLOv8 and Tensorboard
-        pip install ultralytics
-        ```
+    ```bash
+    # Install the required package for YOLOv8 and Tensorboard
+    pip install ultralytics
+    ```
+````
 
 TensorBoard is conveniently pre-installed with YOLOv8, eliminating the need for additional setup for visualization purposes.
 
@@ -45,12 +47,14 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 
 !!! Example "Configure TensorBoard for Google Collab"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        %load_ext tensorboard
-        %tensorboard --logdir path/to/runs
-        ```
+    ```python
+    %load_ext tensorboard
+    %tensorboard --logdir path/to/runs
+    ```
+````
 
 ## Usage
 
@@ -58,17 +62,19 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 !!! Example "Usage"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-       from ultralytics import YOLO
+    ```python
+   from ultralytics import YOLO
 
-       # Load a pre-trained model
-       model = YOLO('yolov8n.pt')
+   # Load a pre-trained model
+   model = YOLO('yolov8n.pt')
 
-       # Train the model
-       results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-       ```
+   # Train the model
+   results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+   ```
+````
 
 Upon running the usage code snippet above, you can expect the following output:
 

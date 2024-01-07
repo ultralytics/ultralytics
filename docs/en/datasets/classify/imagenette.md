@@ -31,24 +31,26 @@ To train a model on the ImageNette dataset for 100 epochs with a standard image 
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='imagenette', epochs=100, imgsz=224)
-        ```
+    # Train the model
+    results = model.train(data='imagenette', epochs=100, imgsz=224)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
+    ```
+````
 
 ## Sample Images and Annotations
 
@@ -66,45 +68,49 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
 
 !!! Example "Train Example with ImageNette160"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model with ImageNette160
-        results = model.train(data='imagenette160', epochs=100, imgsz=160)
-        ```
+    # Train the model with ImageNette160
+    results = model.train(data='imagenette160', epochs=100, imgsz=160)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model with ImageNette160
-        yolo detect train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model with ImageNette160
+    yolo detect train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
+    ```
+````
 
 !!! Example "Train Example with ImageNette320"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model with ImageNette320
-        results = model.train(data='imagenette320', epochs=100, imgsz=320)
-        ```
+    # Train the model with ImageNette320
+    results = model.train(data='imagenette320', epochs=100, imgsz=320)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model with ImageNette320
-        yolo detect train data=imagenette320 model=yolov8n-cls.pt epochs=100 imgsz=320
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model with ImageNette320
+    yolo detect train data=imagenette320 model=yolov8n-cls.pt epochs=100 imgsz=320
+    ```
+````
 
 These smaller versions of the dataset allow for rapid iterations during the development process while still providing valuable and realistic image classification tasks.
 

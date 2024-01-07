@@ -35,7 +35,7 @@ YOLOv6 also provides quantized models for different precisions and models optimi
 
 ## Usage Examples
 
-This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
 !!! Example
 

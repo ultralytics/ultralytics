@@ -26,7 +26,7 @@ Provide a clear and concise description of the issue you're experiencing. Explai
 
 ## 5. Format Your Code Properly
 
-When submitting an MRE, format your code properly using code blocks in the issue description. This makes it easier for others to read and understand your code. In GitHub, you can create a code block by wrapping your code with triple backticks (\```) and specifying the language:
+When submitting an MRE, format your code properly using code blocks in the issue description. This makes it easier for others to read and understand your code. In GitHub, you can create a code block by wrapping your code with triple backticks (\`\`\`) and specifying the language:
 
 <pre>
 ```python

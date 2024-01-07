@@ -71,31 +71,35 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
 !!! Example
 
-    === "Python"
-        ```python
-        from ultralytics import SAM
+````
+=== "Python"
+    ```python
+    from ultralytics import SAM
 
-        # Load the model
-        model = SAM('mobile_sam.pt')
+    # Load the model
+    model = SAM('mobile_sam.pt')
 
-        # Predict a segment based on a point prompt
-        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
-        ```
+    # Predict a segment based on a point prompt
+    model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+    ```
+````
 
 ### Box Prompt
 
 !!! Example
 
-    === "Python"
-        ```python
-        from ultralytics import SAM
+````
+=== "Python"
+    ```python
+    from ultralytics import SAM
 
-        # Load the model
-        model = SAM('mobile_sam.pt')
+    # Load the model
+    model = SAM('mobile_sam.pt')
 
-        # Predict a segment based on a box prompt
-        model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
-        ```
+    # Predict a segment based on a box prompt
+    model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+    ```
+````
 
 We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](sam.md).
 
@@ -105,13 +109,15 @@ If you find MobileSAM useful in your research or development work, please consid
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{mobile_sam,
-          title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
-          author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
-          journal={arXiv preprint arXiv:2306.14289},
-          year={2023}
-        }
-        ```
+    ```bibtex
+    @article{mobile_sam,
+      title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
+      author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
+      journal={arXiv preprint arXiv:2306.14289},
+      year={2023}
+    }
+    ```
+````

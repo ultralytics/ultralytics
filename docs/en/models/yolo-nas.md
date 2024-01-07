@@ -45,39 +45,41 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
 !!! Example
 
-    This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
+````
+This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
 
-    === "Python"
+=== "Python"
 
-        PyTorch pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in python:
+    PyTorch pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in python:
 
-        ```python
-        from ultralytics import NAS
+    ```python
+    from ultralytics import NAS
 
-        # Load a COCO-pretrained YOLO-NAS-s model
-        model = NAS('yolo_nas_s.pt')
+    # Load a COCO-pretrained YOLO-NAS-s model
+    model = NAS('yolo_nas_s.pt')
 
-        # Display model information (optional)
-        model.info()
+    # Display model information (optional)
+    model.info()
 
-        # Validate the model on the COCO8 example dataset
-        results = model.val(data='coco8.yaml')
+    # Validate the model on the COCO8 example dataset
+    results = model.val(data='coco8.yaml')
 
-        # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
-        ```
+    # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        CLI commands are available to directly run the models:
+    CLI commands are available to directly run the models:
 
-        ```bash
-        # Load a COCO-pretrained YOLO-NAS-s model and validate it's performance on the COCO8 example dataset
-        yolo val model=yolo_nas_s.pt data=coco8.yaml
+    ```bash
+    # Load a COCO-pretrained YOLO-NAS-s model and validate it's performance on the COCO8 example dataset
+    yolo val model=yolo_nas_s.pt data=coco8.yaml
 
-        # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image
-        yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
-        ```
+    # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image
+    yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
+    ```
+````
 
 ## Supported Tasks and Modes
 
@@ -101,19 +103,21 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @misc{supergradients,
-              doi = {10.5281/ZENODO.7789328},
-              url = {https://zenodo.org/record/7789328},
-              author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
-              title = {Super-Gradients},
-              publisher = {GitHub},
-              journal = {GitHub repository},
-              year = {2021},
-        }
-        ```
+    ```bibtex
+    @misc{supergradients,
+          doi = {10.5281/ZENODO.7789328},
+          url = {https://zenodo.org/record/7789328},
+          author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
+          title = {Super-Gradients},
+          publisher = {GitHub},
+          journal = {GitHub repository},
+          year = {2021},
+    }
+    ```
+````
 
 We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-AI/super-gradients/) team for their efforts in creating and maintaining this valuable resource for the computer vision community. We believe YOLO-NAS, with its innovative architecture and superior object detection capabilities, will become a critical tool for developers and researchers alike.
 

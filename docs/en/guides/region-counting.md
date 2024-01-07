@@ -54,7 +54,9 @@ Execute the following basic commands for inference.
 
 ???+ tip "Region is Movable"
 
-    During video playback, you can interactively move the region within the video by clicking and dragging using the left mouse button.
+```
+During video playback, you can interactively move the region within the video by clicking and dragging using the left mouse button.
+```
 
 ```bash
 # Save results

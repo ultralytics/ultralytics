@@ -125,7 +125,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
 ## Usage Examples
 
-This example provides simple YOLOv8 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv8 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
 Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for object detection. For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Obb](../tasks/obb.md) docs and [Pose](../tasks/pose.md) docs.
 

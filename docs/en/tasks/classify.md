@@ -25,7 +25,9 @@ The output of an image classifier is a single class label and a confidence score
 
 !!! Tip "Tip"
 
-    YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+```
+YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+```
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -50,32 +52,34 @@ Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # build from YAML and transfer weights
+    # Load a model
+    model = YOLO('yolov8n-cls.yaml')  # build a new model from YAML
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # build from YAML and transfer weights
 
-        # Train the model
-        results = model.train(data='mnist160', epochs=100, imgsz=64)
-        ```
+    # Train the model
+    results = model.train(data='mnist160', epochs=100, imgsz=64)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Build a new model from YAML and start training from scratch
-        yolo classify train data=mnist160 model=yolov8n-cls.yaml epochs=100 imgsz=64
+    ```bash
+    # Build a new model from YAML and start training from scratch
+    yolo classify train data=mnist160 model=yolov8n-cls.yaml epochs=100 imgsz=64
 
-        # Start training from a pretrained *.pt model
-        yolo classify train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
+    # Start training from a pretrained *.pt model
+    yolo classify train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
 
-        # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo classify train data=mnist160 model=yolov8n-cls.yaml pretrained=yolov8n-cls.pt epochs=100 imgsz=64
-        ```
+    # Build a new model from YAML, transfer pretrained weights to it and start training
+    yolo classify train data=mnist160 model=yolov8n-cls.yaml pretrained=yolov8n-cls.pt epochs=100 imgsz=64
+    ```
+````
 
 ### Dataset format
 
@@ -87,26 +91,28 @@ Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load an official model
+    model = YOLO('path/to/best.pt')  # load a custom model
 
-        # Validate the model
-        metrics = model.val()  # no arguments needed, dataset and settings remembered
-        metrics.top1   # top1 accuracy
-        metrics.top5   # top5 accuracy
-        ```
-    === "CLI"
+    # Validate the model
+    metrics = model.val()  # no arguments needed, dataset and settings remembered
+    metrics.top1   # top1 accuracy
+    metrics.top5   # top5 accuracy
+    ```
+=== "CLI"
 
-        ```bash
-        yolo classify val model=yolov8n-cls.pt  # val official model
-        yolo classify val model=path/to/best.pt  # val custom model
-        ```
+    ```bash
+    yolo classify val model=yolov8n-cls.pt  # val official model
+    yolo classify val model=path/to/best.pt  # val custom model
+    ```
+````
 
 ## Predict
 
@@ -114,24 +120,26 @@ Use a trained YOLOv8n-cls model to run predictions on images.
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load an official model
+    model = YOLO('path/to/best.pt')  # load a custom model
 
-        # Predict with the model
-        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
-        ```
-    === "CLI"
+    # Predict with the model
+    results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
+    ```
+=== "CLI"
 
-        ```bash
-        yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
-        ```
+    ```bash
+    yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+    yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+    ```
+````
 
 See full `predict` mode details in the [Predict](https://docs.ultralytics.com/modes/predict/) page.
 
@@ -141,24 +149,26 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained model
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load an official model
+    model = YOLO('path/to/best.pt')  # load a custom trained model
 
-        # Export the model
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # Export the model
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n-cls.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
-        ```
+    ```bash
+    yolo export model=yolov8n-cls.pt format=onnx  # export official model
+    yolo export model=path/to/best.pt format=onnx  # export custom trained model
+    ```
+````
 
 Available YOLOv8-cls export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your model after export completes.
 

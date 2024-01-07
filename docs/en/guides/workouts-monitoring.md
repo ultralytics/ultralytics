@@ -25,74 +25,78 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 !!! Example "Workouts Monitoring Example"
 
-    === "Workouts Monitoring"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import ai_gym
-        import cv2
+````
+=== "Workouts Monitoring"
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.solutions import ai_gym
+    import cv2
 
-        model = YOLO("yolov8n-pose.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+    model = YOLO("yolov8n-pose.pt")
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-        gym_object = ai_gym.AIGym()  # init AI GYM module
-        gym_object.set_args(line_thickness=2,
-                            view_img=True,
-                            pose_type="pushup",
-                            kpts_to_check=[6, 8, 10])
+    gym_object = ai_gym.AIGym()  # init AI GYM module
+    gym_object.set_args(line_thickness=2,
+                        view_img=True,
+                        pose_type="pushup",
+                        kpts_to_check=[6, 8, 10])
 
-        frame_count = 0
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-              print("Video frame is empty or video processing has been successfully completed.")
-              break
-            frame_count += 1
-            results = model.predict(im0, verbose=False)
-            im0 = gym_object.start_counting(im0, results, frame_count)
+    frame_count = 0
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+          print("Video frame is empty or video processing has been successfully completed.")
+          break
+        frame_count += 1
+        results = model.predict(im0, verbose=False)
+        im0 = gym_object.start_counting(im0, results, frame_count)
 
-        cv2.destroyAllWindows()
-        ```
+    cv2.destroyAllWindows()
+    ```
 
-    === "Workouts Monitoring with Save Output"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import ai_gym
-        import cv2
+=== "Workouts Monitoring with Save Output"
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.solutions import ai_gym
+    import cv2
 
-        model = YOLO("yolov8n-pose.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+    model = YOLO("yolov8n-pose.pt")
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-        video_writer = cv2.VideoWriter("workouts.avi",
-                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                        int(cap.get(5)),
-                                        (int(cap.get(3)), int(cap.get(4))))
+    video_writer = cv2.VideoWriter("workouts.avi",
+                                    cv2.VideoWriter_fourcc(*'mp4v'),
+                                    int(cap.get(5)),
+                                    (int(cap.get(3)), int(cap.get(4))))
 
-        gym_object = ai_gym.AIGym()  # init AI GYM module
-        gym_object.set_args(line_thickness=2,
-                            view_img=True,
-                            pose_type="pushup",
-                            kpts_to_check=[6, 8, 10])
+    gym_object = ai_gym.AIGym()  # init AI GYM module
+    gym_object.set_args(line_thickness=2,
+                        view_img=True,
+                        pose_type="pushup",
+                        kpts_to_check=[6, 8, 10])
 
-        frame_count = 0
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-              print("Video frame is empty or video processing has been successfully completed.")
-              break
-            frame_count += 1
-            results = model.predict(im0, verbose=False)
-            im0 = gym_object.start_counting(im0, results, frame_count)
-            video_writer.write(im0)
+    frame_count = 0
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+          print("Video frame is empty or video processing has been successfully completed.")
+          break
+        frame_count += 1
+        results = model.predict(im0, verbose=False)
+        im0 = gym_object.start_counting(im0, results, frame_count)
+        video_writer.write(im0)
 
-        cv2.destroyAllWindows()
-        video_writer.release()
-        ```
+    cv2.destroyAllWindows()
+    video_writer.release()
+    ```
+````
 
 ???+ tip "Support"
 
-    "pushup", "pullup" and "abworkout" supported
+```
+"pushup", "pullup" and "abworkout" supported
+```
 
 ### KeyPoints Map
 
@@ -125,6 +129,6 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 | `visualize`     | `bool`         | `False`                | visualize model features                                                   |
 | `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
 | `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
-| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=\[0,2,3\]              |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
 | `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |

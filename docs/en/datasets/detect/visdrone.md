@@ -30,9 +30,11 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 !!! Example "ultralytics/cfg/datasets/VisDrone.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/VisDrone.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/VisDrone.yaml"
+```
+````
 
 ## Usage
 
@@ -40,24 +42,26 @@ To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image si
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='VisDrone.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='VisDrone.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Data and Annotations
 
@@ -75,18 +79,20 @@ If you use the VisDrone dataset in your research or development work, please cit
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @ARTICLE{9573394,
-          author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
-          journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
-          title={Detection and Tracking Meet Drones Challenge},
-          year={2021},
-          volume={},
-          number={},
-          pages={1-1},
-          doi={10.1109/TPAMI.2021.3119563}}
-        ```
+    ```bibtex
+    @ARTICLE{9573394,
+      author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
+      journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+      title={Detection and Tracking Meet Drones Challenge},
+      year={2021},
+      volume={},
+      number={},
+      pages={1-1},
+      doi={10.1109/TPAMI.2021.3119563}}
+    ```
+````
 
 We would like to acknowledge the AISKYEYE team at the Lab of Machine Learning and Data Mining, Tianjin University, China, for creating and maintaining the VisDrone dataset as a valuable resource for the drone-based computer vision research community. For more information about the VisDrone dataset and its creators, visit the [VisDrone Dataset GitHub repository](https://github.com/VisDrone/VisDrone-Dataset).

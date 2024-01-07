@@ -21,23 +21,25 @@ Ultralytics commands use the following syntax:
 
 !!! Example
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        yolo TASK MODE ARGS
-        ```
+    ```bash
+    yolo TASK MODE ARGS
+    ```
 
-    === "Python"
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a YOLOv8 model from a pre-trained weights file
-        model = YOLO('yolov8n.pt')
+    # Load a YOLOv8 model from a pre-trained weights file
+    model = YOLO('yolov8n.pt')
 
-        # Run MODE mode using the custom arguments ARGS (guess TASK)
-        model.MODE(ARGS)
-        ```
+    # Run MODE mode using the custom arguments ARGS (guess TASK)
+    model.MODE(ARGS)
+    ```
+````
 
 Where:
 
@@ -93,7 +95,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                                  |
 | `imgsz`           | `640`    | size of input images as integer                                                                |
 | `save`            | `True`   | save train checkpoints and predict results                                                     |
-| `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if < 1)                                               |
+| `save_period`     | `-1`     | Save checkpoint every x epochs (disabled if \< 1)                                              |
 | `cache`           | `False`  | True/ram, disk or False. Use cache for data loading                                            |
 | `device`          | `None`   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu                           |
 | `workers`         | `8`      | number of worker threads for data loading (per RANK if DDP)                                    |
@@ -101,7 +103,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `name`            | `None`   | experiment name                                                                                |
 | `exist_ok`        | `False`  | whether to overwrite existing experiment                                                       |
 | `pretrained`      | `True`   | (bool or str) whether to use a pretrained model (bool) or a model to load weights from (str)   |
-| `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]              |
+| `optimizer`       | `'auto'` | optimizer to use, choices=\[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto\]            |
 | `verbose`         | `False`  | whether to print verbose output                                                                |
 | `seed`            | `0`      | random seed for reproducibility                                                                |
 | `deterministic`   | `True`   | whether to enable deterministic mode                                                           |
@@ -110,7 +112,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                                             |
 | `close_mosaic`    | `10`     | (int) disable mosaic augmentation for final epochs (0 to disable)                              |
 | `resume`          | `False`  | resume training from last checkpoint                                                           |
-| `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]                                |
+| `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=\[True, False\]                              |
 | `fraction`        | `1.0`    | dataset fraction to train on (default is 1.0, all images in train set)                         |
 | `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                                   |
 | `freeze`          | `None`   | (int or list, optional) freeze first n layers, or freeze list of layer indices during training |
@@ -156,7 +158,7 @@ Inference arguments:
 | `visualize`     | `bool`         | `False`                | visualize model features                                                   |
 | `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
 | `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
-| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=\[0,2,3\]              |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
 | `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
 

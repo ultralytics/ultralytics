@@ -18,52 +18,58 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ???+ tip "Distance Calculation"
 
-    - Click on any two bounding boxes with Left Mouse click for distance calculation
+```
+- Click on any two bounding boxes with Left Mouse click for distance calculation
+```
 
 !!! Example "Distance Calculation using YOLOv8 Example"
 
-    === "Video Stream"
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import distance_calculation
-        import cv2
+````
+=== "Video Stream"
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.solutions import distance_calculation
+    import cv2
 
-        model = YOLO("yolov8n.pt")
-        names = model.model.names
+    model = YOLO("yolov8n.pt")
+    names = model.model.names
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-        # Video writer
-        video_writer = cv2.VideoWriter("distance_calculation.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+    # Video writer
+    video_writer = cv2.VideoWriter("distance_calculation.avi",
+                                   cv2.VideoWriter_fourcc(*'mp4v'),
+                                   int(cap.get(5)),
+                                   (int(cap.get(3)), int(cap.get(4))))
 
-        # Init distance-calculation obj
-        dist_obj = distance_calculation.DistanceCalculation()
-        dist_obj.set_args(names=names, view_img=True)
+    # Init distance-calculation obj
+    dist_obj = distance_calculation.DistanceCalculation()
+    dist_obj.set_args(names=names, view_img=True)
 
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
 
-            tracks = model.track(im0, persist=True, show=False)
-            im0 = dist_obj.start_process(im0, tracks)
-            video_writer.write(im0)
+        tracks = model.track(im0, persist=True, show=False)
+        im0 = dist_obj.start_process(im0, tracks)
+        video_writer.write(im0)
 
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
 
-        ```
+    ```
+````
 
 ???+ tip "Note"
 
-    - Mouse Right Click will delete all drawn points
-    - Mouse Left Click can be used to draw points
+```
+- Mouse Right Click will delete all drawn points
+- Mouse Left Click can be used to draw points
+```
 
 ### Optional Arguments `set_args`
 
@@ -77,12 +83,12 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+| Name      | Type    | Default        | Description                                                   |
+|-----------|---------|----------------|---------------------------------------------------------------|
+| `source`  | `im0`   | `None`         | source directory for images or videos                         |
+| `persist` | `bool`  | `False`        | persisting tracks between frames                              |
+| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                      |
+| `conf`    | `float` | `0.3`          | Confidence Threshold                                          |
+| `iou`     | `float` | `0.5`          | IOU Threshold                                                 |
+| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=\[0,2,3\] |
+| `verbose` | `bool`  | `True`         | Display the object tracking results                           |

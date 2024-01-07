@@ -41,7 +41,9 @@ We take several measures to ensure the privacy and security of the data you entr
 
 !!! Note
 
-    Crash reporting via Sentry is activated only if the `sentry-sdk` Python package is pre-installed on your system. This package isn't included in the `ultralytics` prerequisites and won't be installed automatically by Ultralytics.
+```
+Crash reporting via Sentry is activated only if the `sentry-sdk` Python package is pre-installed on your system. This package isn't included in the `ultralytics` prerequisites and won't be installed automatically by Ultralytics.
+```
 
 ### What We Collect
 
@@ -76,23 +78,25 @@ To gain insight into the current configuration of your settings, you can view th
 
 !!! Example "View settings"
 
-    === "Python"
-        You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
-        ```python
-        from ultralytics import settings
+````
+=== "Python"
+    You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
+    ```python
+    from ultralytics import settings
 
-        # View all settings
-        print(settings)
+    # View all settings
+    print(settings)
 
-        # Return analytics and crash reporting setting
-        value = settings['sync']
-        ```
+    # Return analytics and crash reporting setting
+    value = settings['sync']
+    ```
 
-    === "CLI"
-        Alternatively, the command-line interface allows you to check your settings with a simple command:
-        ```bash
-        yolo settings
-        ```
+=== "CLI"
+    Alternatively, the command-line interface allows you to check your settings with a simple command:
+    ```bash
+    yolo settings
+    ```
+````
 
 ### Modifying Settings
 
@@ -100,27 +104,29 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 
 !!! Example "Update settings"
 
-    === "Python"
-        Within the Python environment, call the `update` method on the `settings` object to change your settings:
-        ```python
-        from ultralytics import settings
+````
+=== "Python"
+    Within the Python environment, call the `update` method on the `settings` object to change your settings:
+    ```python
+    from ultralytics import settings
 
-        # Disable analytics and crash reporting
-        settings.update({'sync': False})
+    # Disable analytics and crash reporting
+    settings.update({'sync': False})
 
-        # Reset settings to default values
-        settings.reset()
-        ```
+    # Reset settings to default values
+    settings.reset()
+    ```
 
-    === "CLI"
-        If you prefer using the command-line interface, the following commands will allow you to modify your settings:
-        ```bash
-        # Disable analytics and crash reporting
-        yolo settings sync=False
+=== "CLI"
+    If you prefer using the command-line interface, the following commands will allow you to modify your settings:
+    ```bash
+    # Disable analytics and crash reporting
+    yolo settings sync=False
 
-        # Reset settings to default values
-        yolo settings reset
-        ```
+    # Reset settings to default values
+    yolo settings reset
+    ```
+````
 
 The `sync=False` setting will prevent any data from being sent to Google Analytics or Sentry. Your settings will be respected across all sessions using the Ultralytics package and saved to disk for future sessions.
 

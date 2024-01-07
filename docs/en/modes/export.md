@@ -41,8 +41,10 @@ Here are some of the standout functionalities:
 
 !!! Tip "Tip"
 
-    * Export to ONNX or OpenVINO for up to 3x CPU speedup.
-    * Export to TensorRT for up to 5x GPU speedup.
+```
+* Export to ONNX or OpenVINO for up to 3x CPU speedup.
+* Export to TensorRT for up to 5x GPU speedup.
+```
 
 ## Usage Examples
 
@@ -50,24 +52,26 @@ Export a YOLOv8n model to a different format like ONNX or TensorRT. See Argument
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained model
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load an official model
+    model = YOLO('path/to/best.pt')  # load a custom trained model
 
-        # Export the model
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # Export the model
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
-        ```
+    ```bash
+    yolo export model=yolov8n.pt format=onnx  # export official model
+    yolo export model=path/to/best.pt format=onnx  # export custom trained model
+    ```
+````
 
 ## Arguments
 

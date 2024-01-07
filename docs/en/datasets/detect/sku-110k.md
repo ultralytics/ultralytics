@@ -34,9 +34,11 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 !!! Example "ultralytics/cfg/datasets/SKU-110K.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/SKU-110K.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/SKU-110K.yaml"
+```
+````
 
 ## Usage
 
@@ -44,24 +46,26 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='SKU-110K.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='SKU-110K.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=SKU-110K.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=SKU-110K.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Data and Annotations
 
@@ -79,15 +83,17 @@ If you use the SKU-110k dataset in your research or development work, please cit
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @inproceedings{goldman2019dense,
-         author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
-         title     = {Precise Detection in Densely Packed Scenes},
-         booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
-         year      = {2019}
-        }
-        ```
+    ```bibtex
+    @inproceedings{goldman2019dense,
+     author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
+     title     = {Precise Detection in Densely Packed Scenes},
+     booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
+     year      = {2019}
+    }
+    ```
+````
 
 We would like to acknowledge Eran Goldman et al. for creating and maintaining the SKU-110k dataset as a valuable resource for the computer vision research community. For more information about the SKU-110k dataset and its creators, visit the [SKU-110k dataset GitHub repository](https://github.com/eg4000/SKU110K_CVPR19).

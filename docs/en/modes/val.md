@@ -43,7 +43,9 @@ These are the notable functionalities offered by YOLOv8's Val mode:
 
 !!! Tip "Tip"
 
-    * YOLOv8 models automatically remember their training settings, so you can validate a model at the same image size and on the original dataset easily with just `yolo val model=yolov8n.pt` or `model('yolov8n.pt').val()`
+```
+* YOLOv8 models automatically remember their training settings, so you can validate a model at the same image size and on the original dataset easily with just `yolo val model=yolov8n.pt` or `model('yolov8n.pt').val()`
+```
 
 ## Usage Examples
 
@@ -51,28 +53,30 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load an official model
+    model = YOLO('path/to/best.pt')  # load a custom model
 
-        # Validate the model
-        metrics = model.val()  # no arguments needed, dataset and settings remembered
-        metrics.box.map    # map50-95
-        metrics.box.map50  # map50
-        metrics.box.map75  # map75
-        metrics.box.maps   # a list contains map50-95 of each category
-        ```
-    === "CLI"
+    # Validate the model
+    metrics = model.val()  # no arguments needed, dataset and settings remembered
+    metrics.box.map    # map50-95
+    metrics.box.map50  # map50
+    metrics.box.map75  # map75
+    metrics.box.maps   # a list contains map50-95 of each category
+    ```
+=== "CLI"
 
-        ```bash
-        yolo detect val model=yolov8n.pt  # val official model
-        yolo detect val model=path/to/best.pt  # val custom model
-        ```
+    ```bash
+    yolo detect val model=yolov8n.pt  # val official model
+    yolo detect val model=path/to/best.pt  # val custom model
+    ```
+````
 
 ## Arguments
 

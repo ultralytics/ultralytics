@@ -30,24 +30,26 @@ To train a YOLO model on the Caltech-101 dataset for 100 epochs, you can use the
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='caltech101', epochs=100, imgsz=416)
-        ```
+    # Train the model
+    results = model.train(data='caltech101', epochs=100, imgsz=416)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=caltech101 model=yolov8n-cls.pt epochs=100 imgsz=416
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=caltech101 model=yolov8n-cls.pt epochs=100 imgsz=416
+    ```
+````
 
 ## Sample Images and Annotations
 
@@ -63,19 +65,21 @@ If you use the Caltech-101 dataset in your research or development work, please 
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{fei2007learning,
-          title={Learning generative visual models from few training examples: An incremental Bayesian approach tested on 101 object categories},
-          author={Fei-Fei, Li and Fergus, Rob and Perona, Pietro},
-          journal={Computer vision and Image understanding},
-          volume={106},
-          number={1},
-          pages={59--70},
-          year={2007},
-          publisher={Elsevier}
-        }
-        ```
+    ```bibtex
+    @article{fei2007learning,
+      title={Learning generative visual models from few training examples: An incremental Bayesian approach tested on 101 object categories},
+      author={Fei-Fei, Li and Fergus, Rob and Perona, Pietro},
+      journal={Computer vision and Image understanding},
+      volume={106},
+      number={1},
+      pages={59--70},
+      year={2007},
+      publisher={Elsevier}
+    }
+    ```
+````
 
 We would like to acknowledge Li Fei-Fei, Rob Fergus, and Pietro Perona for creating and maintaining the Caltech-101 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the Caltech-101 dataset and its creators, visit the [Caltech-101 dataset website](https://data.caltech.edu/records/mzrjq-6wc02).

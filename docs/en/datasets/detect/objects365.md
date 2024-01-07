@@ -32,9 +32,11 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 !!! Example "ultralytics/cfg/datasets/Objects365.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/Objects365.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/Objects365.yaml"
+```
+````
 
 ## Usage
 
@@ -42,24 +44,26 @@ To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image 
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='Objects365.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='Objects365.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=Objects365.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Data and Annotations
 
@@ -77,16 +81,18 @@ If you use the Objects365 dataset in your research or development work, please c
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @inproceedings{shao2019objects365,
-          title={Objects365: A Large-scale, High-quality Dataset for Object Detection},
-          author={Shao, Shuai and Li, Zeming and Zhang, Tianyuan and Peng, Chao and Yu, Gang and Li, Jing and Zhang, Xiangyu and Sun, Jian},
-          booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
-          pages={8425--8434},
-          year={2019}
-        }
-        ```
+    ```bibtex
+    @inproceedings{shao2019objects365,
+      title={Objects365: A Large-scale, High-quality Dataset for Object Detection},
+      author={Shao, Shuai and Li, Zeming and Zhang, Tianyuan and Peng, Chao and Yu, Gang and Li, Jing and Zhang, Xiangyu and Sun, Jian},
+      booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+      pages={8425--8434},
+      year={2019}
+    }
+    ```
+````
 
 We would like to acknowledge the team of researchers who created and maintain the Objects365 dataset as a valuable resource for the computer vision research community. For more information about the Objects365 dataset and its creators, visit the [Objects365 dataset website](https://www.objects365.org/).

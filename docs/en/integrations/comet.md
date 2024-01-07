@@ -28,12 +28,14 @@ To install the required packages, run:
 
 !!! Tip "Installation"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Install the required packages for YOLOv8 and Comet ML
-        pip install ultralytics comet_ml torch torchvision
-        ```
+    ```bash
+    # Install the required packages for YOLOv8 and Comet ML
+    pip install ultralytics comet_ml torch torchvision
+    ```
+````
 
 ## Configuring Comet ML
 
@@ -41,12 +43,14 @@ After installing the required packages, you’ll need to sign up, get a [Comet A
 
 !!! Tip "Configuring Comet ML"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Set your Comet Api Key
-        export COMET_API_KEY=<Your API Key>
-        ```
+    ```bash
+    # Set your Comet Api Key
+    export COMET_API_KEY=<Your API Key>
+    ```
+````
 
 Then, you can initialize your Comet project. Comet will automatically detect the API key and proceed with the setup.
 
@@ -64,24 +68,26 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 !!! Example "Usage"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO("yolov8n.pt")
+    # Load a model
+    model = YOLO("yolov8n.pt")
 
-        # train the model
-        results = model.train(
-        data="coco128.yaml",
-        project="comet-example-yolov8-coco128",
-        batch=32,
-        save_period=1,
-        save_json=True,
-        epochs=3
-        )
-        ```
+    # train the model
+    results = model.train(
+    data="coco128.yaml",
+    project="comet-example-yolov8-coco128",
+    batch=32,
+    save_period=1,
+    save_json=True,
+    epochs=3
+    )
+    ```
+````
 
 After running the training code, Comet ML will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLOv8 model's training](../modes/train.md) process.
 

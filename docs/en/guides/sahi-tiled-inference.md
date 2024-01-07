@@ -169,17 +169,19 @@ If you use SAHI in your research or development work, please cite the original S
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{akyon2022sahi,
-          title={Slicing Aided Hyper Inference and Fine-tuning for Small Object Detection},
-          author={Akyon, Fatih Cagatay and Altinuc, Sinan Onur and Temizel, Alptekin},
-          journal={2022 IEEE International Conference on Image Processing (ICIP)},
-          doi={10.1109/ICIP46576.2022.9897990},
-          pages={966-970},
-          year={2022}
-        }
-        ```
+    ```bibtex
+    @article{akyon2022sahi,
+      title={Slicing Aided Hyper Inference and Fine-tuning for Small Object Detection},
+      author={Akyon, Fatih Cagatay and Altinuc, Sinan Onur and Temizel, Alptekin},
+      journal={2022 IEEE International Conference on Image Processing (ICIP)},
+      doi={10.1109/ICIP46576.2022.9897990},
+      pages={966-970},
+      year={2022}
+    }
+    ```
+````
 
 We extend our thanks to the SAHI research group for creating and maintaining this invaluable resource for the computer vision community. For more information about SAHI and its creators, visit the [SAHI GitHub repository](https://github.com/obss/sahi).

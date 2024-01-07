@@ -34,9 +34,9 @@ Ensure you have the following prerequisites before proceeding:
 
 - Docker installed on your machine.
 - Install `tritonclient`:
-  ```bash
-  pip install tritonclient[all]
-  ```
+    ```bash
+    pip install tritonclient[all]
+    ```
 
 ## Exporting YOLOv8 to ONNX Format
 
@@ -132,6 +132,6 @@ Cleanup the container:
 subprocess.call(f'docker kill {container_id}', shell=True)
 ```
 
----
+______________________________________________________________________
 
 By following the above steps, you can deploy and run Ultralytics YOLOv8 models efficiently on Triton Inference Server, providing a scalable and high-performance solution for deep learning inference tasks. If you face any issues or have further queries, refer to the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or reach out to the Ultralytics community for support.

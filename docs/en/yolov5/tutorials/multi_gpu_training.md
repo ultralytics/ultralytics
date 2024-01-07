@@ -50,8 +50,7 @@ You will have to pass `python -m torch.distributed.run --nproc_per_node`, follow
 python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0,1
 ```
 
-`--nproc_per_node` specifies how many GPUs you would like to use. In the example above, it is 2.
-`--batch ` is the total batch-size. It will be divided evenly to each GPU. In the example above, it is 64/2=32 per GPU.
+`--nproc_per_node` specifies how many GPUs you would like to use. In the example above, it is 2. `--batch ` is the total batch-size. It will be divided evenly to each GPU. In the example above, it is 64/2=32 per GPU.
 
 The code above will use GPUs `0... (N-1)`.
 

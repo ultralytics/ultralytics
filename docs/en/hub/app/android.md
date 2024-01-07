@@ -45,7 +45,9 @@ INT8 (or 8-bit integer) quantization further reduces the model's size and comput
 
 !!! Tip "mAP Reduction in INT8 Models"
 
-    The reduced numerical precision in INT8 models can lead to some loss of information during the quantization process, which may result in a slight decrease in mAP. However, this trade-off is often acceptable considering the substantial performance gains offered by INT8 quantization.
+```
+The reduced numerical precision in INT8 models can lead to some loss of information during the quantization process, which may result in a slight decrease in mAP. However, this trade-off is often acceptable considering the substantial performance gains offered by INT8 quantization.
+```
 
 ## Delegates and Performance Variability
 

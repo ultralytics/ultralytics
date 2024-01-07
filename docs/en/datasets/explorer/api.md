@@ -50,43 +50,45 @@ You get a pandas dataframe with the `limit` number of most similar data points t
 
 !!! Example "Semantic Search"
 
-    === "Using Images"
+````
+=== "Using Images"
 
-        ```python
-        from ultralytics import Explorer
+    ```python
+    from ultralytics import Explorer
 
-        # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
-        exp.create_embeddings_table()
+    # create an Explorer object
+    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+    exp.create_embeddings_table()
 
-        similar = exp.get_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
-        print(similar.head())
+    similar = exp.get_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
+    print(similar.head())
 
-        # Search using multiple indices
-        similar = exp.get_similar(
-                                img=['https://ultralytics.com/images/bus.jpg',
-                                     'https://ultralytics.com/images/bus.jpg'],
-                                limit=10
-                                )
-        print(similar.head())
-        ```
+    # Search using multiple indices
+    similar = exp.get_similar(
+                            img=['https://ultralytics.com/images/bus.jpg',
+                                 'https://ultralytics.com/images/bus.jpg'],
+                            limit=10
+                            )
+    print(similar.head())
+    ```
 
-    === "Using Dataset Indices"
+=== "Using Dataset Indices"
 
-        ```python
-        from ultralytics import Explorer
+    ```python
+    from ultralytics import Explorer
 
-        # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
-        exp.create_embeddings_table()
+    # create an Explorer object
+    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+    exp.create_embeddings_table()
 
-        similar = exp.get_similar(idx=1, limit=10)
-        print(similar.head())
+    similar = exp.get_similar(idx=1, limit=10)
+    print(similar.head())
 
-        # Search using multiple indices
-        similar = exp.get_similar(idx=[1,10], limit=10)
-        print(similar.head())
-        ```
+    # Search using multiple indices
+    similar = exp.get_similar(idx=[1,10], limit=10)
+    print(similar.head())
+    ```
+````
 
 ### Plotting Similar Images
 
@@ -94,31 +96,33 @@ You can also plot the similar images using the `plot_similar` method. This metho
 
 !!! Example "Plotting Similar Images"
 
-    === "Using Images"
+````
+=== "Using Images"
 
-        ```python
-        from ultralytics import Explorer
+    ```python
+    from ultralytics import Explorer
 
-        # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
-        exp.create_embeddings_table()
+    # create an Explorer object
+    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+    exp.create_embeddings_table()
 
-        plt = exp.plot_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
-        plt.show()
-        ```
+    plt = exp.plot_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
+    plt.show()
+    ```
 
-    === "Using Dataset Indices"
+=== "Using Dataset Indices"
 
-        ```python
-        from ultralytics import Explorer
+    ```python
+    from ultralytics import Explorer
 
-        # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
-        exp.create_embeddings_table()
+    # create an Explorer object
+    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+    exp.create_embeddings_table()
 
-        plt = exp.plot_similar(idx=1, limit=10)
-        plt.show()
-        ```
+    plt = exp.plot_similar(idx=1, limit=10)
+    plt.show()
+    ```
+````
 
 ## 2. SQL Querying
 
@@ -126,16 +130,18 @@ You can run SQL queries on your dataset using the `sql_query` method. This metho
 
 !!! Example "SQL Query"
 
-    ```python
-    from ultralytics import Explorer
+````
+```python
+from ultralytics import Explorer
 
-    # create an Explorer object
-    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
-    exp.create_embeddings_table()
+# create an Explorer object
+exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+exp.create_embeddings_table()
 
-    df = exp.sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%'")
-    print(df.head())
-    ```
+df = exp.sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%'")
+print(df.head())
+```
+````
 
 ### Plotting SQL Query Results
 
@@ -143,16 +149,18 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
 
 !!! Example "Plotting SQL Query Results"
 
-    ```python
-    from ultralytics import Explorer
+````
+```python
+from ultralytics import Explorer
 
-    # create an Explorer object
-    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
-    exp.create_embeddings_table()
+# create an Explorer object
+exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+exp.create_embeddings_table()
 
-    df = exp.sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%'")
-    print(df.head())
-    ```
+df = exp.sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%'")
+print(df.head())
+```
+````
 
 ## 3. Working with embeddings Table (Advanced)
 
@@ -160,13 +168,15 @@ You can also work with the embeddings table directly. Once the embeddings table 
 
 !!! Tip "Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre- and post-filters, etc."
 
-    ```python
-    from ultralytics import Explorer
+````
+```python
+from ultralytics import Explorer
 
-    exp = Explorer()
-    exp.create_embeddings_table()
-    table = exp.table
-    ```
+exp = Explorer()
+exp.create_embeddings_table()
+table = exp.table
+```
+````
 
 Here are some examples of what you can do with the table:
 
@@ -174,32 +184,36 @@ Here are some examples of what you can do with the table:
 
 !!! Example
 
-    ```python
-    from ultralytics import Explorer
+````
+```python
+from ultralytics import Explorer
 
-    exp = Explorer()
-    exp.create_embeddings_table()
-    table = exp.table
+exp = Explorer()
+exp.create_embeddings_table()
+table = exp.table
 
-    embeddings = table.to_pandas()["vector"]
-    print(embeddings)
-    ```
+embeddings = table.to_pandas()["vector"]
+print(embeddings)
+```
+````
 
 ### Advanced Querying with pre and post filters
 
 !!! Example
 
-    ```python
-    from ultralytics import Explorer
+````
+```python
+from ultralytics import Explorer
 
-    exp = Explorer(model="yolov8n.pt")
-    exp.create_embeddings_table()
-    table = exp.table
+exp = Explorer(model="yolov8n.pt")
+exp.create_embeddings_table()
+table = exp.table
 
-    # Dummy embedding
-    embedding = [i for i in range(256)]
-    rs = table.search(embedding).metric("cosine").where("").limit(10)
-    ```
+# Dummy embedding
+embedding = [i for i in range(256)]
+rs = table.search(embedding).metric("cosine").where("").limit(10)
+```
+````
 
 ### Create Vector Index
 
@@ -231,18 +245,22 @@ It returns a pandas dataframe with the following columns:
 
 !!! Tip
 
-    For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`.
+```
+For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`.
+```
 
 !!! Example "Similarity Index"
 
-    ```python
-    from ultralytics import Explorer
+````
+```python
+from ultralytics import Explorer
 
-    exp = Explorer()
-    exp.create_embeddings_table()
+exp = Explorer()
+exp.create_embeddings_table()
 
-    sim_idx = exp.similarity_index()
-    ```
+sim_idx = exp.similarity_index()
+```
+````
 
 You can use similarity index to build custom conditions to filter out the dataset. For example, you can filter out images that are not similar to any other image in the dataset using the following code:
 

@@ -45,7 +45,9 @@ from email.mime.text import MIMEText
 
 ???+ tip "Note"
 
-    App Password Generation is necessary
+```
+App Password Generation is necessary
+```
 
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated password field as instructed.
 

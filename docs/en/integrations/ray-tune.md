@@ -30,31 +30,35 @@ To install the required packages, run:
 
 !!! Tip "Installation"
 
-    === "CLI"
+````
+=== "CLI"
 
-        ```bash
-        # Install and update Ultralytics and Ray Tune packages
-        pip install -U ultralytics "ray[tune]"
+    ```bash
+    # Install and update Ultralytics and Ray Tune packages
+    pip install -U ultralytics "ray[tune]"
 
-        # Optionally install W&B for logging
-        pip install wandb
-        ```
+    # Optionally install W&B for logging
+    pip install wandb
+    ```
+````
 
 ## Usage
 
 !!! Example "Usage"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a YOLOv8n model
-        model = YOLO('yolov8n.pt')
+    # Load a YOLOv8n model
+    model = YOLO('yolov8n.pt')
 
-        # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
-        result_grid = model.tune(data='coco8.yaml', use_ray=True)
-        ```
+    # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
+    result_grid = model.tune(data='coco8.yaml', use_ray=True)
+    ```
+````
 
 ## `tune()` Method Parameters
 
@@ -105,18 +109,20 @@ In this example, we demonstrate how to use a custom search space for hyperparame
 
 !!! Example "Usage"
 
-    ```python
-    from ultralytics import YOLO
+````
+```python
+from ultralytics import YOLO
 
-    # Define a YOLO model
-    model = YOLO("yolov8n.pt")
+# Define a YOLO model
+model = YOLO("yolov8n.pt")
 
-    # Run Ray Tune on the model
-    result_grid = model.tune(data="coco128.yaml",
-                             space={"lr0": tune.uniform(1e-5, 1e-1)},
-                             epochs=50,
-                             use_ray=True)
-    ```
+# Run Ray Tune on the model
+result_grid = model.tune(data="coco128.yaml",
+                         space={"lr0": tune.uniform(1e-5, 1e-1)},
+                         epochs=50,
+                         use_ray=True)
+```
+````
 
 In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco128.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
 

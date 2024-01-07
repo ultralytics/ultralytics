@@ -62,9 +62,11 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 !!! Example "DOTAv1.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/DOTAv1.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/DOTAv1.yaml"
+```
+````
 
 ## Usage
 
@@ -72,28 +74,32 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
 
 !!! Warning
 
-    Please note that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
+```
+Please note that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
+```
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Create a new YOLOv8n-OBB model from scratch
-        model = YOLO('yolov8n-obb.yaml')
+    # Create a new YOLOv8n-OBB model from scratch
+    model = YOLO('yolov8n-obb.yaml')
 
-        # Train the model on the DOTAv2 dataset
-        results = model.train(data='DOTAv1.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model on the DOTAv2 dataset
+    results = model.train(data='DOTAv1.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
-        yolo detect train data=DOTAv1.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
+    yolo detect train data=DOTAv1.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Data and Annotations
 
@@ -111,19 +117,21 @@ For those leveraging DOTA in their endeavors, it's pertinent to cite the relevan
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{9560031,
-          author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
-          journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
-          title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
-          year={2021},
-          volume={},
-          number={},
-          pages={1-1},
-          doi={10.1109/TPAMI.2021.3117983}
-        }
-        ```
+    ```bibtex
+    @article{9560031,
+      author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
+      journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+      title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
+      year={2021},
+      volume={},
+      number={},
+      pages={1-1},
+      doi={10.1109/TPAMI.2021.3117983}
+    }
+    ```
+````
 
 A special note of gratitude to the team behind the DOTA datasets for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DOTA website](https://captain-whu.github.io/DOTA/index.html).

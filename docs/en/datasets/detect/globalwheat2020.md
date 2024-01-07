@@ -32,9 +32,11 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 !!! Example "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
 
-    ```yaml
-    --8<-- "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
-    ```
+````
+```yaml
+--8<-- "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
+```
+````
 
 ## Usage
 
@@ -42,24 +44,26 @@ To train a YOLOv8n model on the Global Wheat Head Dataset for 100 epochs with an
 
 !!! Example "Train Example"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='GlobalWheat2020.yaml', epochs=100, imgsz=640)
-        ```
+    # Train the model
+    results = model.train(data='GlobalWheat2020.yaml', epochs=100, imgsz=640)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Sample Data and Annotations
 
@@ -77,15 +81,17 @@ If you use the Global Wheat Head Dataset in your research or development work, p
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{david2020global,
-                 title={Global Wheat Head Detection (GWHD) Dataset: A Large and Diverse Dataset of High-Resolution RGB-Labelled Images to Develop and Benchmark Wheat Head Detection Methods},
-                 author={David, Etienne and Madec, Simon and Sadeghi-Tehran, Pouria and Aasen, Helge and Zheng, Bangyou and Liu, Shouyang and Kirchgessner, Norbert and Ishikawa, Goro and Nagasawa, Koichi and Badhon, Minhajul and others},
-                 journal={arXiv preprint arXiv:2005.02162},
-                 year={2020}
-        }
-        ```
+    ```bibtex
+    @article{david2020global,
+             title={Global Wheat Head Detection (GWHD) Dataset: A Large and Diverse Dataset of High-Resolution RGB-Labelled Images to Develop and Benchmark Wheat Head Detection Methods},
+             author={David, Etienne and Madec, Simon and Sadeghi-Tehran, Pouria and Aasen, Helge and Zheng, Bangyou and Liu, Shouyang and Kirchgessner, Norbert and Ishikawa, Goro and Nagasawa, Koichi and Badhon, Minhajul and others},
+             journal={arXiv preprint arXiv:2005.02162},
+             year={2020}
+    }
+    ```
+````
 
 We would like to acknowledge the researchers and institutions that contributed to the creation and maintenance of the Global Wheat Head Dataset as a valuable resource for the plant phenotyping and crop management research community. For more information about the dataset and its creators, visit the [Global Wheat Head Dataset website](http://www.global-wheat.com/).

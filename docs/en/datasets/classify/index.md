@@ -32,7 +32,7 @@ root/
 
 In this folder structure, the `root` directory contains one subdirectory for each class in the dataset. Each subdirectory is named after the corresponding class and contains all the images for that class. Each image file is named uniquely and is typically in a common image file format such as JPEG or PNG.
 
-** Example **
+\*\* Example \*\*
 
 For example, in the CIFAR10 dataset, the folder structure would look like this:
 
@@ -82,23 +82,25 @@ In this example, the `train` directory contains subdirectories for each class in
 
 !!! Example
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
 
-        # Train the model
-        results = model.train(data='path/to/dataset', epochs=100, imgsz=640)
-        ```
-    === "CLI"
+    # Train the model
+    results = model.train(data='path/to/dataset', epochs=100, imgsz=640)
+    ```
+=== "CLI"
 
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=path/to/data model=yolov8n-cls.pt epochs=100 imgsz=640
-        ```
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=path/to/data model=yolov8n-cls.pt epochs=100 imgsz=640
+    ```
+````
 
 ## Supported Datasets
 

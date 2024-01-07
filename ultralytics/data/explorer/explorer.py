@@ -15,7 +15,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, checks
 
-from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
+from .utils import get_sim_index_schema, get_table_schema, plot_query_result, sanitize_batch, prompt_sql_query
 
 
 class ExplorerDataset(YOLODataset):
@@ -190,7 +190,7 @@ class Explorer:
         table = self.table.to_arrow()  # noqa
         if not query.startswith('SELECT') and not query.startswith('WHERE'):
             raise ValueError(
-                'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause.')
+                f'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}')
         if query.startswith('WHERE'):
             query = f"SELECT * FROM 'table' {query}"
         LOGGER.info(f'Running query: {query}')
@@ -220,7 +220,10 @@ class Explorer:
             ```
         """
         result = self.sql_query(query, return_type='arrow')
-        img = plot_similar_images(result, plot_labels=labels)
+        if len(result) == 0:
+            LOGGER.info('No results found.')
+            return None
+        img = plot_query_result(result, plot_labels=labels)
         return Image.fromarray(img)
 
     def get_similar(self, img=None, idx=None, limit=25, return_type='pandas'):
@@ -272,7 +275,10 @@ class Explorer:
             ```
         """
         similar = self.get_similar(img, idx, limit, return_type='arrow')
-        img = plot_similar_images(similar, plot_labels=labels)
+        if len(similar) == 0:
+            LOGGER.info('No results found.')
+            return None
+        img = plot_query_result(similar, plot_labels=labels)
         return Image.fromarray(img)
 
     def similarity_index(self, max_dist=0.2, top_k=None, force=False):
@@ -380,6 +386,32 @@ class Explorer:
             img = self.table.to_lance().take(idx, columns=['im_file']).to_pydict()['im_file']
 
         return img if isinstance(img, list) else [img]
+
+    def ask_ai(self, query):
+        """
+        Ask AI a question.
+
+        Args:
+            query (str): Question to ask.
+
+        Returns:
+            Answer from AI.
+
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            answer = exp.ask_ai('How many people are in the image?')
+            ```
+        """
+        result = prompt_sql_query(query)
+        try:
+            df = self.sql_query(result)
+        except Exception as e:
+            LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
+            LOGGER.error(e)
+            return None
+        return df
 
     def visualize(self, result):
         """

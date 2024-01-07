@@ -1,6 +1,8 @@
+import os
 import time
 from threading import Thread
 
+import pandas as pd
 from ultralytics import Explorer
 from ultralytics.utils import ROOT
 from ultralytics.utils.checks import check_requirements
@@ -47,9 +49,18 @@ def query_form():
     with st.form('query_form'):
         col1, col2 = st.columns([0.8, 0.2])
         with col1:
-            query = st.text_input('Query', '', label_visibility='collapsed', key='query')
+            st.text_input('Query', '', label_visibility='collapsed', key='query')
         with col2:
             st.form_submit_button('Query', on_click=run_sql_query)
+
+
+def ai_query_form():
+    with st.form('ai_query_form'):
+        col1, col2 = st.columns([0.8, 0.2])
+        with col1:
+            st.text_input('Query', 'Show images with 1 person and 2 dogs', label_visibility='collapsed', key='ai_query')
+        with col2:
+            st.form_submit_button('Ask AI', on_click=run_ai_query)
 
 
 def find_similar_imgs(imgs):
@@ -78,7 +89,7 @@ def similarity_form(selected_imgs):
                 'Search',
                 disabled=disabled,
                 on_click=find_similar_imgs,
-                args=(selected_imgs, ),
+                args=(selected_imgs,),
             )
         if disabled:
             st.error('Select at least one image to search.')
@@ -95,6 +106,7 @@ def similarity_form(selected_imgs):
 
 
 def run_sql_query():
+    st.session_state['error'] = None
     query = st.session_state.get('query')
     if query.rstrip().lstrip():
         exp = st.session_state['explorer']
@@ -102,9 +114,28 @@ def run_sql_query():
         st.session_state['imgs'] = res.to_pydict()['im_file']
 
 
+def run_ai_query():
+    st.session_state['error'] = None
+    if os.environ.get('OPENAI_API_KEY') is None:
+        st.error('''
+                 OPENAI_API_KEY not found in environment variables. Please set your API key.
+                 Run yolo explorer with OPENAI_API_KEY, `OPENAI_API_KEY=your_key streamlit run yolo_explorer.py`
+                  ''')
+
+    query = st.session_state.get('ai_query')
+    if query.rstrip().lstrip():
+        exp = st.session_state['explorer']
+        res = exp.ask_ai(query)
+        if not isinstance(res, pd.DataFrame) or res.empty:
+            st.session_state['error'] = "No results found. Try another query."
+            return
+        st.session_state['imgs'] = res['im_file'].to_list()
+
+
 def reset_explorer():
     st.session_state['explorer'] = None
     st.session_state['imgs'] = None
+    st.session_state['error'] = None
 
 
 def utralytics_explorer_docs_callback():
@@ -129,9 +160,12 @@ def layout():
     st.button(':arrow_backward: Select Dataset', on_click=reset_explorer)
     exp = st.session_state.get('explorer')
     col1, col2 = st.columns([0.75, 0.25], gap='small')
-
-    imgs = st.session_state.get('imgs') or exp.table.to_lance().to_table(columns=['im_file']).to_pydict()['im_file']
-    total_imgs = len(imgs)
+    imgs = []
+    if st.session_state.get('error'):
+        st.error(st.session_state['error'])
+    else:
+        imgs = st.session_state.get('imgs') or exp.table.to_lance().to_table(columns=['im_file']).to_pydict()['im_file']
+    total_imgs, selected_imgs = len(imgs), []
     with col1:
         subcol1, subcol2, subcol3, subcol4, subcol5 = st.columns(5)
         with subcol1:
@@ -159,6 +193,7 @@ def layout():
                 st.experimental_rerun()
 
         query_form()
+        ai_query_form()
         if total_imgs:
             imgs_displayed = imgs[start_idx:start_idx + num]
             selected_imgs = image_select(

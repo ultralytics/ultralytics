@@ -51,10 +51,10 @@ Default `ARG` values are defined on this page from the `cfg/defaults.yaml` [file
 
 YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks differ in the type of output they produce and the specific problem they are designed to solve.
 
-**Detect**: For identifying and localizing objects or regions of interest in an image or video.
-**Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
-**Classify**: For predicting the class label of an input image.
-**Pose**: For identifying objects and estimating their keypoints in an image or video.
+- **Detect**: For identifying and localizing objects or regions of interest in an image or video.
+- **Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
+- **Classify**: For predicting the class label of an input image.
+- **Pose**: For identifying objects and estimating their keypoints in an image or video.
 
 | Key    | Value      | Description                                     |
 |--------|------------|-------------------------------------------------|
@@ -66,12 +66,12 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes include:
 
-**Train**: For training a YOLOv8 model on a custom dataset.
-**Val**: For validating a YOLOv8 model after it has been trained.
-**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
-**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
-**Track**: For tracking objects in real-time using a YOLOv8 model.
-**Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
+- **Train**: For training a YOLOv8 model on a custom dataset.
+- **Val**: For validating a YOLOv8 model after it has been trained.
+- **Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
+- **Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
+- **Track**: For tracking objects in real-time using a YOLOv8 model.
+- **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
 | Key    | Value     | Description                                                   |
 |--------|-----------|---------------------------------------------------------------|

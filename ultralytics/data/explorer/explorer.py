@@ -15,7 +15,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, checks
 
-from .utils import get_sim_index_schema, get_table_schema, plot_query_result, sanitize_batch, prompt_sql_query
+from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
 class ExplorerDataset(YOLODataset):
@@ -190,7 +190,8 @@ class Explorer:
         table = self.table.to_arrow()  # noqa
         if not query.startswith('SELECT') and not query.startswith('WHERE'):
             raise ValueError(
-                f'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}')
+                f'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}'
+            )
         if query.startswith('WHERE'):
             query = f"SELECT * FROM 'table' {query}"
         LOGGER.info(f'Running query: {query}')
@@ -408,7 +409,7 @@ class Explorer:
         try:
             df = self.sql_query(result)
         except Exception as e:
-            LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
+            LOGGER.error('AI generated query is not valid. Please try again with a different prompt')
             LOGGER.error(e)
             return None
         return df

@@ -1,16 +1,16 @@
+import getpass
 import os
 from typing import List
 
 import cv2
 import numpy as np
 import pandas as pd
-import getpass
 
 from ultralytics.data.augment import LetterBox
+from ultralytics.utils import LOGGER as logger
+from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.ops import xyxy2xywh
 from ultralytics.utils.plotting import plot_images
-from ultralytics.utils.checks import check_requirements
-from ultralytics.utils import LOGGER as logger
 
 
 def get_table_schema(vector_size):
@@ -60,8 +60,8 @@ def plot_query_result(similar_set, plot_labels=True):
         similar_set (list): Pyarrow or pandas object containing the similar data points
         plot_labels (bool): Whether to plot labels or not
     """
-    similar_set = similar_set.to_dict(orient='list') if isinstance(similar_set,
-                                                                   pd.DataFrame) else similar_set.to_pydict()
+    similar_set = similar_set.to_dict(
+        orient='list') if isinstance(similar_set, pd.DataFrame) else similar_set.to_pydict()
     empty_masks = [[[]]]
     empty_boxes = [[]]
     images = similar_set.get('im_file', [])
@@ -111,19 +111,22 @@ def plot_query_result(similar_set, plot_labels=True):
 
 
 def prompt_sql_query(query):
-    check_requirements("openai")
+    check_requirements('openai')
     from openai import OpenAI
 
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     if OPENAI_API_KEY is None:
-        logger.info("OPENAI_API_KEY not found in environment variables. Please input your API key.")
-        OPENAI_API_KEY = getpass.getpass("Enter your OpenAI API key: ")
+        logger.info('OPENAI_API_KEY not found in environment variables. Please input your API key.')
+        OPENAI_API_KEY = getpass.getpass('Enter your OpenAI API key: ')
         os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
     openai = OpenAI()
 
     messages = [
-        {"role": "system",
-         "content": '''
+        {
+            'role':
+            'system',
+            'content':
+            '''
             You are a helpful data scientist proficient in SQL. You need to output exactly one SQL query based on the following schema and a user request. You only need to output the format has be fixed like `SELECT * from 'table'`
 
             Schema:
@@ -155,11 +158,9 @@ def prompt_sql_query(query):
             correct query-
             SELECT * FROM 'table' WHERE  ARRAY_LENGTH(cls) >= 2  AND ARRAY_LENGTH(FILTER(labels, x -> x = 'person')) >= 2  AND ARRAY_LENGTH(FILTER(labels, x -> x = 'dog')) >= 1;
          '''},
-        {"role": "user", "content": f"{query}"},
-    ]
+        {
+            'role': 'user',
+            'content': f'{query}'}, ]
 
-    response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
+    response = openai.chat.completions.create(model='gpt-3.5-turbo', messages=messages)
     return response.choices[0].message.content

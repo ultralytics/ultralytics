@@ -3,6 +3,7 @@ import time
 from threading import Thread
 
 import pandas as pd
+
 from ultralytics import Explorer
 from ultralytics.utils import ROOT
 from ultralytics.utils.checks import check_requirements
@@ -89,7 +90,7 @@ def similarity_form(selected_imgs):
                 'Search',
                 disabled=disabled,
                 on_click=find_similar_imgs,
-                args=(selected_imgs,),
+                args=(selected_imgs, ),
             )
         if disabled:
             st.error('Select at least one image to search.')
@@ -127,7 +128,7 @@ def run_ai_query():
         exp = st.session_state['explorer']
         res = exp.ask_ai(query)
         if not isinstance(res, pd.DataFrame) or res.empty:
-            st.session_state['error'] = "No results found. Try another query."
+            st.session_state['error'] = 'No results found. Try another query.'
             return
         st.session_state['imgs'] = res['im_file'].to_list()
 

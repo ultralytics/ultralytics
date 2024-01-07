@@ -33,8 +33,7 @@ YOLOv8 pretrained Obb models are shown here, which are pretrained on the [DOTAv1
 | [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024                  | 81.36                | 1759.10                          | 13.23                                 | 69.5                 | 676.7             |
 
 - **mAP<sup>test</sup>** values are for single-model multi-scale on [DOTAv1 test](http://cocodataset.org) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test`
-- **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
-  instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
+- **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
 
 ## Train
 

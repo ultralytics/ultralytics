@@ -46,16 +46,6 @@
 
 以下是提供的内容的中文翻译：
 
-## <div align="center">Notebooks</div>
-
-| Title (Ultralytics Docs)                                                                      | Notebook                                                                                                                                                                                                         |                                                                                                  YouTube                                                                                                   | Ultralytics Discussion                                                                                    |
-| --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | --------------------------------------------------------------------------------------------------------- |
-| <a href="https://docs.ultralytics.com/modes/track/">使用Ultralytics YOLOv8进行目标跟踪</a>            | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/object_tracking.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> | <a href="https://youtu.be/hHyHmOtmEgs"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> | <a href="https://github.com/orgs/ultralytics/discussions/2687">Track - Ultralytics YOLOv8讨论</a>           |
-| <a href="https://docs.ultralytics.com/guides/heatmaps/">使用Ultralytics YOLOv8生成热图</a>          | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/heatmaps.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>        | <a href="https://youtu.be/4ezde5-nZZw"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> | <a href="https://github.com/orgs/ultralytics/discussions/6873">Heatmaps - Ultralytics YOLOv8讨论</a>        |
-| <a href="https://docs.ultralytics.com/hub/quickstart/">Ultralytics HUB快速入门</a>                | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>             | <a href="https://youtu.be/lveF9iCMIzc"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> | <a href="https://github.com/orgs/ultralytics/discussions/2870">Ultralytics HUB讨论</a>                      |
-| <a href="https://docs.ultralytics.com/modes/">Ultralytics YOLO（训练、验证、预测、导出）</a>               | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>        | <a href="https://youtu.be/j8uQc0qB91s"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> | <a href="https://github.com/orgs/ultralytics/discussions/2699">Modes - Ultralytics YOLOv8讨论</a>           |
-| <a href="https://docs.ultralytics.com/guides/object-counting/">使用Ultralytics YOLOv8进行目标计数</a> | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/object_counting.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> | <a href="https://youtu.be/Ag2e-5_NpS0"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> | <a href="https://github.com/orgs/ultralytics/discussions/6738">Object Counting - Ultralytics YOLOv8讨论</a> |
-
 ## <div align="center">文档</div>
 
 请参阅下面的快速安装和使用示例，以及 [YOLOv8 文档](https://docs.ultralytics.com) 上有关训练、验证、预测和部署的完整文档。
@@ -78,7 +68,7 @@ pip install ultralytics
 <details open>
 <summary>Usage</summary>
 
-#### CLI
+### CLI
 
 YOLOv8 可以在命令行界面（CLI）中直接使用，只需输入 `yolo` 命令：
 
@@ -88,7 +78,7 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 
 `yolo` 可用于各种任务和模式，并接受其他参数，例如 `imgsz=640`。查看 YOLOv8 [CLI 文档](https://docs.ultralytics.com/usage/cli)以获取示例。
 
-#### Python
+### Python
 
 YOLOv8 也可以在 Python 环境中直接使用，并接受与上述 CLI 示例中相同的[参数](https://docs.ultralytics.com/usage/cfg/)：
 
@@ -109,6 +99,16 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 查看 YOLOv8 [Python 文档](https://docs.ultralytics.com/usage/python)以获取更多示例。
 
 </details>
+
+### Notebooks
+
+| Documentation                                                                                       | Notebook                                                                                                                                                                                                         |                                                                                               YouTube Video                                                                                                |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| <a href="https://docs.ultralytics.com/modes/">YOLOv8 Train, Val, Predict and Export Modes</a>       | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>        | <a href="https://youtu.be/j8uQc0qB91s"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> |
+| <a href="https://docs.ultralytics.com/hub/quickstart/">Ultralytics HUB QuickStart</a>               | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>             | <a href="https://youtu.be/lveF9iCMIzc"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> |
+| <a href="https://docs.ultralytics.com/modes/track/">YOLOv8 Multi-Object Tracking in Videos</a>      | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/object_tracking.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> | <a href="https://youtu.be/hHyHmOtmEgs"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> |
+| <a href="https://docs.ultralytics.com/guides/object-counting/">YOLOv8 Object Counting in Videos</a> | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/object_counting.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> | <a href="https://youtu.be/Ag2e-5_NpS0"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> |
+| <a href="https://docs.ultralytics.com/guides/heatmaps/">YOLOv8 Heatmaps in Videos</a>               | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/heatmaps.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>        | <a href="https://youtu.be/4ezde5-nZZw"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube.png" alt="Ultralytics Youtube Video"></center></a> |
 
 ## <div align="center">模型</div>
 

@@ -50,8 +50,7 @@ repos:
         name: MD formatting
         additional_dependencies:
           - mdformat-gfm
-          # - mdformat-black
-          # - mdformat-frontmatter
+          - mdformat-frontmatter
         args:
           - --wrap=no
         exclude: 'docs/.*\.md'

@@ -50,10 +50,11 @@ repos:
         name: MD formatting
         additional_dependencies:
           - mdformat-gfm
-          # - mdformat-black
-          # - mdformat-frontmatter
+          - mdformat-frontmatter
+          - mdformat-mkdocs
         args:
           - --wrap=no
+          - --number
         exclude: 'docs/.*\.md'
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 

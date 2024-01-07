@@ -126,7 +126,7 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Real-Time Metrics Tracking**: Observe metrics like loss, accuracy, and validation scores as they evolve during the training, offering immediate insights for model tuning.
 
-  <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/TB76U9O"><a href="//imgur.com/D6NVnmN">Take a look at how the experiments are tracked using Weights & Biases.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+    <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/TB76U9O"><a href="//imgur.com/D6NVnmN">Take a look at how the experiments are tracked using Weights & Biases.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
 
 - **Hyperparameter Optimization**: Weights & Biases aids in fine-tuning critical parameters such as learning rate, batch size, and more, enhancing the performance of YOLOv8.
 
@@ -134,7 +134,7 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Visualization of Training Progress**: Graphical representations of key metrics provide an intuitive understanding of the model's performance across epochs.
 
-  <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/kU5h7W4" data-context="false" ><a href="//imgur.com/a/kU5h7W4">Take a look at how Weights & Biases helps you visualize validation results.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+    <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/kU5h7W4" data-context="false" ><a href="//imgur.com/a/kU5h7W4">Take a look at how Weights & Biases helps you visualize validation results.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
 
 - **Resource Monitoring**: Keep track of CPU, GPU, and memory usage to optimize the efficiency of the training process.
 
@@ -142,7 +142,7 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Viewing Inference Results with Image Overlay**: Visualize the prediction results on images using interactive overlays in Weights & Biases, providing a clear and detailed view of model performance on real-world data. For more detailed information on Weights & Biases’ image overlay capabilities, check out this [link](https://docs.wandb.ai/guides/track/log/media#image-overlays).
 
-  <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/UTSiufs" data-context="false" ><a href="//imgur.com/a/UTSiufs">Take a look at how Weights & Biases’ image overlays helps visualize model inferences.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+    <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/UTSiufs" data-context="false" ><a href="//imgur.com/a/UTSiufs">Take a look at how Weights & Biases’ image overlays helps visualize model inferences.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
 
 By using these features, you can effectively track, analyze, and optimize your YOLOv8 model's training, ensuring the best possible performance and efficiency.
 

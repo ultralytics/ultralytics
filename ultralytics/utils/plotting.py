@@ -125,7 +125,7 @@ class Annotator:
             if rotated:
                 p1 = [int(b) for b in box[0]]
                 # NOTE: cv2-version polylines needs np.asarray type.
-                cv2.polylines(self.im, [np.asarray(box, dtype=np.int)], True, color, self.lw)
+                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)
             else:
                 p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
                 cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
@@ -291,12 +291,11 @@ class Annotator:
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def count_labels(self, in_count=0, out_count=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
+    def count_labels(self, counts=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
         Plot counts for object counter
         Args:
-            in_count (int): in count value
-            out_count (int): out count value
+            counts (int): objects counts value
             count_txt_size (int): text size for counts display
             color (tuple): background color of counts display
             txt_color (tuple): text color of counts display
@@ -307,35 +306,22 @@ class Annotator:
         gap = int(24 * tl)  # gap between in_count and out_count based on line_thickness
 
         # Get text size for in_count and out_count
-        t_size_in = cv2.getTextSize(str(in_count), 0, fontScale=tl / 2, thickness=tf)[0]
-        t_size_out = cv2.getTextSize(str(out_count), 0, fontScale=tl / 2, thickness=tf)[0]
+        t_size_in = cv2.getTextSize(str(counts), 0, fontScale=tl / 2, thickness=tf)[0]
 
-        # Calculate positions for in_count and out_count labels
-        text_width = max(t_size_in[0], t_size_out[0])
-        text_x1 = (self.im.shape[1] - text_width - 120 * self.tf) // 2 - gap
-        text_x2 = (self.im.shape[1] - text_width + 120 * self.tf) // 2 + gap
-        text_y = max(t_size_in[1], t_size_out[1])
+        # Calculate positions for counts label
+        text_width = t_size_in[0]
+        text_x = (self.im.shape[1] - text_width) // 2  # Center x-coordinate
+        text_y = t_size_in[1]
 
         # Create a rounded rectangle for in_count
-        cv2.rectangle(self.im, (text_x1 - 5, text_y - 5), (text_x1 + text_width + 7, text_y + t_size_in[1] + 7), color,
+        cv2.rectangle(self.im, (text_x - 5, text_y - 5), (text_x + text_width + 7, text_y + t_size_in[1] + 7), color,
                       -1)
         cv2.putText(self.im,
-                    str(in_count), (text_x1, text_y + t_size_in[1]),
+                    str(counts), (text_x, text_y + t_size_in[1]),
                     0,
                     tl / 2,
                     txt_color,
                     self.tf,
-                    lineType=cv2.LINE_AA)
-
-        # Create a rounded rectangle for out_count
-        cv2.rectangle(self.im, (text_x2 - 5, text_y - 5), (text_x2 + text_width + 7, text_y + t_size_out[1] + 7), color,
-                      -1)
-        cv2.putText(self.im,
-                    str(out_count), (text_x2, text_y + t_size_out[1]),
-                    0,
-                    tl / 2,
-                    txt_color,
-                    thickness=self.tf,
                     lineType=cv2.LINE_AA)
 
     @staticmethod
@@ -580,7 +566,8 @@ def plot_images(images,
                 fname='images.jpg',
                 names=None,
                 on_plot=None,
-                max_subplots=16):
+                max_subplots=16,
+                save=True):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
@@ -596,7 +583,6 @@ def plot_images(images,
         batch_idx = batch_idx.cpu().numpy()
 
     max_size = 1920  # max image size
-    max_subplots = max_subplots  # max image subplots, i.e. 4x4
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs ** 0.5)  # number of subplots (square)
@@ -605,12 +591,9 @@ def plot_images(images,
 
     # Build Image
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
-    for i, im in enumerate(images):
-        if i == max_subplots:  # if last batch has fewer images than we expect
-            break
+    for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        im = im.transpose(1, 2, 0)
-        mosaic[y:y + h, x:x + w, :] = im
+        mosaic[y:y + h, x:x + w, :] = images[i].transpose(1, 2, 0)
 
     # Resize (optional)
     scale = max_size / ns / max(h, w)
@@ -622,7 +605,7 @@ def plot_images(images,
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
-    for i in range(i + 1):
+    for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
@@ -699,9 +682,12 @@ def plot_images(images,
                         with contextlib.suppress(Exception):
                             im[y:y + h, x:x + w, :][mask] = im[y:y + h, x:x + w, :][mask] * 0.4 + np.array(color) * 0.6
                 annotator.fromarray(im)
-    annotator.im.save(fname)  # save
-    if on_plot:
-        on_plot(fname)
+    if save:
+        annotator.im.save(fname)  # save
+        if on_plot:
+            on_plot(fname)
+    else:
+        return np.asarray(annotator.im)
 
 
 @plt_settings()

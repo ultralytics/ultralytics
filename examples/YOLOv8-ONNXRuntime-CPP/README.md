@@ -1,9 +1,7 @@
-<h1 align="center">YOLOv8 OnnxRuntime C++</h1>
+# YOLOv8 OnnxRuntime C++
 
-<p align="center">
-  <img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B">
-  <img alt="Onnx-runtime" src="https://img.shields.io/badge/OnnxRuntime-717272.svg?logo=Onnx&logoColor=white"></img>
-</p>
+<img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B">
+<img alt="Onnx-runtime" src="https://img.shields.io/badge/OnnxRuntime-717272.svg?logo=Onnx&logoColor=white">
 
 This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX Runtime and OpenCV's API.
 
@@ -15,7 +13,7 @@ This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX
 
 ## Note :coffee:
 
-1.~~This repository should also work for YOLOv5, which needs a permute operator for the output of the YOLOv5 model, but this has not been implemented yet.~~ Benefit for ultralytics's latest release,a `Transpose` op is added to the Yolov8 model,while make v8 and v5 has the same output shape.Therefore,you can inference your yolov5/v7/v8 via this project.
+1. Benefit for Ultralytics' latest release, a `Transpose` op is added to the YOLOv8 model, while make v8 and v5 has the same output shape. Therefore, you can run inference with YOLOv5/v7/v8 via this project.
 
 ## Exporting YOLOv8 Models 📦
 
@@ -70,24 +68,26 @@ Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind 
 ## Build 🛠️
 
 1. Clone the repository to your local machine.
-1. Navigate to the root directory of the repository.
-1. Create a build directory and navigate to it:
 
-```console
-mkdir build && cd build
-```
+2. Navigate to the root directory of the repository.
+
+3. Create a build directory and navigate to it:
+
+    ```console
+    mkdir build && cd build
+    ```
 
 4. Run CMake to generate the build files:
 
-```console
-cmake ..
-```
+    ```console
+    cmake ..
+    ```
 
 5. Build the project:
 
-```console
-make
-```
+    ```console
+    make
+    ```
 
 6. The built executable should now be located in the `build` directory.
 

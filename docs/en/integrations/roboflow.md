@@ -37,7 +37,6 @@ Universe is an online repository with over 250,000 vision datasets totalling ove
 
 With a [free Roboflow account](https://app.roboflow.com/?ref=ultralytics), you can export any dataset available on Universe. To export a dataset, click the "Download this Dataset" button on any dataset.
 
-
 <p align="center">
 <img src="https://media.roboflow.com/ultralytics/rf_dataset.png" alt="Roboflow Universe dataset export" width="800">
 </p>

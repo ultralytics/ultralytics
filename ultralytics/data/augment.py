@@ -986,6 +986,7 @@ def classify_transforms(size=224, rect=False, mean=(0.0, 0.0, 0.0), std=(1.0, 1.
     """Transforms to apply if albumentations not installed."""
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
+    #transforms = [ClassifyLetterBox(size), ToTensor()]
     transforms = [ClassifyLetterBox(size, auto=True) if rect else CenterCrop(size), ToTensor()]
     if any(mean) or any(std):
         transforms.append(T.Normalize(mean, std, inplace=True))

@@ -3,6 +3,7 @@ import contextlib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
+import os
 
 import cv2
 import numpy as np
@@ -326,6 +327,14 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
             cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
         """
         super().__init__(root=root)
+        classes, class_to_val = self.find_classes(self.root)
+        samples = self.make_dataset(self.root, class_to_val, self.extensions)
+
+        self.classes = classes
+        self.class_to_idx = class_to_val
+        self.samples = samples
+        self.targets = [s[1] for s in samples]
+        
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[:round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f'{prefix}: ') if prefix else ''
@@ -333,16 +342,18 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
-        self.pre_album_transforms = T.Compose([ClassifyLetterBox(size=args.imgsz)])
+        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect, mean=args.mean, std=args.std)
         self.album_transforms = classify_albumentations(
+            augment=augment,
+            size=args.imgsz,
+            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
             hflip=args.fliplr,
             vflip=args.flipud,
             hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
             hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
             hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
+            mean=args.mean,  # IMAGENET_MEAN
+            std=args.std,  # IMAGENET_STD
             auto_aug=False) if augment else None
 
     def __getitem__(self, i):
@@ -357,7 +368,6 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
         else:  # read image
             im = cv2.imread(f)  # BGR
         if self.album_transforms:
-            im = self.pre_album_transforms(im)  # Letterbox
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         else:
             sample = self.torch_transforms(im)
@@ -367,6 +377,18 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
         """Return the total number of samples in the dataset."""
         return len(self.samples)
 
+    def find_classes(self, directory) :
+        """Finds the class folders in a dataset, and creates class_to_idx such that key:value is regression_value:regression_value
+        
+        Override of method belonging to :class:`~torchvision.datasets.DatasetFolder`
+        """
+        classes = sorted(entry.name for entry in os.scandir(directory) if entry.is_dir())
+        if not classes:
+            raise FileNotFoundError(f"Couldn't find any class folder in {directory}.")
+
+        class_to_val = {cls_name: int(cls_name) for cls_name in classes}
+        return classes, class_to_val
+    
     def verify_images(self):
         """Verify all images in dataset."""
         desc = f'{self.prefix}Scanning {self.root}...'

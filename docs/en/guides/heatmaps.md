@@ -102,8 +102,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       int(fps),
+                                       (int(width), int(height)))
 
         line_points = [(256, 409), (694, 532)]  # line for object counting
 

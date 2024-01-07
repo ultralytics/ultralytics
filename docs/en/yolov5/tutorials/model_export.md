@@ -134,9 +134,11 @@ Visualize:       https://netron.app/
 ```
 
 The 3 exported models will be saved alongside the original PyTorch model:
+
 <p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/122827190-57a8f880-d2e4-11eb-860e-dbb7f9fc57fb.png" alt="YOLO export locations"></p>
 
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
+
 <p align="center"><img width="850" src="https://user-images.githubusercontent.com/26833433/191003260-f94011a7-5b2e-4fe3-93c1-e1a935e0a728.png" alt="YOLO model visualization"></p>
 
 ## Exported Model Usage Examples
@@ -175,7 +177,7 @@ python val.py --weights yolov5s.pt                 # PyTorch
 
 Use PyTorch Hub with exported YOLOv5 models:
 
-``` python
+```python
 import torch
 
 # Model

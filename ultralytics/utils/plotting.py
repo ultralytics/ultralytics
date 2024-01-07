@@ -291,12 +291,11 @@ class Annotator:
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def count_labels(self, in_count=0, out_count=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
+    def count_labels(self, counts=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
         Plot counts for object counter
         Args:
-            in_count (int): in count value
-            out_count (int): out count value
+            counts (int): objects counts value
             count_txt_size (int): text size for counts display
             color (tuple): background color of counts display
             txt_color (tuple): text color of counts display
@@ -307,35 +306,22 @@ class Annotator:
         gap = int(24 * tl)  # gap between in_count and out_count based on line_thickness
 
         # Get text size for in_count and out_count
-        t_size_in = cv2.getTextSize(str(in_count), 0, fontScale=tl / 2, thickness=tf)[0]
-        t_size_out = cv2.getTextSize(str(out_count), 0, fontScale=tl / 2, thickness=tf)[0]
+        t_size_in = cv2.getTextSize(str(counts), 0, fontScale=tl / 2, thickness=tf)[0]
 
-        # Calculate positions for in_count and out_count labels
-        text_width = max(t_size_in[0], t_size_out[0])
-        text_x1 = (self.im.shape[1] - text_width - 120 * self.tf) // 2 - gap
-        text_x2 = (self.im.shape[1] - text_width + 120 * self.tf) // 2 + gap
-        text_y = max(t_size_in[1], t_size_out[1])
+        # Calculate positions for counts label
+        text_width = t_size_in[0]
+        text_x = (self.im.shape[1] - text_width) // 2  # Center x-coordinate
+        text_y = t_size_in[1]
 
         # Create a rounded rectangle for in_count
-        cv2.rectangle(self.im, (text_x1 - 5, text_y - 5), (text_x1 + text_width + 7, text_y + t_size_in[1] + 7), color,
+        cv2.rectangle(self.im, (text_x - 5, text_y - 5), (text_x + text_width + 7, text_y + t_size_in[1] + 7), color,
                       -1)
         cv2.putText(self.im,
-                    str(in_count), (text_x1, text_y + t_size_in[1]),
+                    str(counts), (text_x, text_y + t_size_in[1]),
                     0,
                     tl / 2,
                     txt_color,
                     self.tf,
-                    lineType=cv2.LINE_AA)
-
-        # Create a rounded rectangle for out_count
-        cv2.rectangle(self.im, (text_x2 - 5, text_y - 5), (text_x2 + text_width + 7, text_y + t_size_out[1] + 7), color,
-                      -1)
-        cv2.putText(self.im,
-                    str(out_count), (text_x2, text_y + t_size_out[1]),
-                    0,
-                    tl / 2,
-                    txt_color,
-                    thickness=self.tf,
                     lineType=cv2.LINE_AA)
 
     @staticmethod

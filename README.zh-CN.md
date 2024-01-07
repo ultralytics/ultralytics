@@ -193,15 +193,15 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 查看[旋转检测文档](https://docs.ultralytics.com/tasks/obb/)以获取这些在[DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/)上训练的模型的使用示例，其中包括15个预训练类别。
 
-| 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>pose<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
+| 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>test<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------- | ------------------ | --------------------------- | -------------------------------- | -------------- | ----------------- |
-| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-obb.pt) | 1024            | \<++>              | \<++>                       | 3.2                              | 23.3           |                   |
-| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-obb.pt) | 1024            | \<++>              | \<++>                       | 11.4                             | 76.3           |                   |
-| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-obb.pt) | 1024            | \<++>              | \<++>                       | 26.4                             | 208.6          |                   |
-| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-obb.pt) | 1024            | \<++>              | \<++>                       | 44.5                             | 433.8          |                   |
-| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024            | \<++>              | \<++>                       | 69.5                             | 676.7          |                   |
+| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-obb.pt) | 1024            | 76.9               | 204.77                      | 3.57                             | 3.1            | 23.3              |
+| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-obb.pt) | 1024            | 78.0               | 424.88                      | 4.07                             | 11.4           | 76.3              |
+| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-obb.pt) | 1024            | 80.5               | 763.48                      | 7.61                             | 26.4           | 208.6             |
+| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-obb.pt) | 1024            | 80.7               | 1278.42                     | 11.83                            | 44.5           | 433.8             |
+| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024            | 81.36              | 1759.10                     | 13.23                            | 69.5           | 676.7             |
 
-- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [DOTAv1](https://captain-whu.github.io/DOTA/index.html) 数据集上的结果。 <br>通过 `yolo val obb data=DOTAv1.yaml device=0` 复现
+- **mAP<sup>val</sup>** 值是基于单模型多尺度在 [DOTAv1](https://captain-whu.github.io/DOTA/index.html) 数据集上的结果。 <br>通过 `yolo val obb data=DOTAv1.yaml device=0 split=test` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu` 复现
 
 </details>

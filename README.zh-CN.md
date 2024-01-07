@@ -44,6 +44,8 @@
 </div>
 </div>
 
+以下是提供的内容的中文翻译：
+
 ## <div align="center">文档</div>
 
 请参阅下面的快速安装和使用示例，以及 [YOLOv8 文档](https://docs.ultralytics.com) 上有关训练、验证、预测和部署的完整文档。
@@ -66,7 +68,7 @@ pip install ultralytics
 <details open>
 <summary>Usage</summary>
 
-#### CLI
+### CLI
 
 YOLOv8 可以在命令行界面（CLI）中直接使用，只需输入 `yolo` 命令：
 
@@ -76,7 +78,7 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 
 `yolo` 可用于各种任务和模式，并接受其他参数，例如 `imgsz=640`。查看 YOLOv8 [CLI 文档](https://docs.ultralytics.com/usage/cli)以获取示例。
 
-#### Python
+### Python
 
 YOLOv8 也可以在 Python 环境中直接使用，并接受与上述 CLI 示例中相同的[参数](https://docs.ultralytics.com/usage/cfg/)：
 
@@ -97,6 +99,18 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 查看 YOLOv8 [Python 文档](https://docs.ultralytics.com/usage/python)以获取更多示例。
 
 </details>
+
+### 笔记本
+
+Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟踪等内容。每个笔记本都配有 [YouTube](https://youtube.com/ultralytics) 教程，使学习和实现高级 YOLOv8 功能变得简单。
+
+| 文档                                                                                 | 笔记本                                                                                                                                                                                                            |                                                                                                   YouTube                                                                                                    |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <a href="https://docs.ultralytics.com/modes/">YOLOv8 训练、验证、预测和导出模式</a>             | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="在 Colab 中打开"></a>        | <a href="https://youtu.be/j8uQc0qB91s"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube 视频"></center></a> |
+| <a href="https://docs.ultralytics.com/hub/quickstart/">Ultralytics HUB 快速开始</a>    | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="在 Colab 中打开"></a>             | <a href="https://youtu.be/lveF9iCMIzc"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube 视频"></center></a> |
+| <a href="https://docs.ultralytics.com/modes/track/">YOLOv8 视频中的多对象跟踪</a>           | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/object_tracking.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="在 Colab 中打开"></a> | <a href="https://youtu.be/hHyHmOtmEgs"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube 视频"></center></a> |
+| <a href="https://docs.ultralytics.com/guides/object-counting/">YOLOv8 视频中的对象计数</a> | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/object_counting.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="在 Colab 中打开"></a> | <a href="https://youtu.be/Ag2e-5_NpS0"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube 视频"></center></a> |
+| <a href="https://docs.ultralytics.com/guides/heatmaps/">YOLOv8 视频中的热图</a>          | <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/heatmaps.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="在 Colab 中打开"></a>        | <a href="https://youtu.be/4ezde5-nZZw"><center><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Ultralytics Youtube 视频"></center></a> |
 
 ## <div align="center">模型</div>
 
@@ -179,15 +193,15 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 查看[旋转检测文档](https://docs.ultralytics.com/tasks/obb/)以获取这些在[DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/)上训练的模型的使用示例，其中包括15个预训练类别。
 
-| 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>pose<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
+| 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>test<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------- | ------------------ | --------------------------- | -------------------------------- | -------------- | ----------------- |
-| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-obb.pt) | 1024            | \<++>              | \<++>                       | 3.2                              | 23.3           |                   |
-| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-obb.pt) | 1024            | \<++>              | \<++>                       | 11.4                             | 76.3           |                   |
-| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-obb.pt) | 1024            | \<++>              | \<++>                       | 26.4                             | 208.6          |                   |
-| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-obb.pt) | 1024            | \<++>              | \<++>                       | 44.5                             | 433.8          |                   |
-| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024            | \<++>              | \<++>                       | 69.5                             | 676.7          |                   |
+| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-obb.pt) | 1024            | 76.9               | 204.77                      | 3.57                             | 3.1            | 23.3              |
+| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-obb.pt) | 1024            | 78.0               | 424.88                      | 4.07                             | 11.4           | 76.3              |
+| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-obb.pt) | 1024            | 80.5               | 763.48                      | 7.61                             | 26.4           | 208.6             |
+| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-obb.pt) | 1024            | 80.7               | 1278.42                     | 11.83                            | 44.5           | 433.8             |
+| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024            | 81.36              | 1759.10                     | 13.23                            | 69.5           | 676.7             |
 
-- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [DOTAv1](https://captain-whu.github.io/DOTA/index.html) 数据集上的结果。 <br>通过 `yolo val obb data=DOTAv1.yaml device=0` 复现
+- **mAP<sup>val</sup>** 值是基于单模型多尺度在 [DOTAv1](https://captain-whu.github.io/DOTA/index.html) 数据集上的结果。 <br>通过 `yolo val obb data=DOTAv1.yaml device=0 split=test` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu` 复现
 
 </details>

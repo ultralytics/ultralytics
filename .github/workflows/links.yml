@@ -47,7 +47,6 @@ jobs:
             --exclude-path docs/ko \
             --exclude-path docs/hi \
             --exclude-path docs/ar \
-            --exclude-mail \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             './**/*.md' './**/*.html'
 
@@ -73,6 +72,5 @@ jobs:
             --exclude-path docs/ko \
             --exclude-path docs/hi \
             --exclude-path docs/ar \
-            --exclude-mail \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'

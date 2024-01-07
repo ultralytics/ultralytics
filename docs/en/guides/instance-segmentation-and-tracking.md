@@ -37,7 +37,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         out = cv2.VideoWriter('instance-segmentation.avi',
                               cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+                              30, (w, h))
 
         while True:
             ret, im0 = cap.read()
@@ -83,7 +83,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         out = cv2.VideoWriter('instance-segmentation-object-tracking.avi',
                               cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+                              30, (w, h))
 
         while True:
             ret, im0 = cap.read()

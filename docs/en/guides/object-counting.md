@@ -45,6 +45,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(x) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FRAME_FPS))
 
         # Define region points
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
@@ -52,8 +53,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         # Video writer
         video_writer = cv2.VideoWriter("object_counting_output.avi",
                                cv2.VideoWriter_fourcc(*'mp4v'),
-                               int(cap.get(5)),
-                               (int(cap.get(3)), int(cap.get(4))))
+                               fps,
+                               (w, h))
 
         # Init Object Counter
         counter = object_counter.ObjectCounter()
@@ -87,6 +88,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(x) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FRAME_FPS))
 
         # Define line points
         line_points = [(20, 400), (1080, 400)]
@@ -94,8 +96,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         # Video writer
         video_writer = cv2.VideoWriter("object_counting_output.avi",
                                cv2.VideoWriter_fourcc(*'mp4v'),
-                               int(cap.get(5)),
-                               (int(cap.get(3)), int(cap.get(4))))
+                               fps,
+                               (w, h))
 
         # Init Object Counter
         counter = object_counter.ObjectCounter()
@@ -128,6 +130,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(x) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FRAME_FPS))
 
         line_points = [(20, 400), (1080, 400)]  # line or region points
         classes_to_count = [0, 2]  # person and car classes for count
@@ -135,8 +138,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         # Video writer
         video_writer = cv2.VideoWriter("object_counting_output.avi",
                                cv2.VideoWriter_fourcc(*'mp4v'),
-                               int(cap.get(5)),
-                               (int(cap.get(3)), int(cap.get(4))))
+                               fps,
+                               (w, h))
 
         # Init Object Counter
         counter = object_counter.ObjectCounter()

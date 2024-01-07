@@ -1,7 +1,6 @@
 # YOLOv8-pose with onnxruntime-web
 
-Pose Detection application right in your browser.
-Serving YOLOv8 in browser using onnxruntime-web with `wasm` backend.
+Pose Detection application right in your browser. Serving YOLOv8 in browser using onnxruntime-web with `wasm` backend.
 
 ## Usage
 
@@ -11,8 +10,7 @@ cd ultralytics/examples/yolov8-pose-onnxruntime-web
 yarn install # Install dependencies
 ```
 
-Copy `yolov8*.onnx` to `./public/model`
-Update `modelName` in `App.jsx` to your model name
+Copy `yolov8*.onnx` to `./public/model` Update `modelName` in `App.jsx` to your model name
 
 ```jsx
 ...

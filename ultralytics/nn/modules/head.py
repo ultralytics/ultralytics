@@ -61,7 +61,7 @@ class Detect(nn.Module):
         dbox = self.decode_bboxes(box)
 
         if self.export and self.format in ('tflite', 'edgetpu'):
-            # Precompute normalization factor to increase numerical stability 
+            # Precompute normalization factor to increase numerical stability
             # See https://github.com/ultralytics/ultralytics/issues/7371
             img_h = shape[2]
             img_w = shape[3]

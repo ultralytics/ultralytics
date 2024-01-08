@@ -1,14 +1,14 @@
-# YOLOv8 - int8-tflite Runtime
+# YOLOv8 - Int8-TFLite Runtime
 
-This project implements YOLOv8 using int8 tflite Runtime.
+Welcome to the YOLOv8 Int8 TFLite Runtime for efficient and optimized object detection project. This README provides comprehensive instructions for installing and using our YOLOv8 implementation. 
 
 ## Installation
 
-To run this project, you need to install the required dependencies. The following instructions will guide you through the installation process.
+Ensure a smooth setup by following these steps to install necessary dependencies.
 
 ### Installing Required Dependencies
 
-You can install the required dependencies by running the following command:
+Install all required dependencies with this simple command:
 
 ```bash
 pip install -r requirements.txt
@@ -16,49 +16,50 @@ pip install -r requirements.txt
 
 ### Installing `tflite-runtime`
 
-You can install the tflite-runtime package using the following command in order to load tflite model:
+To load TFLite models, install the `tflite-runtime` package using:
 
 ```bash
 pip install tflite-runtime
 ```
 
-### Installing `tensorflow`
+### Installing `tensorflow-gpu` (For NVIDIA GPU Users)
 
-If you have an NVIDIA GPU and want to leverage GPU acceleration, you can install the tensorflow-gpu package using the following command:
+Leverage GPU acceleration with NVIDIA GPUs by installing `tensorflow-gpu`:
 
 ```bash
 pip install tensorflow-gpu
 ```
 
-Note: Make sure you have the appropriate GPU drivers installed on your system.
+**Note:** Ensure you have compatible GPU drivers installed on your system.
 
-### Installing `tensorflow` (CPU version)
+### Installing `tensorflow` (CPU Version)
 
-If you don't have an NVIDIA GPU or prefer to use the CPU version of onnxruntime, you can install the onnxruntime package using the following command:
+For CPU usage or non-NVIDIA GPUs, install TensorFlow with:
 
 ```bash
 pip install tensorflow
 ```
 
-### Usage
+## Usage
 
-After successfully installing the required packages, you can run the YOLOv8 implementation using the following command:
+Follow these instructions to run YOLOv8 after successful installation.
 
-You will need to convert the model into int8 tflite using below command:
+Convert the YOLOv8 model to Int8 TFLite format:
 
 ```bash
 yolo export model=yolov8n.pt imgsz=640 format=tflite int8
-
 ```
 
-You can find int8 tflite mode in the directory `yolov8n_saved_model` at today date there will be many int8 tflite file but you should select `best_full_integer_quant` or its advised to check on https://netron.app/ to see if its quantized. Then run below command from terminal
+Locate the Int8 TFLite model in `yolov8n_saved_model`. Choose `best_full_integer_quant` or verify quantization at [Netron](https://netron.app/). Then, execute the following in your terminal:
 
 ```bash
 python main.py --model yolov8n_full_integer_quant.tflite --img image.jpg --conf-thres 0.5 --iou-thres 0.5
 ```
 
-Make sure to replace best_full_integer_quant.tflite with the path to your YOLOv8 tflite model file, image.jpg with the path to your input image, and adjust the confidence threshold (conf-thres) and IoU threshold (iou-thres) values as needed.
+Replace `best_full_integer_quant.tflite` with your model file's path, `image.jpg` with your input image, and adjust the confidence (conf-thres) and IoU thresholds (iou-thres) as necessary.
 
-### OutPut
+### Output
+
+The output is displayed as annotated images, showcasing the model's detection capabilities:
 
 ![image](https://github.com/wamiqraza/Attribute-recognition-and-reidentification-Market1501-dataset/blob/main/img/bus.jpg)

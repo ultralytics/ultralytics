@@ -306,19 +306,20 @@ def handle_explorer():
     checks.check_requirements('streamlit')
     subprocess.run(['streamlit', 'run', ROOT / 'data/explorer/gui/dash.py', '--server.maxMessageSize', '2048'])
 
+
 def handle_solutions(solution: str):
     solution_file_map = {
-        "workout": "ai_gym.py",
-        "count": "object_counter.py",
-        "heatmap": "heatmap.py",
-        "speed-estimate": "speed_estimation.py",
-        "distance-calculator": "distance_calculation.py",
-    }
+        'workout': 'ai_gym.py',
+        'count': 'object_counter.py',
+        'heatmap': 'heatmap.py',
+        'speed-estimate': 'speed_estimation.py',
+        'distance-calculator': 'distance_calculation.py', }
     if solution not in solution_file_map:
-        raise ValueError(f"Invalid solution: {solution}. Valid solutions are {list(solution_file_map.keys())}")
-    
+        raise ValueError(f'Invalid solution: {solution}. Valid solutions are {list(solution_file_map.keys())}')
+
     solution_file = solution_file_map[solution]
     subprocess.run(['python', ROOT / 'solutions' / solution_file])
+
 
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""
@@ -373,9 +374,8 @@ def entrypoint(debug=''):
         'login': lambda: handle_yolo_hub(args),
         'copy-cfg': copy_default_cfg,
         'explorer': lambda: handle_explorer(),
-        'solutions': lambda: handle_solutions(args[1]),
-        }
-    
+        'solutions': lambda: handle_solutions(args[1]), }
+
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
     # Define common misuses of special commands, i.e. -h, -help, --help

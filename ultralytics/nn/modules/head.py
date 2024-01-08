@@ -70,7 +70,7 @@ class Detect(nn.Module):
             img_w = shape[3]
             img_size = torch.tensor([img_w, img_h, img_w, img_h], device=box.device).reshape(1, 4, 1)
             norm = self.strides / (self.stride[0] * img_size)
-            dbox = dist2bbox(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2, :], xywh=True, dim=1)
+            dbox = dist2bbox(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2], xywh=True, dim=1)
 
         y = torch.cat((dbox, cls.sigmoid()), 1)
         return y if self.export else (y, x)

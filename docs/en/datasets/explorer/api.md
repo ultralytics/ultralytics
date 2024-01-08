@@ -120,6 +120,7 @@ You can also plot the similar images using the `plot_similar` method. This metho
         ```
 
 ## 2. Ask AI (Natural Language Querying)
+
 This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results.
 Note: This works using LLMs under the hood so the results are probabilistic and might get things wrong sometimes
 

@@ -46,7 +46,7 @@ Pose/keypoint detection is a task that involves detecting specific points in an 
 
 [Pose Examples](pose.md){ .md-button }
 
-## [Obb](obb.md)
+## [OBB](obb.md)
 
 Oriented object detection goes a step further than regular object detection with introducing an extra angle to locate objects more accurate in an image. YOLOv8 can detect rotated objects in an image or video frame with high accuracy and speed.
 

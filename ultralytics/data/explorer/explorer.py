@@ -108,8 +108,7 @@ class Explorer:
         # Create the table schema
         batch = dataset[0]
         vector_size = self.model.embed(batch['im_file'], verbose=False)[0].shape[0]
-        Schema = get_table_schema(vector_size)
-        table = self.connection.create_table(self.table_name, schema=Schema, mode='overwrite')
+        table = self.connection.create_table(self.table_name, schema=get_table_schema(vector_size), mode='overwrite')
         table.add(
             self._yield_batches(dataset,
                                 data_info,
@@ -129,7 +128,7 @@ class Explorer:
             batch['vector'] = model.embed(batch['im_file'], verbose=False)[0].detach().tolist()
             yield [batch]
 
-    def query(self, imgs=None, limit=25):
+    def query(self, imgs, limit=25):
         """
         Query the table for similar images. Accepts a single image or a list of images.
 
@@ -153,10 +152,7 @@ class Explorer:
             raise ValueError('Table is not created. Please create the table first.')
         if isinstance(imgs, str):
             imgs = [imgs]
-        elif isinstance(imgs, list):
-            pass
-        else:
-            raise ValueError(f'img must be a string or a list of strings. Got {type(imgs)}')
+        assert isinstance(imgs, list), f'img must be a string or a list of strings. Got {type(imgs)}'
         embeds = self.model.embed(imgs)
         # Get avg if multiple images are passed (len > 1)
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()
@@ -181,13 +177,14 @@ class Explorer:
             result = exp.sql_query(query)
             ```
         """
+        assert return_type in ['pandas', 'arrow'], f"Return type should be either `pandas` or `arrow`, but got {return_type}"
         import duckdb
 
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
 
         # Note: using filter pushdown would be a better long term solution. Temporarily using duckdb for this.
-        table = self.table.to_arrow()  # noqa
+        # table = self.table.to_arrow()  # noqa
         if not query.startswith('SELECT') and not query.startswith('WHERE'):
             raise ValueError(
                 f'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}'
@@ -247,6 +244,7 @@ class Explorer:
             similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
             ```
         """
+        assert return_type in ['pandas', 'arrow'], f"Return type should be either `pandas` or `arrow`, but got {return_type}"
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
 
@@ -290,7 +288,7 @@ class Explorer:
         Args:
             max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
             top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
-                            vector search. Defaults to 0.01.
+                            vector search. Defaults: None.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:

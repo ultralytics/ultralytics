@@ -78,7 +78,7 @@ class Model(nn.Module):
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
             # Fetch model from HUB
-            self.session = self.get_hub_session(model)
+            self.session = self._get_hub_session(model)
             model = self.session.model_file
 
         # Check if Triton Server model
@@ -101,7 +101,8 @@ class Model(nn.Module):
         return self.predict(source, stream, **kwargs)
 
     @staticmethod
-    def get_hub_session(model):
+    def _get_hub_session(model: str):
+        """Creates a session for Hub Training"""
         from ultralytics.hub.session import HUBTrainingSession
 
         session = HUBTrainingSession(model)
@@ -348,7 +349,7 @@ class Model(nn.Module):
         if SETTINGS['hub'] is True and not self.session:
             # Create a model in HUB
             try:
-                self.session = self.get_hub_session(self.model_name)
+                self.session = self._get_hub_session(self.model_name)
             except PermissionError:
                 # Ignore permission error
                 pass

@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Tuple, List, Union
+from typing import Any, List, Tuple, Union
 
 import cv2
 import numpy as np

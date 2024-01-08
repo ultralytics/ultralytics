@@ -75,25 +75,11 @@ class Model(nn.Module):
         self.task = task  # task type
         model = str(model).strip()  # strip spaces
 
-        def get_hub_session(model):
-            from ultralytics.hub.session import HUBTrainingSession
-
-            session = HUBTrainingSession(model)
-            return session if session.client.authenticated else None
-
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
             # Fetch model from HUB
-            self.session = get_hub_session(model)
+            self.session = self._get_hub_session(model)
             model = self.session.model_file
-
-        elif SETTINGS['hub'] is True:
-            # Create a model in HUB
-            try:
-                self.session = get_hub_session(model)
-            except PermissionError:
-                # Ignore permission error
-                pass
 
         # Check if Triton Server model
         if self.is_triton_model(model):
@@ -108,9 +94,19 @@ class Model(nn.Module):
         else:
             self._load(model, task)
 
+        self.model_name = model
+
     def __call__(self, source=None, stream=False, **kwargs):
         """Calls the predict() method with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
+
+    @staticmethod
+    def _get_hub_session(model: str):
+        """Creates a session for Hub Training."""
+        from ultralytics.hub.session import HUBTrainingSession
+
+        session = HUBTrainingSession(model)
+        return session if session.client.authenticated else None
 
     @staticmethod
     def is_triton_model(model):
@@ -350,6 +346,14 @@ class Model(nn.Module):
             trainer (BaseTrainer, optional): Customized trainer.
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
+        if SETTINGS['hub'] is True and not self.session:
+            # Create a model in HUB
+            try:
+                self.session = self._get_hub_session(self.model_name)
+            except PermissionError:
+                # Ignore permission error
+                pass
+
         self._check_is_pytorch_model()
         if hasattr(self.session, 'model') and self.session.model.id:  # Ultralytics HUB session with loaded model
             kwargs = self.session.train_args  # Overwrite kwargs

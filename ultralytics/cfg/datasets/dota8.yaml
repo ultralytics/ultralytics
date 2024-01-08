@@ -1,16 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# dota8 dataset 8 images from split DOTAv1 dataset by Ultralytics
+# DOTA8 dataset 8 images from split DOTAv1 dataset by Ultralytics
 # Documentation: https://docs.ultralytics.com/datasets/obb/dota8/
 # Example usage: yolo train model=yolov8n-obb.pt data=dota8.yaml
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── dota8  ← downloads here (2GB)
+#     └── dota8  ← downloads here (1MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: ../datasets/dota8  # dataset root dir
-train: images/train  # train images (relative to 'path') 1411 images
-val: images/val  # val images (relative to 'path') 458 images
+train: images/train  # train images (relative to 'path') 4 images
+val: images/val  # val images (relative to 'path') 4 images
 
 # Classes for DOTA 1.0
 names:

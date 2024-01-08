@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Tuple, List, Union
 
 import cv2
 import numpy as np
@@ -26,7 +26,7 @@ class ExplorerDataset(YOLODataset):
         super().__init__(*args, data=data, **kwargs)
 
     # NOTE: Load the image directly without any resize operations.
-    def load_image(self, i: int) -> Union[tuple[np.ndarray, tuple[int, int], tuple[int, int]], tuple[None, None, None]]:
+    def load_image(self, i: int) -> Union[Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]], Tuple[None, None, None]]:
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
@@ -138,7 +138,7 @@ class Explorer:
             yield [batch]
 
     def query(self,
-              imgs: Union[str, np.ndarray, list[str], list[np.ndarray]] = None,
+              imgs: Union[str, np.ndarray, List[str], List[np.ndarray]] = None,
               limit: int = 25) -> Any:  # pyarrow.Table
         """
         Query the table for similar images. Accepts a single image or a list of images.
@@ -234,7 +234,7 @@ class Explorer:
         return Image.fromarray(img)
 
     def get_similar(self,
-                    img: Union[str, np.ndarray, list[str], list[np.ndarray]] = None,
+                    img: Union[str, np.ndarray, List[str], List[np.ndarray]] = None,
                     idx: Union[int, list[int]] = None,
                     limit: int = 25,
                     return_type: str = 'pandas') -> DataFrame:
@@ -266,7 +266,7 @@ class Explorer:
             return similar
 
     def plot_similar(self,
-                     img: Union[str, np.ndarray, list[str], list[np.ndarray]] = None,
+                     img: Union[str, np.ndarray, List[str], List[np.ndarray]] = None,
                      idx: Union[int, list[int]] = None,
                      limit: int = 25,
                      labels: bool = True) -> Image.Image:
@@ -391,8 +391,8 @@ class Explorer:
         # Use Pillow to open the image from the buffer
         return Image.open(buffer)
 
-    def _check_imgs_or_idxs(self, img: Union[str, np.ndarray, list[str], list[np.ndarray], None],
-                            idx: Union[None, int, list[int]]) -> list[np.ndarray]:
+    def _check_imgs_or_idxs(self, img: Union[str, np.ndarray, List[str], List[np.ndarray], None],
+                            idx: Union[None, int, List[int]]) -> List[np.ndarray]:
         if img is None and idx is None:
             raise ValueError('Either img or idx must be provided.')
         if img is not None and idx is not None:

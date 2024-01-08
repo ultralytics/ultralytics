@@ -49,7 +49,10 @@ def query_form():
     with st.form('query_form'):
         col1, col2 = st.columns([0.8, 0.2])
         with col1:
-            st.text_input('Query', "WHERE labels LIKE '%person%' AND labels LIKE '%dog%'", label_visibility='collapsed', key='query')
+            st.text_input('Query',
+                          "WHERE labels LIKE '%person%' AND labels LIKE '%dog%'",
+                          label_visibility='collapsed',
+                          key='query')
         with col2:
             st.form_submit_button('Query', on_click=run_sql_query)
 
@@ -116,7 +119,8 @@ def run_sql_query():
 
 def run_ai_query():
     if not SETTINGS['openai_api_key']:
-        st.session_state['error'] = 'OpenAI API key not found in settings. Please run yolo settings openai_api_key="..."'
+        st.session_state[
+            'error'] = 'OpenAI API key not found in settings. Please run yolo settings openai_api_key="..."'
         return
     st.session_state['error'] = None
     query = st.session_state.get('ai_query')

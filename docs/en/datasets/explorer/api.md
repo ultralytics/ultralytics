@@ -38,11 +38,10 @@ dataframe = explorer.get_similar()(idx=0)
 
 ## 1. Similarity Search
 
-Similarity search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. One the embeddings table is built, you can get run semantic search in any of the following ways:
+Similarity search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. Once the embeddings table is built, you can get run semantic search in any of the following ways:
 
-- On a given index / list of indices in the dataset like - `exp.get_similar(idx=[1,10], limit=10)`
-- On any image/ list of images not in the dataset - `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`
--
+- On a given index or list of indices in the dataset: `exp.get_similar(idx=[1,10], limit=10)`
+- On any image or list of images not in the dataset: `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`
 
 In case of multiple inputs, the aggregate of their embeddings is used.
 

@@ -63,7 +63,7 @@ class Explorer:
         import lancedb
 
         self.connection = lancedb.connect(uri)
-        self.table_name = Path(data).stem.lower() + '_' + Path(model.lower()).stem
+        self.table_name = (Path(data).name.lower() + "_" + Path(model.lower()).name).replace(".","_")
         self.sim_idx_base_name = f'{self.table_name}_sim_idx'.lower(
         )  # Use this name and append thres and top_k to reuse the table
         self.model = YOLO(model)
@@ -169,7 +169,7 @@ class Explorer:
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()
         return self.table.search(embeds).limit(limit).to_arrow()
 
-    def sql_query(self, query: str, return_type: str = 'pandas') -> Union[DataFrame, Any, None]:
+    def sql_query(self, query: str, return_type: str = 'pandas') -> Union[DataFrame, Any, None]: # pandas.dataframe or pyarrow.Table
         """
         Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
 
@@ -234,7 +234,7 @@ class Explorer:
                     img: Union[str, np.ndarray, List[str], List[np.ndarray]] = None,
                     idx: Union[int, List[int]] = None,
                     limit: int = 25,
-                    return_type: str = 'pandas') -> DataFrame:
+                    return_type: str = 'pandas') -> Union[DataFrame, Any]: # pandas.dataframe or pyarrow.Table
         """
         Query the table for similar images. Accepts a single image or a list of images.
 

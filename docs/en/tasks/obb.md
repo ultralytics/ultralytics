@@ -32,14 +32,12 @@ YOLOv8 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 | [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-obb.pt) | 1024                  | 80.7                 | 1278.42                          | 11.83                                 | 44.5                 | 433.8             |
 | [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-obb.pt) | 1024                  | 81.36                | 1759.10                          | 13.23                                 | 69.5                 | 676.7             |
 
-- **mAP<sup>test</sup>** values are for single-model multi-scale on [DOTAv1 test](http://cocodataset.org) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test`
+- **mAP<sup>test</sup>** values are for single-model multi-scale on [DOTAv1 test](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
 
 ## Train
 
-<!-- TODO: probably we should create a sample dataset like coco128.yaml, named dota128.yaml? -->
-
-Train YOLOv8n-obb on the dota128.yaml dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLOv8n-obb on the dota8.yaml dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! Example
 
@@ -54,19 +52,19 @@ Train YOLOv8n-obb on the dota128.yaml dataset for 100 epochs at image size 640. 
         model = YOLO('yolov8n-obb.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='dota128-obb.yaml', epochs=100, imgsz=640)
+        results = model.train(data='dota8-obb.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo obb train data=dota128-obb.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
+        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo obb train data=dota128-obb.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
+        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo obb train data=dota128-obb.yaml model=yolov8n-obb.yaml pretrained=yolov8n-obb.pt epochs=100 imgsz=640
+        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.yaml pretrained=yolov8n-obb.pt epochs=100 imgsz=640
         ```
 
 ### Dataset format
@@ -75,7 +73,7 @@ OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb
 
 ## Val
 
-Validate trained YOLOv8n-obb model accuracy on the dota128-obb dataset. No argument need to passed as the `model`
+Validate trained YOLOv8n-obb model accuracy on the dota8-obb dataset. No argument need to passed as the `model`
 retains it's training `data` and arguments as model attributes.
 
 !!! Example

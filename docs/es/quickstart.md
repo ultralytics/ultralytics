@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore diversos métodos para instalar Ultralytics usando pip, conda, git y Docker. Aprende cómo usar Ultralytics con la interfaz de línea de comandos o dentro de tus proyectos de Python.
-keywords: instalación de Ultralytics, pip install Ultralytics, instalación de Docker Ultralytics, interfaz de línea de comandos de Ultralytics, interfaz de Python de Ultralytics
+description: Explore diversos métodos para instalar Ultralytics usando pip, conda, git y Docker. Aprende cómo usar Ultralytics con la interfaz de línea de commandos o dentro de tus proyectos de Python.
+keywords: instalación de Ultralytics, pip install Ultralytics, instalación de Docker Ultralytics, interfaz de línea de commandos de Ultralytics, interfaz de Python de Ultralytics
 ---
 
 ## Instalar Ultralytics
@@ -20,7 +20,7 @@ Ultralytics ofrece varios métodos de instalación incluyendo pip, conda y Docke
         pip install ultralytics
         ```
 
-        También puedes instalar el paquete `ultralytics` directamente del [repositorio](https://github.com/ultralytics/ultralytics) en GitHub. Esto puede ser útil si quieres la última versión de desarrollo. Asegúrate de tener la herramienta de línea de comandos Git instalada en tu sistema. El comando `@main` instala la rama `main` y puede modificarse a otra rama, es decir, `@my-branch`, o eliminarse por completo para volver por defecto a la rama `main`.
+        También puedes instalar el paquete `ultralytics` directamente del [repositorio](https://github.com/ultralytics/ultralytics) en GitHub. Esto puede set útil si quieres la última versión de desarrollo. Asegúrate de tener la herramienta de línea de commandos Git instalada en tu sistema. El commando `@main` instala la rama `main` y puede modificarse a otra rama, es decir, `@my-branch`, o eliminarse por completo para volver por defecto a la rama `main`.
 
         ```bash
         # Instalar el paquete ultralytics desde GitHub
@@ -41,7 +41,7 @@ Ultralytics ofrece varios métodos de instalación incluyendo pip, conda y Docke
 
         !!! Note "Nota"
 
-            Si estás instalando en un entorno CUDA, la mejor práctica es instalar `ultralytics`, `pytorch` y `pytorch-cuda` en el mismo comando para permitir que el gestor de paquetes de conda resuelva cualquier conflicto, o en su defecto instalar `pytorch-cuda` al final para permitir que sobrescriba el paquete específico de CPU `pytorch` si es necesario.
+            Si estás instalando en un entorno CUDA, la mejor práctica es instalar `ultralytics`, `pytorch` y `pytorch-cuda` en el mismo commando para permitir que el gestor de paquetes de conda resuelva cualquier conflicto, o en su defecto instalar `pytorch-cuda` al final para permitir que sobrescriba el paquete específico de CPU `pytorch` si es necesario.
             ```bash
             # Instalar todos los paquetes juntos usando conda
             conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
@@ -99,19 +99,19 @@ Consulta el archivo [requirements.txt](https://github.com/ultralytics/ultralytic
 
 ## Usar Ultralytics con CLI
 
-La interfaz de línea de comandos (CLI) de Ultralytics permite el uso de comandos simples de una sola línea sin la necesidad de un entorno de Python. La CLI no requiere personalización ni código Python. Puedes simplemente ejecutar todas las tareas desde el terminal con el comando `yolo`. Consulta la [Guía de CLI](/../usage/cli.md) para aprender más sobre el uso de YOLOv8 desde la línea de comandos.
+La interfaz de línea de commandos (CLI) de Ultralytics permite el uso de commandos simples de una sola línea sin la necesidad de un entorno de Python. La CLI no require personalización ni código Python. Puedes simplemente ejecutar todas las tareas desde el terminal con el commando `yolo`. Consulta la [Guía de CLI](/../usage/cli.md) para aprender más sobre el uso de YOLOv8 desde la línea de commandos.
 
 !!! Example "Ejemplo"
 
     === "Sintaxis"
 
-        Los comandos `yolo` de Ultralytics usan la siguiente sintaxis:
+        Los commandos `yolo` de Ultralytics usan la siguiente sintaxis:
         ```bash
         yolo TAREA MODO ARGUMENTOS
 
         Donde   TAREA (opcional) es uno de [detectar, segmentar, clasificar]
                 MODO (requerido) es uno de [train, val, predict, export, track]
-                ARGUMENTOS (opcionales) son cualquier número de pares personalizados 'arg=valor' como 'imgsz=320' que sobrescriben los valores por defecto.
+                ARGUMENTOS (opcionales) son cualquier número de pairs personalizados 'arg=valor' como 'imgsz=320' que sobrescriben los valores por defecto.
         ```
         Ver todos los ARGUMENTOS en la guía completa [Configuration Guide](/../usage/cfg.md) o con `yolo cfg`
 
@@ -138,14 +138,14 @@ La interfaz de línea de comandos (CLI) de Ultralytics permite el uso de comando
 
     === "Exportar"
 
-        Exportar un modelo de clasificación YOLOv8n a formato ONNX con un tamaño de imagen de 224 por 128 (no se requiere TAREA)
+        Exportar un modelo de clasificación YOLOv8n a formato ONNX con un tamaño de imagen de 224 por 128 (no se require TAREA)
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
         ```
 
     === "Especial"
 
-        Ejecutar comandos especiales para ver la versión, ver configuraciones, ejecutar chequeos y más:
+        Ejecutar commandos especiales para ver la versión, ver configuraciones, ejecutar chequeos y más:
         ```bash
         yolo help
         yolo checks
@@ -157,7 +157,7 @@ La interfaz de línea de comandos (CLI) de Ultralytics permite el uso de comando
 
 !!! Warning "Advertencia"
 
-    Los argumentos deben pasarse como pares `arg=valor`, separados por un signo igual `=` y delimitados por espacios ` ` entre pares. No utilices prefijos de argumentos `--` ni comas `,` entre los argumentos.
+    Los argumentos deben pasarse como pairs `arg=valor`, separados por un signo igual `=` y delimitados por espacios ` ` entre pairs. No utilices prefijos de argumentos `--` ni comas `,` entre los argumentos.
 
     - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
@@ -167,7 +167,7 @@ La interfaz de línea de comandos (CLI) de Ultralytics permite el uso de comando
 
 ## Usar Ultralytics con Python
 
-La interfaz de Python de YOLOv8 permite una integración perfecta en tus proyectos de Python, facilitando la carga, ejecución y procesamiento de la salida del modelo. Diseñada con sencillez y facilidad de uso en mente, la interfaz de Python permite a los usuarios implementar rápidamente la detección de objetos, segmentación y clasificación en sus proyectos. Esto hace que la interfaz de Python de YOLOv8 sea una herramienta invaluable para cualquier persona que busque incorporar estas funcionalidades en sus proyectos de Python.
+La interfaz de Python de YOLOv8 permite una integración perfecta en tus proyectos de Python, facilitando la carga, ejecución y procesamiento de la salida del modelo. Diseñada con sencillez y facilidad de uso en mente, la interfaz de Python permite a los usuarios implementar rápidamente la detección de objetos, segmentación y clasificación en sus proyectos. Esto have que la interfaz de Python de YOLOv8 sea una herramienta invaluable para cualquier persona que busque incorporar estas funcionalidades en sus proyectos de Python.
 
 Por ejemplo, los usuarios pueden cargar un modelo, entrenarlo, evaluar su rendimiento en un conjunto de validación e incluso exportarlo al formato ONNX con solo unas pocas líneas de código. Consulta la [Guía de Python](/../usage/python.md) para aprender más sobre el uso de YOLOv8 dentro de tus proyectos de Python.
 

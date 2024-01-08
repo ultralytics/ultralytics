@@ -76,7 +76,7 @@ Contribuir com um novo conjunto de dados envolve várias etapas para garantir qu
 
 ### Etapas para Contribuir com um Novo Conjunto de Dados
 
-1. **Coletar Imagens**: Reúna as imagens que pertencem ao conjunto de dados. Estas podem ser coletadas de várias fontes, como bancos de dados públicos ou sua própria coleção.
+1. **Coletar Imagens**: Reúna as imagens que pertencem ao conjunto de dados. Estas podem set coletadas de várias fontes, como bancos de dados públicos ou sua própria coleção.
 
 2. **Anotar Imagens**: Anote essas imagens com caixas delimitadoras, segmentos ou pontos-chave, dependendo da tarefa.
 

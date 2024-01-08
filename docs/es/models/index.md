@@ -69,7 +69,7 @@ Nota que el siguiente ejemplo es para los modelos YOLOv8 [Detect](../tasks/detec
 
     === "CLI"
 
-        Los comandos CLI están disponibles para ejecutar directamente los modelos:
+        Los commandos CLI están disponibles para ejecutar directamente los modelos:
 
         ```bash
         # Cargar un modelo YOLOv8n preentrenado en COCO y entrenarlo en el conjunto de datos de ejemplo COCO8 durante 100 épocas

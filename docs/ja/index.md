@@ -1,7 +1,8 @@
 ---
 comments: true
 description: Ultralytics YOLOv8に関する完全ガイド。高速で高精度なオブジェクト検出・画像セグメンテーションモデル。インストール、予測、トレーニングチュートリアルなど。
-keywords: Ultralytics, YOLOv8, オブジェクト検出, 画像セグメンテーション, 機械学習, ディープラーニング, コンピュータビジョン, YOLOv8 インストール, YOLOv8 予測, YOLOv8 トレーニング, YOLO 歴史, YOLO ライセンス
+keywords: Ultralytics, YOLOv8, オブジェクト検出, 画像セグメンテーション, 機械学習, ディープラーニング, コンピュータビジョン,
+  YOLOv8 インストール, YOLOv8 予測, YOLOv8 トレーニング, YOLO 歴史, YOLO ライセンス
 ---
 
 <div align="center">
@@ -41,14 +42,16 @@ YOLOv8ドキュメントを探索し、その特徴と能力を理解し、活�
 
 !!! Note "ノート"
 
-    🚧 多言語ドキュメントは現在作成中であり、改善に努めております。お待ちいただき、ありがとうございます！ 🙏
+```
+🚧 多言語ドキュメントは現在作成中であり、改善に努めております。お待ちいただき、ありがとうございます！ 🙏
+```
 
 ## はじめに
 
-- pipで`ultralytics`を**インストール**し、数分で稼働 &nbsp; [:material-clock-fast: はじめに](quickstart.md){ .md-button }
-- YOLOv8で新しい画像やビデオに**予測** &nbsp; [:octicons-image-16: 画像で予測](modes/predict.md){ .md-button }
-- 独自のカスタムデータセットで新しいYOLOv8モデルを**トレーニング** &nbsp; [:fontawesome-solid-brain: モデルをトレーニング](modes/train.md){ .md-button }
-- セグメント、クラス分け、ポーズ、トラッキングなどのYOLOv8タスクを**探求** &nbsp; [:material-magnify-expand: タスクを探求](tasks/index.md){ .md-button }
+- pipで`ultralytics`を**インストール**し、数分で稼働   [:material-clock-fast: はじめに](quickstart.md){ .md-button }
+- YOLOv8で新しい画像やビデオに**予測**   [:octicons-image-16: 画像で予測](modes/predict.md){ .md-button }
+- 独自のカスタムデータセットで新しいYOLOv8モデルを**トレーニング**   [:fontawesome-solid-brain: モデルをトレーニング](modes/train.md){ .md-button }
+- セグメント、クラス分け、ポーズ、トラッキングなどのYOLOv8タスクを**探求**   [:material-magnify-expand: タスクを探求](tasks/index.md){ .md-button }
 
 <p align="center">
   <br>

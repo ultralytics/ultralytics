@@ -8,16 +8,16 @@ keywords: YOLO-NAS, Deci AI, detección de objetos, aprendizaje profundo, búsqu
 
 ## Visión general
 
-Desarrollado por Deci AI, YOLO-NAS es un modelo revolucionario de detección de objetos. Es el producto de una tecnología avanzada de Búsqueda de Arquitectura Neural, meticulosamente diseñada para abordar las limitaciones de los modelos YOLO anteriores. Con mejoras significativas en el soporte de cuantización y el equilibrio entre precisión y latencia, YOLO-NAS representa un gran avance en la detección de objetos.
+Desarrollado por Deci AI, YOLO-NAS es un modelo revolucionario de detección de objetos. Es el producto de una tecnología avanzada de Búsqueda de Arquitectura Neural, meticulosamente diseñada para abordar las limitaciones de los modelos YOLO anteriores. Con mejoras significativas en el soporte de cuantización y el equilibrio entre precisión y latencia, YOLO-NAS representa un gran advance en la detección de objetos.
 
 ![Ejemplo de imagen del modelo](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png)
-**Visión general de YOLO-NAS.** YOLO-NAS utiliza bloques conscientes de cuantización y cuantización selectiva para un rendimiento óptimo. El modelo, cuando se convierte en su versión cuantizada INT8, experimenta una caída mínima de precisión, una mejora significativa en comparación con otros modelos. Estos avances culminan en una arquitectura superior con capacidades de detección de objetos sin precedentes y un rendimiento sobresaliente.
+**Visión general de YOLO-NAS.** YOLO-NAS utilize bloques conscientes de cuantización y cuantización selectiva para un rendimiento óptimo. El modelo, cuando se convierte en su versión cuantizada INT8, experimenta una caída mínima de precisión, una mejora significativa en comparación con otros modelos. Estos advances culminan en una arquitectura superior con capacidades de detección de objetos sin precedentes y un rendimiento sobresaliente.
 
 ### Características clave
 
 - **Bloque básico compatible con cuantización:** YOLO-NAS introduce un nuevo bloque básico que es compatible con la cuantización, abordando una de las limitaciones significativas de los modelos YOLO anteriores.
-- **Entrenamiento sofisticado y cuantización:** YOLO-NAS utiliza esquemas avanzados de entrenamiento y cuantización posterior para mejorar el rendimiento.
-- **Optimización AutoNAC y pre-entrenamiento:** YOLO-NAS utiliza la optimización AutoNAC y se pre-entrena en conjuntos de datos prominentes como COCO, Objects365 y Roboflow 100. Este pre-entrenamiento lo hace extremadamente adecuado para tareas de detección de objetos en entornos de producción.
+- **Entrenamiento sofisticado y cuantización:** YOLO-NAS utilize esquemas avanzados de entrenamiento y cuantización posterior para mejorar el rendimiento.
+- **Optimización AutoNAC y pre-entrenamiento:** YOLO-NAS utilize la optimización AutoNAC y se pre-entrena en conjuntos de datos prominentes como COCO, Objects365 y Roboflow 100. Este pre-entrenamiento lo have extremadamente adecuado para tareas de detección de objetos en entornos de producción.
 
 ## Modelos pre-entrenados
 
@@ -70,7 +70,7 @@ En este ejemplo validamos YOLO-NAS-s en el conjunto de datos COCO8.
 
     === "CLI"
 
-        Los comandos CLI están disponibles para ejecutar directamente los modelos:
+        Los commandos CLI están disponibles para ejecutar directamente los modelos:
 
         ```bash
         # Carga un modelo YOLO-NAS-s pre-entrenado en COCO y valida su rendimiento en el conjunto de datos de ejemplo COCO8

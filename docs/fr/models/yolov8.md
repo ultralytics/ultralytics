@@ -15,7 +15,7 @@ YOLOv8 est la dernière itération de la série YOLO de détecteurs d'objets en 
 ## Principales fonctionnalités
 
 - **Architectures avancées pour le tronc et le cou:** YOLOv8 utilise des architectures de tronc et de cou de pointe, ce qui permet une meilleure extraction des caractéristiques et des performances de détection d'objets améliorées.
-- **Tête Ultralytics sans ancre:** YOLOv8 adopte une tête Ultralytics sans ancre, ce qui contribue à une meilleure précision et à un processus de détection plus efficace par rapport aux approches basées sur les ancres.
+- **Tête Ultralytics sans ancre:** YOLOv8 adopte une tête Ultralytics sans ancre, ce qui contribue à une meilleure précision et à un processus de détection plus efficace par rapport aux approaches basées sur les ancres.
 - **Équilibre optimal entre précision et vitesse optimisé:** En mettant l'accent sur le maintien d'un équilibre optimal entre précision et vitesse, YOLOv8 convient aux tâches de détection d'objets en temps réel dans divers domaines d'application.
 - **Variété de modèles pré-entraînés:** YOLOv8 propose une gamme de modèles pré-entraînés pour répondre à différentes tâches et exigences de performance, ce qui facilite la recherche du modèle adapté à votre cas d'utilisation spécifique.
 
@@ -40,7 +40,7 @@ Ce tableau donne un aperçu des variantes des modèles YOLOv8, mettant en évide
 
     === "Détection (COCO)"
 
-        Consultez la [doc de détection](https://docs.ultralytics.com/tasks/detect/) pour des exemples d'utilisation avec ces modèles entraînés sur [COCO](https://docs.ultralytics.com/datasets/detect/coco/), qui comprennent 80 classes pré-entrainées.
+        Consultez la [doc de détection](https://docs.ultralytics.com/tasks/detect/) pour des examples d'utilisation avec ces modèles entraînés sur [COCO](https://docs.ultralytics.com/datasets/detect/coco/), qui comprennent 80 classes pré-entrainées.
 
         | Modèle                                                                                | taille<br><sup>(pixels) | mAP<sup>val<br>50-95 | Vitesse<br><sup>CPU ONNX<br>(ms) | Vitesse<br><sup>A100 TensorRT<br>(ms) | paramètres<br><sup>(M) | FLOPs<br><sup>(B) |
         | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------- | ------------------------------------ | ------------------ | ----------------- |
@@ -52,7 +52,7 @@ Ce tableau donne un aperçu des variantes des modèles YOLOv8, mettant en évide
 
     === "Détection (Open Images V7)"
 
-        Consultez la [doc de détection](https://docs.ultralytics.com/tasks/detect/) pour des exemples d'utilisation avec ces modèles entraînés sur [Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/), qui comprennent 600 classes pré-entrainées.
+        Consultez la [doc de détection](https://docs.ultralytics.com/tasks/detect/) pour des examples d'utilisation avec ces modèles entraînés sur [Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/), qui comprennent 600 classes pré-entrainées.
 
         | Modèle                                                                                     | taille<br><sup>(pixels) | mAP<sup>val<br>50-95 | Vitesse<br><sup>CPU ONNX<br>(ms) | Vitesse<br><sup>A100 TensorRT<br>(ms) | paramètres<br><sup>(M) | FLOPs<br><sup>(B) |
         | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------- | ------------------------------------ | ------------------ | ----------------- |
@@ -64,7 +64,7 @@ Ce tableau donne un aperçu des variantes des modèles YOLOv8, mettant en évide
 
     === "Segmentation (COCO)"
 
-        Consultez la [doc de segmentation](https://docs.ultralytics.com/tasks/segment/) pour des exemples d'utilisation avec ces modèles entraînés sur [COCO](https://docs.ultralytics.com/datasets/segment/coco/), qui comprennent 80 classes pré-entrainées.
+        Consultez la [doc de segmentation](https://docs.ultralytics.com/tasks/segment/) pour des examples d'utilisation avec ces modèles entraînés sur [COCO](https://docs.ultralytics.com/datasets/segment/coco/), qui comprennent 80 classes pré-entrainées.
 
         | Modèle                                                                                        | taille<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Vitesse<br><sup>CPU ONNX<br>(ms) | Vitesse<br><sup>A100 TensorRT<br>(ms) | paramètres<br><sup>(M) | FLOPs<br><sup>(B) |
         | -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------- | ------------------------------------ | ------------------ | ----------------- |
@@ -76,7 +76,7 @@ Ce tableau donne un aperçu des variantes des modèles YOLOv8, mettant en évide
 
     === "Classification (ImageNet)"
 
-        Consultez la [doc de classification](https://docs.ultralytics.com/tasks/classify/) pour des exemples d'utilisation avec ces modèles entraînés sur [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), qui comprennent 1000 classes pré-entrainées.
+        Consultez la [doc de classification](https://docs.ultralytics.com/tasks/classify/) pour des examples d'utilisation avec ces modèles entraînés sur [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), qui comprennent 1000 classes pré-entrainées.
 
         | Modèle                                                                                        | taille<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Vitesse<br><sup>CPU ONNX<br>(ms) | Vitesse<br><sup>A100 TensorRT<br>(ms) | paramètres<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
         | -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------- | ------------------------------------ | ------------------ | ------------------------ |
@@ -88,7 +88,7 @@ Ce tableau donne un aperçu des variantes des modèles YOLOv8, mettant en évide
 
     === "Pose (COCO)"
 
-        Consultez la [doc d'estimation de pose](https://docs.ultralytics.com/tasks/segment/) pour des exemples d'utilisation avec ces modèles entraînés sur [COCO](https://docs.ultralytics.com/datasets/pose/coco/), qui comprennent 1 classe pré-entrainée, 'person'.
+        Consultez la [doc d'estimation de pose](https://docs.ultralytics.com/tasks/segment/) pour des examples d'utilisation avec ces modèles entraînés sur [COCO](https://docs.ultralytics.com/datasets/pose/coco/), qui comprennent 1 classe pré-entrainée, 'person'.
 
         | Modèle                                                                                                | taille<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Vitesse<br><sup>CPU ONNX<br>(ms) | Vitesse<br><sup>A100 TensorRT<br>(ms) | paramètres<br><sup>(M) | FLOPs<br><sup>(B) |
         | ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------- | ------------------------------------ | ------------------ | ----------------- |
@@ -99,13 +99,13 @@ Ce tableau donne un aperçu des variantes des modèles YOLOv8, mettant en évide
         | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | 69,2                  | 90,2               | 1607,1                          | 3,73                                 | 69,4               | 263,2             |
         | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | 71,6                  | 91,2               | 4088,7                          | 10,04                                | 99,1               | 1066,4            |
 
-## Exemples d'utilisation
+## Examples d'utilisation
 
-Cet exemple fournit des exemples simples d'entraînement et d'inférence avec YOLOv8. Pour une documentation complète sur ces exemples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
+Cet example fournit des examples simples d'entraînement et d'inférence avec YOLOv8. Pour une documentation complète sur ces examples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
 
 Veuillez noter que l'exemple ci-dessous concerne les modèles de détection YOLOv8. Pour d'autres tâches prises en charge, consultez la documentation de [Segmentation](../tasks/segment.md), [Classification](../tasks/classify.md) et [Pose/Points clés](../tasks/pose.md).
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -117,7 +117,7 @@ Veuillez noter que l'exemple ci-dessous concerne les modèles de détection YOLO
         # Charger un modèle YOLOv8n pré-entraîné sur COCO
         model = YOLO('yolov8n.pt')
 
-        # Afficher les informations du modèle (facultatif)
+        # Afficher les information du modèle (facultatif)
         model.info()
 
         # Entraîner le modèle sur l'exemple de jeu de données COCO8 pendant 100 époques

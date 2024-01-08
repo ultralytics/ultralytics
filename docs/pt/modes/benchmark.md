@@ -69,7 +69,7 @@ Argumentos como `model`, `data`, `imgsz`, `half`, `device` e `verbose` proporcio
 | `half`    | `False` | quantização FP16                                                                       |
 | `int8`    | `False` | quantização INT8                                                                       |
 | `device`  | `None`  | dispositivo para execução, ou seja, dispositivo cuda=0 ou device=0,1,2,3 ou device=cpu |
-| `verbose` | `False` | não continuar em erro (bool), ou limiar mínimo para val (float)                        |
+| `verbose` | `False` | não continuar em error (bool), ou limiar mínimo para val (float)                        |
 
 ## Formatos de Exportação
 

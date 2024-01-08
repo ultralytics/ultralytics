@@ -36,13 +36,13 @@ def get_sim_index_schema():
 
 
 def sanitize_batch(batch, dataset_info):
-    batch['cls'] = batch['cls'].flatten().int().tolist()
-    box_cls_pair = sorted(zip(batch['bboxes'].tolist(), batch['cls']), key=lambda x: x[1])
-    batch['bboxes'] = [box for box, _ in box_cls_pair]
-    batch['cls'] = [cls for _, cls in box_cls_pair]
-    batch['labels'] = [dataset_info['names'][i] for i in batch['cls']]
-    batch['masks'] = batch['masks'].tolist() if 'masks' in batch else [[[]]]
-    batch['keypoints'] = batch['keypoints'].tolist() if 'keypoints' in batch else [[[]]]
+    batch["cls"] = batch["cls"].flatten().int().tolist()
+    box_cls_pair = sorted(zip(batch["bboxes"].tolist(), batch["cls"]), key=lambda x: x[1])
+    batch["bboxes"] = [box for box, _ in box_cls_pair]
+    batch["cls"] = [cls for _, cls in box_cls_pair]
+    batch["labels"] = [dataset_info["names"][i] for i in batch["cls"]]
+    batch["masks"] = batch["masks"].tolist() if "masks" in batch else [[[]]]
+    batch["keypoints"] = batch["keypoints"].tolist() if "keypoints" in batch else [[[]]]
 
     return batch
 
@@ -58,11 +58,11 @@ def plot_similar_images(similar_set, plot_labels=True):
     similar_set = similar_set.to_pydict()
     empty_masks = [[[]]]
     empty_boxes = [[]]
-    images = similar_set.get('im_file', [])
-    bboxes = similar_set.get('bboxes', []) if similar_set.get('bboxes') is not empty_boxes else []
-    masks = similar_set.get('masks') if similar_set.get('masks')[0] != empty_masks else []
-    kpts = similar_set.get('keypoints') if similar_set.get('keypoints')[0] != empty_masks else []
-    cls = similar_set.get('cls', [])
+    images = similar_set.get("im_file", [])
+    bboxes = similar_set.get("bboxes", []) if similar_set.get("bboxes") is not empty_boxes else []
+    masks = similar_set.get("masks") if similar_set.get("masks")[0] != empty_masks else []
+    kpts = similar_set.get("keypoints") if similar_set.get("keypoints")[0] != empty_masks else []
+    cls = similar_set.get("cls", [])
 
     plot_size = 640
     imgs, batch_idx, plot_boxes, plot_masks, plot_kpts = [], [], [], [], []
@@ -93,12 +93,6 @@ def plot_similar_images(similar_set, plot_labels=True):
     batch_idx = np.concatenate(batch_idx, axis=0)
     cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 
-    return plot_images(imgs,
-                       batch_idx,
-                       cls,
-                       bboxes=boxes,
-                       masks=masks,
-                       kpts=kpts,
-                       max_subplots=len(images),
-                       save=False,
-                       threaded=False)
+    return plot_images(
+        imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, max_subplots=len(images), save=False, threaded=False
+    )

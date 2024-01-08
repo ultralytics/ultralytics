@@ -10,7 +10,7 @@ keywords: MobileSAM, Ultralytics, SAM, aplicações móveis, Arxiv, GPU, API, co
 
 O artigo do MobileSAM agora está disponível no [arXiv](https://arxiv.org/pdf/2306.14289.pdf).
 
-Uma demonstração do MobileSAM executando em uma CPU pode ser acessada neste [link de demonstração](https://huggingface.co/spaces/dhkim2810/MobileSAM). O desempenho em um Mac i5 CPU leva aproximadamente 3 segundos. Na demonstração do Hugging Face, a interface e CPUs de menor desempenho contribuem para uma resposta mais lenta, mas ela continua funcionando efetivamente.
+Uma demonstração do MobileSAM executando em uma CPU pode set acessada neste [link de demonstração](https://huggingface.co/spaces/dhkim2810/MobileSAM). O desempenho em um Mac i5 CPU leva aproximadamente 3 segundos. Na demonstração do Hugging Face, a interface e CPUs de menor desempenho contribuem para uma resposta mais lenta, mas ela continua funcionando efetivamente.
 
 O MobileSAM é implementado em vários projetos, incluindo [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling) e [Segment Anything in 3D](https://github.com/Jumpat/SegmentAnythingin3D).
 
@@ -18,7 +18,7 @@ O MobileSAM é treinado em uma única GPU com um conjunto de dados de 100 mil im
 
 ## Modelos Disponíveis, Tarefas Suportadas e Modos de Operação
 
-Esta tabela apresenta os modelos disponíveis com seus pesos pré-treinados específicos, as tarefas que eles suportam e sua compatibilidade com diferentes modos de operação, como [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md) e [Export](../modes/export.md), indicados pelos emojis ✅ para os modos suportados e ❌ para os modos não suportados.
+Esta tabela apresenta os modelos disponíveis com seus pesos pré-treinados específicos, as tarefas que else suportam e sua compatibilidade com diferentes modos de operação, como [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md) e [Export](../modes/export.md), indicados pelos emojis ✅ para os modos suportados e ❌ para os modos não suportados.
 
 | Tipo de Modelo | Pesos Pré-treinados | Tarefas Suportadas                               | Inference | Validation | Training | Export |
 |----------------|---------------------|--------------------------------------------------|-----------|------------|----------|--------|

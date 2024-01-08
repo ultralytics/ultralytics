@@ -82,11 +82,11 @@ Entrena YOLOv8n en el conjunto de datos COCO128 durante 100 épocas con un tama�
 
 ### Entrenamiento Multi-GPU
 
-El entrenamiento Multi-GPU permite una utilización más eficiente de los recursos de hardware disponibles, distribuyendo la carga de entrenamiento en varias GPUs. Esta característica está disponible tanto a través de la API de Python como de la interfaz de línea de comandos. Para habilitar el entrenamiento Multi-GPU, especifica los IDs de los dispositivos GPU que deseas usar.
+El entrenamiento Multi-GPU permite una utilización más eficiente de los recursos de hardware disponibles, distribuyendo la carga de entrenamiento en varias GPUs. Esta característica está disponible tanto a través de la API de Python como de la interfaz de línea de commandos. Para habilitar el entrenamiento Multi-GPU, especifica los IDs de los dispositivos GPU que deseas usar.
 
 !!! Example "Ejemplo de Entrenamiento Multi-GPU"
 
-    Para entrenar con 2 GPUs, dispositivos CUDA 0 y 1, usa los siguientes comandos. Amplía a GPUs adicionales según sea necesario.
+    Para entrenar con 2 GPUs, dispositivos CUDA 0 y 1, usa los siguientes commandos. Amplía a GPUs adicionales según sea necesario.
 
     === "Python"
 
@@ -109,9 +109,9 @@ El entrenamiento Multi-GPU permite una utilización más eficiente de los recurs
 
 ### Entrenamiento con Apple M1 y M2 MPS
 
-Con el soporte para los chips Apple M1 y M2 integrados en los modelos Ultralytics YOLO, ahora es posible entrenar tus modelos en dispositivos que utilizan el potente marco de Metal Performance Shaders (MPS). El MPS ofrece una forma de alto rendimiento para ejecutar tareas de cálculo y procesamiento de imágenes en el silicio personalizado de Apple.
+Con el soporte para los chips Apple M1 y M2 integrados en los modelos Ultralytics YOLO, ahora es possible entrenar tus modelos en dispositivos que utilizan el potente marco de Metal Performance Shaders (MPS). El MPS ofrece una forma de alto rendimiento para ejecutar tareas de cálculo y procesamiento de imágenes en el silicio personalizado de Apple.
 
-Para habilitar el entrenamiento en chips Apple M1 y M2, debes especificar 'mps' como tu dispositivo al iniciar el proceso de entrenamiento. A continuación se muestra un ejemplo de cómo podrías hacer esto en Python y a través de la línea de comandos:
+Para habilitar el entrenamiento en chips Apple M1 y M2, debes especificar 'mps' como tu dispositivo al iniciar el proceso de entrenamiento. A continuación se muestra un ejemplo de cómo podrías hacer esto en Python y a través de la línea de commandos:
 
 !!! Example "Ejemplo de Entrenamiento MPS"
 
@@ -192,7 +192,7 @@ Para usar TensorBoard en [Google Colab](https://colab.research.google.com/github
         tensorboard --logdir ultralytics/runs  # reemplazar con el directorio 'runs'
         ```
 
-Para usar TensorBoard localmente, ejecuta el siguiente comando y visualiza los resultados en http://localhost:6006/.
+Para usar TensorBoard localmente, ejecuta el siguiente commando y visualiza los resultados en http://localhost:6006/.
 
 !!! Example "Ejemplo"
 

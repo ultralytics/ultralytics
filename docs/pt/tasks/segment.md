@@ -10,7 +10,7 @@ keywords: yolov8, segmentação de instâncias, Ultralytics, conjunto de dados C
 
 A segmentação de instâncias vai além da detecção de objetos e envolve a identificação de objetos individuais em uma imagem e a sua segmentação do resto da imagem.
 
-A saída de um modelo de segmentação de instâncias é um conjunto de máscaras ou contornos que delineiam cada objeto na imagem, juntamente com rótulos de classe e pontuações de confiança para cada objeto. A segmentação de instâncias é útil quando você precisa saber não apenas onde os objetos estão em uma imagem, mas também qual é a forma exata deles.
+A saída de um modelo de segmentação de instâncias é um conjunto de máscaras ou contornos que delineiam cada objeto na imagem, juntamente com rótulos de classe e pontuações de confiança para cada objeto. A segmentação de instâncias é útil quando você precisa saber não apenas onde os objetos estão em uma imagem, mas também qual é a forma exacta deles.
 
 <p align="center">
   <br>
@@ -80,11 +80,11 @@ Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com
 
 ### Formato do conjunto de dados
 
-O formato do conjunto de dados de segmentação YOLO pode ser encontrado em detalhes no [Guia de Conjuntos de Dados](../../../datasets/segment/index.md). Para converter seu conjunto de dados existente de outros formatos (como COCO etc.) para o formato YOLO, utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
+O formato do conjunto de dados de segmentação YOLO pode set encontrado em detalhes no [Guia de Conjuntos de Dados](../../../datasets/segment/index.md). Para converter seu conjunto de dados existente de outros formatos (como COCO etc.) para o formato YOLO, utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
 
 ## Val
 
-Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-seg. Não é necessário passar nenhum argumento, pois o `modelo` retém seus `dados` de treino e argumentos como atributos do modelo.
+Valid a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-seg. Não é necessário passar nenhum argumento, pois o `modelo` retém seus `dados` de treino e argumentos como atributos do modelo.
 
 !!! Example "Exemplo"
 
@@ -94,7 +94,7 @@ Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-s
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-seg.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-seg.pt')  # carregar um modelo official
         model = YOLO('path/to/best.pt')  # carregar um modelo personalizado
 
         # Validar o modelo
@@ -111,7 +111,7 @@ Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-s
     === "CLI"
 
         ```bash
-        yolo segment val model=yolov8n-seg.pt  # val modelo oficial
+        yolo segment val model=yolov8n-seg.pt  # val modelo official
         yolo segment val model=path/to/best.pt  # val modelo personalizado
         ```
 
@@ -127,7 +127,7 @@ Use um modelo YOLOv8n-seg treinado para realizar previsões em imagens.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-seg.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-seg.pt')  # carregar um modelo official
         model = YOLO('path/to/best.pt')  # carregar um modelo personalizado
 
         # Realizar previsão com o modelo
@@ -136,7 +136,7 @@ Use um modelo YOLOv8n-seg treinado para realizar previsões em imagens.
     === "CLI"
 
         ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # previsão com modelo oficial
+        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # previsão com modelo official
         yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # previsão com modelo personalizado
         ```
 
@@ -154,7 +154,7 @@ Exporte um modelo YOLOv8n-seg para um formato diferente como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-seg.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-seg.pt')  # carregar um modelo official
         model = YOLO('path/to/best.pt')  # carregar um modelo treinado personalizado
 
         # Exportar o modelo
@@ -163,7 +163,7 @@ Exporte um modelo YOLOv8n-seg para um formato diferente como ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-seg.pt format=onnx  # exportar modelo oficial
+        yolo export model=yolov8n-seg.pt format=onnx  # exportar modelo official
         yolo export model=path/to/best.pt format=onnx  # exportar modelo treinado personalizado
         ```
 

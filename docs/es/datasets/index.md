@@ -24,7 +24,7 @@ La detección de objetos con cuadros delimitadores es una técnica de visión po
 - [OpenImagesV7](../../datasets/detect/open-images-v7.md): Un conjunto de datos completo de Google con 1.7 millones de imágenes de entrenamiento y 42 mil imágenes de validación.
 - [SKU-110K](../../datasets/detect/sku-110k.md): Un conjunto de datos que presenta detección de objetos densa en entornos minoristas con más de 11 mil imágenes y 1.7 millones de cuadros delimitadores.
 - [VisDrone](../../datasets/detect/visdrone.md): Un conjunto de datos que contiene datos de detección de objetos y seguimiento de múltiples objetos de imágenes capturadas por drones con más de 10 mil imágenes y secuencias de video.
-- [VOC](../../datasets/detect/voc.md): El conjunto de datos de Clases de Objetos Visuales de Pascal (VOC) para la detección de objetos y segmentación con 20 clases de objetos y más de 11 mil imágenes.
+- [VOC](../../datasets/detect/voc.md): El conjunto de datos de Clases de Objetos Visuals de Pascal (VOC) para la detección de objetos y segmentación con 20 clases de objetos y más de 11 mil imágenes.
 - [xView](../../datasets/detect/xview.md): Un conjunto de datos para la detección de objetos en imágenes aéreas con 60 categorías de objetos y más de un millón de objetos anotados.
 
 ## [Conjuntos de Datos de Segmentación de Instancias](../../datasets/segment/index.md)
@@ -76,7 +76,7 @@ Contribuir con un nuevo conjunto de datos implica varios pasos para garantizar q
 
 ### Pasos para Contribuir con un Nuevo Conjunto de Datos
 
-1. **Recolectar Imágenes**: Reúne las imágenes que pertenecen al conjunto de datos. Estas podrían ser recopiladas de varias fuentes, tales como bases de datos públicas o tu propia colección.
+1. **Recolectar Imágenes**: Reúne las imágenes que pertenecen al conjunto de datos. Estas podrían set recopiladas de varias fuentes, tales como bases de datos públicas o tu propia colección.
 
 2. **Annotar Imágenes**: Anota estas imágenes con cuadros delimitadores, segmentos o puntos clave, dependiendo de la tarea.
 

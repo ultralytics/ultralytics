@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Documentação oficial do YOLOv8 por Ultralytics. Aprenda como treinar, validar, predizer e exportar modelos em vários formatos. Incluindo estatísticas detalhadas de desempenho.
+description: Documentação official do YOLOv8 por Ultralytics. Aprenda como treinar, validar, predizer e exportar modelos em vários formatos. Incluindo estatísticas detalhadas de desempenho.
 keywords: YOLOv8, Ultralytics, detecção de objetos, modelos pré-treinados, treinamento, validação, predição, exportação de modelos, COCO, ImageNet, PyTorch, ONNX, CoreML
 ---
 
@@ -81,11 +81,11 @@ Treine o YOLOv8n no dataset COCO128 por 100 épocas com tamanho de imagem 640. P
 
 ### Formato do Dataset
 
-O formato do dataset de detecção do YOLO pode ser encontrado em detalhes no [Guia de Datasets](../../../datasets/detect/index.md). Para converter seu dataset existente de outros formatos (como COCO, etc.) para o formato YOLO, por favor utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
+O formato do dataset de detecção do YOLO pode set encontrado em detalhes no [Guia de Datasets](../../../datasets/detect/index.md). Para converter seu dataset existente de outros formatos (como COCO, etc.) para o formato YOLO, por favor utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
 
 ## Validar
 
-Valide a precisão do modelo YOLOv8n treinado no dataset COCO128. Não é necessário passar nenhum argumento, pois o `modelo` mantém seus `dados` de treino e argumentos como atributos do modelo.
+Valid a precisão do modelo YOLOv8n treinado no dataset COCO128. Não é necessário passar nenhum argumento, pois o `modelo` mantém seus `dados` de treino e argumentos como atributos do modelo.
 
 !!! Example "Exemplo"
 
@@ -95,7 +95,7 @@ Valide a precisão do modelo YOLOv8n treinado no dataset COCO128. Não é necess
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n.pt')  # carregar um modelo official
         model = YOLO('caminho/para/best.pt')  # carregar um modelo personalizado
 
         # Validar o modelo
@@ -108,7 +108,7 @@ Valide a precisão do modelo YOLOv8n treinado no dataset COCO128. Não é necess
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # validação do modelo oficial
+        yolo detect val model=yolov8n.pt  # validação do modelo official
         yolo detect val model=caminho/para/best.pt  # validação do modelo personalizado
         ```
 
@@ -124,7 +124,7 @@ Use um modelo YOLOv8n treinado para fazer predições em imagens.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n.pt')  # carregar um modelo official
         model = YOLO('caminho/para/best.pt')  # carregar um modelo personalizado
 
         # Predizer com o modelo
@@ -133,7 +133,7 @@ Use um modelo YOLOv8n treinado para fazer predições em imagens.
     === "CLI"
 
         ```bash
-        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predizer com modelo oficial
+        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predizer com modelo official
         yolo detect predict model=caminho/para/best.pt source='https://ultralytics.com/images/bus.jpg'  # predizer com modelo personalizado
         ```
 
@@ -151,7 +151,7 @@ Exporte um modelo YOLOv8n para um formato diferente, como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n.pt')  # carregar um modelo official
         model = YOLO('caminho/para/best.pt')  # carregar um modelo treinado personalizado
 
         # Exportar o modelo
@@ -160,11 +160,11 @@ Exporte um modelo YOLOv8n para um formato diferente, como ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # exportar modelo oficial
+        yolo export model=yolov8n.pt format=onnx  # exportar modelo official
         yolo export model=caminho/para/best.pt format=onnx  # exportar modelo treinado personalizado
         ```
 
-Os formatos de exportação YOLOv8 disponíveis estão na tabela abaixo. Você pode fazer predições ou validar diretamente em modelos exportados, ou seja, `yolo predict model=yolov8n.onnx`. Exemplos de uso são mostrados para o seu modelo após a exportação ser concluída.
+Os formatos de exportação YOLOv8 disponíveis estão na tabela abaixo. Você pode fazer predições ou validar diretamente em modelos exportados, ou seja, `yolo predict model=yolov8n.onnx`. Exemplos de uso são mostrados para o seu modelo após a exportação set concluída.
 
 | Formato                                                            | Argumento `format` | Modelo                    | Metadados | Argumentos                                          |
 |--------------------------------------------------------------------|--------------------|---------------------------|-----------|-----------------------------------------------------|

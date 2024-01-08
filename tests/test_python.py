@@ -77,6 +77,7 @@ def test_predict_img():
     seg_model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
     cls_model = YOLO(WEIGHTS_DIR / 'yolov8n-cls.pt')
     pose_model = YOLO(WEIGHTS_DIR / 'yolov8n-pose.pt')
+    obb_model = YOLO(WEIGHTS_DIR / 'yolov8n-obb.pt')
     im = cv2.imread(str(SOURCE))
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
@@ -104,6 +105,8 @@ def test_predict_img():
     results = cls_model(t, imgsz=32)
     assert len(results) == t.shape[0]
     results = pose_model(t, imgsz=32)
+    assert len(results) == t.shape[0]
+    results = obb_model(t, imgsz=32)
     assert len(results) == t.shape[0]
 
 

@@ -14,7 +14,7 @@ def on_pretrain_routine_end(trainer):
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Start timer for upload rate limit
-        LOGGER.info(f'{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model.id} 🚀')
+        LOGGER.info(f'{PREFIX}View model at {session.model_url} 🚀')
         session.timers = {
             'metrics': time(),
             'ckpt': time(), }  # start timer on session.rate_limit
@@ -65,7 +65,7 @@ def on_train_end(trainer):
         )
         session.alive = False  # stop heartbeats
         LOGGER.info(f'{PREFIX}Done ✅\n'
-                    f'{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model_id} 🚀')
+                    f'{PREFIX}View model at {session.model_url} 🚀')
 
 
 def on_train_start(trainer):

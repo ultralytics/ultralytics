@@ -61,7 +61,7 @@ class OBBValidator(DetectionValidator):
         Returns:
             (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
         """
-        iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -2:-1]], dim=-1))
+        iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def _prepare_batch(self, si, batch):

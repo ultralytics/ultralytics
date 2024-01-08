@@ -856,6 +856,7 @@ class SettingsManager(dict):
             'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),
             'sync': True,
             'api_key': '',
+            'openai_api_key': '',
             'clearml': True,  # integrations
             'comet': True,
             'dvc': True,

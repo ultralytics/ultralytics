@@ -63,7 +63,7 @@ class Explorer:
         import lancedb
 
         self.connection = lancedb.connect(uri)
-        self.table_name = Path(data).name.lower() + '_' + Path(model.lower()).name
+        self.table_name = Path(data).name.lower() + '_' + model.lower()
         self.sim_idx_base_name = f'{self.table_name}_sim_idx'.lower(
         )  # Use this name and append thres and top_k to reuse the table
         self.model = YOLO(model)

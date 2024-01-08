@@ -61,7 +61,7 @@ class OBBValidator(DetectionValidator):
         Returns:
             (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
         """
-        iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -2:-1]], dim=-1))
+        iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def _prepare_batch(self, si, batch):
@@ -105,6 +105,17 @@ class OBBValidator(DetectionValidator):
                 'score': round(predn[i, 4].item(), 5),
                 'rbox': [round(x, 3) for x in r],
                 'poly': [round(x, 3) for x in b]})
+
+    def save_one_txt(self, predn, save_conf, shape, file):
+        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        gn = torch.tensor(shape)[[1, 0, 1, 0]]  # normalization gain whwh
+        for *xyxy, conf, cls, angle in predn.tolist():
+            xywha = torch.tensor([*xyxy, angle]).view(1, 5)
+            xywha[:, :4] /= gn
+            xyxyxyxy = ops.xywhr2xyxyxyxy(xywha).view(-1).tolist()  # normalized xywh
+            line = (cls, *xyxyxyxy, conf) if save_conf else (cls, *xyxyxyxy)  # label format
+            with open(file, 'a') as f:
+                f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
     def eval_json(self, stats):
         """Evaluates YOLO output in JSON format and returns performance statistics."""

@@ -44,7 +44,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            results = model.predict(im0, classes=0)
+            results = model.predict(im0)
             annotator = Annotator(im0, line_width=2)
 
             if results[0].masks is not None:
@@ -91,7 +91,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
             annotator = Annotator(im0, line_width=2)
 
-            results = model.track(im0, persist=True, classes=10)
+            results = model.track(im0, persist=True)
 
             if results[0].boxes.id is not None and results[0].masks is not None:
                 masks = results[0].masks.xy

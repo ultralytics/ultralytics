@@ -323,6 +323,9 @@ class Results(SimpleClass):
         if self.probs is not None:
             LOGGER.warning('WARNING ⚠️ Classify task do not support `save_crop`.')
             return
+        if self.obb is not None:
+            LOGGER.warning('WARNING ⚠️ OBB task do not support `save_crop`.')
+            return
         for d in self.boxes:
             save_one_box(d.xyxy,
                          self.orig_img.copy(),

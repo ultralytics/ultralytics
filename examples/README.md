@@ -18,6 +18,7 @@ This repository features a collection of real-world applications and walkthrough
 | [YOLOv8 Region Counter](https://github.com/RizwanMunawar/ultralytics/blob/main/examples/YOLOv8-Region-Counter/yolov8_region_counter.py)   | Python             | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar)                               |
 | [YOLOv8 Segmentation ONNXRuntime Python](./YOLOv8-Segmentation-ONNXRuntime-Python)                                                        | Python/ONNXRuntime | [jamjamjon](https://github.com/jamjamjon)                                                 |
 | [YOLOv8 LibTorch CPP](./YOLOv8-LibTorch-CPP-Inference)                                                                                    | C++/LibTorch       | [Myyura](https://github.com/Myyura)                                                       |
+| [YOLOv8 OpenCV INT8 TFLite Python](./YOLOv8-OpenCV-int8-tflite-Python)                                                                    | Python             | [Wamiq Raza](https://github.com/wamiqraza)                                                |
 
 ### How to Contribute
 

@@ -169,7 +169,7 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
-          - Obb: tasks/obb.md
+          - OBB: tasks/obb.md
       - Guides:
           - guides/index.md
       - Models:
@@ -203,7 +203,7 @@ nav:
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
-      - Obb: tasks/obb.md
+      - OBB: tasks/obb.md
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md
@@ -260,6 +260,7 @@ nav:
       - Oriented Bounding Boxes (OBB):
           - datasets/obb/index.md
           - DOTAv2: datasets/obb/dota-v2.md
+          - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
   - Guides:

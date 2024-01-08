@@ -66,13 +66,40 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
     --8<-- "ultralytics/cfg/datasets/DOTAv1.yaml"
     ```
 
+## Split DOTA images
+
+To train DOTA dataset, We split original DOTA images with high-resolution into images with 1024x1024 resolution in multi-scale way.
+
+!!! Example "Split images"
+
+    === "Python"
+
+        ```python
+        from ultralytics.data.split_dota import split_trainval, split_test
+
+        # split train and val set, with labels.
+        split_trainval(
+            data_root='path/to/DOTAv1.0/',
+            save_dir='path/to/DOTAv1.0-split/',
+            rates=[0.5, 1.0, 1.5],    # multi-scale
+            gap=500
+        )
+        # split test set, without labels.
+        split_test(
+            data_root='path/to/DOTAv1.0/',
+            save_dir='path/to/DOTAv1.0-split/',
+            rates=[0.5, 1.0, 1.5],    # multi-scale
+            gap=500
+        )
+        ```
+
 ## Usage
 
 To train a model on the DOTA v1 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments.
 
 !!! Warning
 
-    Please note that all images and associated annotations in the DOTAv2 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
+    Please note that all images and associated annotations in the DOTAv1 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
 
 !!! Example "Train Example"
 

@@ -54,7 +54,6 @@ class ExplorerDataset(YOLODataset):
 
 class Explorer:
 
-
     def __init__(self,
                  data: Union[str, Path] = 'coco128.yaml',
                  model: str = 'yolov8n.pt',
@@ -132,7 +131,6 @@ class Explorer:
             batch = sanitize_batch(batch, data_info)
             batch['vector'] = model.embed(batch['im_file'], verbose=False)[0].detach().tolist()
             yield [batch]
-
 
     def query(self,
               imgs: Union[str, np.ndarray, List[str], List[np.ndarray]] = None,

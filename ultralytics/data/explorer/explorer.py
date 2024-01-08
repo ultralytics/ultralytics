@@ -54,7 +54,7 @@ class ExplorerDataset(YOLODataset):
 class Explorer:
 
     def __init__(self, data='coco128.yaml', model='yolov8n.pt', uri='~/ultralytics/explorer') -> None:
-        checks.check_requirements(['lancedb', 'duckdb'])
+        checks.check_requirements(['lancedb>=0.4.3', 'duckdb'])
         import lancedb
 
         self.connection = lancedb.connect(uri)

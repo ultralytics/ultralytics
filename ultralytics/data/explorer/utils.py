@@ -111,7 +111,7 @@ def plot_query_result(similar_set, plot_labels=True):
 
 
 def prompt_sql_query(query):
-    check_requirements('openai')
+    check_requirements('openai>=1.6.1')
     from openai import OpenAI
 
     if not SETTINGS['openai_api_key']:

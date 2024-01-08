@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-08-18 16:35:03
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-10-25 12:02:47
+@LastEditTime: 2024-01-08 16:55:20
 @FilePath: /ultralytics/ultralytics/grpc_server/model.py
 @Description:
 '''
@@ -91,6 +91,8 @@ class Detector(dld_pb2_grpc.AiServiceServicer):
 
         img_array = np.fromstring(img_base64, np.uint8)
         img = cv2.imdecode(img_array, cv2.COLOR_BGR2RGB | cv2.IMREAD_IGNORE_ORIENTATION)
+        if len(img.shape) <3:
+            img=cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
         result = self.infer(img)
         current_time = datetime.datetime.now()
         LOGGER.info("{} --- result:{}".format(current_time.strftime("%Y-%m-%d %H:%M:%S"), result))

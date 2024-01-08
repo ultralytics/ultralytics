@@ -4,10 +4,10 @@ import cv2
 import numpy as np
 from tflite_runtime import interpreter as tflite
 
-from ultralytics.utils import yaml_load
+from ultralytics.utils import ASSETS, yaml_load
 from ultralytics.utils.checks import check_yaml
 
-# Declare as global variable can be updated based trained model image size
+# Declare as global variables, can be updated based trained model image size
 img_width = 640
 img_height = 640
 
@@ -30,6 +30,7 @@ class LetterBox:
 
     def __call__(self, labels=None, image=None):
         """Return updated labels and image with added border."""
+
         if labels is None:
             labels = {}
         img = labels.get('img') if image is None else image
@@ -77,6 +78,7 @@ class LetterBox:
 
     def _update_labels(self, labels, ratio, padw, padh):
         """Update labels."""
+
         labels['instances'].convert_bbox(format='xyxy')
         labels['instances'].denormalize(*labels['img'].shape[:2][::-1])
         labels['instances'].scale(*ratio)
@@ -229,6 +231,7 @@ class Yolov8TFLite:
         Returns:
             output_img: The output image with drawn detections.
         """
+
         # Create an interpreter for the TFLite model
         interpreter = tflite.Interpreter(model_path=self.tflite_model)
         self.model = interpreter
@@ -251,7 +254,6 @@ class Yolov8TFLite:
         print(input_details[0]['index'])
         print(img_data.shape)
         img_data = img_data.transpose((0, 2, 3, 1))
-        print('img_data', img_data)
 
         scale, zero_point = input_details[0]['quantization']
         interpreter.set_tensor(input_details[0]['index'], img_data)
@@ -274,13 +276,10 @@ class Yolov8TFLite:
 if __name__ == '__main__':
     # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model',
-                        type=str,
-                        default='./yolov8n_full_integer_quant.tflite',
-                        help='Input your TFLite model.')
-    parser.add_argument('--img', type=str, default='./bus.jpg', help='Path to input image.')
-    parser.add_argument('--conf-thres', type=float, default=0.25, help='Confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.7, help='NMS IoU threshold')
+    parser.add_argument('--model', type=str, default='yolov8n_full_integer_quant.tflite', help='Input your TFLite model.')
+    parser.add_argument('--img', type=str,  default=str(ASSETS / 'bus.jpg'), help='Path to input image.')
+    parser.add_argument('--conf-thres', type=float, default=0.5, help='Confidence threshold')
+    parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
     args = parser.parse_args()
 
     # Create an instance of the Yolov8TFLite class with the specified arguments
@@ -291,3 +290,6 @@ if __name__ == '__main__':
 
     # Display the output image in a window
     cv2.imshow('Output', output_image)
+
+    # Wait for a key press to exit
+    cv2.waitKey(0)

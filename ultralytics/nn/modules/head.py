@@ -61,10 +61,7 @@ class Detect(nn.Module):
         dbox = self.decode_bboxes(box)
 
         if self.export and self.format in ('tflite', 'edgetpu'):
-            # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
-            # https://github.com/ultralytics/yolov5/blob/0c8de3fca4a702f8ff5c435e67f378d1fce70243/models/tf.py#L307-L309
-            # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
-            # Precompute normalization factor to increase numerical stability
+            # Precompute normalization factor to increase numerical stability 
             # See https://github.com/ultralytics/ultralytics/issues/7371
             img_h = shape[2]
             img_w = shape[3]

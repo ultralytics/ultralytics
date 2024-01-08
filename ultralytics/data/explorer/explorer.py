@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import Any, List, Tuple, Union
+from typing import Any, Tuple, List, Union
 
 import cv2
 import numpy as np
@@ -18,7 +18,6 @@ from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks
 
 from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
-
 
 class ExplorerDataset(YOLODataset):
 
@@ -41,9 +40,6 @@ class ExplorerDataset(YOLODataset):
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
-
-# -> Union[tuple[np.ndarray], tuple[int, int], tuple[int, int] | tuple[None, None, None]]
-
     def build_transforms(self, hyp: IterableSimpleNamespace = None):
         return Format(
             bbox_format='xyxy',
@@ -54,7 +50,6 @@ class ExplorerDataset(YOLODataset):
             mask_ratio=hyp.mask_ratio,
             mask_overlap=hyp.overlap_mask,
         )
-
 
 class Explorer:
 
@@ -126,7 +121,7 @@ class Explorer:
 
         self.table = table
 
-    def _yield_batches(self, dataset: ExplorerDataset, data_info: dict, model: YOLO, exclude_keys: list[str]):
+    def _yield_batches(self, dataset: ExplorerDataset, data_info: dict, model: YOLO, exclude_keys: List[str]):
         # Implement Batching
         for i in tqdm(range(len(dataset))):
             self.progress = float(i + 1) / len(dataset)
@@ -235,7 +230,7 @@ class Explorer:
 
     def get_similar(self,
                     img: Union[str, np.ndarray, List[str], List[np.ndarray]] = None,
-                    idx: Union[int, list[int]] = None,
+                    idx: Union[int, List[int]] = None,
                     limit: int = 25,
                     return_type: str = 'pandas') -> DataFrame:
         """
@@ -267,7 +262,7 @@ class Explorer:
 
     def plot_similar(self,
                      img: Union[str, np.ndarray, List[str], List[np.ndarray]] = None,
-                     idx: Union[int, list[int]] = None,
+                     idx: Union[int, List[int]] = None,
                      limit: int = 25,
                      labels: bool = True) -> Image.Image:
         """

@@ -102,7 +102,7 @@ class Model(nn.Module):
 
     @staticmethod
     def _get_hub_session(model: str):
-        """Creates a session for Hub Training"""
+        """Creates a session for Hub Training."""
         from ultralytics.hub.session import HUBTrainingSession
 
         session = HUBTrainingSession(model)

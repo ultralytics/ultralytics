@@ -8,7 +8,6 @@ import torch
 from matplotlib import pyplot as plt
 from pandas import DataFrame
 from PIL import Image
-from PIL.PngImagePlugin import PngImageFile
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
@@ -346,7 +345,7 @@ class Explorer:
         self.sim_index = sim_table
         return sim_table.to_pandas()
 
-    def plot_similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> PngImageFile:
+    def plot_similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> Image:
         """
         Plot the similarity index of all the images in the table. Here, the index will contain the data points that are
         max_dist or closer to the image in the embedding space at a given index.
@@ -388,7 +387,7 @@ class Explorer:
         buffer.seek(0)
 
         # Use Pillow to open the image from the buffer
-        return Image.open(buffer)
+        return Image.fromarray(np.array(Image.open(buffer)))
 
     def _check_imgs_or_idxs(self, img: Union[str, np.ndarray, List[str], List[np.ndarray], None],
                             idx: Union[None, int, List[int]]) -> List[np.ndarray]:

@@ -256,7 +256,7 @@ class Heatmap:
         elif not self.view_out_counts:
             counts_label = incount_label
         else:
-            counts_label = incount_label + " " + outcount_label
+            counts_label = incount_label + ' ' + outcount_label
 
         if self.count_reg_pts is not None and counts_label is not None:
             self.annotator.count_labels(counts=counts_label,

@@ -177,7 +177,8 @@ class Explorer:
             result = exp.sql_query(query)
             ```
         """
-        assert return_type in ['pandas', 'arrow'], f"Return type should be either `pandas` or `arrow`, but got {return_type}"
+        assert return_type in ['pandas',
+                               'arrow'], f'Return type should be either `pandas` or `arrow`, but got {return_type}'
         import duckdb
 
         if self.table is None:
@@ -244,7 +245,8 @@ class Explorer:
             similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
             ```
         """
-        assert return_type in ['pandas', 'arrow'], f"Return type should be either `pandas` or `arrow`, but got {return_type}"
+        assert return_type in ['pandas',
+                               'arrow'], f'Return type should be either `pandas` or `arrow`, but got {return_type}'
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
 

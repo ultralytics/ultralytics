@@ -1,4 +1,4 @@
-# Explorer GUI 
+# Explorer GUI
 Explorer GUI is like a playground build using (Ultralytics Explorer API)[api.md]. It allows you to run semantic/vector similarity search, SQL queries and even search using natural language using our ask AI feature powered by LLMs.
 
 ### Installation
@@ -24,7 +24,7 @@ On performing similarity search, you should see a similar result:
 <img width="1710" alt="Screenshot 2024-01-08 at 8 46 46 PM" src="https://github.com/AyushExel/assets/assets/15766192/5e4c6445-8e4e-48bb-a15a-9fb6c6994af8">
 </p>
 
-## Ask AI 
+## Ask AI
 This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results. Here's an example output when asked to "Show 10 images with exactly 5 persons" and you'll see a result like this:
 <p>
 <img width="1709" alt="Screenshot 2024-01-08 at 7 19 48 PM (1)" src="https://github.com/AyushExel/assets/assets/15766192/e536b0eb-6bce-43fe-b800-3e79510d2e5b">

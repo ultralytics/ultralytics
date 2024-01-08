@@ -185,7 +185,7 @@ class Explorer:
             raise ValueError('Table is not created. Please create the table first.')
 
         # Note: using filter pushdown would be a better long term solution. Temporarily using duckdb for this.
-        # table = self.table.to_arrow()  # noqa
+        table = self.table.to_arrow()  # noqa NOTE: Don't comment this. This line is used by DuckDB
         if not query.startswith('SELECT') and not query.startswith('WHERE'):
             raise ValueError(
                 f'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}'

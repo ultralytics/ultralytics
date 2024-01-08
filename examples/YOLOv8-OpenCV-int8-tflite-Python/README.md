@@ -1,6 +1,6 @@
 # YOLOv8 - Int8-TFLite Runtime
 
-Welcome to the YOLOv8 Int8 TFLite Runtime for efficient and optimized object detection project. This README provides comprehensive instructions for installing and using our YOLOv8 implementation. 
+Welcome to the YOLOv8 Int8 TFLite Runtime for efficient and optimized object detection project. This README provides comprehensive instructions for installing and using our YOLOv8 implementation.
 
 ## Installation
 

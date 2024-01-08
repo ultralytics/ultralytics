@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Tuple, List, Union
+from typing import Any, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -18,6 +18,7 @@ from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks
 
 from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
+
 
 class ExplorerDataset(YOLODataset):
 
@@ -50,6 +51,7 @@ class ExplorerDataset(YOLODataset):
             mask_ratio=hyp.mask_ratio,
             mask_overlap=hyp.overlap_mask,
         )
+
 
 class Explorer:
 

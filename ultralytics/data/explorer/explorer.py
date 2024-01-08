@@ -186,7 +186,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            query = 'SELECT * FROM table WHERE labels LIKE "%person%"'
+            query = "SELECT * FROM 'table' WHERE labels LIKE '%person%'"
             result = exp.sql_query(query)
             ```
         """
@@ -224,7 +224,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            query = 'SELECT * FROM table WHERE labels LIKE "%person%"'
+            query = "SELECT * FROM 'table' WHERE labels LIKE '%person%'"
             result = exp.plot_sql_query(query)
             ```
         """

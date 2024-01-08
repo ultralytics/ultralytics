@@ -99,7 +99,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
                                        fps,
                                        (w, h))
 
-        line_points = [(256, 409), (694, 532)]  # line for object counting
+        line_points = [(20, 400), (1080, 404)]  # line for object counting
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()

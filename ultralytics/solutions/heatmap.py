@@ -28,6 +28,8 @@ class Heatmap:
         self.imw = None
         self.imh = None
         self.im0 = None
+        self.view_in_counts = True
+        self.view_out_counts = True
 
         # Heatmap colormap and heatmap np array
         self.colormap = None
@@ -67,6 +69,8 @@ class Heatmap:
                  colormap=cv2.COLORMAP_JET,
                  heatmap_alpha=0.5,
                  view_img=False,
+                 view_in_counts=True,
+                 view_out_counts=True,
                  count_reg_pts=None,
                  count_txt_thickness=2,
                  count_txt_color=(0, 0, 0),
@@ -85,6 +89,8 @@ class Heatmap:
             imh (int): The height of the frame.
             heatmap_alpha (float): alpha value for heatmap display
             view_img (bool): Flag indicating frame display
+            view_in_counts (bool): Flag to control whether to display the incounts on video stream.
+            view_out_counts (bool): Flag to control whether to display the outcounts on video stream.
             count_reg_pts (list): Object counting region points
             count_txt_thickness (int): Text thickness for object counting display
             count_txt_color (RGB color): count text color value
@@ -99,6 +105,8 @@ class Heatmap:
         self.imh = imh
         self.heatmap_alpha = heatmap_alpha
         self.view_img = view_img
+        self.view_in_counts = view_in_counts
+        self.view_out_counts = view_out_counts
         self.colormap = colormap
 
         # Region and line selection
@@ -171,9 +179,10 @@ class Heatmap:
         if self.count_reg_pts is not None:
 
             # Draw counting region
-            self.annotator.draw_region(reg_pts=self.count_reg_pts,
-                                       color=self.region_color,
-                                       thickness=self.region_thickness)
+            if self.view_in_counts or self.view_out_counts:
+                self.annotator.draw_region(reg_pts=self.count_reg_pts,
+                                           color=self.region_color,
+                                           thickness=self.region_thickness)
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
 
@@ -235,11 +244,22 @@ class Heatmap:
         heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
         heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.colormap)
 
-        if self.count_reg_pts is not None:
-            incount_label = 'InCount : ' + f'{self.in_counts}'
-            outcount_label = 'OutCount : ' + f'{self.out_counts}'
-            self.annotator.count_labels(in_count=incount_label,
-                                        out_count=outcount_label,
+        incount_label = 'In Count : ' + f'{self.in_counts}'
+        outcount_label = 'OutCount : ' + f'{self.out_counts}'
+
+        # Display counts based on user choice
+        counts_label = None
+        if not self.view_in_counts and not self.view_out_counts:
+            counts_label = None
+        elif not self.view_in_counts:
+            counts_label = outcount_label
+        elif not self.view_out_counts:
+            counts_label = incount_label
+        else:
+            counts_label = incount_label + ' ' + outcount_label
+
+        if self.count_reg_pts is not None and counts_label is not None:
+            self.annotator.count_labels(counts=counts_label,
                                         count_txt_size=self.count_txt_thickness,
                                         txt_color=self.count_txt_color,
                                         color=self.count_color)

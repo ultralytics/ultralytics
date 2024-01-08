@@ -222,7 +222,7 @@ nav:
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
-          - GUI Dashboard Demo: datasets/explorer/dash.md
+          - Explorer Dashboard: datasets/explorer/dashboard.md
           - VOC Exploration Example: datasets/explorer/explorer.ipynb
       - Detection:
           - datasets/detect/index.md

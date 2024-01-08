@@ -116,37 +116,37 @@ This YAML file contains the best-performing hyperparameters found during the tun
 - **Format**: YAML
 - **Usage**: Hyperparameter results
 - **Example**:
-  ```yaml
-    # 558/900 iterations complete ✅ (45536.81s)
-    # Results saved to /usr/src/ultralytics/runs/detect/tune
-    # Best fitness=0.64297 observed at iteration 498
-    # Best fitness metrics are {'metrics/precision(B)': 0.87247, 'metrics/recall(B)': 0.71387, 'metrics/mAP50(B)': 0.79106, 'metrics/mAP50-95(B)': 0.62651, 'val/box_loss': 2.79884, 'val/cls_loss': 2.72386, 'val/dfl_loss': 0.68503, 'fitness': 0.64297}
-    # Best fitness model is /usr/src/ultralytics/runs/detect/train498
-    # Best fitness hyperparameters are printed below.
+    ```yaml
+      # 558/900 iterations complete ✅ (45536.81s)
+      # Results saved to /usr/src/ultralytics/runs/detect/tune
+      # Best fitness=0.64297 observed at iteration 498
+      # Best fitness metrics are {'metrics/precision(B)': 0.87247, 'metrics/recall(B)': 0.71387, 'metrics/mAP50(B)': 0.79106, 'metrics/mAP50-95(B)': 0.62651, 'val/box_loss': 2.79884, 'val/cls_loss': 2.72386, 'val/dfl_loss': 0.68503, 'fitness': 0.64297}
+      # Best fitness model is /usr/src/ultralytics/runs/detect/train498
+      # Best fitness hyperparameters are printed below.
 
-    lr0: 0.00269
-    lrf: 0.00288
-    momentum: 0.73375
-    weight_decay: 0.00015
-    warmup_epochs: 1.22935
-    warmup_momentum: 0.1525
-    box: 18.27875
-    cls: 1.32899
-    dfl: 0.56016
-    hsv_h: 0.01148
-    hsv_s: 0.53554
-    hsv_v: 0.13636
-    degrees: 0.0
-    translate: 0.12431
-    scale: 0.07643
-    shear: 0.0
-    perspective: 0.0
-    flipud: 0.0
-    fliplr: 0.08631
-    mosaic: 0.42551
-    mixup: 0.0
-    copy_paste: 0.0
-  ```
+      lr0: 0.00269
+      lrf: 0.00288
+      momentum: 0.73375
+      weight_decay: 0.00015
+      warmup_epochs: 1.22935
+      warmup_momentum: 0.1525
+      box: 18.27875
+      cls: 1.32899
+      dfl: 0.56016
+      hsv_h: 0.01148
+      hsv_s: 0.53554
+      hsv_v: 0.13636
+      degrees: 0.0
+      translate: 0.12431
+      scale: 0.07643
+      shear: 0.0
+      perspective: 0.0
+      flipud: 0.0
+      fliplr: 0.08631
+      mosaic: 0.42551
+      mixup: 0.0
+      copy_paste: 0.0
+    ```
 
 #### best_fitness.png
 
@@ -166,12 +166,12 @@ A CSV file containing detailed results of each iteration during the tuning. Each
 - **Format**: CSV
 - **Usage**: Per-iteration results tracking.
 - **Example**:
-  ```csv
-    fitness,lr0,lrf,momentum,weight_decay,warmup_epochs,warmup_momentum,box,cls,dfl,hsv_h,hsv_s,hsv_v,degrees,translate,scale,shear,perspective,flipud,fliplr,mosaic,mixup,copy_paste
-    0.05021,0.01,0.01,0.937,0.0005,3.0,0.8,7.5,0.5,1.5,0.015,0.7,0.4,0.0,0.1,0.5,0.0,0.0,0.0,0.5,1.0,0.0,0.0
-    0.07217,0.01003,0.00967,0.93897,0.00049,2.79757,0.81075,7.5,0.50746,1.44826,0.01503,0.72948,0.40658,0.0,0.0987,0.4922,0.0,0.0,0.0,0.49729,1.0,0.0,0.0
-    0.06584,0.01003,0.00855,0.91009,0.00073,3.42176,0.95,8.64301,0.54594,1.72261,0.01503,0.59179,0.40658,0.0,0.0987,0.46955,0.0,0.0,0.0,0.49729,0.80187,0.0,0.0
-  ```
+    ```csv
+      fitness,lr0,lrf,momentum,weight_decay,warmup_epochs,warmup_momentum,box,cls,dfl,hsv_h,hsv_s,hsv_v,degrees,translate,scale,shear,perspective,flipud,fliplr,mosaic,mixup,copy_paste
+      0.05021,0.01,0.01,0.937,0.0005,3.0,0.8,7.5,0.5,1.5,0.015,0.7,0.4,0.0,0.1,0.5,0.0,0.0,0.0,0.5,1.0,0.0,0.0
+      0.07217,0.01003,0.00967,0.93897,0.00049,2.79757,0.81075,7.5,0.50746,1.44826,0.01503,0.72948,0.40658,0.0,0.0987,0.4922,0.0,0.0,0.0,0.49729,1.0,0.0,0.0
+      0.06584,0.01003,0.00855,0.91009,0.00073,3.42176,0.95,8.64301,0.54594,1.72261,0.01503,0.59179,0.40658,0.0,0.0987,0.46955,0.0,0.0,0.0,0.49729,0.80187,0.0,0.0
+    ```
 
 #### tune_scatter_plots.png
 

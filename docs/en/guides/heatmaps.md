@@ -50,18 +50,19 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       fps,
+                                       (w, h))
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
                              view_img=True,
                              shape="circle")
 
@@ -90,20 +91,21 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       fps,
+                                       (w, h))
 
         line_points = [(256, 409), (694, 532)]  # line for object counting
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
                              view_img=True,
                              shape="circle",
                              count_reg_pts=line_points)
@@ -132,21 +134,22 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       fps,
+                                       (w, h))
 
         # Define region points
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
                              view_img=True,
                              shape="circle",
                              count_reg_pts=region_points)
@@ -178,7 +181,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
                                      imw=im0.shape[0],  # should same as im0 width
                                      imh=im0.shape[1],  # should same as im0 height
                                      view_img=True,
@@ -199,20 +202,21 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       fps,
+                                       (w, h))
 
         classes_for_heatmap = [0, 2]  # classes for heatmap
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
                              view_img=True,
                              shape="circle")
 

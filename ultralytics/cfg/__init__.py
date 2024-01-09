@@ -38,7 +38,7 @@ TASK2DATA = {
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8-obb.yaml",
-}  # not implemented yet
+}
 TASK2MODEL = {
     "detect": "yolov8n.pt",
     "segment": "yolov8n-seg.pt",

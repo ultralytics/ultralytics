@@ -309,6 +309,7 @@ class Mosaic(BaseMixTransform):
         for labels in mosaic_labels:
             cls.append(labels["cls"])
             instances.append(labels["instances"])
+        # Final labels
         final_labels = {
             "im_file": mosaic_labels[0]["im_file"],
             "ori_shape": mosaic_labels[0]["ori_shape"],
@@ -316,7 +317,7 @@ class Mosaic(BaseMixTransform):
             "cls": np.concatenate(cls, 0),
             "instances": Instances.concatenate(instances, axis=0),
             "mosaic_border": self.border,
-        }  # final_labels
+        }
         final_labels["instances"].clip(imgsz, imgsz)
         good = final_labels["instances"].remove_zero_area_boxes()
         final_labels["cls"] = final_labels["cls"][good]
@@ -835,6 +836,7 @@ class Albumentations:
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
 
+            # Transforms
             T = [
                 A.Blur(p=0.01),
                 A.MedianBlur(p=0.01),
@@ -843,7 +845,7 @@ class Albumentations:
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0),
-            ]  # transforms
+            ]
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))

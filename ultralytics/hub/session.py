@@ -190,7 +190,7 @@ class HUBTrainingSession:
                 headers=self.auth_header,
                 retry=0,
                 code=5,
-                thread=False,
-            )  # already in a thread
+                thread=False,  # already in a thread
+            )
             self.agent_id = r.json().get("data", {}).get("agentId", None)
             sleep(self.rate_limits["heartbeat"])

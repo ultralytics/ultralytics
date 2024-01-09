@@ -79,8 +79,8 @@ def run_ray_tune(
         "fliplr": tune.uniform(0.0, 1.0),  # image flip left-right (probability)
         "mosaic": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
-        "copy_paste": tune.uniform(0.0, 1.0),
-    }  # segment copy-paste (probability)
+        "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
+    }
 
     # Put the model in ray store
     task = model.task

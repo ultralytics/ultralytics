@@ -288,6 +288,8 @@ nav:
           - VisionEye Mapping: guides/vision-eye.md
           - Speed Estimation: guides/speed-estimation.md
           - Distance Calculation: guides/distance-calculation.md
+          - Object Blurring: guides/object-blurring.md
+          - Object Cropping: guides/object-cropping.md
   - Integrations:
       - integrations/index.md
       - Comet ML: integrations/comet.md

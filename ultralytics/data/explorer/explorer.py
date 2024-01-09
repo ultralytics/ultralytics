@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 from io import BytesIO
 from pathlib import Path
 from typing import Any, List, Tuple, Union
@@ -441,7 +443,7 @@ class Explorer:
         Visualize the results of a query. TODO.
 
         Args:
-            result (arrow table): Arrow table containing the results of a query.
+            (pyarrow.Table): Table containing the results of a query.
         """
         pass
 

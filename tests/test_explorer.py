@@ -1,7 +1,7 @@
+import PIL
+
 from ultralytics import Explorer
 from ultralytics.utils import ASSETS
-
-import PIL
 
 
 def test_similarity():

@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import time
 from threading import Thread
 
@@ -7,8 +9,7 @@ from ultralytics import Explorer
 from ultralytics.utils import ROOT, SETTINGS
 from ultralytics.utils.checks import check_requirements
 
-check_requirements('streamlit>=1.29.0')
-check_requirements('streamlit-select>=0.2')
+check_requirements(('streamlit>=1.29.0', 'streamlit-select>=0.2'))
 import streamlit as st
 from streamlit_select import image_select
 

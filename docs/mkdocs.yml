@@ -231,7 +231,7 @@ nav:
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:
       - datasets/index.md
-      - Explorer:
+      - NEW 🚀 Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
           - Explorer Dashboard: datasets/explorer/dashboard.md
@@ -275,7 +275,7 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - Explorer:
+  - NEW 🚀 Explorer:
       - datasets/explorer/index.md
       - Explorer API: datasets/explorer/api.md
       - Explorer Dashboard Demo: datasets/explorer/dashboard.md

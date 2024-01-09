@@ -443,7 +443,7 @@ class Explorer:
         Visualize the results of a query. TODO.
 
         Args:
-            (pyarrow.Table): Table containing the results of a query.
+            result (pyarrow.Table): Table containing the results of a query.
         """
         pass
 

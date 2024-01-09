@@ -20,7 +20,7 @@ Dans l'univers de l'apprentissage automatique et de la vision par ordinateur, le
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Regardez :</strong> Comment Extraire les Sorties du Modèle Ultralytics YOLOv8 pour des Projets Personnalisés.
+  <strong>Regardez :</strong> Comment Extraire les Sorties du Modèle Ultralytics YOLOv8 pour des Projects Personnalisés.
 </p>
 
 ## Applications Réelles
@@ -64,10 +64,10 @@ Les modèles YOLO d'Ultralytics renvoient soit une liste d'objets `Results` Pyth
 
         # Traiter la liste des résultats
         for result in results:
-            boxes = result.boxes  # Objet Boxes pour les sorties bbox
-            masks = result.masks  # Objet Masks pour les masques de segmentation
-            keypoints = result.keypoints  # Objet Keypoints pour les sorties de pose
-            probs = result.probs  # Objet Probs pour les sorties de classification
+            boxes = result.boxes  # Object Boxes pour les sorties bbox
+            masks = result.masks  # Object Masks pour les masques de segmentation
+            keypoints = result.keypoints  # Object Keypoints pour les sorties de pose
+            probs = result.probs  # Object Probs pour les sorties de classification
         ```
 
     === "Renvoie un générateur avec `stream=True`"
@@ -82,10 +82,10 @@ Les modèles YOLO d'Ultralytics renvoient soit une liste d'objets `Results` Pyth
 
         # Traiter le générateur de résultats
         for result in results:
-            boxes = result.boxes  # Objet Boxes pour les sorties bbox
-            masks = result.masks  # Objet Masks pour les masques de segmentation
-            keypoints = result.keypoints  # Objet Keypoints pour les sorties de pose
-            probs = result.probs  # Objet Probs pour les sorties de classification
+            boxes = result.boxes  # Object Boxes pour les sorties bbox
+            masks = result.masks  # Object Masks pour les masques de segmentation
+            keypoints = result.keypoints  # Object Keypoints pour les sorties de pose
+            probs = result.probs  # Object Probs pour les sorties de classification
         ```
 
 ## Sources d'Inférence
@@ -110,10 +110,10 @@ YOLOv8 peut traiter différents types de sources d'entrée pour l'inférence, co
 | répertoire ✅    | `'chemin/'`                                | `str` ou `Path` | Chemin vers un répertoire contenant des images ou des vidéos.                                                                |
 | motif global ✅  | `'chemin/*.jpg'`                           | `str`           | Motif glob pour faire correspondre plusieurs fichiers. Utilisez le caractère `*` comme joker.                                |
 | YouTube ✅       | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL vers une vidéo YouTube.                                                                                                  |
-| flux ✅          | `'rtsp://exemple.com/media.mp4'`           | `str`           | URL pour des protocoles de streaming comme RTSP, RTMP, TCP, ou une adresse IP.                                               |
+| flux ✅          | `'rtsp://example.com/media.mp4'`           | `str`           | URL pour des protocoles de streaming comme RTSP, RTMP, TCP, ou une address IP.                                               |
 | multi-flux ✅    | `'liste.streams'`                          | `str` ou `Path` | Fichier texte `*.streams` avec une URL de flux par ligne, c'est-à-dire que 8 flux s'exécuteront avec une taille de lot de 8. |
 
-Ci-dessous des exemples de code pour utiliser chaque type de source :
+Ci-dessous des examples de code pour utiliser chaque type de source :
 
 !!! Example "Sources de prédiction"
 

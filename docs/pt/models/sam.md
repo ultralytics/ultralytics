@@ -12,7 +12,7 @@ Bem-vindo à fronteira da segmentação de imagem com o Modelo de Segmentação 
 
 O Modelo de Segmentação de Qualquer Coisa, ou SAM, é um modelo de segmentação de imagem de ponta que permite a segmentação baseada em prompts, proporcionando uma versatilidade incomparável em tarefas de análise de imagem. O SAM é o cerne da iniciativa Segment Anything, um projeto inovador que introduz um modelo, tarefa e conjunto de dados novos para a segmentação de imagem.
 
-O design avançado do SAM permite que ele se adapte a novas distribuições de imagem e tarefas sem conhecimento prévio, um recurso conhecido como transferência zero. Treinado no abrangente [conjunto de dados SA-1B](https://ai.facebook.com/datasets/segment-anything/), que contém mais de 1 bilhão de máscaras espalhadas por 11 milhões de imagens cuidadosamente selecionadas, o SAM tem demonstrado um impressionante desempenho de transferência zero, superando os resultados totalmente supervisionados anteriores em muitos casos.
+O design avançado do SAM permite que ele se adapter a novas distribuições de imagem e tarefas sem conhecimento prévio, um recurso conhecido como transferência zero. Treinado no abrangente [conjunto de dados SA-1B](https://ai.facebook.com/datasets/segment-anything/), que contém mais de 1 bilhão de máscaras espalhadas por 11 milhões de imagens cuidadosamente selecionadas, o SAM tem demonstrado um impressionante desempenho de transferência zero, superando os resultados totalmente supervisionados anteriores em muitos casos.
 
 ![Exemplo de imagem do conjunto de dados](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg)
 Imagens de exemplo com máscaras sobrepostas do nosso conjunto de dados recém-introduzido, SA-1B. O SA-1B contém 11 milhões de imagens diversas, de alta resolução, licenciadas e com proteção de privacidade, e 1,1 bilhão de máscaras de segmentação de alta qualidade. Essas máscaras foram anotadas totalmente automaticamente pelo SAM, e, como verificado por classificações humanas e inúmeros experimentos, são de alta qualidade e diversidade. As imagens são agrupadas pelo número de máscaras por imagem para visualização (em média, há ∼100 máscaras por imagem).
@@ -20,15 +20,15 @@ Imagens de exemplo com máscaras sobrepostas do nosso conjunto de dados recém-i
 ## Recursos Principais do Modelo de Segmentação de Qualquer Coisa (SAM)
 
 - **Tarefa de Segmentação Baseada em Prompts:** O SAM foi projetado com uma tarefa de segmentação baseada em prompts em mente, permitindo que ele gere máscaras de segmentação válidas a partir de qualquer prompt fornecido, como dicas espaciais ou textuais que identifiquem um objeto.
-- **Arquitetura Avançada:** O Modelo de Segmentação de Qualquer Coisa utiliza um poderoso codificador de imagens, um codificador de prompts e um decodificador de máscaras leve. Essa arquitetura única possibilita o uso flexível de prompts, cálculo de máscaras em tempo real e consciência de ambiguidade em tarefas de segmentação.
-- **O Conjunto de Dados SA-1B:** Introduzido pelo projeto Segment Anything, o conjunto de dados SA-1B apresenta mais de 1 bilhão de máscaras em 11 milhões de imagens. Como o maior conjunto de dados de segmentação até o momento, ele fornece ao SAM uma fonte diversificada e em grande escala de dados de treinamento.
+- **Arquitetura Avançada:** O Modelo de Segmentação de Qualquer Coisa utilize um poderoso codificador de imagens, um codificador de prompts e um decodificador de máscaras leve. Essa arquitetura única possibilita o uso flexível de prompts, cálculo de máscaras em tempo real e consciência de ambiguidade em tarefas de segmentação.
+- **O Conjunto de Dados SA-1B:** Introduzido pelo projeto Segment Anything, o conjunto de dados SA-1B apresenta mais de 1 bilhão de máscaras em 11 milhões de imagens. Como o maior conjunto de dados de segmentação até o memento, ele fornece ao SAM uma fonte diversificada e em grande escala de dados de treinamento.
 - **Desempenho de Transferência Zero:** O SAM apresenta um desempenho de transferência zero excepcional em diversas tarefas de segmentação, tornando-se uma ferramenta pronta para uso em aplicações diversas com necessidade mínima de engenharia de prompts.
 
 Para obter uma visão mais aprofundada do Modelo de Segmentação de Qualquer Coisa e do conjunto de dados SA-1B, visite o [site do Segment Anything](https://segment-anything.com) e consulte o artigo de pesquisa [Segment Anything](https://arxiv.org/abs/2304.02643).
 
 ## Modelos Disponíveis, Tarefas Suportadas e Modos de Operação
 
-Esta tabela apresenta os modelos disponíveis com seus pesos pré-treinados específicos, as tarefas suportadas por eles e sua compatibilidade com diferentes modos de operação, como [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md), indicados pelos emojis ✅ para modos suportados e ❌ para modos não suportados.
+Esta tabela apresenta os modelos disponíveis com seus pesos pré-treinados específicos, as tarefas suportadas por else e sua compatibilidade com diferentes modos de operação, como [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md), indicados pelos emojis ✅ para modos suportados e ❌ para modos não suportados.
 
 | Tipo de Modelo | Pesos Pré-Treinados | Tarefas Suportadas                               | Inferência | Validação | Treinamento | Exportação |
 |----------------|---------------------|--------------------------------------------------|------------|-----------|-------------|------------|
@@ -37,7 +37,7 @@ Esta tabela apresenta os modelos disponíveis com seus pesos pré-treinados espe
 
 ## Como Usar o SAM: Versatilidade e Poder na Segmentação de Imagens
 
-O Modelo de Segmentação de Qualquer Coisa pode ser utilizado para uma variedade de tarefas secundárias que vão além dos dados de treinamento. Isso inclui detecção de bordas, geração de propostas de objeto, segmentação de instâncias e predição preliminar de texto para máscara. Com a engenharia de prompts, o SAM pode se adaptar rapidamente a novas tarefas e distribuições de dados de maneira inovadora, estabelecendo-se como uma ferramenta versátil e poderosa para todas as suas necessidades de segmentação de imagem.
+O Modelo de Segmentação de Qualquer Coisa pode set utilizado para uma variedade de tarefas secundárias que vão além dos dados de treinamento. Isso inclui detecção de bordas, geração de propostas de objeto, segmentação de instâncias e predição preliminar de texto para máscara. Com a engenharia de prompts, o SAM pode se adaptar rapidamente a novas tarefas e distribuições de dados de maneira inovadora, estabelecendo-se como uma ferramenta versátil e poderosa para todas as suas necessidades de segmentação de imagem.
 
 ### Exemplo de predição do SAM
 
@@ -200,7 +200,7 @@ Para fazer a autoanotação do seu conjunto de dados com o framework Ultralytics
 
 A função `auto_annotate` recebe o caminho para suas imagens, com argumentos opcionais para especificar os modelos de detecção pré-treinados e de segmentação SAM, o dispositivo onde executar os modelos e o diretório de saída para salvar os resultados anotados.
 
-A autoanotação com modelos pré-treinados pode reduzir drasticamente o tempo e o esforço necessários para criar conjuntos de dados de segmentação de alta qualidade. Esse recurso é especialmente benéfico para pesquisadores e desenvolvedores que lidam com grandes coleções de imagens, pois permite que eles se concentrem no desenvolvimento e na avaliação do modelo, em vez de na anotação manual.
+A autoanotação com modelos pré-treinados pode reduzir drasticamente o tempo e o esforço necessários para criar conjuntos de dados de segmentação de alta qualidade. Esse recurso é especialmente benéfico para pesquisadores e desenvolvedores que lidam com grandes coleções de imagens, pois permite que else se concentrem no desenvolvimento e na avaliação do modelo, em vez de na anotação manual.
 
 ## Citações e Reconhecimentos
 

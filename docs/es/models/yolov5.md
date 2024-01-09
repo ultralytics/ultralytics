@@ -8,7 +8,7 @@ keywords: YOLOv5u, detección de objetos, modelos pre-entrenados, Ultralytics, I
 
 ## Resumen
 
-YOLOv5u representa un avance en las metodologías de detección de objetos. Originado a partir de la arquitectura fundamental del modelo [YOLOv5](https://github.com/ultralytics/yolov5) desarrollado por Ultralytics, YOLOv5u integra la división de la cabeza Ultralytics sin anclas y sin atención al objeto, una característica introducida previamente en los modelos [YOLOv8](yolov8.md). Esta adaptación perfecciona la arquitectura del modelo, resultando en un mejor equilibrio entre precisión y velocidad en tareas de detección de objetos. Con base en los resultados empíricos y sus características derivadas, YOLOv5u proporciona una alternativa eficiente para aquellos que buscan soluciones robustas tanto en investigación como en aplicaciones prácticas.
+YOLOv5u representa un advance en las metodologías de detección de objetos. Originado a partir de la arquitectura fundamental del modelo [YOLOv5](https://github.com/ultralytics/yolov5) desarrollado por Ultralytics, YOLOv5u integra la división de la cabeza Ultralytics sin anclas y sin atención al objeto, una característica introducida previamente en los modelos [YOLOv8](yolov8.md). Esta adaptación perfecciona la arquitectura del modelo, resultando en un mejor equilibrio entre precisión y velocidad en tareas de detección de objetos. Con base en los resultados empíricos y sus características derivadas, YOLOv5u proporciona una alternativa eficiente para aquellos que buscan soluciones robustas tanto en investigación como en aplicaciones prácticas.
 
 ![Ultralytics YOLOv5](https://raw.githubusercontent.com/ultralytics/assets/main/yolov5/v70/splash.png)
 
@@ -16,7 +16,7 @@ YOLOv5u representa un avance en las metodologías de detección de objetos. Orig
 
 - **Cabeza dividida Ultralytics sin anclas:** Los modelos tradicionales de detección de objetos dependen de cajas de anclaje predefinidas para predecir la ubicación de los objetos. Sin embargo, YOLOv5u moderniza este enfoque. Al adoptar una cabeza Ultralytics dividida sin anclas, se garantiza un mecanismo de detección más flexible y adaptable, lo que en consecuencia mejora el rendimiento en diversos escenarios.
 
-- **Equilibrio óptimo entre precisión y velocidad:** La velocidad y la precisión suelen ser contrapuestas. Pero YOLOv5u desafía este equilibrio. Ofrece un balance calibrado, garantizando detecciones en tiempo real sin comprometer la precisión. Esta característica es especialmente valiosa para aplicaciones que requieren respuestas rápidas, como vehículos autónomos, robótica y análisis de video en tiempo real.
+- **Equilibrio óptimo entre precisión y velocidad:** La velocidad y la precisión suelen set contrapuestas. Pero YOLOv5u desafía este equilibrio. Ofrece un balance calibrado, garantizando detecciones en tiempo real sin comprometer la precisión. Esta característica es especialmente valiosa para aplicaciones que requieren respuestas rápidas, como vehículos autónomos, robótica y análisis de video en tiempo real.
 
 - **Variedad de modelos pre-entrenados:** Entendiendo que diferentes tareas requieren diferentes herramientas, YOLOv5u proporciona una gran cantidad de modelos pre-entrenados. Ya sea que te enfoques en Inferencia, Validación o Entrenamiento, hay un modelo a la medida esperándote. Esta variedad asegura que no estés utilizando una solución genérica, sino un modelo específicamente ajustado para tu desafío único.
 
@@ -80,7 +80,7 @@ Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia de YOL
 
     === "CLI"
 
-        Hay comandos de CLI disponibles para ejecutar directamente los modelos:
+        Hay commandos de CLI disponibles para ejecutar directamente los modelos:
 
         ```bash
         # Cargar un modelo YOLOv5n pre-entrenado en COCO y entrenarlo con el conjunto de datos de ejemplo COCO8 durante 100 épocas

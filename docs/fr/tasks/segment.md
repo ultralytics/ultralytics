@@ -6,11 +6,11 @@ keywords: yolov8, segmentation d'instance, Ultralytics, jeu de données COCO, se
 
 # Segmentation d'Instance
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418644-7df320b8-098d-47f1-85c5-26604d761286.png" alt="Exemples de segmentation d'instance">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418644-7df320b8-098d-47f1-85c5-26604d761286.png" alt="Examples de segmentation d'instance">
 
-La segmentation d'instance va plus loin que la détection d'objet et implique d'identifier des objets individuels dans une image et de les segmenter du reste de l'image.
+La segmentation d'instance va plus loin que la détection d'objet et implique d'identifier des objects individuals dans une image et de les segmenter du reste de l'image.
 
-Le résultat d'un modèle de segmentation d'instance est un ensemble de masques ou de contours qui délimitent chaque objet dans l'image, accompagnés d'étiquettes de classe et de scores de confiance pour chaque objet. La segmentation d'instance est utile lorsque vous avez besoin de savoir non seulement où se trouvent les objets dans une image, mais aussi quelle est leur forme exacte.
+Le résultat d'un modèle de segmentation d'instance est un ensemble de masques ou de contours qui délimitent chaque object dans l'image, accompagnés d'étiquettes de classe et de scores de confiance pour chaque object. La segmentation d'instance est utile lorsque vous avez besoin de savoir non seulement où se trouvent les objects dans une image, mais aussi quelle est leur forme exacte.
 
 <p align="center">
   <br>
@@ -25,7 +25,7 @@ Le résultat d'un modèle de segmentation d'instance est un ensemble de masques 
 
 !!! astuce "Astuce"
 
-    Les modèles YOLOv8 Segment utilisent le suffixe `-seg`, par exemple `yolov8n-seg.pt` et sont pré-entraînés sur [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+    Les modèles YOLOv8 Segment utilisent le suffixe `-seg`, par example `yolov8n-seg.pt` et sont pré-entraînés sur [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
 ## [Modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -50,7 +50,7 @@ Les [modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/
 
 Entraînez YOLOv8n-seg sur le jeu de données COCO128-seg pendant 100 époques à la taille d'image 640. Pour une liste complète des arguments disponibles, consultez la page [Configuration](/../usage/cfg.md).
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -80,14 +80,14 @@ Entraînez YOLOv8n-seg sur le jeu de données COCO128-seg pendant 100 époques �
 
 ### Format des données
 
-Le format des données de segmentation YOLO peut être trouvé en détail dans le [Guide du Jeu de Données](../../../datasets/segment/index.md). Pour convertir votre jeu de données existant à partir d'autres formats (comme COCO, etc.) au format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) par Ultralytics.
+Le format des données de segmentation YOLO peut être trouvé en détail dans le [Guide du Jeu de Données](../../../datasets/segment/index.md). Pour convertir votre jeu de données existent à partir d'autres formats (comme COCO, etc.) au format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) par Ultralytics.
 
 ## Validation
 
 Validez la précision du modèle YOLOv8n-seg entraîné sur le jeu de données COCO128-seg. Aucun argument n'est nécessaire car le `modèle`
-conserve ses données de formation et ses arguments comme attributs du modèle.
+conserve ses données de formation et ses arguments comme attributes du modèle.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -120,7 +120,7 @@ conserve ses données de formation et ses arguments comme attributs du modèle.
 
 Utilisez un modèle YOLOv8n-seg entraîné pour effectuer des prédictions sur des images.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -141,13 +141,13 @@ Utilisez un modèle YOLOv8n-seg entraîné pour effectuer des prédictions sur d
         yolo segment predict model=chemin/vers/le/meilleur.pt source='https://ultralytics.com/images/bus.jpg'  # prédire avec le modèle personnalisé
         ```
 
-Voir les détails complets du mode `predict` sur la page [Predict](https://docs.ultralytics.com/modes/predict/).
+Voir les détails completes du mode `predict` sur la page [Predict](https://docs.ultralytics.com/modes/predict/).
 
 ## Exportation
 
 Exportez un modèle YOLOv8n-seg vers un format différent comme ONNX, CoreML, etc.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -168,7 +168,7 @@ Exportez un modèle YOLOv8n-seg vers un format différent comme ONNX, CoreML, et
         yolo export model=chemin/vers/le/meilleur.pt format=onnx  # exporter le modèle entraîné personnalisé
         ```
 
-Les formats d'exportation YOLOv8-seg disponibles sont dans le tableau ci-dessous. Vous pouvez prédire ou valider directement sur les modèles exportés, par exemple `yolo predict model=yolov8n-seg.onnx`. Des exemples d'utilisation sont présentés pour votre modèle après l'exportation.
+Les formats d'exportation YOLOv8-seg disponibles sont dans le tableau ci-dessous. Vous pouvez prédire ou valider directement sur les modèles exportés, par example `yolo predict model=yolov8n-seg.onnx`. Des examples d'utilisation sont présentés pour votre modèle après l'exportation.
 
 | Format                                                             | Argument `format` | Modèle                        | Métadonnées | Arguments                                           |
 |--------------------------------------------------------------------|-------------------|-------------------------------|-------------|-----------------------------------------------------|
@@ -186,4 +186,4 @@ Les formats d'exportation YOLOv8-seg disponibles sont dans le tableau ci-dessous
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅           | `imgsz`                                             |
 | [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅           | `imgsz`, `half`                                     |
 
-Voir les détails complets d'`export` sur la page [Export](https://docs.ultralytics.com/modes/export/).
+Voir les détails completes d'`export` sur la page [Export](https://docs.ultralytics.com/modes/export/).

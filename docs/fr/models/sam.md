@@ -10,18 +10,18 @@ Bienvenue à la pointe de la segmentation d'image avec le modèle Segment Anythi
 
 ## Introduction à SAM : Le modèle Segment Anything
 
-Le modèle Segment Anything, ou SAM, est un modèle de segmentation d'image de pointe qui permet une segmentation promptable, offrant une polyvalence inégalée dans les tâches d'analyse d'image. SAM forme le cœur de l'initiative Segment Anything, un projet innovant qui introduit un modèle, une tâche et un jeu de données novateurs pour la segmentation d'images.
+Le modèle Segment Anything, ou SAM, est un modèle de segmentation d'image de pointe qui permet une segmentation promptable, offrant une polyvalence inégalée dans les tâches d'analyse d'image. SAM forme le cœur de l'initiative Segment Anything, un project innovant qui introduit un modèle, une tâche et un jeu de données novateurs pour la segmentation d'images.
 
 La conception avancée de SAM lui permet de s'adapter à de nouvelles distributions et tâches d'images sans connaissance préalable, une fonctionnalité connue sous le nom de transfert hors échantillon. Entraîné sur le vaste ensemble de données [SA-1B](https://ai.facebook.com/datasets/segment-anything/), qui contient plus d'un milliard de masques répartis sur 11 millions d'images soigneusement sélectionnées, SAM a affiché des performances hors échantillon impressionnantes, dépassant les résultats entièrement supervisés précédents dans de nombreux cas.
 
 ![Image d'échantillon de jeu de données](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg)
-Exemple d'images avec des masques superposés provenant de notre nouveau jeu de données, SA-1B. SA-1B contient 11 millions d'images diverses, haute résolution, autorisées et protégeant la vie privée, ainsi que 1,1 milliard de masques de segmentation de haute qualité. Ces masques ont été annotés entièrement automatiquement par SAM, et comme le confirment des évaluations humaines et de nombreux tests, leur qualité et leur diversité sont élevées. Les images sont regroupées par nombre de masques par image pour la visualisation (il y a environ 100 masques par image en moyenne).
+Example d'images avec des masques superposés provenant de notre nouveau jeu de données, SA-1B. SA-1B contient 11 millions d'images diverses, haute résolution, autorisées et protégeant la via privée, ainsi que 1,1 milliard de masques de segmentation de haute qualité. Ces masques ont été annotés entièrement automatiquement par SAM, et comme le confirment des évaluations humaines et de nombreux tests, leur qualité et leur diversité sont élevées. Les images sont regroupées par nombre de masques par image pour la visualisation (il y a environ 100 masques par image en moyenne).
 
 ## Caractéristiques clés du modèle Segment Anything (SAM)
 
-- **Tâche de segmentation promptable :** SAM a été conçu en gardant à l'esprit une tâche de segmentation promptable, ce qui lui permet de générer des masques de segmentation valides à partir de n'importe quelle indication donnée, telle que des indices spatiaux ou des indices textuels identifiant un objet.
+- **Tâche de segmentation promptable :** SAM a été conçu en gardant à l'esprit une tâche de segmentation promptable, ce qui lui permet de générer des masques de segmentation valides à partir de n'importe quelle indication donnée, telle que des indices spatiaux ou des indices textuels identifiant un object.
 - **Architecture avancée :** Le modèle Segment Anything utilise un puissant encodeur d'images, un encodeur de prompt et un décodeur de masques léger. Cette architecture unique permet une invitation flexible, un calcul de masques en temps réel et une prise en compte de l'ambiguïté dans les tâches de segmentation.
-- **Le jeu de données SA-1B :** Introduit par le projet Segment Anything, le jeu de données SA-1B comprend plus d'un milliard de masques sur 11 millions d'images. En tant que plus grand jeu de données de segmentation à ce jour, il offre à SAM une source de données d'entraînement diversifiée et à grande échelle.
+- **Le jeu de données SA-1B :** Introduit par le project Segment Anything, le jeu de données SA-1B comprend plus d'un milliard de masques sur 11 millions d'images. En tant que plus grand jeu de données de segmentation à ce jour, il offre à SAM une source de données d'entraînement diversifiée et à grande échelle.
 - **Performances hors échantillon :** SAM affiche des performances hors échantillon exceptionnelles dans diverses tâches de segmentation, ce qui en fait un outil prêt à l'emploi pour des applications diverses nécessitant un minimum d'ingénierie de prompt.
 
 Pour une analyse approfondie du modèle Segment Anything et du jeu de données SA-1B, veuillez visiter le [site web Segment Anything](https://segment-anything.com) et consulter l'article de recherche [Segment Anything](https://arxiv.org/abs/2304.02643).
@@ -39,7 +39,7 @@ Ce tableau présente les modèles disponibles avec leurs poids pré-entraînés 
 
 Le modèle Segment Anything peut être utilisé pour une multitude de tâches secondaires qui vont au-delà de ses données d'entraînement. Cela comprend la détection des contours, la génération de propositions d'objets, la segmentation d'instances et la prédiction préliminaire texte-à-masque. Grâce à l'ingénierie de prompts, SAM peut s'adapter rapidement à de nouvelles tâches et distributions de données de manière sans apprentissage, ce qui en fait un outil polyvalent et puissant pour tous vos besoins en matière de segmentation d'images.
 
-### Exemple de prédiction SAM
+### Example de prédiction SAM
 
 !!! Example "Segmentation avec des prompts"
 
@@ -53,7 +53,7 @@ Le modèle Segment Anything peut être utilisé pour une multitude de tâches se
         # Charger un modèle
         model = SAM('sam_b.pt')
 
-        # Afficher les informations sur le modèle (facultatif)
+        # Afficher les information sur le modèle (facultatif)
         model.info()
 
         # Exécuter l'inférence avec un prompt de zones de délimitation
@@ -75,7 +75,7 @@ Le modèle Segment Anything peut être utilisé pour une multitude de tâches se
         # Charger un modèle
         model = SAM('sam_b.pt')
 
-        # Afficher les informations sur le modèle (facultatif)
+        # Afficher les information sur le modèle (facultatif)
         model.info()
 
         # Exécuter l'inférence
@@ -91,7 +91,7 @@ Le modèle Segment Anything peut être utilisé pour une multitude de tâches se
 
 - La logique ici est de segmenter toute l'image si vous ne passez aucun prompt (bboxes/points/masks).
 
-!!! Example "Exemple SAMPredictor"
+!!! Example "Example SAMPredictor"
 
     De cette manière, vous pouvez définir l'image une fois et exécuter l'inférence des prompts plusieurs fois sans exécuter l'encodeur d'image plusieurs fois.
 
@@ -131,7 +131,7 @@ Le modèle Segment Anything peut être utilisé pour une multitude de tâches se
 
 - Plus d'arguments supplémentaires pour `Segmenter tout` voir la référence [`Predictor/generate`](../../../reference/models/sam/predict.md).
 
-## Comparaison de SAM avec YOLOv8
+## Comparison de SAM avec YOLOv8
 
 Nous comparons ici le plus petit modèle SAM de Meta, SAM-b, avec le plus petit modèle de segmentation d'Ultralytics, [YOLOv8n-seg](../tasks/segment.md) :
 
@@ -142,11 +142,11 @@ Nous comparons ici le plus petit modèle SAM de Meta, SAM-b, avec le plus petit 
 | [FastSAM-s](fast-sam.md) with YOLOv8 backbone                | 23,7 Mo                           | 11,8 M                      | 115 ms/im                           |
 | YOLOv8n-seg - Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6,7 Mo** (53,4 fois plus petit) | **3,4 M** (27,9 fois moins) | **59 ms/im** (866 fois plus rapide) |
 
-Cette comparaison montre les différences d'ordre de grandeur dans les tailles et les vitesses des modèles. Alors que SAM présente des fonctionnalités uniques pour la segmentation automatique, il ne rivalise pas directement avec les modèles de segmentation YOLOv8, qui sont plus petits, plus rapides et plus efficaces.
+Cette comparison montre les différences d'ordre de grandeur dans les tailles et les vitesses des modèles. Alors que SAM présente des fonctionnalités uniques pour la segmentation automatique, il ne rivalise pas directement avec les modèles de segmentation YOLOv8, qui sont plus petits, plus rapides et plus efficaces.
 
 Tests effectués sur un MacBook Apple M2 de 2023 avec 16 Go de RAM. Pour reproduire ce test :
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
         ```python
@@ -179,9 +179,9 @@ L'annotation automatique est une fonctionnalité clé de SAM, permettant aux uti
 
 ### Générez votre jeu de données de segmentation à l'aide d'un modèle de détection
 
-Pour annoter automatiquement votre jeu de données avec le framework Ultralytics, utilisez la fonction `auto_annotate` comme indiqué ci-dessous :
+Pour annoter automatiquement votre jeu de données avec le framework Ultralytics, utilisez la function `auto_annotate` comme indiqué ci-dessous :
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
         ```python
@@ -198,7 +198,7 @@ Pour annoter automatiquement votre jeu de données avec le framework Ultralytics
 | device     | str, optionnel       | Appareil sur lequel exécuter les modèles. Par défaut, une chaîne vide (CPU ou GPU, si disponible).                     |              |
 | output_dir | str, None, optionnel | Répertoire pour enregistrer les résultats annotés. Par défaut, un dossier 'labels' dans le même répertoire que 'data'. | None         |
 
-La fonction `auto_annotate` prend en compte le chemin de vos images, avec des arguments optionnels pour spécifier les modèles de détection et de segmentation SAM pré-entraînés, l'appareil sur lequel exécuter les modèles et le répertoire de sortie pour enregistrer les résultats annotés.
+La function `auto_annotate` prend en compte le chemin de vos images, avec des arguments optionnels pour spécifier les modèles de détection et de segmentation SAM pré-entraînés, l'appareil sur lequel exécuter les modèles et le répertoire de sortie pour enregistrer les résultats annotés.
 
 L'annotation automatique avec des modèles pré-entraînés peut réduire considérablement le temps et les efforts nécessaires pour créer des jeux de données de segmentation de haute qualité. Cette fonctionnalité est particulièrement bénéfique pour les chercheurs et les développeurs travaillant avec de grandes collections d'images, car elle leur permet de se concentrer sur le développement et l'évaluation des modèles plutôt que sur l'annotation manuelle.
 
@@ -221,6 +221,6 @@ Si vous trouvez SAM utile dans vos travaux de recherche ou de développement, ve
         }
         ```
 
-Nous tenons à exprimer notre gratitude à Meta AI pour la création et la maintenance de cette ressource précieuse pour la communauté de la vision par ordinateur.
+Nous tenons à exprimer notre gratitude à Meta AI pour la création et la maintenance de cette resource précieuse pour la communauté de la vision par ordinateur.
 
 *keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, segmentation d'image, segmentation promptable, performances hors échantillon, jeu de données SA-1B, architecture avancée, annotation automatique, Ultralytics, modèles pré-entraînés, SAM de base, SAM large, segmentation d'instance, vision par ordinateur, IA, intelligence artificielle, apprentissage automatique, annotation de données, masques de segmentation, modèle de détection, modèle de détection YOLO, bibtex, Meta AI.*

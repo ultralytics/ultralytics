@@ -6,11 +6,11 @@ keywords: YOLOv8, Ultralytics, détection d'objets, modèles pré-entraînés, e
 
 # Détection d'Objets
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418624-5785cb93-74c9-4541-9179-d5c6782d491a.png" alt="Exemples de détection d'objets">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418624-5785cb93-74c9-4541-9179-d5c6782d491a.png" alt="Examples de détection d'objets">
 
-La détection d'objets est une tâche qui implique l'identification de l'emplacement et de la classe des objets dans une image ou un flux vidéo.
+La détection d'objects est une tâche qui implique l'identification de l'emplacement et de la classe des objects dans une image ou un flux vidéo.
 
-La sortie d'un détecteur d'objets est un ensemble de boîtes englobantes qui entourent les objets de l'image, accompagnées de libellés de classe et de scores de confiance pour chaque boîte. La détection d'objets est un bon choix lorsque vous avez besoin d'identifier des objets d'intérêt dans une scène, mais que vous n'avez pas besoin de connaître exactement où se trouve l'objet ou sa forme exacte.
+La sortie d'un détecteur d'objects est un ensemble de boîtes englobantes qui entourent les objects de l'image, accompagnées de libellés de classe et de scores de confiance pour chaque boîte. La détection d'objects est un bon choix lorsque vous avez besoin d'identifier des objects d'intérêt dans une scène, mais que vous n'avez pas besoin de connaître exactement où se trouve l'objet ou sa forme exacte.
 
 <p align="center">
   <br>
@@ -50,7 +50,7 @@ Les modèles pré-entraînés Detect YOLOv8 sont présentés ici. Les modèles D
 
 Entraînez le modèle YOLOv8n sur le jeu de données COCO128 pendant 100 époques à la taille d'image de 640. Pour une liste complète des arguments disponibles, consultez la page [Configuration](/../usage/cfg.md).
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -80,13 +80,13 @@ Entraînez le modèle YOLOv8n sur le jeu de données COCO128 pendant 100 époque
 
 ### Format des données
 
-Le format des jeux de données de détection YOLO est détaillé dans le [Guide des Jeux de Données](../../../datasets/detect/index.md). Pour convertir votre jeu de données existant depuis d'autres formats (comme COCO, etc.) vers le format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) par Ultralytics.
+Le format des jeux de données de détection YOLO est détaillé dans le [Guide des Jeux de Données](../../../datasets/detect/index.md). Pour convertir votre jeu de données existent depuis d'autres formats (comme COCO, etc.) vers le format YOLO, veuillez utiliser l'outil [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) par Ultralytics.
 
 ## Validation
 
 Validez la précision du modèle YOLOv8n entraîné sur le jeu de données COCO128. Aucun argument n'est nécessaire puisque le `modèle` conserve ses `données` d'entraînement et arguments en tant qu'attributs du modèle.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -115,7 +115,7 @@ Validez la précision du modèle YOLOv8n entraîné sur le jeu de données COCO1
 
 Utilisez un modèle YOLOv8n entraîné pour exécuter des prédictions sur des images.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -136,13 +136,13 @@ Utilisez un modèle YOLOv8n entraîné pour exécuter des prédictions sur des i
         yolo detect predict model=chemin/vers/best.pt source='https://ultralytics.com/images/bus.jpg'  # prédire avec le modèle personnalisé
         ```
 
-Consultez les détails complets du mode `predict` sur la page [Prédire](https://docs.ultralytics.com/modes/predict/).
+Consultez les détails completes du mode `predict` sur la page [Prédire](https://docs.ultralytics.com/modes/predict/).
 
 ## Exportation
 
 Exportez un modèle YOLOv8n dans un format différent tel que ONNX, CoreML, etc.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -163,7 +163,7 @@ Exportez un modèle YOLOv8n dans un format différent tel que ONNX, CoreML, etc.
         yolo export model=chemin/vers/best.pt format=onnx  # exporter le modèle entraîné personnalisé
         ```
 
-Les formats d'exportation YOLOv8 disponibles sont présentés dans le tableau ci-dessous. Vous pouvez directement prédire ou valider sur des modèles exportés, c'est-à-dire `yolo predict model=yolov8n.onnx`. Des exemples d'utilisation sont présentés pour votre modèle après l'exportation complète.
+Les formats d'exportation YOLOv8 disponibles sont présentés dans le tableau ci-dessous. Vous pouvez directement prédire ou valider sur des modèles exportés, c'est-à-dire `yolo predict model=yolov8n.onnx`. Des examples d'utilisation sont présentés pour votre modèle après l'exportation complète.
 
 | Format                                                               | Argument `format` | Modèle                    | Métadonnées | Arguments                                           |
 |----------------------------------------------------------------------|-------------------|---------------------------|-------------|-----------------------------------------------------|

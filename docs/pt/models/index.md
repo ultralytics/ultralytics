@@ -49,7 +49,7 @@ Note que o exemplo abaixo é para modelos YOLOv8 [Detect](../tasks/detect.md) pa
 
     === "Python"
 
-        Modelos `*.pt` pré-treinados em PyTorch, bem como arquivos de configuração `*.yaml`, podem ser passados para as classes `YOLO()`, `SAM()`, `NAS()` e `RTDETR()` para criar uma instância de modelo em Python:
+        Modelos `*.pt` pré-treinados em PyTorch, bem como arquivos de configuração `*.yaml`, podem set passados para as classes `YOLO()`, `SAM()`, `NAS()` e `RTDETR()` para criar uma instância de modelo em Python:
 
         ```python
         from ultralytics import YOLO
@@ -69,7 +69,7 @@ Note que o exemplo abaixo é para modelos YOLOv8 [Detect](../tasks/detect.md) pa
 
     === "CLI"
 
-        Comandos CLI estão disponíveis para executar diretamente os modelos:
+        Commandos CLI estão disponíveis para executar diretamente os modelos:
 
         ```bash
         # Carregar um modelo YOLOv8n pré-treinado no COCO e treiná-lo no conjunto de dados de exemplo COCO8 por 100 épocas

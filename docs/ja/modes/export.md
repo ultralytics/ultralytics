@@ -1,7 +1,8 @@
 ---
 comments: true
 description: YOLOv8モデルをONNX, TensorRT, CoreMLなどの様々なフォーマットへエキスポートする手順についてのガイドです。今すぐ展開を探求してください！
-keywords: YOLO, YOLOv8, Ultralytics, モデルエキスポート, ONNX, TensorRT, CoreML, TensorFlow SavedModel, OpenVINO, PyTorch, モデルをエキスポート
+keywords: YOLO, YOLOv8, Ultralytics, モデルエキスポート, ONNX, TensorRT, CoreML, TensorFlow
+  SavedModel, OpenVINO, PyTorch, モデルをエキスポート
 ---
 
 # Ultralytics YOLO でのモデルエキスポート
@@ -41,8 +42,10 @@ keywords: YOLO, YOLOv8, Ultralytics, モデルエキスポート, ONNX, TensorRT
 
 !!! Tip "ヒント"
 
-    * ONNXまたはOpenVINOへのエキスポートで最大3倍のCPU速度アップ。
-    * TensorRTへのエキスポートで最大5倍のGPU速度アップ。
+```
+* ONNXまたはOpenVINOへのエキスポートで最大3倍のCPU速度アップ。
+* TensorRTへのエキスポートで最大5倍のGPU速度アップ。
+```
 
 ## 使用例
 
@@ -50,27 +53,29 @@ YOLOv8nモデルをONNXやTensorRTなどの異なるフォーマットにエキ�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO('yolov8n.pt')  # 公式モデルを読み込む
-        model = YOLO('path/to/best.pt')  # カスタムトレーニングモデルを読み込む
+    # Load a model
+    model = YOLO('yolov8n.pt')  # 公式モデルを読み込む
+    model = YOLO('path/to/best.pt')  # カスタムトレーニングモデルを読み込む
 
-        # モデルをエキスポート
-        model.export(format='onnx')
-        ```
-    === "CLI"
+    # モデルをエキスポート
+    model.export(format='onnx')
+    ```
+=== "CLI"
 
-        ```bash
-        yolo export model=yolov8n.pt format=onnx  # 公式モデルをエキスポート
-        yolo export model=path/to/best.pt format=onnx  # カスタムトレーニングモデルをエキスポート
-        ```
+    ```bash
+    yolo export model=yolov8n.pt format=onnx  # 公式モデルをエキスポート
+    yolo export model=path/to/best.pt format=onnx  # カスタムトレーニングモデルをエキスポート
+    ```
+````
 
 ## 引数
 
 YOLOモデルのエキスポート設定
 
-[...content truncated for length...]
+\[...content truncated for length...\]

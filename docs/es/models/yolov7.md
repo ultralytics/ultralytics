@@ -10,7 +10,7 @@ YOLOv7 es un detector de objetos en tiempo real de última generación que super
 
 ![Comparación de YOLOv7 con detectores de objetos SOTA](https://github.com/ultralytics/ultralytics/assets/26833433/5e1e0420-8122-4c79-b8d0-2860aa79af92)
 **Comparación de los detectores de objetos de estado del arte.
-** Según los resultados en la Tabla 2, sabemos que el método propuesto tiene el mejor equilibrio entre velocidad y precisión de manera integral. Si comparamos YOLOv7-tiny-SiLU con YOLOv5-N (r6.1), nuestro método es 127 fps más rápido y un 10.7% más preciso en AP. Además, YOLOv7 tiene un AP del 51.4% a una velocidad de cuadro de 161 fps, mientras que PPYOLOE-L con el mismo AP tiene solo una velocidad de cuadro de 78 fps. En términos de uso de parámetros, YOLOv7 utiliza un 41% menos que PPYOLOE-L. Si comparamos YOLOv7-X con una velocidad de inferencia de 114 fps con YOLOv5-L (r6.1) con una velocidad de inferencia de 99 fps, YOLOv7-X puede mejorar el AP en un 3.9%. Si se compara YOLOv7-X con YOLOv5-X (r6.1) de una escala similar, la velocidad de inferencia de YOLOv7-X es 31 fps más rápida. Además, en términos de cantidad de parámetros y cálculos, YOLOv7-X reduce un 22% de los parámetros y un 8% de los cálculos en comparación con YOLOv5-X (r6.1), pero mejora el AP en un 2.2% ([Fuente](https://arxiv.org/pdf/2207.02696.pdf)).
+** Según los resultados en la Tabla 2, sabemos que el método propuesto tiene el mejor equilibrio entre velocidad y precisión de manera integral. Si comparamos YOLOv7-tiny-SiLU con YOLOv5-N (r6.1), nuestro método es 127 fps más rápido y un 10.7% más preciso en AP. Además, YOLOv7 tiene un AP del 51.4% a una velocidad de cuadro de 161 fps, mientras que PPYOLOE-L con el mismo AP tiene solo una velocidad de cuadro de 78 fps. En términos de uso de parámetros, YOLOv7 utilize un 41% menos que PPYOLOE-L. Si comparamos YOLOv7-X con una velocidad de inferencia de 114 fps con YOLOv5-L (r6.1) con una velocidad de inferencia de 99 fps, YOLOv7-X puede mejorar el AP en un 3.9%. Si se compara YOLOv7-X con YOLOv5-X (r6.1) de una escala similar, la velocidad de inferencia de YOLOv7-X es 31 fps más rápida. Además, en términos de cantidad de parámetros y cálculos, YOLOv7-X reduce un 22% de los parámetros y un 8% de los cálculos en comparación con YOLOv5-X (r6.1), pero mejora el AP en un 2.2% ([Fuente](https://arxiv.org/pdf/2207.02696.pdf)).
 
 ## Descripción general
 
@@ -22,7 +22,7 @@ A diferencia de los detectores de objetos en tiempo real tradicionales que se ce
 
 YOLOv7 introduce varias características clave:
 
-1. **Re-parametrización del modelo**: YOLOv7 propone un modelo re-parametrizado planificado, que es una estrategia aplicable a capas en diferentes redes con el concepto de propagación del gradiente.
+1. **Re-parametrización del modelo**: YOLOv7 propone un modelo re-parametrizado planificado, que es una estrategia applicable a capas en diferentes redes con el concepto de propagación del gradiente.
 
 2. **Asignación dinámica de etiquetas**: El entrenamiento del modelo con múltiples capas de salida presenta un nuevo problema: "¿Cómo asignar objetivos dinámicos para las salidas de diferentes ramas?" Para resolver este problema, YOLOv7 introduce un nuevo método de asignación de etiquetas llamado asignación de etiquetas guiadas de manera gruesa a fina.
 
@@ -63,4 +63,4 @@ Nos gustaría agradecer a los autores de YOLOv7 por sus importantes contribucion
         }
         ```
 
-El artículo original de YOLOv7 se puede encontrar en [arXiv](https://arxiv.org/pdf/2207.02696.pdf). Los autores han hecho su trabajo públicamente disponible y el código se puede acceder en [GitHub](https://github.com/WongKinYiu/yolov7). Agradecemos sus esfuerzos en el avance del campo y en hacer su trabajo accesible a la comunidad en general.
+El artículo original de YOLOv7 se puede encontrar en [arXiv](https://arxiv.org/pdf/2207.02696.pdf). Los autores han hecho su trabajo públicamente disponible y el código se puede acceder en [GitHub](https://github.com/WongKinYiu/yolov7). Agradecemos sus esfuerzos en el advance del campo y en hacer su trabajo accessible a la comunidad en general.

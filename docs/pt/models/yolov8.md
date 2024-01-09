@@ -14,7 +14,7 @@ O YOLOv8 é a versão mais recente da série YOLO de detectores de objetos em te
 
 ## Principais Características
 
-- **Arquiteturas Avançadas de Backbone e Neck:** O YOLOv8 utiliza arquiteturas avançadas de backbone e neck, resultando em uma melhor extração de características e desempenho na detecção de objetos.
+- **Arquiteturas Avançadas de Backbone e Neck:** O YOLOv8 utilize arquiteturas avançadas de backbone e neck, resultando em uma melhor extração de características e desempenho na detecção de objetos.
 - **Anchor-free Split Ultralytics Head:** O YOLOv8 adota um head Ultralytics dividido sem ancoragem, o que contribui para uma melhor precisão e um processo de detecção mais eficiente em comparação com abordagens baseadas em âncoras.
 - **Equilíbrio Otimizado entre Precisão e Velocidade:** Com foco em manter um equilíbrio ideal entre precisão e velocidade, o YOLOv8 é adequado para tarefas de detecção de objetos em tempo real em diversas áreas de aplicação.
 - **Variedade de Modelos Pré-treinados:** O YOLOv8 oferece uma variedade de modelos pré-treinados para atender a diversas tarefas e requisitos de desempenho, tornando mais fácil encontrar o modelo adequado para o seu caso de uso específico.
@@ -25,7 +25,7 @@ A série YOLOv8 oferece uma variedade de modelos, cada um especializado em taref
 
 Cada variante da série YOLOv8 é otimizada para a respectiva tarefa, garantindo alto desempenho e precisão. Além disso, esses modelos são compatíveis com diversos modos operacionais, incluindo [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md), facilitando o uso em diferentes estágios de implantação e desenvolvimento.
 
-| Modelo      | Nomes de Arquivo                                                                                               | Tarefa                                           | Inferência | Validação | Treinamento | Exportação |
+| Modelo      | Gnomes de Arquivo                                                                                               | Tarefa                                           | Inferência | Validação | Treinamento | Exportação |
 |-------------|----------------------------------------------------------------------------------------------------------------|--------------------------------------------------|------------|-----------|-------------|------------|
 | YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [Detecção](../tasks/detect.md)                   | ✅          | ✅         | ✅           | ✅          |
 | YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [Segmentação de Instâncias](../tasks/segment.md) | ✅          | ✅         | ✅           | ✅          |
@@ -109,7 +109,7 @@ Observe que o exemplo abaixo é para modelos YOLOv8 de [Detecção](../tasks/det
 
     === "Python"
 
-        Modelos pré-treinados `*.pt` PyTorch, bem como arquivos de configuração `*.yaml`, podem ser passados para a classe `YOLO()` para criar uma instância do modelo em Python:
+        Modelos pré-treinados `*.pt` PyTorch, bem como arquivos de configuração `*.yaml`, podem set passados para a classe `YOLO()` para criar uma instância do modelo em Python:
 
         ```python
         from ultralytics import YOLO
@@ -129,7 +129,7 @@ Observe que o exemplo abaixo é para modelos YOLOv8 de [Detecção](../tasks/det
 
     === "CLI"
 
-        Comandos da CLI estão disponíveis para executar os modelos diretamente:
+        Commandos da CLI estão disponíveis para executar os modelos diretamente:
 
         ```bash
         # Carregar um modelo YOLOv8n pré-treinado para COCO e treiná-lo no exemplo de conjunto de dados COCO8 por 100 épocas

@@ -80,7 +80,7 @@ Entrena el modelo YOLOv8n-seg en el conjunto de datos COCO128-seg durante 100 é
 
 ### Formato del conjunto de datos
 
-El formato del conjunto de datos de segmentación YOLO puede encontrarse detallado en la [Guía de Conjuntos de Datos](../../../datasets/segment/index.md). Para convertir tu conjunto de datos existente de otros formatos (como COCO, etc.) al formato YOLO, utiliza la herramienta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) de Ultralytics.
+El formato del conjunto de datos de segmentación YOLO puede encontrarse detallado en la [Guía de Conjuntos de Datos](../../../datasets/segment/index.md). Para convertir tu conjunto de datos existente de otros formatos (como COCO, etc.) al formato YOLO, utilize la herramienta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) de Ultralytics.
 
 ## Validación
 
@@ -94,7 +94,7 @@ Valida la precisión del modelo YOLOv8n-seg entrenado en el conjunto de datos CO
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-seg.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n-seg.pt')  # cargar un modelo official
         model = YOLO('ruta/a/mejor.pt')  # cargar un modelo personalizado
 
         # Validar el modelo
@@ -111,7 +111,7 @@ Valida la precisión del modelo YOLOv8n-seg entrenado en el conjunto de datos CO
     === "CLI"
 
         ```bash
-        yolo segment val model=yolov8n-seg.pt  # validar el modelo oficial
+        yolo segment val model=yolov8n-seg.pt  # validar el modelo official
         yolo segment val model=ruta/a/mejor.pt  # validar el modelo personalizado
         ```
 
@@ -127,7 +127,7 @@ Usa un modelo YOLOv8n-seg entrenado para realizar predicciones en imágenes.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-seg.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n-seg.pt')  # cargar un modelo official
         model = YOLO('ruta/a/mejor.pt')  # cargar un modelo personalizado
 
         # Predecir con el modelo
@@ -136,7 +136,7 @@ Usa un modelo YOLOv8n-seg entrenado para realizar predicciones en imágenes.
     === "CLI"
 
         ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con el modelo oficial
+        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con el modelo official
         yolo segment predict model=ruta/a/mejor.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con el modelo personalizado
         ```
 
@@ -154,7 +154,7 @@ Exporta un modelo YOLOv8n-seg a un formato diferente como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-seg.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n-seg.pt')  # cargar un modelo official
         model = YOLO('ruta/a/mejor.pt')  # cargar un modelo entrenado personalizado
 
         # Exportar el modelo
@@ -163,7 +163,7 @@ Exporta un modelo YOLOv8n-seg a un formato diferente como ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-seg.pt format=onnx  # exportar el modelo oficial
+        yolo export model=yolov8n-seg.pt format=onnx  # exportar el modelo official
         yolo export model=ruta/a/mejor.pt format=onnx  # exportar el modelo entrenado personalizado
         ```
 

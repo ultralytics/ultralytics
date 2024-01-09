@@ -12,7 +12,7 @@ Bienvenido al frontera de la segmentación de imágenes con el Segment Anything 
 
 El Segment Anything Model, o SAM, es un modelo de segmentación de imágenes de vanguardia que permite la segmentación por indicación, ofreciendo una versatilidad sin igual en las tareas de análisis de imágenes. SAM forma el corazón de la iniciativa Segment Anything, un proyecto innovador que presenta un modelo, una tarea y un conjunto de datos nuevos para la segmentación de imágenes.
 
-El diseño avanzado de SAM le permite adaptarse a nuevas distribuciones y tareas de imágenes sin conocimientos previos, una característica conocida como transferencia sin entrenamiento. Entrenado en el extenso [conjunto de datos SA-1B](https://ai.facebook.com/datasets/segment-anything/), que contiene más de mil millones de máscaras distribuidas en once millones de imágenes seleccionadas cuidadosamente, SAM ha demostrado un impresionante rendimiento en la transferencia sin entrenamiento, superando en muchos casos los resultados de supervisión completa anteriores.
+El diseño avanzado de SAM le permite adaptarse a nuevas distribuciones y tareas de imágenes sin conocimientos previous, una característica conocida como transferencia sin entrenamiento. Entrenado en el extenso [conjunto de datos SA-1B](https://ai.facebook.com/datasets/segment-anything/), que contiene más de mil millones de máscaras distribuidas en once millones de imágenes seleccionadas cuidadosamente, SAM ha demostrado un impresionante rendimiento en la transferencia sin entrenamiento, superando en muchos casos los resultados de supervisión completa anteriores.
 
 ![Ejemplo de imagen del conjunto de datos](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg)
 Imágenes de ejemplo con máscaras superpuestas de nuestro nuevo conjunto de datos, SA-1B. SA-1B contiene 11 millones de imágenes diversas de alta resolución, con licencia y protección de la privacidad, y 1.1 mil millones de máscaras de segmentación de alta calidad. Estas máscaras fueron anotadas completamente automáticamente por SAM y, según las calificaciones humanas y numerosos experimentos, tienen una alta calidad y diversidad. Las imágenes se agrupan por número de máscaras por imagen para su visualización (hay aproximadamente 100 máscaras por imagen en promedio).
@@ -20,7 +20,7 @@ Imágenes de ejemplo con máscaras superpuestas de nuestro nuevo conjunto de dat
 ## Características clave del Segment Anything Model (SAM)
 
 - **Tarea de segmentación por indicación**: SAM fue diseñado teniendo en cuenta una tarea de segmentación por indicación, lo que le permite generar máscaras de segmentación válidas a partir de cualquier indicación dada, como pistas espaciales o de texto que identifican un objeto.
-- **Arquitectura avanzada**: El Segment Anything Model utiliza un potente codificador de imágenes, un codificador de indicaciones y un decodificador de máscaras ligero. Esta arquitectura única permite la indicación flexible, el cálculo de máscaras en tiempo real y la conciencia de ambigüedades en las tareas de segmentación.
+- **Arquitectura avanzada**: El Segment Anything Model utilize un potente codificador de imágenes, un codificador de indicaciones y un decodificador de máscaras ligero. Esta arquitectura única permite la indicación flexible, el cálculo de máscaras en tiempo real y la conciencia de ambigüedades en las tareas de segmentación.
 - **El conjunto de datos SA-1B**: Introducido por el proyecto Segment Anything, el conjunto de datos SA-1B cuenta con más de mil millones de máscaras en once millones de imágenes. Como el conjunto de datos de segmentación más grande hasta la fecha, proporciona a SAM una fuente de datos de entrenamiento diversa y a gran escala.
 - **Rendimiento en la transferencia sin entrenamiento**: SAM muestra un destacado rendimiento en la transferencia sin entrenamiento en diversas tareas de segmentación, lo que lo convierte en una herramienta lista para usar en diversas aplicaciones con una necesidad mínima de ingeniería de indicación.
 
@@ -179,7 +179,7 @@ La auto-anotación es una característica clave de SAM que permite a los usuario
 
 ### Generar tu conjunto de datos de segmentación utilizando un modelo de detección
 
-Para auto-anotar tu conjunto de datos con el marco de trabajo de Ultralytics, utiliza la función `auto_annotate` como se muestra a continuación:
+Para auto-anotar tu conjunto de datos con el marco de trabajo de Ultralytics, utilize la función `auto_annotate` como se muestra a continuación:
 
 !!! Example "Ejemplo"
 

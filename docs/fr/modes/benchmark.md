@@ -15,11 +15,11 @@ Une fois votre modèle entraîné et validé, l'étape logique suivante est d'é
 ## Pourquoi le Benchmarking est-il Crucial ?
 
 - **Décisions Éclairées :** Obtenez des insights sur les arbitrages entre la vitesse et l'exactitude.
-- **Allocation des Ressources :** Comprenez comment les différents formats d'exportation se comportent sur différents matériels.
+- **Allocation des Resources :** Comprenez comment les différents formats d'exportation se comportent sur différents matériels.
 - **Optimisation :** Découvrez quel format d'exportation offre la meilleure performance pour votre cas d'utilisation spécifique.
-- **Efficacité des Coûts :** Utilisez les ressources matérielles plus efficacement en vous basant sur les résultats des benchmarks.
+- **Efficacité des Coûts :** Utilisez les resources matérielles plus efficacement en vous basant sur les résultats des benchmarks.
 
-### Mesures Clés en Mode Benchmark
+### Measures Clés en Mode Benchmark
 
 - **mAP50-95 :** Pour la détection d'objets, la segmentation et l'estimation de pose.
 - **accuracy_top5 :** Pour la classification d'images.
@@ -37,11 +37,11 @@ Une fois votre modèle entraîné et validé, l'étape logique suivante est d'é
     * Exportez vers ONNX ou OpenVINO pour un gain de vitesse CPU jusqu'à 3x.
     * Exportez vers TensorRT pour un gain de vitesse GPU jusqu'à 5x.
 
-## Exemples d'Utilisation
+## Examples d'Utilisation
 
 Exécutez les benchmarks YOLOv8n sur tous les formats d'exportation supportés, y compris ONNX, TensorRT, etc. Consultez la section Arguments ci-dessous pour une liste complète des arguments d'exportation.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -91,4 +91,4 @@ Les benchmarks tenteront de s'exécuter automatiquement sur tous les formats d'e
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅           | `imgsz`                                             |
 | [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅           | `imgsz`, `half`                                     |
 
-Consultez les détails complets sur `export` dans la page [Export](https://docs.ultralytics.com/modes/export/).
+Consultez les détails completes sur `export` dans la page [Export](https://docs.ultralytics.com/modes/export/).

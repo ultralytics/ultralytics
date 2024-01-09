@@ -6,27 +6,27 @@ keywords: FastSAM, apprentissage automatique, solution basée sur les CNN, segme
 
 # Fast Segment Anything Model (FastSAM)
 
-Le Fast Segment Anything Model (FastSAM) est une solution basée sur les réseaux de neurones à convolution (CNN) en temps réel pour la tâche Segment Anything. Cette tâche est conçue pour segmenter n'importe quel objet dans une image en fonction de différentes interactions utilisateur possibles. FastSAM réduit considérablement les demandes computationnelles tout en maintenant des performances compétitives, ce qui en fait un choix pratique pour diverses tâches de vision.
+Le Fast Segment Anything Model (FastSAM) est une solution basée sur les réseaux de neurones à convolution (CNN) en temps réel pour la tâche Segment Anything. Cette tâche est conçue pour segmenter n'importe quel object dans une image en function de différentes interactions utilisateur possibles. FastSAM réduit considérablement les demandes computationnelles tout en maintenant des performances compétitives, ce qui en fait un choix pratique pour diverses tâches de vision.
 
 ![Vue d'ensemble de l'architecture du Fast Segment Anything Model (FastSAM)](https://user-images.githubusercontent.com/26833433/248551984-d98f0f6d-7535-45d0-b380-2e1440b52ad7.jpg)
 
 ## Vue d'ensemble
 
-FastSAM est conçu pour remédier aux limitations du [Segment Anything Model (SAM)](sam.md), un modèle Transformer lourd nécessitant des ressources computationnelles importantes. FastSAM découpe la tâche de segmentation en deux étapes séquentielles : la segmentation de toutes les instances et la sélection guidée par une invitation. La première étape utilise [YOLOv8-seg](../tasks/segment.md) pour produire les masques de segmentation de toutes les instances de l'image. Dans la deuxième étape, il génère la région d'intérêt correspondant à l'invitation.
+FastSAM est conçu pour remédier aux limitations du [Segment Anything Model (SAM)](sam.md), un modèle Transformer lourd nécessitant des resources computationnelles importantes. FastSAM découpe la tâche de segmentation en deux étapes séquentielles : la segmentation de toutes les instances et la sélection guidée par une invitation. La première étape utilise [YOLOv8-seg](../tasks/segment.md) pour produire les masques de segmentation de toutes les instances de l'image. Dans la deuxième étape, il génère la région d'intérêt correspondent à l'invitation.
 
 ## Fonctionnalités clés
 
 1. **Solution en temps réel :** En exploitant l'efficacité computationnelle des CNN, FastSAM fournit une solution en temps réel pour la tâche Segment Anything, ce qui en fait une solution précieuse pour les applications industrielles nécessitant des résultats rapides.
 
-2. **Efficacité et performances :** FastSAM offre une réduction significative des demandes computationnelles et des ressources sans compromettre la qualité des performances. Il atteint des performances comparables à SAM, mais avec une réduction drastique des ressources computationnelles, ce qui permet une application en temps réel.
+2. **Efficacité et performances :** FastSAM offre une réduction significative des demandes computationnelles et des resources sans compromettre la qualité des performances. Il atteint des performances comparables à SAM, mais avec une réduction drastique des resources computationnelles, ce qui permet une application en temps réel.
 
-3. **Segmentation guidée par une invitation :** FastSAM peut segmenter n'importe quel objet dans une image, guidé par différentes invitations d'interaction utilisateur possibles, offrant ainsi flexibilité et adaptabilité dans différents scénarios.
+3. **Segmentation guidée par une invitation :** FastSAM peut segmenter n'importe quel object dans une image, guidé par différentes invitations d'interaction utilisateur possibles, offrant ainsi flexibilité et adaptabilité dans différents scénarios.
 
 4. **Basé sur YOLOv8-seg :** FastSAM est basé sur [YOLOv8-seg](../tasks/segment.md), un détecteur d'objets équipé d'une branche de segmentation d'instances. Cela lui permet de produire efficacement les masques de segmentation de toutes les instances dans une image.
 
 5. **Résultats concurrentiels sur les bancs d'essai :** Dans la tâche de proposition d'objets sur MS COCO, FastSAM obtient des scores élevés à une vitesse significativement plus rapide que [SAM](sam.md) sur une seule NVIDIA RTX 3090, démontrant ainsi son efficacité et sa capacité.
 
-6. **Applications pratiques :** Cette approche propose une nouvelle solution pratique pour un grand nombre de tâches de vision à une vitesse très élevée, des dizaines ou des centaines de fois plus rapide que les méthodes actuelles.
+6. **Applications pratiques :** Cette approach propose une nouvelle solution pratique pour un grand nombre de tâches de vision à une vitesse très élevée, des dizaines ou des centaines de fois plus rapide que les méthodes actuelles.
 
 7. **Faisabilité de la compression du modèle :** FastSAM démontre la faisabilité d'une voie qui peut réduire considérablement l'effort computationnel en introduisant une contrainte artificielle dans la structure, ouvrant ainsi de nouvelles possibilités pour l'architecture de modèles de grande taille pour les tâches de vision générales.
 
@@ -39,7 +39,7 @@ Ce tableau présente les modèles disponibles avec leurs poids pré-entraînés 
 | FastSAM-s      | `FastSAM-s.pt`      | [Segmentation d'instances](../tasks/segment.md) | ✅         | ❌          | ❌            | ✅           |
 | FastSAM-x      | `FastSAM-x.pt`      | [Segmentation d'instances](../tasks/segment.md) | ✅         | ❌          | ❌            | ✅           |
 
-## Exemples d'utilisation
+## Examples d'utilisation
 
 Les modèles FastSAM sont faciles à intégrer dans vos applications Python. Ultralytics propose une API Python conviviale et des commandes CLI pour simplifier le développement.
 
@@ -47,7 +47,7 @@ Les modèles FastSAM sont faciles à intégrer dans vos applications Python. Ult
 
 Pour effectuer une détection d'objets sur une image, utilisez la méthode `Predict` comme indiqué ci-dessous :
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
         ```python
@@ -63,7 +63,7 @@ Pour effectuer une détection d'objets sur une image, utilisez la méthode `Pred
         # Effectuer une inférence sur une image
         everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
-        # Préparer un objet Processus Invitation
+        # Préparer un object Processus Invitation
         prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
 
         # Invitation Everything
@@ -88,13 +88,13 @@ Pour effectuer une détection d'objets sur une image, utilisez la méthode `Pred
         yolo segment predict model=FastSAM-s.pt source=chemin/vers/bus.jpg imgsz=640
         ```
 
-Cet exemple démontre la simplicité du chargement d'un modèle pré-entraîné et de l'exécution d'une prédiction sur une image.
+Cet example démontre la simplicité du chargement d'un modèle pré-entraîné et de l'exécution d'une prédiction sur une image.
 
 ### Utilisation de la validation
 
 La validation du modèle sur un ensemble de données peut être effectuée de la manière suivante :
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
         ```python
@@ -113,7 +113,7 @@ La validation du modèle sur un ensemble de données peut être effectuée de la
         yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
         ```
 
-Veuillez noter que FastSAM ne prend en charge que la détection et la segmentation d'une seule classe d'objet. Cela signifie qu'il reconnaîtra et segmentera tous les objets comme étant de la même classe. Par conséquent, lors de la préparation de l'ensemble de données, vous devez convertir tous les identifiants de catégorie d'objet en 0.
+Veuillez noter que FastSAM ne prend en charge que la détection et la segmentation d'une seule classe d'objet. Cela signifie qu'il reconnaîtra et segmentera tous les objects comme étant de la même classe. Par conséquent, lors de la préparation de l'ensemble de données, vous devez convertir tous les identifiants de catégorie d'objet en 0.
 
 ## Utilisation officielle de FastSAM
 
@@ -126,7 +126,7 @@ FastSAM est également disponible directement à partir du dépôt [https://gith
    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
    ```
 
-2. Créez et activez un environnement Conda avec Python 3.9 :
+2. Créez et activez un environment Conda avec Python 3.9 :
    ```shell
    conda create -n FastSAM python=3.9
    conda activate FastSAM
@@ -143,28 +143,28 @@ FastSAM est également disponible directement à partir du dépôt [https://gith
    pip install git+https://github.com/openai/CLIP.git
    ```
 
-### Exemple d'utilisation
+### Example d'utilisation
 
 1. Téléchargez un [point de contrôle de modèle](https://drive.google.com/file/d/1m1sjY4ihXBU1fZXdQ-Xdj-mDltW-2Rqv/view?usp=sharing).
 
-2. Utilisez FastSAM pour l'inférence. Exemples de commandes :
+2. Utilisez FastSAM pour l'inférence. Examples de commandes :
 
     - Segmentez tout dans une image :
       ```shell
       python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
       ```
 
-    - Segmentez des objets spécifiques à l'aide de l'invitation de texte :
+    - Segmentez des objects spécifiques à l'aide de l'invitation de texte :
       ```shell
       python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "le chien jaune"
       ```
 
-    - Segmentez des objets dans un rectangle englobant (fournir les coordonnées du rectangle au format xywh) :
+    - Segmentez des objects dans un rectangle englobant (fournir les coordonnées du rectangle au format xywh) :
       ```shell
       python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
       ```
 
-    - Segmentez des objets à proximité de points spécifiques :
+    - Segmentez des objects à proximité de points spécifiques :
       ```shell
       python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
       ```

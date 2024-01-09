@@ -1,6 +1,6 @@
 ---
 comments: true
-description: En savoir plus sur MobileSAM, son implémentation, la comparaison avec SAM d'origine, et comment le télécharger et le tester dans le cadre de l'environnement Ultralytics. Améliorez vos applications mobiles dès aujourd'hui.
+description: En savoir plus sur MobileSAM, son implémentation, la comparison avec SAM d'origine, et comment le télécharger et le tester dans le cadre de l'environnement Ultralytics. Améliorez vos applications mobiles dès aujourd'hui.
 keywords: MobileSAM, Ultralytics, SAM, applications mobiles, Arxiv, GPU, API, encodeur d'image, décodeur de masque, téléchargement de modèle, méthode de test
 ---
 
@@ -12,7 +12,7 @@ Le document MobileSAM est maintenant disponible sur [arXiv](https://arxiv.org/pd
 
 Une démonstration de MobileSAM exécutée sur un processeur CPU est accessible via ce [lien de démonstration](https://huggingface.co/spaces/dhkim2810/MobileSAM). Les performances sur un CPU Mac i5 prennent environ 3 secondes. Sur la démo de Hugging Face, l'interface ainsi que les CPU moins performants contribuent à une réponse plus lente, mais cela continue de fonctionner efficacement.
 
-MobileSAM est implémenté dans divers projets, notamment [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), et [Segment Anything en 3D](https://github.com/Jumpat/SegmentAnythingin3D).
+MobileSAM est implémenté dans divers projects, notamment [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), et [Segment Anything en 3D](https://github.com/Jumpat/SegmentAnythingin3D).
 
 MobileSAM est entraîné sur un seul GPU avec un ensemble de données de 100 000 images (1% des images originales) en moins d'une journée. Le code de cet entraînement sera disponible à l'avenir.
 
@@ -28,9 +28,9 @@ Ce tableau présente les modèles disponibles avec leurs poids pré-entraînés 
 
 Étant donné que MobileSAM conserve le même pipeline que SAM d'origine, nous avons incorporé le pré-traitement, le post-traitement et toutes les autres interfaces de l'original. Par conséquent, ceux qui utilisent actuellement SAM d'origine peuvent passer à MobileSAM avec un effort minimal.
 
-MobileSAM a des performances comparables à celles de SAM d'origine et conserve le même pipeline à l'exception d'un changement dans l'encodeur d'image. Plus précisément, nous remplaçons l'encodeur d'image lourd original ViT-H (632M) par un encodeur Tiny-ViT plus petit (5M). Sur un seul GPU, MobileSAM fonctionne à environ 12 ms par image : 8 ms sur l'encodeur d'image et 4 ms sur le décodeur de masque.
+MobileSAM a des performances comparables à cells de SAM d'origine et conserve le même pipeline à l'exception d'un changement dans l'encodeur d'image. Plus précisément, nous remplaçons l'encodeur d'image lourd original ViT-H (632M) par un encodeur Tiny-ViT plus petit (5M). Sur un seul GPU, MobileSAM fonctionne à environ 12 ms par image : 8 ms sur l'encodeur d'image et 4 ms sur le décodeur de masque.
 
-Le tableau suivant présente une comparaison des encodeurs d'image basés sur ViT :
+Le tableau suivant présente une comparison des encodeurs d'image basés sur ViT :
 
 | Encodeur d'Image | SAM d'Origine | MobileSAM |
 |------------------|---------------|-----------|
@@ -44,9 +44,9 @@ SAM d'origine et MobileSAM utilisent tous deux le même décodeur de masque bas�
 | Paramètres         | 3.876M        | 3.876M    |
 | Vitesse            | 4 ms          | 4 ms      |
 
-Voici une comparaison du pipeline complet :
+Voici une comparison du pipeline complete :
 
-| Pipeline Complet (Enc+Dec) | SAM d'Origine | MobileSAM |
+| Pipeline Complete (Enc+Dec) | SAM d'Origine | MobileSAM |
 |----------------------------|---------------|-----------|
 | Paramètres                 | 615M          | 9.66M     |
 | Vitesse                    | 456 ms        | 12 ms     |
@@ -57,7 +57,7 @@ Les performances de MobileSAM et de SAM d'origine sont démontrées en utilisant
 
 ![Image avec une Boîte comme Instruction](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_box.jpg?raw=true)
 
-Avec ses performances supérieures, MobileSAM est environ 5 fois plus petit et 7 fois plus rapide que FastSAM actuel. Plus de détails sont disponibles sur la [page du projet MobileSAM](https://github.com/ChaoningZhang/MobileSAM).
+Avec ses performances supérieures, MobileSAM est environ 5 fois plus petit et 7 fois plus rapide que FastSAM actuel. Plus de détails sont disponibles sur la [page du project MobileSAM](https://github.com/ChaoningZhang/MobileSAM).
 
 ## Test de MobileSAM dans Ultralytics
 
@@ -69,7 +69,7 @@ Vous pouvez télécharger le modèle [ici](https://github.com/ChaoningZhang/Mobi
 
 ### Instruction Point
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
         ```python
@@ -84,7 +84,7 @@ Vous pouvez télécharger le modèle [ici](https://github.com/ChaoningZhang/Mobi
 
 ### Instruction Boîte
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
         ```python

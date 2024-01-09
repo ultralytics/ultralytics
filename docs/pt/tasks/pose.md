@@ -83,11 +83,11 @@ Treine um modelo YOLOv8-pose no conjunto de dados COCO128-pose.
 
 ### Formato do conjunto de dados
 
-O formato do conjunto de dados de pose YOLO pode ser encontrado em detalhes no [Guia de Conjuntos de Dados](../../../datasets/pose/index.md). Para converter seu conjunto de dados existente de outros formatos (como COCO etc.) para o formato YOLO, por favor, use a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
+O formato do conjunto de dados de pose YOLO pode set encontrado em detalhes no [Guia de Conjuntos de Dados](../../../datasets/pose/index.md). Para converter seu conjunto de dados existente de outros formatos (como COCO etc.) para o formato YOLO, por favor, use a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
 
 ## Validar
 
-Valide a acurácia do modelo YOLOv8n-pose treinado no conjunto de dados COCO128-pose. Não é necessário passar nenhum argumento, pois o `model`
+Valid a acurácia do modelo YOLOv8n-pose treinado no conjunto de dados COCO128-pose. Não é necessário passar nenhum argumento, pois o `model`
 retém seus `data` de treinamento e argumentos como atributos do modelo.
 
 !!! Example "Exemplo"
@@ -98,7 +98,7 @@ retém seus `data` de treinamento e argumentos como atributos do modelo.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-pose.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-pose.pt')  # carregar um modelo official
         model = YOLO('caminho/para/melhor.pt')  # carregar um modelo personalizado
 
         # Validar o modelo
@@ -111,7 +111,7 @@ retém seus `data` de treinamento e argumentos como atributos do modelo.
     === "CLI"
 
         ```bash
-        yolo pose val model=yolov8n-pose.pt  # validar modelo oficial
+        yolo pose val model=yolov8n-pose.pt  # validar modelo official
         yolo pose val model=caminho/para/melhor.pt  # validar modelo personalizado
         ```
 
@@ -127,7 +127,7 @@ Use um modelo YOLOv8n-pose treinado para executar previsões em imagens.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-pose.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-pose.pt')  # carregar um modelo official
         model = YOLO('caminho/para/melhor.pt')  # carregar um modelo personalizado
 
         # Prever com o modelo
@@ -136,7 +136,7 @@ Use um modelo YOLOv8n-pose treinado para executar previsões em imagens.
     === "CLI"
 
         ```bash
-        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # prever com modelo oficial
+        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # prever com modelo official
         yolo pose predict model=caminho/para/melhor.pt source='https://ultralytics.com/images/bus.jpg'  # prever com modelo personalizado
         ```
 
@@ -154,7 +154,7 @@ Exporte um modelo YOLOv8n Pose para um formato diferente como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-pose.pt')  # carregar um modelo oficial
+        model = YOLO('yolov8n-pose.pt')  # carregar um modelo official
         model = YOLO('caminho/para/melhor.pt')  # carregar um modelo treinado personalizado
 
         # Exportar o modelo
@@ -163,7 +163,7 @@ Exporte um modelo YOLOv8n Pose para um formato diferente como ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-pose.pt format=onnx  # exportar modelo oficial
+        yolo export model=yolov8n-pose.pt format=onnx  # exportar modelo official
         yolo export model=caminho/para/melhor.pt format=onnx  # exportar modelo treinado personalizado
         ```
 

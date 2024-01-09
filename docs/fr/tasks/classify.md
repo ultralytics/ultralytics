@@ -1,20 +1,20 @@
 ---
 comments: true
-description: Apprenez-en davantage sur les modèles de classification d'images YOLOv8 Classify. Obtenez des informations détaillées sur la liste des modèles pré-entraînés et comment entraîner, valider, prédire et exporter des modèles.
+description: Apprenez-en davantage sur les modèles de classification d'images YOLOv8 Classify. Obtenez des information détaillées sur la liste des modèles pré-entraînés et comment entraîner, valider, prédire et exporter des modèles.
 keywords: Ultralytics, YOLOv8, Classification d'images, Modèles pré-entraînés, YOLOv8n-cls, Entraînement, Validation, Prédiction, Exportation de modèles
 ---
 
 # Classification d'images
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418606-adf35c62-2e11-405d-84c6-b84e7d013804.png" alt="Exemples de classification d'images">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418606-adf35c62-2e11-405d-84c6-b84e7d013804.png" alt="Examples de classification d'images">
 
 La classification d'images est la tâche la plus simple des trois et consiste à classer une image entière dans l'une d'un ensemble de classes prédéfinies.
 
-Le résultat d'un classificateur d'images est une étiquette de classe unique et un score de confiance. La classification d'images est utile lorsque vous avez besoin de savoir seulement à quelle classe appartient une image et que vous n'avez pas besoin de connaître l'emplacement des objets de cette classe ou leur forme exacte.
+Le résultat d'un classificateur d'images est une étiquette de classe unique et un score de confiance. La classification d'images est utile lorsque vous avez besoin de savoir seulement à quelle classe appartient une image et que vous n'avez pas besoin de connaître l'emplacement des objects de cette classe ou leur forme exacte.
 
 !!! Tip "Astuce"
 
-    Les modèles YOLOv8 Classify utilisent le suffixe `-cls`, par exemple `yolov8n-cls.pt` et sont pré-entraînés sur [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+    Les modèles YOLOv8 Classify utilisent le suffixe `-cls`, par example `yolov8n-cls.pt` et sont pré-entraînés sur [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
 ## [Modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
@@ -39,7 +39,7 @@ Les [modèles](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/
 
 Entraînez le modèle YOLOv8n-cls sur le dataset MNIST160 pendant 100 époques avec une taille d'image de 64. Pour une liste complète des arguments disponibles, consultez la page [Configuration](/../usage/cfg.md).
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -76,7 +76,7 @@ Le format du dataset de classification YOLO peut être trouvé en détails dans 
 
 Validez la précision du modèle YOLOv8n-cls entraîné sur le dataset MNIST160. Aucun argument n'est nécessaire car le `modèle` conserve ses données d'entraînement et arguments en tant qu'attributs du modèle.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -103,7 +103,7 @@ Validez la précision du modèle YOLOv8n-cls entraîné sur le dataset MNIST160.
 
 Utilisez un modèle YOLOv8n-cls entraîné pour exécuter des prédictions sur des images.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -124,13 +124,13 @@ Utilisez un modèle YOLOv8n-cls entraîné pour exécuter des prédictions sur d
         yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # prédiction avec le modèle personnalisé
         ```
 
-Voir les détails complets du mode `predict` sur la page [Prédire](https://docs.ultralytics.com/modes/predict/).
+Voir les détails completes du mode `predict` sur la page [Prédire](https://docs.ultralytics.com/modes/predict/).
 
 ## Exportation
 
 Exportez un modèle YOLOv8n-cls dans un format différent comme ONNX, CoreML, etc.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -151,7 +151,7 @@ Exportez un modèle YOLOv8n-cls dans un format différent comme ONNX, CoreML, et
         yolo export model=path/to/best.pt format=onnx  # exporter le modèle entraîné personnalisé
         ```
 
-Les formats d'exportation disponibles pour YOLOv8-cls sont présentés dans le tableau ci-dessous. Vous pouvez prédire ou valider directement sur les modèles exportés, par exemple `yolo predict model=yolov8n-cls.onnx`. Des exemples d'utilisation sont présentés pour votre modèle une fois l'exportation terminée.
+Les formats d'exportation disponibles pour YOLOv8-cls sont présentés dans le tableau ci-dessous. Vous pouvez prédire ou valider directement sur les modèles exportés, par example `yolo predict model=yolov8n-cls.onnx`. Des examples d'utilisation sont présentés pour votre modèle une fois l'exportation terminée.
 
 | Format                                                             | Argument `format` | Modèle                        | Métadonnées | Arguments                                           |
 |--------------------------------------------------------------------|-------------------|-------------------------------|-------------|-----------------------------------------------------|
@@ -169,4 +169,4 @@ Les formats d'exportation disponibles pour YOLOv8-cls sont présentés dans le t
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅           | `imgsz`                                             |
 | [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅           | `imgsz`, `half`                                     |
 
-Voir les détails complets de l'`exportation` sur la page [Export](https://docs.ultralytics.com/modes/export/).
+Voir les détails completes de l'`exportation` sur la page [Export](https://docs.ultralytics.com/modes/export/).

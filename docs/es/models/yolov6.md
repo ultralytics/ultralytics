@@ -12,14 +12,14 @@ keywords: Meituan YOLOv6, detección de objetos, Ultralytics, documentación de 
 
 ![Meituan YOLOv6](https://user-images.githubusercontent.com/26833433/240750495-4da954ce-8b3b-41c4-8afd-ddb74361d3c2.png)
 ![Ejemplo de imagen del modelo](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png)
-**Visión general de YOLOv6.** Diagrama de la arquitectura del modelo que muestra los componentes de la red redesdiseñados y las estrategias de entrenamiento que han llevado a mejoras significativas en el rendimiento. (a) El cuello de YOLOv6 (N y S se muestran). Señalar que, en M/L, RepBlocks es reemplazado por CSPStackRep. (b) La estructura de un módulo BiC. (c) Un bloque SimCSPSPPF. ([fuente](https://arxiv.org/pdf/2301.05586.pdf)).
+**Visión general de YOLOv6.** Diagram de la arquitectura del modelo que muestra los components de la red redesdiseñados y las estrategias de entrenamiento que han llevado a mejoras significativas en el rendimiento. (a) El cuello de YOLOv6 (N y S se muestran). Señalar que, en M/L, RepBlocks es reemplazado por CSPStackRep. (b) La estructura de un módulo BiC. (c) Un bloque SimCSPSPPF. ([fuente](https://arxiv.org/pdf/2301.05586.pdf)).
 
 ### Características clave
 
 - **Módulo de Concatenación Bidireccional (BiC):** YOLOv6 introduce un módulo de BiC en el cuello del detector, mejorando las señales de localización y ofreciendo mejoras en el rendimiento con una degradación de velocidad despreciable.
 - **Estrategia de Entrenamiento con Anclas (AAT):** Este modelo propone AAT para disfrutar de los beneficios de los paradigmas basados en anclas y sin anclas sin comprometer la eficiencia de inferencia.
 - **Diseño de Columna Vertebral y Cuello Mejorado:** Al profundizar en YOLOv6 para incluir otra etapa en la columna vertebral y el cuello, este modelo logra un rendimiento de última generación en el conjunto de datos COCO con una entrada de alta resolución.
-- **Estrategia de Auto-Destilación:** Se implementa una nueva estrategia de auto-destilación para mejorar el rendimiento de los modelos más pequeños de YOLOv6, mejorando la rama de regresión auxiliar durante el entrenamiento y eliminándola durante la inferencia para evitar una marcada disminución de velocidad.
+- **Estrategia de Auto-Destilación:** Se implementa una nueva estrategia de auto-destilación para mejorar el rendimiento de los modelos más pequeños de YOLOv6, mejorando la rama de regresión auxiliary durante el entrenamiento y eliminándola durante la inferencia para evitar una marcada disminución de velocidad.
 
 ## Métricas de rendimiento
 
@@ -61,7 +61,7 @@ Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia con YO
 
     === "CLI"
 
-        Se dispone de comandos de línea de comandos (CLI) para ejecutar directamente los modelos:
+        Se dispone de commandos de línea de commandos (CLI) para ejecutar directamente los modelos:
 
         ```bash
         # Construir un modelo YOLOv6n desde cero y entrenarlo en el conjunto de datos de ejemplo COCO8 durante 100 epochs
@@ -73,7 +73,7 @@ Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia con YO
 
 ## Tareas y Modos Soportados
 
-La serie YOLOv6 ofrece una variedad de modelos, cada uno optimizado para [Detección de Objetos](../tasks/detect.md) de alto rendimiento. Estos modelos se adaptan a distintas necesidades computacionales y requisitos de precisión, lo que los hace versátiles para una amplia gama de aplicaciones.
+La series YOLOv6 ofrece una variedad de modelos, cada uno optimizado para [Detección de Objetos](../tasks/detect.md) de alto rendimiento. Estos modelos se adaptan a distintas necesidades computacionales y requisitos de precisión, lo que los have versátiles para una amplia gama de aplicaciones.
 
 | Tipo de Modelo | Pesos Pre-entrenados | Tareas Soportadas                          | Inferencia | Validación | Entrenamiento | Exportación |
 |----------------|----------------------|--------------------------------------------|------------|------------|---------------|-------------|
@@ -104,4 +104,4 @@ Nos gustaría agradecer a los autores por sus importantes contribuciones en el c
         }
         ```
 
-    Se puede encontrar el artículo original de YOLOv6 en [arXiv](https://arxiv.org/abs/2301.05586). Los autores han puesto su trabajo a disposición del público y el código fuente se puede acceder en [GitHub](https://github.com/meituan/YOLOv6). Agradecemos sus esfuerzos en avanzar en el campo y hacer que su trabajo sea accesible para la comunidad en general.
+    Se puede encontrar el artículo original de YOLOv6 en [arXiv](https://arxiv.org/abs/2301.05586). Los autores han puesto su trabajo a disposición del público y el código fuente se puede acceder en [GitHub](https://github.com/meituan/YOLOv6). Agradecemos sus esfuerzos en avanzar en el campo y hacer que su trabajo sea accessible para la comunidad en general.

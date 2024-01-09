@@ -1,6 +1,7 @@
 ---
 comments: true
-description: YOLOv3、YOLOv3-Ultralytics、およびYOLOv3uの概要を把握してください。オブジェクト検出に対するこれらのモデルの主な特徴、使用方法、およびサポートされるタスクについて学びます。
+description: 
+  YOLOv3、YOLOv3-Ultralytics、およびYOLOv3uの概要を把握してください。オブジェクト検出に対するこれらのモデルの主な特徴、使用方法、およびサポートされるタスクについて学びます。
 keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, オブジェクト検出, 推論, トレーニング, Ultralytics
 ---
 
@@ -32,11 +33,11 @@ YOLOv3シリーズ、YOLOv3、YOLOv3-Ultralytics、およびYOLOv3uは、オブ�
 
 3つのモデルは[推論](../modes/predict.md)、[検証](../modes/val.md)、[トレーニング](../modes/train.md)、および[エクスポート](../modes/export.md)など、幅広いモードをサポートしており、効果的なオブジェクト検出のための完全なツールキットを提供します。
 
-| モデルの種類             | サポートされるタスク                     | 推論 | 検証 | トレーニング | エクスポート |
-|--------------------|--------------------------------|----|----|--------|--------|
-| YOLOv3             | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv3-Ultralytics | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv3u            | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
+| モデルの種類             | サポートされるタスク                     | 推論  | 検証  | トレーニング | エクスポート |
+| ------------------ | ------------------------------ | --- | --- | ------ | ------ |
+| YOLOv3             | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅      | ✅      |
+| YOLOv3-Ultralytics | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅      | ✅      |
+| YOLOv3u            | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅      | ✅      |
 
 この表は、各YOLOv3バリアントの機能を一目で把握するためのもので、オブジェクト検出ワークフローのさまざまなタスクと操作モードに対する多様性と適用性を強調しています。
 
@@ -46,37 +47,39 @@ YOLOv3シリーズ、YOLOv3、YOLOv3-Ultralytics、およびYOLOv3uは、オブ�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        PyTorchの事前学習済み `*.pt` モデルと設定 `*.yaml` ファイルは、`YOLO()` クラスに渡してモデルインスタンスを作成できます。
+    PyTorchの事前学習済み `*.pt` モデルと設定 `*.yaml` ファイルは、`YOLO()` クラスに渡してモデルインスタンスを作成できます。
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # COCOで学習済みのYOLOv3nモデルをロード
-        model = YOLO('yolov3n.pt')
+    # COCOで学習済みのYOLOv3nモデルをロード
+    model = YOLO('yolov3n.pt')
 
-        # モデル情報の表示（任意）
-        model.info()
+    # モデル情報の表示（任意）
+    model.info()
 
-        # COCO8のサンプルデータセットでモデルを100エポックトレーニング
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+    # COCO8のサンプルデータセットでモデルを100エポックトレーニング
+    results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # YOLOv3nモデルで'bus.jpg'画像に対して推論実行
-        results = model('path/to/bus.jpg')
-        ```
+    # YOLOv3nモデルで'bus.jpg'画像に対して推論実行
+    results = model('path/to/bus.jpg')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        CLIコマンドを使用して直接モデルを実行できます。
+    CLIコマンドを使用して直接モデルを実行できます。
 
-        ```bash
-        # COCOで学習済みのYOLOv3nモデルをロードし、COCO8のサンプルデータセットで100エポックトレーニング
-        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+    ```bash
+    # COCOで学習済みのYOLOv3nモデルをロードし、COCO8のサンプルデータセットで100エポックトレーニング
+    yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # COCOで学習済みのYOLOv3nモデルをロードし、'bus.jpg'画像に対して推論実行
-        yolo predict model=yolov3n.pt source=path/to/bus.jpg
-        ```
+    # COCOで学習済みのYOLOv3nモデルをロードし、'bus.jpg'画像に対して推論実行
+    yolo predict model=yolov3n.pt source=path/to/bus.jpg
+    ```
+````
 
 ## 引用と謝辞
 
@@ -84,15 +87,17 @@ YOLOv3シリーズ、YOLOv3、YOLOv3-Ultralytics、およびYOLOv3uは、オブ�
 
 !!! Quote ""
 
-    === "BibTeX"
+````
+=== "BibTeX"
 
-        ```bibtex
-        @article{redmon2018yolov3,
-          title={YOLOv3: An Incremental Improvement},
-          author={Redmon, Joseph and Farhadi, Ali},
-          journal={arXiv preprint arXiv:1804.02767},
-          year={2018}
-        }
-        ```
+    ```bibtex
+    @article{redmon2018yolov3,
+      title={YOLOv3: An Incremental Improvement},
+      author={Redmon, Joseph and Farhadi, Ali},
+      journal={arXiv preprint arXiv:1804.02767},
+      year={2018}
+    }
+    ```
+````
 
 Joseph RedmonとAli Farhadiには、オリジナルのYOLOv3を開発していただいたことに感謝します。

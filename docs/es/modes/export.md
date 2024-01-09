@@ -28,13 +28,13 @@ El objetivo final de entrenar un modelo es desplegarlo para aplicaciones en el m
 - **Versatilidad:** Exporta a múltiples formatos incluyendo ONNX, TensorRT, CoreML y más.
 - **Rendimiento:** Acelera hasta 5 veces la velocidad en GPU con TensorRT y 3 veces en CPU con ONNX o OpenVINO.
 - **Compatibilidad:** Hacer que tu modelo sea universalmente desplegable en numerosos entornos de hardware y software.
-- **Facilidad de Uso:** Interfaz de línea de comandos simple y API de Python para una exportación de modelos rápida y sencilla.
+- **Facilidad de Uso:** Interfaz de línea de commandos simple y API de Python para una exportación de modelos rápida y sencilla.
 
 ### Características Clave del Modo de Exportación
 
 Aquí tienes algunas de las funcionalidades destacadas:
 
-- **Exportación con Un Solo Clic:** Comandos simples para exportar a diferentes formatos.
+- **Exportación con Un Solo Clic:** Commandos simples para exportar a diferentes formatos.
 - **Exportación por Lotes:** Exporta modelos capaces de inferencia por lotes.
 - **Inferencia Optimizada:** Los modelos exportados están optimizados para tiempos de inferencia más rápidos.
 - **Vídeos Tutoriales:** Guías y tutoriales en profundidad para una experiencia de exportación fluida.
@@ -56,7 +56,7 @@ Exporta un modelo YOLOv8n a un formato diferente como ONNX o TensorRT. Consulta 
         from ultralytics import YOLO
 
         # Carga un modelo
-        model = YOLO('yolov8n.pt')  # carga un modelo oficial
+        model = YOLO('yolov8n.pt')  # carga un modelo official
         model = YOLO('path/to/best.pt')  # carga un modelo entrenado personalizado
 
         # Exporta el modelo
@@ -65,7 +65,7 @@ Exporta un modelo YOLOv8n a un formato diferente como ONNX o TensorRT. Consulta 
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # exporta modelo oficial
+        yolo export model=yolov8n.pt format=onnx  # exporta modelo official
         yolo export model=path/to/best.pt format=onnx  # exporta modelo entrenado personalizado
         ```
 

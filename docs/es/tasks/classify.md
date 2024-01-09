@@ -84,7 +84,7 @@ Validar la exactitud del modelo YOLOv8n-cls entrenado en el conjunto de datos MN
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-cls.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n-cls.pt')  # cargar un modelo official
         model = YOLO('path/to/best.pt')  # cargar un modelo personalizado
 
         # Validar el modelo
@@ -95,7 +95,7 @@ Validar la exactitud del modelo YOLOv8n-cls entrenado en el conjunto de datos MN
     === "CLI"
 
         ```bash
-        yolo classify val model=yolov8n-cls.pt  # validar modelo oficial
+        yolo classify val model=yolov8n-cls.pt  # validar modelo official
         yolo classify val model=path/to/best.pt  # validar modelo personalizado
         ```
 
@@ -111,7 +111,7 @@ Usar un modelo YOLOv8n-cls entrenado para realizar predicciones en imágenes.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-cls.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n-cls.pt')  # cargar un modelo official
         model = YOLO('path/to/best.pt')  # cargar un modelo personalizado
 
         # Predecir con el modelo
@@ -120,7 +120,7 @@ Usar un modelo YOLOv8n-cls entrenado para realizar predicciones en imágenes.
     === "CLI"
 
         ```bash
-        yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo oficial
+        yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo official
         yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo personalizado
         ```
 
@@ -138,7 +138,7 @@ Exportar un modelo YOLOv8n-cls a un formato diferente como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-cls.pt')  # cargar un modelo oficial
+        model = YOLO('yolov8n-cls.pt')  # cargar un modelo official
         model = YOLO('path/to/best.pt')  # cargar un modelo entrenado personalizado
 
         # Exportar el modelo
@@ -147,7 +147,7 @@ Exportar un modelo YOLOv8n-cls a un formato diferente como ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-cls.pt format=onnx  # exportar modelo oficial
+        yolo export model=yolov8n-cls.pt format=onnx  # exportar modelo official
         yolo export model=path/to/best.pt format=onnx  # exportar modelo entrenado personalizado
         ```
 

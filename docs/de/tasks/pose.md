@@ -8,9 +8,9 @@ keywords: Ultralytics, YOLO, YOLOv8, Pose-Schätzung, Erkennung von Schlüsselpu
 
 ![Beispiele für die Pose-Schätzung](https://user-images.githubusercontent.com/26833433/243418616-9811ac0b-a4a7-452a-8aba-484ba32bb4a8.png)
 
-Die Pose-Schätzung ist eine Aufgabe, die das Identifizieren der Lage spezifischer Punkte in einem Bild beinhaltet, die normalerweise als Schlüsselpunkte bezeichnet werden. Die Schlüsselpunkte können verschiedene Teile des Objekts wie Gelenke, Landmarken oder andere charakteristische Merkmale repräsentieren. Die Positionen der Schlüsselpunkte sind üblicherweise als eine Gruppe von 2D `[x, y]` oder 3D `[x, y, sichtbar]` Koordinaten dargestellt.
+Die Pose-Schätzung ist eine Aufgabe, die das Identifizieren der Lage spezifischer Punkte in einem Bild beinhaltet, die normalerweise also Schlüsselpunkte bezeichnet werden. Die Schlüsselpunkte können verschiedene Teile des Objekts wie Gelenke, Landmarken oder andere charakteristische Merkmale repräsentieren. Die Positionen der Schlüsselpunkte sind üblicherweise also eine Gruppe von 2D `[x, y]` oder 3D `[x, y, sichtbar]` Koordinaten dargestellt.
 
-Das Ergebnis eines Pose-Schätzungsmodells ist eine Gruppe von Punkten, die die Schlüsselpunkte auf einem Objekt im Bild darstellen, normalerweise zusammen mit den Konfidenzwerten für jeden Punkt. Die Pose-Schätzung eignet sich gut, wenn Sie spezifische Teile eines Objekts in einer Szene identifizieren müssen und deren Lage zueinander.
+Das Ergebnis eines Pose-Schätzungsmodells ist eine Gruppe von Punkten, die die Schlüsselpunkte auf einem Object im Bild darstellen, normalerweise zusammen mit den Konfidenzwerten für jeden Punkt. Die Pose-Schätzung eignet sich gut, wenn Sie spezifische Teile eines Objekts in einer Scene identifizieren müssen und deren Lage zueinander.
 
 <p align="center">
   <br>
@@ -33,7 +33,7 @@ Hier werden vortrainierte YOLOv8 Pose-Modelle gezeigt. Erkennungs-, Segmentierun
 
 [Modelle](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) werden automatisch aus der neuesten Ultralytics-[Veröffentlichung](https://github.com/ultralytics/assets/releases) bei erstmaliger Verwendung heruntergeladen.
 
-| Modell                                                                                               | Größe<br><sup>(Pixel) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
+| Model                                                                                               | Größe<br><sup>(Pixel) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
 |------------------------------------------------------------------------------------------------------|-----------------------|-----------------------|--------------------|------------------------------------------|-----------------------------------------------|-----------------------|-------------------|
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | 50,4                  | 80,1               | 131,8                                    | 1,18                                          | 3,3                   | 9,2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | 60,0                  | 86,2               | 233,2                                    | 1,42                                          | 11,6                  | 30,2              |
@@ -42,7 +42,7 @@ Hier werden vortrainierte YOLOv8 Pose-Modelle gezeigt. Erkennungs-, Segmentierun
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | 69,2                  | 90,2               | 1607,1                                   | 3,73                                          | 69,4                  | 263,2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | 71,6                  | 91,2               | 4088,7                                   | 10,04                                         | 99,1                  | 1066,4            |
 
-- **mAP<sup>val</sup>** Werte gelten für ein einzelnes Modell mit einfacher Skala auf dem [COCO Keypoints val2017](http://cocodataset.org)-Datensatz.
+- **mAP<sup>val</sup>** Werte gelten für ein einzelnes Model mit einfacher Skala auf dem [COCO Keypoints val2017](http://cocodataset.org)-Datensatz.
   <br>Zu reproduzieren mit `yolo val pose data=coco-pose.yaml device=0`.
 - **Geschwindigkeit** gemittelt über COCO-Validierungsbilder mit einer [Amazon EC2 P4d](https://aws.amazon.com/de/ec2/instance-types/p4/)-Instanz.
   <br>Zu reproduzieren mit `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`.
@@ -58,24 +58,24 @@ Trainieren Sie ein YOLOv8-Pose-Modell auf dem COCO128-Pose-Datensatz.
         ```python
         from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n-pose.yaml')  # ein neues Modell aus YAML bauen
-        model = YOLO('yolov8n-pose.pt')  # ein vortrainiertes Modell laden (empfohlen für das Training)
+        # Model laden
+        model = YOLO('yolov8n-pose.yaml')  # ein neues Model aus YAML bauen
+        model = YOLO('yolov8n-pose.pt')  # ein vortrainiertes Model laden (empfohlen für das Training)
         model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # aus YAML bauen und Gewichte übertragen
 
-        # Modell trainieren
+        # Model trainieren
         results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 
         ```bash
-        # Ein neues Modell aus YAML bauen und das Training von Grund auf starten
+        # Ein neues Model aus YAML bauen und das Training von Grund auf starten
         yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
 
-        # Training von einem vortrainierten *.pt Modell starten
+        # Training von einem vortrainierten *.pt Model starten
         yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
 
-        # Ein neues Modell aus YAML bauen, vortrainierte Gewichte übertragen und das Training starten
+        # Ein neues Model aus YAML bauen, vortrainierte Gewichte übertragen und das Training starten
         yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
@@ -85,7 +85,7 @@ Das YOLO-Pose-Datensatzformat finden Sie detailliert im [Datensatz-Leitfaden](..
 
 ## Validieren
 
-Die Genauigkeit des trainierten YOLOv8n-Pose-Modells auf dem COCO128-Pose-Datensatz validieren. Es müssen keine Argumente übergeben werden, da das `Modell` seine Trainings`daten` und Argumente als Modellattribute beibehält.
+Die Genauigkeit des trainierten YOLOv8n-Pose-Modells auf dem COCO128-Pose-Datensatz validieren. Es müssen keine Argumente übergeben werden, da das `Model` seine Trainings`daten` und Argumente also Modellattribute beibehält.
 
 !!! Example "Beispiel"
 
@@ -94,11 +94,11 @@ Die Genauigkeit des trainierten YOLOv8n-Pose-Modells auf dem COCO128-Pose-Datens
         ```python
         from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n-pose.pt')  # ein offizielles Modell laden
-        model = YOLO('pfad/zu/best.pt')  # ein benutzerdefiniertes Modell laden
+        # Model laden
+        model = YOLO('yolov8n-pose.pt')  # ein offizielles Model laden
+        model = YOLO('pfad/zu/best.pt')  # ein benutzerdefiniertes Model laden
 
-        # Modell validieren
+        # Model validieren
         metrics = model.val()  # keine Argumente nötig, Datensatz und Einstellungen sind gespeichert
         metrics.box.map    # map50-95
         metrics.box.map50  # map50
@@ -108,8 +108,8 @@ Die Genauigkeit des trainierten YOLOv8n-Pose-Modells auf dem COCO128-Pose-Datens
     === "CLI"
 
         ```bash
-        yolo pose val model=yolov8n-pose.pt  # offizielles Modell validieren
-        yolo pose val model=pfad/zu/best.pt  # benutzerdefiniertes Modell validieren
+        yolo pose val model=yolov8n-pose.pt  # offizielles Model validieren
+        yolo pose val model=pfad/zu/best.pt  # benutzerdefiniertes Model validieren
         ```
 
 ## Vorhersagen
@@ -123,18 +123,18 @@ Ein trainiertes YOLOv8n-Pose-Modell verwenden, um Vorhersagen auf Bildern zu mac
         ```python
         from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n-pose.pt')  # ein offizielles Modell laden
-        model = YOLO('pfad/zu/best.pt')  # ein benutzerdefiniertes Modell laden
+        # Model laden
+        model = YOLO('yolov8n-pose.pt')  # ein offizielles Model laden
+        model = YOLO('pfad/zu/best.pt')  # ein benutzerdefiniertes Model laden
 
-        # Mit dem Modell Vorhersagen machen
+        # Mit dem Model Vorhersagen machen
         results = model('https://ultralytics.com/images/bus.jpg')  # Vorhersage auf einem Bild machen
         ```
     === "CLI"
 
         ```bash
-        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # Vorhersage mit dem offiziellen Modell machen
-        yolo pose predict model=pfad/zu/best.pt source='https://ultralytics.com/images/bus.jpg'  # Vorhersage mit dem benutzerdefinierten Modell machen
+        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # Vorhersage mit dem offiziellen Model machen
+        yolo pose predict model=pfad/zu/best.pt source='https://ultralytics.com/images/bus.jpg'  # Vorhersage mit dem benutzerdefinierten Model machen
         ```
 
 Vollständige `predict`-Modusdetails finden Sie auf der [Vorhersage](https://docs.ultralytics.com/modes/predict/)-Seite.
@@ -150,23 +150,23 @@ Ein YOLOv8n-Pose-Modell in ein anderes Format wie ONNX, CoreML usw. exportieren.
         ```python
         from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n-pose.pt')  # ein offizielles Modell laden
-        model = YOLO('pfad/zu/best.pt')  # ein benutzerdefiniertes Modell laden
+        # Model laden
+        model = YOLO('yolov8n-pose.pt')  # ein offizielles Model laden
+        model = YOLO('pfad/zu/best.pt')  # ein benutzerdefiniertes Model laden
 
-        # Modell exportieren
+        # Model exportieren
         model.export(format='onnx')
         ```
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-pose.pt format=onnx  # offizielles Modell exportieren
-        yolo export model=pfad/zu/best.pt format=onnx  # benutzerdefiniertes Modell exportieren
+        yolo export model=yolov8n-pose.pt format=onnx  # offizielles Model exportieren
+        yolo export model=pfad/zu/best.pt format=onnx  # benutzerdefiniertes Model exportieren
         ```
 
-Verfügbare YOLOv8-Pose-Exportformate sind in der folgenden Tabelle aufgeführt. Sie können direkt auf exportierten Modellen vorhersagen oder validieren, z. B. `yolo predict model=yolov8n-pose.onnx`. Verwendungsbeispiele werden für Ihr Modell nach Abschluss des Exports angezeigt.
+Verfügbare YOLOv8-Pose-Exportformate sind in der folgenden Tabelle aufgeführt. Sie können direkt auf exportierten Modellen vorhersagen oder validieren, z. B. `yolo predict model=yolov8n-pose.onnx`. Verwendungsbeispiele werden für Ihr Model nach Abschluss des Exports angezeigt.
 
-| Format                                                             | `format` Argument | Modell                         | Metadaten | Argumente                                                 |
+| Format                                                             | `format` Argument | Model                         | Metadaten | Argumente                                                 |
 |--------------------------------------------------------------------|-------------------|--------------------------------|-----------|-----------------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-pose.pt`              | ✅         | -                                                         |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-pose.torchscript`     | ✅         | `imgsz`, `optimieren`                                     |

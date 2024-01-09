@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLOv8, modo predictivo, fuentes de inferencia, tareas de
 
 ## Introducción
 
-En el mundo del aprendizaje automático y la visión por computadora, el proceso de dar sentido a los datos visuales se denomina 'inferencia' o 'predicción'. YOLOv8 de Ultralytics ofrece una característica poderosa conocida como **modo predictivo** que está diseñada para inferencias de alto rendimiento y en tiempo real en una amplia gama de fuentes de datos.
+En el mundo del aprendizaje automático y la visión por computadora, el proceso de dar sentido a los datos visuals se denomina 'inferencia' o 'predicción'. YOLOv8 de Ultralytics ofrece una característica poderosa conocida como **modo predictivo** que está diseñada para inferencias de alto rendimiento y en tiempo real en una amplia gama de fuentes de datos.
 
 <p align="center">
   <br>
@@ -41,12 +41,12 @@ Estas son algunas razones para considerar el modo predictivo de YOLOv8 para sus 
 
 ### Características Principales del Modo Predictivo
 
-El modo predictivo de YOLOv8 está diseñado para ser robusto y versátil, y cuenta con:
+El modo predictivo de YOLOv8 está diseñado para set robusto y versátil, y cuenta con:
 
 - **Compatibilidad con Múltiples Fuentes de Datos:** Ya sea que sus datos estén en forma de imágenes individuales, una colección de imágenes, archivos de video o transmisiones de video en tiempo real, el modo predictivo le tiene cubierto.
 - **Modo de Transmisión:** Utilice la función de transmisión para generar un generador eficiente de memoria de objetos `Results`. Active esto configurando `stream=True` en el método de llamada del predictor.
 - **Procesamiento por Lotes:** La capacidad de procesar múltiples imágenes o fotogramas de video en un solo lote, acelerando aún más el tiempo de inferencia.
-- **Amigable para la Integración:** Se integra fácilmente con pipelines de datos existentes y otros componentes de software, gracias a su API flexible.
+- **Amigable para la Integración:** Se integra fácilmente con pipelines de datos existentes y otros components de software, gracias a su API flexible.
 
 Los modelos YOLO de Ultralytics devuelven ya sea una lista de objetos `Results` de Python, o un generador de objetos `Results` de Python eficiente en memoria cuando se pasa `stream=True` al modelo durante la inferencia:
 
@@ -94,7 +94,7 @@ YOLOv8 puede procesar diferentes tipos de fuentes de entrada para la inferencia,
 
 !!! Tip "Consejo"
 
-    Utilice `stream=True` para procesar videos largos o conjuntos de datos grandes para gestionar eficientemente la memoria. Cuando `stream=False`, los resultados de todos los fotogramas o puntos de datos se almacenan en la memoria, lo que puede aumentar rápidamente y causar errores de memoria insuficiente para entradas grandes. En contraste, `stream=True` utiliza un generador, que solo mantiene los resultados del fotograma o punto de datos actual en la memoria, reduciendo significativamente el consumo de memoria y previniendo problemas de falta de memoria.
+    Utilice `stream=True` para procesar videos largos o conjuntos de datos grandes para gestionar eficientemente la memoria. Cuando `stream=False`, los resultados de todos los fotogramas o puntos de datos se almacenan en la memoria, lo que puede aumentar rápidamente y causar errores de memoria insuficiente para entradas grandes. En contraste, `stream=True` utilize un generador, que solo mantiene los resultados del fotograma o punto de datos actual en la memoria, reduciendo significativamente el consumo de memoria y previniendo problemas de falta de memoria.
 
 | Fuente              | Argumento                                  | Tipo           | Notas                                                                                                                           |
 |---------------------|--------------------------------------------|----------------|---------------------------------------------------------------------------------------------------------------------------------|

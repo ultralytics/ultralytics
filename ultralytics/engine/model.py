@@ -369,14 +369,14 @@ class Model(nn.Module):
                 # Create a model in HUB
                 try:
                     self.session = self._get_hub_session(self.model_name)
-                    self.session.create_model(args)
+                    if self.session:
+                        self.session.create_model(args)
+                        # Check model was created
+                        if not getattr(self.session.model, 'id', None):
+                            self.session = None
                 except PermissionError:
                     # Ignore permission error
                     pass
-
-                # HUB model could not be created
-                if not self.session.model.id:
-                    self.session = None
 
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()

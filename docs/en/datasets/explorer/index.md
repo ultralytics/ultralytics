@@ -16,6 +16,12 @@ Explorer depends on external libraries for some of its functionality. These are 
 pip install ultralytics[explorer]
 ```
 
+### Explorer API
+
+This is a Python API for Exploring your datasets. It also powers the GUI Explorer. You can use this to create your own exploratory notebooks or scripts to get insights into your datasets.
+
+Learn more about the Explorer API [here](api.md).
+
 ## GUI Explorer Usage
 
 The GUI demo runs in your browser allowing you to create embeddings for your dataset and search for similar images, run SQL queries and perform semantic search. It can be run using the following command:
@@ -24,8 +30,11 @@ The GUI demo runs in your browser allowing you to create embeddings for your dat
 yolo explorer
 ```
 
-### Explorer API
+!!! note "Note"
+    Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
+    You can set it like this - `yolo settings openai_api_key="..."`
 
-This is a Python API for Exploring your datasets. It also powers the GUI Explorer. You can use this to create your own exploratory notebooks or scripts to get insights into your datasets.
-
-Learn more about the Explorer API [here](api.md).
+Example
+<p>
+<img width="1709" alt="Screenshot 2024-01-08 at 7 19 48 PM (1)" src="https://github.com/AyushExel/assets/assets/15766192/e536b0eb-6bce-43fe-b800-3e79510d2e5b">
+</p>

@@ -4,6 +4,7 @@ import math
 
 import cv2
 
+from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -36,6 +37,9 @@ class DistanceCalculation:
         # Mouse event
         self.left_mouse_count = 0
         self.selected_boxes = {}
+
+        # Check if environment support imshow
+        self.env_check = check_imshow(warn=True)
 
     def set_args(self,
                  names,
@@ -168,7 +172,7 @@ class DistanceCalculation:
 
         self.centroids = []
 
-        if self.view_img:
+        if self.view_img and self.env_check:
             self.display_frames()
 
         return im0

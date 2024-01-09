@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 from io import BytesIO
 from pathlib import Path
 from typing import Any, List, Tuple, Union
@@ -16,7 +18,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks
 
-from .utils import get_sim_index_schema, get_table_schema, plot_similar_images, sanitize_batch
+from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
 class ExplorerDataset(YOLODataset):
@@ -24,9 +26,8 @@ class ExplorerDataset(YOLODataset):
     def __init__(self, *args, data: dict = None, **kwargs) -> None:
         super().__init__(*args, data=data, **kwargs)
 
-    # NOTE: Load the image directly without any resize operations.
     def load_image(self, i: int) -> Union[Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]], Tuple[None, None, None]]:
-        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+        """Loads 1 image from dataset index 'i' without any resize ops."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
@@ -41,6 +42,7 @@ class ExplorerDataset(YOLODataset):
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def build_transforms(self, hyp: IterableSimpleNamespace = None):
+        """Creates transforms for dataset images without resizing."""
         return Format(
             bbox_format='xyxy',
             normalize=False,
@@ -58,7 +60,7 @@ class Explorer:
                  data: Union[str, Path] = 'coco128.yaml',
                  model: str = 'yolov8n.pt',
                  uri: str = '~/ultralytics/explorer') -> None:
-        checks.check_requirements(['lancedb', 'duckdb'])
+        checks.check_requirements(['lancedb>=0.4.3', 'duckdb'])
         import lancedb
 
         self.connection = lancedb.connect(uri)
@@ -112,8 +114,7 @@ class Explorer:
         # Create the table schema
         batch = dataset[0]
         vector_size = self.model.embed(batch['im_file'], verbose=False)[0].shape[0]
-        Schema = get_table_schema(vector_size)
-        table = self.connection.create_table(self.table_name, schema=Schema, mode='overwrite')
+        table = self.connection.create_table(self.table_name, schema=get_table_schema(vector_size), mode='overwrite')
         table.add(
             self._yield_batches(dataset,
                                 data_info,
@@ -123,7 +124,7 @@ class Explorer:
         self.table = table
 
     def _yield_batches(self, dataset: ExplorerDataset, data_info: dict, model: YOLO, exclude_keys: List[str]):
-        # Implement Batching
+        """Generates batches of data for embedding, excluding specified keys."""
         for i in tqdm(range(len(dataset))):
             self.progress = float(i + 1) / len(dataset)
             batch = dataset[i]
@@ -144,7 +145,7 @@ class Explorer:
             limit (int): Number of results to return.
 
         Returns:
-            An arrow table containing the results. Supports converting to:
+            (pyarrow.Table): An arrow table containing the results. Supports converting to:
                 - pandas dataframe: `result.to_pandas()`
                 - dict of lists: `result.to_pydict()`
 
@@ -159,10 +160,7 @@ class Explorer:
             raise ValueError('Table is not created. Please create the table first.')
         if isinstance(imgs, str):
             imgs = [imgs]
-        elif isinstance(imgs, list):
-            pass
-        else:
-            raise ValueError(f'img must be a string or a list of strings. Got {type(imgs)}')
+        assert isinstance(imgs, list), f'img must be a string or a list of strings. Got {type(imgs)}'
         embeds = self.model.embed(imgs)
         # Get avg if multiple images are passed (len > 1)
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()
@@ -179,7 +177,7 @@ class Explorer:
             return_type (str): Type of the result to return. Can be either 'pandas' or 'arrow'. Defaults to 'pandas'.
 
         Returns:
-            An arrow table containing the results.
+            (pyarrow.Table): An arrow table containing the results.
 
         Example:
             ```python
@@ -189,16 +187,19 @@ class Explorer:
             result = exp.sql_query(query)
             ```
         """
+        assert return_type in ['pandas',
+                               'arrow'], f'Return type should be either `pandas` or `arrow`, but got {return_type}'
         import duckdb
 
         if self.table is None:
             raise ValueError('Table is not created. Please create the table first.')
 
         # Note: using filter pushdown would be a better long term solution. Temporarily using duckdb for this.
-        table = self.table.to_arrow()  # noqa
+        table = self.table.to_arrow()  # noqa NOTE: Don't comment this. This line is used by DuckDB
         if not query.startswith('SELECT') and not query.startswith('WHERE'):
             raise ValueError(
-                'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause.')
+                f'Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}'
+            )
         if query.startswith('WHERE'):
             query = f"SELECT * FROM 'table' {query}"
         LOGGER.info(f'Running query: {query}')
@@ -217,7 +218,7 @@ class Explorer:
             labels (bool): Whether to plot the labels or not.
 
         Returns:
-            PIL Image containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -228,7 +229,10 @@ class Explorer:
             ```
         """
         result = self.sql_query(query, return_type='arrow')
-        img = plot_similar_images(result, plot_labels=labels)
+        if len(result) == 0:
+            LOGGER.info('No results found.')
+            return None
+        img = plot_query_result(result, plot_labels=labels)
         return Image.fromarray(img)
 
     def get_similar(self,
@@ -246,7 +250,7 @@ class Explorer:
             return_type (str): Type of the result to return. Can be either 'pandas' or 'arrow'. Defaults to 'pandas'.
 
         Returns:
-            A table or pandas dataframe containing the results.
+            (pandas.DataFrame): A dataframe containing the results.
 
         Example:
             ```python
@@ -255,6 +259,8 @@ class Explorer:
             similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
             ```
         """
+        assert return_type in ['pandas',
+                               'arrow'], f'Return type should be either `pandas` or `arrow`, but got {return_type}'
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
 
@@ -278,7 +284,7 @@ class Explorer:
             limit (int): Number of results to return. Defaults to 25.
 
         Returns:
-            PIL Image containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -288,7 +294,10 @@ class Explorer:
             ```
         """
         similar = self.get_similar(img, idx, limit, return_type='arrow')
-        img = plot_similar_images(similar, plot_labels=labels)
+        if len(similar) == 0:
+            LOGGER.info('No results found.')
+            return None
+        img = plot_query_result(similar, plot_labels=labels)
         return Image.fromarray(img)
 
     def similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> DataFrame:
@@ -299,11 +308,12 @@ class Explorer:
         Args:
             max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
             top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
-                            vector search. Defaults to 0.01.
+                           vector search. Defaults: None.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            A pandas dataframe containing the similarity index.
+            (pandas.DataFrame): A dataframe containing the similarity index. Each row corresponds to an image, and columns
+                                include indices of similar images and their respective distances.
 
         Example:
             ```python
@@ -333,6 +343,7 @@ class Explorer:
         sim_table = self.connection.create_table(sim_idx_table_name, schema=get_sim_index_schema(), mode='overwrite')
 
         def _yield_sim_idx():
+            """Generates a dataframe with similarity indices and distances for images."""
             for i in tqdm(range(len(embeddings))):
                 sim_idx = self.table.search(embeddings[i]).limit(top_k).to_pandas().query(f'_distance <= {max_dist}')
                 yield [{
@@ -357,7 +368,7 @@ class Explorer:
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            PIL.PngImagePlugin.PngImageFile containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -401,16 +412,45 @@ class Explorer:
 
         return img if isinstance(img, list) else [img]
 
-    def visualize(self, result):
+    def ask_ai(self, query):
         """
-        Visualize the results of a query.
+        Ask AI a question.
 
         Args:
-            result (arrow table): Arrow table containing the results of a query.
+            query (str): Question to ask.
+
+        Returns:
+            (pandas.DataFrame): A dataframe containing filtered results to the SQL query.
+
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            answer = exp.ask_ai('Show images with 1 person and 2 dogs')
+            ```
         """
-        # TODO:
+        result = prompt_sql_query(query)
+        try:
+            df = self.sql_query(result)
+        except Exception as e:
+            LOGGER.error('AI generated query is not valid. Please try again with a different prompt')
+            LOGGER.error(e)
+            return None
+        return df
+
+    def visualize(self, result):
+        """
+        Visualize the results of a query. TODO.
+
+        Args:
+            result (pyarrow.Table): Table containing the results of a query.
+        """
         pass
 
     def generate_report(self, result):
-        """Generate a report of the dataset."""
+        """
+        Generate a report of the dataset.
+
+        TODO
+        """
         pass

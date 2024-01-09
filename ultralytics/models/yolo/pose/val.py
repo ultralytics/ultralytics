@@ -69,6 +69,7 @@ class PoseValidator(DetectionValidator):
         self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[])
 
     def _prepare_batch(self, si, batch):
+        """Prepares a batch for processing by converting keypoints to float and moving to device."""
         pbatch = super()._prepare_batch(si, batch)
         kpts = batch['keypoints'][batch['batch_idx'] == si]
         h, w = pbatch['imgsz']
@@ -80,6 +81,7 @@ class PoseValidator(DetectionValidator):
         return pbatch
 
     def _prepare_pred(self, pred, pbatch):
+        """Prepares and scales keypoints in a batch for pose processing."""
         predn = super()._prepare_pred(pred, pbatch)
         nk = pbatch['kpts'].shape[1]
         pred_kpts = predn[:, 6:].view(len(predn), nk, -1)

@@ -16,7 +16,7 @@ from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = 'ultralytics/assets'
-GITHUB_ASSETS_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '-cls', '-seg', '-pose')] + \
+GITHUB_ASSETS_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '-cls', '-seg', '-pose', '-obb')] + \
                       [f'yolov5{k}{resolution}u.pt' for k in 'nsmlx' for resolution in ('', '6')] + \
                       [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] + \
                       [f'yolo_nas_{k}.pt' for k in 'sml'] + \
@@ -206,7 +206,7 @@ def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, h
     # Check file size
     gib = 1 << 30  # bytes per GiB
     data = int(r.headers.get('Content-Length', 0)) / gib  # file size (GB)
-    total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
+    total, used, free = (x / gib for x in shutil.disk_usage(Path.cwd()))  # bytes
     if data * sf < free:
         return True  # sufficient space
 

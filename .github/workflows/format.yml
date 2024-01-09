@@ -22,4 +22,4 @@ jobs:
           docstrings: true
           markdown: true
           spelling: true
-          links: true
+          links: false

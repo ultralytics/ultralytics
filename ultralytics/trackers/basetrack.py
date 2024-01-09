@@ -55,6 +55,7 @@ class BaseTrack:
     _count = 0
 
     def __init__(self):
+        """Initializes a new track with unique ID and foundational tracking attributes."""
         self.track_id = 0
         self.is_activated = False
         self.state = TrackState.New

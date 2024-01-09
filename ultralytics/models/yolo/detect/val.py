@@ -87,6 +87,7 @@ class DetectionValidator(BaseValidator):
                                        max_det=self.args.max_det)
 
     def _prepare_batch(self, si, batch):
+        """Prepares a batch of images and annotations for validation."""
         idx = batch['batch_idx'] == si
         cls = batch['cls'][idx].squeeze(-1)
         bbox = batch['bboxes'][idx]
@@ -100,6 +101,7 @@ class DetectionValidator(BaseValidator):
         return prepared_batch
 
     def _prepare_pred(self, pred, pbatch):
+        """Prepares a batch of images and annotations for validation."""
         predn = pred.clone()
         ops.scale_boxes(pbatch['imgsz'], predn[:, :4], pbatch['ori_shape'],
                         ratio_pad=pbatch['ratio_pad'])  # native-space pred

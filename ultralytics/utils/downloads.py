@@ -16,15 +16,14 @@ from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = 'ultralytics/assets'
-GITHUB_ASSETS_NAMES = (
-        [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '-cls', '-seg', '-pose', '-obb')] +
-        [f'yolov5{k}{resolution}u.pt' for k in 'nsmlx' for resolution in ('', '6')] +
-        [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] +
-        [f'yolo_nas_{k}.pt' for k in 'sml'] +
-        [f'sam_{k}.pt' for k in 'bl'] +
-        [f'FastSAM-{k}.pt' for k in 'sx'] +
-        [f'rtdetr-{k}.pt' for k in 'lx'] +
-        ['mobile_sam.pt'])
+GITHUB_ASSETS_NAMES = ([f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '-cls', '-seg', '-pose', '-obb')] +
+                       [f'yolov5{k}{resolution}u.pt' for k in 'nsmlx'
+                        for resolution in ('', '6')] + [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] +
+                       [f'yolo_nas_{k}.pt'
+                        for k in 'sml'] + [f'sam_{k}.pt'
+                                           for k in 'bl'] + [f'FastSAM-{k}.pt'
+                                                             for k in 'sx'] + [f'rtdetr-{k}.pt'
+                                                                               for k in 'lx'] + ['mobile_sam.pt'])
 GITHUB_ASSETS_STEMS = [Path(k).stem for k in GITHUB_ASSETS_NAMES]
 
 

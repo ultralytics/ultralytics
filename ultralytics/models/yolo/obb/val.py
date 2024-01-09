@@ -67,12 +67,13 @@ class OBBValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def _prepare_batch(self, si, batch):
-        idx = batch["batch_idx"] == si
-        cls = batch["cls"][idx].squeeze(-1)
-        bbox = batch["bboxes"][idx]
-        ori_shape = batch["ori_shape"][si]
-        imgsz = batch["img"].shape[2:]
-        ratio_pad = batch["ratio_pad"][si]
+        """Prepares and returns a batch for OBB validation."""
+        idx = batch['batch_idx'] == si
+        cls = batch['cls'][idx].squeeze(-1)
+        bbox = batch['bboxes'][idx]
+        ori_shape = batch['ori_shape'][si]
+        imgsz = batch['img'].shape[2:]
+        ratio_pad = batch['ratio_pad'][si]
         if len(cls):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
@@ -80,6 +81,7 @@ class OBBValidator(DetectionValidator):
         return prepared_batch
 
     def _prepare_pred(self, pred, pbatch):
+        """Prepares and returns a batch for OBB validation with scaled and padded bounding boxes."""
         predn = pred.clone()
         ops.scale_boxes(
             pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True

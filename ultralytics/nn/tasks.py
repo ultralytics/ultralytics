@@ -346,6 +346,7 @@ class OBBModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
+        """Initialize the loss criterion for the model."""
         return v8OBBLoss(self)
 
 

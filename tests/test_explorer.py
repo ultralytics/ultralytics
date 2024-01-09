@@ -1,3 +1,5 @@
+import PIL
+
 from ultralytics import Explorer
 from ultralytics.utils import ASSETS
 
@@ -5,6 +7,7 @@ import PIL
 
 
 def test_similarity():
+    """Test similarity calculations and SQL queries for correctness and response length."""
     exp = Explorer()
     exp.create_embeddings_table()
     similar = exp.get_similar(idx=1)
@@ -20,6 +23,7 @@ def test_similarity():
 
 
 def test_det():
+    """Test detection functionalities and ensure the embedding table has bounding boxes."""
     exp = Explorer(data='coco8.yaml', model='yolov8n.pt')
     exp.create_embeddings_table(force=True)
     assert len(exp.table.head()['bboxes']) > 0
@@ -31,6 +35,7 @@ def test_det():
 
 
 def test_seg():
+    """Test segmentation functionalities and verify the embedding table includes masks."""
     exp = Explorer(data='coco8-seg.yaml', model='yolov8n-seg.pt')
     exp.create_embeddings_table(force=True)
     assert len(exp.table.head()['masks']) > 0
@@ -41,6 +46,7 @@ def test_seg():
 
 
 def test_pose():
+    """Test pose estimation functionalities and check the embedding table for keypoints."""
     exp = Explorer(data='coco8-pose.yaml', model='yolov8n-pose.pt')
     exp.create_embeddings_table(force=True)
     assert len(exp.table.head()['keypoints']) > 0

@@ -22,7 +22,6 @@ repos:
       - id: check-case-conflict
       # - id: check-yaml
       - id: check-docstring-first
-      - id: double-quote-string-fixer
       - id: detect-private-key
 
   - repo: https://github.com/asottile/pyupgrade

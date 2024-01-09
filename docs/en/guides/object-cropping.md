@@ -68,7 +68,6 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         
-        
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()

@@ -95,7 +95,7 @@ def get_windows(im_size, crop_sizes=[1024], gaps=[200], im_rate_thr=0.6, eps=0.0
     h, w = im_size
     windows = []
     for crop_size, gap in zip(crop_sizes, gaps):
-        assert crop_size > gap, f"invaild crop_size gap pair [{crop_size} {gap}]"
+        assert crop_size > gap, f"invalid crop_size gap pair [{crop_size} {gap}]"
         step = crop_size - gap
 
         xn = 1 if w <= crop_size else ceil((w - crop_size) / step + 1)

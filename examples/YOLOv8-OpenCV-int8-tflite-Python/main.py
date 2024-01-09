@@ -161,7 +161,7 @@ class Yolov8TFLite:
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
 
-        print("image befor", self.img)
+        print("image before", self.img)
         # Get the height and width of the input image
         self.img_height, self.img_width = self.img.shape[:2]
 

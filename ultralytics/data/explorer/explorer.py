@@ -24,9 +24,8 @@ class ExplorerDataset(YOLODataset):
     def __init__(self, *args, data: dict = None, **kwargs) -> None:
         super().__init__(*args, data=data, **kwargs)
 
-    # NOTE: Load the image directly without any resize operations.
     def load_image(self, i: int) -> Union[Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]], Tuple[None, None, None]]:
-        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+        """Loads 1 image from dataset index 'i' without any resize ops."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
@@ -144,7 +143,7 @@ class Explorer:
             limit (int): Number of results to return.
 
         Returns:
-            An arrow table containing the results. Supports converting to:
+            (pyarrow.Table): An arrow table containing the results. Supports converting to:
                 - pandas dataframe: `result.to_pandas()`
                 - dict of lists: `result.to_pydict()`
 
@@ -176,7 +175,7 @@ class Explorer:
             return_type (str): Type of the result to return. Can be either 'pandas' or 'arrow'. Defaults to 'pandas'.
 
         Returns:
-            An arrow table containing the results.
+            (pyarrow.Table): An arrow table containing the results.
 
         Example:
             ```python
@@ -217,7 +216,7 @@ class Explorer:
             labels (bool): Whether to plot the labels or not.
 
         Returns:
-            PIL Image containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -283,7 +282,7 @@ class Explorer:
             limit (int): Number of results to return. Defaults to 25.
 
         Returns:
-            PIL Image containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -367,7 +366,7 @@ class Explorer:
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            PIL.PngImagePlugin.PngImageFile containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -439,14 +438,17 @@ class Explorer:
 
     def visualize(self, result):
         """
-        Visualize the results of a query.
+        Visualize the results of a query. TODO.
 
         Args:
             result (arrow table): Arrow table containing the results of a query.
         """
-        # TODO:
         pass
 
     def generate_report(self, result):
-        """Generate a report of the dataset."""
+        """
+        Generate a report of the dataset.
+
+        TODO
+        """
         pass

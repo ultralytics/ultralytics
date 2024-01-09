@@ -41,6 +41,7 @@ class ExplorerDataset(YOLODataset):
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def build_transforms(self, hyp: IterableSimpleNamespace = None):
+        """Creates transforms for dataset images without resizing."""
         return Format(
             bbox_format='xyxy',
             normalize=False,
@@ -122,7 +123,7 @@ class Explorer:
         self.table = table
 
     def _yield_batches(self, dataset: ExplorerDataset, data_info: dict, model: YOLO, exclude_keys: List[str]):
-        # Implement Batching
+        """Generates batches of data for embedding, excluding specified keys."""
         for i in tqdm(range(len(dataset))):
             self.progress = float(i + 1) / len(dataset)
             batch = dataset[i]
@@ -341,6 +342,7 @@ class Explorer:
         sim_table = self.connection.create_table(sim_idx_table_name, schema=get_sim_index_schema(), mode='overwrite')
 
         def _yield_sim_idx():
+            """Generates a dataframe with similarity indices and distances for images."""
             for i in tqdm(range(len(embeddings))):
                 sim_idx = self.table.search(embeddings[i]).limit(top_k).to_pandas().query(f'_distance <= {max_dist}')
                 yield [{

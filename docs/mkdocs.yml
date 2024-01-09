@@ -435,6 +435,8 @@ nav:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
                   - val: reference/models/yolo/segment/val.md
+      - Explorer:
+          - Explorer: reference/explorer/explorer.md
       - nn:
           - autobackend: reference/nn/autobackend.md
           - modules:

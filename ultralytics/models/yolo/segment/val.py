@@ -72,12 +72,14 @@ class SegmentationValidator(DetectionValidator):
         return p, proto
 
     def _prepare_batch(self, si, batch):
+        """Prepares a batch for training or inference by processing images and targets."""
         prepared_batch = super()._prepare_batch(si, batch)
         midx = [si] if self.args.overlap_mask else batch['batch_idx'] == si
         prepared_batch['masks'] = batch['masks'][midx]
         return prepared_batch
 
     def _prepare_pred(self, pred, pbatch, proto):
+        """Prepares a batch for training or inference by processing images and targets."""
         predn = super()._prepare_pred(pred, pbatch)
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch['imgsz'])
         return predn, pred_masks

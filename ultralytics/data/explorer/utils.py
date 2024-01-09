@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import getpass
 from typing import List
 
@@ -14,6 +16,7 @@ from ultralytics.utils.plotting import plot_images
 
 
 def get_table_schema(vector_size):
+    """Extracts and returns the schema of a database table."""
     from lancedb.pydantic import LanceModel, Vector
 
     class Schema(LanceModel):
@@ -29,6 +32,7 @@ def get_table_schema(vector_size):
 
 
 def get_sim_index_schema():
+    """Returns a LanceModel schema for a database table with specified vector size."""
     from lancedb.pydantic import LanceModel
 
     class Schema(LanceModel):
@@ -41,6 +45,7 @@ def get_sim_index_schema():
 
 
 def sanitize_batch(batch, dataset_info):
+    """Sanitizes input batch for inference, ensuring correct format and dimensions."""
     batch['cls'] = batch['cls'].flatten().int().tolist()
     box_cls_pair = sorted(zip(batch['bboxes'].tolist(), batch['cls']), key=lambda x: x[1])
     batch['bboxes'] = [box for box, _ in box_cls_pair]
@@ -111,6 +116,7 @@ def plot_query_result(similar_set, plot_labels=True):
 
 
 def prompt_sql_query(query):
+    """Plots images with optional labels from a similar data set."""
     check_requirements('openai>=1.6.1')
     from openai import OpenAI
 

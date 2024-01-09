@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import time
 from threading import Thread
 
@@ -7,13 +9,13 @@ from ultralytics import Explorer
 from ultralytics.utils import ROOT, SETTINGS
 from ultralytics.utils.checks import check_requirements
 
-check_requirements('streamlit>=1.29.0')
-check_requirements('streamlit-select>=0.2')
+check_requirements(('streamlit>=1.29.0', 'streamlit-select>=0.2'))
 import streamlit as st
 from streamlit_select import image_select
 
 
 def _get_explorer():
+    """Initializes and returns an instance of the Explorer class."""
     exp = Explorer(data=st.session_state.get('dataset'), model=st.session_state.get('model'))
     thread = Thread(target=exp.create_embeddings_table,
                     kwargs={'force': st.session_state.get('force_recreate_embeddings')})
@@ -28,6 +30,7 @@ def _get_explorer():
 
 
 def init_explorer_form():
+    """Initializes an Explorer instance and creates embeddings table with progress tracking."""
     datasets = ROOT / 'cfg' / 'datasets'
     ds = [d.name for d in datasets.glob('*.yaml')]
     models = [
@@ -46,6 +49,7 @@ def init_explorer_form():
 
 
 def query_form():
+    """Sets up a form in Streamlit to initialize Explorer with dataset and model selection."""
     with st.form('query_form'):
         col1, col2 = st.columns([0.8, 0.2])
         with col1:
@@ -58,6 +62,7 @@ def query_form():
 
 
 def ai_query_form():
+    """Sets up a Streamlit form for user input to initialize Explorer with dataset and model selection."""
     with st.form('ai_query_form'):
         col1, col2 = st.columns([0.8, 0.2])
         with col1:
@@ -67,6 +72,7 @@ def ai_query_form():
 
 
 def find_similar_imgs(imgs):
+    """Initializes a Streamlit form for AI-based image querying with custom input."""
     exp = st.session_state['explorer']
     similar = exp.get_similar(img=imgs, limit=st.session_state.get('limit'), return_type='arrow')
     paths = similar.to_pydict()['im_file']
@@ -74,6 +80,7 @@ def find_similar_imgs(imgs):
 
 
 def similarity_form(selected_imgs):
+    """Initializes a form for AI-based image querying with custom input in Streamlit."""
     st.write('Similarity Search')
     with st.form('similarity_form'):
         subcol1, subcol2 = st.columns([1, 1])
@@ -109,6 +116,7 @@ def similarity_form(selected_imgs):
 
 
 def run_sql_query():
+    """Executes an SQL query and returns the results."""
     st.session_state['error'] = None
     query = st.session_state.get('query')
     if query.rstrip().lstrip():
@@ -118,6 +126,7 @@ def run_sql_query():
 
 
 def run_ai_query():
+    """Execute SQL query and update session state with query results."""
     if not SETTINGS['openai_api_key']:
         st.session_state[
             'error'] = 'OpenAI API key not found in settings. Please run yolo settings openai_api_key="..."'
@@ -134,12 +143,14 @@ def run_ai_query():
 
 
 def reset_explorer():
+    """Resets the explorer to its initial state by clearing session variables."""
     st.session_state['explorer'] = None
     st.session_state['imgs'] = None
     st.session_state['error'] = None
 
 
 def utralytics_explorer_docs_callback():
+    """Resets the explorer to its initial state by clearing session variables."""
     with st.container(border=True):
         st.image('https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg',
                  width=100)
@@ -151,6 +162,7 @@ def utralytics_explorer_docs_callback():
 
 
 def layout():
+    """Resets explorer session variables and provides documentation with a link to API docs."""
     st.set_page_config(layout='wide', initial_sidebar_state='collapsed')
     st.markdown("<h1 style='text-align: center;'>Ultralytics Explorer Demo</h1>", unsafe_allow_html=True)
 

@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import itertools
 import os
 from glob import glob
@@ -53,10 +55,13 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
 
 
 def load_yolo_dota(data_root, split='train'):
-    """Load DOTA dataset.
+    """
+    Load DOTA dataset.
+
     Args:
         data_root (str): Data root.
         split (str): The split data set, could be train or val.
+
     Notes:
         The directory structure assumed for the DOTA dataset:
             - data_root
@@ -133,7 +138,7 @@ def get_window_obj(anno, windows, iof_thr=0.7):
         label[:, 1::2] *= w
         label[:, 2::2] *= h
         iofs = bbox_iof(label[:, 1:], windows)
-        # unnormalized and misaligned coordinates
+        # Unnormalized and misaligned coordinates
         window_anns = [(label[iofs[:, i] >= iof_thr]) for i in range(len(windows))]
     else:
         window_anns = [np.zeros((0, 9), dtype=np.float32) for _ in range(len(windows))]
@@ -141,13 +146,16 @@ def get_window_obj(anno, windows, iof_thr=0.7):
 
 
 def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
-    """Crop images and save new labels.
+    """
+    Crop images and save new labels.
+
     Args:
         anno (dict): Annotation dict, including `filepath`, `label`, `ori_size` as its keys.
         windows (list): A list of windows coordinates.
         window_objs (list): A list of labels inside each window.
         im_dir (str): The output directory path of images.
         lb_dir (str): The output directory path of labels.
+
     Notes:
         The directory structure assumed for the DOTA dataset:
             - data_root
@@ -185,7 +193,7 @@ def split_images_and_labels(data_root, save_dir, split='train', crop_sizes=[1024
     """
     Split both images and labels.
 
-    NOTES:
+    Notes:
         The directory structure assumed for the DOTA dataset:
             - data_root
                 - images
@@ -215,7 +223,7 @@ def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
     """
     Split train and val set of DOTA.
 
-    NOTES:
+    Notes:
         The directory structure assumed for the DOTA dataset:
             - data_root
                 - images
@@ -245,7 +253,7 @@ def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
     """
     Split test set of DOTA, labels are not included within this set.
 
-    NOTES:
+    Notes:
         The directory structure assumed for the DOTA dataset:
             - data_root
                 - images

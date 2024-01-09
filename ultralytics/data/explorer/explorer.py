@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 from io import BytesIO
 from pathlib import Path
 from typing import Any, List, Tuple, Union
@@ -24,9 +26,8 @@ class ExplorerDataset(YOLODataset):
     def __init__(self, *args, data: dict = None, **kwargs) -> None:
         super().__init__(*args, data=data, **kwargs)
 
-    # NOTE: Load the image directly without any resize operations.
     def load_image(self, i: int) -> Union[Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]], Tuple[None, None, None]]:
-        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+        """Loads 1 image from dataset index 'i' without any resize ops."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
@@ -41,6 +42,7 @@ class ExplorerDataset(YOLODataset):
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def build_transforms(self, hyp: IterableSimpleNamespace = None):
+        """Creates transforms for dataset images without resizing."""
         return Format(
             bbox_format='xyxy',
             normalize=False,
@@ -122,7 +124,7 @@ class Explorer:
         self.table = table
 
     def _yield_batches(self, dataset: ExplorerDataset, data_info: dict, model: YOLO, exclude_keys: List[str]):
-        # Implement Batching
+        """Generates batches of data for embedding, excluding specified keys."""
         for i in tqdm(range(len(dataset))):
             self.progress = float(i + 1) / len(dataset)
             batch = dataset[i]
@@ -143,7 +145,7 @@ class Explorer:
             limit (int): Number of results to return.
 
         Returns:
-            An arrow table containing the results. Supports converting to:
+            (pyarrow.Table): An arrow table containing the results. Supports converting to:
                 - pandas dataframe: `result.to_pandas()`
                 - dict of lists: `result.to_pydict()`
 
@@ -175,7 +177,7 @@ class Explorer:
             return_type (str): Type of the result to return. Can be either 'pandas' or 'arrow'. Defaults to 'pandas'.
 
         Returns:
-            An arrow table containing the results.
+            (pyarrow.Table): An arrow table containing the results.
 
         Example:
             ```python
@@ -216,7 +218,7 @@ class Explorer:
             labels (bool): Whether to plot the labels or not.
 
         Returns:
-            PIL Image containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -248,7 +250,7 @@ class Explorer:
             return_type (str): Type of the result to return. Can be either 'pandas' or 'arrow'. Defaults to 'pandas'.
 
         Returns:
-            A table or pandas dataframe containing the results.
+            (pandas.DataFrame): A dataframe containing the results.
 
         Example:
             ```python
@@ -282,7 +284,7 @@ class Explorer:
             limit (int): Number of results to return. Defaults to 25.
 
         Returns:
-            PIL Image containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -306,11 +308,12 @@ class Explorer:
         Args:
             max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
             top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
-                            vector search. Defaults: None.
+                           vector search. Defaults: None.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            A pandas dataframe containing the similarity index.
+            (pandas.DataFrame): A dataframe containing the similarity index. Each row corresponds to an image, and columns
+                                include indices of similar images and their respective distances.
 
         Example:
             ```python
@@ -340,6 +343,7 @@ class Explorer:
         sim_table = self.connection.create_table(sim_idx_table_name, schema=get_sim_index_schema(), mode='overwrite')
 
         def _yield_sim_idx():
+            """Generates a dataframe with similarity indices and distances for images."""
             for i in tqdm(range(len(embeddings))):
                 sim_idx = self.table.search(embeddings[i]).limit(top_k).to_pandas().query(f'_distance <= {max_dist}')
                 yield [{
@@ -364,7 +368,7 @@ class Explorer:
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            PIL.PngImagePlugin.PngImageFile containing the plot.
+            (PIL.Image): Image containing the plot.
 
         Example:
             ```python
@@ -416,7 +420,7 @@ class Explorer:
             query (str): Question to ask.
 
         Returns:
-            Answer from AI.
+            (pandas.DataFrame): A dataframe containing filtered results to the SQL query.
 
         Example:
             ```python
@@ -436,14 +440,17 @@ class Explorer:
 
     def visualize(self, result):
         """
-        Visualize the results of a query.
+        Visualize the results of a query. TODO.
 
         Args:
-            result (arrow table): Arrow table containing the results of a query.
+            result (pyarrow.Table): Table containing the results of a query.
         """
-        # TODO:
         pass
 
     def generate_report(self, result):
-        """Generate a report of the dataset."""
+        """
+        Generate a report of the dataset.
+
+        TODO
+        """
         pass

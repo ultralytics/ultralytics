@@ -107,6 +107,7 @@ class RTDETRValidator(DetectionValidator):
         return outputs
 
     def _prepare_batch(self, si, batch):
+        """Prepares a batch for training or inference by applying transformations."""
         idx = batch['batch_idx'] == si
         cls = batch['cls'][idx].squeeze(-1)
         bbox = batch['bboxes'][idx]
@@ -121,6 +122,7 @@ class RTDETRValidator(DetectionValidator):
         return prepared_batch
 
     def _prepare_pred(self, pred, pbatch):
+        """Prepares and returns a batch with transformed bounding boxes and class labels."""
         predn = pred.clone()
         predn[..., [0, 2]] *= pbatch['ori_shape'][1] / self.args.imgsz  # native-space pred
         predn[..., [1, 3]] *= pbatch['ori_shape'][0] / self.args.imgsz  # native-space pred

@@ -240,6 +240,53 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
 [Benchmark Examples](../modes/benchmark.md){ .md-button }
 
+## Explorer
+
+Explorer API can be used to explore datasets with advanced semantic, vector-similarity and SQL search among other features. It also searching for images based on their content using natural language by utilizing the power of LLMs. The Explorer API allows you to write your own dataset exploration notebooks or scripts to get insights into your datasets.
+
+!!! Example "Semantic Search Using Explorer"
+
+    === "Using Images"
+
+        ```python
+        from ultralytics import Explorer
+
+        # create an Explorer object
+        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp.create_embeddings_table()
+
+        similar = exp.get_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
+        print(similar.head())
+
+        # Search using multiple indices
+        similar = exp.get_similar(
+                                img=['https://ultralytics.com/images/bus.jpg',
+                                     'https://ultralytics.com/images/bus.jpg'],
+                                limit=10
+                                )
+        print(similar.head())
+        ```
+
+    === "Using Dataset Indices"
+
+        ```python
+        from ultralytics import Explorer
+
+        # create an Explorer object
+        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp.create_embeddings_table()
+
+        similar = exp.get_similar(idx=1, limit=10)
+        print(similar.head())
+
+        # Search using multiple indices
+        similar = exp.get_similar(idx=[1,10], limit=10)
+        print(similar.head())
+        ```
+
+[Explorer](../datasets/explorer/index.md){ .md-button }
+
+
 ## Using Trainers
 
 `YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits from `BaseTrainer`.

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Object Cropping Using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Object Blurring, Privacy Protection, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn to blur objects using Ultralytics YOLOv8 for privacy in images and videos.
+keywords: Ultralytics, YOLOv8, Object Detection, Object Blurring, Privacy Protection, Image Processing, Video Analysis, AI, Machine Learning
 ---
 
 # Object Blurring using Ultralytics YOLOv8 🚀

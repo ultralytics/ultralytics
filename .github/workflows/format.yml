@@ -6,9 +6,9 @@ name: Ultralytics Actions
 
 on:
   push:
-    branches: [main]
+    branches: [main,ultralytics-actions]
   pull_request:
-    branches: [main]
+    branches: [main,ultralytics-actions]
 
 jobs:
   format:
@@ -22,4 +22,4 @@ jobs:
           docstrings: true
           markdown: false
           spelling: false
-          links: false
+          links: true

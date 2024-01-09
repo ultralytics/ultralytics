@@ -1,6 +1,8 @@
 from ultralytics import Explorer
 from ultralytics.utils import ASSETS
 
+import PIL
+
 
 def test_similarity():
     exp = Explorer()
@@ -25,8 +27,7 @@ def test_det():
     assert len(similar) > 0
     # This is a loose test, just checks errors not correctness
     similar = exp.plot_similar(idx=[1, 2], limit=10)
-    assert similar is not None
-    similar.show()
+    assert isinstance(similar, PIL.Image.Image)
 
 
 def test_seg():
@@ -36,8 +37,7 @@ def test_seg():
     similar = exp.get_similar(idx=[1, 2], limit=10)
     assert len(similar) > 0
     similar = exp.plot_similar(idx=[1, 2], limit=10)
-    assert similar is not None
-    similar.show()
+    assert isinstance(similar, PIL.Image.Image)
 
 
 def test_pose():
@@ -47,5 +47,4 @@ def test_pose():
     similar = exp.get_similar(idx=[1, 2], limit=10)
     assert len(similar) > 0
     similar = exp.plot_similar(idx=[1, 2], limit=10)
-    assert similar is not None
-    similar.show()
+    assert isinstance(similar, PIL.Image.Image)

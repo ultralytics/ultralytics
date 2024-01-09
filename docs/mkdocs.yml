@@ -280,6 +280,8 @@ nav:
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Real-World Projects:
           - Object Counting: guides/object-counting.md
+          - Object Cropping: guides/object-cropping.md
+          - Object Blurring: guides/object-blurring.md
           - Workouts Monitoring: guides/workouts-monitoring.md
           - Objects Counting in Regions: guides/region-counting.md
           - Security Alarm System: guides/security-alarm-system.md

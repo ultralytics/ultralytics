@@ -1,7 +1,8 @@
 ---
 comments: true
 description: Ultralytics YOLOを使用したビデオストリームでのオブジェクトトラッキングの使用方法を学びます。異なるトラッカーの使用ガイドとトラッカー構成のカスタマイズについて。
-keywords: Ultralytics, YOLO, オブジェクトトラッキング, ビデオストリーム, BoT-SORT, ByteTrack, Pythonガイド, CLIガイド
+keywords: Ultralytics, YOLO, オブジェクトトラッキング, ビデオストリーム, BoT-SORT, ByteTrack, Pythonガイド,
+  CLIガイド
 ---
 
 # Ultralytics YOLOによる複数オブジェクトのトラッキング
@@ -33,7 +34,7 @@ Ultralyticsのトラッカーからの出力は標準のオブジェクト検出
 ## 実世界での応用例
 
 |                                                       交通                                                        |                                                       小売                                                        |                                                      水産業                                                       |
-|:---------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------:|
+| :-------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------: |
 | ![車両のトラッキング](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![人々のトラッキング](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![魚のトラッキング](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
 |                                                    車両トラッキング                                                     |                                                    人々のトラッキング                                                    |                                                    魚のトラッキング                                                    |
 
@@ -49,8 +50,8 @@ Ultralytics YOLOは、オブジェクト検出機能を拡張して、堅牢で�
 
 Ultralytics YOLOは、次のトラッキングアルゴリズムをサポートしています。それらは、関連するYAML構成ファイル（たとえば`tracker=tracker_type.yaml`）を渡すことで有効にすることができます：
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - このトラッカーを有効にするには`botsort.yaml`を使用します。
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - このトラッカーを有効にするには`bytetrack.yaml`を使用します。
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - このトラッカーを有効にするには`botsort.yaml`を使用します。
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - このトラッカーを有効にするには`bytetrack.yaml`を使用します。
 
 デフォルトのトラッカーはBoT-SORTです。
 
@@ -60,34 +61,36 @@ Ultralytics YOLOは、次のトラッキングアルゴリズムをサポート�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # 公式またはカスタムモデルをロード
-        model = YOLO('yolov8n.pt')  # 公式のDetectモデルをロード
-        model = YOLO('yolov8n-seg.pt')  # 公式のSegmentモデルをロード
-        model = YOLO('yolov8n-pose.pt')  # 公式のPoseモデルをロード
-        model = YOLO('path/to/best.pt')  # カスタムトレーニング済みモデルをロード
+    # 公式またはカスタムモデルをロード
+    model = YOLO('yolov8n.pt')  # 公式のDetectモデルをロード
+    model = YOLO('yolov8n-seg.pt')  # 公式のSegmentモデルをロード
+    model = YOLO('yolov8n-pose.pt')  # 公式のPoseモデルをロード
+    model = YOLO('path/to/best.pt')  # カスタムトレーニング済みモデルをロード
 
-        # モデルでトラッキングを実行
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # デフォルトトラッカーでトラッキング
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # ByteTrackトラッカーでトラッキング
-        ```
+    # モデルでトラッキングを実行
+    results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # デフォルトトラッカーでトラッキング
+    results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # ByteTrackトラッカーでトラッキング
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # コマンドラインインターフェースを使用して、様々なモデルでトラッキングを実行
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のDetectモデル
-        yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のSegmentモデル
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のPoseモデル
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # カスタムトレーニング済みモデル
+    ```bash
+    # コマンドラインインターフェースを使用して、様々なモデルでトラッキングを実行
+    yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のDetectモデル
+    yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のSegmentモデル
+    yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のPoseモデル
+    yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # カスタムトレーニング済みモデル
 
-        # ByteTrackトラッカーを使用してトラッキング
-        yolo track model=path/to/best.pt tracker="bytetrack.yaml"
-        ```
+    # ByteTrackトラッカーを使用してトラッキング
+    yolo track model=path/to/best.pt tracker="bytetrack.yaml"
+    ```
+````
 
 上記の使用法に示されているように、トラッキングはビデオやストリーミングソースで実行されるすべてのDetect、Segment、およびPoseモデルで利用可能です。
 
@@ -99,22 +102,24 @@ Ultralytics YOLOは、次のトラッキングアルゴリズムをサポート�
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # トラッキングパラメーターを構成し、トラッカーを実行
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
-        ```
+    # トラッキングパラメーターを構成し、トラッカーを実行
+    model = YOLO('yolov8n.pt')
+    results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # コマンドラインインターフェースを使用してトラッキングパラメータを構成し、トラッカーを実行
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
-        ```
+    ```bash
+    # コマンドラインインターフェースを使用してトラッキングパラメータを構成し、トラッカーを実行
+    yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
+    ```
+````
 
 ### トラッカーの選択
 
@@ -122,22 +127,24 @@ Ultralyticsは、変更されたトラッカー構成ファイルの使用も可
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロードし、カスタム構成ファイルでトラッカーを実行
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
-        ```
+    # モデルをロードし、カスタム構成ファイルでトラッカーを実行
+    model = YOLO('yolov8n.pt')
+    results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+    ```
 
-    === "CLI"
+=== "CLI"
 
-        ```bash
-        # コマンドラインインターフェースを使用して、カスタム構成ファイルでモデルをロードし、トラッカーを実行
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
-        ```
+    ```bash
+    # コマンドラインインターフェースを使用して、カスタム構成ファイルでモデルをロードし、トラッカーを実行
+    yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
+    ```
+````
 
 トラッキング引数の包括的なリストについては、[ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)ページを参照してください。
 
@@ -149,43 +156,45 @@ Ultralyticsは、変更されたトラッカー構成ファイルの使用も可
 
 !!! Example "トラッキングを伴うストリーミングforループ"
 
-    ```python
-    import cv2
-    from ultralytics import YOLO
+````
+```python
+import cv2
+from ultralytics import YOLO
 
-    # YOLOv8モデルをロード
-    model = YOLO('yolov8n.pt')
+# YOLOv8モデルをロード
+model = YOLO('yolov8n.pt')
 
-    # ビデオファイルを開く
-    video_path = "path/to/video.mp4"
-    cap = cv2.VideoCapture(video_path)
+# ビデオファイルを開く
+video_path = "path/to/video.mp4"
+cap = cv2.VideoCapture(video_path)
 
-    # ビデオフレームをループする
-    while cap.isOpened():
-        # ビデオからフレームを読み込む
-        success, frame = cap.read()
+# ビデオフレームをループする
+while cap.isOpened():
+    # ビデオからフレームを読み込む
+    success, frame = cap.read()
 
-        if success:
-            # フレームでYOLOv8トラッキングを実行し、フレーム間でトラックを永続化
-            results = model.track(frame, persist=True)
+    if success:
+        # フレームでYOLOv8トラッキングを実行し、フレーム間でトラックを永続化
+        results = model.track(frame, persist=True)
 
-            # フレームに結果を可視化
-            annotated_frame = results[0].plot()
+        # フレームに結果を可視化
+        annotated_frame = results[0].plot()
 
-            # 注釈付きのフレームを表示
-            cv2.imshow("YOLOv8トラッキング", annotated_frame)
+        # 注釈付きのフレームを表示
+        cv2.imshow("YOLOv8トラッキング", annotated_frame)
 
-            # 'q'が押されたらループから抜ける
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-        else:
-            # ビデオの終わりに到達したらループから抜ける
+        # 'q'が押されたらループから抜ける
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
+    else:
+        # ビデオの終わりに到達したらループから抜ける
+        break
 
-    # ビデオキャプチャオブジェクトを解放し、表示ウィンドウを閉じる
-    cap.release()
-    cv2.destroyAllWindows()
-    ```
+# ビデオキャプチャオブジェクトを解放し、表示ウィンドウを閉じる
+cap.release()
+cv2.destroyAllWindows()
+```
+````
 
 ここでの変更は、単純な検出ではなくオブジェクトトラッキングを有効にする`model(frame)`から`model.track(frame)`への変更です。この変更されたスクリプトは、ビデオの各フレームでトラッカーを実行し、結果を視覚化し、ウィンドウに表示します。ループは'q'を押すことで終了できます。
 

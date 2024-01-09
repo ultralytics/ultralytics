@@ -1,7 +1,9 @@
 ---
 comments: true
-description: YOLOv8モデルのバリデーションガイド。バリデーション設定とメトリクスを使用してYOLOモデルのパフォーマンスを評価する方法をPythonとCLIの例で学びましょう。
-keywords: Ultralytics, YOLO ドキュメント, YOLOv8, バリデーション, モデル評価, ハイパーパラメータ, 正確性, メトリクス, Python, CLI
+description: 
+  YOLOv8モデルのバリデーションガイド。バリデーション設定とメトリクスを使用してYOLOモデルのパフォーマンスを評価する方法をPythonとCLIの例で学びましょう。
+keywords: Ultralytics, YOLO ドキュメント, YOLOv8, バリデーション, モデル評価, ハイパーパラメータ, 正確性, メトリクス,
+  Python, CLI
 ---
 
 # Ultralytics YOLOによるモデルバリデーション
@@ -32,7 +34,9 @@ YOLOv8のValモードにより提供される注目すべき機能は以下の�
 
 !!! Tip "Tip"
 
-    * YOLOv8モデルは訓練設定を自動的に記憶しているので、`yolo val model=yolov8n.pt`や`model('yolov8n.pt').val()`だけで、元のデータセットと同じ画像サイズで簡単にバリデーション可能です。
+```
+* YOLOv8モデルは訓練設定を自動的に記憶しているので、`yolo val model=yolov8n.pt`や`model('yolov8n.pt').val()`だけで、元のデータセットと同じ画像サイズで簡単にバリデーション可能です。
+```
 
 ## 使用例
 
@@ -40,35 +44,37 @@ COCO128データセット上で訓練済みのYOLOv8nモデルの精度を検証
 
 !!! Example "例"
 
-    === "Python"
+````
+=== "Python"
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        # モデルをロードする
-        model = YOLO('yolov8n.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')  # カスタムモデルをロード
+    # モデルをロードする
+    model = YOLO('yolov8n.pt')  # 公式モデルをロード
+    model = YOLO('path/to/best.pt')  # カスタムモデルをロード
 
-        # モデルをバリデーションする
-        metrics = model.val()  # 引数は必要なし、データセットと設定は記憶持ち
-        metrics.box.map    # map50-95
-        metrics.box.map50  # map50
-        metrics.box.map75  # map75
-        metrics.box.maps   # 各カテゴリのmap50-95が含まれたリスト
-        ```
-    === "CLI"
+    # モデルをバリデーションする
+    metrics = model.val()  # 引数は必要なし、データセットと設定は記憶持ち
+    metrics.box.map    # map50-95
+    metrics.box.map50  # map50
+    metrics.box.map75  # map75
+    metrics.box.maps   # 各カテゴリのmap50-95が含まれたリスト
+    ```
+=== "CLI"
 
-        ```bash
-        yolo detect val model=yolov8n.pt  # 公式モデルをバリデーション
-        yolo detect val model=path/to/best.pt  # カスタムモデルをバリデーション
-        ```
+    ```bash
+    yolo detect val model=yolov8n.pt  # 公式モデルをバリデーション
+    yolo detect val model=path/to/best.pt  # カスタムモデルをバリデーション
+    ```
+````
 
 ## 引数
 
 YOLOモデルに対するバリデーション設定は、バリデーションデータセット上でのモデルのパフォーマンスを評価するために使用されるさまざまなハイパーパラメータと設定を指します。これらの設定は、モデルのパフォーマンス、スピード、そして精度に影響を与える可能性があります。一般的なYOLOのバリデーション設定には、バッチサイズや訓練中のバリデーション頻度、モデルのパフォーマンスを評価するために使用されるメトリックが含まれます。バリデーションプロセスに影響を与えるかもしれない他の要素には、バリデーションデータセットのサイズと構成、およびモデルが使用されている具体的なタスクなどがあります。モデルがバリデーションデータセット上でうまく動作していることを確認し、過学習を検出して防ぐために、これらの設定を慎重にチューニングして実験することが重要です。
 
 | キー            | 値       | 説明                                               |
-|---------------|---------|--------------------------------------------------|
+| ------------- | ------- | ------------------------------------------------ |
 | `data`        | `None`  | データファイルへのパス、例: coco128.yaml                      |
 | `imgsz`       | `640`   | 入力画像のサイズを整数で                                     |
 | `batch`       | `16`    | バッチごとの画像数（AutoBatchの場合は-1）                       |

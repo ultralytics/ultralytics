@@ -170,12 +170,14 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
-      - Guides:
-          - guides/index.md
       - Models:
           - models/index.md
       - Datasets:
           - datasets/index.md
+      - Guides:
+          - guides/index.md
+      - NEW 🚀 Explorer:
+          - datasets/explorer/index.md
       - Languages:
           - 🇬🇧&nbsp English: https://docs.ultralytics.com/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -188,7 +190,14 @@ nav:
           - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt/
           - 🇮🇳&nbsp हिन्दी: https://docs.ultralytics.com/hi/
           - 🇸🇦&nbsp العربية: https://docs.ultralytics.com/ar/
-  - Quickstart: quickstart.md
+  - Quickstart:
+      - quickstart.md
+      - Usage:
+          - CLI: usage/cli.md
+          - Python: usage/python.md
+          - Callbacks: usage/callbacks.md
+          - Configuration: usage/cfg.md
+          - Advanced Customization: usage/engine.md
   - Modes:
       - modes/index.md
       - Train: modes/train.md
@@ -219,7 +228,7 @@ nav:
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:
       - datasets/index.md
-      - Explorer:
+      - NEW 🚀 Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
           - Explorer Dashboard: datasets/explorer/dashboard.md
@@ -263,6 +272,11 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
+  - NEW 🚀 Explorer:
+      - datasets/explorer/index.md
+      - Explorer API: datasets/explorer/api.md
+      - Explorer Dashboard Demo: datasets/explorer/dashboard.md
+      - VOC Exploration Example: datasets/explorer/explorer.ipynb
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -290,6 +304,31 @@ nav:
           - VisionEye Mapping: guides/vision-eye.md
           - Speed Estimation: guides/speed-estimation.md
           - Distance Calculation: guides/distance-calculation.md
+      - YOLOv5:
+          - yolov5/index.md
+          - Quickstart: yolov5/quickstart_tutorial.md
+          - Environments:
+              - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
+              - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md
+              - AzureML: yolov5/environments/azureml_quickstart_tutorial.md
+              - Docker Image: yolov5/environments/docker_image_quickstart_tutorial.md
+          - Tutorials:
+              - Train Custom Data: yolov5/tutorials/train_custom_data.md
+              - Tips for Best Training Results: yolov5/tutorials/tips_for_best_training_results.md
+              - Multi-GPU Training: yolov5/tutorials/multi_gpu_training.md
+              - PyTorch Hub: yolov5/tutorials/pytorch_hub_model_loading.md
+              - TFLite, ONNX, CoreML, TensorRT Export: yolov5/tutorials/model_export.md
+              - NVIDIA Jetson Nano Deployment: yolov5/tutorials/running_on_jetson_nano.md
+              - Test-Time Augmentation (TTA): yolov5/tutorials/test_time_augmentation.md
+              - Model Ensembling: yolov5/tutorials/model_ensembling.md
+              - Pruning/Sparsity Tutorial: yolov5/tutorials/model_pruning_and_sparsity.md
+              - Hyperparameter evolution: yolov5/tutorials/hyperparameter_evolution.md
+              - Transfer learning with frozen layers: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+              - Architecture Summary: yolov5/tutorials/architecture_description.md
+              - Roboflow Datasets: yolov5/tutorials/roboflow_datasets_integration.md
+              - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
+              - Comet Logging: yolov5/tutorials/comet_logging_integration.md
+              - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
       - integrations/index.md
       - Comet ML: integrations/comet.md
@@ -303,37 +342,6 @@ nav:
       - Neural Magic: integrations/neural-magic.md
       - TensorBoard: integrations/tensorboard.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
-  - Usage:
-      - CLI: usage/cli.md
-      - Python: usage/python.md
-      - Callbacks: usage/callbacks.md
-      - Configuration: usage/cfg.md
-      - Advanced Customization: usage/engine.md
-  - YOLOv5:
-      - yolov5/index.md
-      - Quickstart: yolov5/quickstart_tutorial.md
-      - Environments:
-          - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
-          - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md
-          - AzureML: yolov5/environments/azureml_quickstart_tutorial.md
-          - Docker Image: yolov5/environments/docker_image_quickstart_tutorial.md
-      - Tutorials:
-          - Train Custom Data: yolov5/tutorials/train_custom_data.md
-          - Tips for Best Training Results: yolov5/tutorials/tips_for_best_training_results.md
-          - Multi-GPU Training: yolov5/tutorials/multi_gpu_training.md
-          - PyTorch Hub: yolov5/tutorials/pytorch_hub_model_loading.md
-          - TFLite, ONNX, CoreML, TensorRT Export: yolov5/tutorials/model_export.md
-          - NVIDIA Jetson Nano Deployment: yolov5/tutorials/running_on_jetson_nano.md
-          - Test-Time Augmentation (TTA): yolov5/tutorials/test_time_augmentation.md
-          - Model Ensembling: yolov5/tutorials/model_ensembling.md
-          - Pruning/Sparsity Tutorial: yolov5/tutorials/model_pruning_and_sparsity.md
-          - Hyperparameter evolution: yolov5/tutorials/hyperparameter_evolution.md
-          - Transfer learning with frozen layers: yolov5/tutorials/transfer_learning_with_frozen_layers.md
-          - Architecture Summary: yolov5/tutorials/architecture_description.md
-          - Roboflow Datasets: yolov5/tutorials/roboflow_datasets_integration.md
-          - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
-          - Comet Logging: yolov5/tutorials/comet_logging_integration.md
-          - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - HUB:
       - hub/index.md
       - Quickstart: hub/quickstart.md
@@ -357,6 +365,11 @@ nav:
           - build: reference/data/build.md
           - converter: reference/data/converter.md
           - dataset: reference/data/dataset.md
+          - explorer:
+              - explorer: reference/data/explorer/explorer.md
+              - gui:
+                  - dash: reference/data/explorer/gui/dash.md
+              - utils: reference/data/explorer/utils.md
           - loaders: reference/data/loaders.md
           - split_dota: reference/data/split_dota.md
           - utils: reference/data/utils.md
@@ -436,10 +449,10 @@ nav:
           - tasks: reference/nn/tasks.md
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
+          - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - object_counter: reference/solutions/object_counter.md
           - speed_estimation: reference/solutions/speed_estimation.md
-          - distance_calculation: reference/solutions/distance_calculation.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

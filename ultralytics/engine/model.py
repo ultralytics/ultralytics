@@ -346,21 +346,11 @@ class Model(nn.Module):
             trainer (BaseTrainer, optional): Customized trainer.
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
-        if SETTINGS['hub'] is True and not self.session:
-            # Create a model in HUB
-            try:
-                self.session = self._get_hub_session(self.model_name)
-            except PermissionError:
-                # Ignore permission error
-                pass
-
         self._check_is_pytorch_model()
         if hasattr(self.session, 'model') and self.session.model.id:  # Ultralytics HUB session with loaded model
-            kwargs = self.session.train_args  # Overwrite kwargs
-
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
-            kwargs = self.session.train_args
+            kwargs = self.session.train_args # Overwrite kwargs
 
         checks.check_pip_update_available()
 
@@ -375,9 +365,14 @@ class Model(nn.Module):
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
 
-            # Create HUB
-            if self.session and not self.session.model.id:
-                self.session.create_model(args)
+            if SETTINGS['hub'] is True and not self.session:
+                # Create a model in HUB
+                try:
+                    self.session = self._get_hub_session(self.model_name)
+                    self.session.create_model(args)
+                except PermissionError:
+                    # Ignore permission error
+                    pass
 
                 # HUB model could not be created
                 if not self.session.model.id:

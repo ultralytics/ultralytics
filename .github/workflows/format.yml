@@ -20,6 +20,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}  # automatically generated
           python: false
           docstrings: true
-          markdown: false
+          markdown: true
           spelling: false
           links: true

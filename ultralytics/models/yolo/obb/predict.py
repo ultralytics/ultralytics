@@ -23,6 +23,7 @@ class OBBPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initializes OBBPredictor with optional model and data configuration overrides."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'obb'
 
@@ -41,8 +42,7 @@ class OBBPredictor(DetectionPredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        for i, pred in enumerate(preds):
-            orig_img = orig_imgs[i]
+        for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape, xywh=True)
             img_path = self.batch[0][i]
             # xywh, r, conf, cls

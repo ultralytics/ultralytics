@@ -153,6 +153,7 @@ class ObjectCounter:
             self.selected_point = None
 
     def extract_and_process_tracks(self, tracks):
+        """Extracts and processes tracks for object counting in a video stream."""
         boxes = tracks[0].boxes.xyxy.cpu()
         clss = tracks[0].boxes.cls.cpu().tolist()
         track_ids = tracks[0].boxes.id.int().cpu().tolist()

@@ -245,6 +245,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             class CustomFormatter(logging.Formatter):
 
                 def format(self, record):
+                    """Sets up logging with UTF-8 encoding and configurable verbosity."""
                     return emojis(super().format(record))
 
             formatter = CustomFormatter('%(message)s')  # Use CustomFormatter to eliminate UTF-8 output as last recourse
@@ -856,6 +857,7 @@ class SettingsManager(dict):
             'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),
             'sync': True,
             'api_key': '',
+            'openai_api_key': '',
             'clearml': True,  # integrations
             'comet': True,
             'dvc': True,

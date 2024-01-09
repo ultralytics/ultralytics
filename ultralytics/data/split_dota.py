@@ -54,7 +54,7 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
     return outputs
 
 
-def load_yolo_dota(data_root, split='train'):
+def load_yolo_dota(data_root, split="train"):
     """
     Load DOTA dataset.
 

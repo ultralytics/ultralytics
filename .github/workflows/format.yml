@@ -18,7 +18,7 @@ jobs:
         uses: ultralytics/actions@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}  # automatically generated
-          python: false
+          python: true
           docstrings: true
           markdown: true
           spelling: false

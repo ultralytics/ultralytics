@@ -41,13 +41,15 @@ class DistanceCalculation:
         # Check if environment support imshow
         self.env_check = check_imshow(warn=True)
 
-    def set_args(self,
-                 names,
-                 pixels_per_meter=10,
-                 view_img=False,
-                 line_thickness=2,
-                 line_color=(255, 255, 0),
-                 centroid_color=(255, 0, 255)):
+    def set_args(
+        self,
+        names,
+        pixels_per_meter=10,
+        view_img=False,
+        line_thickness=2,
+        line_color=(255, 255, 0),
+        centroid_color=(255, 0, 255),
+    ):
         """
         Configures the distance calculation and display parameters.
 
@@ -129,8 +131,9 @@ class DistanceCalculation:
             distance (float): Distance between two centroids
         """
         cv2.rectangle(self.im0, (15, 25), (280, 70), (255, 255, 255), -1)
-        cv2.putText(self.im0, f'Distance : {distance:.2f}m', (20, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2,
-                    cv2.LINE_AA)
+        cv2.putText(
+            self.im0, f"Distance : {distance:.2f}m", (20, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, cv2.LINE_AA
+        )
         cv2.line(self.im0, self.centroids[0], self.centroids[1], self.line_color, 3)
         cv2.circle(self.im0, self.centroids[0], 6, self.centroid_color, -1)
         cv2.circle(self.im0, self.centroids[1], 6, self.centroid_color, -1)
@@ -179,13 +182,13 @@ class DistanceCalculation:
 
     def display_frames(self):
         """Display frame."""
-        cv2.namedWindow('Ultralytics Distance Estimation')
-        cv2.setMouseCallback('Ultralytics Distance Estimation', self.mouse_event_for_distance)
-        cv2.imshow('Ultralytics Distance Estimation', self.im0)
+        cv2.namedWindow("Ultralytics Distance Estimation")
+        cv2.setMouseCallback("Ultralytics Distance Estimation", self.mouse_event_for_distance)
+        cv2.imshow("Ultralytics Distance Estimation", self.im0)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     DistanceCalculation()

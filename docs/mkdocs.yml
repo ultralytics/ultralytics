@@ -368,6 +368,11 @@ nav:
           - build: reference/data/build.md
           - converter: reference/data/converter.md
           - dataset: reference/data/dataset.md
+          - explorer:
+              - explorer: reference/data/explorer/explorer.md
+              - gui:
+                  - dash: reference/data/explorer/gui/dash.md
+              - utils: reference/data/explorer/utils.md
           - loaders: reference/data/loaders.md
           - split_dota: reference/data/split_dota.md
           - utils: reference/data/utils.md
@@ -436,8 +441,6 @@ nav:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
                   - val: reference/models/yolo/segment/val.md
-      - Explorer:
-          - Explorer: reference/explorer/explorer.md
       - nn:
           - autobackend: reference/nn/autobackend.md
           - modules:
@@ -449,10 +452,10 @@ nav:
           - tasks: reference/nn/tasks.md
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
+          - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - object_counter: reference/solutions/object_counter.md
           - speed_estimation: reference/solutions/speed_estimation.md
-          - distance_calculation: reference/solutions/distance_calculation.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

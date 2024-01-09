@@ -6,7 +6,13 @@ keywords: Ultralytics Explorer, CV Dataset Tools, Semantic Search, SQL Dataset Q
 
 # Ultralytics Explorer
 
-Ultralytics Explorer is a tool for exploring CV datasets using semantic search, SQL queries and vector similarity search. It is also a Python API for accessing the same functionality.
+<p>
+<img width="1709" alt="Screenshot 2024-01-08 at 7 19 48 PM (1)" src="https://github.com/AyushExel/assets/assets/15766192/e536b0eb-6bce-43fe-b800-3e79510d2e5b">
+</p>
+
+Ultralytics Explorer is a tool for exploring CV datasets using semantic search, SQL queries, vector similarity search and even using natural language. It is also a Python API for accessing the same functionality.
+
+
 
 ### Installation of optional dependencies
 
@@ -33,8 +39,3 @@ yolo explorer
 !!! note "Note"
     Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`
-
-Example
-<p>
-<img width="1709" alt="Screenshot 2024-01-08 at 7 19 48 PM (1)" src="https://github.com/AyushExel/assets/assets/15766192/e536b0eb-6bce-43fe-b800-3e79510d2e5b">
-</p>

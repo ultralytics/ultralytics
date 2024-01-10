@@ -1,6 +1,6 @@
 <div align="center">
   <p>
-    <a href="https://yolovision.ultralytics.com/" target="_blank">
+    <a href="https://www.ultralytics.com/blog/ultralytics-yolov8-turns-one-a-year-of-breakthroughs-and-innovations" target="_blank">
       <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-yolo-vision-2023.png" alt="YOLO Vision banner"></a>
   </p>
 

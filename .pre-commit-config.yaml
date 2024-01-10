@@ -30,17 +30,11 @@ repos:
       - id: pyupgrade
         name: Upgrade code
 
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.11
     hooks:
-      - id: isort
-        name: Sort imports
-
-  - repo: https://github.com/google/yapf
-    rev: v0.40.2
-    hooks:
-      - id: yapf
-        name: YAPF formatting
+      - id: ruff
+        args: [--fix]
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.17

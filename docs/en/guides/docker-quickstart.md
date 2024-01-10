@@ -21,14 +21,14 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 - Running Ultralytics in a Docker container
 - Mounting local directories into the container
 
----
+______________________________________________________________________
 
 ## Prerequisites
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop).
 - Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
 
----
+______________________________________________________________________
 
 ## Setting up Docker with NVIDIA Support
 
@@ -64,7 +64,7 @@ Run `docker info | grep -i runtime` to ensure that `nvidia` appears in the list 
 docker info | grep -i runtime
 ```
 
----
+______________________________________________________________________
 
 ## Installing Ultralytics Docker Images
 
@@ -87,7 +87,7 @@ t=ultralytics/ultralytics:latest
 sudo docker pull $t
 ```
 
----
+______________________________________________________________________
 
 ## Running Ultralytics in Docker Container
 
@@ -114,6 +114,6 @@ sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
 
 Replace `/path/on/host` with the directory path on your local machine and `/path/in/container` with the desired path inside the Docker container.
 
----
+______________________________________________________________________
 
 Congratulations! You're now set up to use Ultralytics with Docker and ready to take advantage of its powerful capabilities. For alternate installation methods, feel free to explore the [Ultralytics quickstart documentation](../quickstart.md).

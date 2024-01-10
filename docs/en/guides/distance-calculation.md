@@ -17,7 +17,6 @@ Measuring the gap between two objects is known as distance calculation within a 
 - **Scene Understanding:** Contributes to a 3D understanding of the environment for improved decision-making.
 
 ???+ tip "Distance Calculation"
-
     - Click on any two bounding boxes with Left Mouse click for distance calculation
 
 !!! Example "Distance Calculation using YOLOv8 Example"
@@ -63,14 +62,13 @@ Measuring the gap between two objects is known as distance calculation within a 
         ```
 
 ???+ tip "Note"
-
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
 
 ### Optional Arguments `set_args`
 
 | Name           | Type   | Default         | Description                                            |
-|----------------|--------|-----------------|--------------------------------------------------------|
+| -------------- | ------ | --------------- | ------------------------------------------------------ |
 | names          | `dict` | `None`          | Classes names                                          |
 | view_img       | `bool` | `False`         | Display frames with counts                             |
 | line_thickness | `int`  | `2`             | Increase bounding boxes thickness                      |
@@ -79,12 +77,12 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+| Name      | Type    | Default        | Description                                                   |
+| --------- | ------- | -------------- | ------------------------------------------------------------- |
+| `source`  | `im0`   | `None`         | source directory for images or videos                         |
+| `persist` | `bool`  | `False`        | persisting tracks between frames                              |
+| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                      |
+| `conf`    | `float` | `0.3`          | Confidence Threshold                                          |
+| `iou`     | `float` | `0.5`          | IOU Threshold                                                 |
+| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=\[0,2,3\] |
+| `verbose` | `bool`  | `True`         | Display the object tracking results                           |

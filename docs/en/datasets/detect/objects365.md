@@ -31,7 +31,6 @@ The Objects365 dataset is widely used for training and evaluating deep learning 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Objects365 Dataset, the `Objects365.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml).
 
 !!! Example "ultralytics/cfg/datasets/Objects365.yaml"
-
     ```yaml
     --8<-- "ultralytics/cfg/datasets/Objects365.yaml"
     ```

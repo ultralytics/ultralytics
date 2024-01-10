@@ -4,16 +4,14 @@ description: Detailed reference for the Explorer GUI. Includes brief description
 keywords: Ultralytics, data explorer, gui, function reference, documentation, AI queries, image similarity, SQL queries, streamlit, semantic search
 ---
 
-
 # Reference for `ultralytics/data/explorer/gui/dash.py`
 
 !!! Note
-
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/gui/dash.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/gui/dash.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/explorer/gui/dash.py) 🛠️. Thank you 🙏!
 
 <br><br>
 
-## ::: ultralytics.data.explorer.gui.dash._get_explorer
+## ::: ultralytics.data.explorer.gui.dash.\_get_explorer
 
 <br><br>
 

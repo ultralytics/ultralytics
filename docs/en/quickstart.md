@@ -22,6 +22,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 !!! Example "Install"
 
     === "Pip install (recommended)"
+
         Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
 
         [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
@@ -40,8 +41,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
 
     === "Conda install"
-        Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
 
+        Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
 
         [![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
 
@@ -53,6 +54,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         !!! Note
 
             If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
+
             ```bash
             # Install all packages together using conda
             conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
@@ -75,7 +77,9 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         ```
 
     === "Git clone"
+
         Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
+
         ```bash
         # Clone the ultralytics repository
         git clone https://github.com/ultralytics/ultralytics
@@ -146,6 +150,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     === "Syntax"
 
         Ultralytics `yolo` commands use the following syntax:
+
         ```bash
         yolo TASK MODE ARGS
         ```
@@ -159,6 +164,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     === "Train"
 
         Train a detection model for 10 epochs with an initial learning_rate of 0.01
+
         ```bash
         yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
@@ -166,6 +172,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     === "Predict"
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
+
         ```bash
         yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
@@ -173,6 +180,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     === "Val"
 
         Val a pretrained detection model at batch-size 1 and image size 640:
+
         ```bash
         yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
         ```
@@ -180,6 +188,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     === "Export"
 
         Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
+
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
         ```
@@ -187,6 +196,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     === "Special"
 
         Run special commands to see version, view settings, run checks and more:
+
         ```bash
         yolo help
         yolo checks
@@ -250,7 +260,9 @@ To gain insight into the current configuration of your settings, you can view th
 !!! Example "View settings"
 
     === "Python"
+
         You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
+
         ```python
         from ultralytics import settings
 
@@ -262,7 +274,9 @@ To gain insight into the current configuration of your settings, you can view th
         ```
 
     === "CLI"
+
         Alternatively, the command-line interface allows you to check your settings with a simple command:
+
         ```bash
         yolo settings
         ```
@@ -274,7 +288,9 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 !!! Example "Update settings"
 
     === "Python"
+
         Within the Python environment, call the `update` method on the `settings` object to change your settings:
+
         ```python
         from ultralytics import settings
 
@@ -289,7 +305,9 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         ```
 
     === "CLI"
+
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
+        
         ```bash
         # Update a setting
         yolo settings runs_dir='/path/to/runs'

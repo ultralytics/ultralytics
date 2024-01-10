@@ -21,13 +21,13 @@ This guide provides a comprehensive introduction to setting up a Conda environme
 - Initializing Ultralytics in your environment
 - Using Ultralytics Docker images with Conda
 
----
+______________________________________________________________________
 
 ## Prerequisites
 
 - You should have Anaconda or Miniconda installed on your system. If not, download and install it from [Anaconda](https://www.anaconda.com/) or [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/).
 
----
+______________________________________________________________________
 
 ## Setting up a Conda Environment
 
@@ -43,7 +43,7 @@ Activate the new environment:
 conda activate ultralytics-env
 ```
 
----
+______________________________________________________________________
 
 ## Installing Ultralytics
 
@@ -61,7 +61,7 @@ If you're working in a CUDA-enabled environment, it's a good practice to install
 conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
 ```
 
----
+______________________________________________________________________
 
 ## Using Ultralytics
 
@@ -75,7 +75,7 @@ results = model('path/to/image.jpg')  # perform inference
 results.show()  # display results
 ```
 
----
+______________________________________________________________________
 
 ## Ultralytics Conda Docker Image
 
@@ -99,11 +99,11 @@ sudo docker run -it --ipc=host --gpus all $t  # all GPUs
 sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
 ```
 
----
+______________________________________________________________________
 
 Certainly, you can include the following section in your Conda guide to inform users about speeding up installation using `libmamba`:
 
----
+______________________________________________________________________
 
 ## Speeding Up Installation with Libmamba
 
@@ -115,18 +115,18 @@ To enable `libmamba` as the solver for Conda, you can perform the following step
 
 1. First, install the `conda-libmamba-solver` package. This can be skipped if your Conda version is 4.11 or above, as `libmamba` is included by default.
 
-    ```bash
-    conda install conda-libmamba-solver
-    ```
+   ```bash
+   conda install conda-libmamba-solver
+   ```
 
 2. Next, configure Conda to use `libmamba` as the solver:
 
-    ```bash
-    conda config --set solver libmamba
-    ```
+   ```bash
+   conda config --set solver libmamba
+   ```
 
 And that's it! Your Conda installation will now use `libmamba` as the solver, which should result in a faster package installation process.
 
----
+______________________________________________________________________
 
 Congratulations! You have successfully set up a Conda environment, installed the Ultralytics package, and are now ready to explore its rich functionalities. Feel free to dive deeper into the [Ultralytics documentation](../index.md) for more advanced tutorials and examples.

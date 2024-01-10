@@ -64,7 +64,7 @@ This example provides simple RT-DETRR training and inference examples. For full 
 This table presents the model types, the specific pre-trained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.
 
 | Model Type          | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
-|---------------------|---------------------|----------------------------------------|-----------|------------|----------|--------|
+| ------------------- | ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | RT-DETR Large       | `rtdetr-l.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 | RT-DETR Extra-Large | `rtdetr-x.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 

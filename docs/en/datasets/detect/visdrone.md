@@ -29,7 +29,6 @@ The VisDrone dataset is widely used for training and evaluating deep learning mo
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Visdrone dataset, the `VisDrone.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VisDrone.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VisDrone.yaml).
 
 !!! Example "ultralytics/cfg/datasets/VisDrone.yaml"
-
     ```yaml
     --8<-- "ultralytics/cfg/datasets/VisDrone.yaml"
     ```

@@ -50,8 +50,7 @@ You will have to pass `python -m torch.distributed.run --nproc_per_node`, follow
 python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0,1
 ```
 
-`--nproc_per_node` specifies how many GPUs you would like to use. In the example above, it is 2.
-`--batch ` is the total batch-size. It will be divided evenly to each GPU. In the example above, it is 64/2=32 per GPU.
+`--nproc_per_node` specifies how many GPUs you would like to use. In the example above, it is 2. `--batch ` is the total batch-size. It will be divided evenly to each GPU. In the example above, it is 64/2=32 per GPU.
 
 The code above will use GPUs `0... (N-1)`.
 
@@ -71,7 +70,7 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 
 [SyncBatchNorm](https://pytorch.org/docs/master/generated/torch.nn.SyncBatchNorm.html) could increase accuracy for multiple gpu training, however, it will slow down training by a significant factor. It is **only** available for Multiple GPU DistributedDataParallel training.
 
-It is best used when the batch-size on **each** GPU is small (<= 8).
+It is best used when the batch-size on **each** GPU is small (\<= 8).
 
 To use SyncBatchNorm, simple pass `--sync-bn` to the command like below,
 
@@ -143,7 +142,7 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 </details>
 
 | GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G) | COCO<br><sup>train | COCO<br><sup>val |
-|--------------|------------|------------------------------|--------------------|------------------|
+| ------------ | ---------- | ---------------------------- | ------------------ | ---------------- |
 | 1x           | 16         | 26GB                         | 20:39              | 0:55             |
 | 2x           | 32         | 26GB                         | 11:43              | 0:57             |
 | 4x           | 64         | 26GB                         | 5:57               | 0:55             |

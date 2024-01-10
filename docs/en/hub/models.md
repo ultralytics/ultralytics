@@ -17,7 +17,6 @@ Navigate to the [Models](https://hub.ultralytics.com/models) page by clicking on
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Models button in the sidebar](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_1.jpg)
 
 ??? tip "Tip"
-
     You can also train a model directly from the [Home](https://hub.ultralytics.com/home) page.
 
     ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Train Model card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_2.jpg)
@@ -35,7 +34,6 @@ In this step, you have to select the dataset you want to train your model on. Af
 ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to a dataset and one to the Continue button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_4.jpg)
 
 ??? tip "Tip"
-
     You can skip this step if you train a model directly from the Dataset page.
 
     ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_5.jpg)
@@ -45,7 +43,6 @@ In this step, you have to select the dataset you want to train your model on. Af
 In this step, you have to choose the project in which you want to create your model, the name of your model and your model's architecture.
 
 ??? note "Note"
-
     Ultralytics HUB will try to pre-select the project.
 
     If you opened the **Train Model** dialog as described above, Ultralytics HUB will pre-select the last project you used.
@@ -59,7 +56,6 @@ In this step, you have to choose the project in which you want to create your mo
     ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the project name](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_7.jpg)
 
 !!! Info "Info"
-
     You can read more about the available [YOLOv8](https://docs.ultralytics.com/models/yolov8) (and [YOLOv5](https://docs.ultralytics.com/models/yolov5)) architectures in our documentation.
 
 When you're happy with your model configuration, click **Continue**.
@@ -67,7 +63,6 @@ When you're happy with your model configuration, click **Continue**.
 ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to a model architecture and one to the Continue button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_8.jpg)
 
 ??? note "Note"
-
     By default, your model will use a pre-trained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco) dataset) to reduce training time.
 
     You can change this behaviour by opening the **Advanced Options** accordion.
@@ -87,13 +82,11 @@ In order to start training your model, follow the instructions presented in this
 ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to each step](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_9.jpg)
 
 ??? note "Note"
-
     When you are on this step, before the training starts, you can change the default training configuration by opening the **Advanced Options** accordion.
 
     ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Train Advanced Options](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_10.jpg)
 
 ??? note "Note"
-
     When you are on this step, you have the option to close the **Train Model** dialog and start training your model from the Model page later.
 
     ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Start Training card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_11.jpg)
@@ -111,7 +104,6 @@ When the training starts, you can click **Done** and monitor the training progre
 ![Ultralytics HUB screenshot of the Model page of a model that is currently training](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_13.jpg)
 
 ??? note "Note"
-
     In case the training stops and a checkpoint was saved, you can resume training your model from the Model page.
 
     ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Resume Training card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_14.jpg)
@@ -139,7 +131,6 @@ You can export your model to 13 different formats, including ONNX, OpenVINO, Cor
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with all formats exported](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_deploy_model_1.jpg)
 
 ??? tip "Tip"
-
     You can customize the export options of each format if you open the export actions dropdown and click on the **Advanced** option.
 
     ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Advanced option](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_deploy_model_2.jpg)
@@ -147,11 +138,9 @@ You can export your model to 13 different formats, including ONNX, OpenVINO, Cor
 ## Share Model
 
 !!! Info "Info"
-
     Ultralytics HUB's sharing functionality provides a convenient way to share models with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
 
 ??? note "Note"
-
     You have control over the general access of your models.
 
     You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the model, regardless of whether they have an Ultralytics HUB account or not.
@@ -161,7 +150,6 @@ Navigate to the Model page of the model you want to share, open the model action
 ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Share option](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_share_model_1.jpg)
 
 ??? tip "Tip"
-
     You can also share a model directly from the [Models](https://hub.ultralytics.com/models) page or from the Project page of the project where your model is located.
 
     ![Ultralytics HUB screenshot of the Models page with an arrow pointing to the Share option of one of the models](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_share_model_2.jpg)
@@ -173,7 +161,6 @@ Set the general access to "Unlisted" and click **Save**.
 Now, anyone who has the direct link to your model can view it.
 
 ??? tip "Tip"
-
     You can easily click on the model's link shown in the **Share Model** dialog to copy it.
 
     ![Ultralytics HUB screenshot of the Share Model dialog with an arrow pointing to the model's link](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_share_model_4.jpg)
@@ -185,7 +172,6 @@ Navigate to the Model page of the model you want to edit, open the model actions
 ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Edit option](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_edit_model_1.jpg)
 
 ??? tip "Tip"
-
     You can also edit a model directly from the [Models](https://hub.ultralytics.com/models) page or from the Project page of the project where your model is located.
 
     ![Ultralytics HUB screenshot of the Models page with an arrow pointing to the Edit option of one of the models](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_edit_model_2.jpg)
@@ -201,13 +187,11 @@ Navigate to the Model page of the model you want to delete, open the model actio
 ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Delete option](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_delete_model_1.jpg)
 
 ??? tip "Tip"
-
     You can also delete a model directly from the [Models](https://hub.ultralytics.com/models) page or from the Project page of the project where your model is located.
 
     ![Ultralytics HUB screenshot of the Models page with an arrow pointing to the Delete option of one of the models](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_delete_model_2.jpg)
 
 ??? note "Note"
-
     If you change your mind, you can restore the model from the [Trash](https://hub.ultralytics.com/trash) page.
 
     ![Ultralytics HUB screenshot of the Trash page with an arrow pointing to the Restore option of one of the models](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_delete_model_3.jpg)

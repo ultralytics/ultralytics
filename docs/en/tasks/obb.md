@@ -15,7 +15,6 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 <!-- youtube video link for obb task -->
 
 !!! Tip "Tip"
-
     YOLOv8 OBB models use the `-obb` suffix, i.e. `yolov8n-obb.pt` and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
@@ -24,13 +23,13 @@ YOLOv8 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>test<br>50   | Speed<br><sup>CPU ONNX<br>(ms)   | Speed<br><sup>A100 TensorRT<br>(ms)   | params<br><sup>(M)   | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|-----------------------| -------------------- | -------------------------------- | ------------------------------------- | -------------------- | ----------------- |
-| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-obb.pt) | 1024                  | 76.9                 | 204.77                           | 3.57                                  | 3.1                  | 23.3              |
-| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-obb.pt) | 1024                  | 78.0                 | 424.88                           | 4.07                                  | 11.4                 | 76.3              |
-| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-obb.pt) | 1024                  | 80.5                 | 763.48                           | 7.61                                  | 26.4                 | 208.6             |
-| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-obb.pt) | 1024                  | 80.7                 | 1278.42                          | 11.83                                 | 44.5                 | 433.8             |
-| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-obb.pt) | 1024                  | 81.36                | 1759.10                          | 13.23                                 | 69.5                 | 676.7             |
+| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>test<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| -------------------------------------------------------------------------------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-obb.pt) | 1024                  | 76.9               | 204.77                         | 3.57                                | 3.1                | 23.3              |
+| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-obb.pt) | 1024                  | 78.0               | 424.88                         | 4.07                                | 11.4               | 76.3              |
+| [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-obb.pt) | 1024                  | 80.5               | 763.48                         | 7.61                                | 26.4               | 208.6             |
+| [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-obb.pt) | 1024                  | 80.7               | 1278.42                        | 11.83                               | 44.5               | 433.8             |
+| [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-obb.pt) | 1024                  | 81.36              | 1759.10                        | 13.23                               | 69.5               | 676.7             |
 
 - **mAP<sup>test</sup>** values are for single-model multi-scale on [DOTAv1 test](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
@@ -54,6 +53,7 @@ Train YOLOv8n-obb on the dota8.yaml dataset for 100 epochs at image size 640. Fo
         # Train the model
         results = model.train(data='dota8-obb.yaml', epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -73,8 +73,7 @@ OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb
 
 ## Val
 
-Validate trained YOLOv8n-obb model accuracy on the dota8-obb dataset. No argument need to passed as the `model`
-retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n-obb model accuracy on the dota8-obb dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
 !!! Example
 
@@ -94,6 +93,7 @@ retains it's training `data` and arguments as model attributes.
         metrics.box.map75  # map75(B)
         metrics.box.maps   # a list contains map50-95(B) of each category
         ```
+
     === "CLI"
 
         ```bash
@@ -119,6 +119,7 @@ Use a trained YOLOv8n-obb model to run predictions on images.
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
+
     === "CLI"
 
         ```bash
@@ -146,6 +147,7 @@ Export a YOLOv8n-obb model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format='onnx')
         ```
+
     === "CLI"
 
         ```bash
@@ -156,7 +158,7 @@ Export a YOLOv8n-obb model to a different format like ONNX, CoreML, etc.
 Available YOLOv8-obb export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-obb.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                         | Metadata | Arguments                                           |
-|--------------------------------------------------------------------|-------------------|-------------------------------|----------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ----------------------------- | -------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-obb.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-obb.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-obb.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

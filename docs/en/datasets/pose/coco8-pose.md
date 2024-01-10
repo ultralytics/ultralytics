@@ -17,7 +17,6 @@ This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Pose dataset, the `coco8-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
 
 !!! Example "ultralytics/cfg/datasets/coco8-pose.yaml"
-
     ```yaml
     --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
     ```

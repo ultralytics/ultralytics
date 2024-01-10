@@ -120,7 +120,9 @@ Below are code examples for using each source type:
 !!! Example "Prediction sources"
 
     === "image"
+
         Run inference on an image file.
+    
         ```python
         from ultralytics import YOLO
 
@@ -135,7 +137,9 @@ Below are code examples for using each source type:
         ```
 
     === "screenshot"
+
         Run inference on the current screen content as a screenshot.
+    
         ```python
         from ultralytics import YOLO
 
@@ -150,7 +154,9 @@ Below are code examples for using each source type:
         ```
 
     === "URL"
+
         Run inference on an image or video hosted remotely via URL.
+    
         ```python
         from ultralytics import YOLO
 
@@ -165,7 +171,9 @@ Below are code examples for using each source type:
         ```
 
     === "PIL"
+
         Run inference on an image opened with Python Imaging Library (PIL).
+    
         ```python
         from PIL import Image
         from ultralytics import YOLO
@@ -181,7 +189,9 @@ Below are code examples for using each source type:
         ```
 
     === "OpenCV"
+
         Run inference on an image read with OpenCV.
+    
         ```python
         import cv2
         from ultralytics import YOLO
@@ -197,7 +207,9 @@ Below are code examples for using each source type:
         ```
 
     === "numpy"
+
         Run inference on an image represented as a numpy array.
+    
         ```python
         import numpy as np
         from ultralytics import YOLO
@@ -213,7 +225,9 @@ Below are code examples for using each source type:
         ```
 
     === "torch"
+
         Run inference on an image represented as a PyTorch tensor.
+    
         ```python
         import torch
         from ultralytics import YOLO
@@ -229,7 +243,9 @@ Below are code examples for using each source type:
         ```
 
     === "CSV"
+
         Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
+    
         ```python
         import torch
         from ultralytics import YOLO
@@ -245,7 +261,9 @@ Below are code examples for using each source type:
         ```
 
     === "video"
+
         Run inference on a video file. By using `stream=True`, you can create a generator of Results objects to reduce memory usage.
+    
         ```python
         from ultralytics import YOLO
 
@@ -260,7 +278,9 @@ Below are code examples for using each source type:
         ```
 
     === "directory"
+
         Run inference on all images and videos in a directory. To also capture images and videos in subdirectories use a glob pattern, i.e. `path/to/dir/**/*`.
+    
         ```python
         from ultralytics import YOLO
 
@@ -275,7 +295,9 @@ Below are code examples for using each source type:
         ```
 
     === "glob"
+
         Run inference on all images and videos that match a glob expression with `*` characters.
+    
         ```python
         from ultralytics import YOLO
 
@@ -293,7 +315,9 @@ Below are code examples for using each source type:
         ```
 
     === "YouTube"
+
         Run inference on a YouTube video. By using `stream=True`, you can create a generator of Results objects to reduce memory usage for long videos.
+    
         ```python
         from ultralytics import YOLO
 
@@ -308,7 +332,9 @@ Below are code examples for using each source type:
         ```
 
     === "Streams"
+
         Run inference on remote streaming sources using RTSP, RTMP, TCP and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
+    
         ```python
         from ultralytics import YOLO
 

@@ -14,24 +14,26 @@ from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CF
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
-TASKS = 'detect', 'segment', 'classify', 'pose', 'obb'
+TASKS = 'detect', 'segment', 'classify', 'pose', 'obb' , 'multitask'
 TASK2DATA = {
     'detect': 'coco8.yaml',
     'segment': 'coco8-seg.yaml',
     'classify': 'imagenet10',
     'pose': 'coco8-pose.yaml',
-    'obb': 'dota8-obb.yaml'}  # not implemented yet
+    'obb': 'dota8-obb.yaml', 'multitask': 'coco8-multitask.yaml'}  # not implemented yet
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
     'classify': 'yolov8n-cls.pt',
     'pose': 'yolov8n-pose.pt',
+    'multitask': 'yolov8n-multitask.pt',
     'obb': 'yolov8n-obb.pt'}
 TASK2METRIC = {
     'detect': 'metrics/mAP50-95(B)',
     'segment': 'metrics/mAP50-95(M)',
     'classify': 'metrics/accuracy_top1',
     'pose': 'metrics/mAP50-95(P)',
+    'multitask': 'metrics/mAP50-95(MT)',
     'obb': 'metrics/mAP50-95(OBB)'}
 
 CLI_HELP_MSG = \

@@ -48,10 +48,17 @@ repos:
       - id: mdformat
         name: MD formatting
         additional_dependencies:
-          - mdformat-mkdocs[recommended]>=1.2.0
+          - mdformat-admon>=1.1.3
+          - mdformat-frontmatter>=2.0.8
+          - mdformat_tables>=0.4.1
+          # # PLANNED: defer additional plugins (black/beautysh/etc.) to minimize diff
+          # #   Note: 'mdformat-mkdocs[recommended]' includes admon, frontmatter, and tables
+          # - mdformat-mkdocs[recommended]>=1.2.0
         args:
           - --wrap=no
           - --number
+        # HACK: Limit to English documentation for debugging
+        exclude: 'docs/(?!en).+\.md'
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6

@@ -22,7 +22,6 @@ Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help
 For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code.
 
 !!! Example "Python"
-
     ```python
     from ultralytics import YOLO
 
@@ -240,7 +239,7 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
     === "Python"
 
         Benchmark an official YOLOv8n model across all export formats.
-        
+
         ```python
         from ultralytics.utils.benchmarks import benchmark
 
@@ -296,33 +295,33 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 
 [Explorer](../datasets/explorer/index.md){ .md-button }
 
-
 ## Using Trainers
 
 `YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits from `BaseTrainer`.
 
 !!! Tip "Detection Trainer Example"
+    ````
+    ```python
+    from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, DetectionPredictor
 
-        ```python
-        from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, DetectionPredictor
+    # trainer
+    trainer = DetectionTrainer(overrides={})
+    trainer.train()
+    trained_model = trainer.best
 
-        # trainer
-        trainer = DetectionTrainer(overrides={})
-        trainer.train()
-        trained_model = trainer.best
+    # Validator
+    val = DetectionValidator(args=...)
+    val(model=trained_model)
 
-        # Validator
-        val = DetectionValidator(args=...)
-        val(model=trained_model)
+    # predictor
+    pred = DetectionPredictor(overrides={})
+    pred(source=SOURCE, model=trained_model)
 
-        # predictor
-        pred = DetectionPredictor(overrides={})
-        pred(source=SOURCE, model=trained_model)
-
-        # resume from last weight
-        overrides["resume"] = trainer.last
-        trainer = detect.DetectionTrainer(overrides=overrides)
-        ```
+    # resume from last weight
+    overrides["resume"] = trainer.last
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    ```
+    ````
 
 You can easily customize Trainers to support custom tasks or explore R&D ideas. Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 

@@ -83,16 +83,14 @@ Where:
 
 - `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export, track]`
-- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
-  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
+- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml` GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 !!! Warning "Warning"
-
     Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
-    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
-    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
-    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
+    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25`   ✅
+    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25`   ❌
+    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25`   ❌
 
 ## Train
 
@@ -185,7 +183,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 Available YOLOv8 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`.
 
 | Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
-|--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
+| ------------------------------------------------------------------ | ----------------- | ------------------------- | -------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
@@ -217,7 +215,7 @@ Default arguments can be overridden by simply passing them as arguments in the C
     === "Predict"
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
-        
+
         ```bash
         yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
@@ -225,7 +223,7 @@ Default arguments can be overridden by simply passing them as arguments in the C
     === "Val"
 
         Validate a pretrained detection model at batch-size 1 and image size 640:
-        
+
         ```bash
         yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
         ```

@@ -44,7 +44,7 @@ class OBBPredictor(DetectionPredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        for i, (pred, orig_img, img_path) in enumerate(zip(preds, orig_imgs, self.batch[0])):
+        for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape, xywh=True)
             # xywh, r, conf, cls
             obb = torch.cat([pred[:, :4], pred[:, -1:], pred[:, 4:6]], dim=-1)

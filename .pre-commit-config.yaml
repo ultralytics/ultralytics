@@ -48,14 +48,10 @@ repos:
       - id: mdformat
         name: MD formatting
         additional_dependencies:
-          - mdformat-gfm
-          - mdformat-frontmatter
-          - mdformat-mkdocs
+          - mdformat-mkdocs[recommended]>=1.2.0
         args:
           - --wrap=no
           - --number
-        exclude: 'docs/.*\.md'
-        # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6

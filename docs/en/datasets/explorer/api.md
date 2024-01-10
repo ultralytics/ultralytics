@@ -95,7 +95,6 @@ You get a pandas dataframe with the `limit` number of most similar data points t
         print(similar.head())
         ```
 
-
 ### Plotting Similar Images
 
 You can also plot the similar images using the `plot_similar` method. This method takes the same arguments as `get_similar` and plots the similar images in a grid.

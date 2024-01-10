@@ -22,7 +22,7 @@ pip install ultralytics[explorer]
 ```
 
 !!! tip
-    Explorer works on embedding/semantic search & SQL querying and is powered by [LanceDB](https://lancedb.com/) serverless vector database. Unlike traditional in-memory DBs, it is persisted on disk with sacrificing performance, so you can scale locally to large datasets like COCO without running out of memory.
+    Explorer works on embedding/semantic search & SQL querying and is powered by [LanceDB](https://lancedb.com/) serverless vector database. Unlike traditional in-memory DBs, it is persisted on disk without sacrificing performance, so you can scale locally to large datasets like COCO without running out of memory.
 
 
 ### Explorer API

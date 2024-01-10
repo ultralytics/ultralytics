@@ -285,7 +285,8 @@ class Results(SimpleClass):
             txt_file (str): txt file path.
             save_conf (bool): save confidence score or not.
         """
-        boxes = self.boxes
+        is_obb = self.obb is not None
+        boxes = self.obb if is_obb else self.boxes
         masks = self.masks
         probs = self.probs
         kpts = self.keypoints
@@ -297,7 +298,7 @@ class Results(SimpleClass):
             # Detect/segment/pose
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
-                line = (c, *d.xywhn.view(-1))
+                line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
                     line = (c, *seg)
@@ -639,6 +640,15 @@ class OBB(BaseTensor):
     def xyxyxyxy(self):
         """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
         return ops.xywhr2xyxyxyxy(self.xywhr)
+
+    @property
+    @lru_cache(maxsize=2)
+    def xyxyxyxyn(self):
+        """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
+        xyxyxyxyn = self.xyxyxyxy.clone() if isinstance(self.xyxyxyxy, torch.Tensor) else np.copy(self.xyxyxyxy)
+        xyxyxyxyn[..., 0] /= self.orig_shape[1]
+        xyxyxyxyn[..., 1] /= self.orig_shape[1]
+        return xyxyxyxyn
 
     @property
     @lru_cache(maxsize=2)

@@ -149,6 +149,7 @@ Segment Anything Modelは、トレーニングデータを超えた多くのダ�
 !!! Example "例"
 
     === "Python"
+
         ```python
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -184,6 +185,7 @@ Ultralyticsフレームワークを使用してデータセットをオートア
 !!! Example "例"
 
     === "Python"
+
         ```python
         from ultralytics.data.annotator import auto_annotate
 

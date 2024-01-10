@@ -53,6 +53,7 @@ UltralyticsのYOLOモデルは、`stream=True`が推論中にモデルに渡さ�
 !!! Example "予測"
 
     === "`stream=False`でリストを返す"
+
         ```python
         from ultralytics import YOLO
 
@@ -71,6 +72,7 @@ UltralyticsのYOLOモデルは、`stream=True`が推論中にモデルに渡さ�
         ```
 
     === "`stream=True`でジェネレータを返す"
+
         ```python
         from ultralytics import YOLO
 

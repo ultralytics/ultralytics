@@ -50,6 +50,7 @@ To perform object detection on an image, use the `predict` method as shown below
 !!! Example
 
     === "Python"
+
         ```python
         from ultralytics import FastSAM
         from ultralytics.models.fastsam import FastSAMPrompt
@@ -83,6 +84,7 @@ To perform object detection on an image, use the `predict` method as shown below
         ```
 
     === "CLI"
+
         ```bash
         # Load a FastSAM model and segment everything with it
         yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
@@ -97,6 +99,7 @@ Validation of the model on a dataset can be done as follows:
 !!! Example
 
     === "Python"
+
         ```python
         from ultralytics import FastSAM
 
@@ -108,6 +111,7 @@ Validation of the model on a dataset can be done as follows:
         ```
 
     === "CLI"
+
         ```bash
         # Load a FastSAM model and validate it on the COCO8 example dataset at image size 640
         yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640

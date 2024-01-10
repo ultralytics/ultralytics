@@ -50,6 +50,7 @@ Um eine Objekterkennung auf einem Bild durchzuführen, verwenden Sie die Methode
 !!! Example "Beispiel"
 
     === "Python"
+
         ```python
         from ultralytics import FastSAM
         from ultralytics.models.fastsam import FastSAMPrompt
@@ -83,6 +84,7 @@ Um eine Objekterkennung auf einem Bild durchzuführen, verwenden Sie die Methode
         ```
 
     === "CLI"
+
         ```bash
         # Laden Sie ein FastSAM-Modell und segmentieren Sie alles damit
         yolo segment predict model=FastSAM-s.pt source=Pfad/zum/bus.jpg imgsz=640
@@ -97,6 +99,7 @@ Die Validierung des Modells auf einem Datensatz kann wie folgt durchgeführt wer
 !!! Example "Beispiel"
 
     === "Python"
+
         ```python
         from ultralytics import FastSAM
 
@@ -108,6 +111,7 @@ Die Validierung des Modells auf einem Datensatz kann wie folgt durchgeführt wer
         ```
 
     === "CLI"
+
         ```bash
         # Laden Sie ein FastSAM-Modell und validieren Sie es auf dem COCO8-Beispieldatensatz mit Bildgröße 640
         yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640

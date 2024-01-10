@@ -72,6 +72,7 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 !!! Example "مثال"
 
     === "Python"
+
         ```python
         from ultralytics import SAM
 
@@ -87,6 +88,7 @@ keywords: MobileSAM، Ultralytics، SAM، التطبيقات المحمولة، 
 !!! Example "مثال"
 
     === "Python"
+
         ```python
         from ultralytics import SAM
 

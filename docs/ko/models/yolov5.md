@@ -97,6 +97,7 @@ YOLOv5u는 객체 감지 기법에서의 진보를 나타냅니다. Ultralytics�
 !!! Quote ""
 
     === "BibTeX"
+
         ```bibtex
         @software{yolov5,
           title = {Ultralytics YOLOv5},

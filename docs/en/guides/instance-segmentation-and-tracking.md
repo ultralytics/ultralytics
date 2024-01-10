@@ -26,6 +26,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 !!! Example "Instance Segmentation and Tracking"
 
     === "Instance Segmentation"
+
         ```python
         import cv2
         from ultralytics import YOLO
@@ -68,6 +69,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
         ```
 
     === "Instance Segmentation with Object Tracking"
+
         ```python
         import cv2
         from ultralytics import YOLO

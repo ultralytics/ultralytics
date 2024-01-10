@@ -221,6 +221,7 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
 !!! Example
 
     === "CLI"
+
         ```bash
         yolo copy-cfg
         yolo cfg=default_copy.yaml imgsz=320

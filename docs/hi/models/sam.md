@@ -149,6 +149,7 @@ Segment Anything Model का उपयोग उपस्थित डेटा
 !!! Example "उदाहरण"
 
     === "Python"
+
         ```python
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -184,6 +185,7 @@ Ultralytics फ़्रेमवर्क के साथ स्‍वस्�
 !!! Example "उदाहरण"
 
     === "Python"
+
         ```python
         from ultralytics.data.annotator import auto_annotate
 

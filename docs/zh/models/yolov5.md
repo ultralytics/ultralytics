@@ -97,6 +97,7 @@ YOLOv5u是目标检测方法的一种进步。YOLOv5u源于Ultralytics开发的[
 !!! Quote ""
 
     === "BibTeX"
+
         ```bibtex
         @software{yolov5,
           title = {Ultralytics YOLOv5},

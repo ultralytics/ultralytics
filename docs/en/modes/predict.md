@@ -53,6 +53,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
 !!! Example "Predict"
 
     === "Return a list with `stream=False`"
+
         ```python
         from ultralytics import YOLO
 
@@ -71,6 +72,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
         ```
 
     === "Return a generator with `stream=True`"
+
         ```python
         from ultralytics import YOLO
 

@@ -91,6 +91,7 @@ results = model('path/to/bus.jpg')
 !!! Quote ""
 
     === "BibTeX"
+
         ```bibtex
         @software{yolov5,
           title = {Ultralytics YOLOv5},

@@ -53,6 +53,7 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
 !!! Example "التنبؤ"
 
     === "العودة بقائمة واحدة باستخدام `stream=False`"
+
         ```python
         from ultralytics import YOLO
 
@@ -71,6 +72,7 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         ```
 
     === "العودة بمُنشئ فعال مع `stream=True`"
+
         ```python
         from ultralytics import YOLO
 

@@ -26,6 +26,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 !!! Example "Workouts Monitoring Example"
 
     === "Workouts Monitoring"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import ai_gym
@@ -56,6 +57,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         ```
 
     === "Workouts Monitoring with Save Output"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import ai_gym

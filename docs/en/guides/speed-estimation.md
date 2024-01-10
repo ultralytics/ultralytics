@@ -26,6 +26,7 @@ Speed estimation is the process of calculating the rate of movement of an object
 !!! Example "Speed Estimation using YOLOv8 Example"
 
     === "Speed Estimation"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import speed_estimation

@@ -149,6 +149,7 @@ keywords: Ultralytics, قسيمة الصور, Segment Anything Model, SAM, سل�
 !!! Example "مثال"
 
     === "البايثون"
+
         ```البايثون
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -184,6 +185,7 @@ keywords: Ultralytics, قسيمة الصور, Segment Anything Model, SAM, سل�
 !!! Example "مثال"
 
     === "البايثون"
+
         ```البايثون
         from ultralytics.data.annotator import auto_annotate
 
@@ -209,6 +211,7 @@ keywords: Ultralytics, قسيمة الصور, Segment Anything Model, SAM, سل�
 !!! Quote ""
 
     === "البيبتيكس"
+
         ```البيبتيكس
         @misc{kirillov2023segment,
               title={Segment Anything},

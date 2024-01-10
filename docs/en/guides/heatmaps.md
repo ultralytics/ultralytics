@@ -42,6 +42,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 !!! Example "Heatmaps using Ultralytics YOLOv8 Example"
 
     === "Heatmap"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -83,6 +84,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Line Counting"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -126,6 +128,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Region Counting"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -170,6 +173,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Im0"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -194,6 +198,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Specific Classes"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap

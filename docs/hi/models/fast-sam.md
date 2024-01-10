@@ -50,6 +50,7 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
 !!! Example "उदाहरण"
 
     === "पायथन"
+
         ```python
         from ultralytics import FastSAM
         from ultralytics.models.fastsam import FastSAMPrompt
@@ -83,6 +84,7 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
         ```
 
     === "CLI"
+
         ```bash
         # शीघ्रदर्शन मॉडल को लोड करें और उसे कुछ वस्तुओं के साथ सेगमेंट करें
         yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
@@ -97,6 +99,7 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
 !!! Example "उदाहरण"
 
     === "पायथन"
+
         ```python
         from ultralytics import FastSAM
 
@@ -108,6 +111,7 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
         ```
 
     === "CLI"
+
         ```bash
         # शीघ्रदर्शन मॉडल को लोड करें और इसे साइज़ 640 पर COCO8 उदाहरण डेटासेट पर मान्यित करें
         yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640

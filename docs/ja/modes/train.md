@@ -151,6 +151,7 @@ Cometを使用するには：
 !!! Example "例"
 
     === "Python"
+
         ```python
         # pip install comet_ml
         import comet_ml
@@ -169,6 +170,7 @@ ClearMLを使用するには：
 !!! Example "例"
 
     === "Python"
+
         ```python
         # pip install clearml
         import clearml
@@ -187,6 +189,7 @@ ClearMLを使用するには：
 !!! Example "例"
 
     === "CLI"
+
         ```bash
         load_ext tensorboard
         tensorboard --logdir ultralytics/runs  # 'runs'ディレクトリと置き換えてください
@@ -197,6 +200,7 @@ TensorBoardをローカルで使用する場合は、http://localhost:6006/ で�
 !!! Example "例"
 
     === "CLI"
+
         ```bash
         tensorboard --logdir ultralytics/runs  # 'runs'ディレクトリと置き換えてください
         ```

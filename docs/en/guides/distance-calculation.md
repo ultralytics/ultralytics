@@ -23,6 +23,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 !!! Example "Distance Calculation using YOLOv8 Example"
 
     === "Video Stream"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import distance_calculation

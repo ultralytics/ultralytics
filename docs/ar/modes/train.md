@@ -54,6 +54,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
     يتم تحديد الجهاز تلقائيًا. إذا كانت بطاقة رسومات متاحة، سيتم استخدامها، وإلا ستبدأ التدريب على المعالج المركزي.
 
     === "بايثون"
+
         ```python
         from ultralytics import YOLO
 
@@ -67,6 +68,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
         ```
 
     === "سطر الأوامر"
+
         ```bash
         # إنشاء نموذج جديد من ملف YAML وبدء التدريب من البداية
         yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
@@ -87,6 +89,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
     للتدريب باستخدام أجهزتي GPU، جهاز CUDA 0 و 1، استخدم الأوامر التالية. قم بتوسيعها لاستخدام المزيد من البطاقات.
 
     === "بايثون"
+
         ```python
         from ultralytics import YOLO
 
@@ -98,6 +101,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
         ```
 
     === "سطر الأوامر"
+
         ```bash
         # بدء التدريب من نموذج *.pt مدرب مسبقًا باستخدام بطاقات GPU 0 و 1
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
@@ -112,6 +116,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
 !!! Example "مثال على التدريب بواسطة MPS"
 
     === "بايثون"
+
         ```python
         from ultralytics import YOLO
 
@@ -123,6 +128,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
         ```
 
     === "سطر الأوامر"
+
         ```bash
         # بدء التدريب من نموذج *.pt مدرب مسبقًا باستخدام بطاقات GPU 0 و 1
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
@@ -143,6 +149,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
 !!! Example "مثال على استئناف التدريب"
 
     === "بايثون"
+
         ```python
         from ultralytics import YOLO
 
@@ -154,6 +161,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
         ```
 
     === "سطر الأوامر"
+
         ```bash
         # استئناف تدريب متقطع
         yolo train resume model=path/to/last.pt
@@ -231,6 +239,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
 !!! Example "أمثلة بايثون"
 
     === "بايثون"
+
         ```python
         # pip install comet_ml
         import comet_ml
@@ -249,6 +258,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
 !!! Example "أمثلة بايثون"
 
     === "بايثون"
+
         ```python
         # pip install clearml
         import clearml
@@ -267,6 +277,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
 !!! Example "أمثلة سطر الأوامر"
 
     === "سطر الأوامر"
+
         ```bash
         load_ext tensorboard
         tensorboard --logdir ultralytics/runs  # استبدل بالدليل 'runs'
@@ -277,6 +288,7 @@ keywords: Ultralytics، YOLOv8، YOLO، كشف الكائنات، وضع تدر�
 !!! Example "أمثلة سطر الأوامر"
 
     === "سطر الأوامر"
+
         ```bash
         tensorboard --logdir ultralytics/runs  # استبدل بالدليل 'runs'
         ```

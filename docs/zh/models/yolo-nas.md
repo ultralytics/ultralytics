@@ -92,9 +92,9 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 | 模型类型       | 预训练权重链接                                                                                       | 支持的任务                      | 推理 | 验证 | 训练 | 导出 |
 |------------|-----------------------------------------------------------------------------------------------|----------------------------|----|----|----|----|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
 
 ## 引用和致谢
 

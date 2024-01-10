@@ -93,7 +93,7 @@ def test_pycocotools():
     from ultralytics.models.yolo.segment import SegmentationValidator
 
     # Download annotations after each dataset downloads first
-    url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
+    url = 'https://github.com/ultralytics/assets/releases/download/v8.1.0/'
 
     args = {'model': 'yolov8n.pt', 'data': 'coco8.yaml', 'save_json': True, 'imgsz': 64}
     validator = DetectionValidator(args=args)

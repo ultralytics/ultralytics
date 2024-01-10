@@ -23,22 +23,24 @@ class Profile(contextlib.ContextDecorator):
         ```python
         from ultralytics.utils.ops import Profile
 
-        with Profile() as dt:
+        with Profile(device=device) as dt:
             pass  # slow operation here
 
         print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
         ```
     """
 
-    def __init__(self, t=0.0):
+    def __init__(self, t=0.0, device: torch.device = None):
         """
         Initialize the Profile class.
 
         Args:
             t (float): Initial time. Defaults to 0.0.
+            device (torch.device): Devices used for model inference. Defaults to None (cpu).
         """
         self.t = t
-        self.cuda = torch.cuda.is_available()
+        self.device = device
+        self.cuda = True if (device and str(device)[:4] == "cuda") else False
 
     def __enter__(self):
         """Start timing."""
@@ -57,7 +59,7 @@ class Profile(contextlib.ContextDecorator):
     def time(self):
         """Get current time."""
         if self.cuda:
-            torch.cuda.synchronize()
+            torch.cuda.synchronize(self.device)
         return time.time()
 
 

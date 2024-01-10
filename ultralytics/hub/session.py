@@ -59,15 +59,15 @@ class HUBTrainingSession:
 
         # Get credentials
         active_key = api_key or SETTINGS.get('api_key')
-        credentials = {'api_key': active_key} if active_key else None  # Set credentials
+        credentials = {'api_key': active_key} if active_key else None  # set credentials
 
         # Initialize client
         self.client = HUBClient(credentials)
 
         if model_id:
-            self.load_model(model_id)  # Load existing model
+            self.load_model(model_id)  # load existing model
         else:
-            self.model = self.client.model()  # Load empty model
+            self.model = self.client.model()  # load empty model
 
     def load_model(self, model_id):
         # Initialize model
@@ -121,16 +121,19 @@ class HUBTrainingSession:
         Parses the given identifier to determine the type of identifier and extract relevant components.
 
         The method supports different identifier formats:
-        - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
-        - An identifier containing an API key and a model ID separated by an underscore
-        - An identifier that is solely a model ID of a fixed length
-        - A local filename that ends with '.pt' or '.yaml'
-        Parameters:
-        - identifier (str): The identifier string to be parsed.
+            - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
+            - An identifier containing an API key and a model ID separated by an underscore
+            - An identifier that is solely a model ID of a fixed length
+            - A local filename that ends with '.pt' or '.yaml'
+        
+        Args:
+            identifier (str): The identifier string to be parsed.
+        
         Returns:
-        - tuple: A tuple containing the API key, model ID, and filename as applicable.
+            (tuple): A tuple containing the API key, model ID, and filename as applicable.
+            
         Raises:
-        - HUBModelError: If the identifier format is not recognized.
+            HUBModelError: If the identifier format is not recognized.
         """
 
         # Initialize variables
@@ -261,12 +264,13 @@ class HUBTrainingSession:
             response: The HTTP response object.
             retry: The number of retry attempts allowed.
             timeout: The maximum timeout duration.
+
         Returns:
             str: The retry message.
         """
         if self._should_retry(response.status_code):
             return f'Retrying {retry}x for {timeout}s.' if retry else ''
-        elif response.status_code == HTTPStatus.TOO_MANY_REQUESTS:  # Rate limit
+        elif response.status_code == HTTPStatus.TOO_MANY_REQUESTS:  # rate limit
             headers = response.headers
             return (f"Rate limit reached ({headers['X-RateLimit-Remaining']}/{headers['X-RateLimit-Limit']}). "
                     f"Please retry after {headers['Retry-After']}s.")
@@ -322,8 +326,9 @@ class HUBTrainingSession:
         Args:
             content_length (int): The total size of the content to be downloaded in bytes.
             response (requests.Response): The response object from the file download request.
+
         Returns:
-            None
+            (None)
         """
         with TQDM(total=content_length, unit='B', unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):

@@ -199,15 +199,15 @@ class HUBTrainingSession:
         self.model_id = self.model.id
 
     def request_queue(
-            self,
-            request_func,
-            retry=3,
-            timeout=30,
-            thread=True,
-            verbose=True,
-            progress_total=None,
-            *args,
-            **kwargs,
+        self,
+        request_func,
+        retry=3,
+        timeout=30,
+        thread=True,
+        verbose=True,
+        progress_total=None,
+        *args,
+        **kwargs,
     ):
         def retry_request():
             t0 = time.time()  # Record the start time for the timeout
@@ -222,7 +222,7 @@ class HUBTrainingSession:
 
                 if response is None:
                     LOGGER.warning(f"{PREFIX}Received no response from the request. {HELP_MSG}")
-                    time.sleep(2 ** i)  # Exponential backoff before retrying
+                    time.sleep(2**i)  # Exponential backoff before retrying
                     continue  # Skip further processing and retry
 
                 if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
@@ -239,7 +239,7 @@ class HUBTrainingSession:
                     LOGGER.warning(f"{PREFIX}Request failed. {HELP_MSG} ({response.status_code}")
                     break  # Not an error that should be retried, exit loop
 
-                time.sleep(2 ** i)  # Exponential backoff for retries
+                time.sleep(2**i)  # Exponential backoff for retries
 
             return response
 
@@ -290,12 +290,12 @@ class HUBTrainingSession:
         return self.request_queue(self.model.upload_metrics, metrics=self.metrics_queue.copy(), thread=True)
 
     def upload_model(
-            self,
-            epoch: int,
-            weights: str,
-            is_best: bool = False,
-            map: float = 0.0,
-            final: bool = False,
+        self,
+        epoch: int,
+        weights: str,
+        is_best: bool = False,
+        map: float = 0.0,
+        final: bool = False,
     ) -> None:
         """
         Upload a model checkpoint to Ultralytics HUB.

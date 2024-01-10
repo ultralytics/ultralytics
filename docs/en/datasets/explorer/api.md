@@ -8,6 +8,7 @@ keywords: Ultralytics Explorer API, Dataset Exploration, SQL Queries, Vector Sim
 
 ## Introduction
 
+<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>  
 The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search and semantic search.
 
 ## Installation

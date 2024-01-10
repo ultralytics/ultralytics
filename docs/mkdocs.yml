@@ -42,7 +42,7 @@ theme:
         icon: material/brightness-7
         name: Switch to dark mode
   features:
-    - announce.dismiss
+#    - announce.dismiss
     - content.action.edit
     - content.code.annotate
     - content.code.copy

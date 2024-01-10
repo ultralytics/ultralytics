@@ -119,11 +119,13 @@ class Model(nn.Module):
     @staticmethod
     def is_hub_model(model):
         """Check if the provided model is a HUB model."""
-        return any((
-            model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
-            [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODELID
-            len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),
-        ))  # MODELID
+        return any(
+            (
+                model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
+                [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODELID
+                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),
+            )
+        )  # MODELID
 
     def _new(self, cfg: str, task=None, model=None, verbose=True):
         """
@@ -178,7 +180,8 @@ class Model(nn.Module):
                 f"PyTorch models can train, val, predict and export, i.e. 'model.train(data=...)', but exported "
                 f"formats like ONNX, TensorRT etc. only support 'predict' and 'val' modes, "
                 f"i.e. 'yolo predict model=yolov8n.onnx'.\nTo run CUDA or MPS inference please pass the device "
-                f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'")
+                f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
+            )
 
     def reset_weights(self):
         """Resets the model modules parameters to randomly initialized values, losing all training information."""
@@ -252,7 +255,8 @@ class Model(nn.Module):
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
 
         is_cli = (sys.argv[0].endswith("yolo") or sys.argv[0].endswith("ultralytics")) and any(
-            x in sys.argv for x in ("predict", "track", "mode=predict", "mode=track"))
+            x in sys.argv for x in ("predict", "track", "mode=predict", "mode=track")
+        )
 
         custom = {"conf": 0.25, "save": is_cli}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "predict"}  # highest priority args on the right
@@ -351,9 +355,9 @@ class Model(nn.Module):
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
         self._check_is_pytorch_model()
-        if hasattr(self.session, 'model') and self.session.model.id:  # Ultralytics HUB session with loaded model
+        if hasattr(self.session, "model") and self.session.model.id:  # Ultralytics HUB session with loaded model
             if any(kwargs):
-                LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
+                LOGGER.warning("WARNING ⚠️ using HUB training arguments, ignoring local training arguments.")
             kwargs = self.session.train_args  # overwrite kwargs
 
         checks.check_pip_update_available()
@@ -369,14 +373,14 @@ class Model(nn.Module):
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
 
-            if SETTINGS['hub'] is True and not self.session:
+            if SETTINGS["hub"] is True and not self.session:
                 # Create a model in HUB
                 try:
                     self.session = self._get_hub_session(self.model_name)
                     if self.session:
                         self.session.create_model(args)
                         # Check model was created
-                        if not getattr(self.session.model, 'id', None):
+                        if not getattr(self.session.model, "id", None):
                             self.session = None
                 except PermissionError:
                     # Ignore permission error
@@ -466,7 +470,8 @@ class Model(nn.Module):
             name = self.__class__.__name__
             mode = inspect.stack()[1][3]  # get the function name.
             raise NotImplementedError(
-                emojis(f"WARNING ⚠️ '{name}' model does not support '{mode}' mode for '{self.task}' task yet.")) from e
+                emojis(f"WARNING ⚠️ '{name}' model does not support '{mode}' mode for '{self.task}' task yet.")
+            ) from e
 
     @property
     def task_map(self):

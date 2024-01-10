@@ -21,10 +21,10 @@ def login(api_key: str = None, save=True) -> bool:
     Returns:
         bool: True if authentication is successful, False otherwise.
     """
-    api_key_url = f'{HUB_WEB_ROOT}/settings?tab=api+keys'  # Set the redirect URL
-    saved_key = SETTINGS.get('api_key')
+    api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # Set the redirect URL
+    saved_key = SETTINGS.get("api_key")
     active_key = api_key or saved_key
-    credentials = {'api_key': active_key} if active_key and active_key != '' else None  # Set credentials
+    credentials = {"api_key": active_key} if active_key and active_key != "" else None  # Set credentials
 
     client = HUBClient(credentials)  # initialize HUBClient
 
@@ -32,17 +32,18 @@ def login(api_key: str = None, save=True) -> bool:
         # Successfully authenticated with HUB
 
         if save and client.api_key != saved_key:
-            SETTINGS.update({'api_key': client.api_key})  # update settings with valid API key
+            SETTINGS.update({"api_key": client.api_key})  # update settings with valid API key
 
         # Set message based on whether key was provided or retrieved from settings
-        log_message = ('New authentication successful ✅'
-                       if client.api_key == api_key or not credentials else 'Authenticated ✅')
-        LOGGER.info(f'{PREFIX}{log_message}')
+        log_message = (
+            "New authentication successful ✅" if client.api_key == api_key or not credentials else "Authenticated ✅"
+        )
+        LOGGER.info(f"{PREFIX}{log_message}")
 
         return True
     else:
         # Failed to authenticate with HUB
-        LOGGER.info(f'{PREFIX}Retrieve API key from {api_key_url}')
+        LOGGER.info(f"{PREFIX}Retrieve API key from {api_key_url}")
         return False
 
 
@@ -64,7 +65,7 @@ def logout():
 
 def reset_model(model_id=""):
     """Reset a trained model to an untrained state."""
-    r = requests.post(f'{HUB_API_ROOT}/model-reset', json={'modelId': model_id}, headers={'x-api-key': Auth().api_key})
+    r = requests.post(f"{HUB_API_ROOT}/model-reset", json={"modelId": model_id}, headers={"x-api-key": Auth().api_key})
     if r.status_code == 200:
         LOGGER.info(f"{PREFIX}Model reset successfully")
         return
@@ -81,9 +82,9 @@ def export_fmts_hub():
 def export_model(model_id="", format="torchscript"):
     """Export a model to all formats."""
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
-    r = requests.post(f"{HUB_API_ROOT}/v1/models/{model_id}/export",
-                      json={"format": format},
-                      headers={"x-api-key": Auth().api_key})
+    r = requests.post(
+        f"{HUB_API_ROOT}/v1/models/{model_id}/export", json={"format": format}, headers={"x-api-key": Auth().api_key}
+    )
     assert r.status_code == 200, f"{PREFIX}{format} export failure {r.status_code} {r.reason}"
     LOGGER.info(f"{PREFIX}{format} export started ✅")
 
@@ -91,13 +92,12 @@ def export_model(model_id="", format="torchscript"):
 def get_export(model_id="", format="torchscript"):
     """Get an exported model dictionary with download URL."""
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
-    r = requests.post(f'{HUB_API_ROOT}/get-export',
-                      json={
-                          'apiKey': Auth().api_key,
-                          'modelId': model_id,
-                          'format': format},
-                      headers={'x-api-key': Auth().api_key})
-    assert r.status_code == 200, f'{PREFIX}{format} get_export failure {r.status_code} {r.reason}'
+    r = requests.post(
+        f"{HUB_API_ROOT}/get-export",
+        json={"apiKey": Auth().api_key, "modelId": model_id, "format": format},
+        headers={"x-api-key": Auth().api_key},
+    )
+    assert r.status_code == 200, f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
     return r.json()
 
 

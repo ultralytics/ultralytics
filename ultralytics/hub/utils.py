@@ -9,12 +9,26 @@ from pathlib import Path
 
 import requests
 
-from ultralytics.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM, TryExcept, __version__,
-                               colorstr, get_git_origin_url, is_colab, is_git_dir, is_pip_package)
+from ultralytics.utils import (
+    ENVIRONMENT,
+    LOGGER,
+    ONLINE,
+    RANK,
+    SETTINGS,
+    TESTS_RUNNING,
+    TQDM,
+    TryExcept,
+    __version__,
+    colorstr,
+    get_git_origin_url,
+    is_colab,
+    is_git_dir,
+    is_pip_package,
+)
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 
-PREFIX = colorstr('Ultralytics HUB: ')
-HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
+PREFIX = colorstr("Ultralytics HUB: ")
+HELP_MSG = "If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance."
 
 
 def request_with_credentials(url: str) -> any:
@@ -36,7 +50,8 @@ def request_with_credentials(url: str) -> any:
     from IPython import display  # noqa
 
     display.display(
-        display.Javascript("""
+        display.Javascript(
+            """
             window._hub_tmp = new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => reject("Failed authenticating existing browser session"), 5000)
                 fetch("%s", {
@@ -51,7 +66,10 @@ def request_with_credentials(url: str) -> any:
                     reject(err);
                 });
             });
-            """ % url))
+            """
+            % url
+        )
+    )
     return output.eval_js("_hub_tmp")
 
 
@@ -127,13 +145,15 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
                     m += f" Retrying {retry}x for {timeout}s." if retry else ""
                 elif r.status_code == 429:  # rate limit
                     h = r.headers  # response headers
-                    m = (f"Rate limit reached ({h['X-RateLimit-Remaining']}/{h['X-RateLimit-Limit']}). "
-                         f"Please retry after {h['Retry-After']}s.")
+                    m = (
+                        f"Rate limit reached ({h['X-RateLimit-Remaining']}/{h['X-RateLimit-Limit']}). "
+                        f"Please retry after {h['Retry-After']}s."
+                    )
                 if verbose:
                     LOGGER.warning(f"{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})")
                 if r.status_code not in retry_codes:
                     return r
-            time.sleep(2 ** i)  # exponential standoff
+            time.sleep(2**i)  # exponential standoff
         return r
 
     args = method, url
@@ -170,9 +190,15 @@ class Events:
             "version": __version__,
             "env": ENVIRONMENT,
             "session_id": round(random.random() * 1e15),
-            "engagement_time_msec": 1000, }
-        self.enabled = (SETTINGS["sync"] and RANK in (-1, 0) and not TESTS_RUNNING and ONLINE and
-                        (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git"))
+            "engagement_time_msec": 1000,
+        }
+        self.enabled = (
+            SETTINGS["sync"]
+            and RANK in (-1, 0)
+            and not TESTS_RUNNING
+            and ONLINE
+            and (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
+        )
 
     def __call__(self, cfg):
         """
@@ -190,7 +216,8 @@ class Events:
             params = {
                 **self.metadata,
                 "task": cfg.task,
-                "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom", }
+                "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom",
+            }
             if cfg.mode == "export":
                 params["format"] = cfg.format
             self.events.append({"name": cfg.mode, "params": params})

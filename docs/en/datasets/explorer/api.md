@@ -34,8 +34,15 @@ explorer.create_embeddings_table()
 dataframe = explorer.get_similar(img='path/to/image.jpg')
 
 # Or search for similar images to a given index/indices
-dataframe = explorer.get_similar()(idx=0)
+dataframe = explorer.get_similar(idx=0)
 ```
+
+!!! Tip "Note"
+
+    Embeddings table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
+
+In case you want to force update the embeddings table, you can pass `force=True` to `create_embeddings_table` method.
+You can direclty access the LanceDB table object to perform advanced analysis. Learn more about it in [Working with table section](#4-advanced---working-with-embeddings-table)
 
 ## 1. Similarity Search
 
@@ -178,7 +185,7 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
     print(df.head())
     ```
 
-## 4. Working with embeddings Table (Advanced)
+## 4. Advanced - Working with Embeddings Table
 
 You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table`
 
@@ -230,7 +237,7 @@ Here are some examples of what you can do with the table:
 When using large datasets, you can also create a dedicated vector index for faster querying. This is done using the `create_index` method on LanceDB table.
 
 ```python
-    table.create_index(num_partitions=..., num_sub_vectors=...)
+table.create_index(num_partitions=..., num_sub_vectors=...)
 ```
 
 Find more details on the type vector indices available and parameters [here](https://lancedb.github.io/lancedb/ann_indexes/#types-of-index) In the future, we will add support for creating vector indices directly from Explorer API.

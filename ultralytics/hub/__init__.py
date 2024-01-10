@@ -21,10 +21,10 @@ def login(api_key: str = None, save=True) -> bool:
     Returns:
         bool: True if authentication is successful, False otherwise.
     """
-    api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # Set the redirect URL
+    api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # set the redirect URL
     saved_key = SETTINGS.get("api_key")
     active_key = api_key or saved_key
-    credentials = {"api_key": active_key} if active_key and active_key != "" else None  # Set credentials
+    credentials = {"api_key": active_key} if active_key and active_key != "" else None  # set credentials
 
     client = HUBClient(credentials)  # initialize HUBClient
 

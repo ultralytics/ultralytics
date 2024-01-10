@@ -10,10 +10,10 @@ import torch.nn as nn
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, OBB, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost,
                                     C3x, Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv,
                                     DWConvTranspose2d, Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, RepC3,
-                                    RepConv, ResNetLayer, RTDETRDecoder, Segment)
+                                    RepConv, ResNetLayer, RTDETRDecoder, Segment, MultiTask)
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss, v8SegmentationLoss
+from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss, v8SegmentationLoss, v8MultiTaskLoss
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights, intersect_dicts,
                                            make_divisible, model_info, scale_img, time_sync)
@@ -182,7 +182,7 @@ class BaseModel(nn.Module):
         """
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect, Segment)):
+        if isinstance(m, (Detect, Segment, MultiTask)):
             m.stride = fn(m.stride)
             m.anchors = fn(m.anchors)
             m.strides = fn(m.strides)
@@ -241,10 +241,10 @@ class DetectionModel(BaseModel):
 
         # Build strides
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect, Segment, Pose, OBB)):
+        if isinstance(m, (Detect, Segment, Pose, OBB, MultiTask)):
             s = 256  # 2x min stride
             m.inplace = self.inplace
-            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
+            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB, MultiTask)) else self.forward(x)
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
@@ -336,6 +336,77 @@ class PoseModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
         return v8PoseLoss(self)
+
+class MultiTaskModel(DetectionModel):
+    """YOLOv8 multitask model."""
+
+    def __init__(self, cfg='yolov8n-multitask.yaml', ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+        """Initialize YOLOv8 Pose model."""
+        if not isinstance(cfg, dict):
+            cfg = yaml_model_load(cfg)  # load model YAML
+        if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg['kpt_shape']):
+            LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
+            cfg['kpt_shape'] = data_kpt_shape
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the PoseModel."""
+        return v8MultiTaskLoss(self)
+    
+    def _predict_augment(self, x):
+        """Perform augmentations on input image x and return augmented inference and train outputs."""
+        img_size = x.shape[-2:]  # height, width
+        s = [1, 0.83, 0.67]  # scales
+        f = [None, 3, None]  # flips (2-ud, 3-lr)
+        y = []  # outputs
+        for si, fi in zip(s, f):
+            xi = scale_img(x.flip(fi) if fi else x, si, gs=int(self.stride.max()))
+            yi = super().predict(xi)[0]  # forward
+            yi = self._descale_pred(yi, fi, si, img_size)
+            y.append(yi)
+        y = self._clip_augmented(y)  # clip augmented tails
+        return y  # augmented inference, train    
+
+    @staticmethod
+    def _descale_pred(p, flips, scale, img_size, dim=1):
+        """De-scale predictions following augmented inference (inverse operation)."""
+        p_seg, p_kpt = p
+
+        p_seg[:, :4] /= scale  # de-scale
+        x, y, wh, cls = p_seg.split((1, 1, 2, p_seg.shape[dim] - 4), dim)
+        if flips == 2:
+            y = img_size[0] - y  # de-flip ud
+        elif flips == 3:
+            x = img_size[1] - x  # de-flip lr
+        p_seg_upscaled = torch.cat((x, y, wh, cls), dim)
+
+        p_kpt[:, :4] /= scale  # de-scale
+        x, y, wh, cls = p_kpt.split((1, 1, 2, p_kpt.shape[dim] - 4), dim)
+        if flips == 2:
+            y = img_size[0] - y
+        elif flips == 3:
+            x = img_size[1] - x
+        p_kpt_upscaled = torch.cat((x, y, wh, cls), dim)
+
+        return (p_seg_upscaled, p_kpt_upscaled)
+    
+    def _clip_augmented(self, y):
+        """Clip YOLO augmented inference tails."""
+        nl = self.model[-1].nl  # number of detection layers (P3-P5)
+        g = sum(4 ** x for x in range(nl))  # grid points
+        e = 1  # exclude layer count
+        i_s = (y[0][0].shape[-1] // g) * sum(4 ** x for x in range(e))  # indices
+        i_k = (y[0][1].shape[-1] // g) * sum(4 ** x for x in range(e))  # indices
+        y[0] = (y[0][0][..., :-i_s], y[0][1][..., :-i_k])  # large
+
+        i_s = (y[-1][0].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices
+        i_k = (y[-1][1].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices
+        y[-1] = (y[-1][0][..., i_s:], y[-1][1][..., i_k:])  # small
+        with open(r'C:\Users\david\Downloads\kpt.txt', 'a') as f:
+            f.write("clip\n")
+            f.write(str(len(y)) + '\n')
+
+        return y
 
 
 class ClassificationModel(BaseModel):
@@ -627,7 +698,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     # Module updates
     for m in ensemble.modules():
         t = type(m)
-        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment, Pose, OBB):
+        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment, Pose, OBB, MultiTask):
             m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
@@ -663,7 +734,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     # Module updates
     for m in model.modules():
         t = type(m)
-        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment, Pose, OBB):
+        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment, Pose, OBB, MultiTask):
             m.inplace = inplace
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
@@ -728,9 +799,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in (Detect, Segment, Pose, OBB):
+        elif m in (Detect, Segment, Pose, OBB, MultiTask):
             args.append([ch[x] for x in f])
-            if m is Segment:
+            if m is Segment or m is MultiTask:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
@@ -814,6 +885,8 @@ def guess_model_task(model):
             return 'pose'
         if m == 'obb':
             return 'obb'
+        if m == 'multitask':
+            return 'multitask'
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -840,6 +913,8 @@ def guess_model_task(model):
                 return 'pose'
             elif isinstance(m, OBB):
                 return 'obb'
+            elif isinstance(m, MultiTask):
+                return 'multitask'
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
@@ -852,6 +927,8 @@ def guess_model_task(model):
             return 'pose'
         elif '-obb' in model.stem or 'obb' in model.parts:
             return 'obb'
+        elif '-multitask' in model.stem or 'multitask' in model.parts:
+            return 'multitask'
         elif 'detect' in model.parts:
             return 'detect'
 

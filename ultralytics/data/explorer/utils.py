@@ -46,14 +46,13 @@ def get_sim_index_schema():
 
 def sanitize_batch(batch, dataset_info):
     """Sanitizes input batch for inference, ensuring correct format and dimensions."""
-    batch['cls'] = batch['cls'].flatten().int().tolist()
-    box_cls_pair = sorted(zip(batch['bboxes'].tolist(), batch['cls']), key=lambda x: x[1])
-    batch['bboxes'] = [box for box, _ in box_cls_pair]
-    batch['cls'] = [cls for _, cls in box_cls_pair]
-    batch['labels'] = [dataset_info['names'][i] for i in batch['cls']]
-    batch['masks'] = batch['masks'].tolist() if 'masks' in batch else [[[]]]
-    batch['keypoints'] = batch['keypoints'].tolist() if 'keypoints' in batch else [[[]]]
-
+    batch["cls"] = batch["cls"].flatten().int().tolist()
+    box_cls_pair = sorted(zip(batch["bboxes"].tolist(), batch["cls"]), key=lambda x: x[1])
+    batch["bboxes"] = [box for box, _ in box_cls_pair]
+    batch["cls"] = [cls for _, cls in box_cls_pair]
+    batch["labels"] = [dataset_info["names"][i] for i in batch["cls"]]
+    batch["masks"] = batch["masks"].tolist() if "masks" in batch else [[[]]]
+    batch["keypoints"] = batch["keypoints"].tolist() if "keypoints" in batch else [[[]]]
     return batch
 
 
@@ -65,15 +64,16 @@ def plot_query_result(similar_set, plot_labels=True):
         similar_set (list): Pyarrow or pandas object containing the similar data points
         plot_labels (bool): Whether to plot labels or not
     """
-    similar_set = similar_set.to_dict(
-        orient='list') if isinstance(similar_set, pd.DataFrame) else similar_set.to_pydict()
+    similar_set = (
+        similar_set.to_dict(orient="list") if isinstance(similar_set, pd.DataFrame) else similar_set.to_pydict()
+    )
     empty_masks = [[[]]]
     empty_boxes = [[]]
-    images = similar_set.get('im_file', [])
-    bboxes = similar_set.get('bboxes', []) if similar_set.get('bboxes') is not empty_boxes else []
-    masks = similar_set.get('masks') if similar_set.get('masks')[0] != empty_masks else []
-    kpts = similar_set.get('keypoints') if similar_set.get('keypoints')[0] != empty_masks else []
-    cls = similar_set.get('cls', [])
+    images = similar_set.get("im_file", [])
+    bboxes = similar_set.get("bboxes", []) if similar_set.get("bboxes") is not empty_boxes else []
+    masks = similar_set.get("masks") if similar_set.get("masks")[0] != empty_masks else []
+    kpts = similar_set.get("keypoints") if similar_set.get("keypoints")[0] != empty_masks else []
+    cls = similar_set.get("cls", [])
 
     plot_size = 640
     imgs, batch_idx, plot_boxes, plot_masks, plot_kpts = [], [], [], [], []
@@ -104,34 +104,26 @@ def plot_query_result(similar_set, plot_labels=True):
     batch_idx = np.concatenate(batch_idx, axis=0)
     cls = np.concatenate([np.array(c, dtype=np.int32) for c in cls], axis=0)
 
-    return plot_images(imgs,
-                       batch_idx,
-                       cls,
-                       bboxes=boxes,
-                       masks=masks,
-                       kpts=kpts,
-                       max_subplots=len(images),
-                       save=False,
-                       threaded=False)
+    return plot_images(
+        imgs, batch_idx, cls, bboxes=boxes, masks=masks, kpts=kpts, max_subplots=len(images), save=False, threaded=False
+    )
 
 
 def prompt_sql_query(query):
     """Plots images with optional labels from a similar data set."""
-    check_requirements('openai>=1.6.1')
+    check_requirements("openai>=1.6.1")
     from openai import OpenAI
 
-    if not SETTINGS['openai_api_key']:
-        logger.warning('OpenAI API key not found in settings. Please enter your API key below.')
-        openai_api_key = getpass.getpass('OpenAI API key: ')
-        SETTINGS.update({'openai_api_key': openai_api_key})
-    openai = OpenAI(api_key=SETTINGS['openai_api_key'])
+    if not SETTINGS["openai_api_key"]:
+        logger.warning("OpenAI API key not found in settings. Please enter your API key below.")
+        openai_api_key = getpass.getpass("OpenAI API key: ")
+        SETTINGS.update({"openai_api_key": openai_api_key})
+    openai = OpenAI(api_key=SETTINGS["openai_api_key"])
 
     messages = [
         {
-            'role':
-            'system',
-            'content':
-            '''
+            "role": "system",
+            "content": """
                 You are a helpful data scientist proficient in SQL. You need to output exactly one SQL query based on
                 the following schema and a user request. You only need to output the format with fixed selection
                 statement that selects everything from "'table'", like `SELECT * from 'table'`
@@ -165,10 +157,10 @@ def prompt_sql_query(query):
                 request - Get all data points that contain 2 or more people and at least one dog
                 correct query-
                 SELECT * FROM 'table' WHERE  ARRAY_LENGTH(cls) >= 2  AND ARRAY_LENGTH(FILTER(labels, x -> x = 'person')) >= 2  AND ARRAY_LENGTH(FILTER(labels, x -> x = 'dog')) >= 1;
-             '''},
-        {
-            'role': 'user',
-            'content': f'{query}'}, ]
+             """,
+        },
+        {"role": "user", "content": f"{query}"},
+    ]
 
-    response = openai.chat.completions.create(model='gpt-3.5-turbo', messages=messages)
+    response = openai.chat.completions.create(model="gpt-3.5-turbo", messages=messages)
     return response.choices[0].message.content

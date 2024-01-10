@@ -7,7 +7,7 @@ from ultralytics.data.augment import Compose, Format, v8_transforms
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
 
-__all__ = 'RTDETRValidator',  # tuple or list
+__all__ = ("RTDETRValidator",)  # tuple or list
 
 
 class RTDETRDataset(YOLODataset):
@@ -37,13 +37,16 @@ class RTDETRDataset(YOLODataset):
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scaleFill=True)])
             transforms = Compose([])
         transforms.append(
-            Format(bbox_format='xywh',
-                   normalize=True,
-                   return_mask=self.use_segments,
-                   return_keypoint=self.use_keypoints,
-                   batch_idx=True,
-                   mask_ratio=hyp.mask_ratio,
-                   mask_overlap=hyp.overlap_mask))
+            Format(
+                bbox_format="xywh",
+                normalize=True,
+                return_mask=self.use_segments,
+                return_keypoint=self.use_keypoints,
+                batch_idx=True,
+                mask_ratio=hyp.mask_ratio,
+                mask_overlap=hyp.overlap_mask,
+            )
+        )
         return transforms
 
 
@@ -68,7 +71,7 @@ class RTDETRValidator(DetectionValidator):
         For further details on the attributes and methods, refer to the parent DetectionValidator class.
     """
 
-    def build_dataset(self, img_path, mode='val', batch=None):
+    def build_dataset(self, img_path, mode="val", batch=None):
         """
         Build an RTDETR Dataset.
 
@@ -85,8 +88,9 @@ class RTDETRValidator(DetectionValidator):
             hyp=self.args,
             rect=False,  # no rect
             cache=self.args.cache or None,
-            prefix=colorstr(f'{mode}: '),
-            data=self.data)
+            prefix=colorstr(f"{mode}: "),
+            data=self.data,
+        )
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
@@ -108,12 +112,12 @@ class RTDETRValidator(DetectionValidator):
 
     def _prepare_batch(self, si, batch):
         """Prepares a batch for training or inference by applying transformations."""
-        idx = batch['batch_idx'] == si
-        cls = batch['cls'][idx].squeeze(-1)
-        bbox = batch['bboxes'][idx]
-        ori_shape = batch['ori_shape'][si]
-        imgsz = batch['img'].shape[2:]
-        ratio_pad = batch['ratio_pad'][si]
+        idx = batch["batch_idx"] == si
+        cls = batch["cls"][idx].squeeze(-1)
+        bbox = batch["bboxes"][idx]
+        ori_shape = batch["ori_shape"][si]
+        imgsz = batch["img"].shape[2:]
+        ratio_pad = batch["ratio_pad"][si]
         if len(cls):
             bbox = ops.xywh2xyxy(bbox)  # target boxes
             bbox[..., [0, 2]] *= ori_shape[1]  # native-space pred
@@ -124,6 +128,6 @@ class RTDETRValidator(DetectionValidator):
     def _prepare_pred(self, pred, pbatch):
         """Prepares and returns a batch with transformed bounding boxes and class labels."""
         predn = pred.clone()
-        predn[..., [0, 2]] *= pbatch['ori_shape'][1] / self.args.imgsz  # native-space pred
-        predn[..., [1, 3]] *= pbatch['ori_shape'][0] / self.args.imgsz  # native-space pred
+        predn[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
+        predn[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
         return predn.float()

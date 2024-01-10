@@ -35,11 +35,11 @@ class YOLODataset(BaseDataset):
 
     def __init__(self, *args, data=None, task='detect', **kwargs):
         """Initializes the YOLODataset with optional configurations for segments and keypoints."""
-        self.use_segments = task == 'segment'
-        self.use_keypoints = task == 'pose'
+        self.use_segments = task in ['segment', 'multitask']
+        self.use_keypoints = task in ['pose', 'multitask']
         self.use_obb = task == 'obb'
         self.data = data
-        assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
+        #assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
         super().__init__(*args, **kwargs)
 
     def cache_labels(self, path=Path('./labels.cache')):
@@ -56,6 +56,7 @@ class YOLODataset(BaseDataset):
         desc = f'{self.prefix}Scanning {path.parent / path.stem}...'
         total = len(self.im_files)
         nkpt, ndim = self.data.get('kpt_shape', (0, 0))
+        kpt_names = self.data.get('kpt_names', {})
         if self.use_keypoints and (nkpt <= 0 or ndim not in (2, 3)):
             raise ValueError("'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
                              "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'")
@@ -63,7 +64,7 @@ class YOLODataset(BaseDataset):
             results = pool.imap(func=verify_image_label,
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
                                              repeat(self.use_keypoints), repeat(len(self.data['names'])), repeat(nkpt),
-                                             repeat(ndim)))
+                                             repeat(ndim), repeat(kpt_names)))
             pbar = TQDM(results, desc=desc, total=total)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f

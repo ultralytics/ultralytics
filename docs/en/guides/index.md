@@ -31,6 +31,8 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 ## Real-World Projects
 
 - [Object Counting](object-counting.md) 🚀 NEW: Explore the process of real-time object counting with Ultralytics YOLOv8 and acquire the knowledge to effectively count objects in a live video stream.
+- [Object Cropping](object-cropping.md) 🚀 NEW: Explore object cropping using YOLOv8 for precise extraction of objects from images and videos.
+- [Object Blurring](object-blurring.md) 🚀 NEW: Apply object blurring with YOLOv8 for privacy protection in image and video processing.
 - [Workouts Monitoring](workouts-monitoring.md) 🚀 NEW: Discover the comprehensive approach to monitoring workouts with Ultralytics YOLOv8. Acquire the skills and insights necessary to effectively use YOLOv8 for tracking and analyzing various aspects of fitness routines in real time.
 - [Objects Counting in Regions](region-counting.md) 🚀 NEW: Explore counting objects in specific regions with Ultralytics YOLOv8 for precise and efficient object detection in varied areas.
 - [Security Alarm System](security-alarm-system.md) 🚀 NEW: Discover the process of creating a security alarm system with Ultralytics YOLOv8. This system triggers alerts upon detecting new objects in the frame. Subsequently, you can customize the code to align with your specific use case.

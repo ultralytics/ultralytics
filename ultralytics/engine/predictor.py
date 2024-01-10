@@ -263,8 +263,12 @@ class BasePredictor:
                 self.done_warmup = True
 
             self.seen, self.windows, self.batch = 0, [], None
-            profilers = (ops.Profile(device=self.device), ops.Profile(device=self.device), ops.Profile(device=self.device))
-            self.run_callbacks('on_predict_start')
+            profilers = (
+                ops.Profile(device=self.device),
+                ops.Profile(device=self.device),
+                ops.Profile(device=self.device),
+            )
+            self.run_callbacks("on_predict_start")
             for batch in self.dataset:
                 self.run_callbacks("on_predict_batch_start")
                 self.batch = batch

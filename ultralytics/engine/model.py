@@ -350,7 +350,7 @@ class Model(nn.Module):
         if hasattr(self.session, 'model') and self.session.model.id:  # Ultralytics HUB session with loaded model
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
-            kwargs = self.session.train_args # Overwrite kwargs
+            kwargs = self.session.train_args  # overwrite kwargs
 
         checks.check_pip_update_available()
 

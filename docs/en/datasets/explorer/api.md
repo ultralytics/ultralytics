@@ -38,7 +38,7 @@ dataframe = explorer.get_similar(idx=0)
 ```
 
 !!! Tip "Note"
-    Embeddings table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which is scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
+    Embeddings table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
 
 In case you want to force update the embeddings table, you can pass `force=True` to `create_embeddings_table` method.
 You can direclty access the LanceDB table object to perform advanced analysis. Learn more about it in [Working with table section](#4-advanced---working-with-embeddings-table)

@@ -1,3 +1,10 @@
+---
+comments: true
+description: Detailed reference for the Explorer GUI. Includes brief descriptions for all the major functions used in the dash framework for the Ultralytics data explorer dashboard feature.
+keywords: Ultralytics, data explorer, gui, function reference, documentation, AI queries, image similarity, SQL queries, Ultralytics explorer docs callback
+---
+
+
 # Reference for `ultralytics/data/explorer/gui/dash.py`
 
 !!! Note

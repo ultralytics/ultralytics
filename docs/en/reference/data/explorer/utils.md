@@ -1,3 +1,9 @@
+---
+comments: true
+description: Detailed reference for the Explorer utils. Provides descriptions and details on important utility functions for managing and interacting with data in the Ultralytics explorer project.
+keywords: Ultralytics, data explorer, function reference, documentation, get table schema, get sim index schema, sanitize batch, plot query result, prompt SQL query
+---
+
 # Reference for `ultralytics/data/explorer/utils.py`
 
 !!! Note

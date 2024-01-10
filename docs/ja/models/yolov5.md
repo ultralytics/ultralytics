@@ -97,7 +97,6 @@ YOLOv5uは、物体検出方法論の進歩を表しています。Ultralytics�
 !!! Quote ""
 
     === "BibTeX"
-
         ```bibtex
         @software{yolov5,
           title = {Ultralytics YOLOv5},

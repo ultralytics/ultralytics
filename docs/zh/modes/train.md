@@ -239,7 +239,6 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 !!! Example "示例"
 
     === "Python"
-
         ```python
         # pip install comet_ml
         import comet_ml
@@ -258,7 +257,6 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 !!! Example "示例"
 
     === "Python"
-
         ```python
         # pip install clearml
         import clearml
@@ -277,7 +275,6 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 !!! Example "示例"
 
     === "CLI"
-
         ```bash
         load_ext tensorboard
         tensorboard --logdir ultralytics/runs  # 替换为'runs'目录
@@ -288,7 +285,6 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 !!! Example "示例"
 
     === "CLI"
-
         ```bash
         tensorboard --logdir ultralytics/runs  # 替换为'runs'目录
         ```

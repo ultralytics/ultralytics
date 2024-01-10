@@ -97,7 +97,6 @@ YOLOv5u वस्तु ज्ञापन के तरीकों में �
 !!! Quote ""
 
     === "BibTeX"
-
         ```bibtex
         @software{yolov5,
           title = {Ultralytics YOLOv5},

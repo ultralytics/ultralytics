@@ -149,7 +149,6 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
 !!! Example "예제"
 
     === "파이썬"
-
         ```python
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -185,7 +184,6 @@ Ultralytics 프레임워크를 사용하여 미리 훈련된 탐지 및 SAM 세�
 !!! Example "예제"
 
     === "파이썬"
-
         ```python
         from ultralytics.data.annotator import auto_annotate
 

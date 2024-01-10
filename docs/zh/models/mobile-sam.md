@@ -72,7 +72,6 @@ MobileSAM 的性能优于当前的 FastSAM，尺寸大约减小了 5 倍，速�
 !!! Example "示例"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 
@@ -88,7 +87,6 @@ MobileSAM 的性能优于当前的 FastSAM，尺寸大约减小了 5 倍，速�
 !!! Example "示例"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 

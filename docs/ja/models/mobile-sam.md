@@ -72,7 +72,6 @@ MobileSAMは、現在のFastSAMよりも約5倍小さく、約7倍高速です�
 !!! Example "例"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 
@@ -88,7 +87,6 @@ MobileSAMは、現在のFastSAMよりも約5倍小さく、約7倍高速です�
 !!! Example "例"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 

@@ -50,7 +50,6 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
 !!! Example "例"
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM
         from ultralytics.models.fastsam import FastSAMPrompt
@@ -84,7 +83,6 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
         ```
 
     === "CLI"
-
         ```bash
         # FastSAMモデルをロードし、それによってeverythingをセグメント化する
         yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
@@ -99,7 +97,6 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
 !!! Example "例"
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM
 
@@ -111,7 +108,6 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
         ```
 
     === "CLI"
-
         ```bash
         # FastSAMモデルをロードし、COCO8の例のデータセットで検証する（イメージサイズ：640）
         yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640

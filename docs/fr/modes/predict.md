@@ -53,7 +53,6 @@ Les modèles YOLO d'Ultralytics renvoient soit une liste d'objets `Results` Pyth
 !!! Example "Prédire"
 
     === "Renvoie une liste avec `stream=False`"
-
         ```python
         from ultralytics import YOLO
 
@@ -72,7 +71,6 @@ Les modèles YOLO d'Ultralytics renvoient soit une liste d'objets `Results` Pyth
         ```
 
     === "Renvoie un générateur avec `stream=True`"
-
         ```python
         from ultralytics import YOLO
 

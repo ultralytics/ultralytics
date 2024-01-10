@@ -149,7 +149,6 @@ Os testes foram executados em um MacBook Apple M2 de 2023 com 16GB de RAM. Para 
 !!! Example "Exemplo"
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -185,7 +184,6 @@ Para fazer a autoanotação do seu conjunto de dados com o framework Ultralytics
 !!! Example "Exemplo"
 
     === "Python"
-
         ```python
         from ultralytics.data.annotator import auto_annotate
 

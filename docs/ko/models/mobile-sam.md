@@ -72,7 +72,6 @@ MobileSAM은 우수한 성능을 자랑하며, 현재의 FastSAM보다 약 5배 
 !!! Example "예제"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 
@@ -88,7 +87,6 @@ MobileSAM은 우수한 성능을 자랑하며, 현재의 FastSAM보다 약 5배 
 !!! Example "예제"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 

@@ -53,7 +53,6 @@ Los modelos YOLO de Ultralytics devuelven ya sea una lista de objetos `Results` 
 !!! Example "Predict"
 
     === "Devolver una lista con `stream=False`"
-
         ```python
         from ultralytics import YOLO
 
@@ -72,7 +71,6 @@ Los modelos YOLO de Ultralytics devuelven ya sea una lista de objetos `Results` 
         ```
 
     === "Devolver un generador con `stream=True`"
-
         ```python
         from ultralytics import YOLO
 

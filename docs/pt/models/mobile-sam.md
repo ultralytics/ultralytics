@@ -72,7 +72,6 @@ Você pode baixar o modelo [aqui](https://github.com/ChaoningZhang/MobileSAM/blo
 !!! Example "Exemplo"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 
@@ -88,7 +87,6 @@ Você pode baixar o modelo [aqui](https://github.com/ChaoningZhang/MobileSAM/blo
 !!! Example "Exemplo"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 

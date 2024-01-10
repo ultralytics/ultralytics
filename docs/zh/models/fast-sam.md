@@ -50,7 +50,6 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
 !!! Example "示例"
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM
         from ultralytics.models.fastsam import FastSAMPrompt
@@ -84,7 +83,6 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
         ```
 
     === "CLI"
-
         ```bash
         # 加载FastSAM模型并使用该模型分割图像中的所有对象
         yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
@@ -99,7 +97,6 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
 !!! Example "示例"
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM
 
@@ -111,7 +108,6 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
         ```
 
     === "CLI"
-
         ```bash
         # 加载FastSAM模型，并在COCO8示例数据集上进行验证，图像大小为640
         yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640

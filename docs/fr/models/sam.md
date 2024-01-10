@@ -149,7 +149,6 @@ Tests effectués sur un MacBook Apple M2 de 2023 avec 16 Go de RAM. Pour reprodu
 !!! Example "Exemple"
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -185,7 +184,6 @@ Pour annoter automatiquement votre jeu de données avec le framework Ultralytics
 !!! Example "Exemple"
 
     === "Python"
-
         ```python
         from ultralytics.data.annotator import auto_annotate
 

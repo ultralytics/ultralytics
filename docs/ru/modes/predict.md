@@ -53,7 +53,6 @@ keywords: Ultralytics, YOLOv8, режим предсказаний, источн
 !!! Example "Предсказание"
 
     === "Вернуть список с `stream=False`"
-
         ```python
         from ultralytics import YOLO
 
@@ -72,7 +71,6 @@ keywords: Ultralytics, YOLOv8, режим предсказаний, источн
         ```
 
     === "Вернуть генератор с `stream=True`"
-
         ```python
         from ultralytics import YOLO
 

@@ -149,7 +149,6 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
 !!! Example "示例"
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -185,7 +184,6 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
 !!! Example "示例"
 
     === "Python"
-
         ```python
         from ultralytics.data.annotator import auto_annotate
 

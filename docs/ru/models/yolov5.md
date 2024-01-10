@@ -97,7 +97,6 @@ YOLOv5u представляет собой прогресс в методоло
 !!! Quote ""
 
     === "BibTeX"
-
         ```bibtex
         @software{yolov5,
           title = {Ultralytics YOLOv5},

@@ -72,7 +72,6 @@ MobileSAM और मूल SAM के प्रदर्शन को एक ब
 !!! Example "उदाहरण"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 
@@ -88,7 +87,6 @@ MobileSAM और मूल SAM के प्रदर्शन को एक ब
 !!! Example "उदाहरण"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 

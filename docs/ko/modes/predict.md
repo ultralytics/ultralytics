@@ -53,7 +53,6 @@ Ultralytics YOLO 모델은 Python `Results` 객체의 리스트를 반환하거�
 !!! 예시 "예측"
 
     === "`stream=False`로 리스트 반환"
-
         ```python
         from ultralytics import YOLO
 
@@ -72,7 +71,6 @@ Ultralytics YOLO 모델은 Python `Results` 객체의 리스트를 반환하거�
         ```
 
     === "`stream=True`로 생성자 반환"
-
         ```python
         from ultralytics import YOLO
 

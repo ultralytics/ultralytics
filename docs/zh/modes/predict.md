@@ -53,7 +53,6 @@ Ultralytics YOLO 模型在进行推理时返回一个 Python `Results` 对象列
 !!! Example "预测"
 
     === "使用 `stream=False` 返回列表"
-
         ```python
         from ultralytics import YOLO
 
@@ -72,7 +71,6 @@ Ultralytics YOLO 模型在进行推理时返回一个 Python `Results` 对象列
         ```
 
     === "使用 `stream=True` 返回生成器"
-
         ```python
         from ultralytics import YOLO
 

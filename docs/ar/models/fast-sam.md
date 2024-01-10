@@ -50,7 +50,6 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 !!! Example "مثال"
 
     === "بايثون"
-
         ```python
         from ultralytics import FastSAM
         from ultralytics.models.fastsam import FastSAMPrompt
@@ -82,7 +81,6 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
         ```
 
     === "CLI"
-
         ```bash
         # قم بتحميل نموذج FastSAM وتجزئة كل شيء به
         yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
@@ -97,7 +95,6 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 !!! Example "مثال"
 
     === "بايثون"
-
         ```python
         from ultralytics import FastSAM
 
@@ -109,7 +106,6 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
         ```
 
     === "CLI"
-
         ```bash
         # قم بتحميل نموذج FastSAM وأجرِ التحقق منه بخصوص مجموعة البيانات مثال كوكو 8 بحجم صورة 640
         yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640

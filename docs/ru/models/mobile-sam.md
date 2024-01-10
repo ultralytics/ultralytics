@@ -72,7 +72,6 @@ MobileSAM обеспечивает примерно в 5 раз меньший �
 !!! Example "Пример"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 
@@ -88,7 +87,6 @@ MobileSAM обеспечивает примерно в 5 раз меньший �
 !!! Example "Пример"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 

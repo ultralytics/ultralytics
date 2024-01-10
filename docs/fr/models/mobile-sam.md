@@ -72,7 +72,6 @@ Vous pouvez télécharger le modèle [ici](https://github.com/ChaoningZhang/Mobi
 !!! Example "Exemple"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 
@@ -88,7 +87,6 @@ Vous pouvez télécharger le modèle [ici](https://github.com/ChaoningZhang/Mobi
 !!! Example "Exemple"
 
     === "Python"
-
         ```python
         from ultralytics import SAM
 

@@ -151,7 +151,6 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 !!! Example "Пример"
 
     === "Python"
-
         ```python
         # pip install comet_ml
         import comet_ml
@@ -170,7 +169,6 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 !!! Example "Пример"
 
     === "Python"
-
         ```python
         # pip install clearml
         import clearml
@@ -189,7 +187,6 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 !!! Example "Пример"
 
     === "CLI"
-
         ```bash
         load_ext tensorboard
         tensorboard --logdir ultralytics/runs  # заменить на директорию 'runs'
@@ -200,7 +197,6 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 !!! Example "Пример"
 
     === "CLI"
-
         ```bash
         tensorboard --logdir ultralytics/runs  # заменить на директорию 'runs'
         ```

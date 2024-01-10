@@ -149,7 +149,6 @@ Segment Anything Model (SAM) - это передовая модель сегме
 !!! Example "Пример"
 
     === "Python"
-
         ```python
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -185,7 +184,6 @@ Segment Anything Model (SAM) - это передовая модель сегме
 !!! Example "Пример"
 
     === "Python"
-
         ```python
         from ultralytics.data.annotator import auto_annotate
 

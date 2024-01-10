@@ -26,13 +26,13 @@ def login(api_key: str = None, save=True) -> bool:
     active_key = api_key or saved_key
     credentials = {'api_key': active_key} if active_key and active_key != '' else None  # Set credentials
 
-    client = HUBClient(credentials)  # Initialize HUBClient
+    client = HUBClient(credentials)  # initialize HUBClient
 
     if client.authenticated:
         # Successfully authenticated with HUB
 
         if save and client.api_key != saved_key:
-            SETTINGS.update({'api_key': client.api_key})  # Update settings with valid API key
+            SETTINGS.update({'api_key': client.api_key})  # update settings with valid API key
 
         # Set message based on whether key was provided or retrieved from settings
         log_message = ('New authentication successful ✅'

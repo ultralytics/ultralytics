@@ -65,8 +65,8 @@ from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
-from ultralytics.nn.tasks import DetectionModel, SegmentationModel
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder, MultiTask
+from ultralytics.nn.tasks import DetectionModel, SegmentationModel, MultiTaskModel
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, WINDOWS, __version__, callbacks,
                                colorstr, get_default_args, yaml_save)
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
@@ -322,7 +322,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...')
         f = str(self.file.with_suffix('.onnx'))
 
-        output_names = ['output0', 'output1'] if isinstance(self.model, SegmentationModel) else ['output0']
+        output_names = ['output0', 'output1'] if isinstance(self.model, SegmentationModel) or isinstance(self.model, MultiTaskModel) else ['output0']
         dynamic = self.args.dynamic
         if dynamic:
             dynamic = {'images': {0: 'batch', 2: 'height', 3: 'width'}}  # shape(1,3,640,640)

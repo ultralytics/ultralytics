@@ -82,7 +82,7 @@ class Model(nn.Module):
             model = self.session.model_file
 
         # Check if Triton Server model
-        if self.is_triton_model(model):
+        elif self.is_triton_model(model):
             self.model = model
             self.task = task
             return

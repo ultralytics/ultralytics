@@ -622,7 +622,7 @@ def torch_safe_load(weight):
     from ultralytics.utils.downloads import attempt_download_asset
 
     check_suffix(file=weight, suffix=".pt")
-    file = attempt_download_asset(weight)  # search online if missing locally
+    file = attempt_download_asset(weight, release="v8.1.0")  # search online if missing locally
     try:
         with temporary_modules(
             {

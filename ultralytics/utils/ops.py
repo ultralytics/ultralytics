@@ -247,13 +247,13 @@ def non_max_suppression(
             continue
 
         # Detections matrix nx6 (xyxy, conf, cls)
-        box, cls, mask = x.split((4, nc, nm), 1)
+        box, cls_, mask = x.split((4, nc, nm), 1)
 
         if multi_label:
-            i, j = torch.where(cls > conf_thres)
+            i, j = torch.where(cls_ > conf_thres)
             x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
         else:  # best class only
-            conf, j = cls.max(1, keepdim=True)
+            conf, j = cls_.max(1, keepdim=True)
             x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_thres]
 
         # Filter by class

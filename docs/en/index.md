@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv8, object detection, image segmentation, machine lea
 
 <div align="center">
   <p>
-    <a href="https://yolovision.ultralytics.com" target="_blank">
+    <a href="https://www.ultralytics.com/blog/ultralytics-yolov8-turns-one-a-year-of-breakthroughs-and-innovations" target="_blank">
     <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
   </p>
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>

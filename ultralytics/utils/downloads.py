@@ -16,14 +16,16 @@ from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
-GITHUB_ASSETS_NAMES = ([f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")] +
-                       [f"yolov5{k}{resolution}u.pt" for k in "nsmlx"
-                        for resolution in ("", "6")] + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")] +
-                       [f"yolo_nas_{k}.pt"
-                        for k in "sml"] + [f"sam_{k}.pt"
-                                           for k in "bl"] + [f"FastSAM-{k}.pt"
-                                                             for k in "sx"] + [f"rtdetr-{k}.pt"
-                                                                               for k in "lx"] + ["mobile_sam.pt"])
+GITHUB_ASSETS_NAMES = (
+    [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
+    + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
+    + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
+    + [f"yolo_nas_{k}.pt" for k in "sml"]
+    + [f"sam_{k}.pt" for k in "bl"]
+    + [f"FastSAM-{k}.pt" for k in "sx"]
+    + [f"rtdetr-{k}.pt" for k in "lx"]
+    + ["mobile_sam.pt"]
+)
 GITHUB_ASSETS_STEMS = [Path(k).stem for k in GITHUB_ASSETS_NAMES]
 
 
@@ -212,8 +214,10 @@ def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", sf=1.5, h
         return True  # sufficient space
 
     # Insufficient space
-    text = (f"WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, "
-            f"Please free {data * sf - free:.1f} GB additional disk space and try again.")
+    text = (
+        f"WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, "
+        f"Please free {data * sf - free:.1f} GB additional disk space and try again."
+    )
     if hard:
         raise MemoryError(text)
     LOGGER.warning(text)
@@ -248,8 +252,11 @@ def get_google_drive_file_info(link):
         response = session.get(drive_url, stream=True)
         if "quota exceeded" in str(response.content.lower()):
             raise ConnectionError(
-                emojis(f"❌  Google Drive file download quota exceeded. "
-                       f"Please try again later or download this file manually at {link}."))
+                emojis(
+                    f"❌  Google Drive file download quota exceeded. "
+                    f"Please try again later or download this file manually at {link}."
+                )
+            )
         for k, v in response.cookies.items():
             if k.startswith("download_warning"):
                 drive_url += f"&confirm={v}"  # v is token
@@ -321,12 +328,12 @@ def safe_download(
                         torch.hub.download_url_to_file(url, f, progress=progress)
                     else:
                         with request.urlopen(url) as response, TQDM(
-                                total=int(response.getheader("Content-Length", 0)),
-                                desc=desc,
-                                disable=not progress,
-                                unit="B",
-                                unit_scale=True,
-                                unit_divisor=1024,
+                            total=int(response.getheader("Content-Length", 0)),
+                            desc=desc,
+                            disable=not progress,
+                            unit="B",
+                            unit_scale=True,
+                            unit_divisor=1024,
                         ) as pbar:
                             with open(f, "wb") as f_opened:
                                 for data in response:

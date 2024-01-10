@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+import json
 import os
 from pathlib import Path
 
@@ -265,6 +265,9 @@ class DetectionValidator(BaseValidator):
                 eval.summarize()
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
                 self.metrics.box.set_map_small_area(eval.stats[3])  # update mAP50-90Small
+                results_file = self.save_dir / "evaluation_results.json"
+                with results_file.open("w") as file:
+                    json.dump(stats, file)
             except Exception as e:
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats

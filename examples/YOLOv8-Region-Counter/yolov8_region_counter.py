@@ -59,7 +59,6 @@ def mouse_callback(event, x, y, flags, param):
 
     Example:
         >>> cv2.setMouseCallback(window_name, mouse_callback)
-
     """
     global current_region
 

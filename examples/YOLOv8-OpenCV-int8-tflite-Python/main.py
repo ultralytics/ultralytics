@@ -13,14 +13,9 @@ img_height = 640
 
 
 class LetterBox:
-
-    def __init__(self,
-                 new_shape=(img_width, img_height),
-                 auto=False,
-                 scaleFill=False,
-                 scaleup=True,
-                 center=True,
-                 stride=32):
+    def __init__(
+        self, new_shape=(img_width, img_height), auto=False, scaleFill=False, scaleup=True, center=True, stride=32
+    ):
         self.new_shape = new_shape
         self.auto = auto
         self.scaleFill = scaleFill
@@ -33,9 +28,9 @@ class LetterBox:
 
         if labels is None:
             labels = {}
-        img = labels.get('img') if image is None else image
+        img = labels.get("img") if image is None else image
         shape = img.shape[:2]  # current shape [height, width]
-        new_shape = labels.pop('rect_shape', self.new_shape)
+        new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
             new_shape = (new_shape, new_shape)
 
@@ -63,15 +58,16 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                 value=(114, 114, 114))  # add border
-        if labels.get('ratio_pad'):
-            labels['ratio_pad'] = (labels['ratio_pad'], (left, top))  # for evaluation
+        img = cv2.copyMakeBorder(
+            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
+        )  # add border
+        if labels.get("ratio_pad"):
+            labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
-            labels['img'] = img
-            labels['resized_shape'] = new_shape
+            labels["img"] = img
+            labels["resized_shape"] = new_shape
             return labels
         else:
             return img
@@ -79,15 +75,14 @@ class LetterBox:
     def _update_labels(self, labels, ratio, padw, padh):
         """Update labels."""
 
-        labels['instances'].convert_bbox(format='xyxy')
-        labels['instances'].denormalize(*labels['img'].shape[:2][::-1])
-        labels['instances'].scale(*ratio)
-        labels['instances'].add_padding(padw, padh)
+        labels["instances"].convert_bbox(format="xyxy")
+        labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
+        labels["instances"].scale(*ratio)
+        labels["instances"].add_padding(padw, padh)
         return labels
 
 
 class Yolov8TFLite:
-
     def __init__(self, tflite_model, input_image, confidence_thres, iou_thres):
         """
         Initializes an instance of the Yolov8TFLite class.
@@ -105,7 +100,7 @@ class Yolov8TFLite:
         self.iou_thres = iou_thres
 
         # Load the class names from the COCO dataset
-        self.classes = yaml_load(check_yaml('coco128.yaml'))['names']
+        self.classes = yaml_load(check_yaml("coco128.yaml"))["names"]
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
@@ -134,7 +129,7 @@ class Yolov8TFLite:
         cv2.rectangle(img, (int(x1), int(y1)), (int(x1 + w), int(y1 + h)), color, 2)
 
         # Create the label text with class name and score
-        label = f'{self.classes[class_id]}: {score:.2f}'
+        label = f"{self.classes[class_id]}: {score:.2f}"
 
         # Calculate the dimensions of the label text
         (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
@@ -144,8 +139,13 @@ class Yolov8TFLite:
         label_y = y1 - 10 if y1 - 10 > label_height else y1 + 10
 
         # Draw a filled rectangle as the background for the label text
-        cv2.rectangle(img, (int(label_x), int(label_y - label_height)),
-                      (int(label_x + label_width), int(label_y + label_height)), color, cv2.FILLED)
+        cv2.rectangle(
+            img,
+            (int(label_x), int(label_y - label_height)),
+            (int(label_x + label_width), int(label_y + label_height)),
+            color,
+            cv2.FILLED,
+        )
 
         # Draw the label text on the image
         cv2.putText(img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
@@ -161,7 +161,7 @@ class Yolov8TFLite:
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
 
-        print('image befor', self.img)
+        print("image before", self.img)
         # Get the height and width of the input image
         self.img_height, self.img_width = self.img.shape[:2]
 
@@ -209,8 +209,10 @@ class Yolov8TFLite:
             # Get the box, score, and class ID corresponding to the index
             box = boxes[i]
             gain = min(img_width / self.img_width, img_height / self.img_height)
-            pad = round((img_width - self.img_width * gain) / 2 -
-                        0.1), round((img_height - self.img_height * gain) / 2 - 0.1)
+            pad = (
+                round((img_width - self.img_width * gain) / 2 - 0.1),
+                round((img_height - self.img_height * gain) / 2 - 0.1),
+            )
             box[0] = (box[0] - pad[0]) / gain
             box[1] = (box[1] - pad[1]) / gain
             box[2] = box[2] / gain
@@ -242,7 +244,7 @@ class Yolov8TFLite:
         output_details = interpreter.get_output_details()
 
         # Store the shape of the input for later use
-        input_shape = input_details[0]['shape']
+        input_shape = input_details[0]["shape"]
         self.input_width = input_shape[1]
         self.input_height = input_shape[2]
 
@@ -251,19 +253,19 @@ class Yolov8TFLite:
         img_data = img_data
         # img_data = img_data.cpu().numpy()
         # Set the input tensor to the interpreter
-        print(input_details[0]['index'])
+        print(input_details[0]["index"])
         print(img_data.shape)
         img_data = img_data.transpose((0, 2, 3, 1))
 
-        scale, zero_point = input_details[0]['quantization']
-        interpreter.set_tensor(input_details[0]['index'], img_data)
+        scale, zero_point = input_details[0]["quantization"]
+        interpreter.set_tensor(input_details[0]["index"], img_data)
 
         # Run inference
         interpreter.invoke()
 
         # Get the output tensor from the interpreter
-        output = interpreter.get_tensor(output_details[0]['index'])
-        scale, zero_point = output_details[0]['quantization']
+        output = interpreter.get_tensor(output_details[0]["index"])
+        scale, zero_point = output_details[0]["quantization"]
         output = (output.astype(np.float32) - zero_point) * scale
 
         output[:, [0, 2]] *= img_width
@@ -273,16 +275,15 @@ class Yolov8TFLite:
         return self.postprocess(self.img, output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model',
-                        type=str,
-                        default='yolov8n_full_integer_quant.tflite',
-                        help='Input your TFLite model.')
-    parser.add_argument('--img', type=str, default=str(ASSETS / 'bus.jpg'), help='Path to input image.')
-    parser.add_argument('--conf-thres', type=float, default=0.5, help='Confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
+    parser.add_argument(
+        "--model", type=str, default="yolov8n_full_integer_quant.tflite", help="Input your TFLite model."
+    )
+    parser.add_argument("--img", type=str, default=str(ASSETS / "bus.jpg"), help="Path to input image.")
+    parser.add_argument("--conf-thres", type=float, default=0.5, help="Confidence threshold")
+    parser.add_argument("--iou-thres", type=float, default=0.5, help="NMS IoU threshold")
     args = parser.parse_args()
 
     # Create an instance of the Yolov8TFLite class with the specified arguments
@@ -292,7 +293,7 @@ if __name__ == '__main__':
     output_image = detection.main()
 
     # Display the output image in a window
-    cv2.imshow('Output', output_image)
+    cv2.imshow("Output", output_image)
 
     # Wait for a key press to exit
     cv2.waitKey(0)

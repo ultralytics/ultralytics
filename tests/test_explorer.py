@@ -3,6 +3,8 @@ import PIL
 from ultralytics import Explorer
 from ultralytics.utils import ASSETS
 
+import PIL
+
 
 def test_similarity():
     """Test similarity calculations and SQL queries for correctness and response length."""

@@ -2,9 +2,9 @@ from ultralytics import YOLO
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
-model = YOLO('/Users/johnny/Projects//models/detector_best.pt', task='detect')
-metrics = model.val(data='/Users/johnny/Projects/datasets/Client_Validation_Set/data.yaml', save_json=True,
-                    plots=True, device='cpu')
+model = YOLO('../inference_tools/models/detector_best.pt', task='detect')
+metrics = model.val(data='data.yaml', save_json=True,
+                    plots=True)
 
 metrics.box.maps
 

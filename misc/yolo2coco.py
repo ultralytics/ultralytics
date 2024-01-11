@@ -21,7 +21,7 @@ from PIL import Image
 
 # Set the paths for the input and output directories
 # input_dir = '/data-fast/127-data2/ierregue/datasets/custom_dataset_v1'
-input_dir = '/Users/johnny/Projects/datasets/Client_Validation_Set'
+input_dir = '../inference_tools/datasets/Client_Validation_Set'
 output_dir = input_dir
 
 # Define the categories for the COCO dataset

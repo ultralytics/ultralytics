@@ -18,7 +18,6 @@ model = YOLO('../inference_tools/Evaluation/models/detector_best.pt', task='dete
 print("🚀...INFERENCE MODE...🚀")
 print("📦...GETTING PREDICTIONS...📦")
 metrics = model.val(data='../inference_tools/Evaluation/datasets/Client_Validation_Set/data.yaml', save_json=True, plots=True)
-
 metrics.box.maps
 
 # Load ground truth

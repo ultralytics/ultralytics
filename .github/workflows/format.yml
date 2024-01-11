@@ -1,0 +1,25 @@
+# Ultralytics 🚀 - AGPL-3.0 license
+# Ultralytics Actions https://github.com/ultralytics/actions
+# This workflow automatically formats code and documentation in PRs to official Ultralytics standards
+
+name: Ultralytics Actions
+
+on:
+  push:
+    branches: [main]
+  pull_request_target:
+    branches: [main]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Ultralytics Formatting
+        uses: ultralytics/actions@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # automatically generated
+          python: true
+          docstrings: true
+          markdown: true
+          spelling: true
+          links: false

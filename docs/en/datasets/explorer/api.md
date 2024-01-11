@@ -8,6 +8,7 @@ keywords: Ultralytics Explorer API, Dataset Exploration, SQL Queries, Vector Sim
 
 ## Introduction
 
+<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>  
 The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search and semantic search.
 
 ## Installation
@@ -33,8 +34,15 @@ explorer.create_embeddings_table()
 dataframe = explorer.get_similar(img='path/to/image.jpg')
 
 # Or search for similar images to a given index/indices
-dataframe = explorer.get_similar()(idx=0)
+dataframe = explorer.get_similar(idx=0)
 ```
+
+!!! Tip "Note"
+
+    Embeddings table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
+
+In case you want to force update the embeddings table, you can pass `force=True` to `create_embeddings_table` method.
+You can direclty access the LanceDB table object to perform advanced analysis. Learn more about it in [Working with table section](#4-advanced---working-with-embeddings-table)
 
 ## 1. Similarity Search
 
@@ -119,7 +127,31 @@ You can also plot the similar images using the `plot_similar` method. This metho
         plt.show()
         ```
 
-## 2. SQL Querying
+## 2. Ask AI (Natural Language Querying)
+
+This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results.
+Note: This works using LLMs under the hood so the results are probabilistic and might get things wrong sometimes
+
+!!! Example "Ask AI"
+
+    ```python
+    from ultralytics import Explorer
+    from ultralytics.data.explorer import plot_query_result
+
+
+    # create an Explorer object
+    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+    exp.create_embeddings_table()
+
+    df = exp.ask_ai("show me 100 images with exactly one person and 2 dogs. There can be other objects too")
+    print(df.head())
+
+    # plot the results
+    plt = plot_query_result(df)
+    plt.show()
+    ```
+
+## 3. SQL Querying
 
 You can run SQL queries on your dataset using the `sql_query` method. This method takes a SQL query as input and returns a pandas dataframe with the results.
 
@@ -153,7 +185,7 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
     print(df.head())
     ```
 
-## 3. Working with embeddings Table (Advanced)
+## 4. Advanced - Working with Embeddings Table
 
 You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table`
 
@@ -205,12 +237,12 @@ Here are some examples of what you can do with the table:
 When using large datasets, you can also create a dedicated vector index for faster querying. This is done using the `create_index` method on LanceDB table.
 
 ```python
-    table.create_index(num_partitions=..., num_sub_vectors=...)
+table.create_index(num_partitions=..., num_sub_vectors=...)
 ```
 
 Find more details on the type vector indices available and parameters [here](https://lancedb.github.io/lancedb/ann_indexes/#types-of-index) In the future, we will add support for creating vector indices directly from Explorer API.
 
-## 4. Embeddings Applications
+## 5. Embeddings Applications
 
 You can use the embeddings table to perform a variety of exploratory analysis. Here are some examples:
 

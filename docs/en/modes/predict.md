@@ -639,6 +639,7 @@ Here is a table for the `OBB` class methods and properties, including their name
 | `cls`       | Property (`torch.Tensor`) | Return the class values of the boxes.                                 |
 | `id`        | Property (`torch.Tensor`) | Return the track IDs of the boxes (if available).                     |
 | `xyxy`      | Property (`torch.Tensor`) | Return the horizontal boxes in xyxy format.                           |
+| `xywhr`     | Property (`torch.Tensor`) | Return the rotated boxes in xywhr format.                             |
 | `xyxyxyxy`  | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format.                          |
 | `xyxyxyxyn` | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format normalized by image size. |
 

@@ -17,9 +17,9 @@ model = YOLO('../inference_tools/Evaluation/models/detector_best.pt', task='dete
 
 print("🚀...INFERENCE MODE...🚀")
 print("📦...GETTING PREDICTIONS...📦")
-# metrics = model.val(data='../inference_tools/Evaluation/datasets/Client_Validation_Set/data.yaml', save_json=True, plots=True)
+metrics = model.val(data='../inference_tools/Evaluation/datasets/Client_Validation_Set/data.yaml', save_json=True, plots=True)
 
-# metrics.box.maps
+metrics.box.maps
 
 # Load ground truth
 print("🔌...LOADING GROUND TRUTH...")
@@ -52,9 +52,6 @@ cocoEval.evaluate()
 cocoEval.accumulate()
 cocoEval.summarize()
 
-# create folder if not exists "../inference_tools/Evaluation/results/"
-
-
 results_file = "../inference_tools/Evaluation/results/"
 if not os.path.exists(results_file):
     os.makedirs(results_file)
@@ -81,10 +78,6 @@ def append_metrics(metrics, metric_type, iou, area, max_dets, value):
         'Max Detections': max_dets,
         'Value': value
     })
-
-# Assuming cocoEval is your COCO evaluation object
-# cocoEval.evaluate()
-# cocoEval.accumulate()
 
 # Initialize a list to store the metrics
 metrics_ = []

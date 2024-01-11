@@ -62,7 +62,7 @@ class Detect(nn.Module):
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = self.decode_bboxes(box)
 
-        if self.export and self.format in ("tflite", "edgetpu"):
+        if self.export and self.format in ("tflite", "edgetpu", "openvino"):
             # Precompute normalization factor to increase numerical stability
             # See https://github.com/ultralytics/ultralytics/issues/7371
             img_h = shape[2]

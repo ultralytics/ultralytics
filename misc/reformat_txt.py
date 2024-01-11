@@ -52,7 +52,7 @@ yaml_to_coco_id = {
 }
 
 # Directory containing .txt files
-txt_directory = '/home/johnny/Projects/small-fast-detector/inference_tools/datasets/Client_Validation_Set/labels/val'
+txt_directory = '../inference_tools/Evaluation/datasets/Client_Validation_Set/labels/val'
 
 # Iterate and modify each .txt file
 for txt_file in os.listdir(txt_directory):

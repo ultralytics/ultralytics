@@ -440,7 +440,9 @@ class Exporter:
 
             def transform_fn(data_item):
                 """Quantization transform function."""
-                assert data_item["img"].dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
+                assert (
+                    data_item["img"].dtype == torch.uint8
+                ), "Input image must be uint8 for the quantization preprocessing"
                 im = data_item["img"].numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
                 return np.expand_dims(im, 0) if im.ndim == 3 else im
 

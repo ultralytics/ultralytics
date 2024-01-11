@@ -605,7 +605,9 @@ class OBB(BaseTensor):
         conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
         cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
         id (torch.Tensor | numpy.ndarray): The track IDs of the boxes (if available).
-        xyxyxyxy (torch.Tensor | numpy.ndarray): The boxes in xyxyxyxy format normalized by original image size.
+        xyxyxyxyn (torch.Tensor | numpy.ndarray): The rotated boxes in xyxyxyxy format normalized by original image size.
+        xyxyxyxy (torch.Tensor | numpy.ndarray): The rotated boxes in xyxyxyxy format.
+        xyxy (torch.Tensor | numpy.ndarray): The horizontal boxes in xyxyxyxy format.
         data (torch.Tensor): The raw OBB tensor (alias for `boxes`).
 
     Methods:

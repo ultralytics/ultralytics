@@ -110,4 +110,4 @@ for i, md in enumerate(max_dets):
 df_metrics = pd.DataFrame(metrics_)
 
 # Save to file (e.g., CSV)
-df_metrics.to_csv("../inference_tools/Evaluation/results/coco_eval_metrics.csv", index=False)
+df_metrics.to_csv("../inference_tools/Evaluation/results/eval_metrics.csv", index=False)

@@ -624,7 +624,7 @@ For more details see the `Probs` class [documentation](../reference/engine/resul
 
     # View results
     for r in results:
-        print(r.obb)  # print the OBB object containing the oriente detection bounding boxes
+        print(r.obb)  # print the OBB object containing the oriented detection bounding boxes
     ```
 
 Here is a table for the `OBB` class methods and properties, including their name, type, and description:

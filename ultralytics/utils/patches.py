@@ -7,6 +7,8 @@ import cv2
 import numpy as np
 import torch
 
+from ultralytics.utils.checks import check_requirements
+
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
@@ -68,7 +70,8 @@ def torch_save(*args, **kwargs):
         **kwargs (dict): Keyword arguments to pass to torch.save.
     """
     try:
-        import dill as pickle  # noqa
+        # import dill as pickle  # noqa
+        check_requirements("dill")
     except ImportError:
         import pickle
 

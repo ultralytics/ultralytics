@@ -286,7 +286,6 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 
 [Explorer](../datasets/explorer/index.md){ .md-button }
 
-
 ## Using Trainers
 
 `YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits from `BaseTrainer`.

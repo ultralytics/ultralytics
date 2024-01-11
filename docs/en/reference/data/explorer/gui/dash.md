@@ -4,7 +4,6 @@ description: Detailed reference for the Explorer GUI. Includes brief description
 keywords: Ultralytics, data explorer, gui, function reference, documentation, AI queries, image similarity, SQL queries, streamlit, semantic search
 ---
 
-
 # Reference for `ultralytics/data/explorer/gui/dash.py`
 
 !!! Note

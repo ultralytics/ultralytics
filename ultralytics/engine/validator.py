@@ -155,7 +155,12 @@ class BaseValidator:
             model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
-        dt = Profile(), Profile(), Profile(), Profile()
+        dt = (
+            Profile(device=self.device),
+            Profile(device=self.device),
+            Profile(device=self.device),
+            Profile(device=self.device),
+        )
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val

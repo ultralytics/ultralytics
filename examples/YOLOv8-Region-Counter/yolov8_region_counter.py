@@ -35,7 +35,31 @@ counting_regions = [
 
 
 def mouse_callback(event, x, y, flags, param):
-    """Mouse call back event."""
+    """
+    Handles mouse events for region manipulation.
+
+    Parameters:
+        event (int): The mouse event type (e.g., cv2.EVENT_LBUTTONDOWN).
+        x (int): The x-coordinate of the mouse pointer.
+        y (int): The y-coordinate of the mouse pointer.
+        flags (int): Additional flags passed by OpenCV.
+        param: Additional parameters passed to the callback (not used in this function).
+
+    Global Variables:
+        current_region (dict): A dictionary representing the current selected region.
+
+    Mouse Events:
+        - LBUTTONDOWN: Initiates dragging for the region containing the clicked point.
+        - MOUSEMOVE: Moves the selected region if dragging is active.
+        - LBUTTONUP: Ends dragging for the selected region.
+
+    Notes:
+        - This function is intended to be used as a callback for OpenCV mouse events.
+        - Requires the existence of the 'counting_regions' list and the 'Polygon' class.
+
+    Example:
+        >>> cv2.setMouseCallback(window_name, mouse_callback)
+    """
     global current_region
 
     # Mouse left button down event

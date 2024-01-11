@@ -69,10 +69,14 @@ def torch_save(*args, **kwargs):
         *args (tuple): Positional arguments to pass to torch.save.
         **kwargs (dict): Keyword arguments to pass to torch.save.
     """
-    try:
-        # import dill as pickle  # noqa
+    # try:
+    #     # import dill as pickle  # noqa
+    # except ImportError:
+    #     import pickle
+    
+    if "pickle_module" in kwargs:
         check_requirements("dill")
-    except ImportError:
+    else:
         import pickle
 
     if "pickle_module" not in kwargs:

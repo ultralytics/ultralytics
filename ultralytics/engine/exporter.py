@@ -402,7 +402,7 @@ class Exporter:
 
         if self.args.int8:
             if not self.args.data:
-                self.args.data = DEFAULT_CFG.data or 'coco8.yaml'
+                self.args.data = DEFAULT_CFG.data or 'coco128.yaml'
                 LOGGER.warning(f"{prefix} WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                                f"Using default 'data={self.args.data}'.")
             check_requirements('nncf>=2.5.0')
@@ -410,6 +410,7 @@ class Exporter:
 
             def transform_fn(data_item):
                 """Quantization transform function."""
+                assert data_item['img'].dtype == torch.uint8, 'input image must be uint8 for the quantization preprocessing'
                 im = data_item['img'].numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
                 return np.expand_dims(im, 0) if im.ndim == 3 else im
 

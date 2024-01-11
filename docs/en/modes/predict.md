@@ -642,7 +642,7 @@ Here is a table for the `OBB` class methods and properties, including their name
 | `xyxyxyxy`  | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format.                          |
 | `xyxyxyxyn` | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format normalized by image size. |
 
-For more details see the `Boxes` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Boxes).
+For more details see the `OBB` class [documentation](../reference/engine/results.md#ultralytics.engine.results.OBB).
 
 ## Plotting Results
 

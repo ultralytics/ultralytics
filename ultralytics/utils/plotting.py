@@ -365,7 +365,6 @@ class Annotator:
         self.tf = count_txt_size
         tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
         tf = max(tl - 1, 1)
-        gap = int(24 * tl)  # gap between in_count and out_count based on line_thickness
 
         # Get text size for in_count and out_count
         t_size_in = cv2.getTextSize(str(counts), 0, fontScale=tl / 2, thickness=tf)[0]

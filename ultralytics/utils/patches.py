@@ -5,6 +5,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import time
 import torch
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
@@ -74,4 +75,17 @@ def torch_save(*args, **kwargs):
 
     if "pickle_module" not in kwargs:
         kwargs["pickle_module"] = pickle  # noqa
-    return _torch_save(*args, **kwargs)
+
+    num_retries = 5
+    delay = 1
+
+    while True:
+        try:
+            return _torch_save(*args, **kwargs)
+        except RuntimeError:  # Unable to save, possibly waiting for device to flush or anti-virus to finish scanning
+            num_retries -= 1
+            if num_retries <= 0:
+                raise
+
+            time.sleep(delay)
+            delay *= 2

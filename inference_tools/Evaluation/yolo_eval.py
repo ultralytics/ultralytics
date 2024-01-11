@@ -9,7 +9,6 @@ from ultralytics import YOLO
 from pycocotools.coco import COCO
 from cocoeval import COCOeval
 
-
 print("🚀...WELCOME TO EVALUATION DETECTOR MODEL...")
 
 print("🚀...Initializing model...")
@@ -17,7 +16,8 @@ model = YOLO('../inference_tools/Evaluation/models/detector_best.pt', task='dete
 
 print("🚀...INFERENCE MODE...🚀")
 print("📦...GETTING PREDICTIONS...📦")
-metrics = model.val(data='../inference_tools/Evaluation/datasets/Client_Validation_Set/data.yaml', save_json=True, plots=True)
+metrics = model.val(data='../inference_tools/Evaluation/datasets/Client_Validation_Set/data.yaml', save_json=True,
+                    plots=True)
 metrics.box.maps
 
 # Load ground truth
@@ -34,14 +34,14 @@ if json_files:
 else:
     raise FileNotFoundError("❌...No JSON detection results file found in the latest 'val' directory...❌")
 
-
 print("🔌...LOADING EVALUATOR...")
 cocoDt = cocoGt.loadRes(detection_results_file)
 
 cocoEval = COCOeval(cocoGt, cocoDt, 'bbox')
 
 print("🔌...RESHAPING EVALUATOR FOR CLIENT...")
-cocoEval.params.areaRng = [[0 ** 2, 1e5 ** 2], [0 ** 2, 16 ** 2], [16 ** 2, 32 ** 2], [32 ** 2, 96 ** 2], [96 ** 2, 1e5 ** 2]]
+cocoEval.params.areaRng = [[0 ** 2, 1e5 ** 2], [0 ** 2, 16 ** 2], [16 ** 2, 32 ** 2], [32 ** 2, 96 ** 2],
+                           [96 ** 2, 1e5 ** 2]]
 cocoEval.params.areaRngLbl = ['all', 'tiny', 'small', 'medium', 'large']
 
 print("✅...RESULTS...")
@@ -51,22 +51,10 @@ cocoEval.evaluate()
 cocoEval.accumulate()
 cocoEval.summarize()
 
-results_file = "../inference_tools/Evaluation/results/"
-if not os.path.exists(results_file):
-    os.makedirs(results_file)
+results_folder = "../inference_tools/Evaluation/results/"
+if not os.path.exists(results_folder):
+    os.makedirs(results_folder)
 
-results_file = os.path.join(results_file, "results.json")
-
-def convert_numpy(obj):
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    raise TypeError("Object of type '%s' is not JSON serializable" % type(obj).__name__)
-
-
-with open(results_file, "w") as file:
-    json.dump(cocoEval.stats, file, default=convert_numpy)
-
-print("✅...RESULTS SAVED...")
 
 # Function to append metrics
 def append_metrics(metrics, metric_type, iou, area, max_dets, value):
@@ -77,6 +65,7 @@ def append_metrics(metrics, metric_type, iou, area, max_dets, value):
         'Max Detections': max_dets,
         'Value': value
     })
+
 
 # Initialize a list to store the metrics
 metrics_ = []
@@ -93,13 +82,18 @@ for i, iou in enumerate(iou_types):
         append_metrics(metrics_, 'AP', iou, area, 100, cocoEval.stats[idx])
 
 # Extract AR metrics (indices 15-17: 3 maxDets for 'all' area)
-for i, md in enumerate(max_dets):
-    idx = 15 + i  # Starting index for AR metrics is 15
-    append_metrics(metrics_, 'AR', '0.50:0.95', 'all', md, cocoEval.stats[idx])
+num_ap_metrics = len(iou_types) * len(areas)  # Total number of AP metrics
 
+# Iterate over max_dets to append AR metrics
+for i, md in enumerate(max_dets):
+    for j, area in enumerate(areas):
+        idx = num_ap_metrics + j + i * len(areas)  # Adjust index calculation for AR
+        append_metrics(metrics_, 'AR', '0.50:0.95', area, md, cocoEval.stats[idx])
 
 # Convert to DataFrame
 df_metrics = pd.DataFrame(metrics_)
 
 # Save to file (e.g., CSV)
-df_metrics.to_csv("../inference_tools/Evaluation/results/eval_metrics.csv", index=False)
+df_metrics.to_csv(results_folder + "/eval_metrics.csv", index=False)
+
+print("✅...RESULTS SAVED...")

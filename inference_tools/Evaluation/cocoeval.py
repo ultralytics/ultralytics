@@ -459,26 +459,27 @@ class COCOeval:
         def _summarizeDets():
             # Calculate the size of stats based on area ranges, IoU thresholds, and max detections
             num_area_ranges = len(self.params.areaRngLbl)  # Number of area ranges
-            num_iou_thrs = 3  # Typically, IoU thresholds at 0.5, 0.75, and 0.5:0.95 (mean AP)
+            num_iou_thrs = 3  # IoU thresholds at 0.5, 0.75, and 0.5:0.95 (mean AP)
             num_dets = len(self.params.maxDets)  # Number of max detection thresholds
 
-            # Total number of stats to calculate
-            total_stats = num_iou_thrs * num_area_ranges + num_dets
+            # Total number of stats to calculate for AP and AR
+            total_stats = num_iou_thrs * num_area_ranges + num_dets * num_area_ranges
 
             # Initialize the stats array
             stats = np.zeros((total_stats,))
 
-            # Calculate stats
+            # Calculate AP stats
             stats_index = 0
             for iouThr in [None, 0.5, 0.75]:
                 for areaLbl in self.params.areaRngLbl:
                     stats[stats_index] = _summarize(1, iouThr=iouThr, areaRng=areaLbl, maxDets=self.params.maxDets[-1])
                     stats_index += 1
 
-            # Include additional stats for different maxDet values
+            # Calculate AR stats for different maxDet values
             for maxDet in self.params.maxDets:
-                stats[stats_index] = _summarize(0, maxDets=maxDet)
-                stats_index += 1
+                for areaLbl in self.params.areaRngLbl:
+                    stats[stats_index] = _summarize(0, areaRng=areaLbl, maxDets=maxDet)
+                    stats_index += 1
 
             return stats
 

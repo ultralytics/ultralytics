@@ -59,16 +59,16 @@ repos:
         args:
           - --ignore-words-list=crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall
 
-  - repo: https://github.com/PyCQA/docformatter
-    rev: v1.7.5
-    hooks:
-      - id: docformatter
-
   - repo: https://github.com/hadialqattan/pycln
     rev: v2.4.0
     hooks:
       - id: pycln
         args: [--all]
+
+#  - repo: https://github.com/PyCQA/docformatter
+#    rev: v1.7.5
+#    hooks:
+#      - id: docformatter
 
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0

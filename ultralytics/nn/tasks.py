@@ -44,7 +44,14 @@ from ultralytics.nn.modules import (
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss, v8SegmentationLoss, v8MultiTaskLoss
+from ultralytics.utils.loss import (
+    v8ClassificationLoss,
+    v8DetectionLoss,
+    v8OBBLoss,
+    v8PoseLoss,
+    v8SegmentationLoss,
+    v8MultiTaskLoss,
+)
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
@@ -285,7 +292,9 @@ class DetectionModel(BaseModel):
         if isinstance(m, (Detect, Segment, Pose, OBB, MultiTask)):
             s = 256  # 2x min stride
             m.inplace = self.inplace
-            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB, MultiTask)) else self.forward(x)
+            forward = (
+                lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB, MultiTask)) else self.forward(x)
+            )
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
@@ -379,22 +388,23 @@ class PoseModel(DetectionModel):
         """Initialize the loss criterion for the PoseModel."""
         return v8PoseLoss(self)
 
+
 class MultiTaskModel(DetectionModel):
     """YOLOv8 multitask model."""
 
-    def __init__(self, cfg='yolov8n-multitask.yaml', ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+    def __init__(self, cfg="yolov8n-multitask.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
         """Initialize YOLOv8 multitask model."""
         if not isinstance(cfg, dict):
             cfg = yaml_model_load(cfg)  # load model YAML
-        if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg['kpt_shape']):
+        if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg["kpt_shape"]):
             LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
-            cfg['kpt_shape'] = data_kpt_shape
+            cfg["kpt_shape"] = data_kpt_shape
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
         """Initialize the loss criterion for the MultiTaskModel."""
         return v8MultiTaskLoss(self)
-    
+
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
         img_size = x.shape[-2:]  # height, width
@@ -407,7 +417,7 @@ class MultiTaskModel(DetectionModel):
             yi = self._descale_pred(yi, fi, si, img_size)
             y.append(yi)
         y = self._clip_augmented(y)  # clip augmented tails
-        return y  # augmented inference, train    
+        return y  # augmented inference, train
 
     @staticmethod
     def _descale_pred(p, flips, scale, img_size, dim=1):
@@ -431,14 +441,14 @@ class MultiTaskModel(DetectionModel):
         p_kpt_upscaled = torch.cat((x, y, wh, cls), dim)
 
         return (p_seg_upscaled, p_kpt_upscaled)
-    
+
     def _clip_augmented(self, y):
         """Clip YOLO augmented inference tails."""
         nl = self.model[-1].nl  # number of detection layers (P3-P5)
-        g = sum(4 ** x for x in range(nl))  # grid points
+        g = sum(4**x for x in range(nl))  # grid points
         e = 1  # exclude layer count
-        i_s = (y[0][0].shape[-1] // g) * sum(4 ** x for x in range(e))  # indices
-        i_k = (y[0][1].shape[-1] // g) * sum(4 ** x for x in range(e))  # indices
+        i_s = (y[0][0].shape[-1] // g) * sum(4**x for x in range(e))  # indices
+        i_k = (y[0][1].shape[-1] // g) * sum(4**x for x in range(e))  # indices
         y[0] = (y[0][0][..., :-i_s], y[0][1][..., :-i_k])  # large
 
         i_s = (y[-1][0].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices

@@ -1161,6 +1161,7 @@ class PoseMetrics(SegmentMetrics):
         """Returns dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.pose.curves_results
 
+
 class MultiTaskMetrics(SimpleClass):
     """
     Calculates and aggregates detection and segmentation metrics over a given set of classes.
@@ -1190,7 +1191,7 @@ class MultiTaskMetrics(SimpleClass):
         results_dict: Returns the dictionary containing all the detection and segmentation metrics and fitness score.
     """
 
-    def __init__(self, save_dir=Path('.'), plot=False, on_plot=None, names=()) -> None:
+    def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
         """Initialize a SegmentMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
@@ -1199,8 +1200,8 @@ class MultiTaskMetrics(SimpleClass):
         self.box = Metric()
         self.seg = Metric()
         self.pose = Metric()
-        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.task = 'multitask'
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "multitask"
 
     def process(self, tp, tp_m, tp_p, conf, pred_cls, target_cls):
         """
@@ -1213,38 +1214,44 @@ class MultiTaskMetrics(SimpleClass):
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
         """
-        results_pose = ap_per_class(tp_p,
-                                    conf,
-                                    pred_cls,
-                                    target_cls,
-                                    plot=self.plot,
-                                    on_plot=self.on_plot,
-                                    save_dir=self.save_dir,
-                                    names=self.names,
-                                    prefix='Pose')[2:]
+        results_pose = ap_per_class(
+            tp_p,
+            conf,
+            pred_cls,
+            target_cls,
+            plot=self.plot,
+            on_plot=self.on_plot,
+            save_dir=self.save_dir,
+            names=self.names,
+            prefix="Pose",
+        )[2:]
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
 
-        results_mask = ap_per_class(tp_m,
-                                    conf,
-                                    pred_cls,
-                                    target_cls,
-                                    plot=self.plot,
-                                    on_plot=self.on_plot,
-                                    save_dir=self.save_dir,
-                                    names=self.names,
-                                    prefix='Mask')[2:]
+        results_mask = ap_per_class(
+            tp_m,
+            conf,
+            pred_cls,
+            target_cls,
+            plot=self.plot,
+            on_plot=self.on_plot,
+            save_dir=self.save_dir,
+            names=self.names,
+            prefix="Mask",
+        )[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
-        results_box = ap_per_class(tp,
-                                   conf,
-                                   pred_cls,
-                                   target_cls,
-                                   plot=self.plot,
-                                   on_plot=self.on_plot,
-                                   save_dir=self.save_dir,
-                                   names=self.names,
-                                   prefix='Box')[2:]
+        results_box = ap_per_class(
+            tp,
+            conf,
+            pred_cls,
+            target_cls,
+            plot=self.plot,
+            on_plot=self.on_plot,
+            save_dir=self.save_dir,
+            names=self.names,
+            prefix="Box",
+        )[2:]
         self.box.nc = len(self.names)
         self.box.update(results_box)
 
@@ -1252,9 +1259,19 @@ class MultiTaskMetrics(SimpleClass):
     def keys(self):
         """Returns a list of keys for accessing metrics."""
         return [
-            'metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)',
-            'metrics/precision(M)', 'metrics/recall(M)', 'metrics/mAP50(M)', 'metrics/mAP50-95(M)',
-            'metrics/precision(P)', 'metrics/recall(P)', 'metrics/mAP50(P)', 'metrics/mAP50-95(P)']
+            "metrics/precision(B)",
+            "metrics/recall(B)",
+            "metrics/mAP50(B)",
+            "metrics/mAP50-95(B)",
+            "metrics/precision(M)",
+            "metrics/recall(M)",
+            "metrics/mAP50(M)",
+            "metrics/mAP50-95(M)",
+            "metrics/precision(P)",
+            "metrics/recall(P)",
+            "metrics/mAP50(P)",
+            "metrics/mAP50-95(P)",
+        ]
 
     def mean_results(self):
         """Return the mean metrics for bounding box and segmentation results."""
@@ -1282,20 +1299,31 @@ class MultiTaskMetrics(SimpleClass):
     @property
     def results_dict(self):
         """Returns results of object detection model for evaluation."""
-        return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
+        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
 
     @property
     def curves(self):
         """Returns a list of curves for accessing specific metrics curves."""
         return [
-            'Precision-Recall(B)', 'F1-Confidence(B)', 'Precision-Confidence(B)', 'Recall-Confidence(B)',
-            'Precision-Recall(M)', 'F1-Confidence(M)', 'Precision-Confidence(M)', 'Recall-Confidence(M)',
-            'Precision-Recall(P)', 'F1-Confidence(P)', 'Precision-Confidence(P)', 'Recall-Confidence(P)']
+            "Precision-Recall(B)",
+            "F1-Confidence(B)",
+            "Precision-Confidence(B)",
+            "Recall-Confidence(B)",
+            "Precision-Recall(M)",
+            "F1-Confidence(M)",
+            "Precision-Confidence(M)",
+            "Recall-Confidence(M)",
+            "Precision-Recall(P)",
+            "F1-Confidence(P)",
+            "Precision-Confidence(P)",
+            "Recall-Confidence(P)",
+        ]
 
     @property
     def curves_results(self):
         """Returns dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.seg.curves_results + self.pose.curves_results
+
 
 class ClassifyMetrics(SimpleClass):
     """

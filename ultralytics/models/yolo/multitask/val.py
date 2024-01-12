@@ -35,17 +35,19 @@ class MultiTaskValidator(DetectionValidator):
         self.process = None
         self.sigma = None
         self.kpt_shape = None
-        self.args.task = 'multitask'
+        self.args.task = "multitask"
         self.metrics = MultiTaskMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
-        if isinstance(self.args.device, str) and self.args.device.lower() == 'mps':
-            LOGGER.warning("WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
-                           'See https://github.com/ultralytics/ultralytics/issues/4031.')
+        if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
+            LOGGER.warning(
+                "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
+                "See https://github.com/ultralytics/ultralytics/issues/4031."
+            )
 
     def preprocess(self, batch):
         """Preprocesses batch by converting masks and keypoints to float and sending to device."""
         batch = super().preprocess(batch)
-        batch['masks'] = batch['masks'].to(self.device).float()
-        batch['keypoints'] = batch['keypoints'].to(self.device).float()
+        batch["masks"] = batch["masks"].to(self.device).float()
+        batch["keypoints"] = batch["keypoints"].to(self.device).float()
         return batch
 
     def init_metrics(self, model):
@@ -53,11 +55,11 @@ class MultiTaskValidator(DetectionValidator):
         super().init_metrics(model)
         self.plot_masks = []
         if self.args.save_json:
-            check_requirements('pycocotools>=2.0.6')
+            check_requirements("pycocotools>=2.0.6")
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
-        self.kpt_shape = self.data['kpt_shape']
+        self.kpt_shape = self.data["kpt_shape"]
 
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
@@ -66,37 +68,55 @@ class MultiTaskValidator(DetectionValidator):
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ('%22s' + '%11s' * 10) % (
-            'Class',
-            'Images',
-            'Instances',
-            'Box(P', 'R', 'mAP50', 'mAP50-95)',
-            'Mask(P', 'R', 'mAP50', 'mAP50-95)',
-            "Pose(P", "R", "mAP50", "mAP50-95)",)
+        return ("%22s" + "%11s" * 10) % (
+            "Class",
+            "Images",
+            "Instances",
+            "Box(P",
+            "R",
+            "mAP50",
+            "mAP50-95)",
+            "Mask(P",
+            "R",
+            "mAP50",
+            "mAP50-95)",
+            "Pose(P",
+            "R",
+            "mAP50",
+            "mAP50-95)",
+        )
 
     def postprocess(self, preds):
         """
         Post-processes YOLO predictions and returns output detections with proto.
-        Predicted segmentation masks and keypoints get handles seperately.
+
+        Predicted segmentation masks and keypoints get handles separately.
         """
-        p_seg = ops.non_max_suppression(preds[0][0],
-                                    self.args.conf,
-                                    self.args.iou,
-                                    labels=self.lb,
-                                    multi_label=True,
-                                    agnostic=self.args.single_cls,
-                                    max_det=self.args.max_det,
-                                    nc=self.nc)
-        p_pose = ops.non_max_suppression(preds[0][1] if len(preds[1]) == 4 else preds[1],
-                                    self.args.conf,
-                                    self.args.iou,
-                                    labels=self.lb,
-                                    multi_label=True,
-                                    agnostic=self.args.single_cls,
-                                    max_det=self.args.max_det,
-                                    nc=self.nc)
-        proto = preds[1][-2] if len(preds[1]) == 4 else preds[0][1]  # second output is len 4 if pt, but only 1 if exported
+        p_seg = ops.non_max_suppression(
+            preds[0][0],
+            self.args.conf,
+            self.args.iou,
+            labels=self.lb,
+            multi_label=True,
+            agnostic=self.args.single_cls,
+            max_det=self.args.max_det,
+            nc=self.nc,
+        )
+        p_pose = ops.non_max_suppression(
+            preds[0][1] if len(preds[1]) == 4 else preds[1],
+            self.args.conf,
+            self.args.iou,
+            labels=self.lb,
+            multi_label=True,
+            agnostic=self.args.single_cls,
+            max_det=self.args.max_det,
+            nc=self.nc,
+        )
+        proto = (
+            preds[1][-2] if len(preds[1]) == 4 else preds[0][1]
+        )  # second output is len 4 if pt, but only 1 if exported
         return (p_seg, p_pose), proto
+
     def _prepare_batch(self, si, batch):
         """Prepares a batch for training or inference by processing images and targets."""
         pbatch = super()._prepare_batch(si, batch)
@@ -111,9 +131,11 @@ class MultiTaskValidator(DetectionValidator):
         kpts = ops.scale_coords(pbatch["imgsz"], kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
         pbatch["kpts"] = kpts
         return pbatch
+
     def _prepare_pred(self, pred_seg, pred_kpt, pbatch, proto):
         """
         Prepares a batch for training or inference by processing images and targets.
+
         Scales keypoints in a batch for pose processing.
         """
         predn_seg = super()._prepare_pred(pred_seg, pbatch)
@@ -162,7 +184,13 @@ class MultiTaskValidator(DetectionValidator):
             if nl:
                 stat["tp"] = self._process_batch(predn_seg, bbox, cls)
                 stat["tp_m"] = self._process_batch(
-                    predn_seg, bbox, cls, pred_masks=pred_masks, gt_masks=gt_masks, overlap=self.args.overlap_mask, masks=True
+                    predn_seg,
+                    bbox,
+                    cls,
+                    pred_masks=pred_masks,
+                    gt_masks=gt_masks,
+                    overlap=self.args.overlap_mask,
+                    masks=True,
                 )
                 stat["tp_p"] = self._process_batch(predn_kpt, bbox, cls, pred_kpts=pred_kpts, gt_kpts=pbatch["kpts"])
                 if self.args.plots:
@@ -189,7 +217,18 @@ class MultiTaskValidator(DetectionValidator):
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
 
-    def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, pred_masks=None, gt_masks=None, gt_kpts=None, overlap=False, masks=False):
+    def _process_batch(
+        self,
+        detections,
+        gt_bboxes,
+        gt_cls,
+        pred_kpts=None,
+        pred_masks=None,
+        gt_masks=None,
+        gt_kpts=None,
+        overlap=False,
+        masks=False,
+    ):
         """
         Return correct prediction matrix.
 
@@ -226,19 +265,21 @@ class MultiTaskValidator(DetectionValidator):
 
     def plot_val_samples(self, batch, ni):
         """Plots validation samples with bounding box labels, masks and keypoints."""
-        plot_images(batch['img'],
-                    batch['batch_idx'],
-                    batch['cls'].squeeze(-1),
-                    batch['bboxes'],
-                    masks=batch['masks'],
-                    kpts=batch['keypoints'],
-                    paths=batch['im_file'],
-                    fname=self.save_dir / f'val_batch{ni}_labels.jpg',
-                    names=self.names,
-                    on_plot=self.on_plot)
+        plot_images(
+            batch["img"],
+            batch["batch_idx"],
+            batch["cls"].squeeze(-1),
+            batch["bboxes"],
+            masks=batch["masks"],
+            kpts=batch["keypoints"],
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
 
     def plot_predictions(self, batch, preds, ni):
-        """Plots batch predictions with keypoints, masks and bounding boxes."""    
+        """Plots batch predictions with keypoints, masks and bounding boxes."""
         if len(preds[1]) == 4:
             pred_kpts = torch.cat([p[:, 6:].contiguous().view(-1, *self.kpt_shape) for p in preds[0][1]], 0)
             batch_idx, cls, bboxes, confs = output_to_target(preds[0][1], max_det=self.args.max_det)
@@ -246,17 +287,19 @@ class MultiTaskValidator(DetectionValidator):
             pred_kpts = torch.cat([p[:, 6:].contiguous().view(-1, *self.kpt_shape) for p in preds[1]], 0)
             batch_idx, cls, bboxes, confs = output_to_target(preds[1], max_det=self.args.max_det)
 
-        plot_images(batch['img'],
-                    batch_idx,
-                    cls,
-                    bboxes,
-                    confs,
-                    masks=torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
-                    kpts=pred_kpts,
-                    paths=batch['im_file'],
-                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
-                    names=self.names,
-                    on_plot=self.on_plot)  # pred
+        plot_images(
+            batch["img"],
+            batch_idx,
+            cls,
+            bboxes,
+            confs,
+            masks=torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
+            kpts=pred_kpts,
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )  # pred
         self.plot_masks.clear()
 
     def pred_to_json(self, predn, filename, pred_masks):
@@ -266,8 +309,8 @@ class MultiTaskValidator(DetectionValidator):
 
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""
-            rle = encode(np.asarray(x[:, :, None], order='F', dtype='uint8'))[0]
-            rle['counts'] = rle['counts'].decode('utf-8')
+            rle = encode(np.asarray(x[:, :, None], order="F", dtype="uint8"))[0]
+            rle["counts"] = rle["counts"].decode("utf-8")
             return rle
 
         stem = Path(filename).stem
@@ -278,38 +321,44 @@ class MultiTaskValidator(DetectionValidator):
         with ThreadPool(NUM_THREADS) as pool:
             rles = pool.map(single_encode, pred_masks)
         for i, (p, b) in enumerate(zip(predn.tolist(), box.tolist())):
-            self.jdict.append({
-                'image_id': image_id,
-                'category_id': self.class_map[int(p[5])],
-                'bbox': [round(x, 3) for x in b],
-                'keypoints': p[6:],
-                'score': round(p[4], 5),
-                'segmentation': rles[i]})
+            self.jdict.append(
+                {
+                    "image_id": image_id,
+                    "category_id": self.class_map[int(p[5])],
+                    "bbox": [round(x, 3) for x in b],
+                    "keypoints": p[6:],
+                    "score": round(p[4], 5),
+                    "segmentation": rles[i],
+                }
+            )
 
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
         if self.args.save_json and self.is_coco and len(self.jdict):
-            anno_json = self.data['path'] / 'annotations/instances_val2017.json'  # annotations
-            pred_json = self.save_dir / 'predictions.json'  # predictions
-            LOGGER.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
+            anno_json = self.data["path"] / "annotations/instances_val2017.json"  # annotations
+            pred_json = self.save_dir / "predictions.json"  # predictions
+            LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements('pycocotools>=2.0.6')
+                check_requirements("pycocotools>=2.0.6")
                 from pycocotools.coco import COCO  # noqa
                 from pycocotools.cocoeval import COCOeval  # noqa
 
                 for x in anno_json, pred_json:
-                    assert x.is_file(), f'{x} file not found'
+                    assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, 'bbox'), COCOeval(anno, pred, 'segm'), COCOeval(anno, pred, 'keypoints')]):
+                for i, eval in enumerate(
+                    [COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm"), COCOeval(anno, pred, "keypoints")]
+                ):
                     if self.is_coco:
                         eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
                     idx = i * 4 + 2
-                    stats[self.metrics.keys[idx + 1]], stats[
-                        self.metrics.keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
+                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
+                        :2
+                    ]  # update mAP50-95 and mAP50
             except Exception as e:
-                LOGGER.warning(f'pycocotools unable to run: {e}')
+                LOGGER.warning(f"pycocotools unable to run: {e}")
         return stats

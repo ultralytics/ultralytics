@@ -39,7 +39,7 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task in ["pose", "multitask"]
         self.use_obb = task == "obb"
         self.data = data
-        #assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
+        # assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
         super().__init__(*args, **kwargs)
 
     def cache_labels(self, path=Path("./labels.cache")):

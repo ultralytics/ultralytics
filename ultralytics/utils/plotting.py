@@ -782,7 +782,9 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file='path/to/results.csv', dir="", segment=False, pose=False, classify=False, multitask=False, on_plot=None):
+def plot_results(
+    file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, multitask=False, on_plot=None
+):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -971,7 +973,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         n (int, optional): Maximum number of feature maps to plot. Defaults to 32.
         save_dir (Path, optional): Directory to save results. Defaults to Path('runs/detect/exp').
     """
-    for m in ['Detect', 'Pose', 'Segment', 'MultiTask']:
+    for m in ["Detect", "Pose", "Segment", "MultiTask"]:
         if m in module_type:
             return
     batch, channels, height, width = x.shape  # batch, channels, height, width

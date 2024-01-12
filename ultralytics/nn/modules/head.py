@@ -14,7 +14,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init_
 
-__all__ = 'Detect', 'Segment', 'Pose', 'Classify', 'MultiTask', 'OBB', 'RTDETRDecoder'
+__all__ = "Detect", "Segment", "Pose", "Classify", "MultiTask", "OBB", "RTDETRDecoder"
 
 
 class Detect(nn.Module):
@@ -87,8 +87,10 @@ class Detect(nn.Module):
         """Decode bounding boxes."""
         return dist2bbox(self.dfl(bboxes), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
 
+
 class MultiTask(Detect):
     """YOLOv8 MultiTask head for segmentation models."""
+
     def __init__(self, nc=80, nm=32, npr=256, kpt_shape=(17, 3), ch=()):
         super().__init__(nc, ch)
         # Initialize segmentation components
@@ -96,18 +98,26 @@ class MultiTask(Detect):
         self.npr = npr  # number of protos
         self.proto = Proto(ch[0], self.npr, self.nm)  # protos
         self.detect = Detect.forward
-        
+
         c4_seg = max(ch[0] // 4, self.nm)
-        self.cv4_seg = nn.ModuleList(nn.Sequential(Conv(x, c4_seg, 3), Conv(c4_seg, c4_seg, 3), nn.Conv2d(c4_seg, self.nm, 1)) for x in ch)
+        self.cv4_seg = nn.ModuleList(
+            nn.Sequential(Conv(x, c4_seg, 3), Conv(c4_seg, c4_seg, 3), nn.Conv2d(c4_seg, self.nm, 1)) for x in ch
+        )
 
         # Initialize pose components
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
         self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
         c4_pose = max(ch[0] // 4, self.nk)
-        self.cv4_pose = nn.ModuleList(nn.Sequential(Conv(x, c4_pose, 3), Conv(c4_pose, c4_pose, 3), nn.Conv2d(c4_pose, self.nk, 1)) for x in ch)
-    
+        self.cv4_pose = nn.ModuleList(
+            nn.Sequential(Conv(x, c4_pose, 3), Conv(c4_pose, c4_pose, 3), nn.Conv2d(c4_pose, self.nk, 1)) for x in ch
+        )
+
     def forward(self, x):
-        """Returns a tupel of mask and keypoint detections. Returns mask coefficients if training, otherwise return outputs and mask coefficients."""
+        """
+        Returns a tuple of mask and keypoint detections.
+
+        Returns mask coefficients if training, otherwise return outputs and mask coefficients.
+        """
         # Process segmentation
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]  # batch size
@@ -119,10 +129,14 @@ class MultiTask(Detect):
         if self.training:
             return x, mc, p, kpt
         pred_kpt = self.kpts_decode(bs, kpt)
-        output = ((torch.cat([x, mc], 1), p), torch.cat([x, pred_kpt], 1)) if self.export else ((torch.cat([x[0], mc], 1), torch.cat([x[0], pred_kpt], 1)), (x[1], mc, p, kpt))
-        
+        output = (
+            ((torch.cat([x, mc], 1), p), torch.cat([x, pred_kpt], 1))
+            if self.export
+            else ((torch.cat([x[0], mc], 1), torch.cat([x[0], pred_kpt], 1)), (x[1], mc, p, kpt))
+        )
+
         return output
-        
+
     def kpts_decode(self, bs, kpts):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
@@ -139,6 +153,7 @@ class MultiTask(Detect):
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
+
 
 class Segment(Detect):
     """YOLOv8 Segment head for segmentation models."""

@@ -73,7 +73,7 @@ class HUBTrainingSession:
         # Model model does not exist
         # TODO: improve error handling
         if not self.model.data:
-            raise ValueError(emojis(f'❌ The specified HUB model does not exist'))
+            raise ValueError(emojis(f"❌ The specified HUB model does not exist"))
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 

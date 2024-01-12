@@ -88,6 +88,7 @@ class Detect(nn.Module):
         return dist2bbox(self.dfl(bboxes), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
 
 class MultiTask(Detect):
+    """YOLOv8 MultiTask head for segmentation models."""
     def __init__(self, nc=80, nm=32, npr=256, kpt_shape=(17, 3), ch=()):
         super().__init__(nc, ch)
         # Initialize segmentation components
@@ -106,6 +107,7 @@ class MultiTask(Detect):
         self.cv4_pose = nn.ModuleList(nn.Sequential(Conv(x, c4_pose, 3), Conv(c4_pose, c4_pose, 3), nn.Conv2d(c4_pose, self.nk, 1)) for x in ch)
     
     def forward(self, x):
+        """Returns a tupel of mask and keypoint detections. Returns mask coefficients if training, otherwise return outputs and mask coefficients."""
         # Process segmentation
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]  # batch size

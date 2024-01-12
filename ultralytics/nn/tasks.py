@@ -383,7 +383,7 @@ class MultiTaskModel(DetectionModel):
     """YOLOv8 multitask model."""
 
     def __init__(self, cfg='yolov8n-multitask.yaml', ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
-        """Initialize YOLOv8 Pose model."""
+        """Initialize YOLOv8 multitask model."""
         if not isinstance(cfg, dict):
             cfg = yaml_model_load(cfg)  # load model YAML
         if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg['kpt_shape']):
@@ -392,7 +392,7 @@ class MultiTaskModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
-        """Initialize the loss criterion for the PoseModel."""
+        """Initialize the loss criterion for the MultiTaskModel."""
         return v8MultiTaskLoss(self)
     
     def _predict_augment(self, x):
@@ -444,9 +444,6 @@ class MultiTaskModel(DetectionModel):
         i_s = (y[-1][0].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices
         i_k = (y[-1][1].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices
         y[-1] = (y[-1][0][..., i_s:], y[-1][1][..., i_k:])  # small
-        with open(r'C:\Users\david\Downloads\kpt.txt', 'a') as f:
-            f.write("clip\n")
-            f.write(str(len(y)) + '\n')
 
         return y
 

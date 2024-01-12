@@ -16,7 +16,7 @@ class MultiTaskTrainer(yolo.detect.DetectionTrainer):
         ```python
         from ultralytics.models.yolo.multitask import MultiTaskTrainer
 
-        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml', epochs=3)
+        args = dict(model='yolov8n-multitask.pt', data='coco8-multitask.yaml', epochs=3)
         trainer = MultiTaskTrainer(overrides=args)
         trainer.train()
         ```
@@ -42,7 +42,7 @@ class MultiTaskTrainer(yolo.detect.DetectionTrainer):
         return model
 
     def set_model_attributes(self):
-        """Sets keypoints shape attribute of MultitaskModel."""
+        """Sets keypoints shape attribute of MultiTaskModel."""
         super().set_model_attributes()
         self.model.kpt_shape = self.data['kpt_shape']
 
@@ -53,12 +53,12 @@ class MultiTaskTrainer(yolo.detect.DetectionTrainer):
         return yolo.multitask.MultiTaskValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def plot_training_samples(self, batch, ni):
-        """Creates a plot of training sample images with labels and box coordinates."""
+        """Creates a plot of training sample images with labels and box coordinates, masks and keypoints."""
         images = batch['img']
-        kpts = batch['keypoints']
         cls = batch['cls'].squeeze(-1)
         bboxes = batch['bboxes']
         masks = batch['masks']
+        kpts = batch['keypoints']
         paths = batch['im_file']
         batch_idx = batch['batch_idx']
 

@@ -16,20 +16,20 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 class MultiTaskValidator(DetectionValidator):
     """
-    A class extending the DetectionValidator class for validation based on a segmentation model.
+    A class extending the DetectionValidator class for validation based on a multitask model.
 
     Example:
         ```python
-        from ultralytics.models.yolo.segment import SegmentationValidator
+        from ultralytics.models.yolo.multitask import MultiTaskValidator
 
-        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml')
-        validator = SegmentationValidator(args=args)
+        args = dict(model='yolov8n-multitask.pt', data='coco8-multitask.yaml')
+        validator = MultiTaskValidator(args=args)
         validator()
         ```
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
+        """Initialize MultiTaskValidator and set task to 'multitask', metrics to MultiTaskMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.plot_masks = None
         self.process = None
@@ -42,14 +42,14 @@ class MultiTaskValidator(DetectionValidator):
                            'See https://github.com/ultralytics/ultralytics/issues/4031.')
 
     def preprocess(self, batch):
-        """Preprocesses batch by converting masks to float and sending to device."""
+        """Preprocesses batch by converting masks and keypoints to float and sending to device."""
         batch = super().preprocess(batch)
         batch['masks'] = batch['masks'].to(self.device).float()
         batch['keypoints'] = batch['keypoints'].to(self.device).float()
         return batch
 
     def init_metrics(self, model):
-        """Initialize metrics and select mask processing function based on save_json flag."""
+        """Initialize mask and keypoint metrics and select mask processing function based on save_json flag."""
         super().init_metrics(model)
         self.plot_masks = []
         if self.args.save_json:
@@ -66,11 +66,19 @@ class MultiTaskValidator(DetectionValidator):
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Mask(P',
-                                         'R', 'mAP50', 'mAP50-95)')
+        return ('%22s' + '%11s' * 10) % (
+            'Class',
+            'Images',
+            'Instances',
+            'Box(P', 'R', 'mAP50', 'mAP50-95)',
+            'Mask(P', 'R', 'mAP50', 'mAP50-95)',
+            "Pose(P", "R", "mAP50", "mAP50-95)",)
 
     def postprocess(self, preds):
-        """Post-processes YOLO predictions and returns output detections with proto."""
+        """
+        Post-processes YOLO predictions and returns output detections with proto.
+        Predicted segmentation masks and keypoints get handles seperately.
+        """
         p_seg = ops.non_max_suppression(preds[0][0],
                                     self.args.conf,
                                     self.args.iou,
@@ -104,7 +112,10 @@ class MultiTaskValidator(DetectionValidator):
         pbatch["kpts"] = kpts
         return pbatch
     def _prepare_pred(self, pred_seg, pred_kpt, pbatch, proto):
-        """Prepares a batch for training or inference by processing images and targets."""
+        """
+        Prepares a batch for training or inference by processing images and targets.
+        Scales keypoints in a batch for pose processing.
+        """
         predn_seg = super()._prepare_pred(pred_seg, pbatch)
         predn_kpt = super()._prepare_pred(pred_kpt, pbatch)
         pred_masks = self.process(proto, pred_seg[:, 6:], pred_seg[:, :4], shape=pbatch["imgsz"])
@@ -185,11 +196,11 @@ class MultiTaskValidator(DetectionValidator):
         Args:
             detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
                 Each detection is of the format: x1, y1, x2, y2, conf, class.
-            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
+            gt_bboxes (torch.Tensor): Tensor of shape [M, 5] representing labels.
                 Each label is of the format: class, x1, y1, x2, y2.
-            pred_kpts (torch.Tensor, optional): Tensor of shape [N, 51] representing predicted keypoints.
-                51 corresponds to 17 keypoints each with 3 values.
-            gt_kpts (torch.Tensor, optional): Tensor of shape [N, 51] representing ground truth keypoints.
+            pred_kpts (torch.Tensor, optional): Tensor of shape [N, n] representing predicted keypoints.
+                n corresponds to number of keypoints * 3 (x,y,v).
+            gt_kpts (torch.Tensor, optional): Tensor of shape [N, n] representing ground truth keypoints.
 
         Returns:
             correct (array[N, 10]), for 10 IoU levels
@@ -214,7 +225,7 @@ class MultiTaskValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def plot_val_samples(self, batch, ni):
-        """Plots validation samples with bounding box labels."""
+        """Plots validation samples with bounding box labels, masks and keypoints."""
         plot_images(batch['img'],
                     batch['batch_idx'],
                     batch['cls'].squeeze(-1),
@@ -227,7 +238,7 @@ class MultiTaskValidator(DetectionValidator):
                     on_plot=self.on_plot)
 
     def plot_predictions(self, batch, preds, ni):
-        """Plots batch predictions with masks and bounding boxes."""    
+        """Plots batch predictions with keypoints, masks and bounding boxes."""    
         if len(preds[1]) == 4:
             pred_kpts = torch.cat([p[:, 6:].contiguous().view(-1, *self.kpt_shape) for p in preds[0][1]], 0)
             batch_idx, cls, bboxes, confs = output_to_target(preds[0][1], max_det=self.args.max_det)

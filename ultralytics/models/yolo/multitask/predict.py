@@ -14,7 +14,7 @@ class MultiTaskPredictor(DetectionPredictor):
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.multitask import MultiTaskPredictor
 
-        args = dict(model='yolov8n-seg.pt', source=ASSETS)
+        args = dict(model='yolov8n-multitask.pt', source=ASSETS)
         predictor = MultiTaskPredictor(overrides=args)
         predictor.predict_cli()
         ```
@@ -26,8 +26,10 @@ class MultiTaskPredictor(DetectionPredictor):
         self.args.task = 'multitask'
 
     def postprocess(self, preds, img, orig_imgs):
-        """Keypoint: Return detection results for a given input image or list of images. --> implement"""
-        """Applies non-max suppression and processes detections for each image in an input batch."""
+        """
+        Applies non-max suppression and processes detections for each image in an input batch.
+        Predicted segmentation masks and keypoints get handles seperately.
+        """
         p_seg = ops.non_max_suppression(preds[0][0],
                                         self.args.conf,
                                         self.args.iou,

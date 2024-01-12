@@ -442,6 +442,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.1.0", **
             safe_download(url=f"{download_url}/{release}/{name}", file=file, min_bytes=1e5, **kwargs)
 
         else:
+            print(f"ASSET NOT FOUND: [NAME: {name}, REPO: {repo}, RELEASE: {release}]")
             tag, assets = get_github_assets(repo, release)
             if not assets:
                 tag, assets = get_github_assets(repo)  # latest release

@@ -70,10 +70,8 @@ class HUBTrainingSession:
     def load_model(self, model_id):
         # Initialize model
         self.model = self.client.model(model_id)
-        # Model model does not exist
-        # TODO: improve error handling
-        if not self.model.data:
-            raise ValueError(emojis(f"❌ The specified HUB model does not exist"))
+        if not self.model.data:  # then model model does not exist
+            raise ValueError(emojis(f"❌ The specified HUB model does not exist"))   # TODO: improve error handling
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 

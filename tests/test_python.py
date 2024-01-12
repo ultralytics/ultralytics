@@ -77,6 +77,7 @@ def test_predict_img():
     seg_model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
     cls_model = YOLO(WEIGHTS_DIR / 'yolov8n-cls.pt')
     pose_model = YOLO(WEIGHTS_DIR / 'yolov8n-pose.pt')
+    multitask_model = YOLO(WEIGHTS_DIR / 'yolov8n-multitask.pt')    
     obb_model = YOLO(WEIGHTS_DIR / 'yolov8n-obb.pt')
     im = cv2.imread(str(SOURCE))
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
@@ -105,6 +106,8 @@ def test_predict_img():
     results = cls_model(t, imgsz=32)
     assert len(results) == t.shape[0]
     results = pose_model(t, imgsz=32)
+    assert len(results) == t.shape[0]
+    results = multitask_model(t, imgsz=32)
     assert len(results) == t.shape[0]
     results = obb_model(t, imgsz=32)
     assert len(results) == t.shape[0]
@@ -305,7 +308,7 @@ def test_predict_callback_and_setup():
 
 def test_results():
     """Test various result formats for the YOLO model."""
-    for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
+    for m in 'yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n-multitask.pt', 'yolov8n.pt', 'yolov8n-cls.pt':
         results = YOLO(WEIGHTS_DIR / m)([SOURCE, SOURCE], imgsz=160)
         for r in results:
             r = r.cpu().numpy()
@@ -327,7 +330,7 @@ def test_data_utils():
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    for task in 'detect', 'segment', 'pose', 'classify':
+    for task in 'detect', 'segment', 'pose', 'classify', 'multitask':
         file = Path(TASK2DATA[task]).with_suffix('.zip')  # i.e. coco8.zip
         download(f'https://github.com/ultralytics/hub/raw/main/example_datasets/{file}', unzip=False, dir=TMP)
         stats = HUBDatasetStats(TMP / file, task=task)

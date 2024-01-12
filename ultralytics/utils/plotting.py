@@ -17,6 +17,7 @@ from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 
+import random
 
 class Colors:
     """
@@ -83,9 +84,9 @@ class Colors:
             dtype=np.uint8,
         )
 
-    def __call__(self, i, bgr=False):
+    def __call__(self, i, bgr=False, mask=False):
         """Converts hex color codes to RGB values."""
-        c = self.palette[int(i) % self.n]
+        c = self.palette[int(random.randint(0, self.n - 1))] if mask else self.palette[int(i) % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
@@ -760,7 +761,7 @@ def plot_images(
                 im = np.asarray(annotator.im).copy()
                 for j in range(len(image_masks)):
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
-                        color = colors(classes[j])
+                        color = colors(classes[j], False, True)
                         mh, mw = image_masks[j].shape
                         if mh != h or mw != w:
                             mask = image_masks[j].astype(np.uint8)

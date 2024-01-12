@@ -1202,7 +1202,7 @@ class MultiTaskMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.task = 'multitask'
 
-    def process(self, tp_b, tp_m, tp_p, conf, pred_cls, target_cls):
+    def process(self, tp, tp_m, tp_p, conf, pred_cls, target_cls):
         """
         Processes the detection, segmentation and pose metrics over the given set of predictions.
 
@@ -1236,7 +1236,7 @@ class MultiTaskMetrics(SimpleClass):
                                     prefix='Mask')[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
-        results_box = ap_per_class(tp_b,
+        results_box = ap_per_class(tp,
                                    conf,
                                    pred_cls,
                                    target_cls,

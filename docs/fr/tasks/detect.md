@@ -41,7 +41,7 @@ Les modèles pré-entraînés Detect YOLOv8 sont présentés ici. Les modèles D
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640                     | 52.9                 | 375.2                            | 2.39                                  | 43.7                   | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640                     | 53.9                 | 479.1                            | 3.53                                  | 68.2                   | 257.8             |
 
-- Les valeurs de **mAP<sup>val</sup>** sont pour un seul modèle à une seule échelle sur le jeu de données [COCO val2017](http://cocodataset.org).
+- Les valeurs de **mAP<sup>val</sup>** sont pour un seul modèle à une seule échelle sur le jeu de données [COCO val2017](https://cocodataset.org).
   <br>Reproductible avec `yolo val detect data=coco.yaml device=0`
 - La **Vitesse** est moyennée sur les images COCO val en utilisant une instance [Amazon EC2 P4d](https://aws.amazon.com/fr/ec2/instance-types/p4/).
   <br>Reproductible avec `yolo val detect data=coco128.yaml batch=1 device=0|cpu`

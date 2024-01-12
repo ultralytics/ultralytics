@@ -133,7 +133,7 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640             | 52.9                 | 375.2                       | 2.39                             | 43.7           | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640             | 53.9                 | 479.1                       | 3.53                             | 68.2           | 257.8             |
 
-- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](http://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val detect data=coco.yaml device=0` 复现
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val detect data=coco.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val detect data=coco.yaml batch=1 device=0|cpu` 复现
 
 </details>
@@ -167,7 +167,7 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-seg.pt) | 640             | 52.3                 | 42.6                  | 572.4                       | 2.79                             | 46.0           | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | 712.1                       | 4.02                             | 71.8           | 344.1             |
 
-- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](http://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val segment data=coco-seg.yaml device=0` 复现
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val segment data=coco-seg.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val segment data=coco-seg.yaml batch=1 device=0|cpu` 复现
 
 </details>
@@ -185,7 +185,7 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose.pt)       | 640             | 69.2                  | 90.2               | 1607.1                      | 3.73                             | 69.4           | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose-p6.pt) | 1280            | 71.6                  | 91.2               | 4088.7                      | 10.04                            | 99.1           | 1066.4            |
 
-- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO Keypoints val2017](http://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val pose data=coco-pose.yaml device=0` 复现
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO Keypoints val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val pose data=coco-pose.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu` 复现
 
 </details>

@@ -62,7 +62,7 @@ _torch_save = torch.save  # copy to avoid recursion errors
 
 def torch_save(*args, **kwargs):
     """
-    Use dill (if exists) to serialize the lambda functions where pickle does not do this. Also adds 3 retries with 
+    Use dill (if exists) to serialize the lambda functions where pickle does not do this. Also adds 3 retries with
     exponential standoff in case of save failure to improve robustness to transient issues.
 
     Args:
@@ -80,7 +80,7 @@ def torch_save(*args, **kwargs):
     for i in range(4):  # 3 retries
         try:
             return _torch_save(*args, **kwargs)
-        except RuntimeError: # unable to save, possibly waiting for device to flush or anti-virus to finish scanning
+        except RuntimeError:  # unable to save, possibly waiting for device to flush or anti-virus to finish scanning
             if i == 3:
                 raise
-            time.sleep((2 ** i) / 2)  # exponential standoff 0.5s, 1.0s, 2.0s
+            time.sleep((2**i) / 2)  # exponential standoff 0.5s, 1.0s, 2.0s

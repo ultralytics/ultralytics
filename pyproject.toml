@@ -98,11 +98,9 @@ dev = [
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
-    "coremltools>=7.0", # CoreML export
+    "coremltools>=7.0; platform_system != 'Windows'", # CoreML only supported on macOS and Linux
     "openvino-dev>=2023.0", # OpenVINO export
     "tensorflow<=2.13.1", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
-    "jax<=0.4.21", # tensorflowjs bug https://github.com/google/jax/issues/18978
-    "jaxlib<=0.4.21", # tensorflowjs bug https://github.com/google/jax/issues/18978
     "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
 ]
 

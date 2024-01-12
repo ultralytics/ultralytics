@@ -429,12 +429,20 @@ class Exporter:
         )  # export
 
         if self.args.int8:
-            assert self.args.data, "INT8 export requires a data argument for calibration, i.e. 'data=coco8.yaml'"
+            if not self.args.data:
+                self.args.data = DEFAULT_CFG.data or "coco128.yaml"
+                LOGGER.warning(
+                    f"{prefix} WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
+                    f"Using default 'data={self.args.data}'."
+                )
             check_requirements("nncf>=2.5.0")
             import nncf
 
             def transform_fn(data_item):
                 """Quantization transform function."""
+                assert (
+                    data_item["img"].dtype == torch.uint8
+                ), "Input image must be uint8 for the quantization preprocessing"
                 im = data_item["img"].numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
                 return np.expand_dims(im, 0) if im.ndim == 3 else im
 
@@ -442,6 +450,9 @@ class Exporter:
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
             data = check_det_dataset(self.args.data)
             dataset = YOLODataset(data["val"], data=data, imgsz=self.imgsz[0], augment=False)
+            n = len(dataset)
+            if n < 300:
+                LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
             ignored_scope = nncf.IgnoredScope(types=["Multiply", "Subtract", "Sigmoid"])  # ignore operation
             quantized_ov_model = nncf.quantize(

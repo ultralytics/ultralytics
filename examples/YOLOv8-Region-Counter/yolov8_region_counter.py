@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import argparse
 from collections import defaultdict
 from pathlib import Path

@@ -16,7 +16,6 @@ Create embeddings for your dataset, search for similar images, run SQL queries, 
 <img width="1709" alt="Screenshot 2024-01-08 at 7 19 48 PM (1)" src="https://github.com/AyushExel/assets/assets/15766192/e536b0eb-6bce-43fe-b800-3e79510d2e5b">
 </p>
 
-
 - Try the [GUI Demo](explorer/index.md)
 - Learn more about the [Explorer API](explorer/index.md)
 

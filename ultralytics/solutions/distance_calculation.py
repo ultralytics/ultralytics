@@ -86,10 +86,9 @@ class DistanceCalculation:
             self.left_mouse_count += 1
             if self.left_mouse_count <= 2:
                 for box, track_id in zip(self.boxes, self.trk_ids):
-                    if box[0] < x < box[2] and box[1] < y < box[3]:
-                        if track_id not in self.selected_boxes:
-                            self.selected_boxes[track_id] = []
-                            self.selected_boxes[track_id] = box
+                    if box[0] < x < box[2] and box[1] < y < box[3] and track_id not in self.selected_boxes:
+                        self.selected_boxes[track_id] = []
+                        self.selected_boxes[track_id] = box
 
         if event == cv2.EVENT_RBUTTONDOWN:
             self.selected_boxes = {}
@@ -149,10 +148,7 @@ class DistanceCalculation:
         if tracks[0].boxes.id is None:
             if self.view_img:
                 self.display_frames()
-                return
-            else:
-                return
-
+            return
         self.extract_tracks(tracks)
 
         self.annotator = Annotator(self.im0, line_width=2)

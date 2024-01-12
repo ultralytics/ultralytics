@@ -169,10 +169,7 @@ class Heatmap:
         if tracks[0].boxes.id is None:
             if self.view_img and self.env_check:
                 self.display_frames()
-                return
-            else:
-                return
-
+            return
         self.heatmap *= self.decay_factor  # decay factor
         self.extract_results(tracks)
         self.annotator = Annotator(self.im0, self.count_txt_thickness, None)
@@ -207,23 +204,21 @@ class Heatmap:
 
                 # Count objects
                 if len(self.count_reg_pts) == 4:
-                    if self.counting_region.contains(Point(track_line[-1])):
-                        if track_id not in self.counting_list:
-                            self.counting_list.append(track_id)
-                            if box[0] < self.counting_region.centroid.x:
-                                self.out_counts += 1
-                            else:
-                                self.in_counts += 1
+                    if self.counting_region.contains(Point(track_line[-1])) and track_id not in self.counting_list:
+                        self.counting_list.append(track_id)
+                        if box[0] < self.counting_region.centroid.x:
+                            self.out_counts += 1
+                        else:
+                            self.in_counts += 1
 
                 elif len(self.count_reg_pts) == 2:
                     distance = Point(track_line[-1]).distance(self.counting_region)
-                    if distance < self.line_dist_thresh:
-                        if track_id not in self.counting_list:
-                            self.counting_list.append(track_id)
-                            if box[0] < self.counting_region.centroid.x:
-                                self.out_counts += 1
-                            else:
-                                self.in_counts += 1
+                    if distance < self.line_dist_thresh and track_id not in self.counting_list:
+                        self.counting_list.append(track_id)
+                        if box[0] < self.counting_region.centroid.x:
+                            self.out_counts += 1
+                        else:
+                            self.in_counts += 1
         else:
             for box, cls in zip(self.boxes, self.clss):
                 if self.shape == "circle":
@@ -244,8 +239,8 @@ class Heatmap:
         heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
         heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.colormap)
 
-        incount_label = "In Count : " + f"{self.in_counts}"
-        outcount_label = "OutCount : " + f"{self.out_counts}"
+        incount_label = f"In Count : {self.in_counts}"
+        outcount_label = f"OutCount : {self.out_counts}"
 
         # Display counts based on user choice
         counts_label = None
@@ -256,7 +251,7 @@ class Heatmap:
         elif not self.view_out_counts:
             counts_label = incount_label
         else:
-            counts_label = incount_label + " " + outcount_label
+            counts_label = f"{incount_label} {outcount_label}"
 
         if self.count_reg_pts is not None and counts_label is not None:
             self.annotator.count_labels(

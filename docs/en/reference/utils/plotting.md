@@ -47,6 +47,10 @@ keywords: Ultralytics, plotting, utils, color annotation, label plotting, image 
 
 <br><br>
 
+## ::: ultralytics.utils.plotting.output_to_rotated_target
+
+<br><br>
+
 ## ::: ultralytics.utils.plotting.feature_visualization
 
 <br><br>

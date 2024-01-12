@@ -119,22 +119,27 @@ By clicking on the URL link to the ClearML results page in the output of the usa
 #### Key Features of the ClearML Results Page
 
 - **Real-Time Metrics Tracking**
+
     - Track critical metrics like loss, accuracy, and validation scores as they occur.
     - Provides immediate feedback for timely model performance adjustments.
 
 - **Experiment Comparison**
+
     - Compare different training runs side-by-side.
     - Essential for hyperparameter tuning and identifying the most effective models.
 
 - **Detailed Logs and Outputs**
+
     - Access comprehensive logs, graphical representations of metrics, and console outputs.
     - Gain a deeper understanding of model behavior and issue resolution.
 
 - **Resource Utilization Monitoring**
+
     - Monitor the utilization of computational resources, including CPU, GPU, and memory.
     - Key to optimizing training efficiency and costs.
 
 - **Model Artifacts Management**
+
     - View, download, and share model artifacts like trained models and checkpoints.
     - Enhances collaboration and streamlines model deployment and sharing.
 
@@ -171,8 +176,8 @@ This setup is applicable to cloud VMs, local GPUs, or laptops. ClearML Autoscale
 
 ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of tasks. Users can clone an existing experiment, adjust parameters or other details through the UI, and enqueue the task for execution. This streamlined process ensures that the ClearML Agent executing the task uses updated configurations, making it ideal for iterative experimentation and model fine-tuning.
 
-<p align="center">
-  <img width="640" src="https://clear.ml/docs/latest/assets/images/integrations_yolov5-2483adea91df4d41bfdf1a37d28864d4.gif" alt="Cloning, Editing, and Enqueuing with ClearML">
+<p align="center"><br>
+  <img width="100%" src="https://clear.ml/docs/latest/assets/images/integrations_yolov5-2483adea91df4d41bfdf1a37d28864d4.gif" alt="Cloning, Editing, and Enqueuing with ClearML">
 </p>
 
 ## Summary

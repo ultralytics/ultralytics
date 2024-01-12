@@ -224,3 +224,4 @@ Abaixo estão exemplos de código para usar cada tipo de fonte:
 
         # Executa a inferência na fonte
         results = model(source)  # lista de objetos Results
+        ```

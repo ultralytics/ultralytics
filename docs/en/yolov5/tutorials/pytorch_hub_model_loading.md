@@ -4,7 +4,7 @@ description: Detailed guide on loading YOLOv5 from PyTorch Hub. Includes example
 keywords: Ultralytics, YOLOv5, PyTorch, loading YOLOv5, PyTorch Hub, inference, multi-GPU inference, training
 ---
 
-📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5). UPDATED 26 March 2023.
+📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5).
 
 ## Before You Start
 
@@ -61,7 +61,7 @@ im1 = Image.open('zidane.jpg')  # PIL image
 im2 = cv2.imread('bus.jpg')[..., ::-1]  # OpenCV image (BGR to RGB)
 
 # Inference
-results = model([im1, im2], size=640) # batch of images
+results = model([im1, im2], size=640)  # batch of images
 
 # Results
 results.print()
@@ -87,12 +87,12 @@ YOLOv5 models contain various inference attributes such as **confidence threshol
 
 ```python
 model.conf = 0.25  # NMS confidence threshold
-      iou = 0.45  # NMS IoU threshold
-      agnostic = False  # NMS class-agnostic
-      multi_label = False  # NMS multiple labels per box
-      classes = None  # (optional list) filter by class, i.e. = [0, 15, 16] for COCO persons, cats and dogs
-      max_det = 1000  # maximum number of detections per image
-      amp = False  # Automatic Mixed Precision (AMP) inference
+iou = 0.45  # NMS IoU threshold
+agnostic = False  # NMS class-agnostic
+multi_label = False  # NMS multiple labels per box
+classes = None  # (optional list) filter by class, i.e. = [0, 15, 16] for COCO persons, cats and dogs
+max_det = 1000  # maximum number of detections per image
+amp = False  # Automatic Mixed Precision (AMP) inference
 
 results = model(im, size=320)  # custom inference size
 ```
@@ -177,9 +177,11 @@ YOLOv5 models can be loaded to multiple GPUs in parallel with threaded inference
 import torch
 import threading
 
+
 def run(model, im):
-  results = model(im)
-  results.save()
+    results = model(im)
+    results.save()
+
 
 # Models
 model0 = torch.hub.load('ultralytics/yolov5', 'yolov5s', device=0)
@@ -195,6 +197,8 @@ threading.Thread(target=run, args=[model1, 'https://ultralytics.com/images/bus.j
 To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively see our YOLOv5 [Train Custom Data Tutorial](https://docs.ultralytics.com/yolov5/tutorials/train_custom_data) for model training.
 
 ```python
+import torch
+
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', autoshape=False)  # load pretrained
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', autoshape=False, pretrained=False)  # load scratch
 ```
@@ -206,7 +210,7 @@ For use with API services. See https://github.com/ultralytics/yolov5/pull/2291 a
 ```python
 results = model(im)  # inference
 
-results.ims # array of original images (as np array) passed to model for inference
+results.ims  # array of original images (as np array) passed to model for inference
 results.render()  # updates results.ims with boxes and labels
 for im in results.ims:
     buffered = BytesIO()
@@ -233,7 +237,7 @@ results = model(im)  # inference
 results.pandas().xyxy[0]  # Pandas DataFrame
 ```
 
-<details markdown>
+<details>
   <summary>Pandas Output (click to expand)</summary>
 
 ```python
@@ -274,15 +278,47 @@ results = model(ims)  # inference
 results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 ```
 
-<details markdown>
+<details>
   <summary>JSON Output (click to expand)</summary>
 
 ```json
 [
-{"xmin":749.5,"ymin":43.5,"xmax":1148.0,"ymax":704.5,"confidence":0.8740234375,"class":0,"name":"person"},
-{"xmin":433.5,"ymin":433.5,"xmax":517.5,"ymax":714.5,"confidence":0.6879882812,"class":27,"name":"tie"},
-{"xmin":115.25,"ymin":195.75,"xmax":1096.0,"ymax":708.0,"confidence":0.6254882812,"class":0,"name":"person"},
-{"xmin":986.0,"ymin":304.0,"xmax":1028.0,"ymax":420.0,"confidence":0.2873535156,"class":27,"name":"tie"}
+  {
+    "xmin": 749.5,
+    "ymin": 43.5,
+    "xmax": 1148.0,
+    "ymax": 704.5,
+    "confidence": 0.8740234375,
+    "class": 0,
+    "name": "person"
+  },
+  {
+    "xmin": 433.5,
+    "ymin": 433.5,
+    "xmax": 517.5,
+    "ymax": 714.5,
+    "confidence": 0.6879882812,
+    "class": 27,
+    "name": "tie"
+  },
+  {
+    "xmin": 115.25,
+    "ymin": 195.75,
+    "xmax": 1096.0,
+    "ymax": 708.0,
+    "confidence": 0.6254882812,
+    "class": 0,
+    "name": "person"
+  },
+  {
+    "xmin": 986.0,
+    "ymin": 304.0,
+    "xmax": 1028.0,
+    "ymax": 420.0,
+    "confidence": 0.2873535156,
+    "class": 27,
+    "name": "tie"
+  }
 ]
 ```
 
@@ -293,6 +329,8 @@ results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 This example loads a custom 20-class [VOC](https://github.com/ultralytics/yolov5/blob/master/data/VOC.yaml)-trained YOLOv5s model `'best.pt'` with PyTorch Hub.
 
 ```python
+import torch
+
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='path/to/best.pt')  # local model
 model = torch.hub.load('path/to/yolov5', 'custom', path='path/to/best.pt', source='local')  # local repo
 ```
@@ -305,27 +343,30 @@ PyTorch Hub supports inference on most YOLOv5 export formats, including custom t
 💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)
 
 ```python
+import torch
+
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # PyTorch
-                                                            'yolov5s.torchscript')  # TorchScript
-                                                            'yolov5s.onnx')  # ONNX
-                                                            'yolov5s_openvino_model/')  # OpenVINO
-                                                            'yolov5s.engine')  # TensorRT
-                                                            'yolov5s.mlmodel')  # CoreML (macOS-only)
-                                                            'yolov5s.tflite')  # TFLite
-                                                            'yolov5s_paddle_model/')  # PaddlePaddle
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.torchscript')  # TorchScript
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.onnx')  # ONNX
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s_openvino_model/')  # OpenVINO
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.engine')  # TensorRT
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.mlmodel')  # CoreML (macOS-only)
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.tflite')  # TFLite
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s_paddle_model/')  # PaddlePaddle
 ```
 
-## Environments
+## Supported Environments
 
-YOLOv5 is designed to be run in the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Notebooks** with free GPU: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
-- **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial/)
-- **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/)
-- **Docker Image**. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
+- **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
+- **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)
+- **Docker**: [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
-## Status
+## Project Status
 
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
-If this badge is green, all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are currently passing. CI tests verify correct operation of YOLOv5 [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py) and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py) on macOS, Windows, and Ubuntu every 24 hours and on every commit.
+This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.

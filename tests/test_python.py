@@ -520,7 +520,7 @@ def test_hub():
 
     export_fmts_hub()
     logout()
-    smart_request('GET', 'http://github.com', progress=True)
+    smart_request('GET', 'https://github.com', progress=True)
 
 
 @pytest.fixture

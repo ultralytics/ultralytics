@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO, Instance Segmentation, pose estimation, datasets, t
 
 ### Ultralytics YOLO format
 
-The dataset label format used for training YOLO pose models is as follows:
+The dataset label format used for training YOLO multitask models is as follows:
 
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
@@ -19,7 +19,7 @@ The dataset label format used for training YOLO pose models is as follows:
     - Object keypoint coordinates: The keypoints of the object, normalized to be between 0 and 1.
     - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
 
-Here is an example of the label format for pose estimation task:
+Here is an example of the label format for the multitask task:
 
 Format with Dim = 3
 
@@ -109,12 +109,12 @@ If keypoints for multiple classes get predicted, `flip_idx` *must* be in the nat
 
 ## Supported Datasets
 
-This section outlines the datasets that are compatible with Ultralytics YOLO format and can be used for training pose estimation models:
+This section outlines the datasets that are compatible with Ultralytics YOLO format and can be used for training multitask models:
 
-### COCO8-Pose
+### COCO8-Multitask
 
-- **Description**: [Ultralytics](https://ultralytics.com) COCO8-multitask is a small, but versatile pose detection dataset composed of 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
-- **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses.
+- **Description**: [Ultralytics](https://ultralytics.com) COCO8-multitask is a small, but versatile multitask dataset composed of 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
+- **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses and segments for instance segmentation
 - **Number of Classes**: 80.
 - **Number of Classes with Keypoints** 1 (Human).
 - **Keypoints**: 17 keypoints.

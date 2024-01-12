@@ -279,16 +279,16 @@ def non_max_suppression(
         i = i[:max_det]  # limit detections
 
         # # Experimental
-        # merge = False  # use merge-NMS
-        # if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
-        #     # Update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
-        #     from .metrics import box_iou
-        #     iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
-        #     weights = iou * scores[None]  # box weights
-        #     x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
-        #     redundant = True  # require redundant detections
-        #     if redundant:
-        #         i = i[iou.sum(1) > 1]  # require redundancy
+        merge = True  # use merge-NMS
+        if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
+            # Update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
+            from .metrics import box_iou
+            iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
+            weights = iou * scores[None]  # box weights
+            x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
+            redundant = True  # require redundant detections
+            if redundant:
+                i = i[iou.sum(1) > 1]  # require redundancy
 
         output[xi] = x[i]
         if (time.time() - t) > time_limit:

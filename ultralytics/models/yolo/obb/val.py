@@ -77,13 +77,7 @@ class OBBValidator(DetectionValidator):
         if len(cls):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
-        return dict(
-            cls=cls,
-            bbox=bbox,
-            ori_shape=ori_shape,
-            imgsz=imgsz,
-            ratio_pad=ratio_pad
-        )
+        return dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
 
     def _prepare_pred(self, pred, pbatch):
         """Prepares and returns a batch for OBB validation with scaled and padded bounding boxes."""
@@ -152,7 +146,7 @@ class OBBValidator(DetectionValidator):
                 p = d["poly"]
 
                 with open(f'{str(pred_txt / f"Task1_{classname}")}.txt', "a") as f:
-                    f.writelines(f'{image_id} {score} {p[0]} {p[1]} {p[2]} {p[3]} {p[4]} {p[5]} {p[6]} {p[7]}\n')
+                    f.writelines(f"{image_id} {score} {p[0]} {p[1]} {p[2]} {p[3]} {p[4]} {p[5]} {p[6]} {p[7]}\n")
             # Save merged results, this could result slightly lower map than using official merging script,
             # because of the probiou calculation.
             pred_merged_txt = self.save_dir / "predictions_merged_txt"  # predictions

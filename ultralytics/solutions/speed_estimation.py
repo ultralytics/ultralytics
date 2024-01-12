@@ -114,11 +114,7 @@ class SpeedEstimator:
             cls (str): object class name
             track (list): tracking history for tracks path drawing
         """
-        speed_label = (
-            f"{int(self.dist_data[track_id])}km/ph"
-            if track_id in self.dist_data
-            else self.names[int(cls)]
-        )
+        speed_label = f"{int(self.dist_data[track_id])}km/ph" if track_id in self.dist_data else self.names[int(cls)]
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
         self.annotator.box_label(box, speed_label, bbox_color)

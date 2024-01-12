@@ -70,12 +70,7 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
         (np.ndarray): Cost matrix computed based on IoU.
     """
 
-    if (
-        atracks
-        and isinstance(atracks[0], np.ndarray)
-        or btracks
-        and isinstance(btracks[0], np.ndarray)
-    ):
+    if atracks and isinstance(atracks[0], np.ndarray) or btracks and isinstance(btracks[0], np.ndarray):
         atlbrs = atracks
         btlbrs = btracks
     else:

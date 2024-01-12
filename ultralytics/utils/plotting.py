@@ -13,7 +13,6 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
-
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 
@@ -433,7 +432,7 @@ class Annotator:
             center_kpt (int): centroid pose index for workout monitoring
             line_thickness (int): thickness for text display
         """
-        angle_text, count_text, stage_text = (f" {angle_text:.2f}",f"Steps : {count_text}",f" {stage_text}")
+        angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
         font_scale = 0.6 + (line_thickness / 10.0)
 
         # Draw angle

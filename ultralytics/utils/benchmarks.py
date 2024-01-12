@@ -26,7 +26,6 @@ ncnn                    | `ncnn`                    | yolov8n_ncnn_model/
 
 import glob
 import platform
-import sys
 import time
 from pathlib import Path
 

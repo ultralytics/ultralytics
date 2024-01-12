@@ -42,7 +42,7 @@ YOLOv8 पूर्व प्रशिक्षित Detect मॉडल यह
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640                    | 52.9                 | 375.2                      | 2.39                            | 43.7                | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640                    | 53.9                 | 479.1                      | 3.53                            | 68.2                | 257.8             |
 
-- **mAP<sup>val</sup>** मान को [COCO val2017](http://cocodataset.org) डेटासेट पर सिंगल-मॉडेल सिंगल-स्केल के लिए है।
+- **mAP<sup>val</sup>** मान को [COCO val2017](https://cocodataset.org) डेटासेट पर सिंगल-मॉडेल सिंगल-स्केल के लिए है।
   <br>`yolo` द्वारा पुनः उत्पन्न करें `के द्वारा विन्यास करें yolo val data=coco.yaml device=0`
 - **Speed** [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   इंस्टेंस का उपयोग करके COCO val छवियों पर औसत लिया जाता है।

@@ -42,7 +42,7 @@ YOLOv8 पूर्वानुमानित पोज मॉडलस यह�
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose.pt)       | 640                 | 69.2                 | 90.2              | 1607.1                         | 3.73                                | 69.4                | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose-p6.pt) | 1280                | 71.6                 | 91.2              | 4088.7                         | 10.04                               | 99.1                | 1066.4            |
 
-- **mAP<sup>val</sup>** मान एकल मॉडल एकल स्केल पर [COCO कीपॉइंट val2017](http://cocodataset.org) डेटासेट पर है।
+- **mAP<sup>val</sup>** मान एकल मॉडल एकल स्केल पर [COCO कीपॉइंट val2017](https://cocodataset.org) डेटासेट पर है।
   <br>`yolo val pose data=coco-pose.yaml device=0` के द्वारा पुनरोत्पादित करें
 - **Speed** [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) इन्स्टेंस का उपयोग करते हुए COCO val छवियों पर औसतित गणना।
   <br>`yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu` के द्वारा पुनरार्चन करें

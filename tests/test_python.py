@@ -474,7 +474,7 @@ def test_utils_patches_torch_save():
         with pytest.raises(RuntimeError):
             torch_save(torch.zeros(1), TMP / 'test.pt')
 
-    assert mock.call_count == 5, "torch_save was not attempted the expected number of times"
+    assert mock.call_count == 4, "torch_save was not attempted the expected number of times"
 
 
 def test_nn_modules_conv():

@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Discover the versatile COCO8-Pose dataset, perfect for testing and debugging pose detection models. Learn how to get started with YOLOv8-pose model training.
-keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, model training, YAML
+description: Discover the versatile COCO8-Multitask dataset, perfect for testing and debugging multitask detection models. Learn how to get started with YOLOv8-multitask model training.
+keywords: Ultralytics, YOLOv8, pose detection, COCO8-multitask dataset, dataset, model training, YAML, instance segmentation, image segmentation
 ---
 
-# COCO8-Pose Dataset
+# COCO8-Multitask Dataset
 
 ## Introduction
 
@@ -14,7 +14,7 @@ This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Pose dataset, the `coco8-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-multitask.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Multitask dataset, the `coco8-multitask.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-multitask.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-multitask.yaml).
 
 !!! Example "ultralytics/cfg/datasets/coco8-multitask.yaml"
 
@@ -24,7 +24,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n-pose model on the COCO8-Multitask dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLOv8n-multitask model on the COCO8-Multitask dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! Example "Train Example"
 
@@ -55,7 +55,7 @@ Here are some examples of images from the COCO8-Multitask dataset, along with th
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
-The example showcases the variety and complexity of the images in the COCO8-Pose dataset and the benefits of using mosaicing during the training process.
+The example showcases the variety and complexity of the images in the COCO8-Multitask dataset and the benefits of using mosaicing during the training process.
 
 ## Citations and Acknowledgments
 

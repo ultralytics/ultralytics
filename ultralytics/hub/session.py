@@ -70,6 +70,9 @@ class HUBTrainingSession:
     def load_model(self, model_id):
         # Initialize model
         self.model = self.client.model(model_id)
+        if not self.model.data:  # then model model does not exist
+            raise ValueError(emojis(f"❌ The specified HUB model does not exist"))  # TODO: improve error handling
+
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 
         self._set_train_args()
@@ -257,7 +260,7 @@ class HUBTrainingSession:
             HTTPStatus.BAD_GATEWAY,
             HTTPStatus.GATEWAY_TIMEOUT,
         }
-        return True if status_code in retry_codes else False
+        return status_code in retry_codes
 
     def _get_failure_message(self, response: requests.Response, retry: int, timeout: int):
         """

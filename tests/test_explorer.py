@@ -1,7 +1,9 @@
-import PIL
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics import Explorer
 from ultralytics.utils import ASSETS
+
+import PIL
 
 
 def test_similarity():

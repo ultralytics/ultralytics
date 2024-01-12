@@ -66,7 +66,7 @@ class SpeedEstimator:
             spdl_dist_thresh (int): Euclidean distance threshold for speed line
         """
         if reg_pts is None:
-            print('Region points not provided, using default values')
+            print("Region points not provided, using default values")
         else:
             self.reg_pts = reg_pts
         self.names = names
@@ -114,8 +114,7 @@ class SpeedEstimator:
             cls (str): object class name
             track (list): tracking history for tracks path drawing
         """
-        speed_label = str(int(
-            self.dist_data[track_id])) + 'km/ph' if track_id in self.dist_data else self.names[int(cls)]
+        speed_label = f"{int(self.dist_data[track_id])}km/ph" if track_id in self.dist_data else self.names[int(cls)]
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
         self.annotator.box_label(box, speed_label, bbox_color)
@@ -131,31 +130,28 @@ class SpeedEstimator:
             track (list): tracking history for tracks path drawing
         """
 
-        if self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
+        if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
+            return
+        if self.reg_pts[1][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[1][1] + self.spdl_dist_thresh:
+            direction = "known"
 
-            if (self.reg_pts[1][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[1][1] + self.spdl_dist_thresh):
-                direction = 'known'
+        elif self.reg_pts[0][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[0][1] + self.spdl_dist_thresh:
+            direction = "known"
 
-            elif (self.reg_pts[0][1] - self.spdl_dist_thresh < track[-1][1] <
-                  self.reg_pts[0][1] + self.spdl_dist_thresh):
-                direction = 'known'
+        else:
+            direction = "unknown"
 
-            else:
-                direction = 'unknown'
+        if self.trk_previous_times[trk_id] != 0 and direction != "unknown" and trk_id not in self.trk_idslist:
+            self.trk_idslist.append(trk_id)
 
-            if self.trk_previous_times[trk_id] != 0 and direction != 'unknown':
+            time_difference = time() - self.trk_previous_times[trk_id]
+            if time_difference > 0:
+                dist_difference = np.abs(track[-1][1] - self.trk_previous_points[trk_id][1])
+                speed = dist_difference / time_difference
+                self.dist_data[trk_id] = speed
 
-                if trk_id not in self.trk_idslist:
-                    self.trk_idslist.append(trk_id)
-
-                    time_difference = time() - self.trk_previous_times[trk_id]
-                    if time_difference > 0:
-                        dist_difference = np.abs(track[-1][1] - self.trk_previous_points[trk_id][1])
-                        speed = dist_difference / time_difference
-                        self.dist_data[trk_id] = speed
-
-            self.trk_previous_times[trk_id] = time()
-            self.trk_previous_points[trk_id] = track[-1]
+        self.trk_previous_times[trk_id] = time()
+        self.trk_previous_points[trk_id] = track[-1]
 
     def estimate_speed(self, im0, tracks):
         """
@@ -168,17 +164,13 @@ class SpeedEstimator:
         if tracks[0].boxes.id is None:
             if self.view_img and self.env_check:
                 self.display_frames()
-                return
-            else:
-                return
-
+            return
         self.extract_tracks(tracks)
 
         self.annotator = Annotator(self.im0, line_width=2)
         self.annotator.draw_region(reg_pts=self.reg_pts, color=(255, 0, 0), thickness=self.region_thickness)
 
         for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
-
             track = self.store_track_info(trk_id, box)
 
             if trk_id not in self.trk_previous_times:
@@ -194,10 +186,10 @@ class SpeedEstimator:
 
     def display_frames(self):
         """Display frame."""
-        cv2.imshow('Ultralytics Speed Estimation', self.im0)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.imshow("Ultralytics Speed Estimation", self.im0)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SpeedEstimator()

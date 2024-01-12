@@ -41,7 +41,7 @@ Os [Modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cf
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640                      | 52.9                 | 375.2                               | 2.39                                     | 43.7                   | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640                      | 53.9                 | 479.1                               | 3.53                                     | 68.2                   | 257.8             |
 
-- Os valores de **mAP<sup>val</sup>** são para um único modelo e uma única escala no dataset [COCO val2017](http://cocodataset.org).
+- Os valores de **mAP<sup>val</sup>** são para um único modelo e uma única escala no dataset [COCO val2017](https://cocodataset.org).
   <br>Reproduza usando `yolo val detect data=coco.yaml device=0`
 - A **Velocidade** é média tirada sobre as imagens do COCO val num [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instância.

@@ -41,7 +41,7 @@ keywords: YOLOv8, Ultralytics, 目标检测, 预训练模型, 训练, 验证, �
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640             | 52.9                 | 375.2                       | 2.39                             | 43.7           | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640             | 53.9                 | 479.1                       | 3.53                             | 68.2           | 257.8             |
 
-- **mAP<sup>val</sup>** 值适用于 [COCO val2017](http://cocodataset.org) 数据集上的单模型单尺度。
+- **mAP<sup>val</sup>** 值适用于 [COCO val2017](https://cocodataset.org) 数据集上的单模型单尺度。
   <br>通过 `yolo val detect data=coco.yaml device=0` 复现。
 - **速度** 是在使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 云实例对COCO val图像的平均值。
   <br>通过 `yolo val detect data=coco128.yaml batch=1 device=0|cpu` 复现。

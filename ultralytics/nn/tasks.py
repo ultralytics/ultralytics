@@ -47,7 +47,6 @@ from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBL
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
-    fuse_deconv_and_bn,
     initialize_weights,
     intersect_dicts,
     make_divisible,
@@ -176,7 +175,7 @@ class BaseModel(nn.Module):
                     delattr(m, "bn")  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward
                 if isinstance(m, ConvTranspose) and hasattr(m, "bn"):
-                    m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
+                    m.conv_transpose = fuse_conv_and_bn(m.conv_transpose, m.bn)
                     delattr(m, "bn")  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward
                 if isinstance(m, RepConv):

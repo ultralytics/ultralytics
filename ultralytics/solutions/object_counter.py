@@ -182,25 +182,29 @@ class ObjectCounter:
                     track_line, color=self.track_color, track_thickness=self.track_thickness
                 )
 
+            prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
+
             # Count objects
             if len(self.reg_pts) == 4:
-                if self.counting_region.contains(Point(track_line[-1])):
-                    if track_id not in self.counting_list:
-                        self.counting_list.append(track_id)
-                        if box[0] < self.counting_region.centroid.x:
-                            self.out_counts += 1
-                        else:
-                            self.in_counts += 1
+                if prev_position is not None:
+                    if self.counting_region.contains(Point(track_line[-1])):
+                        if track_id not in self.counting_list:
+                            self.counting_list.append(track_id)
+                            if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                                self.in_counts += 1
+                            else:
+                                self.out_counts += 1
 
             elif len(self.reg_pts) == 2:
-                distance = Point(track_line[-1]).distance(self.counting_region)
-                if distance < self.line_dist_thresh:
-                    if track_id not in self.counting_list:
-                        self.counting_list.append(track_id)
-                        if box[0] < self.counting_region.centroid.x:
-                            self.out_counts += 1
-                        else:
-                            self.in_counts += 1
+                if prev_position is not None:
+                    distance = Point(track_line[-1]).distance(self.counting_region)
+                    if distance < self.line_dist_thresh:
+                        if track_id not in self.counting_list:
+                            self.counting_list.append(track_id)
+                            if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                                self.in_counts += 1
+                            else:
+                                self.out_counts += 1
 
         incount_label = "In Count : " + f"{self.in_counts}"
         outcount_label = "OutCount : " + f"{self.out_counts}"

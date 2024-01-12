@@ -463,6 +463,21 @@ def test_utils_files():
         print(new_path)
 
 
+@pytest.mark.slow
+def test_utils_patches_torch_save():
+    """Test torch_save backoff when _torch_save throws RuntimeError."""
+    from unittest.mock import patch, MagicMock
+    from ultralytics.utils.patches import torch_save
+
+    mock = MagicMock(side_effect=RuntimeError)
+
+    with patch('ultralytics.utils.patches._torch_save', new=mock):
+        with pytest.raises(RuntimeError):
+            torch_save(torch.zeros(1), TMP / 'test.pt')
+
+    assert mock.call_count == 4, "torch_save was not attempted the expected number of times"
+
+
 def test_nn_modules_conv():
     """Test Convolutional Neural Network modules."""
     from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus

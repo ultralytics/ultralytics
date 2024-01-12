@@ -35,11 +35,11 @@ keywords: YOLOv8, Ultralytics, 物体検出, 事前訓練済みモデル, トレ
 
 | モデル                                                                                  | サイズ<br><sup>(ピクセル) | mAP<sup>val<br>50-95 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | パラメータ数<br><sup>(M) | FLOPs<br><sup>(B) |
 |--------------------------------------------------------------------------------------|--------------------|----------------------|-----------------------------|----------------------------------|--------------------|-------------------|
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                | 37.3                 | 80.4                        | 0.99                             | 3.2                | 8.7               |
-| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                | 44.9                 | 128.4                       | 1.20                             | 11.2               | 28.6              |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                | 50.2                 | 234.7                       | 1.83                             | 25.9               | 78.9              |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640                | 52.9                 | 375.2                       | 2.39                             | 43.7               | 165.2             |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                | 53.9                 | 479.1                       | 3.53                             | 68.2               | 257.8             |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt) | 640                | 37.3                 | 80.4                        | 0.99                             | 3.2                | 8.7               |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s.pt) | 640                | 44.9                 | 128.4                       | 1.20                             | 11.2               | 28.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m.pt) | 640                | 50.2                 | 234.7                       | 1.83                             | 25.9               | 78.9              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640                | 52.9                 | 375.2                       | 2.39                             | 43.7               | 165.2             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640                | 53.9                 | 479.1                       | 3.53                             | 68.2               | 257.8             |
 
 - **mAP<sup>val</sup>** の値は[COCO val2017](http://cocodataset.org)データセットにおいて、単一モデル単一スケールでのものです。
   <br>再現方法: `yolo val detect data=coco.yaml device=0`

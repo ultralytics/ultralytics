@@ -92,9 +92,9 @@ Ultralytics ने YOLO-NAS मॉडलों को आपके Python ऐप
 
 | मॉडल प्रकार | प्री-प्रशित वेट                                                                               | समर्थित कार्य                     | पहचान | मान्यता | प्रशिक्षण | निर्यात |
 |-------------|-----------------------------------------------------------------------------------------------|-----------------------------------|-------|---------|-----------|---------|
-| YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
-| YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
-| YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
+| YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
+| YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
+| YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
 
 ## उद्धरण और प्रशंसापत्र
 

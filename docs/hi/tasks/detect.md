@@ -36,11 +36,11 @@ YOLOv8 पूर्व प्रशिक्षित Detect मॉडल यह
 
 | मॉडल                                                                                 | साइज़<br><sup>(pixels) | mAP<sup>val<br>50-95 | स्पीड<sup>CPU ONNX<br>(ms) | स्पीड<sup>A100 TensorRT<br>(ms) | पैराम्स<br><sup>(M) | FLOPs<br><sup>(B) |
 |--------------------------------------------------------------------------------------|------------------------|----------------------|----------------------------|---------------------------------|---------------------|-------------------|
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                    | 37.3                 | 80.4                       | 0.99                            | 3.2                 | 8.7               |
-| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                    | 44.9                 | 128.4                      | 1.20                            | 11.2                | 28.6              |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                    | 50.2                 | 234.7                      | 1.83                            | 25.9                | 78.9              |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640                    | 52.9                 | 375.2                      | 2.39                            | 43.7                | 165.2             |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                    | 53.9                 | 479.1                      | 3.53                            | 68.2                | 257.8             |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt) | 640                    | 37.3                 | 80.4                       | 0.99                            | 3.2                 | 8.7               |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s.pt) | 640                    | 44.9                 | 128.4                      | 1.20                            | 11.2                | 28.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m.pt) | 640                    | 50.2                 | 234.7                      | 1.83                            | 25.9                | 78.9              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640                    | 52.9                 | 375.2                      | 2.39                            | 43.7                | 165.2             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640                    | 53.9                 | 479.1                      | 3.53                            | 68.2                | 257.8             |
 
 - **mAP<sup>val</sup>** मान को [COCO val2017](http://cocodataset.org) डेटासेट पर सिंगल-मॉडेल सिंगल-स्केल के लिए है।
   <br>`yolo` द्वारा पुनः उत्पन्न करें `के द्वारा विन्यास करें yolo val data=coco.yaml device=0`

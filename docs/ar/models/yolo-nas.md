@@ -92,9 +92,9 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 
 | نوع النموذج | أوزان مدربة مسبقًا                                                                            | المهام المدعومة                    | الاستدلال | التحقق | التدريب | التصدير |
 |-------------|-----------------------------------------------------------------------------------------------|------------------------------------|-----------|--------|---------|---------|
-| YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
-| YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
-| YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
+| YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
+| YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
+| YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
 
 ## الاقتباسات والشكر
 

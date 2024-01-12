@@ -139,11 +139,14 @@ class ObjectCounter:
         # global is_drawing, selected_point
         if event == cv2.EVENT_LBUTTONDOWN:
             for i, point in enumerate(self.reg_pts):
-                if isinstance(point, (tuple, list)) and len(point) >= 2:
-                    if abs(x - point[0]) < 10 and abs(y - point[1]) < 10:
-                        self.selected_point = i
-                        self.is_drawing = True
-                        break
+                if (
+                    isinstance(point, (tuple, list))
+                    and len(point) >= 2
+                    and (abs(x - point[0]) < 10 and abs(y - point[1]) < 10)
+                ):
+                    self.selected_point = i
+                    self.is_drawing = True
+                    break
 
         elif event == cv2.EVENT_MOUSEMOVE:
             if self.is_drawing and self.selected_point is not None:
@@ -166,9 +169,8 @@ class ObjectCounter:
 
         # Extract tracks
         for box, track_id, cls in zip(boxes, track_ids, clss):
-            self.annotator.box_label(
-                box, label=str(track_id) + ":" + self.names[cls], color=colors(int(cls), True)
-            )  # Draw bounding box
+            # Draw bounding box
+            self.annotator.box_label(box, label=f"{track_id}:{self.names[cls]}", color=colors(int(cls), True))
 
             # Draw Tracks
             track_line = self.track_history[track_id]
@@ -186,28 +188,29 @@ class ObjectCounter:
 
             # Count objects
             if len(self.reg_pts) == 4:
-                if prev_position is not None:
-                    if self.counting_region.contains(Point(track_line[-1])):
-                        if track_id not in self.counting_list:
-                            self.counting_list.append(track_id)
-                            if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
-                                self.in_counts += 1
-                            else:
-                                self.out_counts += 1
+                if (
+                    prev_position is not None
+                    and self.counting_region.contains(Point(track_line[-1]))
+                    and track_id not in self.counting_list
+                ):
+                    self.counting_list.append(track_id)
+                    if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                        self.in_counts += 1
+                    else:
+                        self.out_counts += 1
 
             elif len(self.reg_pts) == 2:
                 if prev_position is not None:
                     distance = Point(track_line[-1]).distance(self.counting_region)
-                    if distance < self.line_dist_thresh:
-                        if track_id not in self.counting_list:
-                            self.counting_list.append(track_id)
-                            if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
-                                self.in_counts += 1
-                            else:
-                                self.out_counts += 1
+                    if distance < self.line_dist_thresh and track_id not in self.counting_list:
+                        self.counting_list.append(track_id)
+                        if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                            self.in_counts += 1
+                        else:
+                            self.out_counts += 1
 
-        incount_label = "In Count : " + f"{self.in_counts}"
-        outcount_label = "OutCount : " + f"{self.out_counts}"
+        incount_label = f"In Count : {self.in_counts}"
+        outcount_label = f"OutCount : {self.out_counts}"
 
         # Display counts based on user choice
         counts_label = None
@@ -218,7 +221,7 @@ class ObjectCounter:
         elif not self.view_out_counts:
             counts_label = incount_label
         else:
-            counts_label = incount_label + " " + outcount_label
+            counts_label = f"{incount_label} {outcount_label}"
 
         if counts_label is not None:
             self.annotator.count_labels(
@@ -254,9 +257,7 @@ class ObjectCounter:
         if tracks[0].boxes.id is None:
             if self.view_img:
                 self.display_frames()
-                return
-            else:
-                return
+            return
         self.extract_and_process_tracks(tracks)
 
         if self.view_img:

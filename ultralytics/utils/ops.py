@@ -40,7 +40,7 @@ class Profile(contextlib.ContextDecorator):
         """
         self.t = t
         self.device = device
-        self.cuda = True if (device and str(device)[:4] == "cuda") else False
+        self.cuda = bool(device and str(device).startswith("cuda"))
 
     def __enter__(self):
         """Start timing."""
@@ -534,12 +534,11 @@ def xyxyxyxy2xywhr(corners):
         # especially some objects are cut off by augmentations in dataloader.
         (x, y), (w, h), angle = cv2.minAreaRect(pts)
         rboxes.append([x, y, w, h, angle / 180 * np.pi])
-    rboxes = (
+    return (
         torch.tensor(rboxes, device=corners.device, dtype=corners.dtype)
         if is_torch
         else np.asarray(rboxes, dtype=points.dtype)
-    )
-    return rboxes
+    )  # rboxes
 
 
 def xywhr2xyxyxyxy(center):

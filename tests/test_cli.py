@@ -14,7 +14,7 @@ TASK_ARGS = [
     ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
     ('classify', 'yolov8n-cls', 'imagenet10'),
     ('pose', 'yolov8n-pose', 'coco8-pose.yaml'),
-    ('multitask', 'yolov8n', 'coco8-multitask.yaml'),
+    ('multitask', 'yolov8n-multitask', 'coco8-multitask.yaml'),
     ('obb', 'yolov8n-obb', 'dota8.yaml'), ]  # (task, model, data)
 EXPORT_ARGS = [
     ('yolov8n', 'torchscript'),

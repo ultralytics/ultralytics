@@ -19,6 +19,7 @@ from .files import increment_path
 
 import random
 
+
 class Colors:
     """
     Ultralytics default color palette https://ultralytics.com/.

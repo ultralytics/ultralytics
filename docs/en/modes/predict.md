@@ -441,6 +441,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `masks`      | `Masks, optional`     | A Masks object containing the detection masks.                                           |
 | `probs`      | `Probs, optional`     | A Probs object containing probabilities of each class for classification task.           |
 | `keypoints`  | `Keypoints, optional` | A Keypoints object containing detected keypoints for each object.                        |
+| `obb`        | `OBB, optional`       | A OBB object containing the oriented detection bounding boxes.                           |
 | `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`      | `dict`                | A dictionary of class names.                                                             |
 | `path`       | `str`                 | The path to the image file.                                                              |
@@ -606,6 +607,44 @@ Here's a table summarizing the methods and properties for the `Probs` class:
 
 For more details see the `Probs` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Probs).
 
+### OBB
+
+`OBB` object can be used to index, manipulate, and convert oriented bounding boxes to different formats.
+
+!!! Example "OBB"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n-obb.pt')
+
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+
+    # View results
+    for r in results:
+        print(r.obb)  # print the OBB object containing the oriented detection bounding boxes
+    ```
+
+Here is a table for the `OBB` class methods and properties, including their name, type, and description:
+
+| Name        | Type                      | Description                                                           |
+|-------------|---------------------------|-----------------------------------------------------------------------|
+| `cpu()`     | Method                    | Move the object to CPU memory.                                        |
+| `numpy()`   | Method                    | Convert the object to a numpy array.                                  |
+| `cuda()`    | Method                    | Move the object to CUDA memory.                                       |
+| `to()`      | Method                    | Move the object to the specified device.                              |
+| `conf`      | Property (`torch.Tensor`) | Return the confidence values of the boxes.                            |
+| `cls`       | Property (`torch.Tensor`) | Return the class values of the boxes.                                 |
+| `id`        | Property (`torch.Tensor`) | Return the track IDs of the boxes (if available).                     |
+| `xyxy`      | Property (`torch.Tensor`) | Return the horizontal boxes in xyxy format.                           |
+| `xywhr`     | Property (`torch.Tensor`) | Return the rotated boxes in xywhr format.                             |
+| `xyxyxyxy`  | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format.                          |
+| `xyxyxyxyn` | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format normalized by image size. |
+
+For more details see the `OBB` class [documentation](../reference/engine/results.md#ultralytics.engine.results.OBB).
+
 ## Plotting Results
 
 You can use the `plot()` method of a `Result` objects to visualize predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object onto a numpy array that can then be shown or saved.
@@ -722,5 +761,7 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
 
 [car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
+
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
+
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43

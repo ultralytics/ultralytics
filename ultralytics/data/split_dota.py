@@ -169,7 +169,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
     name = Path(anno["filepath"]).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()
-        new_name = f"{name}__{str(x_stop - x_start)}__{str(x_start)}___{str(y_start)}"
+        new_name = f"{name}__{x_stop - x_start}__{x_start}___{y_start}"
         patch_im = im[y_start:y_stop, x_start:x_stop]
         ph, pw = patch_im.shape[:2]
 
@@ -270,7 +270,7 @@ def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
     save_dir.mkdir(parents=True, exist_ok=True)
 
     im_dir = Path(os.path.join(data_root, "images/test"))
-    assert im_dir.exists(), f"Can't find {str(im_dir)}, please check your data root."
+    assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(im_dir / "*"))
     for im_file in tqdm(im_files, total=len(im_files), desc="test"):
         w, h = exif_size(Image.open(im_file))
@@ -279,7 +279,7 @@ def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
         name = Path(im_file).stem
         for window in windows:
             x_start, y_start, x_stop, y_stop = window.tolist()
-            new_name = f"{name}__{str(x_stop - x_start)}__{str(x_start)}___{str(y_start)}"
+            new_name = f"{name}__{x_stop - x_start}__{x_start}___{y_start}"
             patch_im = im[y_start:y_stop, x_start:x_stop]
             cv2.imwrite(os.path.join(str(save_dir), f"{new_name}.jpg"), patch_im)
 

@@ -169,9 +169,8 @@ class ObjectCounter:
 
         # Extract tracks
         for box, track_id, cls in zip(boxes, track_ids, clss):
-            self.annotator.box_label(
-                box, label=f"{str(track_id)}:{self.names[cls]}", color=colors(int(cls), True)
-            )  # Draw bounding box
+            # Draw bounding box
+            self.annotator.box_label(box, label=f"{track_id}:{self.names[cls]}", color=colors(int(cls), True))
 
             # Draw Tracks
             track_line = self.track_history[track_id]

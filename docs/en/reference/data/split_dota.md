@@ -1,3 +1,8 @@
+---
+description: Detailed guide on using YOLO with DOTA dataset for object detection, including dataset preparation, image splitting, and label handling.
+keywords: Ultralytics, YOLO, DOTA dataset, object detection, image processing, python, dataset preparation, image splitting, label handling, YOLO with DOTA, computer vision, AI, machine learning
+---
+
 # Reference for `ultralytics/data/split_dota.py`
 
 !!! Note

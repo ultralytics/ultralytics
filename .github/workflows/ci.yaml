@@ -149,8 +149,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.11']
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
         torch: [latest]
         include:
           - os: ubuntu-latest
@@ -161,7 +161,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          # cache: 'pip' # caching pip dependencies
       - name: Install requirements
         shell: bash  # for Windows compatibility
         run: |  # CoreML must be installed before export due to protobuf error from AutoInstall

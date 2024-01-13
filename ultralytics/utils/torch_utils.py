@@ -167,7 +167,7 @@ def time_sync():
     return time.time()
 
 
-def fuse_nd_conv_and_nd_bn(conv: nn.Module, bn: nn.Module, is_transposed: bool, ndim: int) -> nn.Module:
+def fuse_nd_conv_and_bn(conv: nn.Module, bn: nn.Module, is_transposed: bool, ndim: int) -> nn.Module:
     """
     Fuse n-dimensional transposed convolution / convolution and batch normalization layers.
 
@@ -177,20 +177,21 @@ def fuse_nd_conv_and_nd_bn(conv: nn.Module, bn: nn.Module, is_transposed: bool, 
     :param ndim: Number of dim
     :return: Fused convolution layer.
     """
-    fused_conv = (
-        getattr(nn, f"ConvTranspose{ndim}d" if is_transposed else f"Conv{ndim}d")(
-            conv.in_channels,
-            conv.out_channels,
-            kernel_size=conv.kernel_size,
-            stride=conv.stride,
-            padding=conv.padding,
-            dilation=conv.dilation,
-            groups=conv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(conv.weight.device)
+    params = dict(
+        in_channels=conv.in_channels,
+        out_channels=conv.out_channels,
+        kernel_size=conv.kernel_size,
+        stride=conv.stride,
+        padding=conv.padding,
+        dilation=conv.dilation,
+        groups=conv.groups,
+        bias=True
     )
+    if is_transposed:
+        params.update(output_padding=conv.output_padding)
+
+    fused_conv = getattr(nn, f"ConvTranspose{ndim}d" if is_transposed else f"Conv{ndim}d")
+    fused_conv = fused_conv(**params).requires_grad_(False).to(conv.weight.device)
 
     # Prepare filters
     w_conv = conv.weight.clone().view(conv.out_channels, -1)
@@ -198,7 +199,8 @@ def fuse_nd_conv_and_nd_bn(conv: nn.Module, bn: nn.Module, is_transposed: bool, 
     fused_conv.weight.copy_(torch.mm(w_bn, w_conv).view(fused_conv.weight.shape))
 
     # Prepare spatial bias
-    b_conv = torch.zeros(conv.weight.size(0), device=conv.weight.device) if conv.bias is None else conv.bias
+    b_conv = torch.zeros(conv.weight.size(1 if is_transposed else 0),
+                         device=conv.weight.device) if conv.bias is None else conv.bias
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
     fused_conv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
 
@@ -232,7 +234,7 @@ def fuse_conv_and_bn(conv: nn.Module, bn: nn.Module) -> nn.Module:
         )
 
     is_transposed = True if "Transpose" in name else False
-    fused_conv = fuse_nd_conv_and_nd_bn(conv, bn, is_transposed, int(conv_dim))
+    fused_conv = fuse_nd_conv_and_bn(conv, bn, is_transposed, int(conv_dim))
     return fused_conv
 
 

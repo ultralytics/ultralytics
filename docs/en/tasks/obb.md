@@ -57,19 +57,19 @@ Train YOLOv8n-obb on the dota8.yaml dataset for 100 epochs at image size 640. Fo
         model = YOLO('yolov8n-obb.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='dota8-obb.yaml', epochs=100, imgsz=640)
+        results = model.train(data='dota8.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
+        yolo obb train data=dota8.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
+        yolo obb train data=dota8.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.yaml pretrained=yolov8n-obb.pt epochs=100 imgsz=640
+        yolo obb train data=dota8.yaml model=yolov8n-obb.yaml pretrained=yolov8n-obb.pt epochs=100 imgsz=640
         ```
 
 ### Dataset format
@@ -93,7 +93,7 @@ retains it's training `data` and arguments as model attributes.
         model = YOLO('path/to/best.pt')  # load a custom model
 
         # Validate the model
-        metrics = model.val()  # no arguments needed, dataset and settings remembered
+        metrics = model.val(data='dota8.yaml')  # no arguments needed, dataset and settings remembered
         metrics.box.map    # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
@@ -102,8 +102,8 @@ retains it's training `data` and arguments as model attributes.
     === "CLI"
 
         ```bash
-        yolo obb val model=yolov8n-obb.pt  # val official model
-        yolo obb val model=path/to/best.pt  # val custom model
+        yolo obb val model=yolov8n-obb.pt data=dota8.yaml  # val official model
+        yolo obb val model=path/to/best.pt data=path/to/data.yaml  # val custom model
         ```
 
 ## Predict

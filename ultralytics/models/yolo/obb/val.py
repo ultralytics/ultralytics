@@ -77,8 +77,7 @@ class OBBValidator(DetectionValidator):
         if len(cls):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
-        prepared_batch = dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
-        return prepared_batch
+        return dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
 
     def _prepare_pred(self, pred, pbatch):
         """Prepares and returns a batch for OBB validation with scaled and padded bounding boxes."""
@@ -139,32 +138,21 @@ class OBBValidator(DetectionValidator):
             pred_txt.mkdir(parents=True, exist_ok=True)
             data = json.load(open(pred_json))
             # Save split results
-            LOGGER.info(f"Saving predictions with DOTA format to {str(pred_txt)}...")
+            LOGGER.info(f"Saving predictions with DOTA format to {pred_txt}...")
             for d in data:
                 image_id = d["image_id"]
                 score = d["score"]
                 classname = self.names[d["category_id"]].replace(" ", "-")
+                p = d["poly"]
 
-                lines = "{} {} {} {} {} {} {} {} {} {}\n".format(
-                    image_id,
-                    score,
-                    d["poly"][0],
-                    d["poly"][1],
-                    d["poly"][2],
-                    d["poly"][3],
-                    d["poly"][4],
-                    d["poly"][5],
-                    d["poly"][6],
-                    d["poly"][7],
-                )
-                with open(str(pred_txt / f"Task1_{classname}") + ".txt", "a") as f:
-                    f.writelines(lines)
+                with open(f'{pred_txt / f"Task1_{classname}"}.txt', "a") as f:
+                    f.writelines(f"{image_id} {score} {p[0]} {p[1]} {p[2]} {p[3]} {p[4]} {p[5]} {p[6]} {p[7]}\n")
             # Save merged results, this could result slightly lower map than using official merging script,
             # because of the probiou calculation.
             pred_merged_txt = self.save_dir / "predictions_merged_txt"  # predictions
             pred_merged_txt.mkdir(parents=True, exist_ok=True)
             merged_results = defaultdict(list)
-            LOGGER.info(f"Saving merged predictions with DOTA format to {str(pred_merged_txt)}...")
+            LOGGER.info(f"Saving merged predictions with DOTA format to {pred_merged_txt}...")
             for d in data:
                 image_id = d["image_id"].split("__")[0]
                 pattern = re.compile(r"\d+___\d+")
@@ -188,22 +176,10 @@ class OBBValidator(DetectionValidator):
                 b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)
                 for x in torch.cat([b, bbox[:, 5:7]], dim=-1).tolist():
                     classname = self.names[int(x[-1])].replace(" ", "-")
-                    poly = [round(i, 3) for i in x[:-2]]
+                    p = [round(i, 3) for i in x[:-2]]  # poly
                     score = round(x[-2], 3)
 
-                    lines = "{} {} {} {} {} {} {} {} {} {}\n".format(
-                        image_id,
-                        score,
-                        poly[0],
-                        poly[1],
-                        poly[2],
-                        poly[3],
-                        poly[4],
-                        poly[5],
-                        poly[6],
-                        poly[7],
-                    )
-                    with open(str(pred_merged_txt / f"Task1_{classname}") + ".txt", "a") as f:
-                        f.writelines(lines)
+                    with open(f'{pred_merged_txt / f"Task1_{classname}"}.txt', "a") as f:
+                        f.writelines(f"{image_id} {score} {p[0]} {p[1]} {p[2]} {p[3]} {p[4]} {p[5]} {p[6]} {p[7]}\n")
 
         return stats

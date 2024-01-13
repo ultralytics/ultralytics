@@ -185,7 +185,7 @@ def fuse_nd_conv_and_bn(conv: nn.Module, bn: nn.Module, is_transposed: bool, ndi
         padding=conv.padding,
         dilation=conv.dilation,
         groups=conv.groups,
-        bias=True
+        bias=True,
     )
     if is_transposed:
         params.update(output_padding=conv.output_padding)
@@ -199,8 +199,11 @@ def fuse_nd_conv_and_bn(conv: nn.Module, bn: nn.Module, is_transposed: bool, ndi
     fused_conv.weight.copy_(torch.mm(w_bn, w_conv).view(fused_conv.weight.shape))
 
     # Prepare spatial bias
-    b_conv = torch.zeros(conv.weight.size(1 if is_transposed else 0),
-                         device=conv.weight.device) if conv.bias is None else conv.bias
+    b_conv = (
+        torch.zeros(conv.weight.size(1 if is_transposed else 0), device=conv.weight.device)
+        if conv.bias is None
+        else conv.bias
+    )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
     fused_conv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
 

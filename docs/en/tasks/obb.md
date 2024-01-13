@@ -42,7 +42,7 @@ YOLOv8 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 ## Train
 
-Train YOLOv8n-obb on the dota8.yaml dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLOv8n-obb on the `dota8.yaml` dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! Example
 
@@ -78,7 +78,7 @@ OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb
 
 ## Val
 
-Validate trained YOLOv8n-obb model accuracy on the dota8-obb dataset. No argument need to passed as the `model`
+Validate trained YOLOv8n-obb model accuracy on the DOTA8 dataset. No argument need to passed as the `model`
 retains it's training `data` and arguments as model attributes.
 
 !!! Example

@@ -42,7 +42,7 @@ keywords: Ultralytics, YOLO, YOLOv8, 포즈 추정, 키포인트 검출, 객체 
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose.pt)       | 640             | 69.2                | 90.2             | 1607.1                      | 3.73                             | 69.4             | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose-p6.pt) | 1280            | 71.6                | 91.2             | 4088.7                      | 10.04                            | 99.1             | 1066.4            |
 
-- **mAP<sup>val</sup>** 값은 [COCO Keypoints val2017](http://cocodataset.org) 데이터셋에서 단일 모델 단일 규모를 기준으로 합니다.
+- **mAP<sup>val</sup>** 값은 [COCO Keypoints val2017](https://cocodataset.org) 데이터셋에서 단일 모델 단일 규모를 기준으로 합니다.
   <br>재현하려면 `yolo val pose data=coco-pose.yaml device=0`을 사용하세요.
 - **속도**는 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 인스턴스를 사용하여 COCO val 이미지 평균입니다.
   <br>재현하려면 `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`를 사용하세요.

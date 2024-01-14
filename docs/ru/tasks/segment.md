@@ -41,7 +41,7 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-seg.pt) | 640                      | 52.3                 | 42.6                  | 572.4                             | 2.79                                   | 46.0                  | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-seg.pt) | 640                      | 53.4                 | 43.4                  | 712.1                             | 4.02                                   | 71.8                  | 344.1             |
 
-- Значения **mAP<sup>val</sup>** для одиночной модели одиночного масштаба на наборе данных [COCO val2017](http://cocodataset.org).
+- Значения **mAP<sup>val</sup>** для одиночной модели одиночного масштаба на наборе данных [COCO val2017](https://cocodataset.org).
   <br>Воспроизведите с помощью `yolo val segment data=coco.yaml device=0`
 - **Скорость** усреднена для изображений COCO val на [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   инстансе.

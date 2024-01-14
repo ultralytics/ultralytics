@@ -42,7 +42,7 @@ theme:
         icon: material/brightness-7
         name: Switch to dark mode
   features:
-#    - announce.dismiss
+    # - announce.dismiss
     - content.action.edit
     - content.code.annotate
     - content.code.copy
@@ -351,8 +351,8 @@ nav:
       - Integrations: hub/integrations.md
       - Ultralytics HUB App:
           - hub/app/index.md
-          - 'iOS': hub/app/ios.md
-          - 'Android': hub/app/android.md
+          - iOS: hub/app/ios.md
+          - Android: hub/app/android.md
       - Inference API: hub/inference_api.md
 
   - Reference:

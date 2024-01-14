@@ -114,7 +114,7 @@ The label file corresponding to the above image contains 2 persons (class `0`) a
 
 ### 2.3 Organize Directories
 
-Organize your train and val images and labels according to the example below. YOLOv5 assumes  `/coco128` is inside a `/datasets` directory **next to** the `/yolov5` directory. **YOLOv5 locates labels automatically for each image** by replacing the last instance of `/images/` in each image path with `/labels/`. For example:
+Organize your train and val images and labels according to the example below. YOLOv5 assumes `/coco128` is inside a `/datasets` directory **next to** the `/yolov5` directory. **YOLOv5 locates labels automatically for each image** by replacing the last instance of `/images/` in each image path with `/labels/`. For example:
 
 ```bash
 ../datasets/coco128/images/im0.jpg  # image

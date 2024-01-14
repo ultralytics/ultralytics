@@ -175,9 +175,7 @@ class Yolov8TFLite:
         img = np.ascontiguousarray(image)
         # n, h, w, c
         image = img.astype(np.float32)
-        image_data = image / 255
-        # Return the preprocessed image data
-        return image_data
+        return image / 255
 
     def postprocess(self, input_image, output):
         """
@@ -194,7 +192,7 @@ class Yolov8TFLite:
         boxes = []
         scores = []
         class_ids = []
-        for i, pred in enumerate(output):
+        for pred in output:
             pred = np.transpose(pred)
             for box in pred:
                 x, y, w, h = box[:4]
@@ -221,7 +219,7 @@ class Yolov8TFLite:
             box[3] = box[3] / gain
             score = scores[i]
             class_id = class_ids[i]
-            if scores[i] > 0.25:
+            if score > 0.25:
                 print(box, score, class_id)
                 # Draw the detection on the input image
                 self.draw_detections(input_image, box, score, class_id)

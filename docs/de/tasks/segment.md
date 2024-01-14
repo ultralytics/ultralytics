@@ -41,7 +41,7 @@ Hier werden vortrainierte YOLOv8 Segment-Modelle gezeigt. Detect-, Segment- und 
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-seg.pt) | 640                   | 52.3                    | 42.6                    | 572.4                                    | 2.79                                          | 46.0                  | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-seg.pt) | 640                   | 53.4                    | 43.4                    | 712.1                                    | 4.02                                          | 71.8                  | 344.1             |
 
-- Die **mAP<sup>val</sup>**-Werte sind für ein einzelnes Modell, einzelne Skala auf dem [COCO val2017](http://cocodataset.org)-Datensatz.
+- Die **mAP<sup>val</sup>**-Werte sind für ein einzelnes Modell, einzelne Skala auf dem [COCO val2017](https://cocodataset.org)-Datensatz.
   <br>Zum Reproduzieren nutzen Sie `yolo val segment data=coco.yaml device=0`
 - Die **Geschwindigkeit** ist über die COCO-Validierungsbilder gemittelt und verwendet eine [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)-Instanz.
   <br>Zum Reproduzieren `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`

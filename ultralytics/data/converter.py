@@ -477,17 +477,23 @@ def merge_multi_segment(segments):
 
 
 def yolo_bbox2obb(
-        data, obb_save, seg_save=None, segment_data=False, im_ext=[".jpg",".jpeg"], det_model="yolov8x.pt", sam_model="sam_b.pt"
-        ) -> None:
+    data,
+    obb_save,
+    seg_save=None,
+    segment_data=False,
+    im_ext=[".jpg", ".jpeg"],
+    det_model="yolov8x.pt",
+    sam_model="sam_b.pt",
+) -> None:
     """
-    Converts existing object detection dataset (bounding boxes) or segmentation dataset in YOLO format into YOLO oriented
-    bounding box (OBB) format. Generates intermediate segmentation data using SAM auto-annotator as needed.
-    
+    Converts existing object detection dataset (bounding boxes) or segmentation dataset in YOLO format into YOLO
+    oriented bounding box (OBB) format. Generates intermediate segmentation data using SAM auto-annotator as needed.
+
     Args:
         data (str|Path): Path to data to convert, either object detection (vertical bounding box) or segmentation data.
                         Expected to have all images and labels in the same directory.
         obb_save (str|Path): Path to save the output OBB annotation files
-        seg_save (str|Path): Path to save generated segmentation data; optional. 
+        seg_save (str|Path): Path to save generated segmentation data; optional.
         segment_data (bool): Indicates if the `data` path contains segmentation data; optional.
         im_ext (list[str]): List of image file extensions to fetch from the `data` path; optional.
         det_model (str): Detection model to use for generating segmentation data, use custom trained model for custom data; optional.
@@ -509,11 +515,11 @@ def yolo_bbox2obb(
 
         auto_annotate(
             data=data,
-            det_model=det_model, # or use custom weights
+            det_model=det_model,  # or use custom weights
             sam_model=sam_model,
-            output_dir=seg_save
+            output_dir=seg_save,
         )
-    
+
     # Fetch images
     path = Path(data)
     files = [f for ext in im_ext for f in path.rglob(f"*{ext}")]
@@ -526,24 +532,24 @@ def yolo_bbox2obb(
 
         img = cv2.imread(str(im))
         ih, iw = img.shape[:2]
-        lines = [[float(v) for v in l.split(" ")] for l in anno_file.read_text().split('\n') if l != ""]
+        lines = [[float(v) for v in l.split(" ")] for l in anno_file.read_text().split("\n") if l != ""]
         N = len(lines)
 
-        obb_annos = np.zeros((N,9), np.float32) # class, x1, y1, x2, y2, x3, y3, x4, y4
-        for li,line in enumerate(lines):
+        obb_annos = np.zeros((N, 9), np.float32)  # class, x1, y1, x2, y2, x3, y3, x4, y4
+        for li, line in enumerate(lines):
             label, *points = line
-            arr = np.array(points).reshape(-1,2)
-            arr[...,0:1] *= iw
-            arr[...,1:2] *= ih
-            arr = arr.reshape(1,-1,2).astype(int)
+            arr = np.array(points).reshape(-1, 2)
+            arr[..., 0:1] *= iw
+            arr[..., 1:2] *= ih
+            arr = arr.reshape(1, -1, 2).astype(int)
 
             for c in arr:
-                rot_rect = cv2.RotatedRect(*cv2.minAreaRect(c)) # ((xc, yc), (w, h), angle)
+                rot_rect = cv2.RotatedRect(*cv2.minAreaRect(c))  # ((xc, yc), (w, h), angle)
                 obb_points = rot_rect.points()
 
                 # Convert to normalized coordinates
-                obb_points[...,0:1] /= iw
-                obb_points[...,1:2] /= ih
+                obb_points[..., 0:1] /= iw
+                obb_points[..., 1:2] /= ih
                 obb_points = obb_points.clip(0, 1)
                 # Flatten points array and add class
                 obb_annos[li] = [label, *obb_points.flatten().tolist()]

@@ -706,16 +706,16 @@ def plot_images(
             if len(bboxes):
                 boxes = bboxes[idx]
                 conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
-                if len(boxes):
-                    if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
-                        boxes[:, [0, 2]] *= w  # scale to pixels
-                        boxes[:, [1, 3]] *= h
-                    elif scale < 1:  # absolute coords need scale if image scales
-                        boxes[:, :4] *= scale
-                boxes[:, 0] += x
-                boxes[:, 1] += y
                 is_obb = boxes.shape[-1] == 5  # xywhr
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
+                if len(boxes):
+                    if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
+                        boxes[..., 0::2] *= w  # scale to pixels
+                        boxes[..., 1::2] *= h
+                    elif scale < 1:  # absolute coords need scale if image scales
+                        boxes[..., :4] *= scale
+                boxes[..., 0::2] += x
+                boxes[..., 1::2] += y
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
                     color = colors(c)

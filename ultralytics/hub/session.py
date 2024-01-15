@@ -6,9 +6,8 @@ from http import HTTPStatus
 from pathlib import Path
 
 import requests
-from hub_sdk import HUB_WEB_ROOT, HUBClient
 
-from ultralytics.hub.utils import HELP_MSG, PREFIX, TQDM
+from ultralytics.hub.utils import HUB_WEB_ROOT, HELP_MSG, PREFIX, TQDM
 from ultralytics.utils import LOGGER, SETTINGS, __version__, checks, emojis, is_colab
 from ultralytics.utils.errors import HUBModelError
 
@@ -44,6 +43,9 @@ class HUBTrainingSession:
             ValueError: If the provided model identifier is invalid.
             ConnectionError: If connecting with global API key is not supported.
         """
+        checks.check_requirements('hub_sdk')
+        from hub_sdk import HUBClient
+
         self.rate_limits = {
             "metrics": 3.0,
             "ckpt": 900.0,

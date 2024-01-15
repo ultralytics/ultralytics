@@ -508,7 +508,11 @@ def yolo_bbox2obb(
                 ├─ NNN.jpg
                 └─ NNN.txt
     """
+    def get_data(file):
+        return [[float(v) for v in l.split(" ")] for l in file.read_text().split("\n") if l != ""]
     seg_save = seg_save if seg_save else (str(data) + "_auto_annotate_labels")
+    seg_save = seg_save if not segment_data else str(data)
+
     if not segment_data:
         # Auto-annotate segmentation data using bounding boxes
         from ultralytics.data.annotator import auto_annotate
@@ -522,17 +526,18 @@ def yolo_bbox2obb(
 
     # Fetch images
     path = Path(data)
-    files = [f for ext in im_ext for f in path.rglob(f"*{ext}")]
+    files = [f for ext in im_ext for f in list(path.rglob(f"*{ext}"))]
 
     for im in files:
         anno_file = Path(seg_save) / im.with_suffix(".txt").name
         if not anno_file.exists():
             # No annotation file found
             continue
-
+        
+        # Load data
         img = cv2.imread(str(im))
         ih, iw = img.shape[:2]
-        lines = [[float(v) for v in l.split(" ")] for l in anno_file.read_text().split("\n") if l != ""]
+        lines = get_data(anno_file)
         N = len(lines)
 
         obb_annos = np.zeros((N, 9), np.float32)  # class, x1, y1, x2, y2, x3, y3, x4, y4
@@ -541,18 +546,33 @@ def yolo_bbox2obb(
             arr = np.array(points).reshape(-1, 2)
             arr[..., 0:1] *= iw
             arr[..., 1:2] *= ih
-            arr = arr.reshape(1, -1, 2).astype(int)
 
-            for c in arr:
-                rot_rect = cv2.RotatedRect(*cv2.minAreaRect(c))  # ((xc, yc), (w, h), angle)
-                obb_points = rot_rect.points()
+            # Get oriented bounding box (requires cv2.CV_32S or cv2.CV_32F data)
+            # NOTE results using np.float32 were poor
+            rot_rect = cv2.RotatedRect(*cv2.minAreaRect(arr.astype(int)))  # ((xc, yc), (w, h), angle)
+            obb_points = rot_rect.points()
 
+            # Convert to normalized coordinates
+            obb_points[..., 0:1] /= iw
+            obb_points[..., 1:2] /= ih
+
+            # Use up-right bounding box when any point is out of bounds
+            if not ((0 <= obb_points) & (obb_points <= 1)).all():
+                # TODO find alternative to out of bounds issue
+                bbox_x1, bbox_y1, bbox_w, bbox_h = rot_rect.boundingRect() # x1y1wh
+                bbox_x2, bbox_y2 = bbox_x1 + bbox_w, bbox_y1 + bbox_h
+                
+                obb_points = np.array(
+                    (bbox_x1, bbox_y1, bbox_x2, bbox_y1, bbox_x2, bbox_y2, bbox_x1, bbox_y2,)
+                    ).reshape(-1,2).astype(np.float64)
+                
                 # Convert to normalized coordinates
                 obb_points[..., 0:1] /= iw
                 obb_points[..., 1:2] /= ih
-                obb_points = obb_points.clip(0, 1)
-                # Flatten points array and add class
-                obb_annos[li] = [label, *obb_points.flatten().tolist()]
+            
+            obb_points = obb_points.clip(0, 1)
+            # Flatten points array and add class
+            obb_annos[li] = [int(label), *obb_points.flatten().tolist()]
 
         # Output to same directory as segmentation data with -OBB appended
         obb_save = Path(obb_save)

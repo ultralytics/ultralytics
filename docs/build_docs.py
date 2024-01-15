@@ -105,27 +105,30 @@ def update_page_title(file_path: Path, new_title: str):
 
 def update_html_head():
     """Update the HTML head section of each file."""
-    key = os.environ.get("WEGLOT_KEY", None)
-    if key:
-        html_files = Path(SITE).rglob("*.html")
-        for html_file in tqdm(html_files, desc="Processing HTML files"):
-            with html_file.open("r", encoding="utf-8") as file:
-                html_content = file.read()
+    key = os.environ.get("WEGLOT_KEY")
+    if not key:
+        print("No key, skipping head updates")
+        return
 
-            script = f"""
+    html_files = Path(SITE).rglob("*.html")
+    for html_file in tqdm(html_files, desc="Processing HTML files"):
+        with html_file.open("r", encoding="utf-8") as file:
+            html_content = file.read()
+
+        script = f"""
 <script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js"></script>
 <script>Weglot.initialize({{api_key: '{key}'}});</script>
 """
 
-            if script in html_content:  # script already in HTML file
-                return
+        if script in html_content:  # script already in HTML file
+            return
 
-            head_end_index = html_content.lower().rfind("</head>")
-            if head_end_index != -1:
-                # Add the specified JavaScript to the HTML file just before the end of the head tag.
-                new_html_content = html_content[:head_end_index] + script + html_content[head_end_index:]
-                with html_file.open("w", encoding="utf-8") as file:
-                    file.write(new_html_content)
+        head_end_index = html_content.lower().rfind("</head>")
+        if head_end_index != -1:
+            # Add the specified JavaScript to the HTML file just before the end of the head tag.
+            new_html_content = html_content[:head_end_index] + script + html_content[head_end_index:]
+            with html_file.open("w", encoding="utf-8") as file:
+                file.write(new_html_content)
 
 
 def main():

@@ -19,6 +19,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 !!! Example "Object Blurring using YOLOv8 Example"
 
     === "Object Blurring"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors

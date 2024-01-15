@@ -26,6 +26,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 !!! Example "Workouts Monitoring Example"
 
     === "Workouts Monitoring"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import ai_gym
@@ -56,6 +57,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         ```
 
     === "Workouts Monitoring with Save Output"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import ai_gym
@@ -102,14 +104,14 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ### Arguments `set_args`
 
-| Name            | Type   | Default  | Description                                                                            |
-|-----------------|--------|----------|----------------------------------------------------------------------------------------|
-| kpts_to_check   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
-| view_img        | `bool` | `False`  | Display the frame with counts                                                          |
-| line_thickness  | `int`  | `2`      | Increase the thickness of count value                                                  |
-| pose_type       | `str`  | `pushup` | Pose that need to be monitored, "pullup" and "abworkout" also supported                |
-| pose_up_angle   | `int`  | `145`    | Pose Up Angle value                                                                    |
-| pose_down_angle | `int`  | `90`     | Pose Down Angle value                                                                  |
+| Name              | Type   | Default  | Description                                                                            |
+|-------------------|--------|----------|----------------------------------------------------------------------------------------|
+| `kpts_to_check`   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
+| `view_img`        | `bool` | `False`  | Display the frame with counts                                                          |
+| `line_thickness`  | `int`  | `2`      | Increase the thickness of count value                                                  |
+| `pose_type`       | `str`  | `pushup` | Pose that need to be monitored, "pullup" and "abworkout" also supported                |
+| `pose_up_angle`   | `int`  | `145`    | Pose Up Angle value                                                                    |
+| `pose_down_angle` | `int`  | `90`     | Pose Down Angle value                                                                  |
 
 ### Arguments `model.predict`
 

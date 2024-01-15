@@ -19,6 +19,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 !!! Example "Object Cropping using YOLOv8 Example"
 
     === "Object Cropping"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors

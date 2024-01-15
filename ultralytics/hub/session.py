@@ -70,8 +70,8 @@ class HUBTrainingSession:
     def load_model(self, model_id):
         """Loads an existing model from Ultralytics HUB using the provided model identifier."""
         self.model = self.client.model(model_id)
-        if not self.model.data:  # then model model does not exist
-            raise ValueError(emojis(f"❌ The specified HUB model does not exist"))  # TODO: improve error handling
+        if not self.model.data:  # then model does not exist
+            raise ValueError(emojis("❌ The specified HUB model does not exist"))  # TODO: improve error handling
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 

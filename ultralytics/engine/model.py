@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from hub_sdk.config import HUB_WEB_ROOT
+from hub_sdk import HUB_WEB_ROOT
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load

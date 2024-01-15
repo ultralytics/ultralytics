@@ -14,7 +14,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1. Begin with the necessary imports
+1.  Begin with the necessary imports
 
     ```py
     from pathlib import Path
@@ -28,9 +28,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
 
-    ---
+    ***
 
-2. Load a model and run `predict()` method on a source.
+2.  Load a model and run `predict()` method on a source.
 
     ```py
     from ultralytics import YOLO
@@ -55,11 +55,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     For additional information about Segmentation Models, visit the [Segment Task](../tasks/segment.md#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
 
-    ---
+    ***
 
-3. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
+3.  Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
-    ``` { .py .annotate }
+    ```{ .py .annotate }
     # (2) Iterate detection results (helpful for multiple images)
     for r in res:
         img = np.copy(r.orig_img)
@@ -79,13 +79,13 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         A single image will only iterate the first loop once. A single image with only a single detection will iterate each loop _only_ once.
 
-    ---
+    ***
 
-4. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
+4.  Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
-    ``` { .py .annotate }
+    ```{ .py .annotate }
     # Create binary mask
     b_mask = np.zeros(img.shape[:2], np.uint8)
 
@@ -116,7 +116,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     <summary> Expand to understand what is happening when defining the <code>contour</code> variable.</summary>
     <p>
 
-    - `c.masks.xy` :: Provides the coordinates of the mask contour points in the format  `(x, y)`. For more details, refer to the [Masks Section from Predict Mode](../modes/predict.md#masks).
+    - `c.masks.xy` :: Provides the coordinates of the mask contour points in the format `(x, y)`. For more details, refer to the [Masks Section from Predict Mode](../modes/predict.md#masks).
 
     - `.pop()` :: As `masks.xy` is a list containing a single element, this element is extracted using the `pop()` method.
 
@@ -143,9 +143,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     </details>
     <p></p>
 
-    ---
+    ***
 
-5. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+5.  Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
     ### Object Isolation Options
 
@@ -256,9 +256,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
 
-    ---
+    ***
 
-6. <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
+6.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
@@ -275,7 +275,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 Here, all steps from the previous section are combined into a single block of code. For repeated use, it would be optimal to define a function to do some or all commands contained in the `for`-loops, but that is an exercise left to the reader.
 
-``` { .py .annotate }
+```{ .py .annotate }
 from pathlib import Path
 
 import cv2 as cv

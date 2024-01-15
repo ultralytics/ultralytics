@@ -23,7 +23,7 @@ def bias_init_with_prob(prior_prob=0.01):
     return float(-np.log((1 - prior_prob) / prior_prob))  # return bias_init
 
 
-def linear_init_(module):
+def linear_init(module):
     """Initialize the weights and biases of a linear module."""
     bound = 1 / math.sqrt(module.weight.shape[0])
     uniform_(module.weight, -bound, bound)

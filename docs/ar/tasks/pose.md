@@ -40,7 +40,7 @@ keywords: Ultralytics، YOLO، YOLOv8، تقدير الوضعية ، كشف نق
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose.pt)       | 640             | 69.2                  | 90.2               | 1607.1                                 | 3.73                            | 69.4             | 263.2            |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose-p6.pt) | 1280            | 71.6                  | 91.2               | 4088.7                                 | 10.04                           | 99.1             | 1066.4           |
 
-- تعتبر القيم **mAP<sup>val</sup>** لنموذج واحد ومقياس واحد فقط على [COCO Keypoints val2017](http://cocodataset.org)
+- تعتبر القيم **mAP<sup>val</sup>** لنموذج واحد ومقياس واحد فقط على [COCO Keypoints val2017](https://cocodataset.org)
   مجموعة البيانات.
   <br>يمكن إعادة إنتاجه بواسطة `يولو val pose data=coco-pose.yaml device=0`
 - يتم حساب **السرعة** من خلال متوسط صور COCO val باستخدام [المروحة الحرارية Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)

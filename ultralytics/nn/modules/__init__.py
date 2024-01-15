@@ -50,6 +50,7 @@ from .conv import (
     GhostConv,
     LightConv,
     RepConv,
+    DRepConv,
     SpatialAttention,
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment
@@ -71,6 +72,7 @@ __all__ = (
     "Conv2",
     "LightConv",
     "RepConv",
+    "DRepConv",
     "DWConv",
     "DWConvTranspose2d",
     "ConvTranspose",

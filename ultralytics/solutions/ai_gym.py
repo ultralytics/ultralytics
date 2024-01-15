@@ -78,6 +78,14 @@ class AIGym:
         self.keypoints = results[0].keypoints.data
         self.annotator = Annotator(im0, line_width=2)
 
+        num_keypoints = len(results[0])
+
+        # Resize self.angle, self.count, and self.stage if the number of keypoints has changed
+        if len(self.angle) != num_keypoints:
+            self.angle = [0] * num_keypoints
+            self.count = [0] * num_keypoints
+            self.stage = ["-" for _ in range(num_keypoints)]
+
         for ind, k in enumerate(reversed(self.keypoints)):
             if self.pose_type in ["pushup", "pullup"]:
                 self.angle[ind] = self.annotator.estimate_pose_angle(

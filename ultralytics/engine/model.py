@@ -10,6 +10,7 @@ from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, 
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
 from ultralytics.hub.utils import HUB_WEB_ROOT
 
+
 class Model(nn.Module):
     """
     A base class to unify APIs for all models.

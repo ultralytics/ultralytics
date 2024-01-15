@@ -66,6 +66,7 @@ jobs:
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
+          WEGLOT_KEY: ${{ secrets.WEGLOT_KEY }}
         run: |
           python docs/build_docs.py
           git config --global user.name "Glenn Jocher"

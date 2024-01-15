@@ -43,7 +43,7 @@ class HUBTrainingSession:
             ValueError: If the provided model identifier is invalid.
             ConnectionError: If connecting with global API key is not supported.
         """
-        checks.check_requirements("hub_sdk")
+        checks.check_requirements("hub-sdk>=0.0.2")
         from hub_sdk import HUBClient
 
         self.rate_limits = {

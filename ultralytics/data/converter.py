@@ -508,8 +508,10 @@ def yolo_bbox2obb(
                 ├─ NNN.jpg
                 └─ NNN.txt
     """
+
     def get_data(file):
         return [[float(v) for v in l.split(" ")] for l in file.read_text().split("\n") if l != ""]
+
     seg_save = seg_save if seg_save else (str(data) + "_auto_annotate_labels")
     seg_save = seg_save if not segment_data else str(data)
 
@@ -533,7 +535,7 @@ def yolo_bbox2obb(
         if not anno_file.exists():
             # No annotation file found
             continue
-        
+
         # Load data
         img = cv2.imread(str(im))
         ih, iw = img.shape[:2]
@@ -559,17 +561,30 @@ def yolo_bbox2obb(
             # Use up-right bounding box when any point is out of bounds
             if not ((0 <= obb_points) & (obb_points <= 1)).all():
                 # TODO find alternative to out of bounds issue
-                bbox_x1, bbox_y1, bbox_w, bbox_h = rot_rect.boundingRect() # x1y1wh
+                bbox_x1, bbox_y1, bbox_w, bbox_h = rot_rect.boundingRect()  # x1y1wh
                 bbox_x2, bbox_y2 = bbox_x1 + bbox_w, bbox_y1 + bbox_h
-                
-                obb_points = np.array(
-                    (bbox_x1, bbox_y1, bbox_x2, bbox_y1, bbox_x2, bbox_y2, bbox_x1, bbox_y2,)
-                    ).reshape(-1,2).astype(np.float64)
-                
+
+                obb_points = (
+                    np.array(
+                        (
+                            bbox_x1,
+                            bbox_y1,
+                            bbox_x2,
+                            bbox_y1,
+                            bbox_x2,
+                            bbox_y2,
+                            bbox_x1,
+                            bbox_y2,
+                        )
+                    )
+                    .reshape(-1, 2)
+                    .astype(np.float64)
+                )
+
                 # Convert to normalized coordinates
                 obb_points[..., 0:1] /= iw
                 obb_points[..., 1:2] /= ih
-            
+
             obb_points = obb_points.clip(0, 1)
             # Flatten points array and add class
             obb_annos[li] = [int(label), *obb_points.flatten().tolist()]

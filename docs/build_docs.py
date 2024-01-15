@@ -23,17 +23,19 @@ Usage:
 Note:
 - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
-
+import os
 import re
 import shutil
 import subprocess
 from pathlib import Path
 
+from tqdm import tqdm
+
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 
 
-def build_docs():
+def build_docs(with_languages=False):
     """Build docs using mkdocs."""
     if SITE.exists():
         print(f"Removing existing {SITE}")
@@ -44,9 +46,10 @@ def build_docs():
     subprocess.run(f"mkdocs build -f {DOCS}/mkdocs.yml", check=True, shell=True)
 
     # Build other localized documentations
-    for file in DOCS.glob("mkdocs_*.yml"):
-        print(f"Building MkDocs site with configuration file: {file}")
-        subprocess.run(f"mkdocs build -f {file}", check=True, shell=True)
+    if with_languages:
+        for file in DOCS.glob("mkdocs_*.yml"):
+            print(f"Building MkDocs site with configuration file: {file}")
+            subprocess.run(f"mkdocs build -f {file}", check=True, shell=True)
     print(f"Site built at {SITE}")
 
 
@@ -100,12 +103,40 @@ def update_page_title(file_path: Path, new_title: str):
         file.write(updated_content)
 
 
+def update_html_head():
+    """Update the HTML head section of each file."""
+    key = os.environ.get("WEGLOT_KEY", None)
+    if key:
+        html_files = Path(SITE).rglob("*.html")
+        for html_file in tqdm(html_files, desc="Processing HTML files"):
+            with html_file.open("r", encoding="utf-8") as file:
+                html_content = file.read()
+
+            script = f"""
+<script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js"></script>
+<script>Weglot.initialize({{api_key: '{key}'}});</script>
+"""
+
+            if script in html_content:  # script already in HTML file
+                return
+
+            head_end_index = html_content.lower().rfind("</head>")
+            if head_end_index != -1:
+                # Add the specified JavaScript to the HTML file just before the end of the head tag.
+                new_html_content = html_content[:head_end_index] + script + html_content[head_end_index:]
+                with html_file.open("w", encoding="utf-8") as file:
+                    file.write(new_html_content)
+
+
 def main():
     # Build the docs
     build_docs()
 
     # Update .md in href links
-    update_html_links()
+    # update_html_links()
+
+    # Update HTML file head section
+    update_html_head()
 
     # Show command to serve built website
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')

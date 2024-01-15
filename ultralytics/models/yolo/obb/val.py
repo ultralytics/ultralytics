@@ -117,11 +117,10 @@ class OBBValidator(DetectionValidator):
 
     def save_one_txt(self, predn, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
-        gn = torch.tensor(shape)[[1, 0, 1, 0]]  # normalization gain whwh
-        for *xyxy, conf, cls, angle in predn.tolist():
-            xywha = torch.tensor([*xyxy, angle]).view(1, 5)
-            xywha[:, :4] /= gn
-            xyxyxyxy = ops.xywhr2xyxyxyxy(xywha).view(-1).tolist()  # normalized xywh
+        gn = torch.tensor(shape)[[1, 0]]  # normalization gain whwh
+        for *xywh, conf, cls, angle in predn.tolist():
+            xywha = torch.tensor([*xywh, angle]).view(1, 5)
+            xyxyxyxy = (ops.xywhr2xyxyxyxy(xywha) / gn).view(-1).tolist()  # normalized xywh
             line = (cls, *xyxyxyxy, conf) if save_conf else (cls, *xyxyxyxy)  # label format
             with open(file, "a") as f:
                 f.write(("%g " * len(line)).rstrip() % line + "\n")

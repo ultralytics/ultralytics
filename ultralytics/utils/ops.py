@@ -541,7 +541,7 @@ def xyxyxyxy2xywhr(corners):
     )  # rboxes
 
 
-def xywhr2xyxyxyxy(center):
+def xywhr2xyxyxyxy(rboxes):
     """
     Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4]. Rotation values should
     be in degrees from 0 to 90.
@@ -552,11 +552,11 @@ def xywhr2xyxyxyxy(center):
     Returns:
         (numpy.ndarray | torch.Tensor): Converted corner points of shape (n, 4, 2) or (b, n, 4, 2).
     """
-    is_numpy = isinstance(center, np.ndarray)
+    is_numpy = isinstance(rboxes, np.ndarray)
     cos, sin = (np.cos, np.sin) if is_numpy else (torch.cos, torch.sin)
 
-    ctr = center[..., :2]
-    w, h, angle = (center[..., i : i + 1] for i in range(2, 5))
+    ctr = rboxes[..., :2]
+    w, h, angle = (rboxes[..., i : i + 1] for i in range(2, 5))
     cos_value, sin_value = cos(angle), sin(angle)
     vec1 = [w / 2 * cos_value, w / 2 * sin_value]
     vec2 = [-h / 2 * sin_value, h / 2 * cos_value]

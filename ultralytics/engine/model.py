@@ -123,9 +123,9 @@ class Model(nn.Module):
             (
                 model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
                 [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODELID
-                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),
+                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODELID
             )
-        )  # MODELID
+        )
 
     def _new(self, cfg: str, task=None, model=None, verbose=True):
         """

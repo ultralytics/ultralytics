@@ -56,7 +56,7 @@ import comet_ml
 comet_ml.init(project_name="comet-example-yolov8-coco128")
 ```
 
-*Note:* If you are using a Google Colab notebook, the code above will prompt you to enter your API key for initialization.
+If you are using a Google Colab notebook, the code above will prompt you to enter your API key for initialization.
 
 ## Usage
 

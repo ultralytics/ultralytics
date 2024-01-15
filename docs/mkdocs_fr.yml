@@ -8,8 +8,8 @@ repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/fr/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
-docs_dir: 'fr/'  # where to find the markdown files
-site_dir: '../site/fr'  # where to publish to
+docs_dir: "fr/" # where to find the markdown files
+site_dir: "../site/fr" # where to publish to
 
 theme:
   name: material
@@ -61,7 +61,7 @@ theme:
     - navigation.instant.progress
     - navigation.indexes
     - navigation.sections
-    - content.tabs.link  # all code tabs change simultaneously
+    - content.tabs.link # all code tabs change simultaneously
 
 # Customization
 copyright: <a href="https://ultralytics.com" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
@@ -150,7 +150,6 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
-
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:

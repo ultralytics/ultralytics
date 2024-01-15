@@ -79,7 +79,7 @@ class Conv2(Conv):
         """Fuse parallel convolutions."""
         w = torch.zeros_like(self.conv.weight.data)
         i = [x // 2 for x in w.shape[2:]]
-        w[:, :, i[0]: i[0] + 1, i[1]: i[1] + 1] = self.cv2.weight.data.clone()
+        w[:, :, i[0] : i[0] + 1, i[1] : i[1] + 1] = self.cv2.weight.data.clone()
         self.conv.weight.data += w
         self.__delattr__("cv2")
         self.forward = self.forward_fuse
@@ -293,6 +293,7 @@ class DRepConv(nn.Module):
     This module is used in UniRepLKNet.
     Based on https://github.com/AILab-CVC/UniRepLKNet/blob/main/unireplknet.py
     """
+
     default_act = nn.SiLU()  # default activation
     SETTING_CONFIG = {
         # kernel dilates and stride in different large kernel size
@@ -302,7 +303,7 @@ class DRepConv(nn.Module):
         11: ([5, 5, 3, 3, 3], [1, 2, 3, 4, 5]),
         9: ([5, 5, 3, 3], [1, 2, 3, 4]),
         7: ([5, 3, 3], [1, 2, 3]),
-        5: ([3, 3], [1, 2])
+        5: ([3, 3], [1, 2]),
     }
 
     def __init__(self, c1, c2, k=1, act=True):
@@ -313,13 +314,13 @@ class DRepConv(nn.Module):
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
         for k, r in zip(self.kernel_sizes, self.dilates):
             self.__setattr__(
-                f'cv_k{k}_r{r}', Conv(c1, c2, k=k, s=1, p=(r * (k - 1) + 1) // 2, g=math.gcd(c1, c2), d=r, act=False)
+                f"cv_k{k}_r{r}", Conv(c1, c2, k=k, s=1, p=(r * (k - 1) + 1) // 2, g=math.gcd(c1, c2), d=r, act=False)
             )
 
     def forward(self, x):
         out = self.cv1(x)
         for k, r in zip(self.kernel_sizes, self.dilates):
-            out = out + self.__getattr__(f'cv_k{k}_r{r}')(x)
+            out = out + self.__getattr__(f"cv_k{k}_r{r}")(x)
         return self.act(out)
 
     def forward_fuse(self, x):
@@ -344,11 +345,11 @@ class DRepConv(nn.Module):
     def get_equivalent_kernel_bias(self):
         cv1_w, cv1_b = self._fuse_bn(self.cv1.conv, self.cv1.bn)
         for k, r in zip(self.kernel_sizes, self.dilates):
-            cv_k_r = self.__getattr__(f'cv_k{k}_r{r}')
+            cv_k_r = self.__getattr__(f"cv_k{k}_r{r}")
             cv_k_r_w, cv_k_r_b = self._fuse_bn(cv_k_r.conv, cv_k_r.bn)
             cv1_w = self.merge_dilated_into_large_kernel(cv1_w, cv_k_r_w, r)
             cv1_b += cv_k_r_b
-            self.__delattr__(f'cv_k{k}_r{r}')
+            self.__delattr__(f"cv_k{k}_r{r}")
         return cv1_w, cv1_b
 
     @staticmethod
@@ -377,9 +378,11 @@ class DRepConv(nn.Module):
     @staticmethod
     def convert_dense_to_nondilated(kernel, dilate_rate):
         slices = [
-            F.conv_transpose2d(kernel[:, i:i + 1, :, :], torch.ones((1, 1, 1, 1)).to(kernel.device), stride=dilate_rate)
-            for
-            i in range(kernel.size(1))]
+            F.conv_transpose2d(
+                kernel[:, i : i + 1, :, :], torch.ones((1, 1, 1, 1)).to(kernel.device), stride=dilate_rate
+            )
+            for i in range(kernel.size(1))
+        ]
         return torch.cat(slices, dim=1)
 
     def merge_dilated_into_large_kernel(self, large_kernel, dilated_kernel, dilate_rate):

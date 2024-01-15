@@ -390,5 +390,3 @@ class ResNetLayer(nn.Module):
     def forward(self, x):
         """Forward pass through the ResNet layer."""
         return self.layer(x)
-
-

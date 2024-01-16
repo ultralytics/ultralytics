@@ -29,10 +29,10 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
-| Model Type | Pre-trained Weights | Tasks Supported                              | Inference | Validation | Training | Export |
-|------------|---------------------|----------------------------------------------|-----------|------------|----------|--------|
-| SAM base   | `sam_b.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
-| SAM large  | `sam_l.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| Model Type | Pre-trained Weights                                                                 | Tasks Supported                              | Inference | Validation | Training | Export |
+|------------|-------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 

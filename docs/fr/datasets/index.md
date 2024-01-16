@@ -80,7 +80,7 @@ Contribuer un nouvel ensemble de données implique plusieurs étapes pour s'assu
 
 2. **Annoter des Images** : Annotez ces images avec des boîtes englobantes, des segments ou des points clés, en fonction de la tâche.
 
-3. **Exporter des Annotations** : Convertissez ces annotations au format de fichier YOLO *.txt pris en charge par Ultralytics.
+3. **Exporter des Annotations** : Convertissez ces annotations au format de fichier YOLO `*.txt` pris en charge par Ultralytics.
 
 4. **Organiser l'Ensemble de Données** : Rangez votre ensemble de données dans la bonne structure de dossiers. Vous devriez avoir des répertoires de niveau supérieur `train/` et `val/`, et à l'intérieur de chacun, un sous-répertoire `images/` et `labels/`.
 

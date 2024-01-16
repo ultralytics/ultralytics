@@ -22,6 +22,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 !!! Example "Install"
 
     === "Pip install (recommended)"
+
         Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
 
         [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
@@ -38,8 +39,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         pip install git+https://github.com/ultralytics/ultralytics.git@main
         ```
 
-
     === "Conda install"
+
         Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
 
 

@@ -138,14 +138,13 @@ Note: This works using LLMs under the hood so the results are probabilistic and 
     from ultralytics import Explorer
     from ultralytics.data.explorer import plot_query_result
 
-
     # create an Explorer object
     exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
     exp.create_embeddings_table()
-
+    
     df = exp.ask_ai("show me 100 images with exactly one person and 2 dogs. There can be other objects too")
     print(df.head())
-
+    
     # plot the results
     plt = plot_query_result(df)
     plt.show()

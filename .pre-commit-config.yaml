@@ -45,7 +45,7 @@ repos:
           # - mdformat-admon>=1.1.3
           - mdformat-frontmatter>=2.0.8
           - mdformat_tables>=0.4.1
-          - mdformat-mkdocs@git+https://github.com/KyleKing/mdformat-mkdocs.git
+          - mdformat-mkdocs@git+https://github.com/KyleKing/mdformat-mkdocs.git@b90d8a131d3d76a8f021c45d4082576aca76847c
           # # PLANNED: defer additional plugins (black/beautysh/etc.) to minimize diff
           # #   Note: 'mdformat-mkdocs[recommended]' includes admon, frontmatter, and tables
           # - mdformat-mkdocs[recommended]>=2.0.0

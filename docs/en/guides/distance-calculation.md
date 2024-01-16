@@ -59,7 +59,6 @@ Measuring the gap between two objects is known as distance calculation within a 
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
 ???+ tip "Note"

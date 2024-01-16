@@ -61,14 +61,16 @@ Before diving into the usage instructions, be sure to check out the range of [YO
     === "Python"
 
         ```python
-       from ultralytics import YOLO
+        from ultralytics import YOLO
 
-       # Load a pre-trained model
-       model = YOLO('yolov8n.pt')
+        # Load a pre-trained model
 
-       # Train the model
-       results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
-       ```
+        model = YOLO('yolov8n.pt')
+
+        # Train the model
+
+        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        ```
 
 Upon running the usage code snippet above, you can expect the following output:
 

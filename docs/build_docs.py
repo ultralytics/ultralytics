@@ -33,9 +33,10 @@ from tqdm import tqdm
 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
+LANGUAGES = True
 
 
-def build_docs(with_languages=False):
+def build_docs():
     """Build docs using mkdocs."""
     if SITE.exists():
         print(f"Removing existing {SITE}")
@@ -46,7 +47,7 @@ def build_docs(with_languages=False):
     subprocess.run(f"mkdocs build -f {DOCS}/mkdocs.yml", check=True, shell=True)
 
     # Build other localized documentations
-    if with_languages:
+    if LANGUAGES:
         for file in DOCS.glob("mkdocs_*.yml"):
             print(f"Building MkDocs site with configuration file: {file}")
             subprocess.run(f"mkdocs build -f {file}", check=True, shell=True)
@@ -103,13 +104,8 @@ def update_page_title(file_path: Path, new_title: str):
         file.write(updated_content)
 
 
-def update_html_head():
+def update_html_head(key=""):
     """Update the HTML head section of each file."""
-    key = os.environ.get("WEGLOT_KEY")
-    if not key:
-        print("No key, skipping head updates")
-        return
-
     html_files = Path(SITE).rglob("*.html")
     for html_file in tqdm(html_files, desc="Processing HTML files"):
         with html_file.open("r", encoding="utf-8") as file:
@@ -123,7 +119,6 @@ def update_html_head():
     }});
 </script>
 """
-
         if script in html_content:  # script already in HTML file
             return
 
@@ -143,10 +138,13 @@ def main():
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
     # Update .md in href links
-    # update_html_links()
+    if LANGUAGES:
+        update_html_links()
 
     # Update HTML file head section
-    update_html_head()
+    key = os.environ.get("WEGLOT_KEY")
+    if not LANGUAGES and key:
+        update_html_head(key)
 
     # Show command to serve built website
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')

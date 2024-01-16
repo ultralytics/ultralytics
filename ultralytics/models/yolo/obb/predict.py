@@ -48,5 +48,23 @@ class OBBPredictor(DetectionPredictor):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape, xywh=True)
             # xywh, r, conf, cls
             obb = torch.cat([pred[:, :4], pred[:, -1:], pred[:, 4:6]], dim=-1)
-            results.append(Results(orig_img, path=img_path, names=self.model.names, obb=obb))
+            classes = {
+                0: "plane",
+                1: "ship",
+                2: "storage tank",
+                3: "baseball diamond",
+                4: "tennis court",
+                5: "basketball court",
+                6: "ground track field",
+                7: "harbor",
+                8: "bridge",
+                9: "vehicle",
+                10: "vehicle",
+                11: "helicopter",
+                12: "roundabout",
+                13: "soccer ball field",
+                14: "swimming pool"
+            }
+
+            results.append(Results(orig_img, path=img_path, names=classes, obb=obb))
         return results

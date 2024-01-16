@@ -103,7 +103,7 @@ class Results(SimpleClass):
         self.path = path
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb"
-
+        self.count = 0
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
         return self._apply("__getitem__", idx)
@@ -253,7 +253,7 @@ class Results(SimpleClass):
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
-                annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
+                annotator.box_label(box, label, color=(147, 20, 255), txt_color=(255, 255, 255), rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:

@@ -135,6 +135,9 @@ def main():
     # Build the docs
     build_docs()
 
+    # Update titles
+    update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
+
     # Update .md in href links
     # update_html_links()
 
@@ -143,9 +146,6 @@ def main():
 
     # Show command to serve built website
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
-
-    # Update titles
-    update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
 
 if __name__ == "__main__":

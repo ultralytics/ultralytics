@@ -104,6 +104,7 @@ class Results(SimpleClass):
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb"
         self.count = 0
+
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
         return self._apply("__getitem__", idx)

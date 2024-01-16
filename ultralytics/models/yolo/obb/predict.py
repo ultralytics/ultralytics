@@ -63,7 +63,7 @@ class OBBPredictor(DetectionPredictor):
                 11: "helicopter",
                 12: "roundabout",
                 13: "soccer ball field",
-                14: "swimming pool"
+                14: "swimming pool",
             }
 
             results.append(Results(orig_img, path=img_path, names=classes, obb=obb))

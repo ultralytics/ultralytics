@@ -32,6 +32,7 @@ The COCO dataset is widely used for training and evaluating deep learning models
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
 !!! Example "ultralytics/cfg/datasets/coco.yaml"
+
     ```yaml
     --8<-- "ultralytics/cfg/datasets/coco.yaml"
     ```

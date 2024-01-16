@@ -254,6 +254,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         ```
 
     === "JSON Response"
+
         Note `segments` `x` and `y` lengths may vary from one object to another. Larger or more complex objects may have more segment points.
         ```json
         {
@@ -394,6 +395,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         ```
 
     === "JSON Response"
+
         Note COCO-keypoints pretrained models will have 17 human keypoints. The `visible` part of the keypoints indicates whether a keypoint is visible or obscured. Obscured keypoints may be outside the image or may not be visible, i.e. a person's eyes facing away from the camera.
         ```json
         {

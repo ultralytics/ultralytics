@@ -24,6 +24,7 @@ The output of an object detector is a set of bounding boxes that enclose the obj
 </p>
 
 !!! Tip "Tip"
+
     YOLOv8 Detect models are the default YOLOv8 models, i.e. `yolov8n.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
@@ -33,7 +34,7 @@ YOLOv8 pretrained Detect models are shown here. Detect, Segment and Pose models 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+|--------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m.pt) | 640                   | 50.2                 | 234.7                          | 1.83                                | 25.9               | 78.9              |
@@ -62,7 +63,6 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a ful
         # Train the model
         results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
-
     === "CLI"
 
         ```bash
@@ -102,7 +102,6 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
         metrics.box.map75  # map75
         metrics.box.maps   # a list contains map50-95 of each category
         ```
-
     === "CLI"
 
         ```bash
@@ -128,7 +127,6 @@ Use a trained YOLOv8n model to run predictions on images.
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
-
     === "CLI"
 
         ```bash
@@ -156,7 +154,6 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format='onnx')
         ```
-
     === "CLI"
 
         ```bash
@@ -167,7 +164,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 Available YOLOv8 export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
-| ------------------------------------------------------------------ | ----------------- | ------------------------- | -------- | --------------------------------------------------- |
+|--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

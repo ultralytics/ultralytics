@@ -30,11 +30,12 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 ## Real World Applications
 
 |                                                                 Transportation                                                                  |                                                                 Retail                                                                  |
-| :---------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
+|:-----------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------:|
 | ![Ultralytics YOLOv8 Transportation Heatmap](https://github.com/RizwanMunawar/ultralytics/assets/62513924/288d7053-622b-4452-b4e4-1f41aeb764aa) | ![Ultralytics YOLOv8 Retail Heatmap](https://github.com/RizwanMunawar/ultralytics/assets/62513924/edef75ad-50a7-4c0a-be4a-a66cdfc12802) |
 |                                                    Ultralytics YOLOv8 Transportation Heatmap                                                    |                                                    Ultralytics YOLOv8 Retail Heatmap                                                    |
 
 !!! tip "Heatmap Configuration"
+
     - `heatmap_alpha`: Ensure this value is within the range (0.0 - 1.0).
     - `decay_factor`: Used for removing heatmap after an object is no longer in the frame, its value should also be in the range (0.0 - 1.0).
 
@@ -190,6 +191,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
                                      view_img=True,
                                      shape="circle")
 
+
         results = model.track(im0, persist=True)
         im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
         cv2.imwrite("ultralytics_output.png", im0)
@@ -241,38 +243,38 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 ### Arguments `set_args`
 
-| Name                | Type           | Default           | Description                                               |
-| ------------------- | -------------- | ----------------- | --------------------------------------------------------- |
-| view_img            | `bool`         | `False`           | Display the frame with heatmap                            |
-| colormap            | `cv2.COLORMAP` | `None`            | cv2.COLORMAP for heatmap                                  |
-| imw                 | `int`          | `None`            | Width of Heatmap                                          |
-| imh                 | `int`          | `None`            | Height of Heatmap                                         |
-| heatmap_alpha       | `float`        | `0.5`             | Heatmap alpha value                                       |
-| count_reg_pts       | `list`         | `None`            | Object counting region points                             |
-| count_txt_thickness | `int`          | `2`               | Count values text size                                    |
-| count_txt_color     | `RGB Color`    | `(0, 0, 0)`       | Foreground color for Object counts text                   |
-| count_color         | `RGB Color`    | `(255, 255, 255)` | Background color for Object counts text                   |
-| count_reg_color     | `RGB Color`    | `(255, 0, 255)`   | Counting region color                                     |
-| region_thickness    | `int`          | `5`               | Counting region thickness value                           |
-| decay_factor        | `float`        | `0.99`            | Decay factor for heatmap area removal after specific time |
-| shape               | `str`          | `circle`          | Heatmap shape for display "rect" or "circle" supported    |
-| line_dist_thresh    | `int`          | `15`              | Euclidean Distance threshold for line counter             |
+| Name                  | Type           | Default           | Description                                               |
+|-----------------------|----------------|-------------------|-----------------------------------------------------------|
+| `view_img`            | `bool`         | `False`           | Display the frame with heatmap                            |
+| `colormap`            | `cv2.COLORMAP` | `None`            | cv2.COLORMAP for heatmap                                  |
+| `imw`                 | `int`          | `None`            | Width of Heatmap                                          |
+| `imh`                 | `int`          | `None`            | Height of Heatmap                                         |
+| `heatmap_alpha`       | `float`        | `0.5`             | Heatmap alpha value                                       |
+| `count_reg_pts`       | `list`         | `None`            | Object counting region points                             |
+| `count_txt_thickness` | `int`          | `2`               | Count values text size                                    |
+| `count_txt_color`     | `RGB Color`    | `(0, 0, 0)`       | Foreground color for Object counts text                   |
+| `count_color`         | `RGB Color`    | `(255, 255, 255)` | Background color for Object counts text                   |
+| `count_reg_color`     | `RGB Color`    | `(255, 0, 255)`   | Counting region color                                     |
+| `region_thickness`    | `int`          | `5`               | Counting region thickness value                           |
+| `decay_factor`        | `float`        | `0.99`            | Decay factor for heatmap area removal after specific time |
+| `shape`               | `str`          | `circle`          | Heatmap shape for display "rect" or "circle" supported    |
+| `line_dist_thresh`    | `int`          | `15`              | Euclidean Distance threshold for line counter             |
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                   |
-| --------- | ------- | -------------- | ------------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                         |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                              |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                      |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                          |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                                 |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=\[0,2,3\] |
+| Name      | Type    | Default        | Description                                                 |
+|-----------|---------|----------------|-------------------------------------------------------------|
+| `source`  | `im0`   | `None`         | source directory for images or videos                       |
+| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
+| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
+| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
+| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
+| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
 
 ### Heatmap COLORMAPs
 
 | Colormap Name                   | Description                            |
-| ------------------------------- | -------------------------------------- |
+|---------------------------------|----------------------------------------|
 | `cv::COLORMAP_AUTUMN`           | Autumn color map                       |
 | `cv::COLORMAP_BONE`             | Bone color map                         |
 | `cv::COLORMAP_JET`              | Jet color map                          |

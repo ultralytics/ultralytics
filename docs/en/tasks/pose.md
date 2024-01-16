@@ -24,6 +24,7 @@ The output of a pose estimation model is a set of points that represent the keyp
 </p>
 
 !!! Tip "Tip"
+
     YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
@@ -33,7 +34,7 @@ YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models ar
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+|------------------------------------------------------------------------------------------------------|-----------------------|-----------------------|--------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-pose.pt)       | 640                   | 50.4                  | 80.1               | 131.8                          | 1.18                                | 3.3                | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-pose.pt)       | 640                   | 60.0                  | 86.2               | 233.2                          | 1.42                                | 11.6               | 30.2              |
 | [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-pose.pt)       | 640                   | 65.0                  | 88.8               | 456.3                          | 2.00                                | 26.4               | 81.0              |
@@ -83,7 +84,8 @@ YOLO pose dataset format can be found in detail in the [Dataset Guide](../datase
 
 ## Val
 
-Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model`
+retains it's training `data` and arguments as model attributes.
 
 !!! Example
 
@@ -103,7 +105,6 @@ Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No arg
         metrics.box.map75  # map75
         metrics.box.maps   # a list contains map50-95 of each category
         ```
-
     === "CLI"
 
         ```bash
@@ -129,7 +130,6 @@ Use a trained YOLOv8n-pose model to run predictions on images.
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
-
     === "CLI"
 
         ```bash
@@ -157,7 +157,6 @@ Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format='onnx')
         ```
-
     === "CLI"
 
         ```bash
@@ -168,7 +167,7 @@ Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 Available YOLOv8-pose export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-pose.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                          | Metadata | Arguments                                           |
-| ------------------------------------------------------------------ | ----------------- | ------------------------------ | -------- | --------------------------------------------------- |
+|--------------------------------------------------------------------|-------------------|--------------------------------|----------|-----------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-pose.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-pose.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-pose.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

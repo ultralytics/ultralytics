@@ -80,7 +80,7 @@ Contribuir com um novo conjunto de dados envolve várias etapas para garantir qu
 
 2. **Anotar Imagens**: Anote essas imagens com caixas delimitadoras, segmentos ou pontos-chave, dependendo da tarefa.
 
-3. **Exportar Anotações**: Converta essas anotações no formato de arquivo *.txt YOLO que a Ultralytics suporta.
+3. **Exportar Anotações**: Converta essas anotações no formato de arquivo `*.txt` YOLO que a Ultralytics suporta.
 
 4. **Organizar Conjunto de Dados**: Organize seu conjunto de dados na estrutura de pastas correta. Você deve ter diretórios de topo `train/` e `val/`, e dentro de cada um, um subdiretório `images/` e `labels/`.
 

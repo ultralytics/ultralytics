@@ -24,6 +24,7 @@ The output of an image classifier is a single class label and a confidence score
 </p>
 
 !!! Tip "Tip"
+
     YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
@@ -33,7 +34,7 @@ YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose model
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-| -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
+|----------------------------------------------------------------------------------------------|-----------------------|------------------|------------------|--------------------------------|-------------------------------------|--------------------|--------------------------|
 | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-cls.pt) | 224                   | 69.0             | 88.3             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
 | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-cls.pt) | 224                   | 73.8             | 91.7             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
 | [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-cls.pt) | 224                   | 76.8             | 93.5             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
@@ -100,7 +101,6 @@ Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument
         metrics.top1   # top1 accuracy
         metrics.top5   # top5 accuracy
         ```
-
     === "CLI"
 
         ```bash
@@ -126,7 +126,6 @@ Use a trained YOLOv8n-cls model to run predictions on images.
         # Predict with the model
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
-
     === "CLI"
 
         ```bash
@@ -154,7 +153,6 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format='onnx')
         ```
-
     === "CLI"
 
         ```bash
@@ -165,7 +163,7 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 Available YOLOv8-cls export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                         | Metadata | Arguments                                           |
-| ------------------------------------------------------------------ | ----------------- | ----------------------------- | -------- | --------------------------------------------------- |
+|--------------------------------------------------------------------|-------------------|-------------------------------|----------|-----------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-cls.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-cls.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-cls.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |

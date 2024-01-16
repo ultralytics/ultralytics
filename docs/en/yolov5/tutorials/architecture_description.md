@@ -149,19 +149,22 @@ The loss in YOLOv5 is computed as a combination of three individual loss compone
 
 The overall loss function is depicted by:
 
-![loss](https://latex.codecogs.com/svg.image?Loss=%5Clambda_1L_%7Bcls%7D+%5Clambda_2L_%7Bobj%7D+%5Clambda_3L_%7Bloc%7D)
+![loss](https://latex.codecogs.com/svg.image?Loss=\lambda_1L_{cls}+\lambda_2L_{obj}+\lambda_3L_{loc})
 
 ### 4.2 Balance Losses
 
 The objectness losses of the three prediction layers (`P3`, `P4`, `P5`) are weighted differently. The balance weights are `[4.0, 1.0, 0.4]` respectively. This approach ensures that the predictions at different scales contribute appropriately to the total loss.
 
-![obj_loss](https://latex.codecogs.com/svg.image?L_%7Bobj%7D=4.0%5Ccdot&space;L_%7Bobj%7D%5E%7Bsmall%7D+1.0%5Ccdot&space;L_%7Bobj%7D%5E%7Bmedium%7D+0.4%5Ccdot&space;L_%7Bobj%7D%5E%7Blarge%7D)
+![obj_loss](https://latex.codecogs.com/svg.image?L_{obj}=4.0\cdot&space;L_{obj}^{small}+1.0\cdot&space;L_{obj}^{medium}+0.4\cdot&space;L_{obj}^{large})
 
 ### 4.3 Eliminate Grid Sensitivity
 
 The YOLOv5 architecture makes some important changes to the box prediction strategy compared to earlier versions of YOLO. In YOLOv2 and YOLOv3, the box coordinates were directly predicted using the activation of the last layer.
 
-![b_x](<https://latex.codecogs.com/svg.image?b_x=%5Csigma(t_x)+c_x>) ![b_y](<https://latex.codecogs.com/svg.image?b_y=%5Csigma(t_y)+c_y>) ![b_w](https://latex.codecogs.com/svg.image?b_w=p_w%5Ccdot&space;e%5E%7Bt_w%7D) ![b_h](https://latex.codecogs.com/svg.image?b_h=p_h%5Ccdot&space;e%5E%7Bt_h%7D)
+![b_x](<https://latex.codecogs.com/svg.image?b_x=\sigma(t_x)+c_x>)
+![b_y](<https://latex.codecogs.com/svg.image?b_y=\sigma(t_y)+c_y>)
+![b_w](https://latex.codecogs.com/svg.image?b_w=p_w\cdot&space;e^{t_w})
+![b_h](https://latex.codecogs.com/svg.image?b_h=p_h\cdot&space;e^{t_h})
 
 <img src="https://user-images.githubusercontent.com/31005897/158508027-8bf63c28-8290-467b-8a3e-4ad09235001a.png#pic_center" width=40% alt="YOLOv5 grid computation">
 
@@ -169,7 +172,10 @@ However, in YOLOv5, the formula for predicting the box coordinates has been upda
 
 The revised formulas for calculating the predicted bounding box are as follows:
 
-![bx](<https://latex.codecogs.com/svg.image?b_x=(2%5Ccdot%5Csigma(t_x)-0.5)+c_x>) ![by](<https://latex.codecogs.com/svg.image?b_y=(2%5Ccdot%5Csigma(t_y)-0.5)+c_y>) ![bw](<https://latex.codecogs.com/svg.image?b_w=p_w%5Ccdot(2%5Ccdot%5Csigma(t_w))%5E2>) ![bh](<https://latex.codecogs.com/svg.image?b_h=p_h%5Ccdot(2%5Ccdot%5Csigma(t_h))%5E2>)
+![bx](<https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x>)
+![by](<https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y>)
+![bw](<https://latex.codecogs.com/svg.image?b_w=p_w\cdot(2\cdot\sigma(t_w))^2>)
+![bh](<https://latex.codecogs.com/svg.image?b_h=p_h\cdot(2\cdot\sigma(t_h))^2>)
 
 Compare the center point offset before and after scaling. The center point offset range is adjusted from (0, 1) to (-0.5, 1.5). Therefore, offset can easily get 0 or 1.
 
@@ -187,17 +193,17 @@ This process follows these steps:
 
 - Calculate the ratio of the ground truth box dimensions and the dimensions of each anchor template.
 
-![rw](https://latex.codecogs.com/svg.image?r_w=w_%7Bgt%7D/w_%7Bat%7D)
+![rw](https://latex.codecogs.com/svg.image?r_w=w_{gt}/w_{at})
 
-![rh](https://latex.codecogs.com/svg.image?r_h=h_%7Bgt%7D/h_%7Bat%7D)
+![rh](https://latex.codecogs.com/svg.image?r_h=h_{gt}/h_{at})
 
-![rwmax](<https://latex.codecogs.com/svg.image?r_w%5E%7Bmax%7D=max(r_w,1/r_w)>)
+![rwmax](<https://latex.codecogs.com/svg.image?r_w^{max}=max(r_w,1/r_w)>)
 
-![rhmax](<https://latex.codecogs.com/svg.image?r_h%5E%7Bmax%7D=max(r_h,1/r_h)>)
+![rhmax](<https://latex.codecogs.com/svg.image?r_h^{max}=max(r_h,1/r_h)>)
 
-![rmax](<https://latex.codecogs.com/svg.image?r%5E%7Bmax%7D=max(r_w%5E%7Bmax%7D,r_h%5E%7Bmax%7D)>)
+![rmax](<https://latex.codecogs.com/svg.image?r^{max}=max(r_w^{max},r_h^{max})>)
 
-![match](https://latex.codecogs.com/svg.image?r%5E%7Bmax%7D%3C%7B%5Crm&space;anchor_t%7D)
+![match](https://latex.codecogs.com/svg.image?r^{max}<{\rm&space;anchor_t})
 
 <img src="https://user-images.githubusercontent.com/31005897/158508119-fbb2e483-7b8c-4975-8e1f-f510d367f8ff.png#pic_center" width=70% alt="YOLOv5 IoU computation">
 

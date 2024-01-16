@@ -13,7 +13,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 ## Samples
 
 |                                                                        VisionEye View                                                                        |                                                                        VisionEye View With Object Tracking                                                                        |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![VisionEye View Object Mapping using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d593acc-2e37-41b0-ad0e-92b4ffae6647) | ![VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/fcd85952-390f-451e-8fb0-b82e943af89c) |
 |                                                    VisionEye View Object Mapping using Ultralytics YOLOv8                                                    |                                                    VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8                                                    |
 
@@ -109,7 +109,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 ### `visioneye` Arguments
 
 | Name          | Type    | Default          | Description                                      |
-| ------------- | ------- | ---------------- | ------------------------------------------------ |
+|---------------|---------|------------------|--------------------------------------------------|
 | `color`       | `tuple` | `(235, 219, 11)` | Line and object centroid color                   |
 | `pin_color`   | `tuple` | `(255, 0, 255)`  | VisionEye pinpoint color                         |
 | `thickness`   | `int`   | `2`              | pinpoint to object line thickness                |

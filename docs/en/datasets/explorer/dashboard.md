@@ -19,20 +19,21 @@ pip install ultralytics[explorer]
 ```
 
 !!! note "Note"
-    Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI. You can set it like this - `yolo settings openai_api_key="..."`
+
+    Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
+    You can set it like this - `yolo settings openai_api_key="..."`
 
 ## Semantic Search / Vector Similarity Search
 
 Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
 
-For example: In this VOC Exploration dashboard, user selects a couple aeroplane images like this:
-
+For example:
+In this VOC Exploration dashboard, user selects a couple aeroplane images like this:
 <p>
 <img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/AyushExel/assets/assets/15766192/da5f1b0a-9eb5-4712-919c-7d5512240dd8">
 </p>
 
 On performing similarity search, you should see a similar result:
-
 <p>
 <img width="1710" alt="Explorer Dashboard Screenshot 3" src="https://github.com/AyushExel/assets/assets/15766192/5e4c6445-8e4e-48bb-a15a-9fb6c6994af8">
 </p>
@@ -40,7 +41,6 @@ On performing similarity search, you should see a similar result:
 ## Ask AI
 
 This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results. Here's an example output when asked to "Show 10 images with exactly 5 persons" and you'll see a result like this:
-
 <p>
 <img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/AyushExel/assets/assets/15766192/e536b0eb-6bce-43fe-b800-3e79510d2e5b">
 </p>

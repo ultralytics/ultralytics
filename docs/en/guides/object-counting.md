@@ -77,7 +77,6 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
     === "Line"

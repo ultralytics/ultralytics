@@ -30,6 +30,7 @@ This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.
 A YAML (Yet Another Markup Language) file serves as the means to specify the configuration details of a dataset. It encompasses crucial data such as file paths, class definitions, and other pertinent information. Specifically, for the `tiger-pose.yaml` file, you can check [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
 
 !!! Example "ultralytics/cfg/datasets/tiger-pose.yaml"
+
     ```yaml
     --8<-- "ultralytics/cfg/datasets/tiger-pose.yaml"
     ```

@@ -12,7 +12,7 @@ Training a robust and accurate object detection model requires a comprehensive d
 
 ### Ultralytics YOLO format
 
-The Ultralytics YOLO format is a dataset configuration format that allows you to define the dataset root directory, the relative paths to training/validation/testing image directories or \*.txt files containing image paths, and a dictionary of class names. Here is an example:
+The Ultralytics YOLO format is a dataset configuration format that allows you to define the dataset root directory, the relative paths to training/validation/testing image directories or `*.txt` files containing image paths, and a dictionary of class names. Here is an example:
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
@@ -61,7 +61,6 @@ Here's how you can use these formats to train your model:
         # Train the model
         results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
         ```
-
     === "CLI"
 
         ```bash

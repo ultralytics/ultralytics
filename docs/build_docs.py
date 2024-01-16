@@ -117,7 +117,11 @@ def update_html_head():
 
         script = f"""
 <script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js"></script>
-<script>Weglot.initialize({{api_key: '{key}'}});</script>
+<script>
+    Weglot.initialize({{
+        api_key: '{key}'
+    }});
+</script>
 """
 
         if script in html_content:  # script already in HTML file

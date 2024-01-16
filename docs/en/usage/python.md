@@ -52,6 +52,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
 !!! Example "Train"
 
     === "From pretrained(recommended)"
+
         ```python
         from ultralytics import YOLO
 
@@ -60,6 +61,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         ```
 
     === "From scratch"
+
         ```python
         from ultralytics import YOLO
 
@@ -68,6 +70,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         ```
 
     === "Resume"
+
         ```python
         model = YOLO("last.pt")
         results = model.train(resume=True)
@@ -82,6 +85,7 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
 !!! Example "Val"
 
     === "Val after training"
+
         ```python
           from ultralytics import YOLO
 
@@ -91,6 +95,7 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
         ```
 
     === "Val independently"
+
         ```python
           from ultralytics import YOLO
 
@@ -110,6 +115,7 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
 !!! Example "Predict"
 
     === "From source"
+
         ```python
         from ultralytics import YOLO
         from PIL import Image
@@ -133,6 +139,7 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
         ```
 
     === "Results usage"
+
         ```python
         # results would be a list of Results object including all the predictions by default
         # but be careful as it could occupy a lot memory when there're many images,

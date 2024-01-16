@@ -20,6 +20,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 !!! Example "VisionEye Object Mapping using YOLOv8"
 
     === "VisionEye Object Mapping"
+
         ```python
         import cv2
         from ultralytics import YOLO
@@ -62,6 +63,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
         ```
 
     === "VisionEye Object Mapping with Object Tracking"
+
         ```python
         import cv2
         from ultralytics import YOLO

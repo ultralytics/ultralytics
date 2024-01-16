@@ -37,6 +37,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 !!! Example "Object Counting using YOLOv8 Example"
 
     === "Region"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
@@ -76,10 +77,10 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
     === "Line"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
@@ -122,6 +123,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         ```
 
     === "Specific Classes"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter

@@ -42,12 +42,13 @@ repos:
       - id: mdformat
         name: MD formatting
         additional_dependencies:
-          - mdformat-admon>=1.1.3
+          # - mdformat-admon>=1.1.3
           - mdformat-frontmatter>=2.0.8
           - mdformat_tables>=0.4.1
+          - mdformat-mkdocs@git+https://github.com/KyleKing/mdformat-mkdocs.git
           # # PLANNED: defer additional plugins (black/beautysh/etc.) to minimize diff
           # #   Note: 'mdformat-mkdocs[recommended]' includes admon, frontmatter, and tables
-          # - mdformat-mkdocs[recommended]>=1.2.0
+          # - mdformat-mkdocs[recommended]>=2.0.0
         args:
           - --wrap=no
           - --number

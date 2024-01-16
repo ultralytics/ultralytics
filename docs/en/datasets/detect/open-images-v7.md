@@ -8,6 +8,15 @@ keywords: Open Images V7, object detection, segmentation masks, visual relations
 
 [Open Images V7](https://storage.googleapis.com/openimages/web/index.html) is a versatile and expansive dataset championed by Google. Aimed at propelling research in the realm of computer vision, it boasts a vast collection of images annotated with a plethora of data, including image-level labels, object bounding boxes, object segmentation masks, visual relationships, and localized narratives.
 
+## Open Images V7 Pretrained Models
+| Model Type         | Pre-trained Weights                                                                               | Description                                                                            |
+|--------------------|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| YOLOv8 Nano        | [yolov8n-oiv7.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-oiv7.pt) | Model fine-tuned on OpenImages-V7 Dataset using Ultralytics YOLOv8 Nano Variant        |
+| YOLOv8 Small       | [yolov8s-oiv7.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-oiv7.pt) | Model fine-tuned on OpenImages-V7 Dataset using Ultralytics YOLOv8 Small Variant       |
+| YOLOv8 Medium      | [yolov8m-oiv7.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-oiv7.pt) | Model fine-tuned on OpenImages-V7 Dataset using Ultralytics YOLOv8 Medium Variant      |
+| YOLOv8 Large       | [yolov8l-oiv7.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-oiv7.pt) | Model fine-tuned on OpenImages-V7 Dataset using Ultralytics YOLOv8 Large Variant       |
+| YOLOv8 Extra Large | [yolov8x-oiv7.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-oiv7.pt) | Model fine-tuned on OpenImages-V7 Dataset using Ultralytics YOLOv8 Extra Large Variant |
+
 ![Open Images V7 classes visual](https://user-images.githubusercontent.com/26833433/258660358-2dc07771-ec08-4d11-b24a-f66e07550050.png)
 
 ## Key Features

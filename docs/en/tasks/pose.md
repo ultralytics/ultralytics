@@ -64,6 +64,7 @@ Train a YOLOv8-pose model on the COCO128-pose dataset.
         # Train the model
         results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash

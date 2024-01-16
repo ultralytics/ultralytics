@@ -193,18 +193,21 @@ Default arguments can be overridden by simply passing them as arguments in the C
 !!! Tip ""
 
     === "Train"
+
         Train a detection model for `10 epochs` with `learning_rate` of `0.01`
         ```bash
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
+
         Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
         yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"
+
         Validate a pretrained detection model at batch-size 1 and image size 640:
         ```bash
         yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
@@ -221,6 +224,7 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
 !!! Example
 
     === "CLI"
+
         ```bash
         yolo copy-cfg
         yolo cfg=default_copy.yaml imgsz=320

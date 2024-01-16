@@ -105,7 +105,7 @@ def update_page_title(file_path: Path, new_title: str):
 
 def update_html_head():
     """Update the HTML head section of each file."""
-    key = os.environ.get("WEGLOT_KEY_DOCS")
+    key = os.environ.get("WEGLOT_KEY")
     if not key:
         print("No key, skipping head updates")
         return

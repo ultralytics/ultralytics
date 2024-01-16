@@ -71,7 +71,7 @@ jobs:
           python docs/build_docs.py
           git config --global user.name "Glenn Jocher"
           git config --global user.email "glenn.jocher@ultralytics.com"
-          git clone https://github.com/glenn-jocher/docs.git docs-repo
+          git clone https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
           git checkout gh-pages || git checkout -b gh-pages
           rm -rf *
@@ -80,7 +80,7 @@ jobs:
           git add .
           LATEST_HASH=$(git rev-parse --short=7 HEAD)
           git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
-          git push https://$PERSONAL_ACCESS_TOKEN@github.com/glenn-jocher/docs.git gh-pages
+          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
       - name: Extract PR Details
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then

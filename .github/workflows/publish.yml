@@ -28,7 +28,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
@@ -80,7 +80,7 @@ jobs:
           git add .
           LATEST_HASH=$(git rev-parse --short=7 HEAD)
           git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
-          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
+          git push https://$PERSONAL_ACCESS_TOKEN@github.com/glenn-jocher/docs.git gh-pages
       - name: Extract PR Details
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then

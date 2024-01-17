@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# This module defines the base classes and structures for object tracking in YOLO.
+"""This module defines the base classes and structures for object tracking in YOLO."""
 
 from collections import OrderedDict
 
@@ -55,6 +55,7 @@ class BaseTrack:
     _count = 0
 
     def __init__(self):
+        """Initializes a new track with unique ID and foundational tracking attributes."""
         self.track_id = 0
         self.is_activated = False
         self.state = TrackState.New

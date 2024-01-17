@@ -52,6 +52,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
 !!! Example "Train"
 
     === "From pretrained(recommended)"
+
         ```python
         from ultralytics import YOLO
 
@@ -60,6 +61,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         ```
 
     === "From scratch"
+
         ```python
         from ultralytics import YOLO
 
@@ -68,6 +70,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         ```
 
     === "Resume"
+
         ```python
         model = YOLO("last.pt")
         results = model.train(resume=True)
@@ -82,6 +85,7 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
 !!! Example "Val"
 
     === "Val after training"
+
         ```python
           from ultralytics import YOLO
 
@@ -91,6 +95,7 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
         ```
 
     === "Val independently"
+
         ```python
           from ultralytics import YOLO
 
@@ -110,6 +115,7 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
 !!! Example "Predict"
 
     === "From source"
+
         ```python
         from ultralytics import YOLO
         from PIL import Image
@@ -133,6 +139,7 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
         ```
 
     === "Results usage"
+
         ```python
         # results would be a list of Results object including all the predictions by default
         # but be careful as it could occupy a lot memory when there're many images,
@@ -239,6 +246,52 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
         ```
 
 [Benchmark Examples](../modes/benchmark.md){ .md-button }
+
+## Explorer
+
+Explorer API can be used to explore datasets with advanced semantic, vector-similarity and SQL search among other features. It also searching for images based on their content using natural language by utilizing the power of LLMs. The Explorer API allows you to write your own dataset exploration notebooks or scripts to get insights into your datasets.
+
+!!! Example "Semantic Search Using Explorer"
+
+    === "Using Images"
+
+        ```python
+        from ultralytics import Explorer
+
+        # create an Explorer object
+        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp.create_embeddings_table()
+
+        similar = exp.get_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
+        print(similar.head())
+
+        # Search using multiple indices
+        similar = exp.get_similar(
+                                img=['https://ultralytics.com/images/bus.jpg',
+                                     'https://ultralytics.com/images/bus.jpg'],
+                                limit=10
+                                )
+        print(similar.head())
+        ```
+
+    === "Using Dataset Indices"
+
+        ```python
+        from ultralytics import Explorer
+
+        # create an Explorer object
+        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp.create_embeddings_table()
+
+        similar = exp.get_similar(idx=1, limit=10)
+        print(similar.head())
+
+        # Search using multiple indices
+        similar = exp.get_similar(idx=[1,10], limit=10)
+        print(similar.head())
+        ```
+
+[Explorer](../datasets/explorer/index.md){ .md-button }
 
 ## Using Trainers
 

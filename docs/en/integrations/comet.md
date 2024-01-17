@@ -56,7 +56,7 @@ import comet_ml
 comet_ml.init(project_name="comet-example-yolov8-coco128")
 ```
 
-*Note:* If you are using a Google Colab notebook, the code above will prompt you to enter your API key for initialization.
+If you are using a Google Colab notebook, the code above will prompt you to enter your API key for initialization.
 
 ## Usage
 
@@ -133,6 +133,7 @@ You can control the number of image predictions that Comet ML logs during your e
 
 ```python
 import os
+
 os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
 ```
 
@@ -142,6 +143,7 @@ Comet ML allows you to specify how often batches of image predictions are logged
 
 ```python
 import os
+
 os.environ['COMET_EVAL_BATCH_LOGGING_INTERVAL'] = "4"
 ```
 
@@ -151,6 +153,7 @@ In some cases, you may not want to log the confusion matrix from your validation
 
 ```python
 import os
+
 os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
 ```
 
@@ -160,6 +163,7 @@ If you find yourself in a situation where internet access is limited, Comet ML p
 
 ```python
 import os
+
 os.environ["COMET_MODE"] = "offline"
 ```
 

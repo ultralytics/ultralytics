@@ -6,7 +6,7 @@ keywords: ImageNette dataset, Ultralytics, YOLO, Image classification, Machine L
 
 # ImageNette Dataset
 
-The [ImageNette](https://github.com/fastai/imagenette) dataset is a subset of the larger [Imagenet](http://www.image-net.org/) dataset, but it only includes 10 easily distinguishable classes. It was created to provide a quicker, easier-to-use version of Imagenet for software development and education.
+The [ImageNette](https://github.com/fastai/imagenette) dataset is a subset of the larger [Imagenet](https://www.image-net.org/) dataset, but it only includes 10 easily distinguishable classes. It was created to provide a quicker, easier-to-use version of Imagenet for software development and education.
 
 ## Key Features
 

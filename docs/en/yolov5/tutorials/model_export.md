@@ -134,9 +134,11 @@ Visualize:       https://netron.app/
 ```
 
 The 3 exported models will be saved alongside the original PyTorch model:
+
 <p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/122827190-57a8f880-d2e4-11eb-860e-dbb7f9fc57fb.png" alt="YOLO export locations"></p>
 
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
+
 <p align="center"><img width="850" src="https://user-images.githubusercontent.com/26833433/191003260-f94011a7-5b2e-4fe3-93c1-e1a935e0a728.png" alt="YOLO model visualization"></p>
 
 ## Exported Model Usage Examples
@@ -175,21 +177,21 @@ python val.py --weights yolov5s.pt                 # PyTorch
 
 Use PyTorch Hub with exported YOLOv5 models:
 
-``` python
+```python
 import torch
 
 # Model
 model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.pt')
-                                                       'yolov5s.torchscript ')       # TorchScript
-                                                       'yolov5s.onnx')               # ONNX Runtime
-                                                       'yolov5s_openvino_model')     # OpenVINO
-                                                       'yolov5s.engine')             # TensorRT
-                                                       'yolov5s.mlmodel')            # CoreML (macOS Only)
-                                                       'yolov5s_saved_model')        # TensorFlow SavedModel
-                                                       'yolov5s.pb')                 # TensorFlow GraphDef
-                                                       'yolov5s.tflite')             # TensorFlow Lite
-                                                       'yolov5s_edgetpu.tflite')     # TensorFlow Edge TPU
-                                                       'yolov5s_paddle_model')       # PaddlePaddle
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.torchscript ')  # TorchScript
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.onnx')  # ONNX Runtime
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_openvino_model')  # OpenVINO
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.engine')  # TensorRT
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.mlmodel')  # CoreML (macOS Only)
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_saved_model')  # TensorFlow SavedModel
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.pb')  # TensorFlow GraphDef
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.tflite')  # TensorFlow Lite
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_edgetpu.tflite')  # TensorFlow Edge TPU
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_paddle_model')  # PaddlePaddle
 
 # Images
 img = 'https://ultralytics.com/images/zidane.jpg'  # or file, Path, PIL, OpenCV, numpy, list

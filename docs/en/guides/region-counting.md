@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Trackin
 
 ## What is Object Counting in Regions?
 
-Object counting in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced computer vision. This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
+[Object counting](https://docs.ultralytics.com/guides/object-counting/) in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced computer vision. This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
 
 <p align="center">
   <br>

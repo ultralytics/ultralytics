@@ -28,7 +28,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
@@ -66,6 +66,7 @@ jobs:
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
+          WEGLOT_KEY: ${{ secrets.WEGLOT_KEY_DOCS }}
         run: |
           python docs/build_docs.py
           git config --global user.name "Glenn Jocher"

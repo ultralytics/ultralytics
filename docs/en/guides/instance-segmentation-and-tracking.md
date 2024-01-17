@@ -26,18 +26,18 @@ There are two types of instance segmentation tracking available in the Ultralyti
 !!! Example "Instance Segmentation and Tracking"
 
     === "Instance Segmentation"
+
         ```python
         import cv2
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
-        model = YOLO("yolov8n-seg.pt")
+        model = YOLO("yolov8n-seg.pt")  # segmentation model
         names = model.model.names
         cap = cv2.VideoCapture("path/to/video/file.mp4")
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        out = cv2.VideoWriter('instance-segmentation.avi',
-                              cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+        out = cv2.VideoWriter('instance-segmentation.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
 
         while True:
             ret, im0 = cap.read()
@@ -46,15 +46,15 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 break
 
             results = model.predict(im0)
-            clss = results[0].boxes.cls.cpu().tolist()
-            masks = results[0].masks.xy
-
             annotator = Annotator(im0, line_width=2)
 
-            for mask, cls in zip(masks, clss):
-                annotator.seg_bbox(mask=mask,
-                                   mask_color=colors(int(cls), True),
-                                   det_label=names[int(cls)])
+            if results[0].masks is not None:
+                clss = results[0].boxes.cls.cpu().tolist()
+                masks = results[0].masks.xy
+                for mask, cls in zip(masks, clss):
+                    annotator.seg_bbox(mask=mask,
+                                       mask_color=colors(int(cls), True),
+                                       det_label=names[int(cls)])
 
             out.write(im0)
             cv2.imshow("instance-segmentation", im0)
@@ -69,6 +69,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
         ```
 
     === "Instance Segmentation with Object Tracking"
+
         ```python
         import cv2
         from ultralytics import YOLO
@@ -78,12 +79,11 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         track_history = defaultdict(lambda: [])
 
-        model = YOLO("yolov8n-seg.pt")
+        model = YOLO("yolov8n-seg.pt")   # segmentation model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        out = cv2.VideoWriter('instance-segmentation-object-tracking.avi',
-                              cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+        out = cv2.VideoWriter('instance-segmentation-object-tracking.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
 
         while True:
             ret, im0 = cap.read()
@@ -91,16 +91,18 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            results = model.track(im0, persist=True)
-            masks = results[0].masks.xy
-            track_ids = results[0].boxes.id.int().cpu().tolist()
-
             annotator = Annotator(im0, line_width=2)
 
-            for mask, track_id in zip(masks, track_ids):
-                annotator.seg_bbox(mask=mask,
-                                   mask_color=colors(track_id, True),
-                                   track_label=str(track_id))
+            results = model.track(im0, persist=True)
+
+            if results[0].boxes.id is not None and results[0].masks is not None:
+                masks = results[0].masks.xy
+                track_ids = results[0].boxes.id.int().cpu().tolist()
+
+                for mask, track_id in zip(masks, track_ids):
+                    annotator.seg_bbox(mask=mask,
+                                       mask_color=colors(track_id, True),
+                                       track_label=str(track_id))
 
             out.write(im0)
             cv2.imshow("instance-segmentation-object-tracking", im0)

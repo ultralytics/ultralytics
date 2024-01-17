@@ -91,17 +91,21 @@ dev = [
     "coverage[toml]",
     "mkdocs-material",
     "mkdocstrings[python]",
+    "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
     "mkdocs-ultralytics-plugin>=0.0.34", # for meta descriptions and images, dates and authors
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
-    "coremltools>=7.0", # CoreML export
+    "coremltools>=7.0; platform_system != 'Windows'", # CoreML only supported on macOS and Linux
     "openvino-dev>=2023.0", # OpenVINO export
     "tensorflow<=2.13.1", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
-    "jax<=0.4.21", # tensorflowjs bug https://github.com/google/jax/issues/18978
-    "jaxlib<=0.4.21", # tensorflowjs bug https://github.com/google/jax/issues/18978
     "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
+]
+explorer = [
+    "lancedb", # vector search
+    "duckdb", # SQL queries, supports lancedb tables
+    "streamlit", # visualizing with GUI
 ]
 # tensorflow>=2.4.1,<=2.13.1  # TF exports (-cpu, -aarch64, -macos)
 # tflite-support  # for TFLite model metadata
@@ -114,6 +118,7 @@ logging = [
     "dvclive>=2.12.0",
 ]
 extra = [
+    "hub-sdk>=0.0.2", # Ultralytics HUB
     "ipython", # interactive notebook
     "albumentations>=1.0.3", # training augmentations
     "pycocotools>=2.0.6", # COCO mAP
@@ -170,5 +175,5 @@ pre-summary-newline = true
 close-quotes-on-newline = true
 
 [tool.codespell]
-ignore-words-list = "crate,nd,strack,dota,ane,segway,fo,gool,winn,commend"
-skip = '*.csv,*venv*,docs/??/,docs/mkdocs_??.yml'
+ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall"
+skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,__pycache__*,*.ico,*.jpg,*.png,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml'

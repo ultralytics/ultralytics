@@ -92,9 +92,9 @@ Im Folgenden finden Sie eine detaillierte Übersicht über jedes Modell, einschl
 
 | Modelltyp  | Vortrainierte Gewichte                                                                        | Unterstützte Aufgaben                 | Inferenz | Validierung | Training | Export |
 |------------|-----------------------------------------------------------------------------------------------|---------------------------------------|----------|-------------|----------|--------|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
 
 ## Zitierungen und Danksagungen
 

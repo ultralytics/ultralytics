@@ -92,9 +92,9 @@ YOLO-NASモデルは、Small（s）、Medium（m）、Large（l）の3つのバ�
 
 | モデルの種類     | 事前学習済みの重み                                                                                     | サポートされるタスク                 | 推論 | 検証 | トレーニング | エクスポート |
 |------------|-----------------------------------------------------------------------------------------------|----------------------------|----|----|--------|--------|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
 
 ## 引用と謝辞
 

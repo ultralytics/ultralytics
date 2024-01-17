@@ -124,6 +124,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     - `.reshape(-1, 1, 2)` :: Reformats the data into the required shape of `[N, 1, 2]` where `N` is the number of contour points, with each point represented by a single entry `1`, and the entry is composed of `2` values. The `-1` denotes that the number of values along this dimension is flexible.
 
+    </p>
     </details>
     <p></p>
     <details>
@@ -140,6 +141,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     - See [OpenCV Documentation on `drawContours()`](https://docs.opencv.org/4.8.0/d6/d6e/group__imgproc__draw.html#ga746c0625f1781f1ffc9056259103edbc) for more information.
 
+    </p>
     </details>
     <p></p>
 

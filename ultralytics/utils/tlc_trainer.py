@@ -14,7 +14,7 @@ class TLCDetectionTrainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path, mode="train", batch=None, split="train"):
         """
         Build YOLO Dataset.
 
@@ -25,7 +25,7 @@ class TLCDetectionTrainer(DetectionTrainer):
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         tables = tlc_check_dataset(self.data["yaml_file"], get_splits=["train", "val"])
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, table=tables[split])
 
 
     def get_validator(self):

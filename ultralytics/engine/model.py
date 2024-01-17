@@ -5,11 +5,10 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from hub_sdk.config import HUB_WEB_ROOT
-
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
+from ultralytics.hub.utils import HUB_WEB_ROOT
 
 
 class Model(nn.Module):
@@ -123,9 +122,9 @@ class Model(nn.Module):
             (
                 model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
                 [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODELID
-                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),
+                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODELID
             )
-        )  # MODELID
+        )
 
     def _new(self, cfg: str, task=None, model=None, verbose=True):
         """

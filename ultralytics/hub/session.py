@@ -6,9 +6,8 @@ from http import HTTPStatus
 from pathlib import Path
 
 import requests
-from hub_sdk import HUB_WEB_ROOT, HUBClient
 
-from ultralytics.hub.utils import HELP_MSG, PREFIX, TQDM
+from ultralytics.hub.utils import HUB_WEB_ROOT, HELP_MSG, PREFIX, TQDM
 from ultralytics.utils import LOGGER, SETTINGS, __version__, checks, emojis, is_colab
 from ultralytics.utils.errors import HUBModelError
 
@@ -44,6 +43,9 @@ class HUBTrainingSession:
             ValueError: If the provided model identifier is invalid.
             ConnectionError: If connecting with global API key is not supported.
         """
+        checks.check_requirements("hub-sdk>=0.0.2")
+        from hub_sdk import HUBClient
+
         self.rate_limits = {
             "metrics": 3.0,
             "ckpt": 900.0,
@@ -70,8 +72,8 @@ class HUBTrainingSession:
     def load_model(self, model_id):
         """Loads an existing model from Ultralytics HUB using the provided model identifier."""
         self.model = self.client.model(model_id)
-        if not self.model.data:  # then model model does not exist
-            raise ValueError(emojis(f"❌ The specified HUB model does not exist"))  # TODO: improve error handling
+        if not self.model.data:  # then model does not exist
+            raise ValueError(emojis("❌ The specified HUB model does not exist"))  # TODO: improve error handling
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 

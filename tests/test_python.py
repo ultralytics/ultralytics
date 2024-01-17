@@ -77,6 +77,7 @@ def test_predict_img():
     seg_model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
     cls_model = YOLO(WEIGHTS_DIR / 'yolov8n-cls.pt')
     pose_model = YOLO(WEIGHTS_DIR / 'yolov8n-pose.pt')
+    obb_model = YOLO(WEIGHTS_DIR / 'yolov8n-obb.pt')
     im = cv2.imread(str(SOURCE))
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
@@ -104,6 +105,8 @@ def test_predict_img():
     results = cls_model(t, imgsz=32)
     assert len(results) == t.shape[0]
     results = pose_model(t, imgsz=32)
+    assert len(results) == t.shape[0]
+    results = obb_model(t, imgsz=32)
     assert len(results) == t.shape[0]
 
 
@@ -460,6 +463,21 @@ def test_utils_files():
         print(new_path)
 
 
+@pytest.mark.slow
+def test_utils_patches_torch_save():
+    """Test torch_save backoff when _torch_save throws RuntimeError."""
+    from unittest.mock import patch, MagicMock
+    from ultralytics.utils.patches import torch_save
+
+    mock = MagicMock(side_effect=RuntimeError)
+
+    with patch('ultralytics.utils.patches._torch_save', new=mock):
+        with pytest.raises(RuntimeError):
+            torch_save(torch.zeros(1), TMP / 'test.pt')
+
+    assert mock.call_count == 4, "torch_save was not attempted the expected number of times"
+
+
 def test_nn_modules_conv():
     """Test Convolutional Neural Network modules."""
     from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus
@@ -502,7 +520,49 @@ def test_hub():
 
     export_fmts_hub()
     logout()
-    smart_request('GET', 'http://github.com', progress=True)
+    smart_request('GET', 'https://github.com', progress=True)
+
+
+@pytest.fixture
+def image():
+    return cv2.imread(str(SOURCE))
+
+
+@pytest.mark.parametrize(
+    'auto_augment, erasing, force_color_jitter',
+    [
+        (None, 0.0, False),
+        ('randaugment', 0.5, True),
+        ('augmix', 0.2, False),
+        ('autoaugment', 0.0, True), ],
+)
+def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
+    import torchvision.transforms as T
+
+    from ultralytics.data.augment import classify_augmentations
+
+    transform = classify_augmentations(
+        size=224,
+        mean=(0.5, 0.5, 0.5),
+        std=(0.5, 0.5, 0.5),
+        scale=(0.08, 1.0),
+        ratio=(3.0 / 4.0, 4.0 / 3.0),
+        hflip=0.5,
+        vflip=0.5,
+        auto_augment=auto_augment,
+        hsv_h=0.015,
+        hsv_s=0.4,
+        hsv_v=0.4,
+        force_color_jitter=force_color_jitter,
+        erasing=erasing,
+        interpolation=T.InterpolationMode.BILINEAR,
+    )
+
+    transformed_image = transform(Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)))
+
+    assert transformed_image.shape == (3, 224, 224)
+    assert torch.is_tensor(transformed_image)
+    assert transformed_image.dtype == torch.float32
 
 
 @pytest.mark.slow

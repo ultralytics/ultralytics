@@ -12,7 +12,7 @@ preferred-citation:
   - family-names: Qiu
     given-names: Jing
     orcid: "https://orcid.org/0000-0003-3783-7069"
-  title: "YOLO by Ultralytics"
+  title: "Ultralytics YOLO"
   version: 8.0.0
   # doi: 10.5281/zenodo.3908559  # TODO
   date-released: 2023-1-10

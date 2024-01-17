@@ -8,8 +8,7 @@ keywords: Ultralytics, YOLOv8, Inference API, object detection, RESTful API, Pyt
 
 The YOLO Inference API allows you to access the YOLOv8 object detection capabilities via a RESTful API. This enables you to run object detection on images without the need to install and set up the YOLOv8 environment locally.
 
-![Inference API Screenshot](https://github.com/ultralytics/ultralytics/assets/26833433/c0109ec0-7bb0-46e1-b0d2-bae687960a01)
-Screenshot of the Inference API section in the trained model Preview tab.
+![Inference API Screenshot](https://github.com/ultralytics/ultralytics/assets/26833433/c0109ec0-7bb0-46e1-b0d2-bae687960a01) Screenshot of the Inference API section in the trained model Preview tab.
 
 ## API URL
 
@@ -109,6 +108,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
 !!! Example "Detect Model JSON Response"
 
     === "Local"
+
         ```python
         from ultralytics import YOLO
 
@@ -123,6 +123,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         ```
 
     === "CLI API"
+
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
@@ -133,6 +134,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         ```
 
     === "Python API"
+
         ```python
         import requests
 
@@ -154,6 +156,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         ```
 
     === "JSON Response"
+
         ```json
         {
           "success": True,
@@ -203,6 +206,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
 !!! Example "Segment Model JSON Response"
 
     === "Local"
+
         ```python
         from ultralytics import YOLO
 
@@ -217,6 +221,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         ```
 
     === "CLI API"
+
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
@@ -227,6 +232,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         ```
 
     === "Python API"
+
         ```python
         import requests
 
@@ -248,6 +254,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         ```
 
     === "JSON Response"
+
         Note `segments` `x` and `y` lengths may vary from one object to another. Larger or more complex objects may have more segment points.
         ```json
         {
@@ -340,6 +347,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
 !!! Example "Pose Model JSON Response"
 
     === "Local"
+
         ```python
         from ultralytics import YOLO
 
@@ -354,6 +362,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         ```
 
     === "CLI API"
+
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
@@ -364,6 +373,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         ```
 
     === "Python API"
+
         ```python
         import requests
 
@@ -385,6 +395,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         ```
 
     === "JSON Response"
+
         Note COCO-keypoints pretrained models will have 17 human keypoints. The `visible` part of the keypoints indicates whether a keypoint is visible or obscured. Obscured keypoints may be outside the image or may not be visible, i.e. a person's eyes facing away from the camera.
         ```json
         {

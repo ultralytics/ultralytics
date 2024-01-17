@@ -48,3 +48,10 @@ div.highlight {
 .md-header .md-select:hover .md-select__inner {
   max-height: 75vh;
 }
+
+/* Update the background of the banner (same as the one on the Ultralytics website) */
+.md-banner {
+  background-image: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/659fc4f4163e480e7ec280d0_banner.webp);
+  background-size: cover;
+  background-position: center;
+}

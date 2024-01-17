@@ -24,5 +24,5 @@ class TLCDetectionTrainer(DetectionTrainer):
         """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         return TLCDetectionValidator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+            self.test_loader, save_dir=self.save_dir, args=copy.copy(self.args), _callbacks=self.callbacks
         )

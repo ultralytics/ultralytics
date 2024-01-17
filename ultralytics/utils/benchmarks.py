@@ -84,12 +84,8 @@ def benchmark(
         emoji, filename = "❌", None  # export defaults
         try:
             assert i != 9 or LINUX, "Edge TPU export only supported on Linux"
-            if i == 5:
-                assert MACOS or LINUX, "CoreML export only supported on macOS and Linux"
-            elif i == 10:
-                assert MACOS or LINUX, "TF.js export only supported on macOS and Linux"
-            # elif i == 11:
-            #     assert sys.version_info < (3, 11), "PaddlePaddle export only supported on Python<=3.10"
+            if i in {5, 10}:  # CoreML and TF.js
+                assert MACOS or LINUX, "export only supported on macOS and Linux"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

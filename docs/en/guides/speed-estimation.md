@@ -26,6 +26,7 @@ Speed estimation is the process of calculating the rate of movement of an object
 !!! Example "Speed Estimation using YOLOv8 Example"
 
     === "Speed Estimation"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import speed_estimation
@@ -76,14 +77,14 @@ Speed estimation is the process of calculating the rate of movement of an object
 
 ### Optional Arguments `set_args`
 
-| Name             | Type   | Default                    | Description                                       |
-|------------------|--------|----------------------------|---------------------------------------------------|
-| reg_pts          | `list` | `[(20, 400), (1260, 400)]` | Points defining the Region Area                   |
-| names            | `dict` | `None`                     | Classes names                                     |
-| view_img         | `bool` | `False`                    | Display frames with counts                        |
-| line_thickness   | `int`  | `2`                        | Increase bounding boxes thickness                 |
-| region_thickness | `int`  | `5`                        | Thickness for object counter region or line       |
-| spdl_dist_thresh | `int`  | `10`                       | Euclidean Distance threshold for speed check line |
+| Name               | Type   | Default                    | Description                                       |
+|--------------------|--------|----------------------------|---------------------------------------------------|
+| `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | Points defining the Region Area                   |
+| `names`            | `dict` | `None`                     | Classes names                                     |
+| `view_img`         | `bool` | `False`                    | Display frames with counts                        |
+| `line_thickness`   | `int`  | `2`                        | Increase bounding boxes thickness                 |
+| `region_thickness` | `int`  | `5`                        | Thickness for object counter region or line       |
+| `spdl_dist_thresh` | `int`  | `10`                       | Euclidean Distance threshold for speed check line |
 
 ### Arguments `model.track`
 

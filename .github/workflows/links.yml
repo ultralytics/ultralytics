@@ -34,7 +34,9 @@ jobs:
           retry_wait_seconds: 60
           max_attempts: 3
           command: |
-            lychee --accept 403,429,500,502,999 \
+            lychee \
+            --scheme https \
+            --accept 403,429,500,502,999 \
             --exclude-loopback \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path docs/zh \
@@ -48,7 +50,8 @@ jobs:
             --exclude-path docs/hi \
             --exclude-path docs/ar \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            './**/*.md' './**/*.html'
+            './**/*.md' \
+            './**/*.html'
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
@@ -58,7 +61,9 @@ jobs:
           retry_wait_seconds: 60
           max_attempts: 3
           command: |
-            lychee --accept 429,999 \
+            lychee \
+            --scheme https \
+            --accept 429,999 \
             --exclude-loopback \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path '**/ci.yaml' \
@@ -73,4 +78,9 @@ jobs:
             --exclude-path docs/hi \
             --exclude-path docs/ar \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
+            './**/*.md' \
+            './**/*.html' \
+            './**/*.yml' \
+            './**/*.yaml' \
+            './**/*.py' \
+            './**/*.ipynb'

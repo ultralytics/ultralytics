@@ -10,8 +10,9 @@ try:
     assert SETTINGS["tensorboard"] is True  # verify integration is enabled
     WRITER = None  # TensorBoard SummaryWriter instance
 
-except (ImportError, AssertionError, TypeError):
+except (ImportError, AssertionError, TypeError, AttributeError):
     # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
+    # AttributeError: module 'tensorflow' has no attribute 'io' if 'tensorflow' not installed
     SummaryWriter = None
 
 

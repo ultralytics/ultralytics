@@ -56,14 +56,14 @@ To stop the serve command and terminate the local server, you can use the `CTRL+
 
 For multi-language MkDocs sites use the following additional steps:
 
-1. Add all new language *.md files to git commit: `git add docs/**/*.md -f`
+1. Add all new language `*.md` files to git commit: `git add docs/**/*.md -f`
 2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
 
     ```bash
     # Remove existing /site directory
     rm -rf site
 
-    # Loop through all *.yml files in the docs directory
+    # Loop through all YAML files in the docs directory
     mkdocs build -f docs/mkdocs.yml
     for file in docs/mkdocs_*.yml; do
       echo "Building MkDocs site with configuration file: $file"

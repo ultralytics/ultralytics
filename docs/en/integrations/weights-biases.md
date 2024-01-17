@@ -46,6 +46,7 @@ Start by initializing the Weights & Biases environment in your workspace. You ca
 !!! Tip "Initial SDK Setup"
 
     === "CLI"
+
         ```bash
         # Initialize your Weights & Biases environment
         import wandb

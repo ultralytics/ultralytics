@@ -63,10 +63,10 @@ This example provides simple RT-DETRR training and inference examples. For full 
 
 This table presents the model types, the specific pre-trained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.
 
-| Model Type          | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
-|---------------------|---------------------|----------------------------------------|-----------|------------|----------|--------|
-| RT-DETR Large       | `rtdetr-l.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| RT-DETR Extra-Large | `rtdetr-x.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| Model Type          | Pre-trained Weights                                                                       | Tasks Supported                        | Inference | Validation | Training | Export |
+|---------------------|-------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
+| RT-DETR Large       | [rtdetr-l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/rtdetr-l.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| RT-DETR Extra-Large | [rtdetr-x.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/rtdetr-x.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 
 ## Citations and Acknowledgements
 
@@ -89,4 +89,4 @@ If you use Baidu's RT-DETR in your research or development work, please cite the
 
 We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community. Their contribution to the field with the development of the Vision Transformers-based real-time object detector, RT-DETR, is greatly appreciated.
 
-*Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API*
+_Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API_

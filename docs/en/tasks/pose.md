@@ -42,7 +42,7 @@ YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models ar
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose.pt)       | 640                   | 69.2                  | 90.2               | 1607.1                         | 3.73                                | 69.4               | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose-p6.pt) | 1280                  | 71.6                  | 91.2               | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](http://cocodataset.org) dataset. <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
+- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](https://cocodataset.org) dataset. <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
 
 ## Train
@@ -64,6 +64,7 @@ Train a YOLOv8-pose model on the COCO128-pose dataset.
         # Train the model
         results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -170,7 +171,7 @@ Available YOLOv8-pose export formats are in the table below. You can predict or 
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-pose.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-pose.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-pose.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-pose_openvino_model/` | ✅        | `imgsz`, `half`                                     |
+| [OpenVINO](../integrations/openvino.md)                            | `openvino`        | `yolov8n-pose_openvino_model/` | ✅        | `imgsz`, `half`, `int8`                             |
 | [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-pose.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
 | [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-pose.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
 | [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-pose_saved_model/`    | ✅        | `imgsz`, `keras`                                    |

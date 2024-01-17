@@ -41,7 +41,7 @@ keywords: yolov8 ، فصل الأشكال الفردية ، Ultralytics ، مج�
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-seg.pt) | 640                | 52.3                 | 42.6                  | 572.4                                   | 2.79                                         | 46.0                     | 220.5                 |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-seg.pt) | 640                | 53.4                 | 43.4                  | 712.1                                   | 4.02                                         | 71.8                     | 344.1                 |
 
-- تُستخدم قيم **mAP<sup>val</sup>** لنموذج واحد وحجم واحد على مجموعة بيانات [COCO val2017](http://cocodataset.org).
+- تُستخدم قيم **mAP<sup>val</sup>** لنموذج واحد وحجم واحد على مجموعة بيانات [COCO val2017](https://cocodataset.org).
   <br>يمكن إعادة إنتاجها باستخدام `yolo val segment data=coco.yaml device=0`
 - **تُحسب السرعة** كمتوسط على صور COCO val باستخدام [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.

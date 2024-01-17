@@ -41,7 +41,7 @@ keywords: yolov8, インスタンスセグメンテーション, Ultralytics, CO
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-seg.pt) | 640                | 52.3                 | 42.6                  | 572.4                         | 2.79                               | 46.0              | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-seg.pt) | 640                | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8              | 344.1             |
 
-- **mAP<sup>val</sup>**の値は[COCO val2017](http://cocodataset.org)データセットでの単一モデル単一スケールの値です。
+- **mAP<sup>val</sup>**の値は[COCO val2017](https://cocodataset.org)データセットでの単一モデル単一スケールの値です。
   <br>再現するには `yolo val segment data=coco.yaml device=0`
 - **スピード**は[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)インスタンスを使用してCOCO val画像で平均化されます。
   <br>再現するには `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`

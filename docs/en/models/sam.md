@@ -29,10 +29,10 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
-| Model Type | Pre-trained Weights | Tasks Supported                              | Inference | Validation | Training | Export |
-|------------|---------------------|----------------------------------------------|-----------|------------|----------|--------|
-| SAM base   | `sam_b.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
-| SAM large  | `sam_l.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| Model Type | Pre-trained Weights                                                                 | Tasks Supported                              | Inference | Validation | Training | Export |
+|------------|-------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
@@ -148,6 +148,7 @@ Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 !!! Example
 
     === "Python"
+
         ```python
         from ultralytics import FastSAM, SAM, YOLO
 
@@ -183,6 +184,7 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
 !!! Example
 
     === "Python"
+
         ```python
         from ultralytics.data.annotator import auto_annotate
 
@@ -222,4 +224,4 @@ If you find SAM useful in your research or development work, please consider cit
 
 We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
 
-*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI.*
+_keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI._

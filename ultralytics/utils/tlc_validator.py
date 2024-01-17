@@ -38,9 +38,13 @@ class TLCDetectionValidator(DetectionValidator):
         LOGGER.info("Using 3LC Validator 🌟")
         if not hasattr(self, '_run'):
             self._run = tlc.init(project_name='yolov8-hackathon')
-        self.metrics_writer = tlc.MetricsWriter(run_url=self._run.url, override_column_schemas={
-            tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(dataloader.dataset.data['names'])
-        })
+        self.metrics_writer = tlc.MetricsWriter(
+            run_url=self._run.url,
+            dataset_url=self.dataloader.dataset.table.url,
+            override_column_schemas={
+                tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(dataloader.dataset.data['names'])
+            },
+        )
         self.epoch = 0
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
 

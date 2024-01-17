@@ -42,7 +42,7 @@ Hier werden vortrainierte YOLOv8 Pose-Modelle gezeigt. Erkennungs-, Segmentierun
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose.pt)       | 640                   | 69,2                  | 90,2               | 1607,1                                   | 3,73                                          | 69,4                  | 263,2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose-p6.pt) | 1280                  | 71,6                  | 91,2               | 4088,7                                   | 10,04                                         | 99,1                  | 1066,4            |
 
-- **mAP<sup>val</sup>** Werte gelten für ein einzelnes Modell mit einfacher Skala auf dem [COCO Keypoints val2017](http://cocodataset.org)-Datensatz.
+- **mAP<sup>val</sup>** Werte gelten für ein einzelnes Modell mit einfacher Skala auf dem [COCO Keypoints val2017](https://cocodataset.org)-Datensatz.
   <br>Zu reproduzieren mit `yolo val pose data=coco-pose.yaml device=0`.
 - **Geschwindigkeit** gemittelt über COCO-Validierungsbilder mit einer [Amazon EC2 P4d](https://aws.amazon.com/de/ec2/instance-types/p4/)-Instanz.
   <br>Zu reproduzieren mit `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`.

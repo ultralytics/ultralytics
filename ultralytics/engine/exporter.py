@@ -555,6 +555,7 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
+        assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)

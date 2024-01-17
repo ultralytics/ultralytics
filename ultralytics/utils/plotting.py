@@ -13,7 +13,6 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
-
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 
@@ -433,7 +432,7 @@ class Annotator:
             center_kpt (int): centroid pose index for workout monitoring
             line_thickness (int): thickness for text display
         """
-        angle_text, count_text, stage_text = (f" {angle_text:.2f}", "Steps : " + f"{count_text}", f" {stage_text}")
+        angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
         font_scale = 0.6 + (line_thickness / 10.0)
 
         # Draw angle
@@ -707,16 +706,16 @@ def plot_images(
             if len(bboxes):
                 boxes = bboxes[idx]
                 conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
-                if len(boxes):
-                    if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
-                        boxes[:, [0, 2]] *= w  # scale to pixels
-                        boxes[:, [1, 3]] *= h
-                    elif scale < 1:  # absolute coords need scale if image scales
-                        boxes[:, :4] *= scale
-                boxes[:, 0] += x
-                boxes[:, 1] += y
                 is_obb = boxes.shape[-1] == 5  # xywhr
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
+                if len(boxes):
+                    if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
+                        boxes[..., 0::2] *= w  # scale to pixels
+                        boxes[..., 1::2] *= h
+                    elif scale < 1:  # absolute coords need scale if image scales
+                        boxes[..., :4] *= scale
+                boxes[..., 0::2] += x
+                boxes[..., 1::2] += y
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
                     color = colors(c)
@@ -773,12 +772,11 @@ def plot_images(
                                 im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
                             )
                 annotator.fromarray(im)
-    if save:
-        annotator.im.save(fname)  # save
-        if on_plot:
-            on_plot(fname)
-    else:
+    if not save:
         return np.asarray(annotator.im)
+    annotator.im.save(fname)  # save
+    if on_plot:
+        on_plot(fname)
 
 
 @plt_settings()

@@ -18,7 +18,6 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
     YOLOv8 OBB models use the `-obb` suffix, i.e. `yolov8n-obb.pt` and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
 
-
 |                                                    Ships Detection using OBB                                                    |                                                    Vehicle Detection using OBB                                                    |
 |:-------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------:|
 | ![Ships Detection using OBB](https://github.com/RizwanMunawar/ultralytics/assets/62513924/5051d324-416f-4b58-ab62-f1bf9d7134b0) | ![Vehicle Detection using OBB](https://github.com/RizwanMunawar/ultralytics/assets/62513924/9a366262-910a-403b-a5e2-9c68b75700d3) |
@@ -31,8 +30,8 @@ YOLOv8 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>test<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 |----------------------------------------------------------------------------------------------|-----------------------|--------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
-| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-obb.pt) | 1024                  | 76.9               | 204.77                         | 3.57                                | 3.1                | 23.3              |
-| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-obb.pt) | 1024                  | 78.0               | 424.88                         | 4.07                                | 11.4               | 76.3              |
+| [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-obb.pt) | 1024                  | 78.0               | 204.77                         | 3.57                                | 3.1                | 23.3              |
+| [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-obb.pt) | 1024                  | 79.5               | 424.88                         | 4.07                                | 11.4               | 76.3              |
 | [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-obb.pt) | 1024                  | 80.5               | 763.48                         | 7.61                                | 26.4               | 208.6             |
 | [YOLOv8l-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-obb.pt) | 1024                  | 80.7               | 1278.42                        | 11.83                               | 44.5               | 433.8             |
 | [YOLOv8x-obb](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-obb.pt) | 1024                  | 81.36              | 1759.10                        | 13.23                               | 69.5               | 676.7             |
@@ -42,7 +41,7 @@ YOLOv8 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 ## Train
 
-Train YOLOv8n-obb on the dota8.yaml dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLOv8n-obb on the `dota8.yaml` dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! Example
 
@@ -57,19 +56,19 @@ Train YOLOv8n-obb on the dota8.yaml dataset for 100 epochs at image size 640. Fo
         model = YOLO('yolov8n-obb.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='dota8-obb.yaml', epochs=100, imgsz=640)
+        results = model.train(data='dota8.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
+        yolo obb train data=dota8.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
+        yolo obb train data=dota8.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo obb train data=dota8-obb.yaml model=yolov8n-obb.yaml pretrained=yolov8n-obb.pt epochs=100 imgsz=640
+        yolo obb train data=dota8.yaml model=yolov8n-obb.yaml pretrained=yolov8n-obb.pt epochs=100 imgsz=640
         ```
 
 ### Dataset format
@@ -78,7 +77,7 @@ OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb
 
 ## Val
 
-Validate trained YOLOv8n-obb model accuracy on the dota8-obb dataset. No argument need to passed as the `model`
+Validate trained YOLOv8n-obb model accuracy on the DOTA8 dataset. No argument need to passed as the `model`
 retains it's training `data` and arguments as model attributes.
 
 !!! Example
@@ -93,7 +92,7 @@ retains it's training `data` and arguments as model attributes.
         model = YOLO('path/to/best.pt')  # load a custom model
 
         # Validate the model
-        metrics = model.val()  # no arguments needed, dataset and settings remembered
+        metrics = model.val(data='dota8.yaml')  # no arguments needed, dataset and settings remembered
         metrics.box.map    # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
@@ -102,8 +101,8 @@ retains it's training `data` and arguments as model attributes.
     === "CLI"
 
         ```bash
-        yolo obb val model=yolov8n-obb.pt  # val official model
-        yolo obb val model=path/to/best.pt  # val custom model
+        yolo obb val model=yolov8n-obb.pt data=dota8.yaml  # val official model
+        yolo obb val model=path/to/best.pt data=path/to/data.yaml  # val custom model
         ```
 
 ## Predict

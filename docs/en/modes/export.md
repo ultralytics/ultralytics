@@ -62,6 +62,7 @@ Export a YOLOv8n model to a different format like ONNX or TensorRT. See Argument
         # Export the model
         model.export(format='onnx')
         ```
+
     === "CLI"
 
         ```bash

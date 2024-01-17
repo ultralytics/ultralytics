@@ -339,7 +339,7 @@ class DetectionModel(BaseModel):
 
 
 class OBBModel(DetectionModel):
-    """"YOLOv8 Oriented Bounding Box (OBB) model."""
+    """YOLOv8 Oriented Bounding Box (OBB) model."""
 
     def __init__(self, cfg="yolov8n-obb.yaml", ch=3, nc=None, verbose=True):
         """Initialize YOLOv8 OBB model with given config and parameters."""

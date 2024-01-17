@@ -67,6 +67,7 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
         metrics.box.map75  # map75
         metrics.box.maps   # a list contains map50-95 of each category
         ```
+
     === "CLI"
 
         ```bash

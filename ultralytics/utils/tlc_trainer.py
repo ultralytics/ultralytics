@@ -3,7 +3,7 @@ from ultralytics.utils import (
     DEFAULT_CFG, LOGGER,)
 
 
-class TLCTrainer(DetectionTrainer):
+class TLCDetectionTrainer(DetectionTrainer):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

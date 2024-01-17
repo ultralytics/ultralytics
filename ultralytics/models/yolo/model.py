@@ -3,7 +3,8 @@
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel
-from ultralytics.utils.tlc_trainer import TLCTrainer
+from ultralytics.utils.tlc_trainer import TLCDetectionTrainer
+from ultralytics.utils.tlc_validator import TLCDetectionValidator
 
 class YOLO(Model):
     """YOLO (You Only Look Once) object detection model."""
@@ -20,8 +21,8 @@ class YOLO(Model):
             },
             "detect": {
                 "model": DetectionModel,
-                "trainer": TLCTrainer,
-                "validator": yolo.detect.DetectionValidator,
+                "trainer": TLCDetectionTrainer,
+                "validator": TLCDetectionValidator,
                 "predictor": yolo.detect.DetectionPredictor,
             },
             "segment": {

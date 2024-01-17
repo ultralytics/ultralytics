@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Open Images v7 dataset https://storage.googleapis.com/openimages/web/index.html by Google
+# Documentation: https://docs.ultralytics.com/datasets/detect/open-images-v7/
 # Example usage: yolo train data=open-images-v7.yaml
 # parent
 # ├── ultralytics

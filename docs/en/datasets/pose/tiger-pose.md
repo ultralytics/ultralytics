@@ -12,8 +12,7 @@ keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, mode
 
 Despite its manageable size of 210 images, tiger-pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for pose estimation.
 
-This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.com)
-and [YOLOv8](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.com) and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 <p align="center">
   <br>

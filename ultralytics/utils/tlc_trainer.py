@@ -5,7 +5,7 @@ from ultralytics.utils import (
 from ultralytics.utils.tlc_utils import tlc_check_dataset
 from ultralytics.utils.tlc_validator import TLCDetectionValidator
 from ultralytics.utils.torch_utils import de_parallel
-from ultralytics.data import build_yolo_dataset
+from ultralytics.utils.tlc_dataset import build_tlc_dataset
 class TLCDetectionTrainer(DetectionTrainer):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
 
@@ -25,7 +25,7 @@ class TLCDetectionTrainer(DetectionTrainer):
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         tables = tlc_check_dataset(self.data["yaml_file"], get_splits=["train", "val"])
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, table=tables[split])
+        return build_tlc_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, table=tables[split])
 
 
     def get_validator(self):

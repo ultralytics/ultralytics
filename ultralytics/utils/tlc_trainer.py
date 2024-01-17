@@ -1,9 +1,9 @@
-from ultralytics.engine.trainer import BaseTrainer
+from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import (
     DEFAULT_CFG, LOGGER,)
 
 
-class TLCTrainer(BaseTrainer):
+class TLCTrainer(DetectionTrainer):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

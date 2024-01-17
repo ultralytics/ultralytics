@@ -2,6 +2,7 @@ import copy
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import (
     DEFAULT_CFG, LOGGER,)
+from ultralytics.utils.tlc_utils import tlc_check_dataset
 from ultralytics.utils.tlc_validator import TLCDetectionValidator
 
 class TLCDetectionTrainer(DetectionTrainer):
@@ -18,6 +19,7 @@ class TLCDetectionTrainer(DetectionTrainer):
 
         Returns None if data format is not recognized.
         """
+        tables = tlc_check_dataset(data["yaml_file"], get_splits=["train", "val"])
         return data["train"], data.get("val") or data.get("test")
 
     def get_validator(self):

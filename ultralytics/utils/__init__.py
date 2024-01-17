@@ -874,6 +874,7 @@ class SettingsManager(dict):
             "raytune": True,
             "tensorboard": True,
             "wandb": True,
+            'tlc': True,
         }
 
         super().__init__(copy.deepcopy(self.defaults))

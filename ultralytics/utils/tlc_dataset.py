@@ -48,7 +48,25 @@ class TLCDataset(YOLODataset):
     def get_img_files(self, _):
         return [Url(sample[IMAGE]).to_absolute().to_str() for sample in self.table]
     
-    def get_labels(self, img_path):
-        return [tlc_table_row_to_yolo_label(row) for row in self.table]
+    def get_labels(self):
+        """
+        Users can customize their own format here.
+
+        Note:
+            Ensure output is a dictionary with the following keys:
+            ```python
+            dict(
+                im_file=im_file,
+                shape=shape,  # format: (height, width)
+                cls=cls,
+                bboxes=bboxes, # xywh
+                segments=segments,  # xy
+                keypoints=keypoints, # xy
+                normalized=True, # or False
+                bbox_format="xyxy",  # or xywh, ltwh
+            )
+            ```
+        """
+        raise NotImplementedError
 
     

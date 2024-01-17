@@ -51,10 +51,10 @@ Default `ARG` values are defined on this page from the `cfg/defaults.yaml` [file
 
 YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks differ in the type of output they produce and the specific problem they are designed to solve.
 
-**Detect**: For identifying and localizing objects or regions of interest in an image or video.
-**Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
-**Classify**: For predicting the class label of an input image.
-**Pose**: For identifying objects and estimating their keypoints in an image or video.
+- **Detect**: For identifying and localizing objects or regions of interest in an image or video.
+- **Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
+- **Classify**: For predicting the class label of an input image.
+- **Pose**: For identifying objects and estimating their keypoints in an image or video.
 
 | Key    | Value      | Description                                     |
 |--------|------------|-------------------------------------------------|
@@ -66,12 +66,12 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes include:
 
-**Train**: For training a YOLOv8 model on a custom dataset.
-**Val**: For validating a YOLOv8 model after it has been trained.
-**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
-**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
-**Track**: For tracking objects in real-time using a YOLOv8 model.
-**Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
+- **Train**: For training a YOLOv8 model on a custom dataset.
+- **Val**: For validating a YOLOv8 model after it has been trained.
+- **Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
+- **Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
+- **Track**: For tracking objects in real-time using a YOLOv8 model.
+- **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
 | Key    | Value     | Description                                                   |
 |--------|-----------|---------------------------------------------------------------|
@@ -224,23 +224,23 @@ Export settings for YOLO models encompass configurations and options related to 
 
 Augmentation settings for YOLO models refer to the various transformations and modifications applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each transformation is applied, and the presence of additional features such as masks or multiple labels per box. Other factors that may affect the augmentation process include the size and composition of the original dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
 
-| Key             | Value           | Description                                                                    |
-|-----------------|-----------------|--------------------------------------------------------------------------------|
-| `hsv_h`         | `0.015`         | image HSV-Hue augmentation (fraction)                                          |
-| `hsv_s`         | `0.7`           | image HSV-Saturation augmentation (fraction)                                   |
-| `hsv_v`         | `0.4`           | image HSV-Value augmentation (fraction)                                        |
-| `degrees`       | `0.0`           | image rotation (+/- deg)                                                       |
-| `translate`     | `0.1`           | image translation (+/- fraction)                                               |
-| `scale`         | `0.5`           | image scale (+/- gain)                                                         |
-| `shear`         | `0.0`           | image shear (+/- deg)                                                          |
-| `perspective`   | `0.0`           | image perspective (+/- fraction), range 0-0.001                                |
-| `flipud`        | `0.0`           | image flip up-down (probability)                                               |
-| `fliplr`        | `0.5`           | image flip left-right (probability)                                            |
-| `mosaic`        | `1.0`           | image mosaic (probability)                                                     |
-| `mixup`         | `0.0`           | image mixup (probability)                                                      |
-| `copy_paste`    | `0.0`           | segment copy-paste (probability)                                               |
-| `auto_augment`  | `'randaugment'` | auto augmentation policy for classification (randaugment, autoaugment, augmix) |
-| `erasing`       | `0.4`           | probability o random erasing during classification training (0-1) training     |
+| Key            | Value           | Description                                                                    |
+|----------------|-----------------|--------------------------------------------------------------------------------|
+| `hsv_h`        | `0.015`         | image HSV-Hue augmentation (fraction)                                          |
+| `hsv_s`        | `0.7`           | image HSV-Saturation augmentation (fraction)                                   |
+| `hsv_v`        | `0.4`           | image HSV-Value augmentation (fraction)                                        |
+| `degrees`      | `0.0`           | image rotation (+/- deg)                                                       |
+| `translate`    | `0.1`           | image translation (+/- fraction)                                               |
+| `scale`        | `0.5`           | image scale (+/- gain)                                                         |
+| `shear`        | `0.0`           | image shear (+/- deg)                                                          |
+| `perspective`  | `0.0`           | image perspective (+/- fraction), range 0-0.001                                |
+| `flipud`       | `0.0`           | image flip up-down (probability)                                               |
+| `fliplr`       | `0.5`           | image flip left-right (probability)                                            |
+| `mosaic`       | `1.0`           | image mosaic (probability)                                                     |
+| `mixup`        | `0.0`           | image mixup (probability)                                                      |
+| `copy_paste`   | `0.0`           | segment copy-paste (probability)                                               |
+| `auto_augment` | `'randaugment'` | auto augmentation policy for classification (randaugment, autoaugment, augmix) |
+| `erasing`      | `0.4`           | probability o random erasing during classification training (0-1) training     |
 
 ## Logging, checkpoints, plotting and file management
 

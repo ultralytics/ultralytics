@@ -8,7 +8,7 @@ keywords: YOLOv8, Deployment, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, Co
 
 ## Introduction
 
-*Setting the Scene:* You've come a long way on your journey with YOLOv8. You've diligently collected data, meticulously annotated it, and put in the hours to train and rigorously evaluate your custom YOLOv8 model. Now, it’s time to put your model to work for your specific application, use case, or project. But there's a critical decision that stands before you: how to export and deploy your model effectively.
+You've come a long way on your journey with YOLOv8. You've diligently collected data, meticulously annotated it, and put in the hours to train and rigorously evaluate your custom YOLOv8 model. Now, it’s time to put your model to work for your specific application, use case, or project. But there's a critical decision that stands before you: how to export and deploy your model effectively.
 
 This guide walks you through YOLOv8’s deployment options and the essential factors to consider to choose the right option for your project.
 

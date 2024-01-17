@@ -77,6 +77,7 @@ def test_predict_img():
     seg_model = YOLO(WEIGHTS_DIR / 'yolov8n-seg.pt')
     cls_model = YOLO(WEIGHTS_DIR / 'yolov8n-cls.pt')
     pose_model = YOLO(WEIGHTS_DIR / 'yolov8n-pose.pt')
+    obb_model = YOLO(WEIGHTS_DIR / 'yolov8n-obb.pt')
     im = cv2.imread(str(SOURCE))
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
@@ -104,6 +105,8 @@ def test_predict_img():
     results = cls_model(t, imgsz=32)
     assert len(results) == t.shape[0]
     results = pose_model(t, imgsz=32)
+    assert len(results) == t.shape[0]
+    results = obb_model(t, imgsz=32)
     assert len(results) == t.shape[0]
 
 
@@ -460,6 +463,21 @@ def test_utils_files():
         print(new_path)
 
 
+@pytest.mark.slow
+def test_utils_patches_torch_save():
+    """Test torch_save backoff when _torch_save throws RuntimeError."""
+    from unittest.mock import patch, MagicMock
+    from ultralytics.utils.patches import torch_save
+
+    mock = MagicMock(side_effect=RuntimeError)
+
+    with patch('ultralytics.utils.patches._torch_save', new=mock):
+        with pytest.raises(RuntimeError):
+            torch_save(torch.zeros(1), TMP / 'test.pt')
+
+    assert mock.call_count == 4, "torch_save was not attempted the expected number of times"
+
+
 def test_nn_modules_conv():
     """Test Convolutional Neural Network modules."""
     from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus
@@ -502,7 +520,7 @@ def test_hub():
 
     export_fmts_hub()
     logout()
-    smart_request('GET', 'http://github.com', progress=True)
+    smart_request('GET', 'https://github.com', progress=True)
 
 
 @pytest.fixture

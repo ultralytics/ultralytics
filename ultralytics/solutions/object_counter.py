@@ -181,7 +181,7 @@ class ObjectCounter:
                 self.annotator.draw_centroid_and_tracks(
                     track_line, color=self.track_color, track_thickness=self.track_thickness
                 )
-            
+
             prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
             # Count objects

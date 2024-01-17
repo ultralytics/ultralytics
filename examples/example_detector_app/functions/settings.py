@@ -41,7 +41,7 @@ ROOT = root_path.relative_to(Path.cwd())
 
 # ML Model config
 # MODEL_DIR = ROOT / 'weights'
-DETECTION_MODEL = 'C:\\Users\\BAB AL SAFA\\Desktop\\MINE\\Detector-App\\weights\\yolov8n.pt'
+DETECTION_MODEL = "C:\\Users\\BAB AL SAFA\\Desktop\\MINE\\Detector-App\\weights\\yolov8n.pt"
 # In case of your custom model comment out the line above and
 # Place your custom model pt file name at the line below
 # DETECTION_MODEL = MODEL_DIR / 'my_detection_model.pt'

@@ -1,4 +1,4 @@
-ABOUT_APP = '''
+ABOUT_APP = """
         <div class="nice-div">
                         </br>
             <h1> Detector Application</h1>
@@ -52,9 +52,9 @@ ABOUT_APP = '''
                             This is the main file that contains the streamlit interface code and the calling of the various functions in the functions folder.
                     </ul>
                     <i>NB: Test the app automatically here:</i>
-        </div>'''
+        </div>"""
 
-ABOUT_DEV = '''
+ABOUT_DEV = """
         <div class="nice-div">
                     <br/>
                     I am a passionate and results-driven Data Scientist with a strong background in analyzing complex data sets and deriving valuable insights to drive business growth. With a deep understanding of machine learning algorithms, and data visualization techniques,
@@ -87,9 +87,9 @@ ABOUT_DEV = '''
 
         If you are seeking a dedicated and experienced Data Scientist who can bring valuable insights to your organization, feel free to reach out. I am eager to explore new opportunities, contribute to impactful projects, and be part of a team that shares a vision for harnessing the power of data to drive success.
             </div>
-                '''
+                """
 
-STYLE = '''
+STYLE = """
         <style>
             .nice-div {
             font-family: 'Pacifico', cursive;
@@ -113,9 +113,9 @@ STYLE = '''
                 color: #000;
                 text-decoration: none;
             }
-        </style>'''
+        </style>"""
 
-LINK = '''
+LINK = """
         <head>
                 <!-- Add font awesome icon library -->
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -127,4 +127,4 @@ LINK = '''
                         <li><a href="https://www.linkedin.com/in/taoheed-oyeniyi/" target="_blank"><i class="fa fa-linkedin"></i>  LinkedIn</a></li>
                     </ul>
                 </div>
-                '''
+                """

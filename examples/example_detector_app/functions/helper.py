@@ -21,10 +21,10 @@ def load_model(model_path):
 
 # display tracker option (#used)
 def display_tracker_options():
-    display_tracker = st.radio('Display Tracker', ('Yes', 'No'))
-    is_display_tracker = True if display_tracker == 'Yes' else False
+    display_tracker = st.radio("Display Tracker", ("Yes", "No"))
+    is_display_tracker = True if display_tracker == "Yes" else False
     if is_display_tracker:
-        tracker_type = st.radio('Tracker', ('bytetrack.yaml', 'botsort.yaml'))
+        tracker_type = st.radio("Tracker", ("bytetrack.yaml", "botsort.yaml"))
         return is_display_tracker, tracker_type
     return is_display_tracker, None
 
@@ -54,4 +54,4 @@ def display_detected_frames(conf, model, st_frame, image):
 
     # # Plot the detected objects on the video frame
     res_plotted = res[0].plot()
-    st_frame.image(res_plotted, caption='Detected Video', channels='BGR', use_column_width=True)
+    st_frame.image(res_plotted, caption="Detected Video", channels="BGR", use_column_width=True)

@@ -198,12 +198,7 @@ class PromptEncoder(nn.Module):
         """
         return self.pe_layer(self.image_embedding_size).unsqueeze(0)
 
-    def _embed_points(
-        self,
-        points: torch.Tensor,
-        labels: torch.Tensor,
-        pad: bool,
-    ) -> torch.Tensor:
+    def _embed_points(self, points: torch.Tensor, labels: torch.Tensor, pad: bool) -> torch.Tensor:
         """Embeds point prompts."""
         points = points + 0.5  # Shift to center of pixel
         if pad:

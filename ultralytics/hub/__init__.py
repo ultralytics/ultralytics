@@ -1,12 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import requests
-from hub_sdk import HUB_API_ROOT, HUB_WEB_ROOT, HUBClient
 
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
-from ultralytics.hub.utils import PREFIX
-from ultralytics.utils import LOGGER, SETTINGS
+from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX
+from ultralytics.utils import LOGGER, SETTINGS, checks
 
 
 def login(api_key: str = None, save=True) -> bool:
@@ -21,6 +20,9 @@ def login(api_key: str = None, save=True) -> bool:
     Returns:
         bool: True if authentication is successful, False otherwise.
     """
+    checks.check_requirements("hub-sdk>=0.0.2")
+    from hub_sdk import HUBClient
+
     api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # set the redirect URL
     saved_key = SETTINGS.get("api_key")
     active_key = api_key or saved_key

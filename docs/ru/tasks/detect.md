@@ -41,7 +41,7 @@ keywords: YOLOv8, Ultralytics, обнаружение объектов, пред
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640                      | 52.9                 | 375.2                             | 2.39                                   | 43.7                  | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640                      | 53.9                 | 479.1                             | 3.53                                   | 68.2                  | 257.8             |
 
-- **mAP<sup>val</sup>** значения для одиночной модели одиночного масштаба на датасете [COCO val2017](http://cocodataset.org).
+- **mAP<sup>val</sup>** значения для одиночной модели одиночного масштаба на датасете [COCO val2017](https://cocodataset.org).
   <br>Для воспроизведения используйте `yolo val detect data=coco.yaml device=0`
 - **Скорость** усреднена по изображениям COCO val на экземпляре [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/).
   <br>Для воспроизведения используйте `yolo val detect data=coco128.yaml batch=1 device=0|cpu`

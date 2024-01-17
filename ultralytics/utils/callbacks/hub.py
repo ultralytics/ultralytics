@@ -3,9 +3,7 @@
 import json
 from time import time
 
-from hub_sdk.config import HUB_WEB_ROOT
-
-from ultralytics.hub.utils import PREFIX, events
+from ultralytics.hub.utils import HUB_WEB_ROOT, PREFIX, events
 from ultralytics.utils import LOGGER, SETTINGS
 
 

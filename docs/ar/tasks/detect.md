@@ -41,7 +41,7 @@ Task التعرف على الكائنات هو عبارة عن تعرف على �
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640                  | 52.9                 | 375.2                                   | 2.39                                         | 43.7                 | 165.2                 |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640                  | 53.9                 | 479.1                                   | 3.53                                         | 68.2                 | 257.8                 |
 
-- قيم mAP<sup>val</sup> تنطبق على مقياس نموذج واحد-مقياس واحد على مجموعة بيانات [COCO val2017](http://cocodataset.org).
+- قيم mAP<sup>val</sup> تنطبق على مقياس نموذج واحد-مقياس واحد على مجموعة بيانات [COCO val2017](https://cocodataset.org).
   <br>اعيد حسابها بواسطة `yolo val detect data=coco.yaml device=0`
 - السرعةتمت متوسطة على صور COCO val باستخدام [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.

@@ -26,6 +26,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 !!! Example "Workouts Monitoring Example"
 
     === "Workouts Monitoring"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import ai_gym
@@ -34,6 +35,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         gym_object = ai_gym.AIGym()  # init AI GYM module
         gym_object.set_args(line_thickness=2,
@@ -55,6 +57,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         ```
 
     === "Workouts Monitoring with Save Output"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import ai_gym
@@ -63,11 +66,12 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         video_writer = cv2.VideoWriter("workouts.avi",
                                         cv2.VideoWriter_fourcc(*'mp4v'),
-                                        int(cap.get(5)),
-                                        (int(cap.get(3)), int(cap.get(4))))
+                                        fps,
+                                        (w, h))
 
         gym_object = ai_gym.AIGym()  # init AI GYM module
         gym_object.set_args(line_thickness=2,
@@ -100,14 +104,14 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ### Arguments `set_args`
 
-| Name            | Type   | Default  | Description                                                                            |
-|-----------------|--------|----------|----------------------------------------------------------------------------------------|
-| kpts_to_check   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
-| view_img        | `bool` | `False`  | Display the frame with counts                                                          |
-| line_thickness  | `int`  | `2`      | Increase the thickness of count value                                                  |
-| pose_type       | `str`  | `pushup` | Pose that need to be monitored, "pullup" and "abworkout" also supported                |
-| pose_up_angle   | `int`  | `145`    | Pose Up Angle value                                                                    |
-| pose_down_angle | `int`  | `90`     | Pose Down Angle value                                                                  |
+| Name              | Type   | Default  | Description                                                                            |
+|-------------------|--------|----------|----------------------------------------------------------------------------------------|
+| `kpts_to_check`   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
+| `view_img`        | `bool` | `False`  | Display the frame with counts                                                          |
+| `line_thickness`  | `int`  | `2`      | Increase the thickness of count value                                                  |
+| `pose_type`       | `str`  | `pushup` | Pose that need to be monitored, "pullup" and "abworkout" also supported                |
+| `pose_up_angle`   | `int`  | `145`    | Pose Up Angle value                                                                    |
+| `pose_down_angle` | `int`  | `90`     | Pose Down Angle value                                                                  |
 
 ### Arguments `model.predict`
 

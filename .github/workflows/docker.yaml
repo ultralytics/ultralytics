@@ -81,7 +81,7 @@ jobs:
       - name: Retrieve Ultralytics version
         id: get_version
         run: |
-          VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F"'" '{print $2}')
+          VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F'"' '{print $2}')
           echo "Retrieved Ultralytics version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 

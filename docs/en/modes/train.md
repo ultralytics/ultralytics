@@ -241,6 +241,7 @@ To use Comet:
 !!! Example
 
     === "Python"
+
         ```python
         # pip install comet_ml
         import comet_ml
@@ -259,6 +260,7 @@ To use ClearML:
 !!! Example
 
     === "Python"
+
         ```python
         # pip install clearml
         import clearml
@@ -277,6 +279,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
 !!! Example
 
     === "CLI"
+
         ```bash
         load_ext tensorboard
         tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
@@ -287,6 +290,7 @@ To use TensorBoard locally run the below command and view results at http://loca
 !!! Example
 
     === "CLI"
+
         ```bash
         tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
         ```

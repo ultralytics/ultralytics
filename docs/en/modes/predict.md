@@ -53,6 +53,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
 !!! Example "Predict"
 
     === "Return a list with `stream=False`"
+
         ```python
         from ultralytics import YOLO
 
@@ -71,6 +72,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
         ```
 
     === "Return a generator with `stream=True`"
+
         ```python
         from ultralytics import YOLO
 
@@ -118,6 +120,7 @@ Below are code examples for using each source type:
 !!! Example "Prediction sources"
 
     === "image"
+
         Run inference on an image file.
         ```python
         from ultralytics import YOLO
@@ -133,6 +136,7 @@ Below are code examples for using each source type:
         ```
 
     === "screenshot"
+
         Run inference on the current screen content as a screenshot.
         ```python
         from ultralytics import YOLO
@@ -148,6 +152,7 @@ Below are code examples for using each source type:
         ```
 
     === "URL"
+
         Run inference on an image or video hosted remotely via URL.
         ```python
         from ultralytics import YOLO
@@ -163,6 +168,7 @@ Below are code examples for using each source type:
         ```
 
     === "PIL"
+
         Run inference on an image opened with Python Imaging Library (PIL).
         ```python
         from PIL import Image
@@ -179,6 +185,7 @@ Below are code examples for using each source type:
         ```
 
     === "OpenCV"
+
         Run inference on an image read with OpenCV.
         ```python
         import cv2
@@ -195,6 +202,7 @@ Below are code examples for using each source type:
         ```
 
     === "numpy"
+
         Run inference on an image represented as a numpy array.
         ```python
         import numpy as np
@@ -211,6 +219,7 @@ Below are code examples for using each source type:
         ```
 
     === "torch"
+
         Run inference on an image represented as a PyTorch tensor.
         ```python
         import torch
@@ -227,6 +236,7 @@ Below are code examples for using each source type:
         ```
 
     === "CSV"
+
         Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
         ```python
         import torch
@@ -243,6 +253,7 @@ Below are code examples for using each source type:
         ```
 
     === "video"
+
         Run inference on a video file. By using `stream=True`, you can create a generator of Results objects to reduce memory usage.
         ```python
         from ultralytics import YOLO
@@ -258,6 +269,7 @@ Below are code examples for using each source type:
         ```
 
     === "directory"
+
         Run inference on all images and videos in a directory. To also capture images and videos in subdirectories use a glob pattern, i.e. `path/to/dir/**/*`.
         ```python
         from ultralytics import YOLO
@@ -273,6 +285,7 @@ Below are code examples for using each source type:
         ```
 
     === "glob"
+
         Run inference on all images and videos that match a glob expression with `*` characters.
         ```python
         from ultralytics import YOLO
@@ -291,6 +304,7 @@ Below are code examples for using each source type:
         ```
 
     === "YouTube"
+
         Run inference on a YouTube video. By using `stream=True`, you can create a generator of Results objects to reduce memory usage for long videos.
         ```python
         from ultralytics import YOLO
@@ -306,6 +320,7 @@ Below are code examples for using each source type:
         ```
 
     === "Streams"
+
         Run inference on remote streaming sources using RTSP, RTMP, TCP and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
         ```python
         from ultralytics import YOLO
@@ -384,16 +399,16 @@ The below table contains valid Ultralytics image formats.
 
 | Image Suffixes | Example Predict Command          | Reference                                                                     |
 |----------------|----------------------------------|-------------------------------------------------------------------------------|
-| .bmp           | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format)    |
-| .dng           | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
-| .jpeg          | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
-| .jpg           | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
-| .mpo           | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                    |
-| .png           | `yolo predict source=image.png`  | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)                |
-| .tif           | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                   |
-| .tiff          | `yolo predict source=image.tiff` | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                   |
-| .webp          | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
-| .pfm           | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)        |
+| `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format)    |
+| `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
+| `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| `.jpg`         | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| `.mpo`         | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                    |
+| `.png`         | `yolo predict source=image.png`  | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)                |
+| `.tif`         | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                   |
+| `.tiff`        | `yolo predict source=image.tiff` | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                   |
+| `.webp`        | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
+| `.pfm`         | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)        |
 
 ### Videos
 
@@ -401,18 +416,18 @@ The below table contains valid Ultralytics video formats.
 
 | Video Suffixes | Example Predict Command          | Reference                                                                        |
 |----------------|----------------------------------|----------------------------------------------------------------------------------|
-| .asf           | `yolo predict source=video.asf`  | [Advanced Systems Format](https://en.wikipedia.org/wiki/Advanced_Systems_Format) |
-| .avi           | `yolo predict source=video.avi`  | [Audio Video Interleave](https://en.wikipedia.org/wiki/Audio_Video_Interleave)   |
-| .gif           | `yolo predict source=video.gif`  | [Graphics Interchange Format](https://en.wikipedia.org/wiki/GIF)                 |
-| .m4v           | `yolo predict source=video.m4v`  | [MPEG-4 Part 14](https://en.wikipedia.org/wiki/M4V)                              |
-| .mkv           | `yolo predict source=video.mkv`  | [Matroska](https://en.wikipedia.org/wiki/Matroska)                               |
-| .mov           | `yolo predict source=video.mov`  | [QuickTime File Format](https://en.wikipedia.org/wiki/QuickTime_File_Format)     |
-| .mp4           | `yolo predict source=video.mp4`  | [MPEG-4 Part 14 - Wikipedia](https://en.wikipedia.org/wiki/MPEG-4_Part_14)       |
-| .mpeg          | `yolo predict source=video.mpeg` | [MPEG-1 Part 2](https://en.wikipedia.org/wiki/MPEG-1)                            |
-| .mpg           | `yolo predict source=video.mpg`  | [MPEG-1 Part 2](https://en.wikipedia.org/wiki/MPEG-1)                            |
-| .ts            | `yolo predict source=video.ts`   | [MPEG Transport Stream](https://en.wikipedia.org/wiki/MPEG_transport_stream)     |
-| .wmv           | `yolo predict source=video.wmv`  | [Windows Media Video](https://en.wikipedia.org/wiki/Windows_Media_Video)         |
-| .webm          | `yolo predict source=video.webm` | [WebM Project](https://en.wikipedia.org/wiki/WebM)                               |
+| `.asf`         | `yolo predict source=video.asf`  | [Advanced Systems Format](https://en.wikipedia.org/wiki/Advanced_Systems_Format) |
+| `.avi`         | `yolo predict source=video.avi`  | [Audio Video Interleave](https://en.wikipedia.org/wiki/Audio_Video_Interleave)   |
+| `.gif`         | `yolo predict source=video.gif`  | [Graphics Interchange Format](https://en.wikipedia.org/wiki/GIF)                 |
+| `.m4v`         | `yolo predict source=video.m4v`  | [MPEG-4 Part 14](https://en.wikipedia.org/wiki/M4V)                              |
+| `.mkv`         | `yolo predict source=video.mkv`  | [Matroska](https://en.wikipedia.org/wiki/Matroska)                               |
+| `.mov`         | `yolo predict source=video.mov`  | [QuickTime File Format](https://en.wikipedia.org/wiki/QuickTime_File_Format)     |
+| `.mp4`         | `yolo predict source=video.mp4`  | [MPEG-4 Part 14 - Wikipedia](https://en.wikipedia.org/wiki/MPEG-4_Part_14)       |
+| `.mpeg`        | `yolo predict source=video.mpeg` | [MPEG-1 Part 2](https://en.wikipedia.org/wiki/MPEG-1)                            |
+| `.mpg`         | `yolo predict source=video.mpg`  | [MPEG-1 Part 2](https://en.wikipedia.org/wiki/MPEG-1)                            |
+| `.ts`          | `yolo predict source=video.ts`   | [MPEG Transport Stream](https://en.wikipedia.org/wiki/MPEG_transport_stream)     |
+| `.wmv`         | `yolo predict source=video.wmv`  | [Windows Media Video](https://en.wikipedia.org/wiki/Windows_Media_Video)         |
+| `.webm`        | `yolo predict source=video.webm` | [WebM Project](https://en.wikipedia.org/wiki/WebM)                               |
 
 ## Working with Results
 
@@ -441,6 +456,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `masks`      | `Masks, optional`     | A Masks object containing the detection masks.                                           |
 | `probs`      | `Probs, optional`     | A Probs object containing probabilities of each class for classification task.           |
 | `keypoints`  | `Keypoints, optional` | A Keypoints object containing detected keypoints for each object.                        |
+| `obb`        | `OBB, optional`       | A OBB object containing the oriented detection bounding boxes.                           |
 | `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`      | `dict`                | A dictionary of class names.                                                             |
 | `path`       | `str`                 | The path to the image file.                                                              |
@@ -606,6 +622,44 @@ Here's a table summarizing the methods and properties for the `Probs` class:
 
 For more details see the `Probs` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Probs).
 
+### OBB
+
+`OBB` object can be used to index, manipulate, and convert oriented bounding boxes to different formats.
+
+!!! Example "OBB"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n-obb.pt')
+
+    # Run inference on an image
+    results = model('bus.jpg')  # results list
+
+    # View results
+    for r in results:
+        print(r.obb)  # print the OBB object containing the oriented detection bounding boxes
+    ```
+
+Here is a table for the `OBB` class methods and properties, including their name, type, and description:
+
+| Name        | Type                      | Description                                                           |
+|-------------|---------------------------|-----------------------------------------------------------------------|
+| `cpu()`     | Method                    | Move the object to CPU memory.                                        |
+| `numpy()`   | Method                    | Convert the object to a numpy array.                                  |
+| `cuda()`    | Method                    | Move the object to CUDA memory.                                       |
+| `to()`      | Method                    | Move the object to the specified device.                              |
+| `conf`      | Property (`torch.Tensor`) | Return the confidence values of the boxes.                            |
+| `cls`       | Property (`torch.Tensor`) | Return the class values of the boxes.                                 |
+| `id`        | Property (`torch.Tensor`) | Return the track IDs of the boxes (if available).                     |
+| `xyxy`      | Property (`torch.Tensor`) | Return the horizontal boxes in xyxy format.                           |
+| `xywhr`     | Property (`torch.Tensor`) | Return the rotated boxes in xywhr format.                             |
+| `xyxyxyxy`  | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format.                          |
+| `xyxyxyxyn` | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format normalized by image size. |
+
+For more details see the `OBB` class [documentation](../reference/engine/results.md#ultralytics.engine.results.OBB).
+
 ## Plotting Results
 
 You can use the `plot()` method of a `Result` objects to visualize predictions. It plots all prediction types (boxes, masks, keypoints, probabilities, etc.) contained in the `Results` object onto a numpy array that can then be shown or saved.
@@ -722,7 +776,5 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
 
 [car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
-
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
-
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43

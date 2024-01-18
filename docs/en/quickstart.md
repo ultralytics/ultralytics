@@ -74,8 +74,7 @@ sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
 
 === "Git clone"
 Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
-
-````bash # Clone the ultralytics repository
+```bash # Clone the ultralytics repository
 git clone https://github.com/ultralytics/ultralytics
 
     # Navigate to the cloned directory
@@ -323,4 +322,3 @@ The table below provides an overview of the settings available for adjustment wi
 | `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases logging                                                                          |
 
 As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.
-````

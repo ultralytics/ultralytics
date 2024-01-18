@@ -7,12 +7,11 @@
 # └── datasets
 #     └── Argoverse  ← downloads here (31.5 GB)
 
-
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/Argoverse  # dataset root dir
-train: Argoverse-1.1/images/train/  # train images (relative to 'path') 39384 images
-val: Argoverse-1.1/images/val/  # val images (relative to 'path') 15062 images
-test: Argoverse-1.1/images/test/  # test images (optional) https://eval.ai/web/challenges/challenge-page/800/overview
+path: ../datasets/Argoverse # dataset root dir
+train: Argoverse-1.1/images/train/ # train images (relative to 'path') 39384 images
+val: Argoverse-1.1/images/val/ # val images (relative to 'path') 15062 images
+test: Argoverse-1.1/images/test/ # test images (optional) https://eval.ai/web/challenges/challenge-page/800/overview
 
 # Classes
 names:
@@ -24,7 +23,6 @@ names:
   5: truck
   6: traffic_light
   7: stop_sign
-
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |

@@ -19,7 +19,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # automatically generated
           python: true
-          docstrings: true
           markdown: true
+          prettier: false # FYI: prettier has known issues with mkdocs! (https://github.com/prettier/prettier/issues/12985)
           spelling: true
           links: false

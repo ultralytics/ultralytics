@@ -48,83 +48,82 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         conda install -c conda-forge ultralytics
         ```
 
-!!! Note
+        !!! Note
 
-    If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
-    ```bash
-    # Install all packages together using conda
-    conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
-    ```
+            If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
+            ```bash
+            # Install all packages together using conda
+            conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+            ```
 
-### Conda Docker Image
+        ### Conda Docker Image
 
-Ultralytics Conda Docker images are also available from [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and are an simple way to start using `ultralytics` in a Conda environment.
+        Ultralytics Conda Docker images are also available from [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and are an simple way to start using `ultralytics` in a Conda environment.
 
-```bash
-# Set image name as a variable
-t=ultralytics/ultralytics:latest-conda
+        ```bash
+        # Set image name as a variable
+        t=ultralytics/ultralytics:latest-conda
 
-# Pull the latest ultralytics image from Docker Hub
-sudo docker pull $t
+        # Pull the latest ultralytics image from Docker Hub
+        sudo docker pull $t
 
-# Run the ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
-```
+        # Run the ultralytics image in a container with GPU support
+        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+        ```
 
-=== "Git clone"
-    Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
-    ```bash
-    # Clone the ultralytics repository
-    git clone https://github.com/ultralytics/ultralytics
+    === "Git clone"
+        Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
+        ```bash
+        # Clone the ultralytics repository
+        git clone https://github.com/ultralytics/ultralytics
 
-    # Navigate to the cloned directory
-    cd ultralytics
+        # Navigate to the cloned directory
+        cd ultralytics
 
-    # Install the package in editable mode for development
-    pip install -e .
-    ```
+        # Install the package in editable mode for development
+        pip install -e .
+        ```
 
-=== "Docker"
+    === "Docker"
 
-    Utilize Docker to effortlessly execute the `ultralytics` package in an isolated container, ensuring consistent and smooth performance across various environments. By choosing one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you not only avoid the complexity of local installation but also benefit from access to a verified working environment. Ultralytics offers 5 main supported Docker images, each designed to provide high compatibility and efficiency for different platforms and use cases:
+        Utilize Docker to effortlessly execute the `ultralytics` package in an isolated container, ensuring consistent and smooth performance across various environments. By choosing one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you not only avoid the complexity of local installation but also benefit from access to a verified working environment. Ultralytics offers 5 main supported Docker images, each designed to provide high compatibility and efficiency for different platforms and use cases:
 
-    <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
+        <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
 
-    - **Dockerfile:** GPU image recommended for training.
-    - **Dockerfile-arm64:** Optimized for ARM64 architecture, allowing deployment on devices like Raspberry Pi and other ARM64-based platforms.
-    - **Dockerfile-cpu:** Ubuntu-based CPU-only version suitable for inference and environments without GPUs.
-    - **Dockerfile-jetson:** Tailored for NVIDIA Jetson devices, integrating GPU support optimized for these platforms.
-    - **Dockerfile-python:** Minimal image with just Python and necessary dependencies, ideal for lightweight applications and development.
-    - **Dockerfile-conda:** Based on Miniconda3 with conda installation of ultralytics package.
+        - **Dockerfile:** GPU image recommended for training.
+        - **Dockerfile-arm64:** Optimized for ARM64 architecture, allowing deployment on devices like Raspberry Pi and other ARM64-based platforms.
+        - **Dockerfile-cpu:** Ubuntu-based CPU-only version suitable for inference and environments without GPUs.
+        - **Dockerfile-jetson:** Tailored for NVIDIA Jetson devices, integrating GPU support optimized for these platforms.
+        - **Dockerfile-python:** Minimal image with just Python and necessary dependencies, ideal for lightweight applications and development.
+        - **Dockerfile-conda:** Based on Miniconda3 with conda installation of ultralytics package.
 
-    Below are the commands to get the latest image and execute it:
+        Below are the commands to get the latest image and execute it:
 
-    ```bash
-    # Set image name as a variable
-    t=ultralytics/ultralytics:latest
+        ```bash
+        # Set image name as a variable
+        t=ultralytics/ultralytics:latest
 
-    # Pull the latest ultralytics image from Docker Hub
-    sudo docker pull $t
+        # Pull the latest ultralytics image from Docker Hub
+        sudo docker pull $t
 
-    # Run the ultralytics image in a container with GPU support
-    sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-    sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
-    ```
+        # Run the ultralytics image in a container with GPU support
+        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+        ```
 
-    The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flag assigns a pseudo-TTY and maintains stdin open, enabling you to interact with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, which is crucial for tasks that require GPU computation.
+        The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flag assigns a pseudo-TTY and maintains stdin open, enabling you to interact with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, which is crucial for tasks that require GPU computation.
 
-    Note: To work with files on your local machine within the container, use Docker volumes for mounting a local directory into the container:
+        Note: To work with files on your local machine within the container, use Docker volumes for mounting a local directory into the container:
 
-    ```bash
-    # Mount local directory to a directory inside the container
-    sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
-    ```
+        ```bash
+        # Mount local directory to a directory inside the container
+        sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+        ```
 
-    Alter `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container for accessibility.
+        Alter `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container for accessibility.
 
-    For advanced Docker usage, feel free to explore the [Ultralytics Docker Guide](https://docs.ultralytics.com/guides/docker-quickstart/).
-
+        For advanced Docker usage, feel free to explore the [Ultralytics Docker Guide](https://docs.ultralytics.com/guides/docker-quickstart/).
 
 See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
 

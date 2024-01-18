@@ -62,7 +62,6 @@ augment: False  # (bool) apply image augmentation to prediction sources
 agnostic_nms: False  # (bool) class-agnostic NMS
 classes:  # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
 retina_masks: False  # (bool) use high-resolution segmentation masks
-cls_weights: # (str | list[float], optional) the weights applied to class predictions
 embed:  # (list[int], optional) return feature vectors/embeddings from given layers
 
 # Visualize settings ---------------------------------------------------------------------------------------------------
@@ -100,6 +99,7 @@ cls: 0.5  # (float) cls loss gain (scale with pixels)
 dfl: 1.5  # (float) dfl loss gain
 pose: 12.0  # (float) pose loss gain
 kobj: 1.0  # (float) keypoint obj loss gain
+cls_weights: # (str | list[float], optional) class weights applied to cls loss (object detection)
 label_smoothing: 0.0  # (float) label smoothing (fraction)
 nbs: 64  # (int) nominal batch size
 hsv_h: 0.015  # (float) image HSV-Hue augmentation (fraction)

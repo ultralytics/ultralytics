@@ -40,7 +40,7 @@ class TLCDetectionValidator(DetectionValidator):
             self._run = tlc.init(project_name='yolov8-hackathon')
         self.metrics_writer = tlc.MetricsWriter(
             run_url=self._run.url,
-            dataset_url=self.dataloader.dataset.table.url,
+            dataset_url=dataloader.dataset.table.url,
             override_column_schemas={
                 tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(dataloader.dataset.data['names'])
             },
@@ -55,7 +55,8 @@ class TLCDetectionValidator(DetectionValidator):
         conf = predn[:,4]
         pred_cls = predn[:,5:]
         predn_box = predn[:,:4]
-        example_id = self.seen - 1
+        example_index = self.seen - 1
+        example_id = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset, 'irect') else example_index
         width, height = pbatch['ori_shape']
         pred_xywh = ops.xyxy2xywhn(predn_box, w=width, h=height)
 
@@ -72,8 +73,8 @@ class TLCDetectionValidator(DetectionValidator):
         predicted_boxes = [
             construct_bbox_struct(
                 annotations,
-                image_width=0,
-                image_height=0,
+                image_width=width,
+                image_height=height,
             )
         ]
 

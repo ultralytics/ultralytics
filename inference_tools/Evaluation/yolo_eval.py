@@ -22,7 +22,7 @@ metrics.box.maps
 
 # Load ground truth
 print("🔌...LOADING GROUND TRUTH...")
-cocoGt = COCO('../inference_tools/Evaluation/datasets/Client_Validation_Set/annotations/instances_val2017.json')
+cocoGt = COCO('/Users/johnny/Projects/datasets/custom_dataset_v2/annotations/instances_val2017.json')
 
 print("🔌...LOADING PREDICTIONS IN RUNS...")
 list_of_dirs = glob.glob('../runs/detect/val') + glob.glob('../runs/detect/val[0-9]*')

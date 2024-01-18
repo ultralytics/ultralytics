@@ -239,8 +239,8 @@ class BaseTrainer:
             print("Not using class weights")
         elif isinstance(cls_weights, list) and len(cls_weights) == nc:
             cls_weights = torch.Tensor(cls_weights)
-        elif cls_weights == "median":
-            cls_weights = self.get_median_frequency_weights(nc)
+        elif cls_weights == "median-inverse":
+            cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True)
         elif cls_weights == "inverse": 
             cls_weights = self.get_inverse_class_frequency_weights(nc)
         else:
@@ -248,7 +248,7 @@ class BaseTrainer:
         
         return cls_weights
 
-    def get_inverse_class_frequency_weights(self, nc):
+    def get_inverse_class_frequency_weights(self, nc, median_norm=False):
         loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
 
         y = [batch['cls'].view(-1).numpy() for batch in loader]
@@ -258,26 +258,16 @@ class BaseTrainer:
         if len(class_counts) != nc:
             eps = 0.0001 # included for numerical stability
             class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
-        
-        total_samples = len(y)
-        class_weights = total_samples / (nc * class_counts)
+
+        if median_norm:
+            median_frequency = np.median(class_counts)
+            class_weights = median_frequency / class_counts
+        else:
+            total_samples = len(y)
+            class_weights = total_samples / (nc * class_counts)
+            
         return torch.Tensor(class_weights)
     
-    def get_median_frequency_weights(self, nc):
-        loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
-
-        y = [batch['cls'].view(-1).numpy() for batch in loader]
-        y = list(chain(*y))
-        
-        unique_classes, class_counts = np.unique(y, return_counts=True)
-        if len(class_counts) != nc:
-            eps = 0.0001 # included for numerical stability
-            class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
-        
-        median_frequency = np.median(class_counts)
-        class_weights = median_frequency / class_counts
-        return torch.Tensor(class_weights)
-
     def _setup_train(self, world_size):
         """Builds dataloaders and optimizer on correct rank process."""
 

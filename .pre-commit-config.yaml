@@ -44,7 +44,8 @@ repos:
         additional_dependencies:
           - mdformat-frontmatter>=2.0.8
           - mdformat_tables>=0.4.1
-          - mdformat-mkdocs@git+https://github.com/KyleKing/mdformat-mkdocs.git@bad89d381e4c13734bf31031d91eb77c95b714df
+          - mdformat-mkdocs>=2.0.0rc3
+          - mdformat-gfm@git+https://github.com/hukkin/mdformat-gfm.git
           # # TODO: defer additional plugins (black/beautysh/etc.) to minimize diff
           # #   Note: 'mdformat-mkdocs[recommended]' includes frontmatter, tables, and mkdocs
           # - mdformat-mkdocs[recommended]>=2.0.0

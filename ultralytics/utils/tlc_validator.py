@@ -57,7 +57,7 @@ class TLCDetectionValidator(DetectionValidator):
         predn_box = predn[:,:4]
         example_index = self.seen - 1
         example_id = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset, 'irect') else example_index
-        width, height = pbatch['ori_shape']
+        height, width = pbatch['ori_shape']
         pred_xywh = ops.xyxy2xywhn(predn_box, w=width, h=height)
 
         annotations = []

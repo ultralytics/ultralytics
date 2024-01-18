@@ -599,8 +599,8 @@ def yolo_bbox2obb(
 
 def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
     """
-    Converts existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB) in YOLO format.
-    Generates segmentation data using SAM auto-annotator as needed.
+    Converts existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB)
+    in YOLO format. Generates segmentation data using SAM auto-annotator as needed.
 
     Args:
         im_dir (str | Path): Path to image directory to convert.
@@ -624,6 +624,7 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
     from ultralytics.utils import LOGGER
     from ultralytics import SAM
     from tqdm import tqdm
+
     # NOTE: add placeholder to pass class index check
     dataset = YOLODataset(im_dir, data=dict(names=list(range(1000))))
     if len(dataset.labels[0]["segments"]) > 0:  # if it's segment data

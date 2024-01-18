@@ -19,6 +19,6 @@ keywords: Ultralytics, Bboxes, _ntuple, utility, ultralytics utils.instance
 
 <br><br>
 
-## ::: ultralytics.utils.instance._ntuple
+## ::: ultralytics.utils.instance.\_ntuple
 
 <br><br>

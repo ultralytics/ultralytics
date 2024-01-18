@@ -25,8 +25,8 @@ YOLOv5u representa un avance en las metodologías de detección de objetos. Orig
 Los modelos YOLOv5u, con diferentes pesos pre-entrenados, sobresalen en las tareas de [Detección de Objetos](../tasks/detect.md). Soportan una amplia gama de modos que los hacen adecuados para diversas aplicaciones, desde el desarrollo hasta la implementación.
 
 | Tipo de Modelo | Pesos Pre-entrenados                                                                                                        | Tarea                                      | Inferencia | Validación | Entrenamiento | Exportación |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------|--------------------------------------------|------------|------------|---------------|-------------|
-| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Detección de Objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------- | ---------- | ------------- | ----------- |
+| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Detección de Objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
 
 Esta tabla proporciona una descripción detallada de las variantes de modelos YOLOv5u, destacando su aplicabilidad en tareas de detección de objetos y el soporte para varios modos operativos como [Inferencia](../modes/predict.md), [Validación](../modes/val.md), [Entrenamiento](../modes/train.md) y [Exportación](../modes/export.md). Este soporte integral asegura que los usuarios puedan aprovechar al máximo las capacidades de los modelos YOLOv5u en una amplia gama de escenarios de detección de objetos.
 

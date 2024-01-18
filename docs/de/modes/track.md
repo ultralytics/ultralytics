@@ -33,7 +33,7 @@ Die Ausgabe von Ultralytics Trackern ist konsistent mit der standardmäßigen Ob
 ## Anwendungen in der realen Welt
 
 |                                                      Transportwesen                                                      |                                                       Einzelhandel                                                       |                                                      Aquakultur                                                       |
-|:------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------: |
 | ![Fahrzeugverfolgung](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![Personenverfolgung](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Fischverfolgung](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
 |                                                    Fahrzeugverfolgung                                                    |                                                    Personenverfolgung                                                    |                                                    Fischverfolgung                                                    |
 
@@ -49,8 +49,8 @@ Ultralytics YOLO erweitert seine Objekterkennungsfunktionen, um eine robuste und
 
 Ultralytics YOLO unterstützt die folgenden Tracking-Algorithmen. Sie können aktiviert werden, indem Sie die entsprechende YAML-Konfigurationsdatei wie `tracker=tracker_type.yaml` übergeben:
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Verwenden Sie `botsort.yaml`, um diesen Tracker zu aktivieren.
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - Verwenden Sie `bytetrack.yaml`, um diesen Tracker zu aktivieren.
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Verwenden Sie `botsort.yaml`, um diesen Tracker zu aktivieren.
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - Verwenden Sie `bytetrack.yaml`, um diesen Tracker zu aktivieren.
 
 Der Standardtracker ist BoT-SORT.
 

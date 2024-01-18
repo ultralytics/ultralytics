@@ -74,7 +74,7 @@ Exporte um modelo YOLOv8n para um formato diferente como ONNX ou TensorRT. Veja 
 Configurações de exportação para modelos YOLO referem-se às várias configurações e opções usadas para salvar ou exportar o modelo para uso em outros ambientes ou plataformas. Essas configurações podem afetar a performance, tamanho e compatibilidade do modelo com diferentes sistemas. Algumas configurações comuns de exportação de YOLO incluem o formato do arquivo de modelo exportado (por exemplo, ONNX, TensorFlow SavedModel), o dispositivo em que o modelo será executado (por exemplo, CPU, GPU) e a presença de recursos adicionais como máscaras ou múltiplos rótulos por caixa. Outros fatores que podem afetar o processo de exportação incluem a tarefa específica para a qual o modelo está sendo usado e os requisitos ou restrições do ambiente ou plataforma alvo. É importante considerar e configurar cuidadosamente essas configurações para garantir que o modelo exportado seja otimizado para o caso de uso pretendido e possa ser usado eficazmente no ambiente alvo.
 
 | Chave       | Valor           | Descrição                                                           |
-|-------------|-----------------|---------------------------------------------------------------------|
+| ----------- | --------------- | ------------------------------------------------------------------- |
 | `format`    | `'torchscript'` | formato para exportação                                             |
 | `imgsz`     | `640`           | tamanho da imagem como escalar ou lista (h, w), ou seja, (640, 480) |
 | `keras`     | `False`         | usar Keras para exportação TF SavedModel                            |
@@ -92,17 +92,17 @@ Configurações de exportação para modelos YOLO referem-se às várias configu
 Os formatos de exportação disponíveis para YOLOv8 estão na tabela abaixo. Você pode exportar para qualquer formato usando o argumento `format`, ou seja, `format='onnx'` ou `format='engine'`.
 
 | Formato                                                            | Argumento `format` | Modelo                    | Metadados | Argumentos                                          |
-|--------------------------------------------------------------------|--------------------|---------------------------|-----------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n.pt`              | ✅         | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`         | `yolov8n_openvino_model/` | ✅         | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`           | `yolov8n.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`           | `yolov8n.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n.pb`              | ❌         | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n_edgetpu.tflite`  | ✅         | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n_web_model/`      | ✅         | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`           | `yolov8n_paddle_model/`   | ✅         | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`             | `yolov8n_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
+| ------------------------------------------------------------------ | ------------------ | ------------------------- | --------- | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n.pt`              | ✅        | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`         | `yolov8n_openvino_model/` | ✅        | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`           | `yolov8n.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`           | `yolov8n.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n_saved_model/`    | ✅        | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n.pb`              | ❌        | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n.tflite`          | ✅        | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n_edgetpu.tflite`  | ✅        | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`           | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`             | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |

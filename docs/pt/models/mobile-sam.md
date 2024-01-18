@@ -21,8 +21,8 @@ O MobileSAM é treinado em uma única GPU com um conjunto de dados de 100 mil im
 Esta tabela apresenta os modelos disponíveis com seus pesos pré-treinados específicos, as tarefas que eles suportam e sua compatibilidade com diferentes modos de operação, como [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md) e [Export](../modes/export.md), indicados pelos emojis ✅ para os modos suportados e ❌ para os modos não suportados.
 
 | Tipo de Modelo | Pesos Pré-treinados | Tarefas Suportadas                               | Inference | Validation | Training | Export |
-|----------------|---------------------|--------------------------------------------------|-----------|------------|----------|--------|
-| MobileSAM      | `mobile_sam.pt`     | [Segmentação de Instâncias](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| -------------- | ------------------- | ------------------------------------------------ | --------- | ---------- | -------- | ------ |
+| MobileSAM      | `mobile_sam.pt`     | [Segmentação de Instâncias](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
 
 ## Adaptação de SAM para MobileSAM
 
@@ -33,21 +33,21 @@ O MobileSAM tem um desempenho comparável ao SAM original e mantém o mesmo pipe
 A tabela a seguir fornece uma comparação dos codificadores de imagens baseados em ViT:
 
 | Codificador de Imagens | SAM Original | MobileSAM |
-|------------------------|--------------|-----------|
+| ---------------------- | ------------ | --------- |
 | Parâmetros             | 611M         | 5M        |
 | Velocidade             | 452ms        | 8ms       |
 
 Tanto o SAM original quanto o MobileSAM utilizam o mesmo decodificador de máscaras baseado em prompt:
 
 | Decodificador de Máscaras | SAM Original | MobileSAM |
-|---------------------------|--------------|-----------|
+| ------------------------- | ------------ | --------- |
 | Parâmetros                | 3,876M       | 3,876M    |
 | Velocidade                | 4ms          | 4ms       |
 
 Aqui está a comparação de todo o pipeline:
 
 | Pipeline Completo (Enc+Dec) | SAM Original | MobileSAM |
-|-----------------------------|--------------|-----------|
+| --------------------------- | ------------ | --------- |
 | Parâmetros                  | 615M         | 9,66M     |
 | Velocidade                  | 456ms        | 12ms      |
 

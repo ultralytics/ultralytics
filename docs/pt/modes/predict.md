@@ -26,7 +26,7 @@ No mundo do aprendizado de máquina e visão computacional, o processo de fazer 
 ## Aplicações no Mundo Real
 
 |                                                                   Manufatura                                                                    |                                                               Esportes                                                               |                                                             Segurança                                                              |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------:|
+| :---------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------: |
 | ![Detecção de Peças de Reposição de Veículo](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Detecção de Jogador de Futebol](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![Detecção de Queda de Pessoas](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
 |                                                    Detecção de Peças de Reposição de Veículo                                                    |                                                    Detecção de Jogador de Futebol                                                    |                                                    Detecção de Queda de Pessoas                                                    |
 
@@ -97,7 +97,7 @@ O YOLOv8 pode processar diferentes tipos de fontes de entrada para inferência, 
     Use `stream=True` para processar vídeos longos ou grandes conjuntos de dados para gerenciar a memória de forma eficiente. Quando `stream=False`, os resultados de todos os quadros ou pontos de dados são armazenados na memória, o que pode aumentar rapidamente e causar erros de falta de memória para grandes entradas. Em contraste, `stream=True` utiliza um gerador, que mantém apenas os resultados do quadro atual ou ponto de dados na memória, reduzindo significativamente o consumo de memória e prevenindo problemas de falta dela.
 
 | Fonte           | Argumento                                  | Tipo            | Notas                                                                                                                   |
-|-----------------|--------------------------------------------|-----------------|-------------------------------------------------------------------------------------------------------------------------|
+| --------------- | ------------------------------------------ | --------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | imagem          | `'image.jpg'`                              | `str` ou `Path` | Arquivo de imagem único.                                                                                                |
 | URL             | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL para uma imagem.                                                                                                    |
 | captura de tela | `'screen'`                                 | `str`           | Captura uma captura de tela.                                                                                            |
@@ -106,12 +106,12 @@ O YOLOv8 pode processar diferentes tipos de fontes de entrada para inferência, 
 | numpy           | `np.zeros((640,1280,3))`                   | `np.ndarray`    | Formato HWC com canais BGR `uint8 (0-255)`.                                                                             |
 | torch           | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | Formato BCHW com canais RGB `float32 (0.0-1.0)`.                                                                        |
 | CSV             | `'sources.csv'`                            | `str` ou `Path` | Arquivo CSV contendo caminhos para imagens, vídeos ou diretórios.                                                       |
-| vídeo ✅         | `'video.mp4'`                              | `str` ou `Path` | Arquivo de vídeo em formatos como MP4, AVI, etc.                                                                        |
-| diretório ✅     | `'path/'`                                  | `str` ou `Path` | Caminho para um diretório contendo imagens ou vídeos.                                                                   |
-| glob ✅          | `'path/*.jpg'`                             | `str`           | Padrão glob para combinar vários arquivos. Use o caractere `*` como curinga.                                            |
-| YouTube ✅       | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL para um vídeo do YouTube.                                                                                           |
-| stream ✅        | `'rtsp://example.com/media.mp4'`           | `str`           | URL para protocolos de streaming como RTSP, RTMP, TCP ou um endereço IP.                                                |
-| multi-stream ✅  | `'list.streams'`                           | `str` ou `Path` | Arquivo de texto `*.streams` com uma URL de stream por linha, ou seja, 8 streams serão executados em lote de tamanho 8. |
+| vídeo ✅        | `'video.mp4'`                              | `str` ou `Path` | Arquivo de vídeo em formatos como MP4, AVI, etc.                                                                        |
+| diretório ✅    | `'path/'`                                  | `str` ou `Path` | Caminho para um diretório contendo imagens ou vídeos.                                                                   |
+| glob ✅         | `'path/*.jpg'`                             | `str`           | Padrão glob para combinar vários arquivos. Use o caractere `*` como curinga.                                            |
+| YouTube ✅      | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL para um vídeo do YouTube.                                                                                           |
+| stream ✅       | `'rtsp://example.com/media.mp4'`           | `str`           | URL para protocolos de streaming como RTSP, RTMP, TCP ou um endereço IP.                                                |
+| multi-stream ✅ | `'list.streams'`                           | `str` ou `Path` | Arquivo de texto `*.streams` com uma URL de stream por linha, ou seja, 8 streams serão executados em lote de tamanho 8. |
 
 Abaixo estão exemplos de código para usar cada tipo de fonte:
 

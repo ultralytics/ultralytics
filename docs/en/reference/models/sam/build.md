@@ -27,7 +27,7 @@ keywords: Ultralytics, SAM, build sam, vision transformer, vits, build_sam_vit_l
 
 <br><br>
 
-## ::: ultralytics.models.sam.build._build_sam
+## ::: ultralytics.models.sam.build.\_build_sam
 
 <br><br>
 

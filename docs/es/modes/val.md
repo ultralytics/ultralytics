@@ -68,7 +68,7 @@ Valide la precisión del modelo YOLOv8n entrenado en el conjunto de datos COCO12
 Los ajustes de validación para modelos YOLO se refieren a los diversos hiperparámetros y configuraciones utilizados para evaluar el rendimiento del modelo en un conjunto de datos de validación. Estos ajustes pueden afectar el rendimiento, la velocidad y la precisión del modelo. Algunos ajustes comunes de validación YOLO incluyen el tamaño del lote, la frecuencia con la que se realiza la validación durante el entrenamiento y las métricas utilizadas para evaluar el rendimiento del modelo. Otros factores que pueden afectar el proceso de validación incluyen el tamaño y la composición del conjunto de datos de validación y la tarea específica para la que se utiliza el modelo. Es importante ajustar y experimentar cuidadosamente con estos ajustes para asegurarse de que el modelo esté funcionando bien en el conjunto de datos de validación y para detectar y prevenir el sobreajuste.
 
 | Clave         | Valor   | Descripción                                                                                       |
-|---------------|---------|---------------------------------------------------------------------------------------------------|
+| ------------- | ------- | ------------------------------------------------------------------------------------------------- |
 | `data`        | `None`  | ruta al archivo de datos, por ejemplo coco128.yaml                                                |
 | `imgsz`       | `640`   | tamaño de las imágenes de entrada como entero                                                     |
 | `batch`       | `16`    | número de imágenes por lote (-1 para AutoBatch)                                                   |
@@ -83,4 +83,5 @@ Los ajustes de validación para modelos YOLO se refieren a los diversos hiperpar
 | `plots`       | `False` | mostrar gráficos durante el entrenamiento                                                         |
 | `rect`        | `False` | val rectangular con cada lote compilado para el mínimo relleno                                    |
 | `split`       | `val`   | división del conjunto de datos a utilizar para la validación, por ejemplo 'val', 'test' o 'train' |
+
 |

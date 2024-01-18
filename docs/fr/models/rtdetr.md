@@ -11,7 +11,7 @@ keywords: RT-DETR, Baidu, Vision Transformers, détection d'objets, performance 
 Le Real-Time Detection Transformer (RT-DETR), développé par Baidu, est un détecteur d'objets de pointe de bout en bout qui offre des performances en temps réel tout en maintenant une grande précision. Il exploite la puissance des Vision Transformers (ViT) pour traiter efficacement les caractéristiques multiscalaires en dissociant l'interaction intra-échelle et la fusion inter-échelles. RT-DETR est hautement adaptable, permettant un ajustement flexible de la vitesse d'inférence en utilisant différentes couches de décodeur sans nécessiter de nouvelle formation. Le modèle est performant sur des infrastructures accélérées telles que CUDA avec TensorRT, surpassant de nombreux autres détecteurs d'objets en temps réel.
 
 ![Exemple d'image du modèle](https://user-images.githubusercontent.com/26833433/238963168-90e8483f-90aa-4eb6-a5e1-0d408b23dd33.png)
-**Vue d'ensemble du RT-DETR de Baidu.** Le diagramme d'architecture du modèle RT-DETR montre les trois dernières étapes du réseau {S3, S4, S5} comme entrée de l'encodeur. L'encodeur hybride efficace transforme les caractéristiques multiscalaires en une séquence de caractéristiques d'image grâce à l'interaction à l'intérieur de l'échelle (AIFI - *Adeptation of Intra-scale Feature Interaction*) et au module de fusion inter-échelles (CCFM - *Cross-scale Context-aware Feature Fusion Module*). La sélection de requêtes informée par IoU est utilisée pour sélectionner un nombre fixe de caractéristiques d'image pour servir de requêtes d'objets initiales pour le décodeur. Enfin, le décodeur avec des têtes de prédictions auxiliaires optimise de manière itérative les requêtes d'objets pour générer des boîtes et des scores de confiance ([source](https://arxiv.org/pdf/2304.08069.pdf)).
+**Vue d'ensemble du RT-DETR de Baidu.** Le diagramme d'architecture du modèle RT-DETR montre les trois dernières étapes du réseau {S3, S4, S5} comme entrée de l'encodeur. L'encodeur hybride efficace transforme les caractéristiques multiscalaires en une séquence de caractéristiques d'image grâce à l'interaction à l'intérieur de l'échelle (AIFI - _Adeptation of Intra-scale Feature Interaction_) et au module de fusion inter-échelles (CCFM - _Cross-scale Context-aware Feature Fusion Module_). La sélection de requêtes informée par IoU est utilisée pour sélectionner un nombre fixe de caractéristiques d'image pour servir de requêtes d'objets initiales pour le décodeur. Enfin, le décodeur avec des têtes de prédictions auxiliaires optimise de manière itérative les requêtes d'objets pour générer des boîtes et des scores de confiance ([source](https://arxiv.org/pdf/2304.08069.pdf)).
 
 ### Fonctionnalités principales
 
@@ -28,7 +28,7 @@ L'API Python Ultralytics fournit des modèles pré-entraînés RT-DETR de Paddle
 
 ## Exemples d'utilisation
 
-Cet exemple présente des exemples simples d'entraînement et d'inférence avec RT-DETRR. Pour une documentation complète sur ceux-ci et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
+Cet exemple présente des exemples simples d'entraînement et d'inférence avec RT-DETRR. Pour une documentation complète sur ceux-ci et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
 
 !!! Example "Exemple"
 
@@ -65,9 +65,9 @@ Cet exemple présente des exemples simples d'entraînement et d'inférence avec 
 Ce tableau présente les types de modèles, les poids pré-entraînés spécifiques, les tâches prises en charge par chaque modèle et les différents modes ([Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) pris en charge, indiqués par des emojis ✅.
 
 | Type de modèle      | Poids pré-entraînés | Tâches prises en charge                  | Inférence | Validation | Entraînement | Export |
-|---------------------|---------------------|------------------------------------------|-----------|------------|--------------|--------|
-| RT-DETR Large       | `rtdetr-l.pt`       | [Détection d'objets](../tasks/detect.md) | ✅         | ✅          | ✅            | ✅      |
-| RT-DETR Extra-Large | `rtdetr-x.pt`       | [Détection d'objets](../tasks/detect.md) | ✅         | ✅          | ✅            | ✅      |
+| ------------------- | ------------------- | ---------------------------------------- | --------- | ---------- | ------------ | ------ |
+| RT-DETR Large       | `rtdetr-l.pt`       | [Détection d'objets](../tasks/detect.md) | ✅        | ✅         | ✅           | ✅     |
+| RT-DETR Extra-Large | `rtdetr-x.pt`       | [Détection d'objets](../tasks/detect.md) | ✅        | ✅         | ✅           | ✅     |
 
 ## Citations et Remerciements
 
@@ -90,4 +90,4 @@ Si vous utilisez RT-DETR de Baidu dans votre travail de recherche ou de dévelop
 
 Nous tenons à remercier Baidu et l'équipe [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) pour la création et la maintenance de cette précieuse ressource pour la communauté de la vision par ordinateur. Leur contribution au domaine avec le développement du détecteur d'objets en temps réel basé sur les Vision Transformers, RT-DETR, est grandement appréciée.
 
-*keywords: RT-DETR, Transformer, ViT, Vision Transformers, RT-DETR de Baidu, PaddlePaddle, Modèles PaddlePaddle RT-DETR pré-entraînés, utilisation de RT-DETR de Baidu, API Python Ultralytics, détection d'objets en temps réel*
+_keywords: RT-DETR, Transformer, ViT, Vision Transformers, RT-DETR de Baidu, PaddlePaddle, Modèles PaddlePaddle RT-DETR pré-entraînés, utilisation de RT-DETR de Baidu, API Python Ultralytics, détection d'objets en temps réel_

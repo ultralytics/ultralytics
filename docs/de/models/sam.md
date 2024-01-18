@@ -31,9 +31,9 @@ Für eine detaillierte Betrachtung des Segment Anything Models und des SA-1B-Dat
 Diese Tabelle zeigt die verfügbaren Modelle mit ihren spezifischen vortrainierten Gewichten, die unterstützten Aufgaben und ihre Kompatibilität mit verschiedenen Betriebsmodi wie [Inference](../modes/predict.md), [Validierung](../modes/val.md), [Training](../modes/train.md) und [Export](../modes/export.md), wobei ✅ Emojis für unterstützte Modi und ❌ Emojis für nicht unterstützte Modi verwendet werden.
 
 | Modelltyp | Vortrainierte Gewichte | Unterstützte Aufgaben                       | Inference | Validierung | Training | Export |
-|-----------|------------------------|---------------------------------------------|-----------|-------------|----------|--------|
-| SAM base  | `sam_b.pt`             | [Instanzsegmentierung](../tasks/segment.md) | ✅         | ❌           | ❌        | ✅      |
-| SAM large | `sam_l.pt`             | [Instanzsegmentierung](../tasks/segment.md) | ✅         | ❌           | ❌        | ✅      |
+| --------- | ---------------------- | ------------------------------------------- | --------- | ----------- | -------- | ------ |
+| SAM base  | `sam_b.pt`             | [Instanzsegmentierung](../tasks/segment.md) | ✅        | ❌          | ❌       | ✅     |
+| SAM large | `sam_l.pt`             | [Instanzsegmentierung](../tasks/segment.md) | ✅        | ❌          | ❌       | ✅     |
 
 ## Wie man SAM verwendet: Vielseitigkeit und Power in der Bildsegmentierung
 
@@ -136,7 +136,7 @@ Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden
 Hier vergleichen wir Meta's kleinstes SAM-Modell, SAM-b, mit Ultralytics kleinstem Segmentierungsmodell, [YOLOv8n-seg](../tasks/segment.md):
 
 | Modell                                         | Größe                         | Parameter                    | Geschwindigkeit (CPU)                  |
-|------------------------------------------------|-------------------------------|------------------------------|----------------------------------------|
+| ---------------------------------------------- | ----------------------------- | ---------------------------- | -------------------------------------- |
 | Meta's SAM-b                                   | 358 MB                        | 94,7 M                       | 51096 ms/pro Bild                      |
 | [MobileSAM](mobile-sam.md)                     | 40,7 MB                       | 10,1 M                       | 46122 ms/pro Bild                      |
 | [FastSAM-s](fast-sam.md) mit YOLOv8-Backbone   | 23,7 MB                       | 11,8 M                       | 115 ms/pro Bild                        |
@@ -191,7 +191,7 @@ Um Ihren Datensatz mit dem Ultralytics-Framework automatisch zu annotieren, verw
         ```
 
 | Argument   | Typ                 | Beschreibung                                                                                                              | Standard     |
-|------------|---------------------|---------------------------------------------------------------------------------------------------------------------------|--------------|
+| ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | data       | str                 | Pfad zu einem Ordner, der die zu annotierenden Bilder enthält.                                                            |              |
 | det_model  | str, optional       | Vortrainiertes YOLO-Detektionsmodell. Standardmäßig 'yolov8x.pt'.                                                         | 'yolov8x.pt' |
 | sam_model  | str, optional       | Vortrainiertes SAM-Segmentierungsmodell. Standardmäßig 'sam_b.pt'.                                                        | 'sam_b.pt'   |
@@ -223,4 +223,4 @@ Wenn Sie SAM in Ihrer Forschungs- oder Entwicklungsarbeit nützlich finden, erw�
 
 Wir möchten Meta AI für die Erstellung und Pflege dieser wertvollen Ressource für die Computer Vision Community danken.
 
-*Stichworte: Segment Anything, Segment Anything Model, SAM, Meta SAM, Bildsegmentierung, Promptable Segmentierung, Zero-Shot-Performance, SA-1B-Datensatz, fortschrittliche Architektur, Auto-Annotierung, Ultralytics, vortrainierte Modelle, SAM Base, SAM Large, Instanzsegmentierung, Computer Vision, Künstliche Intelligenz, maschinelles Lernen, Datenannotation, Segmentierungsmasken, Detektionsmodell, YOLO Detektionsmodell, Bibtex, Meta AI.*
+_Stichworte: Segment Anything, Segment Anything Model, SAM, Meta SAM, Bildsegmentierung, Promptable Segmentierung, Zero-Shot-Performance, SA-1B-Datensatz, fortschrittliche Architektur, Auto-Annotierung, Ultralytics, vortrainierte Modelle, SAM Base, SAM Large, Instanzsegmentierung, Computer Vision, Künstliche Intelligenz, maschinelles Lernen, Datenannotation, Segmentierungsmasken, Detektionsmodell, YOLO Detektionsmodell, Bibtex, Meta AI._

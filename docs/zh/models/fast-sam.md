@@ -34,10 +34,10 @@ FastSAM旨在解决[Segment Anything Model（SAM）](sam.md)的局限性，SAM�
 
 该表格列出了可用的模型及其特定的预训练权重，它们支持的任务以及它们与不同操作模式（如[推断](../modes/predict.md)、[验证](../modes/val.md)、[训练](../modes/train.md)和[导出](../modes/export.md)）的兼容性，由支持的模式用✅表示，不支持的模式用❌表示。
 
-| 模型类型      | 预训练权重          | 支持的任务                       | 推断 | 验证 | 训练 | 导出 |
-|-----------|----------------|-----------------------------|----|----|----|----|
-| FastSAM-s | `FastSAM-s.pt` | [实例分割](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅  |
-| FastSAM-x | `FastSAM-x.pt` | [实例分割](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅  |
+| 模型类型  | 预训练权重     | 支持的任务                      | 推断 | 验证 | 训练 | 导出 |
+| --------- | -------------- | ------------------------------- | ---- | ---- | ---- | ---- |
+| FastSAM-s | `FastSAM-s.pt` | [实例分割](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅   |
+| FastSAM-x | `FastSAM-x.pt` | [实例分割](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅   |
 
 ## 用法示例
 
@@ -122,17 +122,20 @@ FastSAM也可以直接从[https://github.com/CASIA-IVA-Lab/FastSAM](https://gith
 ### 安装
 
 1. 克隆FastSAM存储库：
+
    ```shell
    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
    ```
 
 2. 创建并激活一个带有Python 3.9的Conda环境：
+
    ```shell
    conda create -n FastSAM python=3.9
    conda activate FastSAM
    ```
 
 3. 进入克隆的存储库并安装所需的软件包：
+
    ```shell
    cd FastSAM
    pip install -r requirements.txt
@@ -149,25 +152,28 @@ FastSAM也可以直接从[https://github.com/CASIA-IVA-Lab/FastSAM](https://gith
 
 2. 使用FastSAM进行推断。示例命令：
 
-    - 在图像中分割所有内容：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+   - 在图像中分割所有内容：
 
-    - 使用文本提示分割特定对象：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+     ```
 
-    - 在边界框中分割对象（以xywh格式提供边界框坐标）：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+   - 使用文本提示分割特定对象：
 
-    - 在特定点附近分割对象：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
+     ```
+
+   - 在边界框中分割对象（以xywh格式提供边界框坐标）：
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+     ```
+
+   - 在特定点附近分割对象：
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+     ```
 
 此外，您可以在[Colab演示](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing)上尝试FastSAM，或在[HuggingFace Web演示](https://huggingface.co/spaces/An-619/FastSAM)上进行可视化体验。
 

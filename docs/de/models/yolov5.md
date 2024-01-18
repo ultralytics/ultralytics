@@ -25,8 +25,8 @@ YOLOv5u steht für eine Weiterentwicklung der Methoden zur Objekterkennung. Basi
 Die YOLOv5u-Modelle mit verschiedenen vorab trainierten Gewichten eignen sich hervorragend für Aufgaben zur [Objekterkennung](../tasks/detect.md). Sie unterstützen eine umfassende Palette von Modi, die sie für verschiedene Anwendungen von der Entwicklung bis zur Bereitstellung geeignet machen.
 
 | Modelltyp | Vorab trainierte Gewichte                                                                                                   | Aufgabe                               | Inferenz | Validierung | Training | Export |
-|-----------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------|----------|-------------|----------|--------|
-| YOLOv5u   | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅      |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | -------- | ----------- | -------- | ------ |
+| YOLOv5u   | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅     |
 
 Diese Tabelle bietet eine detaillierte Übersicht über die verschiedenen Varianten des YOLOv5u-Modells und hebt ihre Anwendbarkeit in der Objekterkennung sowie die Unterstützung unterschiedlicher Betriebsmodi wie [Inferenz](../modes/predict.md), [Validierung](../modes/val.md), [Training](../modes/train.md) und [Export](../modes/export.md) hervor. Diese umfassende Unterstützung ermöglicht es Benutzern, die Fähigkeiten der YOLOv5u-Modelle in einer Vielzahl von Objekterkennungsszenarien voll auszuschöpfen.
 

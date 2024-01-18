@@ -25,8 +25,8 @@ O YOLOv5u representa um avanço nas metodologias de detecção de objetos. Origi
 Os modelos YOLOv5u, com vários pesos pré-treinados, se destacam nas tarefas de [Detecção de Objetos](../tasks/detect.md). Eles suportam uma ampla gama de modos, tornando-os adequados para aplicações diversas, desde o desenvolvimento até a implantação.
 
 | Tipo de Modelo | Pesos Pré-Treinados                                                                                                         | Tarefa                                    | Inferência | Validação | Treinamento | Exportação |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|------------|-----------|-------------|------------|
-| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------- | --------- | ----------- | ---------- |
+| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
 
 Essa tabela oferece uma visão detalhada das variantes do modelo YOLOv5u, destacando sua aplicabilidade em tarefas de detecção de objetos e suporte a diversos modos operacionais, como [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md). Esse suporte abrangente garante que os usuários possam aproveitar totalmente as capacidades dos modelos YOLOv5u em uma ampla gama de cenários de detecção de objetos.
 

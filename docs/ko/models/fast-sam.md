@@ -34,10 +34,10 @@ FastSAM은 계산 리소스 요구 사항이 큰 Transformer 모델인 Segment A
 
 이 표는 사용 가능한 모델과 해당하는 사전 훈련 가중치, 지원하는 작업 및 [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), [Export](../modes/export.md)와 같은 다른 운영 모드에 대한 호환성을 나타내며, 지원되는 모드는 ✅ 이모지로, 지원되지 않는 모드는 ❌ 이모지로 표시됩니다.
 
-| 모델 유형     | 사전 훈련 가중치      | 지원되는 작업                        | Inference | Validation | Training | Export |
-|-----------|----------------|--------------------------------|-----------|------------|----------|--------|
-| FastSAM-s | `FastSAM-s.pt` | [인스턴스 분할](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
-| FastSAM-x | `FastSAM-x.pt` | [인스턴스 분할](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| 모델 유형 | 사전 훈련 가중치 | 지원되는 작업                        | Inference | Validation | Training | Export |
+| --------- | ---------------- | ------------------------------------ | --------- | ---------- | -------- | ------ |
+| FastSAM-s | `FastSAM-s.pt`   | [인스턴스 분할](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
+| FastSAM-x | `FastSAM-x.pt`   | [인스턴스 분할](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
 
 ## 사용 예시
 
@@ -122,17 +122,20 @@ FastSAM은 [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-I
 ### 설치
 
 1. FastSAM 저장소를 복제합니다:
+
    ```shell
    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
    ```
 
 2. Python 3.9로 Conda 환경을 생성하고 활성화합니다:
+
    ```shell
    conda create -n FastSAM python=3.9
    conda activate FastSAM
    ```
 
 3. 복제한 저장소로 이동하여 필요한 패키지를 설치합니다:
+
    ```shell
    cd FastSAM
    pip install -r requirements.txt
@@ -149,25 +152,28 @@ FastSAM은 [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-I
 
 2. FastSAM을 추론하기 위해 다음과 같이 사용합니다. 예시 명령어:
 
-    - 이미지에서 모든 것을 세분화:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+   - 이미지에서 모든 것을 세분화:
 
-    - 텍스트 프롬프트를 사용하여 특정 객체를 세분화:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+     ```
 
-    - 바운딩 박스 내의 객체를 세분화 (xywh 형식으로 상자 좌표 제공):
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+   - 텍스트 프롬프트를 사용하여 특정 객체를 세분화:
 
-    - 특정 지점 근처의 객체를 세분화:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
+     ```
+
+   - 바운딩 박스 내의 객체를 세분화 (xywh 형식으로 상자 좌표 제공):
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+     ```
+
+   - 특정 지점 근처의 객체를 세분화:
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+     ```
 
 또한, FastSAM을 [Colab 데모](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) 또는 [HuggingFace 웹 데모](https://huggingface.co/spaces/An-619/FastSAM)에서 시각적인 경험으로 시도해 볼 수 있습니다.
 

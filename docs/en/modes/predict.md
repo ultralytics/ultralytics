@@ -26,7 +26,7 @@ In the world of machine learning and computer vision, the process of making sens
 ## Real-world Applications
 
 |                   Manufacturing                   |                        Sports                        |                   Safety                    |
-|:-------------------------------------------------:|:----------------------------------------------------:|:-------------------------------------------:|
+| :-----------------------------------------------: | :--------------------------------------------------: | :-----------------------------------------: |
 | ![Vehicle Spare Parts Detection][car spare parts] | ![Football Player Detection][football player detect] | ![People Fall Detection][human fall detect] |
 |           Vehicle Spare Parts Detection           |              Football Player Detection               |            People Fall Detection            |
 
@@ -98,16 +98,16 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 
     Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
-| Source         | Argument                                   | Type            | Notes                                                                                       |
-|----------------|--------------------------------------------|-----------------|---------------------------------------------------------------------------------------------|
-| image          | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
-| URL            | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |
-| screenshot     | `'screen'`                                 | `str`           | Capture a screenshot.                                                                       |
-| PIL            | `Image.open('im.jpg')`                     | `PIL.Image`     | HWC format with RGB channels.                                                               |
-| OpenCV         | `cv2.imread('im.jpg')`                     | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
-| numpy          | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
-| torch          | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                          |
-| CSV            | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                |
+| Source          | Argument                                   | Type            | Notes                                                                                       |
+| --------------- | ------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------- |
+| image           | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
+| URL             | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |
+| screenshot      | `'screen'`                                 | `str`           | Capture a screenshot.                                                                       |
+| PIL             | `Image.open('im.jpg')`                     | `PIL.Image`     | HWC format with RGB channels.                                                               |
+| OpenCV          | `cv2.imread('im.jpg')`                     | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
+| numpy           | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
+| torch           | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                          |
+| CSV             | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                |
 | video ✅        | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                   |
 | directory ✅    | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
 | glob ✅         | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
@@ -357,7 +357,7 @@ Below are code examples for using each source type:
 Inference arguments:
 
 | Name            | Type           | Default                | Description                                                                |
-|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
 | `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
 | `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
 | `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
@@ -377,7 +377,7 @@ Inference arguments:
 Visualization arguments:
 
 | Name          | Type          | Default | Description                                                     |
-|---------------|---------------|---------|-----------------------------------------------------------------|
+| ------------- | ------------- | ------- | --------------------------------------------------------------- |
 | `show`        | `bool`        | `False` | show predicted images and videos if environment allows          |
 | `save`        | `bool`        | `False` | save predicted images and videos                                |
 | `save_frames` | `bool`        | `False` | save predicted individual video frames                          |
@@ -398,7 +398,7 @@ YOLOv8 supports various image and video formats, as specified in [data/utils.py]
 The below table contains valid Ultralytics image formats.
 
 | Image Suffixes | Example Predict Command          | Reference                                                                     |
-|----------------|----------------------------------|-------------------------------------------------------------------------------|
+| -------------- | -------------------------------- | ----------------------------------------------------------------------------- |
 | `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format)    |
 | `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
 | `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
@@ -415,7 +415,7 @@ The below table contains valid Ultralytics image formats.
 The below table contains valid Ultralytics video formats.
 
 | Video Suffixes | Example Predict Command          | Reference                                                                        |
-|----------------|----------------------------------|----------------------------------------------------------------------------------|
+| -------------- | -------------------------------- | -------------------------------------------------------------------------------- |
 | `.asf`         | `yolo predict source=video.asf`  | [Advanced Systems Format](https://en.wikipedia.org/wiki/Advanced_Systems_Format) |
 | `.avi`         | `yolo predict source=video.avi`  | [Audio Video Interleave](https://en.wikipedia.org/wiki/Audio_Video_Interleave)   |
 | `.gif`         | `yolo predict source=video.gif`  | [Graphics Interchange Format](https://en.wikipedia.org/wiki/GIF)                 |
@@ -449,7 +449,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 `Results` objects have the following attributes:
 
 | Attribute    | Type                  | Description                                                                              |
-|--------------|-----------------------|------------------------------------------------------------------------------------------|
+| ------------ | --------------------- | ---------------------------------------------------------------------------------------- |
 | `orig_img`   | `numpy.ndarray`       | The original image as a numpy array.                                                     |
 | `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
 | `boxes`      | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
@@ -464,7 +464,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 `Results` objects have the following methods:
 
 | Method          | Return Type     | Description                                                                         |
-|-----------------|-----------------|-------------------------------------------------------------------------------------|
+| --------------- | --------------- | ----------------------------------------------------------------------------------- |
 | `__getitem__()` | `Results`       | Return a Results object for the specified index.                                    |
 | `__len__()`     | `int`           | Return the number of detections in the Results object.                              |
 | `update()`      | `None`          | Update the boxes, masks, and probs attributes of the Results object.                |
@@ -505,7 +505,7 @@ For more details see the `Results` class [documentation](../reference/engine/res
 Here is a table for the `Boxes` class methods and properties, including their name, type, and description:
 
 | Name      | Type                      | Description                                                        |
-|-----------|---------------------------|--------------------------------------------------------------------|
+| --------- | ------------------------- | ------------------------------------------------------------------ |
 | `cpu()`   | Method                    | Move the object to CPU memory.                                     |
 | `numpy()` | Method                    | Convert the object to a numpy array.                               |
 | `cuda()`  | Method                    | Move the object to CUDA memory.                                    |
@@ -543,7 +543,7 @@ For more details see the `Boxes` class [documentation](../reference/engine/resul
 Here is a table for the `Masks` class methods and properties, including their name, type, and description:
 
 | Name      | Type                      | Description                                                     |
-|-----------|---------------------------|-----------------------------------------------------------------|
+| --------- | ------------------------- | --------------------------------------------------------------- |
 | `cpu()`   | Method                    | Returns the masks tensor on CPU memory.                         |
 | `numpy()` | Method                    | Returns the masks tensor as a numpy array.                      |
 | `cuda()`  | Method                    | Returns the masks tensor on GPU memory.                         |
@@ -576,7 +576,7 @@ For more details see the `Masks` class [documentation](../reference/engine/resul
 Here is a table for the `Keypoints` class methods and properties, including their name, type, and description:
 
 | Name      | Type                      | Description                                                       |
-|-----------|---------------------------|-------------------------------------------------------------------|
+| --------- | ------------------------- | ----------------------------------------------------------------- |
 | `cpu()`   | Method                    | Returns the keypoints tensor on CPU memory.                       |
 | `numpy()` | Method                    | Returns the keypoints tensor as a numpy array.                    |
 | `cuda()`  | Method                    | Returns the keypoints tensor on GPU memory.                       |
@@ -610,7 +610,7 @@ For more details see the `Keypoints` class [documentation](../reference/engine/r
 Here's a table summarizing the methods and properties for the `Probs` class:
 
 | Name       | Type                      | Description                                                             |
-|------------|---------------------------|-------------------------------------------------------------------------|
+| ---------- | ------------------------- | ----------------------------------------------------------------------- |
 | `cpu()`    | Method                    | Returns a copy of the probs tensor on CPU memory.                       |
 | `numpy()`  | Method                    | Returns a copy of the probs tensor as a numpy array.                    |
 | `cuda()`   | Method                    | Returns a copy of the probs tensor on GPU memory.                       |
@@ -645,7 +645,7 @@ For more details see the `Probs` class [documentation](../reference/engine/resul
 Here is a table for the `OBB` class methods and properties, including their name, type, and description:
 
 | Name        | Type                      | Description                                                           |
-|-------------|---------------------------|-----------------------------------------------------------------------|
+| ----------- | ------------------------- | --------------------------------------------------------------------- |
 | `cpu()`     | Method                    | Move the object to CPU memory.                                        |
 | `numpy()`   | Method                    | Convert the object to a numpy array.                                  |
 | `cuda()`    | Method                    | Move the object to CUDA memory.                                       |

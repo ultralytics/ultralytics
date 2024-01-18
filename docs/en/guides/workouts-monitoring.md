@@ -19,7 +19,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 ## Real World Applications
 
 |                                                  Workouts Monitoring                                                   |                                                  Workouts Monitoring                                                   |
-|:----------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------:|
+| :--------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------: |
 | ![PushUps Counting](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cf016a41-589f-420f-8a8c-2cc8174a16de) | ![PullUps Counting](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cb20f316-fac2-4330-8445-dcf5ffebe329) |
 |                                                    PushUps Counting                                                    |                                                    PullUps Counting                                                    |
 
@@ -105,7 +105,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 ### Arguments `set_args`
 
 | Name              | Type   | Default  | Description                                                                            |
-|-------------------|--------|----------|----------------------------------------------------------------------------------------|
+| ----------------- | ------ | -------- | -------------------------------------------------------------------------------------- |
 | `kpts_to_check`   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
 | `view_img`        | `bool` | `False`  | Display the frame with counts                                                          |
 | `line_thickness`  | `int`  | `2`      | Increase the thickness of count value                                                  |
@@ -116,7 +116,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 ### Arguments `model.predict`
 
 | Name            | Type           | Default                | Description                                                                |
-|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
 | `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
 | `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
 | `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |

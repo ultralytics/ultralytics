@@ -25,12 +25,12 @@ YOLOv8系列提供了多种模型，每个模型专门用于计算机视觉中�
 
 YOLOv8系列的每个变体都针对其相应的任务进行了优化，确保高性能和准确性。此外，这些模型与各种操作模式兼容，包括[推理](../modes/predict.md)、[验证](../modes/val.md)、[训练](../modes/train.md)和[导出](../modes/export.md)，便于在部署和开发的不同阶段使用。
 
-| 模型          | 文件名                                                                                                            | 任务                          | 推理 | 验证 | 训练 | 导出 |
-|-------------|----------------------------------------------------------------------------------------------------------------|-----------------------------|----|----|----|----|
-| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [检测](../tasks/detect.md)    | ✅  | ✅  | ✅  | ✅  |
-| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [实例分割](../tasks/segment.md) | ✅  | ✅  | ✅  | ✅  |
-| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [姿态/关键点](../tasks/pose.md)  | ✅  | ✅  | ✅  | ✅  |
-| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [分类](../tasks/classify.md)  | ✅  | ✅  | ✅  | ✅  |
+| 模型        | 文件名                                                                                                         | 任务                            | 推理 | 验证 | 训练 | 导出 |
+| ----------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------- | ---- | ---- | ---- | ---- |
+| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [检测](../tasks/detect.md)      | ✅   | ✅   | ✅   | ✅   |
+| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [实例分割](../tasks/segment.md) | ✅   | ✅   | ✅   | ✅   |
+| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [姿态/关键点](../tasks/pose.md) | ✅   | ✅   | ✅   | ✅   |
+| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [分类](../tasks/classify.md)    | ✅   | ✅   | ✅   | ✅   |
 
 这个表格提供了YOLOv8模型变种的概览，突出了它们在特定任务中的适用性，以及它们与各种操作模式（如推理、验证、训练和导出）的兼容性。它展示了YOLOv8系列的多功能性和鲁棒性，使它们适用于计算机视觉中各种应用。
 

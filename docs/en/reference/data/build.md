@@ -15,7 +15,7 @@ keywords: Ultralytics, YOLO v3, Data build, DataLoader, InfiniteDataLoader, seed
 
 <br><br>
 
-## ::: ultralytics.data.build._RepeatSampler
+## ::: ultralytics.data.build.\_RepeatSampler
 
 <br><br>
 

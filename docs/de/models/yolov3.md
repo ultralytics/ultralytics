@@ -33,10 +33,10 @@ Die YOLOv3-Serie, einschließlich YOLOv3, YOLOv3-Ultralytics und YOLOv3u, ist sp
 Alle drei Modelle unterstützen einen umfangreichen Satz von Modi, um Vielseitigkeit in verschiedenen Phasen der Modellbereitstellung und -entwicklung zu gewährleisten. Zu diesen Modi gehören [Inferenz](../modes/predict.md), [Validierung](../modes/val.md), [Training](../modes/train.md) und [Export](../modes/export.md), was den Benutzern ein vollständiges Toolkit für eine effektive Objekterkennung bietet.
 
 | Modelltyp          | Unterstützte Aufgaben                 | Inferenz | Validierung | Training | Export |
-|--------------------|---------------------------------------|----------|-------------|----------|--------|
-| YOLOv3             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅      |
-| YOLOv3-Ultralytics | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅      |
-| YOLOv3u            | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅      |
+| ------------------ | ------------------------------------- | -------- | ----------- | -------- | ------ |
+| YOLOv3             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅     |
+| YOLOv3-Ultralytics | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅     |
+| YOLOv3u            | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅     |
 
 Diese Tabelle bietet einen schnellen Überblick über die Fähigkeiten jeder YOLOv3-Variante und hebt ihre Vielseitigkeit und Eignung für verschiedene Aufgaben und Betriebsmodi in Workflows zur Objekterkennung hervor.
 

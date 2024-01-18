@@ -11,11 +11,11 @@ keywords: Ultralytics, YOLO, documentation, callback utilities, log_scalars, on_
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.tensorboard._log_scalars
+## ::: ultralytics.utils.callbacks.tensorboard.\_log_scalars
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.tensorboard._log_tensorboard_graph
+## ::: ultralytics.utils.callbacks.tensorboard.\_log_tensorboard_graph
 
 <br><br>
 

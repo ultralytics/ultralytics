@@ -21,8 +21,8 @@ MobileSAM est entraîné sur un seul GPU avec un ensemble de données de 100 000
 Ce tableau présente les modèles disponibles avec leurs poids pré-entraînés spécifiques, les tâches qu'ils prennent en charge, et leur compatibilité avec les différents modes d'utilisation tels que [Inférence](../modes/predict.md), [Validation](../modes/val.md), [Entraînement](../modes/train.md) et [Export](../modes/export.md), indiqués par les emojis ✅ pour les modes pris en charge et ❌ pour les modes non pris en charge.
 
 | Type de Modèle | Poids Pré-entraînés | Tâches Prises en Charge                         | Inférence | Validation | Entraînement | Export |
-|----------------|---------------------|-------------------------------------------------|-----------|------------|--------------|--------|
-| MobileSAM      | `mobile_sam.pt`     | [Segmentation d'Instances](../tasks/segment.md) | ✅         | ❌          | ❌            | ✅      |
+| -------------- | ------------------- | ----------------------------------------------- | --------- | ---------- | ------------ | ------ |
+| MobileSAM      | `mobile_sam.pt`     | [Segmentation d'Instances](../tasks/segment.md) | ✅        | ❌         | ❌           | ✅     |
 
 ## Passage de SAM à MobileSAM
 
@@ -33,21 +33,21 @@ MobileSAM a des performances comparables à celles de SAM d'origine et conserve 
 Le tableau suivant présente une comparaison des encodeurs d'image basés sur ViT :
 
 | Encodeur d'Image | SAM d'Origine | MobileSAM |
-|------------------|---------------|-----------|
+| ---------------- | ------------- | --------- |
 | Paramètres       | 611M          | 5M        |
 | Vitesse          | 452 ms        | 8 ms      |
 
 SAM d'origine et MobileSAM utilisent tous deux le même décodeur de masque basé sur une instruction :
 
 | Décodeur de Masque | SAM d'Origine | MobileSAM |
-|--------------------|---------------|-----------|
+| ------------------ | ------------- | --------- |
 | Paramètres         | 3.876M        | 3.876M    |
 | Vitesse            | 4 ms          | 4 ms      |
 
 Voici une comparaison du pipeline complet :
 
 | Pipeline Complet (Enc+Dec) | SAM d'Origine | MobileSAM |
-|----------------------------|---------------|-----------|
+| -------------------------- | ------------- | --------- |
 | Paramètres                 | 615M          | 9.66M     |
 | Vitesse                    | 456 ms        | 12 ms     |
 

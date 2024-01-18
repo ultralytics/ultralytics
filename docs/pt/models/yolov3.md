@@ -33,10 +33,10 @@ A série YOLOv3, incluindo YOLOv3, YOLOv3-Ultralytics e YOLOv3u, foi projetada e
 Os três modelos suportam um conjunto abrangente de modos, garantindo versatilidade em várias etapas do desenvolvimento e implantação de modelos. Esses modos incluem [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md), fornecendo aos usuários um conjunto completo de ferramentas para detecção eficaz de objetos.
 
 | Tipo de Modelo     | Tarefas Suportadas                        | Inferência | Validação | Treinamento | Exportação |
-|--------------------|-------------------------------------------|------------|-----------|-------------|------------|
-| YOLOv3             | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
-| YOLOv3-Ultralytics | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
-| YOLOv3u            | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
+| ------------------ | ----------------------------------------- | ---------- | --------- | ----------- | ---------- |
+| YOLOv3             | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
+| YOLOv3-Ultralytics | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
+| YOLOv3u            | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
 
 Esta tabela fornece uma visão rápida das capacidades de cada variante do YOLOv3, destacando sua versatilidade e adequação para várias tarefas e modos operacionais em fluxos de trabalho de detecção de objetos.
 

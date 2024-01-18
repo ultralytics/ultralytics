@@ -176,7 +176,7 @@ Remember that checkpoints are saved at the end of every epoch by default, or at 
 Training settings for YOLO models refer to the various hyperparameters and configurations used to train the model on a dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO training settings include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the training process include the choice of optimizer, the choice of loss function, and the size and composition of the training dataset. It is important to carefully tune and experiment with these settings to achieve the best possible performance for a given task.
 
 | Key               | Value    | Description                                                                                    |
-|-------------------|----------|------------------------------------------------------------------------------------------------|
+| ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                              |
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
@@ -207,7 +207,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                                   |
 | `freeze`          | `None`   | (int or list, optional) freeze first n layers, or freeze list of layer indices during training |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                                               |
-| `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                                                |
+| `lrf`             | `0.01`   | final learning rate (lr0 \* lrf)                                                               |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                                        |
 | `weight_decay`    | `0.0005` | optimizer weight decay 5e-4                                                                    |
 | `warmup_epochs`   | `3.0`    | warmup epochs (fractions ok)                                                                   |

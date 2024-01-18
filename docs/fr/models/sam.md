@@ -31,9 +31,9 @@ Pour une analyse approfondie du modèle Segment Anything et du jeu de données S
 Ce tableau présente les modèles disponibles avec leurs poids pré-entraînés spécifiques, les tâches qu'ils prennent en charge et leur compatibilité avec différents modes d'exploitation tels que [Inférence](../modes/predict.md), [Validation](../modes/val.md), [Entraînement](../modes/train.md) et [Exportation](../modes/export.md), indiqués par des emojis ✅ pour les modes pris en charge et des emojis ❌ pour les modes non pris en charge.
 
 | Type de modèle | Poids pré-entraînés | Tâches prises en charge                        | Inférence | Validation | Entraînement | Exportation |
-|----------------|---------------------|------------------------------------------------|-----------|------------|--------------|-------------|
-| SAM de base    | `sam_b.pt`          | [Segmentation d'instance](../tasks/segment.md) | ✅         | ❌          | ❌            | ✅           |
-| SAM large      | `sam_l.pt`          | [Segmentation d'instance](../tasks/segment.md) | ✅         | ❌          | ❌            | ✅           |
+| -------------- | ------------------- | ---------------------------------------------- | --------- | ---------- | ------------ | ----------- |
+| SAM de base    | `sam_b.pt`          | [Segmentation d'instance](../tasks/segment.md) | ✅        | ❌         | ❌           | ✅          |
+| SAM large      | `sam_l.pt`          | [Segmentation d'instance](../tasks/segment.md) | ✅        | ❌         | ❌           | ✅          |
 
 ## Comment utiliser SAM : Polyvalence et puissance dans la segmentation d'images
 
@@ -136,7 +136,7 @@ Le modèle Segment Anything peut être utilisé pour une multitude de tâches se
 Nous comparons ici le plus petit modèle SAM de Meta, SAM-b, avec le plus petit modèle de segmentation d'Ultralytics, [YOLOv8n-seg](../tasks/segment.md) :
 
 | Modèle                                                       | Taille                            | Paramètres                  | Vitesse (CPU)                       |
-|--------------------------------------------------------------|-----------------------------------|-----------------------------|-------------------------------------|
+| ------------------------------------------------------------ | --------------------------------- | --------------------------- | ----------------------------------- |
 | SAM-b - Meta's SAM-b                                         | 358 Mo                            | 94,7 M                      | 51096 ms/im                         |
 | [MobileSAM](mobile-sam.md)                                   | 40,7 Mo                           | 10,1 M                      | 46122 ms/im                         |
 | [FastSAM-s](fast-sam.md) with YOLOv8 backbone                | 23,7 Mo                           | 11,8 M                      | 115 ms/im                           |
@@ -191,7 +191,7 @@ Pour annoter automatiquement votre jeu de données avec le framework Ultralytics
         ```
 
 | Argument   | Type                 | Description                                                                                                            | Default      |
-|------------|----------------------|------------------------------------------------------------------------------------------------------------------------|--------------|
+| ---------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------ |
 | data       | str                  | Chemin d'accès à un dossier contenant les images à annoter.                                                            |              |
 | det_model  | str, optionnel       | Modèle de détection pré-entraîné YOLO. Par défaut, 'yolov8x.pt'.                                                       | 'yolov8x.pt' |
 | sam_model  | str, optionnel       | Modèle de segmentation pré-entraîné SAM. Par défaut, 'sam_b.pt'.                                                       | 'sam_b.pt'   |
@@ -223,4 +223,4 @@ Si vous trouvez SAM utile dans vos travaux de recherche ou de développement, ve
 
 Nous tenons à exprimer notre gratitude à Meta AI pour la création et la maintenance de cette ressource précieuse pour la communauté de la vision par ordinateur.
 
-*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, segmentation d'image, segmentation promptable, performances hors échantillon, jeu de données SA-1B, architecture avancée, annotation automatique, Ultralytics, modèles pré-entraînés, SAM de base, SAM large, segmentation d'instance, vision par ordinateur, IA, intelligence artificielle, apprentissage automatique, annotation de données, masques de segmentation, modèle de détection, modèle de détection YOLO, bibtex, Meta AI.*
+_keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, segmentation d'image, segmentation promptable, performances hors échantillon, jeu de données SA-1B, architecture avancée, annotation automatique, Ultralytics, modèles pré-entraînés, SAM de base, SAM large, segmentation d'instance, vision par ordinateur, IA, intelligence artificielle, apprentissage automatique, annotation de données, masques de segmentation, modèle de détection, modèle de détection YOLO, bibtex, Meta AI._

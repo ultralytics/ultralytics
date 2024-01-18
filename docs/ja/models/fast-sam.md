@@ -34,10 +34,10 @@ FastSAMは、[Segment Anything Model (SAM)](sam.md)の制約事項に対処す�
 
 この表は、利用可能なモデルとそれぞれの特定の事前学習済みウェイト、サポートされるタスク、およびInference、Validation、Training、Exportなどの異なる操作モードとの互換性を示しています。サポートされているモードは✅、サポートされていないモードは❌の絵文字で示されます。
 
-| モデルの種類    | 事前学習済みウェイト     | サポートされるタスク                             | Inference | Validation | Training | Export |
-|-----------|----------------|----------------------------------------|-----------|------------|----------|--------|
-| FastSAM-s | `FastSAM-s.pt` | [インスタンスセグメンテーション](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
-| FastSAM-x | `FastSAM-x.pt` | [インスタンスセグメンテーション](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| モデルの種類 | 事前学習済みウェイト | サポートされるタスク                                  | Inference | Validation | Training | Export |
+| ------------ | -------------------- | ----------------------------------------------------- | --------- | ---------- | -------- | ------ |
+| FastSAM-s    | `FastSAM-s.pt`       | [インスタンスセグメンテーション](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
+| FastSAM-x    | `FastSAM-x.pt`       | [インスタンスセグメンテーション](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
 
 ## 使用例
 
@@ -122,17 +122,20 @@ FastSAMは、[https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA
 ### インストール
 
 1. FastSAMリポジトリをクローンする：
+
    ```shell
    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
    ```
 
 2. Python 3.9を使用したConda環境を作成してアクティベートする：
+
    ```shell
    conda create -n FastSAM python=3.9
    conda activate FastSAM
    ```
 
 3. クローンされたリポジトリに移動し、必要なパッケージをインストールする：
+
    ```shell
    cd FastSAM
    pip install -r requirements.txt
@@ -149,25 +152,28 @@ FastSAMは、[https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA
 
 2. FastSAMを推論に使用します。以下は実行例です：
 
-    - 画像内のすべてをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+   - 画像内のすべてをセグメント化する：
 
-    - テキストプロンプトを使用して特定のオブジェクトをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+     ```
 
-    - バウンディングボックス内のオブジェクトをセグメント化する（xywh形式でボックス座標を指定します）：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+   - テキストプロンプトを使用して特定のオブジェクトをセグメント化する：
 
-    - 特定のポイントの近くにあるオブジェクトをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
+     ```
+
+   - バウンディングボックス内のオブジェクトをセグメント化する（xywh形式でボックス座標を指定します）：
+
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+     ```
+
+   - 特定のポイントの近くにあるオブジェクトをセグメント化する：
+     ```shell
+     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+     ```
 
 さらに、FastSAMを[Colabデモ](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing)や[HuggingFaceウェブデモ](https://huggingface.co/spaces/An-619/FastSAM)で試すこともできます。
 

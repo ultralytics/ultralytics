@@ -11,11 +11,11 @@ keywords: Ultralytics, clearML, callbacks, pretrain routine start, validation en
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.clearml._log_debug_samples
+## ::: ultralytics.utils.callbacks.clearml.\_log_debug_samples
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.clearml._log_plot
+## ::: ultralytics.utils.callbacks.clearml.\_log_plot
 
 <br><br>
 

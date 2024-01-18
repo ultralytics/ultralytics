@@ -24,7 +24,7 @@ Desarrollado por Deci AI, YOLO-NAS es un modelo revolucionario de detección de 
 Experimenta el poder de la detección de objetos de próxima generación con los modelos pre-entrenados de YOLO-NAS proporcionados por Ultralytics. Estos modelos están diseñados para ofrecer un rendimiento de primera clase tanto en velocidad como en precisión. Elige entre una variedad de opciones adaptadas a tus necesidades específicas:
 
 | Modelo           | mAP   | Latencia (ms) |
-|------------------|-------|---------------|
+| ---------------- | ----- | ------------- |
 | YOLO-NAS S       | 47.5  | 3.21          |
 | YOLO-NAS M       | 51.55 | 5.85          |
 | YOLO-NAS L       | 52.22 | 7.87          |
@@ -91,10 +91,10 @@ Ofrecemos tres variantes de los modelos YOLO-NAS: Small (s), Medium (m) y Large 
 A continuación se muestra una descripción detallada de cada modelo, incluyendo enlaces a sus pesos pre-entrenados, las tareas que admiten y su compatibilidad con diferentes modos de funcionamiento.
 
 | Tipo de modelo | Pesos pre-entrenados                                                                          | Tareas admitidas                           | Inferencia | Validación | Entrenamiento | Exportación |
-|----------------|-----------------------------------------------------------------------------------------------|--------------------------------------------|------------|------------|---------------|-------------|
-| YOLO-NAS-s     | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [Detección de objetos](../tasks/detect.md) | ✅          | ✅          | ❌             | ✅           |
-| YOLO-NAS-m     | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [Detección de objetos](../tasks/detect.md) | ✅          | ✅          | ❌             | ✅           |
-| YOLO-NAS-l     | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [Detección de objetos](../tasks/detect.md) | ✅          | ✅          | ❌             | ✅           |
+| -------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------- | ---------- | ------------- | ----------- |
+| YOLO-NAS-s     | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [Detección de objetos](../tasks/detect.md) | ✅         | ✅         | ❌            | ✅          |
+| YOLO-NAS-m     | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [Detección de objetos](../tasks/detect.md) | ✅         | ✅         | ❌            | ✅          |
+| YOLO-NAS-l     | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [Detección de objetos](../tasks/detect.md) | ✅         | ✅         | ❌            | ✅          |
 
 ## Citaciones y agradecimientos
 
@@ -118,4 +118,4 @@ Si utilizas YOLO-NAS en tu investigación o trabajo de desarrollo, por favor cit
 
 Agradecemos al equipo de [SuperGradients](https://github.com/Deci-AI/super-gradients/) de Deci AI por sus esfuerzos en la creación y mantenimiento de este valioso recurso para la comunidad de visión por computadora. Creemos que YOLO-NAS, con su arquitectura innovadora y sus capacidades de detección de objetos superiores, se convertirá en una herramienta fundamental tanto para desarrolladores como para investigadores.
 
-*keywords: YOLO-NAS, Deci AI, detección de objetos, aprendizaje profundo, búsqueda de arquitectura neural, API de Ultralytics Python, modelo YOLO, SuperGradients, modelos pre-entrenados, bloque básico compatible con cuantización, esquemas avanzados de entrenamiento, cuantización posterior, optimización AutoNAC, COCO, Objects365, Roboflow 100*
+_keywords: YOLO-NAS, Deci AI, detección de objetos, aprendizaje profundo, búsqueda de arquitectura neural, API de Ultralytics Python, modelo YOLO, SuperGradients, modelos pre-entrenados, bloque básico compatible con cuantización, esquemas avanzados de entrenamiento, cuantización posterior, optimización AutoNAC, COCO, Objects365, Roboflow 100_

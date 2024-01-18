@@ -25,12 +25,12 @@ YOLOv8シリーズは、コンピュータビジョンのさまざまなタス�
 
 YOLOv8シリーズの各バリアントは、それぞれのタスクに最適化されており、高いパフォーマンスと精度を提供します。また、これらのモデルは、推論、検証、トレーニング、エクスポートといったさまざまな運用モードと互換性があり、展開と開発のさまざまな段階で使用することができます。
 
-| モデル         | ファイル名                                                                                                          | タスク                                    | 推論 | 検証 | トレーニング | エクスポート |
-|-------------|----------------------------------------------------------------------------------------------------------------|----------------------------------------|----|----|--------|--------|
-| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [検出](../tasks/detect.md)               | ✅  | ✅  | ✅      | ✅      |
-| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [インスタンスセグメンテーション](../tasks/segment.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [ポーズ/キーポイント](../tasks/pose.md)         | ✅  | ✅  | ✅      | ✅      |
-| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [分類](../tasks/classify.md)             | ✅  | ✅  | ✅      | ✅      |
+| モデル      | ファイル名                                                                                                     | タスク                                                | 推論 | 検証 | トレーニング | エクスポート |
+| ----------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---- | ---- | ------------ | ------------ |
+| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [検出](../tasks/detect.md)                            | ✅   | ✅   | ✅           | ✅           |
+| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [インスタンスセグメンテーション](../tasks/segment.md) | ✅   | ✅   | ✅           | ✅           |
+| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [ポーズ/キーポイント](../tasks/pose.md)               | ✅   | ✅   | ✅           | ✅           |
+| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [分類](../tasks/classify.md)                          | ✅   | ✅   | ✅           | ✅           |
 
 この表は、YOLOv8モデルのバリアントの概要を提供し、特定のタスクでの適用性と推論、検証、トレーニング、エクスポートなどのさまざまな運用モードとの互換性を示しています。これにより、YOLOv8シリーズの多様性と堅牢性が示されており、コンピュータビジョンのさまざまなアプリケーションに適しています。
 

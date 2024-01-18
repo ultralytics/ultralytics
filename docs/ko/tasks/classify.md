@@ -22,13 +22,13 @@ keywords: Ultralytics, YOLOv8, 이미지 분류, 사전 훈련된 모델, YOLOv8
 
 [모델](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)은 첫 사용 시 최신 Ultralytics [릴리스](https://github.com/ultralytics/assets/releases)에서 자동으로 다운로드됩니다.
 
-| 모델                                                                                         | 크기<br><sup>(픽셀) | 정확도<br><sup>top1 | 정확도<br><sup>top5 | 속도<br><sup>CPU ONNX<br>(ms) | 속도<br><sup>A100 TensorRT<br>(ms) | 매개변수<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-| -------------------------------------------------------------------------------------------- | ------------------- | ------------------- | ------------------- | ----------------------------- | ---------------------------------- | -------------------- | ------------------------ |
-| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-cls.pt) | 224                 | 66.6                | 87.0                | 12.9                          | 0.31                               | 2.7                  | 4.3                      |
-| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-cls.pt) | 224                 | 72.3                | 91.1                | 23.4                          | 0.35                               | 6.4                  | 13.5                     |
-| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-cls.pt) | 224                 | 76.4                | 93.2                | 85.4                          | 0.62                               | 17.0                 | 42.7                     |
-| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-cls.pt) | 224                 | 78.0                | 94.1                | 163.0                         | 0.87                               | 37.5                 | 99.7                     |
-| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-cls.pt) | 224                 | 78.4                | 94.3                | 232.0                         | 1.01                               | 57.4                 | 154.8                    |
+| 모델                                                                                           | 크기<br><sup>(픽셀) | 정확도<br><sup>top1 | 정확도<br><sup>top5 | 속도<br><sup>CPU ONNX<br>(ms) | 속도<br><sup>A100 TensorRT<br>(ms) | 매개변수<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+|----------------------------------------------------------------------------------------------|-----------------|------------------|------------------|-----------------------------|----------------------------------|------------------|--------------------------|
+| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-cls.pt) | 224             | 66.6             | 87.0             | 12.9                        | 0.31                             | 2.7              | 4.3                      |
+| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-cls.pt) | 224             | 72.3             | 91.1             | 23.4                        | 0.35                             | 6.4              | 13.5                     |
+| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-cls.pt) | 224             | 76.4             | 93.2             | 85.4                        | 0.62                             | 17.0             | 42.7                     |
+| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-cls.pt) | 224             | 78.0             | 94.1             | 163.0                       | 0.87                             | 37.5             | 99.7                     |
+| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                       | 1.01                             | 57.4             | 154.8                    |
 
 - **정확도** 값은 [ImageNet](https://www.image-net.org/) 데이터셋 검증 세트에서의 모델 정확도입니다.
   <br>[ImageNet](https://www.image-net.org/)에서 재현 가능합니다: `yolo val classify data=path/to/ImageNet device=0`
@@ -153,20 +153,20 @@ YOLOv8n-cls 모델을 ONNX, CoreML 등과 같은 다른 형식으로 내보냅�
 
 아래 표에 사용 가능한 YOLOv8-cls 내보내기 형식이 나와 있습니다. 내보낸 모델에서 바로 예측하거나 검증할 수 있습니다. 즉, `yolo predict model=yolov8n-cls.onnx`를 사용할 수 있습니다. 내보내기가 완료된 후 모델에 대한 사용 예제들이 표시됩니다.
 
-| 형식                                                               | `format` 인자 | 모델                          | 메타데이터 | 인자                                                |
-| ------------------------------------------------------------------ | ------------- | ----------------------------- | ---------- | --------------------------------------------------- |
-| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-cls.pt`              | ✅         | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-cls.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-cls.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n-cls_openvino_model/` | ✅         | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n-cls.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n-cls.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-cls_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-cls.pb`              | ❌         | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-cls.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-cls_edgetpu.tflite`  | ✅         | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-cls_web_model/`      | ✅         | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n-cls_paddle_model/`   | ✅         | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`        | `yolov8n-cls_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
+| 형식                                                                 | `format` 인자   | 모델                            | 메타데이터 | 인자                                                  |
+|--------------------------------------------------------------------|---------------|-------------------------------|-------|-----------------------------------------------------|
+| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-cls.pt`              | ✅     | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-cls.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-cls.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n-cls_openvino_model/` | ✅     | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n-cls.engine`          | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n-cls.mlpackage`       | ✅     | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-cls_saved_model/`    | ✅     | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-cls.pb`              | ❌     | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-cls.tflite`          | ✅     | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-cls_edgetpu.tflite`  | ✅     | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-cls_web_model/`      | ✅     | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n-cls_paddle_model/`   | ✅     | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`        | `yolov8n-cls_ncnn_model/`     | ✅     | `imgsz`, `half`                                     |
 
 자세한 `export` 정보는 [내보내기](https://docs.ultralytics.com/modes/export/) 페이지에서 확인하세요.

@@ -33,7 +33,7 @@ La salida de los rastreadores de Ultralytics es consistente con la detección de
 ## Aplicaciones en el Mundo Real
 
 |                                                           Transporte                                                           |                                                      Venta al por Menor                                                       |                                                        Acuicultura                                                         |
-| :----------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------: |
+|:------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------:|
 | ![Seguimiento de Vehículos](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![Seguimiento de Personas](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Seguimiento de Peces](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
 |                                                    Seguimiento de Vehículos                                                    |                                                    Seguimiento de Personas                                                    |                                                    Seguimiento de Peces                                                    |
 
@@ -49,8 +49,8 @@ Ultralytics YOLO extiende sus características de detección de objetos para pro
 
 Ultralytics YOLO soporta los siguientes algoritmos de seguimiento. Pueden ser habilitados pasando el archivo de configuración YAML relevante como `tracker=tracker_type.yaml`:
 
-- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Usa `botsort.yaml` para habilitar este rastreador.
-- [ByteTrack](https://github.com/ifzhang/ByteTrack) - Usa `bytetrack.yaml` para habilitar este rastreador.
+* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Usa `botsort.yaml` para habilitar este rastreador.
+* [ByteTrack](https://github.com/ifzhang/ByteTrack) - Usa `bytetrack.yaml` para habilitar este rastreador.
 
 El rastreador predeterminado es BoT-SORT.
 

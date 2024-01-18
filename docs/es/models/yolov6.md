@@ -76,12 +76,12 @@ Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia con YO
 La serie YOLOv6 ofrece una variedad de modelos, cada uno optimizado para [Detección de Objetos](../tasks/detect.md) de alto rendimiento. Estos modelos se adaptan a distintas necesidades computacionales y requisitos de precisión, lo que los hace versátiles para una amplia gama de aplicaciones.
 
 | Tipo de Modelo | Pesos Pre-entrenados | Tareas Soportadas                          | Inferencia | Validación | Entrenamiento | Exportación |
-| -------------- | -------------------- | ------------------------------------------ | ---------- | ---------- | ------------- | ----------- |
-| YOLOv6-N       | `yolov6-n.pt`        | [Detección de Objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
-| YOLOv6-S       | `yolov6-s.pt`        | [Detección de Objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
-| YOLOv6-M       | `yolov6-m.pt`        | [Detección de Objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
-| YOLOv6-L       | `yolov6-l.pt`        | [Detección de Objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
-| YOLOv6-L6      | `yolov6-l6.pt`       | [Detección de Objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
+|----------------|----------------------|--------------------------------------------|------------|------------|---------------|-------------|
+| YOLOv6-N       | `yolov6-n.pt`        | [Detección de Objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
+| YOLOv6-S       | `yolov6-s.pt`        | [Detección de Objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
+| YOLOv6-M       | `yolov6-m.pt`        | [Detección de Objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
+| YOLOv6-L       | `yolov6-l.pt`        | [Detección de Objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
+| YOLOv6-L6      | `yolov6-l6.pt`       | [Detección de Objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
 
 Esta tabla proporciona una descripción detallada de las variantes del modelo YOLOv6, destacando sus capacidades en tareas de detección de objetos y su compatibilidad con varios modos operativos como [Inferencia](../modes/predict.md), [Validación](../modes/val.md), [Entrenamiento](../modes/train.md) y [Exportación](../modes/export.md). Este soporte integral garantiza que los usuarios puedan aprovechar al máximo las capacidades de los modelos YOLOv6 en una amplia gama de escenarios de detección de objetos.
 

@@ -33,7 +33,7 @@ The output from Ultralytics trackers is consistent with standard object detectio
 ## Real-world Applications
 
 |           Transportation           |              Retail              |         Aquaculture          |
-| :--------------------------------: | :------------------------------: | :--------------------------: |
+|:----------------------------------:|:--------------------------------:|:----------------------------:|
 | ![Vehicle Tracking][vehicle track] | ![People Tracking][people track] | ![Fish Tracking][fish track] |
 |          Vehicle Tracking          |         People Tracking          |        Fish Tracking         |
 

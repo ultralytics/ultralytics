@@ -35,9 +35,9 @@ FastSAM est conçu pour remédier aux limitations du [Segment Anything Model (SA
 Ce tableau présente les modèles disponibles avec leurs poids pré-entraînés spécifiques, les tâches qu'ils prennent en charge et leur compatibilité avec différents modes d'exploitation tels que [Inférence](../modes/predict.md), [Validation](../modes/val.md), [Entraînement](../modes/train.md) et [Exportation](../modes/export.md), indiqués par des emojis ✅ pour les modes pris en charge et des emojis ❌ pour les modes non pris en charge.
 
 | Type de modèle | Poids pré-entraînés | Tâches prises en charge                         | Inférence | Validation | Entraînement | Exportation |
-| -------------- | ------------------- | ----------------------------------------------- | --------- | ---------- | ------------ | ----------- |
-| FastSAM-s      | `FastSAM-s.pt`      | [Segmentation d'instances](../tasks/segment.md) | ✅        | ❌         | ❌           | ✅          |
-| FastSAM-x      | `FastSAM-x.pt`      | [Segmentation d'instances](../tasks/segment.md) | ✅        | ❌         | ❌           | ✅          |
+|----------------|---------------------|-------------------------------------------------|-----------|------------|--------------|-------------|
+| FastSAM-s      | `FastSAM-s.pt`      | [Segmentation d'instances](../tasks/segment.md) | ✅         | ❌          | ❌            | ✅           |
+| FastSAM-x      | `FastSAM-x.pt`      | [Segmentation d'instances](../tasks/segment.md) | ✅         | ❌          | ❌            | ✅           |
 
 ## Exemples d'utilisation
 
@@ -122,20 +122,17 @@ FastSAM est également disponible directement à partir du dépôt [https://gith
 ### Installation
 
 1. Clonez le dépôt FastSAM :
-
    ```shell
    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
    ```
 
 2. Créez et activez un environnement Conda avec Python 3.9 :
-
    ```shell
    conda create -n FastSAM python=3.9
    conda activate FastSAM
    ```
 
 3. Accédez au dépôt cloné et installez les packages requis :
-
    ```shell
    cd FastSAM
    pip install -r requirements.txt
@@ -152,28 +149,25 @@ FastSAM est également disponible directement à partir du dépôt [https://gith
 
 2. Utilisez FastSAM pour l'inférence. Exemples de commandes :
 
-   - Segmentez tout dans une image :
+    - Segmentez tout dans une image :
+      ```shell
+      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+      ```
 
-     ```shell
-     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-     ```
+    - Segmentez des objets spécifiques à l'aide de l'invitation de texte :
+      ```shell
+      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "le chien jaune"
+      ```
 
-   - Segmentez des objets spécifiques à l'aide de l'invitation de texte :
+    - Segmentez des objets dans un rectangle englobant (fournir les coordonnées du rectangle au format xywh) :
+      ```shell
+      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+      ```
 
-     ```shell
-     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "le chien jaune"
-     ```
-
-   - Segmentez des objets dans un rectangle englobant (fournir les coordonnées du rectangle au format xywh) :
-
-     ```shell
-     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-     ```
-
-   - Segmentez des objets à proximité de points spécifiques :
-     ```shell
-     python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-     ```
+    - Segmentez des objets à proximité de points spécifiques :
+      ```shell
+      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+      ```
 
 De plus, vous pouvez essayer FastSAM via une [démonstration Colab](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) ou sur la [démonstration Web HuggingFace](https://huggingface.co/spaces/An-619/FastSAM) pour une expérience visuelle.
 

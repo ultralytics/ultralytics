@@ -26,11 +26,11 @@ Die YOLOv8-Serie bietet eine Vielzahl von Modellen, von denen jedes auf bestimmt
 Jede Variante der YOLOv8-Serie ist auf ihre jeweilige Aufgabe optimiert und gewährleistet damit hohe Leistung und Genauigkeit. Darüber hinaus sind diese Modelle kompatibel mit verschiedenen Betriebsmodi, einschließlich [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md) und [Export](../modes/export.md). Dadurch wird ihre Verwendung in verschiedenen Phasen der Bereitstellung und Entwicklung erleichtert.
 
 | Modell      | Dateinamen                                                                                                     | Aufgabe                                     | Inference | Validation | Training | Export |
-| ----------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [Objekterkennung](../tasks/detect.md)       | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [Instanzsegmentierung](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [Pose/Keypoints](../tasks/pose.md)          | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [Klassifikation](../tasks/classify.md)      | ✅        | ✅         | ✅       | ✅     |
+|-------------|----------------------------------------------------------------------------------------------------------------|---------------------------------------------|-----------|------------|----------|--------|
+| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [Objekterkennung](../tasks/detect.md)       | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [Instanzsegmentierung](../tasks/segment.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [Pose/Keypoints](../tasks/pose.md)          | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [Klassifikation](../tasks/classify.md)      | ✅         | ✅          | ✅        | ✅      |
 
 Diese Tabelle gibt einen Überblick über die verschiedenen Varianten des YOLOv8-Modells und deren Anwendungsbereiche sowie deren Kompatibilität mit verschiedenen Betriebsmodi wie Inference, Validation, Training und Export. Sie zeigt die Vielseitigkeit und Robustheit der YOLOv8-Serie, was sie für verschiedene Anwendungen in der Computer Vision geeignet macht.
 

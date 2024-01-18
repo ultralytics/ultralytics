@@ -26,7 +26,7 @@ Im Bereich des maschinellen Lernens und der Computer Vision wird der Prozess des
 ## Anwendungen in der realen Welt
 
 |                                                               Herstellung                                                               |                                                                Sport                                                                |                                                               Sicherheit                                                                |
-| :-------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
+|:---------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------:|
 | ![Ersatzteilerkennung für Fahrzeuge](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Erkennung von Fußballspielern](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![Erkennung von stürzenden Personen](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
 |                                                   Erkennung von Fahrzeugersatzteilen                                                    |                                                    Erkennung von Fußballspielern                                                    |                                                    Erkennung von stürzenden Personen                                                    |
 
@@ -97,7 +97,7 @@ YOLOv8 kann verschiedene Arten von Eingabequellen für die Inferenz verarbeiten,
     Verwenden Sie `stream=True` für die Verarbeitung langer Videos oder großer Datensätze, um den Speicher effizient zu verwalten. Bei `stream=False` werden die Ergebnisse für alle Frames oder Datenpunkte im Speicher gehalten, was bei großen Eingaben schnell zu Speicherüberläufen führen kann. Im Gegensatz dazu verwendet `stream=True` einen Generator, der nur die Ergebnisse des aktuellen Frames oder Datenpunkts im Speicher behält, was den Speicherverbrauch erheblich reduziert und Speicherüberlaufprobleme verhindert.
 
 | Quelle             | Argument                                   | Typ               | Hinweise                                                                                       |
-| ------------------ | ------------------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------- |
+|--------------------|--------------------------------------------|-------------------|------------------------------------------------------------------------------------------------|
 | Bild               | `'image.jpg'`                              | `str` oder `Path` | Einzelbilddatei.                                                                               |
 | URL                | `'https://ultralytics.com/images/bus.jpg'` | `str`             | URL zu einem Bild.                                                                             |
 | Bildschirmaufnahme | `'screen'`                                 | `str`             | Eine Bildschirmaufnahme erstellen.                                                             |
@@ -106,12 +106,12 @@ YOLOv8 kann verschiedene Arten von Eingabequellen für die Inferenz verarbeiten,
 | numpy              | `np.zeros((640,1280,3))`                   | `np.ndarray`      | HWC-Format mit BGR-Kanälen `uint8 (0-255)`.                                                    |
 | torch              | `torch.zeros(16,3,320,640)`                | `torch.Tensor`    | BCHW-Format mit RGB-Kanälen `float32 (0.0-1.0)`.                                               |
 | CSV                | `'sources.csv'`                            | `str` oder `Path` | CSV-Datei mit Pfaden zu Bildern, Videos oder Verzeichnissen.                                   |
-| video ✅           | `'video.mp4'`                              | `str` oder `Path` | Videodatei in Formaten wie MP4, AVI, usw.                                                      |
-| Verzeichnis ✅     | `'path/'`                                  | `str` oder `Path` | Pfad zu einem Verzeichnis mit Bildern oder Videos.                                             |
-| glob ✅            | `'path/*.jpg'`                             | `str`             | Glob-Muster, um mehrere Dateien zu finden. Verwenden Sie das `*` Zeichen als Platzhalter.      |
-| YouTube ✅         | `'https://youtu.be/LNwODJXcvt4'`           | `str`             | URL zu einem YouTube-Video.                                                                    |
-| stream ✅          | `'rtsp://example.com/media.mp4'`           | `str`             | URL für Streaming-Protokolle wie RTSP, RTMP, TCP oder eine IP-Adresse.                         |
-| Multi-Stream ✅    | `'list.streams'`                           | `str` oder `Path` | `*.streams` Textdatei mit einer Stream-URL pro Zeile, z.B. 8 Streams laufen bei Batch-Größe 8. |
+| video ✅            | `'video.mp4'`                              | `str` oder `Path` | Videodatei in Formaten wie MP4, AVI, usw.                                                      |
+| Verzeichnis ✅      | `'path/'`                                  | `str` oder `Path` | Pfad zu einem Verzeichnis mit Bildern oder Videos.                                             |
+| glob ✅             | `'path/*.jpg'`                             | `str`             | Glob-Muster, um mehrere Dateien zu finden. Verwenden Sie das `*` Zeichen als Platzhalter.      |
+| YouTube ✅          | `'https://youtu.be/LNwODJXcvt4'`           | `str`             | URL zu einem YouTube-Video.                                                                    |
+| stream ✅           | `'rtsp://example.com/media.mp4'`           | `str`             | URL für Streaming-Protokolle wie RTSP, RTMP, TCP oder eine IP-Adresse.                         |
+| Multi-Stream ✅     | `'list.streams'`                           | `str` oder `Path` | `*.streams` Textdatei mit einer Stream-URL pro Zeile, z.B. 8 Streams laufen bei Batch-Größe 8. |
 
 Untenstehend finden Sie Codebeispiele für die Verwendung jedes Quelltyps:
 

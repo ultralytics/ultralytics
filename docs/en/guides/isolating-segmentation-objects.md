@@ -14,7 +14,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1.  Begin with the necessary imports
+1. Begin with the necessary imports
 
     ```py
     from pathlib import Path
@@ -25,11 +25,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ```
 
     ???+ tip "Ultralytics Install"
-    See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
+        See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
 
-    ***
+    ______________________________________________________________________
 
-1.  Load a model and run `predict()` method on a source.
+1. Load a model and run `predict()` method on a source.
 
     ```py
     from ultralytics import YOLO
@@ -42,7 +42,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ```
 
     ??? question "No Prediction Arguments?"
-    Without specifying a source, the example images from the library will be used:
+        Without specifying a source, the example images from the library will be used:
 
         ```
         'ultralytics/assets/bus.jpg'
@@ -53,9 +53,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     For additional information about Segmentation Models, visit the [Segment Task](../tasks/segment.md#models) page. To learn more about `predict()` method, see [Predict Mode](../modes/predict.md) section of the Documentation.
 
-    ***
+    ______________________________________________________________________
 
-1.  Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
+1. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ```{ .py .annotate }
     # (2) Iterate detection results (helpful for multiple images)
@@ -74,11 +74,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     1. To learn more about `predict()` results see [Working with Results for Predict Mode](../modes/predict.md#working-with-results)
 
     ??? info "For-Loop"
-    A single image will only iterate the first loop once. A single image with only a single detection will iterate each loop _only_ once.
+        A single image will only iterate the first loop once. A single image with only a single detection will iterate each loop _only_ once.
 
-    ***
+    ______________________________________________________________________
 
-1.  Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
+1. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
@@ -142,16 +142,17 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     </details>
     <p></p>
 
-    ***
+    ______________________________________________________________________
 
-1.  Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+1. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
     ### Object Isolation Options
 
     !!! example ""
-    === "Black Background Pixels"
-    ```py # Create 3-channel mask
-    mask3ch = cv.cvtColor(b_mask, cv.COLOR_GRAY2BGR)
+        === "Black Background Pixels"
+            ```py
+            # Create 3-channel mask
+            mask3ch = cv.cvtColor(b_mask, cv.COLOR_GRAY2BGR)
 
             # Isolate object with binary mask
             isolated = cv.bitwise_and(mask3ch, img)
@@ -242,19 +243,19 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                     - Finally the image region for the bounding box is cropped using index slicing, where the bounds are set using the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
 
     ??? question "What if I want the cropped object **including** the background?"
-    This is a built in feature for the Ultralytics library. See the `save_crop` argument for [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
+        This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
 
-    ***
+    ______________________________________________________________________
 
-1.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
+1. <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
     ??? example "Example Final Step"
-    `py
-    # Save isolated object to file
-    _ = cv.imwrite(f'{img_name}_{label}-{ci}.png', iso_crop)
-    `
+        ```py
+        # Save isolated object to file
+        _ = cv.imwrite(f'{img_name}_{label}-{ci}.png', iso_crop)
+        ```
 
         - In this example, the `img_name` is the base-name of the source image file, `label` is the detected class-name, and `ci` is the index of the object detection (in case of multiple instances with the same class name).
 

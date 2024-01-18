@@ -30,7 +30,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 ## Real World Applications
 
 |                                                                           Logistics                                                                           |                                                                     Aquaculture                                                                     |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------: |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/70e2d106-510c-4c6c-a57a-d34a765aa757) | ![Fish Counting in Sea using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/c60d047b-3837-435f-8d29-bb9fc95d2191) |
 |                                                    Conveyor Belt Packets Counting Using Ultralytics YOLOv8                                                    |                                                    Fish Counting in Sea using Ultralytics YOLOv8                                                    |
 
@@ -172,8 +172,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Optional Arguments `set_args`
 
-| Name                  | Type        | Default                    | Description                                   |
-| --------------------- | ----------- | -------------------------- | --------------------------------------------- |
+| Name                | Type        | Default                    | Description                                   |
+|---------------------|-------------|----------------------------|-----------------------------------------------|
 | `view_img`            | `bool`      | `False`                    | Display frames with counts                    |
 | `view_in_counts`      | `bool`      | `True`                     | Display incounts only on video frame          |
 | `view_out_counts`     | `bool`      | `True`                     | Display outcounts only on video frame         |
@@ -193,7 +193,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
+|-----------|---------|----------------|-------------------------------------------------------------|
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

@@ -21,8 +21,8 @@ MobileSAM wird mit einem einzigen GPU und einem 100K-Datensatz (1% der Originalb
 Die folgende Tabelle zeigt die verfügbaren Modelle mit ihren spezifischen vortrainierten Gewichten, die unterstützten Aufgaben und ihre Kompatibilität mit unterschiedlichen Betriebsarten wie [Inferenz](../modes/predict.md), [Validierung](../modes/val.md), [Training](../modes/train.md) und [Export](../modes/export.md). Unterstützte Betriebsarten werden mit ✅-Emojis und nicht unterstützte Betriebsarten mit ❌-Emojis angezeigt.
 
 | Modelltyp | Vortrainierte Gewichte | Unterstützte Aufgaben                       | Inferenz | Validierung | Training | Export |
-| --------- | ---------------------- | ------------------------------------------- | -------- | ----------- | -------- | ------ |
-| MobileSAM | `mobile_sam.pt`        | [Instanzsegmentierung](../tasks/segment.md) | ✅       | ❌          | ❌       | ✅     |
+|-----------|------------------------|---------------------------------------------|----------|-------------|----------|--------|
+| MobileSAM | `mobile_sam.pt`        | [Instanzsegmentierung](../tasks/segment.md) | ✅        | ❌           | ❌        | ✅      |
 
 ## Anpassung von SAM zu MobileSAM
 
@@ -33,21 +33,21 @@ MobileSAM bietet vergleichbare Leistungen wie das ursprüngliche SAM und behält
 Die folgende Tabelle bietet einen Vergleich der Bildencoder, die auf ViT basieren:
 
 | Bildencoder     | Original-SAM | MobileSAM |
-| --------------- | ------------ | --------- |
+|-----------------|--------------|-----------|
 | Parameter       | 611M         | 5M        |
 | Geschwindigkeit | 452ms        | 8ms       |
 
 Sowohl das ursprüngliche SAM als auch MobileSAM verwenden denselben promptgeführten Maskendekoder:
 
 | Maskendekoder   | Original-SAM | MobileSAM |
-| --------------- | ------------ | --------- |
+|-----------------|--------------|-----------|
 | Parameter       | 3.876M       | 3.876M    |
 | Geschwindigkeit | 4ms          | 4ms       |
 
 Hier ist ein Vergleich der gesamten Pipeline:
 
 | Gesamte Pipeline (Enc+Dec) | Original-SAM | MobileSAM |
-| -------------------------- | ------------ | --------- |
+|----------------------------|--------------|-----------|
 | Parameter                  | 615M         | 9.66M     |
 | Geschwindigkeit            | 456ms        | 12ms      |
 

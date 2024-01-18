@@ -42,13 +42,13 @@ This guide offers you the flexibility to start with either [YOLOv5](https://gith
 To assist you in making an informed hardware decision, we've summarized the key hardware specifics of Raspberry Pi 3, 4, and 5 in the table below:
 
 | Feature                    | Raspberry Pi 3                                                                           | Raspberry Pi 4                                                                           | Raspberry Pi 5                                                       |
-| -------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+|----------------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
 | **CPU**                    | 1.2GHz Quad-Core ARM Cortex-A53                                                          | 1.5GHz Quad-core 64-bit ARM Cortex-A72                                                   | 2.4GHz Quad-core 64-bit Arm Cortex-A76                               |
-| **RAM**                    | 1GB LPDDR2                                                                               | 2GB, 4GB or 8GB LPDDR4                                                                   | _Details not yet available_                                          |
+| **RAM**                    | 1GB LPDDR2                                                                               | 2GB, 4GB or 8GB LPDDR4                                                                   | *Details not yet available*                                          |
 | **USB Ports**              | 4 x USB 2.0                                                                              | 2 x USB 2.0, 2 x USB 3.0                                                                 | 2 x USB 3.0, 2 x USB 2.0                                             |
-| **Network**                | Ethernet & Wi-Fi 802.11n                                                                 | Gigabit Ethernet & Wi-Fi 802.11ac                                                        | Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi®       |
-| **Performance**            | Slower, may require lighter YOLO models                                                  | Faster, can run complex YOLO models                                                      | _Details not yet available_                                          |
-| **Power Requirement**      | 2.5A power supply                                                                        | 3.0A USB-C power supply                                                                  | _Details not yet available_                                          |
+| **Network**                | Ethernet & Wi-Fi 802.11n                                                                 | Gigabit Ethernet & Wi-Fi 802.11ac                                                        | Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi®        |
+| **Performance**            | Slower, may require lighter YOLO models                                                  | Faster, can run complex YOLO models                                                      | *Details not yet available*                                          |
+| **Power Requirement**      | 2.5A power supply                                                                        | 3.0A USB-C power supply                                                                  | *Details not yet available*                                          |
 | **Official Documentation** | [Link](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md) | [Link](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711/README.md) | [Link](https://www.raspberrypi.com/news/introducing-raspberry-pi-5/) |
 
 Please make sure to follow the instructions specific to your Raspberry Pi model to ensure a smooth setup process.
@@ -61,32 +61,32 @@ This section outlines how to set up YOLOv5 on a Raspberry Pi with a Pi Camera. T
 
 1. Update the Raspberry Pi:
 
-   ```bash
-   sudo apt-get update
-   sudo apt-get upgrade -y
-   sudo apt-get autoremove -y
-   ```
+    ```bash
+    sudo apt-get update
+    sudo apt-get upgrade -y
+    sudo apt-get autoremove -y
+    ```
 
 2. Clone the YOLOv5 repository:
 
-   ```bash
-   cd ~
-   git clone https://github.com/Ultralytics/yolov5.git
-   ```
+    ```bash
+    cd ~
+    git clone https://github.com/Ultralytics/yolov5.git
+    ```
 
 3. Install the required dependencies:
 
-   ```bash
-   cd ~/yolov5
-   pip3 install -r requirements.txt
-   ```
+    ```bash
+    cd ~/yolov5
+    pip3 install -r requirements.txt
+    ```
 
 4. For Raspberry Pi 3, install compatible versions of PyTorch and Torchvision (skip for Raspberry Pi 4):
 
-   ```bash
-   pip3 uninstall torch torchvision
-   pip3 install torch==1.11.0 torchvision==0.12.0
-   ```
+    ```bash
+    pip3 uninstall torch torchvision
+    pip3 install torch==1.11.0 torchvision==0.12.0
+    ```
 
 ### Modify `detect.py`
 
@@ -94,35 +94,35 @@ To enable TCP streams via SSH or the CLI, minor modifications are needed in `det
 
 1. Open `detect.py`:
 
-   ```bash
-   sudo nano ~/yolov5/detect.py
-   ```
+    ```bash
+    sudo nano ~/yolov5/detect.py
+    ```
 
 2. Find and modify the `is_url` line to accept TCP streams:
 
-   ```python
-   is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://', 'tcp://'))
-   ```
+    ```python
+    is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://', 'tcp://'))
+    ```
 
 3. Comment out the `view_img` line:
 
-   ```python
-   # view_img = check_imshow(warn=True)
-   ```
+    ```python
+    # view_img = check_imshow(warn=True)
+    ```
 
 4. Save and exit:
 
-   ```bash
-   CTRL + O -> ENTER -> CTRL + X
-   ```
+    ```bash
+    CTRL + O -> ENTER -> CTRL + X
+    ```
 
 ### Initiate TCP Stream with Libcamera
 
 1. Start the TCP stream:
 
-   ```bash
-   libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
-   ```
+    ```bash
+    libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
+    ```
 
 Keep this terminal session running for the next steps.
 
@@ -130,10 +130,10 @@ Keep this terminal session running for the next steps.
 
 1. Run the YOLOv5 detection:
 
-   ```bash
-   cd ~/yolov5
-   python3 detect.py --source=tcp://127.0.0.1:8888
-   ```
+    ```bash
+    cd ~/yolov5
+    python3 detect.py --source=tcp://127.0.0.1:8888
+    ```
 
 ## Quick Start with YOLOv8
 
@@ -143,31 +143,31 @@ Follow this section if you are interested in setting up YOLOv8 instead. The step
 
 1. Update the Raspberry Pi:
 
-   ```bash
-   sudo apt-get update
-   sudo apt-get upgrade -y
-   sudo apt-get autoremove -y
-   ```
+    ```bash
+    sudo apt-get update
+    sudo apt-get upgrade -y
+    sudo apt-get autoremove -y
+    ```
 
 2. Install the `ultralytics` Python package:
 
-   ```bash
-   pip3 install ultralytics
-   ```
+    ```bash
+    pip3 install ultralytics
+    ```
 
 3. Reboot:
 
-   ```bash
-   sudo reboot
-   ```
+    ```bash
+    sudo reboot
+    ```
 
 ### Initiate TCP Stream with Libcamera
 
 1. Start the TCP stream:
 
-   ```bash
-   libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
-   ```
+    ```bash
+    libcamera-vid -n -t 0 --width 1280 --height 960 --framerate 1 --inline --listen -o tcp://127.0.0.1:8888
+    ```
 
 ### Perform YOLOv8 Inference
 

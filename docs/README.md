@@ -2,7 +2,7 @@
 
 Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).
 
-[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment) [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
+[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)  [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
 
 ## Install Ultralytics package
 
@@ -12,21 +12,21 @@ To install the ultralytics package in developer mode, you will need to have Git 
 
 1. Clone the ultralytics repository to your local machine using Git:
 
-   ```bash
-   git clone https://github.com/ultralytics/ultralytics.git
-   ```
+    ```bash
+    git clone https://github.com/ultralytics/ultralytics.git
+    ```
 
 2. Navigate to the root directory of the repository:
 
-   ```bash
-   cd ultralytics
-   ```
+    ```bash
+    cd ultralytics
+    ```
 
 3. Install the package in developer mode using pip:
 
-   ```bash
-   pip install -e '.[dev]'
-   ```
+    ```bash
+    pip install -e '.[dev]'
+    ```
 
 This will install the ultralytics package and its dependencies in developer mode, allowing you to make changes to the package code and have them reflected immediately in your Python environment.
 
@@ -59,25 +59,25 @@ For multi-language MkDocs sites use the following additional steps:
 1. Add all new language `*.md` files to git commit: `git add docs/**/*.md -f`
 2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
 
-   ```bash
-   # Remove existing /site directory
-   rm -rf site
+    ```bash
+    # Remove existing /site directory
+    rm -rf site
 
-   # Loop through all YAML files in the docs directory
-   mkdocs build -f docs/mkdocs.yml
-   for file in docs/mkdocs_*.yml; do
-     echo "Building MkDocs site with configuration file: $file"
-     mkdocs build -f "$file"
-   done
-   ```
+    # Loop through all YAML files in the docs directory
+    mkdocs build -f docs/mkdocs.yml
+    for file in docs/mkdocs_*.yml; do
+      echo "Building MkDocs site with configuration file: $file"
+      mkdocs build -f "$file"
+    done
+    ```
 
 3. Preview in web browser with:
 
-   ```bash
-   cd site
-   python -m http.server
-   open http://localhost:8000  # on macOS
-   ```
+    ```bash
+    cd site
+    python -m http.server
+    open http://localhost:8000  # on macOS
+    ```
 
 Note the above steps are combined into the Ultralytics [build_docs.py](https://github.com/ultralytics/ultralytics/blob/main/docs/build_docs.py) script.
 

@@ -24,7 +24,7 @@ Desenvolvido pela Deci AI, o YOLO-NAS é um modelo de detecção de objetos inov
 Experimente o poder da detecção de objetos de última geração com os modelos pré-treinados do YOLO-NAS fornecidos pela Ultralytics. Esses modelos foram projetados para oferecer um desempenho excelente em termos de velocidade e precisão. Escolha entre várias opções adaptadas às suas necessidades específicas:
 
 | Modelo           | mAP   | Latência (ms) |
-| ---------------- | ----- | ------------- |
+|------------------|-------|---------------|
 | YOLO-NAS S       | 47.5  | 3.21          |
 | YOLO-NAS M       | 51.55 | 5.85          |
 | YOLO-NAS L       | 52.22 | 7.87          |
@@ -91,10 +91,10 @@ Oferecemos três variantes dos modelos YOLO-NAS: Pequeno (s), Médio (m) e Grand
 Abaixo está uma visão geral detalhada de cada modelo, incluindo links para seus pesos pré-treinados, as tarefas que eles suportam e sua compatibilidade com diferentes modos de operação.
 
 | Tipo de Modelo | Pesos Pré-Treinados                                                                           | Tarefas Suportadas                        | Inferência | Validação | Treinamento | Exportação |
-| -------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------- | --------- | ----------- | ---------- |
-| YOLO-NAS-s     | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ❌          | ✅         |
-| YOLO-NAS-m     | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ❌          | ✅         |
-| YOLO-NAS-l     | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ❌          | ✅         |
+|----------------|-----------------------------------------------------------------------------------------------|-------------------------------------------|------------|-----------|-------------|------------|
+| YOLO-NAS-s     | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ❌           | ✅          |
+| YOLO-NAS-m     | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ❌           | ✅          |
+| YOLO-NAS-l     | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ❌           | ✅          |
 
 ## Citações e Agradecimentos
 
@@ -118,4 +118,4 @@ Se você utilizar o YOLO-NAS em seus estudos ou trabalho de desenvolvimento, por
 
 Expressamos nossa gratidão à equipe [SuperGradients](https://github.com/Deci-AI/super-gradients/) da Deci AI por seus esforços na criação e manutenção deste recurso valioso para a comunidade de visão computacional. Acreditamos que o YOLO-NAS, com sua arquitetura inovadora e capacidades superiores de detecção de objetos, se tornará uma ferramenta fundamental para desenvolvedores e pesquisadores.
 
-_keywords: YOLO-NAS, Deci AI, detecção de objetos, aprendizado profundo, busca de arquitetura neural, API do Ultralytics Python, modelo YOLO, SuperGradients, modelos pré-treinados, bloco básico amigável para quantização, esquemas avançados de treinamento, quantização pós-treinamento, otimização AutoNAC, COCO, Objects365, Roboflow 100_
+*keywords: YOLO-NAS, Deci AI, detecção de objetos, aprendizado profundo, busca de arquitetura neural, API do Ultralytics Python, modelo YOLO, SuperGradients, modelos pré-treinados, bloco básico amigável para quantização, esquemas avançados de treinamento, quantização pós-treinamento, otimização AutoNAC, COCO, Objects365, Roboflow 100*

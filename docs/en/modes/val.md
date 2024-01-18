@@ -80,7 +80,7 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
 Validation settings for YOLO models refer to the various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO validation settings include the batch size, the frequency with which validation is performed during training, and the metrics used to evaluate the model's performance. Other factors that may affect the validation process include the size and composition of the validation dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the model is performing well on the validation dataset and to detect and prevent overfitting.
 
 | Key           | Value   | Description                                                        |
-| ------------- | ------- | ------------------------------------------------------------------ |
+|---------------|---------|--------------------------------------------------------------------|
 | `data`        | `None`  | path to data file, i.e. coco128.yaml                               |
 | `imgsz`       | `640`   | size of input images as integer                                    |
 | `batch`       | `16`    | number of images per batch (-1 for AutoBatch)                      |

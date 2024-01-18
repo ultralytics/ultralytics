@@ -41,7 +41,7 @@ Hier sind einige der wichtigsten unterstützten Modelle:
 
 ## Einstieg: Nutzungbeispiele
 
-Dieses Beispiel bietet einfache YOLO-Trainings- und Inferenzbeispiele. Für vollständige Dokumentationen über diese und andere [Modi](../modes/index.md) siehe die Dokumentationsseiten [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) und [Export](../modes/export.md).
+Dieses Beispiel bietet einfache YOLO-Trainings- und Inferenzbeispiele. Für vollständige Dokumentationen über diese und andere [Modi](../modes/index.md) siehe die Dokumentationsseiten [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) und [Export](../modes/export.md).
 
 Beachten Sie, dass das folgende Beispiel für YOLOv8 [Detect](../tasks/detect.md) Modelle zur Objekterkennung ist. Für zusätzliche unterstützte Aufgaben siehe die Dokumentation zu [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) und [Pose](../tasks/pose.md).
 

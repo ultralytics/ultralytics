@@ -25,8 +25,8 @@ YOLOv5u représente une avancée dans les méthodologies de détection d'objets.
 Les modèles YOLOv5u, avec divers poids pré-entraînés, excellent dans les tâches de [détection d'objets](../tasks/detect.md). Ils prennent en charge une gamme complète de modes, ce qui les rend adaptés à diverses applications, du développement au déploiement.
 
 | Type de modèle | Poids pré-entraînés                                                                                                         | Tâche                                    | Inférence | Validation | Entraînement | Export |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | --------- | ---------- | ------------ | ------ |
-| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Détection d'objets](../tasks/detect.md) | ✅        | ✅         | ✅           | ✅     |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------|-----------|------------|--------------|--------|
+| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Détection d'objets](../tasks/detect.md) | ✅         | ✅          | ✅            | ✅      |
 
 Ce tableau fournit un aperçu détaillé des variantes de modèles YOLOv5u, mettant en évidence leur applicabilité dans les tâches de détection d'objets et leur prise en charge de divers modes opérationnels tels que [Inférence](../modes/predict.md), [Validation](../modes/val.md), [Entraînement](../modes/train.md) et [Exportation](../modes/export.md). Cette prise en charge complète garantit que les utilisateurs peuvent exploiter pleinement les capacités des modèles YOLOv5u dans un large éventail de scénarios de détection d'objets.
 

@@ -64,10 +64,10 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
 
 この表には、各モデルがサポートするタスク、特定の事前学習済み重み、およびサポートされるさまざまなモード（[Train](../modes/train.md)、[Val](../modes/val.md)、[Predict](../modes/predict.md)、[Export](../modes/export.md)）が✅絵文字で示されている情報が示されています。
 
-| モデルの種類        | 事前学習済み重み | サポートされるタスク                   | 推論 | 検証 | 訓練 | エクスポート |
-| ------------------- | ---------------- | -------------------------------------- | ---- | ---- | ---- | ------------ |
-| RT-DETR Large       | `rtdetr-l.pt`    | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅           |
-| RT-DETR Extra-Large | `rtdetr-x.pt`    | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅           |
+| モデルの種類              | 事前学習済み重み      | サポートされるタスク                     | 推論 | 検証 | 訓練 | エクスポート |
+|---------------------|---------------|--------------------------------|----|----|----|--------|
+| RT-DETR Large       | `rtdetr-l.pt` | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅      |
+| RT-DETR Extra-Large | `rtdetr-x.pt` | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅      |
 
 ## 引用と謝辞
 
@@ -90,4 +90,4 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
 
 私たちは、Baiduと[PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection)チームに、コンピュータビジョンコミュニティ向けのこの貴重なリソースを作成しメンテナンスしていただいたことに感謝いたします。Vision Transformersベースのリアルタイムオブジェクト検出器であるRT-DETRの開発による、彼らのフィールドへの貢献は非常に評価されています。
 
-_Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API_
+*Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API*

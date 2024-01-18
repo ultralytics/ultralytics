@@ -34,7 +34,7 @@ Hier werden vortrainierte YOLOv8 Segment-Modelle gezeigt. Detect-, Segment- und 
 [Modelle](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) laden sich automatisch von der neuesten Ultralytics [Veröffentlichung](https://github.com/ultralytics/assets/releases) beim ersten Gebrauch herunter.
 
 | Modell                                                                                       | Größe<br><sup>(Pixel) | mAP<sup>Kasten<br>50-95 | mAP<sup>Masken<br>50-95 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
-| -------------------------------------------------------------------------------------------- | --------------------- | ----------------------- | ----------------------- | ---------------------------------------- | --------------------------------------------- | --------------------- | ----------------- |
+|----------------------------------------------------------------------------------------------|-----------------------|-------------------------|-------------------------|------------------------------------------|-----------------------------------------------|-----------------------|-------------------|
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-seg.pt) | 640                   | 36.7                    | 30.5                    | 96.1                                     | 1.21                                          | 3.4                   | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-seg.pt) | 640                   | 44.6                    | 36.8                    | 155.7                                    | 1.47                                          | 11.8                  | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-seg.pt) | 640                   | 49.9                    | 40.8                    | 317.0                                    | 2.18                                          | 27.3                  | 110.2             |
@@ -170,19 +170,19 @@ Exportieren Sie ein YOLOv8n-seg-Modell in ein anderes Format wie ONNX, CoreML us
 Die verfügbaren YOLOv8-seg-Exportformate sind in der folgenden Tabelle aufgeführt. Sie können direkt auf exportierten Modellen Vorhersagen treffen oder sie validieren, z.B. `yolo predict model=yolov8n-seg.onnx`. Verwendungsbeispiele werden für Ihr Modell nach dem Export angezeigt.
 
 | Format                                                             | `format`-Argument | Modell                        | Metadaten | Argumente                                                       |
-| ------------------------------------------------------------------ | ----------------- | ----------------------------- | --------- | --------------------------------------------------------------- |
-| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-seg.pt`              | ✅        | -                                                               |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-seg.torchscript`     | ✅        | `imgsz`, `optimieren`                                           |
-| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-seg.onnx`            | ✅        | `imgsz`, `halb`, `dynamisch`, `vereinfachen`, `opset`           |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-seg_openvino_model/` | ✅        | `imgsz`, `halb`                                                 |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-seg.engine`          | ✅        | `imgsz`, `halb`, `dynamisch`, `vereinfachen`, `Arbeitsspeicher` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-seg.mlpackage`       | ✅        | `imgsz`, `halb`, `int8`, `nms`                                  |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅        | `imgsz`, `keras`                                                |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-seg.pb`              | ❌        | `imgsz`                                                         |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-seg.tflite`          | ✅        | `imgsz`, `halb`, `int8`                                         |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅        | `imgsz`                                                         |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-seg_web_model/`      | ✅        | `imgsz`                                                         |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅        | `imgsz`                                                         |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅        | `imgsz`, `halb`                                                 |
+|--------------------------------------------------------------------|-------------------|-------------------------------|-----------|-----------------------------------------------------------------|
+| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-seg.pt`              | ✅         | -                                                               |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-seg.torchscript`     | ✅         | `imgsz`, `optimieren`                                           |
+| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-seg.onnx`            | ✅         | `imgsz`, `halb`, `dynamisch`, `vereinfachen`, `opset`           |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-seg_openvino_model/` | ✅         | `imgsz`, `halb`                                                 |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-seg.engine`          | ✅         | `imgsz`, `halb`, `dynamisch`, `vereinfachen`, `Arbeitsspeicher` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-seg.mlpackage`       | ✅         | `imgsz`, `halb`, `int8`, `nms`                                  |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅         | `imgsz`, `keras`                                                |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-seg.pb`              | ❌         | `imgsz`                                                         |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-seg.tflite`          | ✅         | `imgsz`, `halb`, `int8`                                         |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅         | `imgsz`                                                         |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-seg_web_model/`      | ✅         | `imgsz`                                                         |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅         | `imgsz`                                                         |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅         | `imgsz`, `halb`                                                 |
 
 Die vollständigen Details zum `export` finden Sie auf der Seite [Export](https://docs.ultralytics.com/modes/export/).

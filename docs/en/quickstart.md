@@ -20,8 +20,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 </p>
 
 !!! Example "Install"
-=== "Pip install (recommended)"
-Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
+    === "Pip install (recommended)"
+        Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
 
         [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
@@ -73,9 +73,10 @@ sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
 ```
 
 === "Git clone"
-Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
-```bash # Clone the ultralytics repository
-git clone https://github.com/ultralytics/ultralytics
+    Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
+    ```bash
+    # Clone the ultralytics repository
+    git clone https://github.com/ultralytics/ultralytics
 
     # Navigate to the cloned directory
     cd ultralytics
@@ -123,6 +124,7 @@ git clone https://github.com/ultralytics/ultralytics
     Alter `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container for accessibility.
 
     For advanced Docker usage, feel free to explore the [Ultralytics Docker Guide](https://docs.ultralytics.com/guides/docker-quickstart/).
+
 
 See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
 
@@ -303,7 +305,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
-| ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
+|--------------------|-----------------------|-----------|------------------------------------------------------------------------------------------------------------------|
 | `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip](https://pypi.org/project/ultralytics/) version) |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                      |
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                 |

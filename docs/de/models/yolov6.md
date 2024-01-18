@@ -76,12 +76,12 @@ In diesem Beispiel werden einfache Schulungs- und Inferenzbeispiele für YOLOv6 
 Die YOLOv6-Serie bietet eine Reihe von Modellen, die jeweils für die Hochleistungs-[Objekterkennung](../tasks/detect.md) optimiert sind. Diese Modelle erfüllen unterschiedliche Rechenanforderungen und Genauigkeitsanforderungen und sind daher vielseitig für eine Vielzahl von Anwendungen einsetzbar.
 
 | Modelltyp | Vorab trainierte Gewichte | Unterstützte Aufgaben                 | Inferenz | Validierung | Training | Exportieren |
-| --------- | ------------------------- | ------------------------------------- | -------- | ----------- | -------- | ----------- |
-| YOLOv6-N  | `yolov6-n.pt`             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
-| YOLOv6-S  | `yolov6-s.pt`             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
-| YOLOv6-M  | `yolov6-m.pt`             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
-| YOLOv6-L  | `yolov6-l.pt`             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
-| YOLOv6-L6 | `yolov6-l6.pt`            | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
+|-----------|---------------------------|---------------------------------------|----------|-------------|----------|-------------|
+| YOLOv6-N  | `yolov6-n.pt`             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
+| YOLOv6-S  | `yolov6-s.pt`             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
+| YOLOv6-M  | `yolov6-m.pt`             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
+| YOLOv6-L  | `yolov6-l.pt`             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
+| YOLOv6-L6 | `yolov6-l6.pt`            | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
 
 Diese Tabelle bietet einen detaillierten Überblick über die YOLOv6-Modellvarianten und hebt ihre Fähigkeiten bei der Objekterkennung sowie ihre Kompatibilität mit verschiedenen Betriebsmodi wie [Inferenz](../modes/predict.md), [Validierung](../modes/val.md), [Training](../modes/train.md) und [Exportieren](../modes/export.md) hervor. Diese umfassende Unterstützung ermöglicht es den Benutzern, die Fähigkeiten von YOLOv6-Modellen in einer Vielzahl von Objekterkennungsszenarien vollständig zu nutzen.
 

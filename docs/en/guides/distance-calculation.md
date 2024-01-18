@@ -69,7 +69,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 ### Optional Arguments `set_args`
 
 | Name             | Type   | Default         | Description                                            |
-| ---------------- | ------ | --------------- | ------------------------------------------------------ |
+|------------------|--------|-----------------|--------------------------------------------------------|
 | `names`          | `dict` | `None`          | Classes names                                          |
 | `view_img`       | `bool` | `False`         | Display frames with counts                             |
 | `line_thickness` | `int`  | `2`             | Increase bounding boxes thickness                      |
@@ -79,7 +79,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
+|-----------|---------|----------------|-------------------------------------------------------------|
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

@@ -65,9 +65,9 @@ Este exemplo fornece exemplos simples de treinamento e inferência com o RT-DETR
 Esta tabela apresenta os tipos de modelo, os pesos pré-treinados específicos, as tarefas suportadas por cada modelo e os vários modos ([Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) que são suportados, indicados por emojis ✅.
 
 | Tipo de Modelo       | Pesos Pré-treinados | Tarefas Suportadas                        | Inferência | Validação | Treinamento | Exportação |
-| -------------------- | ------------------- | ----------------------------------------- | ---------- | --------- | ----------- | ---------- |
-| RT-DETR Grande       | `rtdetr-l.pt`       | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
-| RT-DETR Extra-Grande | `rtdetr-x.pt`       | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
+|----------------------|---------------------|-------------------------------------------|------------|-----------|-------------|------------|
+| RT-DETR Grande       | `rtdetr-l.pt`       | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
+| RT-DETR Extra-Grande | `rtdetr-x.pt`       | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
 
 ## Citações e Reconhecimentos
 
@@ -90,4 +90,4 @@ Se você utilizar o RT-DETR da Baidu em seu trabalho de pesquisa ou desenvolvime
 
 Gostaríamos de agradecer à Baidu e à equipe do [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) por criar e manter esse recurso valioso para a comunidade de visão computacional. Sua contribuição para o campo com o desenvolvimento do detector de objetos em tempo real baseado em Vision Transformers, RT-DETR, é muito apreciada.
 
-_keywords: RT-DETR, Transformer, ViT, Vision Transformers, RT-DETR da Baidu, PaddlePaddle, modelos pré-treinados PaddlePaddle RT-DETR, uso do RT-DETR da Baidu, API Python do Ultralytics_
+*keywords: RT-DETR, Transformer, ViT, Vision Transformers, RT-DETR da Baidu, PaddlePaddle, modelos pré-treinados PaddlePaddle RT-DETR, uso do RT-DETR da Baidu, API Python do Ultralytics*

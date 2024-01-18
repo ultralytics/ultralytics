@@ -11,7 +11,7 @@ keywords: Ultralytics, neural network, nn.modules.utils, bias_init_with_prob, in
 
 <br><br>
 
-## ::: ultralytics.nn.modules.utils.\_get_clones
+## ::: ultralytics.nn.modules.utils._get_clones
 
 <br><br>
 

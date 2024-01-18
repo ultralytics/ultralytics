@@ -59,7 +59,7 @@ keywords: Ultralytics, YOLO, YOLOv3, YOLOv4, metrics, confusion matrix, detectio
 
 <br><br>
 
-## ::: ultralytics.utils.metrics.\_get_covariance_matrix
+## ::: ultralytics.utils.metrics._get_covariance_matrix
 
 <br><br>
 

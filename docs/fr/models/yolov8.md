@@ -26,11 +26,11 @@ La série YOLOv8 propose une gamme diversifiée de modèles, chacun spécialisé
 Chaque variante de la série YOLOv8 est optimisée pour sa tâche respective, garantissant des performances et une précision élevées. De plus, ces modèles sont compatibles avec divers modes opérationnels, notamment l'[Inférence](../modes/predict.md), la [Validation](../modes/val.md), l'[Entraînement](../modes/train.md) et l'[Exportation](../modes/export.md), ce qui facilite leur utilisation à différentes étapes du déploiement et du développement.
 
 | Modèle      | Noms de fichiers                                                                                               | Tâche                                          | Inférence | Validation | Entraînement | Exportation |
-| ----------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | --------- | ---------- | ------------ | ----------- |
-| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [Détection](../tasks/detect.md)                | ✅        | ✅         | ✅           | ✅          |
-| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [Segmentation d'instance](../tasks/segment.md) | ✅        | ✅         | ✅           | ✅          |
-| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [Pose/Points clés](../tasks/pose.md)           | ✅        | ✅         | ✅           | ✅          |
-| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [Classification](../tasks/classify.md)         | ✅        | ✅         | ✅           | ✅          |
+|-------------|----------------------------------------------------------------------------------------------------------------|------------------------------------------------|-----------|------------|--------------|-------------|
+| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [Détection](../tasks/detect.md)                | ✅         | ✅          | ✅            | ✅           |
+| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [Segmentation d'instance](../tasks/segment.md) | ✅         | ✅          | ✅            | ✅           |
+| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [Pose/Points clés](../tasks/pose.md)           | ✅         | ✅          | ✅            | ✅           |
+| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [Classification](../tasks/classify.md)         | ✅         | ✅          | ✅            | ✅           |
 
 Ce tableau donne un aperçu des variantes des modèles YOLOv8, mettant en évidence leur applicabilité dans des tâches spécifiques et leur compatibilité avec différents modes opérationnels tels que l'inférence, la validation, l'entraînement et l'exportation. Il met en avant la polyvalence et la robustesse de la série YOLOv8, ce qui les rend adaptés à une variété d'applications en vision par ordinateur.
 
@@ -101,7 +101,7 @@ Ce tableau donne un aperçu des variantes des modèles YOLOv8, mettant en évide
 
 ## Exemples d'utilisation
 
-Cet exemple fournit des exemples simples d'entraînement et d'inférence avec YOLOv8. Pour une documentation complète sur ces exemples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
+Cet exemple fournit des exemples simples d'entraînement et d'inférence avec YOLOv8. Pour une documentation complète sur ces exemples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
 
 Veuillez noter que l'exemple ci-dessous concerne les modèles de détection YOLOv8. Pour d'autres tâches prises en charge, consultez la documentation de [Segmentation](../tasks/segment.md), [Classification](../tasks/classify.md) et [Pose/Points clés](../tasks/pose.md).
 

@@ -298,7 +298,8 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 `YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits from `BaseTrainer`.
 
 !!! Tip "Detection Trainer Example"
-```python
+
+````python
 from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, DetectionPredictor
 
     # trainer
@@ -322,3 +323,4 @@ from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, Detect
 You can easily customize Trainers to support custom tasks or explore R&D ideas. Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 
 [Customization tutorials](engine.md){ .md-button }
+````

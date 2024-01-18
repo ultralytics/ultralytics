@@ -150,7 +150,8 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     !!! example ""
     === "Black Background Pixels"
-    ```py # Create 3-channel mask
+
+    ````py # Create 3-channel mask
     mask3ch = cv.cvtColor(b_mask, cv.COLOR_GRAY2BGR)
 
             # Isolate object with binary mask
@@ -246,13 +247,17 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
+    ````
+
 1.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
     ??? example "Example Final Step"
     `py
+
     # Save isolated object to file
+
     _ = cv.imwrite(f'{img_name}_{label}-{ci}.png', iso_crop)
     `
 

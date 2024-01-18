@@ -14,6 +14,7 @@ import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
+from itertools import chain
 
 import numpy as np
 import torch
@@ -228,6 +229,55 @@ class BaseTrainer:
             world_size=world_size,
         )
 
+    def calc_weights(self):
+        """Determines weight mode and returns calculated, user submitted, or no class weights"""
+        cls_weights = self.args.cls_weights
+        nc = self.data['nc']
+
+        # decide if we're calculating class weights or not
+        if cls_weights == None:
+            print("Not using class weights")
+        elif isinstance(cls_weights, list) and len(cls_weights) == nc:
+            cls_weights = torch.Tensor(cls_weights)
+        elif cls_weights == "median":
+            cls_weights = self.get_median_frequency_weights(nc)
+        elif cls_weights == "inverse": 
+            cls_weights = self.get_inverse_class_frequency_weights(nc)
+        else:
+            raise ValueError("Invalid value for cls_weights. Please use None, a list of length num_classes, 'median', or 'inverse'.")
+        
+        return cls_weights
+
+    def get_inverse_class_frequency_weights(self, nc):
+        loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
+
+        y = [batch['cls'].view(-1).numpy() for batch in loader]
+        y = list(chain(*y))
+        
+        unique_classes, class_counts = np.unique(y, return_counts=True)
+        if len(class_counts) != nc:
+            eps = 0.0001 # included for numerical stability
+            class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
+        
+        total_samples = len(y)
+        class_weights = total_samples / (nc * class_counts)
+        return torch.Tensor(class_weights)
+    
+    def get_median_frequency_weights(self, nc):
+        loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
+
+        y = [batch['cls'].view(-1).numpy() for batch in loader]
+        y = list(chain(*y))
+        
+        unique_classes, class_counts = np.unique(y, return_counts=True)
+        if len(class_counts) != nc:
+            eps = 0.0001 # included for numerical stability
+            class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
+        
+        median_frequency = np.median(class_counts)
+        class_weights = median_frequency / class_counts
+        return torch.Tensor(class_weights)
+
     def _setup_train(self, world_size):
         """Builds dataloaders and optimizer on correct rank process."""
 
@@ -284,6 +334,7 @@ class BaseTrainer:
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode="train")
+        self.args.cls_weights = self.calc_weights() # either get user passed weights or calculate our own
         if RANK in (-1, 0):
             # NOTE: When training DOTA dataset, double batch size could get OOM cause some images got more than 2000 objects.
             self.test_loader = self.get_dataloader(

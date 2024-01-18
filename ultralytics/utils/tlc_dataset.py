@@ -1,21 +1,43 @@
 from __future__ import annotations
 
 from ultralytics.data.dataset import YOLODataset
-from tlc import Table, Url
-from tlc.core.builtins.constants.column_names import IMAGE
 import numpy as np
 import tlc
 from ultralytics.utils import colorstr
 
 def unpack_box(bbox):
-    return [bbox[tlc.LABEL], bbox[tlc.X0], bbox[tlc.Y0], bbox[tlc.X1], bbox[tlc.Y1]]
+    return bbox[tlc.LABEL], [bbox[tlc.X0], bbox[tlc.Y0], bbox[tlc.X1], bbox[tlc.Y1]]
+
+def unpack_boxes(bboxes):
+    classes_list, boxes_list = [], []
+    for bbox in bboxes:
+        _class, box = unpack_box(bbox)
+        classes_list.append(_class)
+        boxes_list.append(box)
+
+    # Convert to np array
+    boxes = np.array(boxes_list, ndmin=2, dtype=np.float32)
+    if len(boxes_list) == 0:
+        boxes = boxes.reshape(0, 4)
+
+    classes = np.array(classes_list, dtype=np.float32).reshape((-1, 1))
+    assert classes.shape == (boxes.shape[0], 1)
+    return classes, boxes
+
 
 def tlc_table_row_to_yolo_label(row):
-    unpacked = [unpack_box(box) for box in row[tlc.BOUNDING_BOXES][tlc.BOUNDING_BOX_LIST]]
-    arr = np.array(unpacked, ndmin=2, dtype=np.float32)
-    if len(unpacked) == 0:
-        arr = arr.reshape(0, 5)
-    return arr
+    classes, bboxes = unpack_boxes(row[tlc.BOUNDING_BOXES][tlc.BOUNDING_BOX_LIST])
+    return dict(
+        im_file=tlc.Url(row[tlc.IMAGE]).to_absolute().to_str(),
+        shape=(row['width'], row['height']),  # format: (height, width)
+        cls=classes,
+        bboxes=bboxes,
+        segments=[],
+        keypoints=None,
+        normalized=True,
+        bbox_format="xywh",
+    )
+    
 
 def build_tlc_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, table=None):
     """Build TLC Dataset."""
@@ -40,33 +62,41 @@ def build_tlc_dataset(cfg, img_path, batch, data, mode="train", rect=False, stri
     )
 
 class TLCDataset(YOLODataset):
-    def __init__(self, *args, data=None, task="detect", table: Table, **kwargs):
+    def __init__(self, *args, data=None, task="detect", table: tlc.Table, **kwargs):
         assert task == "detect"
         self.table = table
         super().__init__(*args, data=data, task=task, **kwargs)
 
     def get_img_files(self, _):
-        return [Url(sample[IMAGE]).to_absolute().to_str() for sample in self.table]
+        return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for sample in self.table]
     
     def get_labels(self):
-        """
-        Users can customize their own format here.
+        return [tlc_table_row_to_yolo_label(row) for row in self.table]
+    
+    def set_rectangle(self):
+        """Sets the shape of bounding boxes for YOLO detections as rectangles."""
+        bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
+        nb = bi[-1] + 1  # number of batches
 
-        Note:
-            Ensure output is a dictionary with the following keys:
-            ```python
-            dict(
-                im_file=im_file,
-                shape=shape,  # format: (height, width)
-                cls=cls,
-                bboxes=bboxes, # xywh
-                segments=segments,  # xy
-                keypoints=keypoints, # xy
-                normalized=True, # or False
-                bbox_format="xyxy",  # or xywh, ltwh
-            )
-            ```
-        """
-        raise NotImplementedError
+        s = np.array([x.pop("shape") for x in self.labels])  # hw
+        ar = s[:, 0] / s[:, 1]  # aspect ratio
+        irect = ar.argsort()
+        self.im_files = [self.im_files[i] for i in irect]
+        self.labels = [self.labels[i] for i in irect]
+        ar = ar[irect]
+        self.irect = irect.copy()
+
+        # Set training image shapes
+        shapes = [[1, 1]] * nb
+        for i in range(nb):
+            ari = ar[bi == i]
+            mini, maxi = ari.min(), ari.max()
+            if maxi < 1:
+                shapes[i] = [maxi, 1]
+            elif mini > 1:
+                shapes[i] = [1, 1 / mini]
+
+        self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
+        self.batch = bi  # batch index of image
 
     

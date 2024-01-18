@@ -36,16 +36,18 @@ class VarifocalLoss(nn.Module):
 
 
 class FocalLoss(nn.Module):
-    """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
+    """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=2.0)."""
 
-    def __init__(self):
+    def __init__(self, reduction=None, pos_weight=None):
         """Initializer for FocalLoss class with no parameters."""
         super().__init__()
+        self.pos_weight = pos_weight
+        self.reduction = reduction
 
     @staticmethod
-    def forward(pred, label, gamma=1.5, alpha=0.25):
+    def forward(pred, label, gamma=2.0, alpha=0.25):
         """Calculates and updates confusion matrix for object detection/classification tasks."""
-        loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
+        loss = F.binary_cross_entropy_with_logits(pred, label, reduction=self.reduction, pos_weight=self.pos_weight)
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
 
@@ -147,9 +149,11 @@ class v8DetectionLoss:
         """Initializes v8DetectionLoss with the model, defining model-related properties and BCE loss function."""
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
-
+        pos_weight = pos_weight=None if h.cls_weights is None else h.cls_weights.to(device)
         m = model.model[-1]  # Detect() module
-        self.bce = nn.BCEWithLogitsLoss(reduction='none', pos_weight=None if h.cls_weights is None else h.cls_weights.to(device))
+        self.class_loss = nn.BCEWithLogitsLoss(reduction="none", pos_weight=pos_weight)
+        if h.focal_loss:
+            self.class_loss = FocalLoss(reduction="none", pos_weight=pos_weight)
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -227,7 +231,7 @@ class v8DetectionLoss:
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[1] = self.class_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE or FL
 
         # Bbox loss
         if fg_mask.sum():

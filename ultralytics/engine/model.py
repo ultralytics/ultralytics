@@ -381,8 +381,8 @@ class Model(nn.Module):
                         # Check model was created
                         if not getattr(self.session.model, "id", None):
                             self.session = None
-                except PermissionError:
-                    # Ignore permission error
+                except (PermissionError, ModuleNotFoundError):
+                    # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
                     pass
 
         self.trainer.hub_session = self.session  # attach optional HUB session

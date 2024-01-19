@@ -1,46 +1,22 @@
 import tlc
+
 from ultralytics.models.yolo.detect import DetectionValidator
-from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (_TLCBoundingBox,
-                                                                                        _TLCBoundingBoxes)
-
 from ultralytics.utils import LOGGER, ops
-
-def yolo_predicted_bounding_box_schema(categories):
-    """ Create a 3LC bounding box schema for YOLOv5
-
-    :param categories: Categories for the current dataset.
-    :returns: The YOLO bounding box schema for predicted boxes.
-    """
-    label_value_map = {float(i): tlc.MapElement(class_name) for i, class_name in categories.items()}
-
-    bounding_box_schema = tlc.BoundingBoxListSchema(
-        label_value_map=label_value_map,
-        x0_number_role=tlc.NUMBER_ROLE_BB_CENTER_X,
-        x1_number_role=tlc.NUMBER_ROLE_BB_SIZE_X,
-        y0_number_role=tlc.NUMBER_ROLE_BB_CENTER_Y,
-        y1_number_role=tlc.NUMBER_ROLE_BB_SIZE_Y,
-        x0_unit=tlc.UNIT_RELATIVE,
-        y0_unit=tlc.UNIT_RELATIVE,
-        x1_unit=tlc.UNIT_RELATIVE,
-        y1_unit=tlc.UNIT_RELATIVE,
-        description='Predicted Bounding Boxes',
-        writable=False,
-        is_prediction=True,
-        include_segmentation=False,
-    )
-
-    return bounding_box_schema
+from ultralytics.utils.tlc_utils import yolo_predicted_bounding_box_schema, construct_bbox_struct
 
 class TLCDetectionValidator(DetectionValidator):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, run=None):
         LOGGER.info("Using 3LC Validator 🌟")
-        if not hasattr(self, '_run'):
-            self._run = tlc.init(project_name='yolov8-hackathon')
+        if run:
+            self._run = run
+        else:
+            self._run = tlc.init(project_name=dataloader.dataset.table.project_name)
         self.metrics_writer = tlc.MetricsWriter(
             run_url=self._run.url,
             dataset_url=dataloader.dataset.table.url,
+            dataset_name=dataloader.dataset.table.dataset_name,
             override_column_schemas={
                 tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(dataloader.dataset.data['names'])
             },
@@ -98,39 +74,3 @@ class TLCDetectionValidator(DetectionValidator):
                 self.epoch += 1
         
         return predn
-
-def construct_bbox_struct(
-    predicted_annotations,
-    image_width: int,
-    image_height: int,
-    inverse_label_mapping= None,
-):
-    """Construct a 3LC bounding box struct from a list of bounding boxes.
-
-    :param predicted_annotations: A list of predicted bounding boxes.
-    :param image_width: The width of the image.
-    :param image_height: The height of the image.
-    :param inverse_label_mapping: A mapping from predicted label to category id.
-    """
-
-    bbox_struct = _TLCBoundingBoxes(
-        bb_list=[],
-        image_width=image_width,
-        image_height=image_height,
-    )
-
-    for pred in predicted_annotations:
-        bbox, label, score, iou = pred['bbox'], pred['category_id'], pred['score'], pred['iou']
-        label_val = inverse_label_mapping[label] if inverse_label_mapping is not None else label
-        bbox_struct['bb_list'].append(
-            _TLCBoundingBox(
-                label=label_val,
-                confidence=score,
-                iou=iou,
-                x0=bbox[0],
-                y0=bbox[1],
-                x1=bbox[2],
-                y1=bbox[3],
-            ))
-
-    return bbox_struct

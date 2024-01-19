@@ -18,6 +18,7 @@ from tlc.core.objects.tables.from_url.utils import get_hash
 
 # from utils.general import LOGGER, check_dataset
 from ultralytics.utils import LOGGER, colorstr
+from ultralytics.data.utils import check_file
 
 # 3LC Constants
 TLC_PREFIX = '3LC://'
@@ -234,7 +235,7 @@ def get_or_create_tlc_table(yolo_yaml_file: tlc.Url | str | None = None,
         # Infer dataset and project names
         dataset_name_base = Path(yolo_yaml_file).stem
         dataset_name = dataset_name_base + '-' + split
-        project_name = 'yolov5-' + dataset_name_base
+        project_name = 'yolov8-' + dataset_name_base
 
         # if yolo_yaml_file:  # review this
         yolo_yaml_file = str(Path(yolo_yaml_file).resolve())  # Ensure absolute path for resolving Table Url
@@ -471,7 +472,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
     """
     # Regular YAML file
     if not data_file.startswith(TLC_PREFIX):
-        # check_dataset(data_file)  # Download, etc.
+        data_file = check_file(data_file)
 
         if not (data_file_url := tlc.Url(data_file)).exists():
             raise FileNotFoundError(f'Could not find YAML file {data_file_url}')
@@ -529,3 +530,18 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
     assert all(value_maps[0] == value_maps[i] for i in range(1, len(value_maps)))
 
     return tables
+
+def tlc_task_map(task, key):
+    if task != 'detect':
+        LOGGER.info("3LC enabled, but currently only supports detect task. Defaulting to non-3LC mode.")
+        return None
+    
+    from ultralytics.utils.tlc_trainer import TLCDetectionTrainer
+    from ultralytics.utils.tlc_validator import TLCDetectionValidator
+
+    if key == "trainer":
+        return TLCDetectionTrainer
+    elif key == "validator":
+        return TLCDetectionValidator
+    else:
+        return None

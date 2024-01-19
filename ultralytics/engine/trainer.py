@@ -49,6 +49,12 @@ from ultralytics.utils.torch_utils import (
     strip_optimizer,
 )
 
+from ultralytics.utils import SETTINGS
+
+try:
+    import tlc
+except:
+    tlc = None
 
 class BaseTrainer:
     """
@@ -129,6 +135,18 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data)
+            elif SETTINGS['tlc'] is True and tlc:
+                if self.args.task != "detect":
+                    raise NotImplementedError("The 3LC integration currently only supports task detection.")
+                from ultralytics.utils.tlc_utils import tlc_check_dataset
+                tables = tlc_check_dataset(self.args.data)
+                names = tables["train"].get_value_map_for_column(tlc.BOUNDING_BOXES)
+                self.data = {
+                    "train": tables["train"],
+                    "val": tables["val"],
+                    "nc": len(names),
+                    "names": names,
+                }
             elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in ("detect", "segment", "pose"):
                 self.data = check_det_dataset(self.args.data)
                 if "yaml_file" in self.data:

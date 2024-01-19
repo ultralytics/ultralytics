@@ -10,6 +10,10 @@ from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, 
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
 from ultralytics.hub.utils import HUB_WEB_ROOT
 
+try:
+    import tlc
+except ImportError:
+    tlc = None
 
 class Model(nn.Module):
     """
@@ -464,6 +468,10 @@ class Model(nn.Module):
     def _smart_load(self, key):
         """Load model/trainer/validator/predictor."""
         try:
+            if SETTINGS["tlc"] is True and tlc:
+                from ultralytics.utils.tlc_utils import tlc_task_map
+                if _class := tlc_task_map(self.task, key):
+                    return _class
             return self.task_map[self.task][key]
         except Exception as e:
             name = self.__class__.__name__

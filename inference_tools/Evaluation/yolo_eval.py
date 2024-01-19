@@ -16,19 +16,19 @@ model = YOLO('../inference_tools/Evaluation/models/detector_best.pt', task='dete
 
 print("🚀...INFERENCE MODE...🚀")
 print("📦...GETTING PREDICTIONS...📦")
-"""metrics = model.val(data='/Users/johnny/Projects/datasets/custom_dataset_v2/data.yaml', save_json=True,
+"""metrics = model.val(data='../inference_tools/Evaluation/datasets/Client_Validation_Set/data.yaml', save_json=True,
                     plots=True)
 metrics.box.maps"""
 
 # Load ground truth
 print("🔌...LOADING GROUND TRUTH...")
-cocoGt = COCO('/Users/johnny/Projects/datasets/custom_dataset_v2/annotations/instances_val2017.json')
+cocoGt = COCO('../inference_tools/Evaluation/datasets/Client_Validation_Set/annotations/instances_val2017.json')
 
 print("🔌...LOADING PREDICTIONS IN RUNS...")
 list_of_dirs = glob.glob('../runs/detect/val') + glob.glob('../runs/detect/val[0-9]*')
 latest_dir = max(list_of_dirs, key=os.path.getmtime)
 
-json_files = glob.glob(os.path.join(latest_dir, '*.json'))
+json_files = glob.glob(os.path.join(latest_dir, 'predictions.json'))
 if json_files:
     detection_results_file = max(json_files, key=os.path.getmtime)  # Get the latest json file
 else:

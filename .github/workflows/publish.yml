@@ -28,8 +28,8 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip' # caching pip dependencies
+          python-version: "3.11"
+          cache: "pip" # caching pip dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel build twine

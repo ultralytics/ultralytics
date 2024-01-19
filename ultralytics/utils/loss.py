@@ -44,8 +44,7 @@ class FocalLoss(nn.Module):
         self.pos_weight = pos_weight
         self.reduction = reduction
 
-    @staticmethod
-    def forward(pred, label, gamma=2.0, alpha=0.25):
+    def forward(self, pred, label, gamma=2.0, alpha=0.25):
         """Calculates and updates confusion matrix for object detection/classification tasks."""
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction=self.reduction, pos_weight=self.pos_weight)
         # p_t = torch.exp(-loss)

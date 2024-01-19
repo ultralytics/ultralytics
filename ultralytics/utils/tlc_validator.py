@@ -29,7 +29,7 @@ class TLCDetectionValidator(DetectionValidator):
         self.epoch = 0
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
 
-    def __call__(self, trainer=None, model=None):
+    def __call__(self, trainer=None, model=None, epoch=None):
         self._trainer = trainer
         if trainer:
             self._collection_epochs = get_metrics_collection_epochs(
@@ -38,6 +38,8 @@ class TLCDetectionValidator(DetectionValidator):
                 self._env_vars['COLLECTION_EPOCH_INTERVAL'],
                 self._env_vars['COLLECTION_DISABLE']
             )
+        if epoch:
+            self.epoch = epoch
         return super().__call__(trainer, model)
     
     def _should_collect_metrics(self, epoch):
@@ -88,6 +90,8 @@ class TLCDetectionValidator(DetectionValidator):
                 self.metrics_writer.flush()
                 metrics_infos = self.metrics_writer.get_written_metrics_infos()
                 self._run.update_metrics(metrics_infos)
-                self.epoch += 1
+        
+        if self.seen == len(self.dataloader.dataset):
+            self.epoch += 1
         
         return predn

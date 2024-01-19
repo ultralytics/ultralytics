@@ -8,7 +8,7 @@ from ultralytics.utils import (
 from ultralytics.utils.tlc_validator import TLCDetectionValidator
 from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.utils.tlc_dataset import build_tlc_dataset
-from ultralytics.utils.tlc_utils import parse_environment_variables
+from ultralytics.utils.tlc_utils import parse_environment_variables, get_metrics_collection_epochs
 from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
 class TLCDetectionTrainer(DetectionTrainer):
@@ -19,6 +19,12 @@ class TLCDetectionTrainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
         self._train_validator = None
         self._env_vars = parse_environment_variables()
+        self._collection_epochs = get_metrics_collection_epochs(
+                self._env_vars['COLLECTION_EPOCH_START'],
+                self.args.epochs,
+                self._env_vars['COLLECTION_EPOCH_INTERVAL'],
+                self._env_vars['COLLECTION_DISABLE']
+            )
 
         self._run = None
 
@@ -70,8 +76,8 @@ class TLCDetectionTrainer(DetectionTrainer):
 
     def validate(self):
         # Validate on train set
-        if not self._env_vars['COLLECTION_DISABLE'] and not self._env_vars['COLLECTION_VAL_ONLY']:
-            self.train_validator(self)
+        if not self._env_vars['COLLECTION_DISABLE'] and not self._env_vars['COLLECTION_VAL_ONLY'] and self.epoch in self._collection_epochs:
+            self.train_validator(trainer=self, epoch=self.epoch)
 
         # Validate on val/test set
         return super().validate()

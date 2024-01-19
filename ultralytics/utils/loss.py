@@ -152,7 +152,7 @@ class v8DetectionLoss:
         pos_weight = pos_weight=None if h.cls_weights is None else h.cls_weights.to(device)
         m = model.model[-1]  # Detect() module
         self.class_loss = nn.BCEWithLogitsLoss(reduction="none", pos_weight=pos_weight)
-        if h.focal_loss:
+        if h.use_dod_fl:
             self.class_loss = FocalLoss(reduction="none", pos_weight=pos_weight)
         self.hyp = h
         self.stride = m.stride  # model strides

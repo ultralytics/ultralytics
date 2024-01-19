@@ -395,9 +395,10 @@ def parse_environment_variables() -> dict[str, int | float | bool | str | list[s
     # Embeddings
     image_embeddings_dim = parse_env_var('TLC_IMAGE_EMBEDDINGS_DIM', default='0', var_type=int)
     if image_embeddings_dim in (2, 3):
-        umap_spec = importlib.util.find_spec('umap')
-        if umap_spec is None:
-            raise ValueError('Missing UMAP dependency, run `pip install umap-learn` to enable embeddings collection.')
+        LOGGER.info("3LC Image Embeddings are not yet available for YOLOv8, defaulting to 0.")
+        # umap_spec = importlib.util.find_spec('umap')
+        # if umap_spec is None:
+        #     raise ValueError('Missing UMAP dependency, run `pip install umap-learn` to enable embeddings collection.')
     elif image_embeddings_dim != 0:
         raise ValueError(f'Invalid TLC_IMAGE_EMBEDDINGS_DIM={image_embeddings_dim}, must be 0, 2 or 3.')
 
@@ -405,9 +406,13 @@ def parse_environment_variables() -> dict[str, int | float | bool | str | list[s
 
     # Sampling weights
     config['SAMPLING_WEIGHTS'] = parse_boolean_env_var('TLC_SAMPLING_WEIGHTS', default='false')
+    if config['SAMPLING_WEIGHTS']:
+        LOGGER.info("3LC Sampling Weights are not yet available for YOLOv8, defaulting to off.")
 
     # Loss
     config['COLLECT_LOSS'] = parse_boolean_env_var('TLC_COLLECT_LOSS', default='false')
+    if config['COLLECT_LOSS']:
+        LOGGER.info("3LC Loss Collection is not yet available for YOLOv8, defaulting to off.")
 
     # Collection on val only
     config['COLLECTION_VAL_ONLY'] = parse_boolean_env_var('TLC_COLLECTION_VAL_ONLY', default='false')

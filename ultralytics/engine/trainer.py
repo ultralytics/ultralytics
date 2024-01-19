@@ -53,7 +53,7 @@ from ultralytics.utils import SETTINGS
 
 try:
     import tlc
-except:
+except ImportError:
     tlc = None
 
 class BaseTrainer:

@@ -1,12 +1,15 @@
 import copy
 import tlc
 
+from ultralytics.data import build_dataloader
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import (
-    DEFAULT_CFG, LOGGER,)
+    DEFAULT_CFG, LOGGER, RANK)
 from ultralytics.utils.tlc_validator import TLCDetectionValidator
 from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.utils.tlc_dataset import build_tlc_dataset
+from ultralytics.utils.torch_utils import torch_distributed_zero_first
+
 class TLCDetectionTrainer(DetectionTrainer):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
 
@@ -14,7 +17,29 @@ class TLCDetectionTrainer(DetectionTrainer):
         LOGGER.info("Using 3LC Trainer 🌟")
         super().__init__(cfg, overrides, _callbacks)
         self._run = tlc.init(project_name=self.data["train"].project_name)
+        self._train_validator = None
 
+    @property
+    def train_validator(self):
+        if not self._train_validator:
+            if RANK in (-1,0):
+                train_val_loader = self.get_dataloader(
+                    self.testset, batch_size=self.batch_size if self.args.task == "obb" else self.batch_size * 2, rank=-1, mode="val", split="train",
+                )
+                self._train_validator = self.get_validator(loader=train_val_loader)
+        return self._train_validator
+
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train", split="val"):
+        """Construct and return dataloader."""
+        assert mode in ["train", "val"]
+        with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
+            dataset = self.build_dataset(dataset_path, mode, batch_size, split=split)
+        shuffle = mode == "train"
+        if getattr(dataset, "rect", False) and shuffle:
+            LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
+            shuffle = False
+        workers = self.args.workers if mode == "train" else self.args.workers * 2
+        return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
     def build_dataset(self, img_path, mode="train", batch=None, split="train"):
         """
@@ -28,10 +53,18 @@ class TLCDetectionTrainer(DetectionTrainer):
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_tlc_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, table=self.data[split])
 
-
-    def get_validator(self):
+    def get_validator(self, loader=None):
         """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
+        if not loader:
+            loader = self.test_loader
         return TLCDetectionValidator(
-            self.test_loader, save_dir=self.save_dir, args=copy.copy(self.args), _callbacks=self.callbacks, run=self._run,
+            loader, save_dir=self.save_dir, args=copy.copy(self.args), _callbacks=self.callbacks, run=self._run,
         )
+
+    def validate(self):
+        # Validate on train set
+        self.train_validator(self)
+
+        # Validate on val/test set
+        return super().validate()

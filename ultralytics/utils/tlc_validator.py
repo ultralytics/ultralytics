@@ -48,50 +48,55 @@ class TLCDetectionValidator(DetectionValidator):
         self.epoch = 0
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
 
+    def __call__(self, trainer=None, model=None):
+        self._trainer = trainer
+        return super().__call__(trainer, model)
+
     def _prepare_pred(self, pred, pbatch):
         """ Call parent, but get the native space predictions first"""
         predn = super()._prepare_pred(pred, pbatch)
 
-        conf = predn[:,4]
-        pred_cls = predn[:,5:]
-        predn_box = predn[:,:4]
-        example_index = self.seen - 1
-        example_id = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset, 'irect') else example_index
-        height, width = pbatch['ori_shape']
-        pred_xywh = ops.xyxy2xywhn(predn_box, w=width, h=height)
+        if self._trainer and self.epoch < self._trainer.args.epochs:
+            conf = predn[:,4]
+            pred_cls = predn[:,5]
+            predn_box = predn[:,:4]
+            example_index = self.seen - 1
+            example_id = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset, 'irect') else example_index
+            height, width = pbatch['ori_shape']
+            pred_xywh = ops.xyxy2xywhn(predn_box, w=width, h=height)
 
-        annotations = []
+            annotations = []
 
-        for i in range(len(conf)):
-            annotations.append({
-                'score': conf[i].item(),
-                'category_id': pred_cls[i].item(),
-                'bbox': pred_xywh[i,:].cpu().tolist(),
-                'iou': 0.,
-            })
+            for i in range(len(conf)):
+                annotations.append({
+                    'score': conf[i].item(),
+                    'category_id': pred_cls[i].item(),
+                    'bbox': pred_xywh[i,:].cpu().tolist(),
+                    'iou': 0.,
+                })
 
-        predicted_boxes = [
-            construct_bbox_struct(
-                annotations,
-                image_width=width,
-                image_height=height,
-            )
-        ]
+            predicted_boxes = [
+                construct_bbox_struct(
+                    annotations,
+                    image_width=width,
+                    image_height=height,
+                )
+            ]
 
-        metrics = {
-            tlc.EPOCH: [self.epoch],
-            tlc.EXAMPLE_ID: [example_id],
-            tlc.PREDICTED_BOUNDING_BOXES: predicted_boxes,
-        }
+            metrics = {
+                tlc.EPOCH: [self.epoch],
+                tlc.EXAMPLE_ID: [example_id],
+                tlc.PREDICTED_BOUNDING_BOXES: predicted_boxes,
+            }
 
-        self.metrics_writer.add_batch(metrics_batch=metrics)
+            self.metrics_writer.add_batch(metrics_batch=metrics)
 
-        if self.seen == len(self.dataloader.dataset):
-            self.metrics_writer.flush()
-            metrics_infos = self.metrics_writer.get_written_metrics_infos()
-            self._run.update_metrics(metrics_infos)
-            self.epoch += 1
-    
+            if self.seen == len(self.dataloader.dataset):
+                self.metrics_writer.flush()
+                metrics_infos = self.metrics_writer.get_written_metrics_infos()
+                self._run.update_metrics(metrics_infos)
+                self.epoch += 1
+        
         return predn
 
 def construct_bbox_struct(

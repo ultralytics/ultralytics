@@ -29,7 +29,7 @@ def tlc_table_row_to_yolo_label(row):
     classes, bboxes = unpack_boxes(row[tlc.BOUNDING_BOXES][tlc.BOUNDING_BOX_LIST])
     return dict(
         im_file=tlc.Url(row[tlc.IMAGE]).to_absolute().to_str(),
-        shape=(row['width'], row['height']),  # format: (height, width)
+        shape=(row['height'], row['width']),  # format: (height, width)
         cls=classes,
         bboxes=bboxes,
         segments=[],

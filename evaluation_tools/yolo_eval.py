@@ -1,46 +1,61 @@
-import json
-import os
-import glob
-
-import numpy as np
+import time
 import pandas as pd
 
 from ultralytics import YOLO
 from pycocotools.coco import COCO
 from cocoeval import COCOeval
 
+# SETTING UP PARAMETERS
+# Better not to change these parameters
+dataset_root = './data/client_test/'
+model_path = './models/detector_best.pt'
+outputs_root = './outputs'
+experiment_name = time.strftime("%Y%m%d-%H%M%S")
+# Can be changed
+imgsz = 640
+batch = 8
+device = 'cpu'
+
+
+#  START OF EVALUATION
 print("🚀...WELCOME TO EVALUATION DETECTOR MODEL...")
 
 print("🚀...Initializing model...")
-model = YOLO('../inference_tools/Evaluation/models/detector_best.pt', task='detect')
+model = YOLO(model_path, task='detect')
 
 print("🚀...INFERENCE MODE...🚀")
 print("📦...GETTING PREDICTIONS...📦")
-"""metrics = model.val(data='../inference_tools/Evaluation/datasets/Client_Validation_Set/data.yaml', save_json=True,
-                    plots=True)
-metrics.box.maps"""
+metrics = model.val(
+    data=dataset_root+'data.yaml',
+    imgsz=imgsz,
+    batch=batch,
+    device=device,
+    save=True,
+    save_json=True,
+    plots=True,
+    save_txt=True,      # Text files
+    save_conf=True,     # Save confidences
+    # save results to project/name relative to script directory or absolute path
+    project=outputs_root,
+    name=experiment_name,
+
+)
 
 # Load ground truth
 print("🔌...LOADING GROUND TRUTH...")
-cocoGt = COCO('../inference_tools/Evaluation/datasets/Client_Validation_Set/annotations/instances_val2017.json')
+cocoGt = COCO(dataset_root+'annotations/instances_val2017.json')
 
 print("🔌...LOADING PREDICTIONS IN RUNS...")
-list_of_dirs = glob.glob('../runs/detect/val') + glob.glob('../runs/detect/val[0-9]*')
-latest_dir = max(list_of_dirs, key=os.path.getmtime)
-
-json_files = glob.glob(os.path.join(latest_dir, 'predictions.json'))
-if json_files:
-    detection_results_file = max(json_files, key=os.path.getmtime)  # Get the latest json file
-else:
-    raise FileNotFoundError("❌...No JSON detection results file found in the latest 'val' directory...❌")
+cocoDt = cocoGt.loadRes(outputs_root + '/' + experiment_name + '/predictions.json')
 
 print("🔌...LOADING EVALUATOR...")
-cocoDt = cocoGt.loadRes(detection_results_file)
-
 cocoEval = COCOeval(cocoGt, cocoDt, 'bbox')
 
 print("🔌...RESHAPING EVALUATOR FOR CLIENT...")
-cocoEval.params.areaRng = [[0 ** 2, 1e5 ** 2], [0 ** 2, 16 ** 2], [16 ** 2, 32 ** 2], [32 ** 2, 96 ** 2],
+cocoEval.params.areaRng = [[0 ** 2, 1e5 ** 2],
+                           [0 ** 2, 16 ** 2],
+                           [16 ** 2, 32 ** 2],
+                           [32 ** 2, 96 ** 2],
                            [96 ** 2, 1e5 ** 2]]
 cocoEval.params.areaRngLbl = ['all', 'tiny', 'small', 'medium', 'large']
 
@@ -51,11 +66,6 @@ cocoEval.evaluate()
 cocoEval.accumulate()
 cocoEval.summarize()
 
-results_folder = "../inference_tools/Evaluation/results/"
-if not os.path.exists(results_folder):
-    os.makedirs(results_folder)
-
-
 # Function to append metrics
 def append_metrics(metrics, metric_type, iou, area, max_dets, value):
     metrics.append({
@@ -65,7 +75,6 @@ def append_metrics(metrics, metric_type, iou, area, max_dets, value):
         'Max Detections': max_dets,
         'Value': value
     })
-
 
 # Initialize a list to store the metrics
 metrics_ = []
@@ -94,6 +103,6 @@ for i, md in enumerate(max_dets):
 df_metrics = pd.DataFrame(metrics_)
 
 # Save to file (e.g., CSV)
-df_metrics.to_csv(results_folder + "/eval_metrics.csv", index=False)
+df_metrics.to_csv(outputs_root + "/" + experiment_name + "/eval_metrics.csv", index=False)
 
 print("✅...RESULTS SAVED...")

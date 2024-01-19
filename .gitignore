@@ -172,3 +172,6 @@ pnnx*
 /tracker/outputs/
 /my_tracker/data/
 /my_tracker/outputs/
+/evaluation_tools/data/
+/evaluation_tools/models/
+/evaluation_tools/outputs/

@@ -78,6 +78,7 @@ class Model(nn.Module):
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
             # Fetch model from HUB
+            checks.check_requirements("hub-sdk>0.0.2")
             self.session = self._get_hub_session(model)
             model = self.session.model_file
 

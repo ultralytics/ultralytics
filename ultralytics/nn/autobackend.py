@@ -481,10 +481,6 @@ class AutoBackend(nn.Module):
         Returns:
             (None): This method runs the forward pass and don't return any value
         """
-        import traceback
-        print(traceback.format_stack())
-        print(f'\n\n\n\n\n\n\n\n{imgsz}')
-        
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != 'cpu' or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input

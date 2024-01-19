@@ -6,6 +6,7 @@ mode: train  # (str) YOLO mode, i.e. train, val, predict, export, track, benchma
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model:  # (str, optional) path to model file, i.e. yolov8n.pt, yolov8n.yaml
+backbonePath: # (str, optional) path to backbone pt file.
 data:  # (str, optional) path to data file, i.e. coco128.yaml
 epochs: 100  # (int) number of epochs to train for
 patience: 50  # (int) epochs to wait for no observable improvement for early stopping of training

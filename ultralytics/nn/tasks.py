@@ -219,7 +219,7 @@ class BaseModel(nn.Module):
 class DetectionModel(BaseModel):
     """YOLOv8 detection model."""
 
-    def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
+    def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True, colorConvOutputSize = 0, backbonePath = None):  # model, input channels, number of classes, verbose, output channels from the 1x1 conv layer
         """Initialize the YOLOv8 detection model with the given config and parameters."""
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
@@ -229,7 +229,7 @@ class DetectionModel(BaseModel):
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override YAML value
-        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose, colorConvOutputSize=colorConvOutputSize)  # model, savelist
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.inplace = self.yaml.get('inplace', True)
 
@@ -250,6 +250,19 @@ class DetectionModel(BaseModel):
         if verbose:
             self.info()
             LOGGER.info('')
+        
+        if backbonePath != None and backbonePath != '':
+            LOGGER.info("Loading backbone weights from: " + backbonePath)
+            self.load_backbone(backbonePath)
+
+    def load_backbone(self, backbonePath):
+        backbone = torch.load(backbonePath)
+        backbone = backbone['model']
+        backbone = backbone.float().state_dict()
+        backbone = intersect_dicts(backbone, self.state_dict())
+        for key in backbone:
+            self.state_dict()[key] = backbone[key]
+        self.load_state_dict(self.state_dict())
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
@@ -677,13 +690,15 @@ def parse_model(d, ch, verbose=True, colorConvOutputSize=0):  # model_dict, inpu
     if colorConvOutputSize != 0:
         args = [ch[-1], colorConvOutputSize, 1, 1]
         m_ = Conv(ch[-1], colorConvOutputSize, 1, 1)
+        t = str(Conv)[8:-2].replace('__main__.', '')
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
+        m_.i, m_.f, m_.type = 0, -1, t  # attach index, 'from' index, type
         layers.append(m_)
         ch.append(colorConvOutputSize)
         if verbose:
-            t = str(Conv)[8:-2].replace('__main__.', '')
             LOGGER.info(f'{0:>3}{-1:>20}{1:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}')  # print
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
+        actualI = i + 1 if colorConvOutputSize != 0 else i
         m = getattr(torch.nn, m[3:]) if 'nn.' in m else globals()[m]  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
@@ -727,12 +742,12 @@ def parse_model(d, ch, verbose=True, colorConvOutputSize=0):  # model_dict, inpu
         m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace('__main__.', '')  # module type
         m.np = sum(x.numel() for x in m_.parameters())  # number params
-        m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
+        m_.i, m_.f, m_.type = actualI, f, t  # attach index, 'from' index, type
         if verbose:
-            LOGGER.info(f'{i:>3}{str(f):>20}{n_:>3}{m.np:10.0f}  {t:<45}{str(args):<30}')  # print
-        save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+            LOGGER.info(f'{actualI:>3}{str(f):>20}{n_:>3}{m.np:10.0f}  {t:<45}{str(args):<30}')  # print
+        save.extend(x % actualI for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
-        if i == 0:
+        if actualI == 0:
             ch = []
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)

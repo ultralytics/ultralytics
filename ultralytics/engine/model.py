@@ -126,7 +126,7 @@ class Model(nn.Module):
             )
         )
 
-    def _new(self, cfg: str, task=None, model=None, verbose=True):
+    def _new(self, cfg: str, task=None, model=None, verbose=False):
         """
         Initializes a new model and infers the task type from the model definitions.
 

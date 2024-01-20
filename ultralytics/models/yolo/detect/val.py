@@ -133,6 +133,7 @@ class DetectionValidator(BaseValidator):
             nl = len(cls)
             stat["target_cls"] = cls
             idx = batch['batch_idx'] == si
+            imgsz = batch["img"].shape[2:]
             # cls = batch['cls'][idx]
             # bbox = batch['bboxes'][idx]
             shape = batch['ori_shape'][si]
@@ -146,12 +147,7 @@ class DetectionValidator(BaseValidator):
                         self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
 
                         # Have duplicate with code in following lines. Can create the labelsn as beginning
-                        height, width = batch['img'].shape[2:]
-                        tbox = ops.xywh2xyxy(bbox) * torch.tensor(
-                            (width, height, width, height), device=self.device)  # target boxes
-                        ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
-                                        ratio_pad=batch['ratio_pad'][si])  # native-space labels
-                        labelsn = torch.cat((batch['cls'][idx], tbox), 1)  # native-space labels
+                        labelsn = torch.cat((batch['cls'][idx], bbox), 1)  # native-space labels
                         self.output_bad_cases(None, labelsn, batch, si)
                 continue
 

@@ -109,12 +109,12 @@ class BaseValidator:
         """
 
         # Clear the false negative and false positive folder to avoid conflict of final val and prev val
-        if os.path.exists(str(self.save_dir / 'false_negative_underkill')):
-            shutil.rmtree(str(self.save_dir / 'false_negative_underkill'))
-        if os.path.exists(str(self.save_dir / 'false_positive_overkill')):
-            shutil.rmtree(str(self.save_dir / 'false_positive_overkill'))
-        os.makedirs(str(self.save_dir / 'false_negative_underkill'), exist_ok=True)
-        os.makedirs(str(self.save_dir / 'false_positive_overkill'), exist_ok=True)
+        if os.path.exists(str(self.save_dir / "false_negative_underkill")):
+            shutil.rmtree(str(self.save_dir / "false_negative_underkill"))
+        if os.path.exists(str(self.save_dir / "false_positive_overkill")):
+            shutil.rmtree(str(self.save_dir / "false_positive_overkill"))
+        os.makedirs(str(self.save_dir / "false_negative_underkill"), exist_ok=True)
+        os.makedirs(str(self.save_dir / "false_positive_overkill"), exist_ok=True)
 
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
@@ -321,7 +321,7 @@ class BaseValidator:
         pass
 
     def output_bad_cases(self, detections, labels, batch, si):
-        """Out the images with overkill and underkill"""
+        """Out the images with overkill and underkill."""
         pass
 
     @property

@@ -165,21 +165,21 @@ class Results(SimpleClass):
         return Results(orig_img=self.orig_img, path=self.path, names=self.names)
 
     def plot(
-            self,
-            conf=True,
-            line_width=None,
-            font_size=None,
-            font='Arial.ttf',
-            pil=False,
-            img=None,
-            im_gpu=None,
-            kpt_line=True,
-            labels=True,
-            boxes=True,
-            masks=True,
-            probs=True,
-            color_list=None,
-            **kwargs  # deprecated args TODO: remove support in 8.2
+        self,
+        conf=True,
+        line_width=None,
+        font_size=None,
+        font="Arial.ttf",
+        pil=False,
+        img=None,
+        im_gpu=None,
+        kpt_line=True,
+        labels=True,
+        boxes=True,
+        masks=True,
+        probs=True,
+        color_list=None,
+        **kwargs,  # deprecated args TODO: remove support in 8.2
     ):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.

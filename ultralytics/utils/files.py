@@ -4,6 +4,8 @@ import contextlib
 import glob
 import os
 import shutil
+import tempfile
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -20,12 +22,67 @@ class WorkingDirectory(contextlib.ContextDecorator):
         """Changes the current directory to the specified directory."""
         os.chdir(self.dir)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb):  # noqa
         """Restore the current working directory on context exit."""
         os.chdir(self.cwd)
 
 
-def increment_path(path, exist_ok=False, sep='', mkdir=False):
+@contextmanager
+def spaces_in_path(path):
+    """
+    Context manager to handle paths with spaces in their names. If a path contains spaces, it replaces them with
+    underscores, copies the file/directory to the new path, executes the context code block, then copies the
+    file/directory back to its original location.
+
+    Args:
+        path (str | Path): The original path.
+
+    Yields:
+        (Path): Temporary path with spaces replaced by underscores if spaces were present, otherwise the original path.
+
+    Example:
+        ```python
+        with ultralytics.utils.files import spaces_in_path
+
+        with spaces_in_path('/path/with spaces') as new_path:
+            # Your code here
+        ```
+    """
+
+    # If path has spaces, replace them with underscores
+    if " " in str(path):
+        string = isinstance(path, str)  # input type
+        path = Path(path)
+
+        # Create a temporary directory and construct the new path
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir) / path.name.replace(" ", "_")
+
+            # Copy file/directory
+            if path.is_dir():
+                # tmp_path.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(path, tmp_path)
+            elif path.is_file():
+                tmp_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(path, tmp_path)
+
+            try:
+                # Yield the temporary path
+                yield str(tmp_path) if string else tmp_path
+
+            finally:
+                # Copy file/directory back
+                if tmp_path.is_dir():
+                    shutil.copytree(tmp_path, path, dirs_exist_ok=True)
+                elif tmp_path.is_file():
+                    shutil.copy2(tmp_path, path)  # Copy back the file
+
+    else:
+        # If there are no spaces, just yield the original path
+        yield path
+
+
+def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """
     Increments a file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
@@ -45,12 +102,12 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
     """
     path = Path(path)  # os-agnostic
     if path.exists() and not exist_ok:
-        path, suffix = (path.with_suffix(''), path.suffix) if path.is_file() else (path, '')
+        path, suffix = (path.with_suffix(""), path.suffix) if path.is_file() else (path, "")
 
         # Method 1
         for n in range(2, 9999):
-            p = f'{path}{sep}{n}{suffix}'  # increment path
-            if not os.path.exists(p):  #
+            p = f"{path}{sep}{n}{suffix}"  # increment path
+            if not os.path.exists(p):
                 break
         path = Path(p)
 
@@ -62,14 +119,14 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 
 def file_age(path=__file__):
     """Return days since last file update."""
-    dt = (datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime))  # delta
+    dt = datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime)  # delta
     return dt.days  # + dt.seconds / 86400  # fractional days
 
 
 def file_date(path=__file__):
     """Return human-readable file modification date, i.e. '2021-3-26'."""
     t = datetime.fromtimestamp(Path(path).stat().st_mtime)
-    return f'{t.year}-{t.month}-{t.day}'
+    return f"{t.year}-{t.month}-{t.day}"
 
 
 def file_size(path):
@@ -80,21 +137,11 @@ def file_size(path):
         if path.is_file():
             return path.stat().st_size / mb
         elif path.is_dir():
-            return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file()) / mb
+            return sum(f.stat().st_size for f in path.glob("**/*") if f.is_file()) / mb
     return 0.0
 
 
-def get_latest_run(search_dir='.'):
+def get_latest_run(search_dir="."):
     """Return path to most recent 'last.pt' in /runs (i.e. to --resume from)."""
-    last_list = glob.glob(f'{search_dir}/**/last*.pt', recursive=True)
-    return max(last_list, key=os.path.getctime) if last_list else ''
-
-
-def make_dirs(dir='new_dir/'):
-    """Create directories."""
-    dir = Path(dir)
-    if dir.exists():
-        shutil.rmtree(dir)  # delete dir
-    for p in dir, dir / 'labels', dir / 'images':
-        p.mkdir(parents=True, exist_ok=True)  # make dir
-    return dir
+    last_list = glob.glob(f"{search_dir}/**/last*.pt", recursive=True)
+    return max(last_list, key=os.path.getctime) if last_list else ""

@@ -33,7 +33,7 @@ from tqdm import tqdm
 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
-LANGUAGES = True
+LANGUAGES = False
 
 
 def build_docs():
@@ -142,9 +142,8 @@ def main():
         update_html_links()
 
     # Update HTML file head section
-    key = os.environ.get("WEGLOT_KEY")
-    if not LANGUAGES and key:
-        update_html_head(key)
+    if not LANGUAGES and False:
+        update_html_head(key=os.environ.get("WEGLOT_KEY"))
 
     # Show command to serve built website
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')

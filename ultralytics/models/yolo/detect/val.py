@@ -147,7 +147,7 @@ class DetectionValidator(BaseValidator):
                         self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
 
                         # Have duplicate with code in following lines. Can create the labelsn as beginning
-                        labelsn = torch.cat((batch['cls'][idx], bbox), 1)  # native-space labels
+                        labelsn = torch.cat((batch["cls"][idx], bbox), 1)  # native-space labels
                         self.output_bad_cases(None, labelsn, batch, si)
                 continue
 

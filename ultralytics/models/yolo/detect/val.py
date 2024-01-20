@@ -132,6 +132,11 @@ class DetectionValidator(BaseValidator):
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
             stat["target_cls"] = cls
+            idx = batch['batch_idx'] == si
+            # cls = batch['cls'][idx]
+            # bbox = batch['bboxes'][idx]
+            shape = batch['ori_shape'][si]
+            correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():
@@ -146,7 +151,7 @@ class DetectionValidator(BaseValidator):
                             (width, height, width, height), device=self.device)  # target boxes
                         ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
                                         ratio_pad=batch['ratio_pad'][si])  # native-space labels
-                        labelsn = torch.cat((cls, tbox), 1)  # native-space labels
+                        labelsn = torch.cat((batch['cls'][idx], tbox), 1)  # native-space labels
                         self.output_bad_cases(None, labelsn, batch, si)
                 continue
 

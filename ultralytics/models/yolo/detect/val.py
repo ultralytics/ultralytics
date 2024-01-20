@@ -133,11 +133,6 @@ class DetectionValidator(BaseValidator):
             nl = len(cls)
             stat["target_cls"] = cls
             idx = batch["batch_idx"] == si
-            imgsz = batch["img"].shape[2:]
-            # cls = batch['cls'][idx]
-            # bbox = batch['bboxes'][idx]
-            shape = batch["ori_shape"][si]
-            correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():

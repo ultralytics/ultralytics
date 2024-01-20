@@ -272,11 +272,6 @@ class DetectionValidator(BaseValidator):
                 ]
             )  # Rearrange the element position of fn_labels
             detection_boxes = boxes
-            color_list = (
-                [colors.BLUE_COLOR] * detections.shape[0]
-                + [colors.GREEN_COLOR] * correct_labels.shape[0]
-                + [colors.RED_COLOR] * fn_labels.shape[0]
-            )
 
             file_name = batch["im_file"][si]
 

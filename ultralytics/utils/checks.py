@@ -639,6 +639,14 @@ def check_amp(model):
         with torch.cuda.amp.autocast(True):
             b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
             print('Completed B')
+
+        a2 = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
+        print('Completed A2')
+        with torch.cuda.amp.autocast(True):
+            b2 = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
+            print('Completed B2')
+
+
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 

@@ -90,7 +90,7 @@ class AIFI(TransformerEncoderLayer):
         """Initialize the AIFI instance with specified parameters."""
         super().__init__(c1, cm, num_heads, dropout, act, normalize_before)
 
-    def forward(self, x, *args):
+    def forward(self, x):
         """Forward pass for the AIFI transformer layer."""
         c, h, w = x.shape[1:]
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)

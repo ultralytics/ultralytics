@@ -36,7 +36,7 @@ def _log_tensorboard_graph(trainer):
         # Input image
         imgsz = trainer.args.imgsz
         imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
-        im = torch.zeros((1, 3, *imgsz), device='cpu', dtype=torch.float32)  # input image (must be zeros, not empty)
+        im = torch.zeros((1, 3, *imgsz), device="cpu", dtype=torch.float32)  # input image (must be zeros, not empty)
 
         # Model (follow exporter pre-processing steps)
         model = deepcopy(de_parallel(trainer.model)).to("cpu")

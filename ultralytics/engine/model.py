@@ -427,7 +427,9 @@ class Model(nn.Module):
     @property
     def names(self):
         """Returns class names of the loaded model."""
-        return self.model.names if hasattr(self.model, "names") else None
+        from ultralytics.nn.autobackend import check_class_names
+
+        return check_class_names(self.model.names) if hasattr(self.model, "names") else None
 
     @property
     def device(self):

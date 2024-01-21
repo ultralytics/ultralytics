@@ -43,13 +43,13 @@ def _log_tensorboard_graph(trainer):
         warnings.simplefilter("ignore", category=UserWarning)  # suppress jit trace warning
         warnings.simplefilter("ignore", category=torch.jit.TracerWarning)  # suppress jit trace warning
 
-        # Try simple method first
+        # Try simple method first (YOLO)
         with contextlib.suppress(Exception):
             WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
             return
 
-        # Fallback to TorchScript export steps
+        # Fallback to TorchScript export steps (RTDETR)
         try:
             model = deepcopy(de_parallel(trainer.model))
             model.eval()

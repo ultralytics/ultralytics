@@ -52,13 +52,14 @@ class Model(nn.Module):
         list(ultralytics.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model: Union[str, Path] = "yolov8n.pt", task=None) -> None:
+    def __init__(self, model: Union[str, Path] = "yolov8n.pt", task=None, verbose=False) -> None:
         """
         Initializes the YOLO model.
 
         Args:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
             task (Any, optional): Task type for the YOLO model. Defaults to None.
+            verbose (bool, optional): Whether to enable verbose mode.
         """
         super().__init__()
         self.callbacks = callbacks.get_default_callbacks()
@@ -77,6 +78,7 @@ class Model(nn.Module):
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
             # Fetch model from HUB
+            checks.check_requirements("hub-sdk>0.0.2")
             self.session = self._get_hub_session(model)
             model = self.session.model_file
 
@@ -89,9 +91,9 @@ class Model(nn.Module):
         # Load or create new YOLO model
         model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
         if Path(model).suffix in (".yaml", ".yml"):
-            self._new(model, task)
+            self._new(model, task=task, verbose=verbose)
         else:
-            self._load(model, task)
+            self._load(model, task=task)
 
         self.model_name = model
 
@@ -126,7 +128,7 @@ class Model(nn.Module):
             )
         )
 
-    def _new(self, cfg: str, task=None, model=None, verbose=True):
+    def _new(self, cfg: str, task=None, model=None, verbose=False):
         """
         Initializes a new model and infers the task type from the model definitions.
 
@@ -381,8 +383,8 @@ class Model(nn.Module):
                         # Check model was created
                         if not getattr(self.session.model, "id", None):
                             self.session = None
-                except PermissionError:
-                    # Ignore permission error
+                except (PermissionError, ModuleNotFoundError):
+                    # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
                     pass
 
         self.trainer.hub_session = self.session  # attach optional HUB session

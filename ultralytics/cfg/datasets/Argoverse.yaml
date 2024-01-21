@@ -63,7 +63,8 @@ download: |
   # Download 'https://argoverse-hd.s3.us-east-2.amazonaws.com/Argoverse-HD-Full.zip' (deprecated S3 link)
   dir = Path(yaml['path'])  # dataset root dir
   urls = ['https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link']
-  print("WARNING: Argoverse dataset MUST be downloaded manually to '{dir}' from '{urls[0]}'.")
+  print("\n\nWARNING: Argoverse dataset MUST be downloaded manually, autodownload will NOT work.")
+  print(f"WARNING: Manually download Argoverse dataset from '{dir}' from '{urls[0]}'.\n\n")
   download(urls, dir=dir)
 
   # Convert

@@ -39,14 +39,14 @@ def _log_tensorboard_graph(trainer):
         im = torch.zeros((1, 3, *imgsz), device='cpu', dtype=torch.float32)  # input image (must be zeros, not empty)
 
         # Model (follow exporter pre-processing steps)
-        model = deepcopy(de_parallel(trainer.model)).to('cpu')
+        model = deepcopy(de_parallel(trainer.model)).to("cpu")
         model.eval()
         model.float()
         model = model.fuse(verbose=False)
         for m in model.modules():
-            if hasattr(m, 'export'):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
+            if hasattr(m, "export"):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
                 m.export = True
-                m.format = 'torchscript'
+                m.format = "torchscript"
         model(im)  # dry run
 
         # Trace and TensorBoard graph

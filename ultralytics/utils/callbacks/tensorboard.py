@@ -36,7 +36,10 @@ def _log_tensorboard_graph(trainer):
         im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
         print(im.shape, im.dtype, im.device, im.requires_grad)
 
-        WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
+        ts = torch.jit.trace(de_parallel(trainer.model), im, strict=False)
+        print('TS model run successfully')
+        WRITER.add_graph(ts, [])
+        # WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
 
     # try:
     #     import warnings

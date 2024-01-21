@@ -64,7 +64,7 @@ download: |
   dir = Path(yaml['path'])  # dataset root dir
   urls = ['https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link']
   print("\n\nWARNING: Argoverse dataset MUST be downloaded manually, autodownload will NOT work.")
-  print(f"WARNING: Manually download Argoverse dataset from '{dir}' from '{urls[0]}' and re-run your command.\n\n")
+  print(f"WARNING: Manually download Argoverse dataset '{urls[0]}' to '{dir}' and re-run your command to train.\n\n")
   # download(urls, dir=dir)
 
   # Convert

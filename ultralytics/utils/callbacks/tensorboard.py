@@ -55,9 +55,9 @@ def _log_tensorboard_graph(trainer):
             model.eval()
             model = model.fuse(verbose=False)
             for m in model.modules():
-                if hasattr(m, 'export'):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
+                if hasattr(m, "export"):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
                     m.export = True
-                    m.format = 'torchscript'
+                    m.format = "torchscript"
             model(im)  # dry run
             WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")

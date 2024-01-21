@@ -635,17 +635,16 @@ def check_amp(model):
     def amp_allclose(m, im):
         """All close FP32 vs AMP results."""
         a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
-        print('Completed A')
+        print("Completed A")
         with torch.cuda.amp.autocast(True):
             b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
-            print('Completed B')
+            print("Completed B")
 
         a2 = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
-        print('Completed A2')
+        print("Completed A2")
         with torch.cuda.amp.autocast(True):
             b2 = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
-            print('Completed B2')
-
+            print("Completed B2")
 
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance

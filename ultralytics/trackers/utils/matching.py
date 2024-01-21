@@ -4,7 +4,7 @@ import numpy as np
 import scipy
 from scipy.spatial.distance import cdist
 
-from ultralytics.utils.metrics import bbox_ioa
+from ultralytics.utils.metrics import bbox_ioa, batch_probiou
 
 try:
     import lap  # for linear_assignment
@@ -74,14 +74,18 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
         atlbrs = atracks
         btlbrs = btracks
     else:
-        atlbrs = [track.tlbr for track in atracks]
-        btlbrs = [track.tlbr for track in btracks]
+        atlbrs = [np.concatenate([track.xywh, track.angle]) if track.angle is not None else track.tlbr for track in atracks]
+        btlbrs = [np.concatenate([track.xywh, track.angle]) if track.angle is not None else track.tlbr for track in btracks]
 
     ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if len(atlbrs) and len(btlbrs):
-        ious = bbox_ioa(
-            np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32), iou=True
-        )
+        if len(atlbrs[0]) == 5 and len(btlbrs[0]) == 5:
+            import torch
+            ious = batch_probiou(torch.from_numpy(np.array(atlbrs, dtype=np.float32)), torch.from_numpy(np.array(btlbrs, dtype=np.float32))).numpy()
+        else:
+            ious = bbox_ioa(
+                np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32), iou=True
+            )
     return 1 - ious  # cost matrix
 
 

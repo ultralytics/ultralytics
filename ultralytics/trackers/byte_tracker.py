@@ -5,6 +5,7 @@ import numpy as np
 from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
+from ..engine.results import OBB
 
 
 class STrack(BaseTrack):
@@ -46,7 +47,7 @@ class STrack(BaseTrack):
     def __init__(self, tlwh, score, cls):
         """Initialize new STrack instance."""
         super().__init__()
-        self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float32)
+        self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -55,6 +56,7 @@ class STrack(BaseTrack):
         self.tracklet_len = 0
         self.cls = cls
         self.idx = tlwh[-1]
+        self.angle = tlwh[-2:-1] if len(tlwh) == 6 else None
 
     def predict(self):
         """Predicts mean and covariance using Kalman filter."""
@@ -123,6 +125,7 @@ class STrack(BaseTrack):
             self.track_id = self.next_id()
         self.score = new_track.score
         self.cls = new_track.cls
+        self.angle = new_track.angle
         self.idx = new_track.idx
 
     def update(self, new_track, frame_id):
@@ -145,10 +148,11 @@ class STrack(BaseTrack):
 
         self.score = new_track.score
         self.cls = new_track.cls
+        self.angle = new_track.angle
         self.idx = new_track.idx
 
     def convert_coords(self, tlwh):
-        """Convert a bounding box's top-left-width-height format to its x-y-angle-height equivalent."""
+        """Convert a bounding box's top-left-width-height format to its x-y-aspect-height equivalent."""
         return self.tlwh_to_xyah(tlwh)
 
     @property
@@ -190,6 +194,12 @@ class STrack(BaseTrack):
         """Converts tlwh bounding box format to tlbr format."""
         ret = np.asarray(tlwh).copy()
         ret[2:] += ret[:2]
+        return ret
+
+    @property
+    def xywh(self):
+        ret = np.asarray(self._tlwh).copy()
+        ret[:2] += ret[2:] / 2
         return ret
 
     def __repr__(self):
@@ -247,7 +257,7 @@ class BYTETracker:
         removed_stracks = []
 
         scores = results.conf
-        bboxes = results.xyxy
+        bboxes = results.xyxyr if isinstance(results, OBB) else results.xyxy
         # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
@@ -350,7 +360,9 @@ class BYTETracker:
         if len(self.removed_stracks) > 1000:
             self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
         return np.asarray(
-            [x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] for x in self.tracked_stracks if x.is_activated],
+            [x.xywh.tolist() + [x.angle.squeeze()] + [x.track_id, x.score, x.cls, x.idx] if x.angle is not None else 
+             x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] 
+             for x in self.tracked_stracks if x.is_activated],
             dtype=np.float32,
         )
 

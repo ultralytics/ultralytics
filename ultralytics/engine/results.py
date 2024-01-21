@@ -115,7 +115,7 @@ class Results(SimpleClass):
             if v is not None:
                 return len(v)
 
-    def update(self, boxes=None, masks=None, probs=None):
+    def update(self, boxes=None, masks=None, probs=None, obb=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
             self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
@@ -123,6 +123,8 @@ class Results(SimpleClass):
             self.masks = Masks(masks, self.orig_shape)
         if probs is not None:
             self.probs = probs
+        if obb is not None:
+            self.obb = OBB(obb, self.orig_shape)
 
     def _apply(self, fn, *args, **kwargs):
         """
@@ -631,6 +633,13 @@ class OBB(BaseTensor):
     def xywhr(self):
         """Return the rotated boxes in xywhr format."""
         return self.data[:, :5]
+
+    @property
+    def xyxyr(self):
+        """Return the rotated boxes in xywhr format."""
+        data = self.data[:, :5].clone() if isinstance(self.data[:, :5], torch.Tensor) else np.copy(self.data[:, :5])
+        data[:, :4] = ops.xywh2xyxy(data[:, :4])
+        return data
 
     @property
     def conf(self):

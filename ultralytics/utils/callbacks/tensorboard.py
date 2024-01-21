@@ -33,9 +33,8 @@ def _log_tensorboard_graph(trainer):
         imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
         p = next(trainer.model.parameters())  # for device, type
 
-        print(p, imgsz)
         im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
-        print(im.shape, im.dtype, im.device)
+        print(im.shape, im.dtype, im.device, im.requires_grad)
 
         WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
 

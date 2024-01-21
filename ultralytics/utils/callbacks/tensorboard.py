@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+import contextlib
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
@@ -32,31 +33,36 @@ def _log_scalars(scalars, step=0):
 def _log_tensorboard_graph(trainer):
     """Log model graph to TensorBoard."""
 
-    try:
-        # Input image
-        imgsz = trainer.args.imgsz
-        imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
-        im = torch.zeros((1, 3, *imgsz))  # input image (must be zeros, not empty)
+    # Input image
+    imgsz = trainer.args.imgsz
+    imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
+    p = next(trainer.model.parameters())  # for device, type
+    im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
 
-        # Model (follow exporter pre-processing steps)
-        model = deepcopy(de_parallel(trainer.model).to("cpu"))
-        model.eval()
-        model.float()
-        model = model.fuse(verbose=False)
-        for m in model.modules():
-            if hasattr(m, "export"):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
-                m.export = True
-                m.format = "torchscript"
-        model(im)  # dry run
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)  # suppress jit trace warning
+        warnings.simplefilter("ignore", category=torch.jit.TracerWarning)  # suppress jit trace warning
 
-        # Trace and TensorBoard graph
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=UserWarning)  # suppress jit trace warning
-            warnings.simplefilter("ignore", category=torch.jit.TracerWarning)  # suppress jit trace warning
+        # Try simple method first
+        with contextlib.suppress(Exception):
+            WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
+            LOGGER.info(f"{PREFIX}model graph visualization added ✅")
+            return
+
+        # Fallback to TorchScript export steps
+        try:
+            model = deepcopy(de_parallel(trainer.model))
+            model.eval()
+            model = model.fuse(verbose=False)
+            for m in model.modules():
+                if hasattr(m, 'export'):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
+                    m.export = True
+                    m.format = 'torchscript'
+            model(im)  # dry run
             WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
-    except Exception as e:
-        LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard graph visualization failure {e}")
+        except Exception as e:
+            LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard graph visualization failure {e}")
 
 
 def on_pretrain_routine_start(trainer):

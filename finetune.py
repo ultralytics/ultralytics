@@ -12,7 +12,7 @@ comet_ml.init()
 model = YOLO('yolov8s.yaml', task='detect').load('./../models/yolov8s.pt')
 
 epochs = 100
-batch = 258
+batch = 128
 optimizer = 'auto'
 
 model.train(
@@ -22,8 +22,8 @@ model.train(
     batch=batch,
     optimizer=optimizer,
     save=False,
-    device=[0,1,2],
-    project='fine-tune-cdv1',
+    device=[1,2,4,7],
+    project='fine-tune-cdv2',
     name=f'8s-{epochs}e-{batch}b_{optimizer}',
     verbose=True,
     patience=50,

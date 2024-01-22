@@ -25,8 +25,6 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     Raises:
         AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
     """
-    # if predictor.args.task == "obb":
-    # raise NotImplementedError("ERROR ❌ OBB task does not support track mode!")
     if hasattr(predictor, "trackers") and persist:
         return
 
@@ -68,10 +66,9 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = predictor.results[i][idx]
 
-        if is_obb:
-            predictor.results[i].update(obb=torch.as_tensor(tracks[:, :-1]))
-        else:
-            predictor.results[i].update(boxes=torch.as_tensor(tracks[:, :-1]))
+        update_args = dict()
+        update_args["obb" if is_obb else "boxes"] = torch.as_tensor(tracks[:, :-1])
+        predictor.results[i].update(**update_args)
 
 
 def register_tracker(model: object, persist: bool) -> None:

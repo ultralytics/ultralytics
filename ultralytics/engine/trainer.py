@@ -239,16 +239,23 @@ class BaseTrainer:
             print("Not using class weights")
         elif isinstance(cls_weights, list) and len(cls_weights) == nc:
             cls_weights = torch.Tensor(cls_weights)
-        elif cls_weights == "median-inverse":
+        elif cls_weights == "micc":  # median inverse class count
             cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True)
-        elif cls_weights == "inverse": 
+        elif cls_weights == "icc":  # inverse class count
             cls_weights = self.get_inverse_class_frequency_weights(nc)
+        elif cls_weights == "miscc":  # median inverse square root class count (good default)
+            cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True, sqrt=True)
+        elif cls_weights == "iscc":  # inverse square root class count
+            cls_weights = self.get_inverse_class_frequency_weights(nc, sqrt=True)
         else:
             raise ValueError("Invalid value for cls_weights. Please use None, a list of length num_classes, 'median', or 'inverse'.")
         
         return cls_weights
 
-    def get_inverse_class_frequency_weights(self, nc, median_norm=False):
+    def get_inverse_class_frequency_weights(self, nc, median_norm=False, sqrt=False):
+        """Calculates inverse class frequency weights for use in loss function
+        For more information on square root, see https://arxiv.org/pdf/1901.05555.pdf
+        """
         loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
 
         y = [batch['cls'].view(-1).numpy() for batch in loader]
@@ -259,12 +266,15 @@ class BaseTrainer:
             eps = 0.0001 # included for numerical stability
             class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
 
+        class_weights = 1 / class_counts
+
         if median_norm:
-            median_frequency = np.median(class_counts)
-            class_weights = median_frequency / class_counts
+            class_weights *= np.median(class_counts)
         else:
-            total_samples = len(y)
-            class_weights = total_samples / (nc * class_counts)
+            class_weights *= (len(y) / nc)
+
+        if sqrt:
+            class_weights = np.sqrt(class_weights)
             
         return torch.Tensor(class_weights)
     

@@ -360,9 +360,13 @@ class BYTETracker:
         if len(self.removed_stracks) > 1000:
             self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
         return np.asarray(
-            [x.xywh.tolist() + [x.angle.squeeze()] + [x.track_id, x.score, x.cls, x.idx] if x.angle is not None else 
-             x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] 
-             for x in self.tracked_stracks if x.is_activated],
+            [
+                x.xywh.tolist() + [x.angle.squeeze()] + [x.track_id, x.score, x.cls, x.idx]
+                if x.angle is not None
+                else x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx]
+                for x in self.tracked_stracks
+                if x.is_activated
+            ],
             dtype=np.float32,
         )
 

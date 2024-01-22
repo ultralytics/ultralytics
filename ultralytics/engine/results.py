@@ -93,12 +93,18 @@ class Results(SimpleClass):
         """Initialize the Results class."""
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
-        self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
-        self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
+        # native size boxes
+        self.boxes = Boxes(
+            boxes, self.orig_shape) if boxes is not None else None
+        # native size or imgsz masks
+        self.masks = Masks(
+            masks, self.orig_shape) if masks is not None else None
         self.probs = Probs(probs) if probs is not None else None
-        self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
+        self.keypoints = Keypoints(
+            keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
-        self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
+        self.speed = {"preprocess": None, "inference": None,
+                      "postprocess": None}  # milliseconds per image
         self.names = names
         self.path = path
         self.save_dir = None
@@ -118,7 +124,8 @@ class Results(SimpleClass):
     def update(self, boxes=None, masks=None, probs=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
-            self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
+            self.boxes = Boxes(ops.clip_boxes(
+                boxes, self.orig_shape), self.orig_shape)
         if masks is not None:
             self.masks = Masks(masks, self.orig_shape)
         if probs is not None:
@@ -216,7 +223,8 @@ class Results(SimpleClass):
             ```
         """
         if img is None and isinstance(self.orig_img, torch.Tensor):
-            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
+            img = (self.orig_img[0].detach().permute(
+                1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
         names = self.names
         is_obb = self.obb is not None
@@ -228,7 +236,8 @@ class Results(SimpleClass):
             line_width,
             font_size,
             font,
-            pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
+            # Classify tasks default to pil=True
+            pil or (pred_probs is not None and show_probs),
             example=names,
         )
 
@@ -237,34 +246,43 @@ class Results(SimpleClass):
             if im_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
                 im_gpu = (
-                    torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device)
+                    torch.as_tensor(img, dtype=torch.float16,
+                                    device=pred_masks.data.device)
                     .permute(2, 0, 1)
                     .flip(0)
                     .contiguous()
                     / 255
                 )
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
-            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            annotator.masks(pred_masks.data, colors=[
+                            colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
             for d in reversed(pred_boxes):
-                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                c, conf, id = int(d.cls), float(
+                    d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ("" if id is None else f"id:{id} ") + names[c]
-                label = (f"{name} {conf:.2f}" if conf else name) if labels else None
-                box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
-                annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
+                label = (
+                    f"{name} {conf:.2f}" if conf else name) if labels else None
+                box = d.xyxyxyxy.reshape(-1, 4,
+                                         2).squeeze() if is_obb else d.xyxy.squeeze()
+                annotator.box_label(
+                    box, label, color=colors(c, True), rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
+            text = ",\n".join(
+                f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
-            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+            # TODO: allow setting colors
+            annotator.text([x, x], text, txt_color=(255, 255, 255))
 
         # Plot Pose results
         if self.keypoints is not None:
             for k in reversed(self.keypoints.data):
-                annotator.kpts(k, self.orig_shape, radius=kpt_radius, kpt_line=kpt_line)
+                annotator.kpts(k, self.orig_shape,
+                               radius=kpt_radius, kpt_line=kpt_line)
 
         return annotator.result()
 
@@ -299,23 +317,28 @@ class Results(SimpleClass):
         texts = []
         if probs is not None:
             # Classify
-            [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
+            [texts.append(f"{probs.data[j]:.2f} {self.names[j]}")
+             for j in probs.top5]
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
-                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                c, conf, id = int(d.cls), float(
+                    d.conf), None if d.id is None else int(d.id.item())
                 line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
                 if masks:
-                    seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
+                    # reversed mask.xyn, (n,2) to (n*2)
+                    seg = masks[j].xyn[0].copy().reshape(-1)
                     line = (c, *seg)
                 if kpts is not None:
-                    kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
+                    kpt = torch.cat(
+                        (kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
                     line += (*kpt.reshape(-1).tolist(),)
                 line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 
         if texts:
-            Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
+            Path(txt_file).parent.mkdir(
+                parents=True, exist_ok=True)  # make directory
             with open(txt_file, "a") as f:
                 f.writelines(text + "\n" for text in texts)
 
@@ -328,23 +351,35 @@ class Results(SimpleClass):
             file_name (str | pathlib.Path): File name.
         """
         if self.probs is not None:
-            LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
+            LOGGER.warning(
+                "WARNING ⚠️ Classify task do not support `save_crop`.")
             return
         if self.obb is not None:
             LOGGER.warning("WARNING ⚠️ OBB task do not support `save_crop`.")
             return
         for d in self.boxes:
-            save_one_box(
-                d.xyxy,
-                self.orig_img.copy(),
-                file=Path(save_dir) / self.names[int(d.cls)] / f"{Path(file_name)}.jpg",
-                BGR=True,
-            )
+            if d.id is None:
+                save_one_box(
+                    d.xyxy,
+                    self.orig_img.copy(),
+                    file=Path(
+                        save_dir) / self.names[int(d.cls)] / "uid_none" / f"{Path(file_name)}.jpg",
+                    BGR=True,
+                )
+            else:
+                save_one_box(
+                    d.xyxy,
+                    self.orig_img.copy(),
+                    file=Path(
+                        save_dir) / self.names[int(d.cls)] / str(d.id.item()) / f"{Path(file_name)}.jpg",
+                    BGR=True,
+                )
 
     def tojson(self, normalize=False):
         """Convert the object to JSON format."""
         if self.probs is not None:
-            LOGGER.warning("Warning: Classify task do not support `tojson` yet.")
+            LOGGER.warning(
+                "Warning: Classify task do not support `tojson` yet.")
             return
 
         import json
@@ -354,19 +389,25 @@ class Results(SimpleClass):
         data = self.boxes.data.cpu().tolist()
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {"x1": row[0] / w, "y1": row[1] / h, "x2": row[2] / w, "y2": row[3] / h}
+            box = {"x1": row[0] / w, "y1": row[1] /
+                   h, "x2": row[2] / w, "y2": row[3] / h}
             conf = row[-2]
             class_id = int(row[-1])
             name = self.names[class_id]
-            result = {"name": name, "class": class_id, "confidence": conf, "box": box}
+            result = {"name": name, "class": class_id,
+                      "confidence": conf, "box": box}
             if self.boxes.is_track:
                 result["track_id"] = int(row[-3])  # track ID
             if self.masks:
-                x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
-                result["segments"] = {"x": (x / w).tolist(), "y": (y / h).tolist()}
+                x, y = self.masks.xy[i][:,
+                                        0], self.masks.xy[i][:, 1]  # numpy array
+                result["segments"] = {
+                    "x": (x / w).tolist(), "y": (y / h).tolist()}
             if self.keypoints is not None:
-                x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
-                result["keypoints"] = {"x": (x / w).tolist(), "y": (y / h).tolist(), "visible": visible.tolist()}
+                x, y, visible = self.keypoints[i].data[0].cpu().unbind(
+                    dim=1)  # torch Tensor
+                result["keypoints"] = {
+                    "x": (x / w).tolist(), "y": (y / h).tolist(), "visible": visible.tolist()}
             results.append(result)
 
         # Convert detections to JSON
@@ -405,7 +446,8 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (6, 7), f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
+        # xyxy, track_id, conf, cls
+        assert n in (6, 7), f"expected 6 or 7 values but got {n}"
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
         self.orig_shape = orig_shape
@@ -440,7 +482,8 @@ class Boxes(BaseTensor):
     @lru_cache(maxsize=2)
     def xyxyn(self):
         """Return the boxes in xyxy format normalized by original image size."""
-        xyxy = self.xyxy.clone() if isinstance(self.xyxy, torch.Tensor) else np.copy(self.xyxy)
+        xyxy = self.xyxy.clone() if isinstance(
+            self.xyxy, torch.Tensor) else np.copy(self.xyxy)
         xyxy[..., [0, 2]] /= self.orig_shape[1]
         xyxy[..., [1, 3]] /= self.orig_shape[0]
         return xyxy
@@ -481,7 +524,8 @@ class Masks(BaseTensor):
     def xyn(self):
         """Return normalized segments."""
         return [
-            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
+            ops.scale_coords(
+                self.data.shape[1:], x, self.orig_shape, normalize=True)
             for x in ops.masks2segments(self.data)
         ]
 
@@ -490,7 +534,8 @@ class Masks(BaseTensor):
     def xy(self):
         """Return segments in pixel coordinates."""
         return [
-            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
+            ops.scale_coords(
+                self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)
         ]
 
@@ -517,7 +562,8 @@ class Keypoints(BaseTensor):
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
         if keypoints.shape[2] == 3:  # x, y, conf
-            mask = keypoints[..., 2] < 0.5  # points with conf < 0.5 (not visible)
+            # points with conf < 0.5 (not visible)
+            mask = keypoints[..., 2] < 0.5
             keypoints[..., :2][mask] = 0
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
@@ -622,7 +668,8 @@ class OBB(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (7, 8), f"expected 7 or 8 values but got {n}"  # xywh, rotation, track_id, conf, cls
+        # xywh, rotation, track_id, conf, cls
+        assert n in (7, 8), f"expected 7 or 8 values but got {n}"
         super().__init__(boxes, orig_shape)
         self.is_track = n == 8
         self.orig_shape = orig_shape
@@ -657,7 +704,8 @@ class OBB(BaseTensor):
     @lru_cache(maxsize=2)
     def xyxyxyxyn(self):
         """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
-        xyxyxyxyn = self.xyxyxyxy.clone() if isinstance(self.xyxyxyxy, torch.Tensor) else np.copy(self.xyxyxyxy)
+        xyxyxyxyn = self.xyxyxyxy.clone() if isinstance(
+            self.xyxyxyxy, torch.Tensor) else np.copy(self.xyxyxyxy)
         xyxyxyxyn[..., 0] /= self.orig_shape[1]
         xyxyxyxyn[..., 1] /= self.orig_shape[1]
         return xyxyxyxyn

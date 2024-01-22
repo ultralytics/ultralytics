@@ -7,6 +7,7 @@ from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
 from ..engine.results import OBB
 from ..utils.ops import xywh2ltwh
+from ..utils import LOGGER
 
 
 class STrack(BaseTrack):
@@ -46,6 +47,8 @@ class STrack(BaseTrack):
     def __init__(self, xywh, score, cls):
         """Initialize new STrack instance."""
         super().__init__()
+        # xywh+idx or xywha+idx
+        assert len(xywh) in [5, 6], f"expected 5 or 6 values but got {len(xywh)}"
         self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
@@ -55,7 +58,7 @@ class STrack(BaseTrack):
         self.tracklet_len = 0
         self.cls = cls
         self.idx = xywh[-1]
-        self.angle = xywh[-2:-1] if len(xywh) == 6 else None
+        self.angle = xywh[4] if len(xywh) == 6 else None
 
     def predict(self):
         """Predicts mean and covariance using Kalman filter."""
@@ -165,7 +168,7 @@ class STrack(BaseTrack):
         return ret
 
     @property
-    def tlbr(self):
+    def xyxy(self):
         """Convert bounding box to format (min x, min y, max x, max y), i.e., (top left, bottom right)."""
         ret = self.tlwh.copy()
         ret[2:] += ret[:2]
@@ -183,9 +186,23 @@ class STrack(BaseTrack):
 
     @property
     def xywh(self):
+        """Get current position in bounding box format (center x, center y, width, height)."""
         ret = np.asarray(self.tlwh).copy()
         ret[:2] += ret[2:] / 2
         return ret
+
+    @property
+    def xywha(self):
+        """Get current position in bounding box format (center x, center y, width, height, angle)."""
+        if self.angle is None:
+            LOGGER.warning("WARNING ⚠️ `angle` attr not found, returning `xywh` instead.")
+            return self.xywh
+        return np.concatenate([self.xywh, self.angle[None]])
+
+    @property
+    def result(self):
+        coords = self.xywha if self.angle else self.xyxy
+        return coords.tolist() + [self.track_id, self.score, self.cls, self.idx]
 
     def __repr__(self):
         """Return a string representation of the BYTETracker object with start and end frames and track ID."""
@@ -344,16 +361,8 @@ class BYTETracker:
         self.removed_stracks.extend(removed_stracks)
         if len(self.removed_stracks) > 1000:
             self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
-        return np.asarray(
-            [
-                x.xywh.tolist() + [x.angle.squeeze()] + [x.track_id, x.score, x.cls, x.idx]
-                if x.angle is not None
-                else x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx]
-                for x in self.tracked_stracks
-                if x.is_activated
-            ],
-            dtype=np.float32,
-        )
+
+        return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 
     def get_kalmanfilter(self):
         """Returns a Kalman filter object for tracking bounding boxes."""

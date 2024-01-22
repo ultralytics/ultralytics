@@ -198,7 +198,7 @@ class STrack(BaseTrack):
 
     @property
     def xywh(self):
-        ret = np.asarray(self._tlwh).copy()
+        ret = np.asarray(self.tlwh).copy()
         ret[:2] += ret[2:] / 2
         return ret
 

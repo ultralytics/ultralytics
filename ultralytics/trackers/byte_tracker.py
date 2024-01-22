@@ -6,6 +6,7 @@ from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
 from ..engine.results import OBB
+from ..utils.ops import xywh2ltwh
 
 
 class STrack(BaseTrack):
@@ -38,16 +39,14 @@ class STrack(BaseTrack):
         update(new_track, frame_id): Update the state of a matched track.
         convert_coords(tlwh): Convert bounding box to x-y-angle-height format.
         tlwh_to_xyah(tlwh): Convert tlwh bounding box to xyah format.
-        tlbr_to_tlwh(tlbr): Convert tlbr bounding box to tlwh format.
-        tlwh_to_tlbr(tlwh): Convert tlwh bounding box to tlbr format.
     """
 
     shared_kalman = KalmanFilterXYAH()
 
-    def __init__(self, tlwh, score, cls):
+    def __init__(self, xywh, score, cls):
         """Initialize new STrack instance."""
         super().__init__()
-        self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:4]), dtype=np.float32)
+        self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -55,8 +54,8 @@ class STrack(BaseTrack):
         self.score = score
         self.tracklet_len = 0
         self.cls = cls
-        self.idx = tlwh[-1]
-        self.angle = tlwh[-2:-1] if len(tlwh) == 6 else None
+        self.idx = xywh[-1]
+        self.angle = xywh[-2:-1] if len(xywh) == 6 else None
 
     def predict(self):
         """Predicts mean and covariance using Kalman filter."""
@@ -182,20 +181,6 @@ class STrack(BaseTrack):
         ret[2] /= ret[3]
         return ret
 
-    @staticmethod
-    def tlbr_to_tlwh(tlbr):
-        """Converts top-left bottom-right format to top-left width height format."""
-        ret = np.asarray(tlbr).copy()
-        ret[2:] -= ret[:2]
-        return ret
-
-    @staticmethod
-    def tlwh_to_tlbr(tlwh):
-        """Converts tlwh bounding box format to tlbr format."""
-        ret = np.asarray(tlwh).copy()
-        ret[2:] += ret[:2]
-        return ret
-
     @property
     def xywh(self):
         ret = np.asarray(self.tlwh).copy()
@@ -257,7 +242,7 @@ class BYTETracker:
         removed_stracks = []
 
         scores = results.conf
-        bboxes = results.xyxyr if isinstance(results, OBB) else results.xyxy
+        bboxes = results.xywhr if isinstance(results, OBB) else results.xywh
         # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls

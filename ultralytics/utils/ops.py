@@ -775,7 +775,8 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
 
 
 def regularize_rboxes(rboxes):
-    """Regularize rotated boxes in range [0, pi/2].
+    """
+    Regularize rotated boxes in range [0, pi/2].
 
     Args:
         rboxes(torch.Tensor): (N, 5), xywhr.

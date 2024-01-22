@@ -5,7 +5,6 @@ import numpy as np
 from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
-from ..engine.results import OBB
 from ..utils.ops import xywh2ltwh
 from ..utils import LOGGER
 
@@ -259,7 +258,7 @@ class BYTETracker:
         removed_stracks = []
 
         scores = results.conf
-        bboxes = results.xywhr if isinstance(results, OBB) else results.xywh
+        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
         # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls

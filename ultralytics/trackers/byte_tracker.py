@@ -37,7 +37,7 @@ class STrack(BaseTrack):
         activate(kalman_filter, frame_id): Activate a new tracklet.
         re_activate(new_track, frame_id, new_id): Reactivate a previously lost tracklet.
         update(new_track, frame_id): Update the state of a matched track.
-        convert_coords(tlwh): Convert bounding box to x-y-angle-height format.
+        convert_coords(tlwh): Convert bounding box to x-y-aspect-height format.
         tlwh_to_xyah(tlwh): Convert tlwh bounding box to xyah format.
     """
 

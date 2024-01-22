@@ -180,7 +180,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         import cv2
 
         model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
-        
+
         im0 = cv2.imread("path/to/image.png")  # path to image file
         h, w = im0.shape[:2]  # image height and width
         

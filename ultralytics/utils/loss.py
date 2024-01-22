@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision.ops import sigmoid_focal_loss
 
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
@@ -38,19 +39,18 @@ class VarifocalLoss(nn.Module):
 class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=2.0)."""
 
-    def __init__(self, reduction=None, pos_weight=None):
+    def __init__(self, pos_weight=None):
         """Initializer for FocalLoss class with no parameters."""
         super().__init__()
         self.pos_weight = pos_weight
-        self.reduction = reduction
 
     def forward(self, pred, label, gamma=2.0, alpha=0.25):
-        """Calculates and updates confusion matrix for object detection/classification tasks."""
-        loss = F.binary_cross_entropy_with_logits(pred, label, reduction=self.reduction, pos_weight=self.pos_weight)
+        """Compute focal loss."""
+        loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none", pos_weight=self.pos_weight)
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
 
-        # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
+        # torchvision implementation: https://pytorch.org/vision/main/_modules/torchvision/ops/focal_loss.html
         pred_prob = pred.sigmoid()  # prob from logits
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
         modulating_factor = (1.0 - p_t) ** gamma
@@ -58,7 +58,7 @@ class FocalLoss(nn.Module):
         if alpha > 0:
             alpha_factor = label * alpha + (1 - label) * (1 - alpha)
             loss *= alpha_factor
-        return loss.mean(1).sum()
+        return loss
 
 
 class BboxLoss(nn.Module):
@@ -152,7 +152,7 @@ class v8DetectionLoss:
         m = model.model[-1]  # Detect() module
         self.class_loss = nn.BCEWithLogitsLoss(reduction="none", pos_weight=pos_weight)
         if h.use_dod_fl:
-            self.class_loss = FocalLoss(reduction="none", pos_weight=pos_weight)
+            self.class_loss = FocalLoss(pos_weight=pos_weight)
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -230,6 +230,7 @@ class v8DetectionLoss:
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
+        # loss[1] = sigmoid_focal_loss(pred_scores, target_scores.to(dtype), reduction="none").sum() / target_scores_sum  # FL way
         loss[1] = self.class_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE or FL
 
         # Bbox loss

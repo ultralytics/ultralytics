@@ -635,13 +635,6 @@ class OBB(BaseTensor):
         return self.data[:, :5]
 
     @property
-    def xyxyr(self):
-        """Return the rotated boxes in xywhr format."""
-        data = self.data[:, :5].clone() if isinstance(self.data[:, :5], torch.Tensor) else np.copy(self.data[:, :5])
-        data[:, :4] = ops.xywh2xyxy(data[:, :4])
-        return data
-
-    @property
     def conf(self):
         """Return the confidence values of the boxes."""
         return self.data[:, -2]

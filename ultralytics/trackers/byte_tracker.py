@@ -200,7 +200,7 @@ class STrack(BaseTrack):
 
     @property
     def result(self):
-        coords = self.xywha if self.angle else self.xyxy
+        coords = self.xyxy if self.angle is None else self.xywha
         return coords.tolist() + [self.track_id, self.score, self.cls, self.idx]
 
     def __repr__(self):

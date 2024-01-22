@@ -110,7 +110,7 @@ extra: # version:
       link: https://github.com/ultralytics
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/ultralytics/
-    - icon: fontawesome/brands/twitter
+    - icon: fontawesome/brands/x-twitter
       link: https://twitter.com/ultralytics
     - icon: fontawesome/brands/youtube
       link: https://www.youtube.com/ultralytics

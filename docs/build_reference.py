@@ -11,10 +11,10 @@ from collections import defaultdict
 from pathlib import Path
 
 # Get package root i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
-from ultralytics.utils import ROOT as PACKAGE_ROOT
+from ultralytics.utils import ROOT as PACKAGE_DIR
 
 # Constants
-REFERENCE_DIR = PACKAGE_ROOT.parent / "docs/en/reference"
+REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
 GITHUB_REPO = "ultralytics/ultralytics"
 
 
@@ -61,7 +61,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     md_filepath.parent.mkdir(parents=True, exist_ok=True)
     md_filepath.write_text(md_content)
 
-    return md_filepath.relative_to(PACKAGE_ROOT.parent)
+    return md_filepath.relative_to(PACKAGE_DIR.parent)
 
 
 def nested_dict() -> defaultdict:
@@ -106,20 +106,20 @@ def create_nav_menu_yaml(nav_items: list, save: bool = False):
 
     # Save new YAML reference section
     if save:
-        (PACKAGE_ROOT.parent / "nav_menu_updated.yml").write_text(_dict_to_yaml(nav_tree_sorted))
+        (PACKAGE_DIR.parent / "nav_menu_updated.yml").write_text(_dict_to_yaml(nav_tree_sorted))
 
 
 def main():
     """Main function to extract class and function names, create Markdown files, and generate a YAML navigation menu."""
     nav_items = []
 
-    for py_filepath in PACKAGE_ROOT.rglob("*.py"):
+    for py_filepath in PACKAGE_DIR.rglob("*.py"):
         classes, functions = extract_classes_and_functions(py_filepath)
 
         if classes or functions:
-            py_filepath_rel = py_filepath.relative_to(PACKAGE_ROOT)
+            py_filepath_rel = py_filepath.relative_to(PACKAGE_DIR)
             md_filepath = REFERENCE_DIR / py_filepath_rel
-            module_path = f"{PACKAGE_ROOT.name}.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"
+            module_path = f"{PACKAGE_DIR.name}.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"
             md_rel_filepath = create_markdown(md_filepath, module_path, classes, functions)
             nav_items.append(str(md_rel_filepath))
 

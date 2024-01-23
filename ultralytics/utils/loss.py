@@ -148,7 +148,7 @@ class v8DetectionLoss:
         """Initializes v8DetectionLoss with the model, defining model-related properties and BCE loss function."""
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
-        pos_weight = pos_weight=None if h.cls_weights is None else h.cls_weights.to(device)
+        pos_weight = None if h.cls_weights is None else h.cls_weights.to(device)
         m = model.model[-1]  # Detect() module
         self.class_loss = nn.BCEWithLogitsLoss(reduction="none", pos_weight=pos_weight)
         if h.use_dod_fl:

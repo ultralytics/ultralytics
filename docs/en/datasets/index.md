@@ -8,12 +8,12 @@ keywords: computer vision, datasets, Ultralytics, YOLO, object detection, instan
 
 Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, instance segmentation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
 
-## 🌟 New: Ultralytics Explorer 🌟
+## NEW 🚀 Ultralytics Explorer
 
 Create embeddings for your dataset, search for similar images, run SQL queries, perform semantic search and even search using natural language! You can get started with our GUI app or build your own using the API. Learn more [here](explorer/index.md).
 
 <p>
-<img width="1709" alt="Screenshot 2024-01-08 at 7 19 48 PM (1)" src="https://github.com/AyushExel/assets/assets/15766192/e536b0eb-6bce-43fe-b800-3e79510d2e5b">
+<img width="1709" alt="Ultralytics Explorer Screenshot" src="https://github.com/AyushExel/assets/assets/15766192/85675606-fb7f-4b0c-ad1b-d9d07c919414">
 </p>
 
 - Try the [GUI Demo](explorer/index.md)

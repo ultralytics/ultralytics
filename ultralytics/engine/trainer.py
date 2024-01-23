@@ -239,16 +239,44 @@ class BaseTrainer:
             print("Not using class weights")
         elif isinstance(cls_weights, list) and len(cls_weights) == nc:
             cls_weights = torch.Tensor(cls_weights)
-        elif cls_weights == "median":
-            cls_weights = self.get_median_frequency_weights(nc)
-        elif cls_weights == "inverse": 
+        elif cls_weights == "micc":  # median inverse class count
+            cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True)
+        elif cls_weights == "icc":  # inverse class count
             cls_weights = self.get_inverse_class_frequency_weights(nc)
+        elif cls_weights == "miscc":  # median inverse square root class count (good default)
+            cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True, sqrt=True)
+        elif cls_weights == "iscc":  # inverse square root class count
+            cls_weights = self.get_inverse_class_frequency_weights(nc, sqrt=True)
+        elif cls_weights == "effective":
+            cls_weights = self.get_inverse_class_frequency_weights(nc, effective=True)
         else:
-            raise ValueError("Invalid value for cls_weights. Please use None, a list of length num_classes, 'median', or 'inverse'.")
-        
+            raise ValueError("""
+            Invalid value for cls_weights. Please use None, a list of length num_classes, or one of the following strings:
+            'micc' - median inverse class count
+            'icc' - inverse class count
+            'miscc' - median inverse square root class count (good default)
+            'iscc' - inverse square root class count
+            'effective' - inverse effective class count
+            """)
         return cls_weights
 
-    def get_inverse_class_frequency_weights(self, nc):
+    def get_inverse_class_frequency_weights(
+            self,
+            nc,
+            effective=False,
+            effective_beta=0.999,
+            median_norm=False,
+            sqrt=False
+    ):
+        """Calculates inverse class frequency weights for use in loss function
+        For more information on effective and square root, see https://arxiv.org/pdf/1901.05555.pdf
+        Args:
+            nc (int): number of classes
+            effective (bool): whether to use effective class count or not. supercedes median_norm and sqrt if True
+            effective_beta (float): beta value for effective class count. Only used if effective is True
+            median_norm (bool): whether to normalize weights by median or not
+            sqrt (bool): whether to square root weights or not
+        """
         loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
 
         y = [batch['cls'].view(-1).numpy() for batch in loader]
@@ -258,26 +286,25 @@ class BaseTrainer:
         if len(class_counts) != nc:
             eps = 0.0001 # included for numerical stability
             class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
-        
-        total_samples = len(y)
-        class_weights = total_samples / (nc * class_counts)
+
+        if effective:
+            effective_num = 1.0 - np.power(effective_beta, class_counts)
+            class_weights = (1.0 - effective_beta) / np.array(effective_num)
+            class_weights = class_weights / np.sum(class_weights) * nc  # normalize
+            return torch.Tensor(class_weights)
+
+        class_weights = 1.0 / class_counts
+
+        if median_norm:
+            class_weights *= np.median(class_counts)
+        else:
+            class_weights *= (len(y) / nc)
+
+        if sqrt:
+            class_weights = np.sqrt(class_weights)
+            
         return torch.Tensor(class_weights)
     
-    def get_median_frequency_weights(self, nc):
-        loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
-
-        y = [batch['cls'].view(-1).numpy() for batch in loader]
-        y = list(chain(*y))
-        
-        unique_classes, class_counts = np.unique(y, return_counts=True)
-        if len(class_counts) != nc:
-            eps = 0.0001 # included for numerical stability
-            class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
-        
-        median_frequency = np.median(class_counts)
-        class_weights = median_frequency / class_counts
-        return torch.Tensor(class_weights)
-
     def _setup_train(self, world_size):
         """Builds dataloaders and optimizer on correct rank process."""
 

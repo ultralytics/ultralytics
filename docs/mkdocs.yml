@@ -343,17 +343,28 @@ nav:
       - TensorBoard: integrations/tensorboard.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
   - HUB:
-      - hub/index.md
-      - Quickstart: hub/quickstart.md
-      - Datasets: hub/datasets.md
-      - Projects: hub/projects.md
-      - Models: hub/models.md
-      - Integrations: hub/integrations.md
-      - Ultralytics HUB App:
+      - Cloud:
+          - hub/index.md
+          - Quickstart: hub/quickstart.md
+          - Datasets: hub/datasets.md
+          - Projects: hub/projects.md
+          - Models: hub/models.md
+          - Integrations: hub/integrations.md
+          - Inference API: hub/inference-api.md
+      - On Premise:
+          - hub/on-premise/index.md
+      - App:
           - hub/app/index.md
           - iOS: hub/app/ios.md
           - Android: hub/app/android.md
-      - Inference API: hub/inference_api.md
+      - Python SDK:
+          - hub/sdk/index.md
+          - Quickstart: hub/sdk/quickstart.md
+          - Model: hub/sdk/model.md
+          - Dataset: hub/sdk/dataset.md
+          - Project: hub/sdk/project.md
+      - REST API:
+          - hub/api/index.md
 
   - Reference:
       - cfg:
@@ -542,6 +553,7 @@ plugins:
         quick-start.md: quickstart.md
         app.md: hub/app/index.md
         sdk.md: index.md
+        hub/inference_api.md: hub/inference-api.md
         usage/hyperparameter_tuning.md: integrations/ray-tune.md
         reference/base_pred.md: reference/engine/predictor.md
         reference/base_trainer.md: reference/engine/trainer.md

@@ -33,24 +33,33 @@ from tqdm import tqdm
 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
-LANGUAGES = False
 
 
-def build_docs():
+def build_docs(use_languages=False, clone_repos=False):
     """Build docs using mkdocs."""
     if SITE.exists():
         print(f"Removing existing {SITE}")
         shutil.rmtree(SITE)
+
+    # Get hub-sdk repo
+    if clone_repos:
+        repo_dir = DOCS.parent.parent / "hub-sdk"
+        if not repo_dir.exists():
+            os.system(f"git clone https://github.com/ultralytics/hub-sdk {repo_dir}")
+        shutil.copytree(repo_dir / "docs", DOCS / "en" / "hub-sdk")
+        print("Cloned hub-sdk repo")
 
     # Build the main documentation
     print(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS}/mkdocs.yml", check=True, shell=True)
 
     # Build other localized documentations
-    if LANGUAGES:
+    if use_languages:
         for file in DOCS.glob("mkdocs_*.yml"):
             print(f"Building MkDocs site with configuration file: {file}")
             subprocess.run(f"mkdocs build -f {file}", check=True, shell=True)
+        # Update .md in href links
+        update_html_links()
     print(f"Site built at {SITE}")
 
 
@@ -104,21 +113,13 @@ def update_page_title(file_path: Path, new_title: str):
         file.write(updated_content)
 
 
-def update_html_head(key=""):
+def update_html_head(script=""):
     """Update the HTML head section of each file."""
     html_files = Path(SITE).rglob("*.html")
     for html_file in tqdm(html_files, desc="Processing HTML files"):
         with html_file.open("r", encoding="utf-8") as file:
             html_content = file.read()
 
-        script = f"""
-<script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js"></script>
-<script>
-    Weglot.initialize({{
-        api_key: '{key}'
-    }});
-</script>
-"""
         if script in html_content:  # script already in HTML file
             return
 
@@ -137,13 +138,8 @@ def main():
     # Update titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
-    # Update .md in href links
-    if LANGUAGES:
-        update_html_links()
-
     # Update HTML file head section
-    if not LANGUAGES and False:
-        update_html_head(key=os.environ.get("WEGLOT_KEY"))
+    # update_html_head("")
 
     # Show command to serve built website
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')

@@ -49,8 +49,9 @@ def build_docs(use_languages=False, clone_repos=True):
             os.system(f"git clone {repo} {local_dir}")
         os.system(f"git -C {local_dir} pull")  # update repo
         shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
-        shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")
-        shutil.rmtree(DOCS / "en/hub/sdk/reference")  # temporarily delete reference until we find a solution for this
+        shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
+        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)  # delete if exists
+        shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
         print(f"Cloned/Updated {repo} in {local_dir}")
 
     # Build the main documentation

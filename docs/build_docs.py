@@ -62,8 +62,7 @@ def build_docs(use_languages=False, clone_repos=True):
         for file in DOCS.glob("mkdocs_*.yml"):
             print(f"Building MkDocs site with configuration file: {file}")
             subprocess.run(f"mkdocs build -f {file}", check=True, shell=True)
-        # Update .md in href links
-        update_html_links()
+        update_html_links()  # update .md in href links
     print(f"Site built at {SITE}")
 
 

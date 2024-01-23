@@ -182,15 +182,15 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
 
         im0 = cv2.imread("path/to/image.png")  # path to image file
-
+        h, w = im0.shape[:2]  # image height and width
+        
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
-                                     imw=im0.shape[0],  # should same as im0 width
-                                     imh=im0.shape[1],  # should same as im0 height
-                                     view_img=True,
-                                     shape="circle")
-
+                             imw=w,
+                             imh=h,
+                             view_img=True,
+                             shape="circle")
 
         results = model.track(im0, persist=True)
         im0 = heatmap_obj.generate_heatmap(im0, tracks=results)

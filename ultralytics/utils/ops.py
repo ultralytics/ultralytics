@@ -220,7 +220,7 @@ def non_max_suppression(
 
     # Settings
     # min_wh = 2  # (pixels) minimum box width and height
-    time_limit = 0.5 + max_time_img * bs  # seconds to quit after
+    time_limit = 2.0 + max_time_img * bs  # seconds to quit after
     multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
@@ -772,6 +772,24 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
         coords[..., 0] /= img0_shape[1]  # width
         coords[..., 1] /= img0_shape[0]  # height
     return coords
+
+
+def regularize_rboxes(rboxes):
+    """
+    Regularize rotated boxes in range [0, pi/2].
+
+    Args:
+        rboxes (torch.Tensor): (N, 5), xywhr.
+
+    Returns:
+        (torch.Tensor): The regularized boxes.
+    """
+    x, y, w, h, t = rboxes.unbind(dim=-1)
+    # Swap edge and angle if h >= w
+    w_ = torch.where(w > h, w, h)
+    h_ = torch.where(w > h, h, w)
+    t = torch.where(w > h, t, t + math.pi / 2) % math.pi
+    return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
 def masks2segments(masks, strategy="largest"):

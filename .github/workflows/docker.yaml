@@ -64,7 +64,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # copy full .git directory to access full git history in Docker images
+          fetch-depth: 0 # copy full .git directory to access full git history in Docker images
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -115,12 +115,12 @@ jobs:
           -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} .
 
       - name: Run Tests
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
         # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'  # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolov8n.pt imgsz=160 verbose=0.318
 
       - name: Push Docker Image with Ultralytics version tag
@@ -139,7 +139,7 @@ jobs:
           fi
 
       - name: Notify on failure
-        if: github.event_name == 'push' && failure()  # do not notify on cancelled() as cancelling is performed by hand
+        if: github.event_name == 'push' && failure() # do not notify on cancelled() as cancelling is performed by hand
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |

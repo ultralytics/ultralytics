@@ -44,11 +44,12 @@ def build_docs(use_languages=False, clone_repos=True):
     # Get hub-sdk repo
     if clone_repos:
         repo = "https://github.com/ultralytics/hub-sdk"
-        local_dir = DOCS.parent.parent / Path(repo).name
+        local_dir = DOCS.parent / Path(repo).name
         if not local_dir.exists():
             os.system(f"git clone {repo} {local_dir}")
+        os.system(f"git -C {local_dir} pull")  # update repo
         shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")
-        print("Cloned {repo} to {local_dir}")
+        print(f"Cloned/Updated {repo} in {local_dir}")
 
     # Build the main documentation
     print(f"Building docs from {DOCS}")

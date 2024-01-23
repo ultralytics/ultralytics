@@ -103,7 +103,7 @@ The JSON list contains information about the detected objects, their coordinates
 
 ### Detect Model Format
 
-YOLO detection models, such as `yolov8n.pt`, can return JSON responses from local inference, CLI API inference, and Python API inference. All of these methods produce the same JSON response format.
+YOLO detection models, such as `yolov8n.pt`, can return JSON responses from local inference, CLI inference, and Python inference. All of these methods produce the same JSON response format.
 
 !!! Example "Detect Model JSON Response"
 
@@ -122,7 +122,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         print(results[0].tojson())
         ```
 
-    === "CLI API"
+    === "CLI"
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
@@ -133,7 +133,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
             -F "iou=0.45"
         ```
 
-    === "Python API"
+    === "Python"
 
         ```python
         import requests
@@ -201,7 +201,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
 
 ### Segment Model Format
 
-YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses from local inference, CLI API inference, and Python API inference. All of these methods produce the same JSON response format.
+YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses from local inference, CLI inference, and Python inference. All of these methods produce the same JSON response format.
 
 !!! Example "Segment Model JSON Response"
 
@@ -220,7 +220,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         print(results[0].tojson())
         ```
 
-    === "CLI API"
+    === "CLI"
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
@@ -231,7 +231,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
             -F "iou=0.45"
         ```
 
-    === "Python API"
+    === "Python"
 
         ```python
         import requests
@@ -342,7 +342,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
 
 ### Pose Model Format
 
-YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from local inference, CLI API inference, and Python API inference. All of these methods produce the same JSON response format.
+YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from local inference, CLI inference, and Python inference. All of these methods produce the same JSON response format.
 
 !!! Example "Pose Model JSON Response"
 
@@ -361,7 +361,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         print(results[0].tojson())
         ```
 
-    === "CLI API"
+    === "CLI"
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
@@ -372,7 +372,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
             -F "iou=0.45"
         ```
 
-    === "Python API"
+    === "Python"
 
         ```python
         import requests

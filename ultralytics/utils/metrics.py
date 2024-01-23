@@ -239,13 +239,16 @@ def batch_probiou(obb1, obb2, eps=1e-7):
     Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
 
     Args:
-        obb1 (torch.Tensor): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
-        obb2 (torch.Tensor): A tensor of shape (M, 5) representing predicted obbs, with xywhr format.
+        obb1 (torch.Tensor | np.ndarray): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
+        obb2 (torch.Tensor | np.ndarray): A tensor of shape (M, 5) representing predicted obbs, with xywhr format.
         eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
         (torch.Tensor): A tensor of shape (N, M) representing obb similarities.
     """
+    obb1 = torch.from_numpy(obb1) if isinstance(obb1, np.ndarray) else obb1
+    obb2 = torch.from_numpy(obb2) if isinstance(obb2, np.ndarray) else obb2
+
     x1, y1 = obb1[..., :2].split(1, dim=-1)
     x2, y2 = (x.squeeze(-1)[None] for x in obb2[..., :2].split(1, dim=-1))
     a1, b1, c1 = _get_covariance_matrix(obb1)

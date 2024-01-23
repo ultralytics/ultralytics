@@ -25,8 +25,6 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     Raises:
         AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
     """
-    if predictor.args.task == "obb":
-        raise NotImplementedError("ERROR ❌ OBB task does not support track mode!")
     if hasattr(predictor, "trackers") and persist:
         return
 
@@ -54,11 +52,12 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
     bs = predictor.dataset.bs
     path, im0s = predictor.batch[:2]
 
+    is_obb = predictor.args.task == "obb"
     for i in range(bs):
         if not persist and predictor.vid_path[i] != str(predictor.save_dir / Path(path[i]).name):  # new video
             predictor.trackers[i].reset()
 
-        det = predictor.results[i].boxes.cpu().numpy()
+        det = (predictor.results[i].obb if is_obb else predictor.results[i].boxes).cpu().numpy()
         if len(det) == 0:
             continue
         tracks = predictor.trackers[i].update(det, im0s[i])
@@ -66,7 +65,10 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             continue
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = predictor.results[i][idx]
-        predictor.results[i].update(boxes=torch.as_tensor(tracks[:, :-1]))
+
+        update_args = dict()
+        update_args["obb" if is_obb else "boxes"] = torch.as_tensor(tracks[:, :-1])
+        predictor.results[i].update(**update_args)
 
 
 def register_tracker(model: object, persist: bool) -> None:

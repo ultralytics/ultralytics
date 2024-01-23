@@ -42,8 +42,8 @@ class HUBTrainingSession:
         Raises:
             ValueError: If the provided model identifier is invalid.
             ConnectionError: If connecting with global API key is not supported.
+            ModuleNotFoundError: If hub-sdk package is not installed.
         """
-        checks.check_requirements("hub-sdk>=0.0.2")
         from hub_sdk import HUBClient
 
         self.rate_limits = {
@@ -225,13 +225,13 @@ class HUBTrainingSession:
                     break  # Timeout reached, exit loop
 
                 response = request_func(*args, **kwargs)
-                if progress_total:
-                    self._show_upload_progress(progress_total, response)
-
                 if response is None:
                     LOGGER.warning(f"{PREFIX}Received no response from the request. {HELP_MSG}")
                     time.sleep(2**i)  # Exponential backoff before retrying
                     continue  # Skip further processing and retry
+
+                if progress_total:
+                    self._show_upload_progress(progress_total, response)
 
                 if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
                     return response  # Success, no need to retry

@@ -115,7 +115,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                                   |
 | `freeze`          | `None`   | (int or list, optional) freeze first n layers, or freeze list of layer indices during training |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                                               |
-| `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                                                |
+| `lrf`             | `0.01`   | final learning rate (`lr0 * lrf`)                                                                |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                                        |
 | `weight_decay`    | `0.0005` | optimizer weight decay 5e-4                                                                    |
 | `warmup_epochs`   | `3.0`    | warmup epochs (fractions ok)                                                                   |

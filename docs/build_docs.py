@@ -35,7 +35,7 @@ DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 
 
-def build_docs(use_languages=False, clone_repos=False):
+def build_docs(use_languages=False, clone_repos=True):
     """Build docs using mkdocs."""
     if SITE.exists():
         print(f"Removing existing {SITE}")
@@ -43,11 +43,12 @@ def build_docs(use_languages=False, clone_repos=False):
 
     # Get hub-sdk repo
     if clone_repos:
-        repo_dir = DOCS.parent.parent / "hub-sdk"
-        if not repo_dir.exists():
-            os.system(f"git clone https://github.com/ultralytics/hub-sdk {repo_dir}")
-        shutil.copytree(repo_dir / "docs", DOCS / "en" / "hub-sdk")
-        print("Cloned hub-sdk repo")
+        repo = "https://github.com/ultralytics/hub-sdk"
+        local_dir = DOCS.parent.parent / Path(repo).name
+        if not local_dir.exists():
+            os.system(f"git clone {repo} {local_dir}")
+        shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")
+        print("Cloned {repo} to {local_dir}")
 
     # Build the main documentation
     print(f"Building docs from {DOCS}")

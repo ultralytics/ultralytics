@@ -774,6 +774,24 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
     return coords
 
 
+def regularize_rboxes(rboxes):
+    """
+    Regularize rotated boxes in range [0, pi/2].
+
+    Args:
+        rboxes (torch.Tensor): (N, 5), xywhr.
+
+    Returns:
+        (torch.Tensor): The regularized boxes.
+    """
+    x, y, w, h, t = rboxes.unbind(dim=-1)
+    # Swap edge and angle if h >= w
+    w_ = torch.where(w > h, w, h)
+    h_ = torch.where(w > h, h, w)
+    t = torch.where(w > h, t, t + math.pi / 2) % math.pi
+    return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
+
+
 def masks2segments(masks, strategy="largest"):
     """
     It takes a list of masks(n,h,w) and returns a list of segments(n,xy)

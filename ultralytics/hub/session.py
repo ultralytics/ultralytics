@@ -225,13 +225,13 @@ class HUBTrainingSession:
                     break  # Timeout reached, exit loop
 
                 response = request_func(*args, **kwargs)
-                if progress_total:
-                    self._show_upload_progress(progress_total, response)
-
                 if response is None:
                     LOGGER.warning(f"{PREFIX}Received no response from the request. {HELP_MSG}")
                     time.sleep(2**i)  # Exponential backoff before retrying
                     continue  # Skip further processing and retry
+
+                if progress_total:
+                    self._show_upload_progress(progress_total, response)
 
                 if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
                     return response  # Success, no need to retry

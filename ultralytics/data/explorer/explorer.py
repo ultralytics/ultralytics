@@ -7,9 +7,9 @@ from typing import Any, List, Tuple, Union
 import cv2
 import numpy as np
 import torch
+from PIL import Image
 from matplotlib import pyplot as plt
 from pandas import DataFrame
-from PIL import Image
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
@@ -17,7 +17,6 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks
-
 from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
@@ -188,10 +187,10 @@ class Explorer:
             result = exp.sql_query(query)
             ```
         """
-        assert return_type in [
+        assert return_type in {
             "pandas",
             "arrow",
-        ], f"Return type should be either `pandas` or `arrow`, but got {return_type}"
+        }, f"Return type should be either `pandas` or `arrow`, but got {return_type}"
         import duckdb
 
         if self.table is None:
@@ -208,10 +207,10 @@ class Explorer:
         LOGGER.info(f"Running query: {query}")
 
         rs = duckdb.sql(query)
-        if return_type == "pandas":
-            return rs.df()
-        elif return_type == "arrow":
+        if return_type == "arrow":
             return rs.arrow()
+        elif return_type == "pandas":
+            return rs.df()
 
     def plot_sql_query(self, query: str, labels: bool = True) -> Image.Image:
         """
@@ -264,17 +263,17 @@ class Explorer:
             similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
             ```
         """
-        assert return_type in [
+        assert return_type in {
             "pandas",
             "arrow",
-        ], f"Return type should be either `pandas` or `arrow`, but got {return_type}"
+        }, f"Return type should be either `pandas` or `arrow`, but got {return_type}"
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
 
-        if return_type == "pandas":
-            return similar.to_pandas()
-        elif return_type == "arrow":
+        if return_type == "arrow":
             return similar
+        elif return_type == "pandas":
+            return similar.to_pandas()
 
     def plot_similar(
         self,

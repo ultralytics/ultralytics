@@ -41,7 +41,7 @@ def auto_annotate(data, det_model="yolov8x.pt", sam_model="sam_b.pt", device="",
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
             segments = sam_results[0].masks.xyn  # noqa
 
-            with open(f"{str(Path(output_dir) / Path(result.path).stem)}.txt", "w") as f:
+            with open(f"{Path(output_dir) / Path(result.path).stem}.txt", "w") as f:
                 for i in range(len(segments)):
                     s = segments[i]
                     if len(s) == 0:

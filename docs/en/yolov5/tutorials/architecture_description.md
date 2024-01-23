@@ -161,8 +161,8 @@ The objectness losses of the three prediction layers (`P3`, `P4`, `P5`) are weig
 
 The YOLOv5 architecture makes some important changes to the box prediction strategy compared to earlier versions of YOLO. In YOLOv2 and YOLOv3, the box coordinates were directly predicted using the activation of the last layer.
 
-![b_x](https://latex.codecogs.com/svg.image?b_x=\sigma(t_x)+c_x)
-![b_y](https://latex.codecogs.com/svg.image?b_y=\sigma(t_y)+c_y)
+![b_x](<https://latex.codecogs.com/svg.image?b_x=\sigma(t_x)+c_x>)
+![b_y](<https://latex.codecogs.com/svg.image?b_y=\sigma(t_y)+c_y>)
 ![b_w](https://latex.codecogs.com/svg.image?b_w=p_w\cdot&space;e^{t_w})
 ![b_h](https://latex.codecogs.com/svg.image?b_h=p_h\cdot&space;e^{t_h})
 
@@ -172,10 +172,10 @@ However, in YOLOv5, the formula for predicting the box coordinates has been upda
 
 The revised formulas for calculating the predicted bounding box are as follows:
 
-![bx](https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x)
-![by](https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y)
-![bw](https://latex.codecogs.com/svg.image?b_w=p_w\cdot(2\cdot\sigma(t_w))^2)
-![bh](https://latex.codecogs.com/svg.image?b_h=p_h\cdot(2\cdot\sigma(t_h))^2)
+![bx](<https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x>)
+![by](<https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y>)
+![bw](<https://latex.codecogs.com/svg.image?b_w=p_w\cdot(2\cdot\sigma(t_w))^2>)
+![bh](<https://latex.codecogs.com/svg.image?b_h=p_h\cdot(2\cdot\sigma(t_h))^2>)
 
 Compare the center point offset before and after scaling. The center point offset range is adjusted from (0, 1) to (-0.5, 1.5). Therefore, offset can easily get 0 or 1.
 
@@ -197,11 +197,11 @@ This process follows these steps:
 
 ![rh](https://latex.codecogs.com/svg.image?r_h=h_{gt}/h_{at})
 
-![rwmax](https://latex.codecogs.com/svg.image?r_w^{max}=max(r_w,1/r_w))
+![rwmax](<https://latex.codecogs.com/svg.image?r_w^{max}=max(r_w,1/r_w)>)
 
-![rhmax](https://latex.codecogs.com/svg.image?r_h^{max}=max(r_h,1/r_h))
+![rhmax](<https://latex.codecogs.com/svg.image?r_h^{max}=max(r_h,1/r_h)>)
 
-![rmax](https://latex.codecogs.com/svg.image?r^{max}=max(r_w^{max},r_h^{max}))
+![rmax](<https://latex.codecogs.com/svg.image?r^{max}=max(r_w^{max},r_h^{max})>)
 
 ![match](https://latex.codecogs.com/svg.image?r^{max}<{\rm&space;anchor_t})
 

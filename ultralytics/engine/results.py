@@ -115,7 +115,7 @@ class Results(SimpleClass):
             if v is not None:
                 return len(v)
 
-    def update(self, boxes=None, masks=None, probs=None):
+    def update(self, boxes=None, masks=None, probs=None, obb=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
             self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
@@ -123,6 +123,8 @@ class Results(SimpleClass):
             self.masks = Masks(masks, self.orig_shape)
         if probs is not None:
             self.probs = probs
+        if obb is not None:
+            self.obb = OBB(obb, self.orig_shape)
 
     def _apply(self, fn, *args, **kwargs):
         """

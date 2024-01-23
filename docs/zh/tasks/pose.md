@@ -42,7 +42,7 @@ keywords: Ultralytics, YOLO, YOLOv8, 姿态估计, 关键点检测, 物体检测
 | [YOLOv8x-姿态](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose.pt)       | 640             | 69.2                | 90.2             | 1607.1                      | 3.73                             | 69.4           | 263.2             |
 | [YOLOv8x-姿态-p6](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose-p6.pt) | 1280            | 71.6                | 91.2             | 4088.7                      | 10.04                            | 99.1           | 1066.4            |
 
-- **mAP<sup>val</sup>** 值适用于[COCO 关键点 val2017](http://cocodataset.org)数据集上的单模型单尺度。
+- **mAP<sup>val</sup>** 值适用于[COCO 关键点 val2017](https://cocodataset.org)数据集上的单模型单尺度。
   <br>通过执行 `yolo val pose data=coco-pose.yaml device=0` 来复现。
 - **速度** 是在 [亚马逊EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)实例上使用COCO val图像的平均值。
   <br>通过执行 `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu` 来复现。

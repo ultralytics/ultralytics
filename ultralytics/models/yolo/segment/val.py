@@ -13,7 +13,7 @@ from ultralytics.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
-from ultralytics.utils.postprocess_utils import decode_bbox
+from ultralytics.utils.postprocess_utils import decode_bbox, separate_outputs_decode
 
 
 class SegmentationValidator(DetectionValidator):
@@ -74,19 +74,7 @@ class SegmentationValidator(DetectionValidator):
     def postprocess(self, preds, img_shape):
         """Post-processes YOLO predictions and returns output detections with proto."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            mcv = float("-inf")
-            lci = -1
-            for idx, s in enumerate(preds):
-                dim_1 = s.shape[1]
-                if dim_1 > mcv:
-                    mcv = dim_1
-                    lci = idx
-                if len(s.shape) == 4:
-                    proto = s
-                    pidx = idx
-            mask = preds[lci]
-            proto = proto.permute(0, 3, 1, 2)
-            pred_order = [item for index, item in enumerate(preds) if index not in [pidx, lci]]
+            pred_order, mask, proto = separate_outputs_decode(preds, self.args.task)
             preds_decoded = decode_bbox(pred_order, img_shape, self.device)
             preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)
             p = ops.non_max_suppression(

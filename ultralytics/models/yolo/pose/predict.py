@@ -5,7 +5,7 @@ import torch
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
-from ultralytics.utils.postprocess_utils import decode_bbox, decode_kpts
+from ultralytics.utils.postprocess_utils import decode_bbox, decode_kpts, separate_outputs_decode
 
 
 class PosePredictor(DetectionPredictor):
@@ -36,19 +36,12 @@ class PosePredictor(DetectionPredictor):
     def postprocess(self, preds, img, orig_imgs):
         """Return detection results for a given input image or list of images."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            mcv = float("-inf")
-            lci = -1
-            for idx, s in enumerate(preds):
-                dim_1 = s.shape[1]
-                if dim_1 > mcv:
-                    mcv = dim_1
-                    lci = idx
-            pred_order = [item for index, item in enumerate(preds) if index not in [lci]]
+            pred_order, nkpt = separate_outputs_decode(preds, self.args.task)
             pred_decoded = decode_bbox(pred_order, img.shape, self.device)
-            kpt_shape = (preds[lci].shape[-1] // 3, 3)
+            kpt_shape = (nkpt.shape[-1] // 3, 3)
             kpts_decoded = decode_kpts(pred_order,
                                        img.shape,
-                                       torch.permute(preds[lci], (0, 2, 1)),
+                                       torch.permute(nkpt, (0, 2, 1)),
                                        kpt_shape,
                                        self.device,
                                        bs=1)

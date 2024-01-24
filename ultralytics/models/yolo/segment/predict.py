@@ -5,7 +5,7 @@ import torch
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, ops
-from ultralytics.utils.postprocess_utils import decode_bbox
+from ultralytics.utils.postprocess_utils import decode_bbox, separate_outputs_decode
 
 
 class SegmentationPredictor(DetectionPredictor):
@@ -31,19 +31,7 @@ class SegmentationPredictor(DetectionPredictor):
     def postprocess(self, preds, img, orig_imgs):
         """Applies non-max suppression and processes detections for each image in an input batch."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            mcv = float("-inf")
-            lci = -1
-            for idx, s in enumerate(preds):
-                dim_1 = s.shape[1]
-                if dim_1 > mcv:
-                    mcv = dim_1
-                    lci = idx
-                if len(s.shape) == 4:
-                    proto = s
-                    pidx = idx
-            mask = preds[lci]
-            proto = proto.permute(0, 3, 1, 2)
-            pred_order = [item for index, item in enumerate(preds) if index not in [pidx, lci]]
+            pred_order, mask, proto = separate_outputs_decode(preds, self.args.task)
             preds_decoded = decode_bbox(pred_order, img.shape, self.device)
             nc = preds_decoded.shape[1] - 4
             preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)

@@ -50,8 +50,8 @@ def inspect_dataset(
  df['class_name'] = df['new_class_id'].map(class_names)
  return df
 
-df_val = inspect_dataset('/data-fast/127-data2/ierregue/datasets/custom_dataset_v2', 'val')
-df_train = inspect_dataset('/data-fast/127-data2/ierregue/datasets/custom_dataset_v2', 'train')
+df_val = inspect_dataset('/data-fast/127-data2/ierregue/datasets/custom_coco', 'val')
+df_train = inspect_dataset('/data-fast/127-data2/ierregue/datasets/custom_coco', 'train')
 
 print(f"The number of objects is {len(df_val)}")
 print(f"The number of images is {len(df_val['img'].unique())}")
@@ -60,7 +60,7 @@ print(f"The number of objects is {len(df_train)}")
 print(f"The number of images is {len(df_train['img'].unique())}")
 
 # Create dir to store plots
-save_dir = './data/dataset_creation/plots/v2'
+save_dir = './data/dataset_creation/plots/custom_coco'
 if not os.path.isdir(save_dir):
     os.makedirs(save_dir)
 

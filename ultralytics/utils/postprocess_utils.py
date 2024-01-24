@@ -5,7 +5,23 @@ import torch
 from ultralytics.nn.modules.block import DFL
 from ultralytics.utils.tal import dist2bbox, make_anchors
 
-
+def separate_outputs_decode(preds, task):
+    mcv = float("-inf")
+    lci = -1
+    for idx, s in enumerate(preds):
+        dim_1 = s.shape[1]
+        if dim_1 > mcv:
+            mcv = dim_1
+            lci = idx
+        if len(s.shape) == 4 and task == "segment":
+            proto = s
+            pidx = idx
+    
+    if task == "pose":
+        return [item for index, item in enumerate(preds) if index not in [lci]], preds[lci]
+    elif task == "segment":
+        return [item for index, item in enumerate(preds) if index not in [pidx, lci]], preds[lci], proto.permute(0, 3, 1, 2)
+    
 def decode_bbox(preds, img_shape, device):
     num_classes = next((o.shape[2] for o in preds if o.shape[2] != 64), -1)
     assert num_classes != -1, 'cannot infer postprocessor inputs via output shape if there are 64 classes'

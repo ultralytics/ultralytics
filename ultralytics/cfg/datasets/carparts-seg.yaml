@@ -1,0 +1,35 @@
+path: "../datasets/carparts-seg" # dataset root dir
+train: train/images  # training images directory
+val: valid/images    # validation images directory
+test: test/images   # testing images directory
+
+nc: 23    # number of classes
+
+# name of classes
+names:
+  0: back_bumper
+  1: back_door,
+  2: back_glass
+  3: back_left_door
+  4: back_left_light
+  5: back_light
+  6: back_right_door
+  7: back_right_light
+  8: front_bumper
+  9: front_door
+  10: front_glass
+  11: front_left_door
+  12: front_left_light
+  13: front_light
+  14: front_right_door
+  15: front_right_light
+  16: hood
+  17: left_mirror
+  18: object
+  19: right_mirror
+  20: tailgate
+  21: trunk
+  22: wheel
+
+# Download script/URL (optional)
+download: https://ultralytics.com/assets/carparts-seg.zip

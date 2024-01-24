@@ -1,0 +1,29 @@
+# Ultralytics 🚀 - AGPL-3.0 license
+# Ultralytics Actions https://github.com/ultralytics/actions
+# This workflow automatically formats code and documentation in PRs to official Ultralytics standards
+
+name: Ultralytics Actions
+
+on:
+  push:
+    branches: [main]
+  pull_request_target:
+    branches: [main]
+    types: [opened, closed, synchronize]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Ultralytics Formatting
+        uses: ultralytics/actions@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }} # automatically generated, do not modify
+          python: true # format Python code and docstrings
+          markdown: true # format Markdown and YAML
+          spelling: true # check spelling
+          links: false # check broken links
+          summary: true # print PR summary with GPT4 (requires 'openai_api_key' or 'openai_azure_api_key' and 'openai_azure_endpoint')
+          openai_azure_api_key: ${{ secrets.OPENAI_AZURE_API_KEY }}
+          openai_azure_endpoint: ${{ secrets.OPENAI_AZURE_ENDPOINT }}
+          # openai_api_key: ${{ secrets.OPENAI_API_KEY }}

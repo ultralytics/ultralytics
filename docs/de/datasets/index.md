@@ -80,7 +80,7 @@ Das Bereitstellen eines neuen Datensatzes umfasst mehrere Schritte, um sicherzus
 
 2. **Bilder annotieren**: Annotieren Sie diese Bilder mit Bounding Boxen, Segmenten oder Schlüsselpunkten, je nach Aufgabe.
 
-3. **Annotationen exportieren**: Konvertieren Sie diese Annotationen in das von Ultralytics unterstützte YOLO *.txt-Dateiformat.
+3. **Annotationen exportieren**: Konvertieren Sie diese Annotationen in das von Ultralytics unterstützte YOLO `*.txt`-Dateiformat.
 
 4. **Datensatz organisieren**: Ordnen Sie Ihren Datensatz in die richtige Ordnerstruktur an. Sie sollten übergeordnete Verzeichnisse `train/` und `val/` haben, und innerhalb dieser je ein Unterverzeichnis `images/` und `labels/`.
 

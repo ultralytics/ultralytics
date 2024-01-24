@@ -34,9 +34,9 @@ Ensure you have the following prerequisites before proceeding:
 
 - Docker installed on your machine.
 - Install `tritonclient`:
-  ```bash
-  pip install tritonclient[all]
-  ```
+    ```bash
+    pip install tritonclient[all]
+    ```
 
 ## Exporting YOLOv8 to ONNX Format
 

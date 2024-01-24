@@ -24,19 +24,23 @@ class DetectionPredictor(BasePredictor):
         """Post-processes predictions and returns a list of Results objects."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
             preds = decode_bbox(preds, img.shape, self.device)
-            preds = ops.non_max_suppression(preds,
-                                            self.args.conf,
-                                            self.args.iou,
-                                            agnostic=self.args.agnostic_nms,
-                                            max_det=self.args.max_det,
-                                            classes=self.args.classes)
+            preds = ops.non_max_suppression(
+                preds,
+                self.args.conf,
+                self.args.iou,
+                agnostic=self.args.agnostic_nms,
+                max_det=self.args.max_det,
+                classes=self.args.classes
+            )
         else:
-            preds = ops.non_max_suppression(preds,
-                                            self.args.conf,
-                                            self.args.iou,
-                                            agnostic=self.args.agnostic_nms,
-                                            max_det=self.args.max_det,
-                                            classes=self.args.classes)
+            preds = ops.non_max_suppression(
+                preds,
+                self.args.conf,
+                self.args.iou,
+                agnostic=self.args.agnostic_nms,
+                max_det=self.args.max_det,
+                classes=self.args.classes,
+            )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)

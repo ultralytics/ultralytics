@@ -142,7 +142,7 @@ def benchmark(
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)"])
 
     name = Path(model.ckpt_path).name
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz}, separate_outputs={separate_outputs}, export_hw_optimized={export_hw_optimized} ({time.time() - t0:.2f}s)\n{df}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)

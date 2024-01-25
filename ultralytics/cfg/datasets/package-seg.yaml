@@ -1,0 +1,13 @@
+path: "../datasets/package-seg" # dataset root dir
+train: train/images  # training images directory
+val: valid/images    # validation images directory
+test: test/images   # testing images directory
+
+nc: 1    # number of classes
+
+# name of classes
+names:
+  0: package
+
+# Download script/URL (optional)
+download: https://ultralytics.com/assets/package-seg.zip

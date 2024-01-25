@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore the Crack Segmentation Dataset, a large-scale benchmark for road safety analysis, and learn how to train a YOLO model using it.
+description: Explore the Crack Segmentation using Ultralytics YOLOv8 Dataset, a large-scale benchmark for road safety analysis, and learn how to train a YOLO model using it.
 keywords: Crack Segmentation Dataset, Ultralytics, road cracks monitoring, YOLO model, object detection, object tracking, road safety
 ---
 
@@ -23,7 +23,7 @@ Crack segmentation finds practical applications in infrastructure maintenance, a
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is employed to outline the configuration of the dataset, encompassing details about paths, classes, and other pertinent information. Specifically, for the Crack Segmentation dataset, the `crack-seg.yaml` file is managed and accessible at [this link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml).
+A YAML (Yet Another Markup Language) file is employed to outline the configuration of the dataset, encompassing details about paths, classes, and other pertinent information. Specifically, for the Crack Segmentation dataset, the `crack-seg.yaml` file is managed and accessible at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml).
 
 !!! Example "ultralytics/cfg/datasets/crack-seg.yaml"
 
@@ -33,7 +33,7 @@ A YAML (Yet Another Markup Language) file is employed to outline the configurati
 
 ## Usage
 
-To train a YOLOv8n model on the Crack Segmentation dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train Ultralytics YOLOv8n model on the Crack Segmentation dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! Example "Train Example"
 
@@ -62,9 +62,9 @@ The Crack Segmentation dataset comprises a varied collection of images and video
 
 ![Dataset sample image](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/40ccc20a-9593-412f-b028-643d4a904d0e)
 
-- This image illustrates a sample of image object segmentation, showcasing annotated bounding boxes with masks around identified objects. The dataset encompasses a diverse range of images captured in various locations, environments, and densities, serving as a comprehensive resource for the development of models tailored to this specific task.
+- This image presents an example of image object segmentation, featuring annotated bounding boxes with masks outlining identified objects. The dataset includes a diverse array of images taken in different locations, environments, and densities, making it a comprehensive resource for developing models designed for this particular task.
 
-- The example showcases the variety and complexity of the data in the Crack segmentation dataset and highlights the importance of high-quality data for computer vision tasks.
+- The example underscores the diversity and complexity found in the Crack segmentation dataset, emphasizing the crucial role of high-quality data in computer vision tasks.
 
 ## Citations and Acknowledgments
 

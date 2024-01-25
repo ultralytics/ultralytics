@@ -83,12 +83,8 @@ def benchmark(
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = "❌", None  # export defaults
         try:
-            # Checks
-            if i == 9:
-                assert LINUX, "Edge TPU export only supported on Linux"
-            elif i == 7:
-                assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
-            elif i in {5, 10}:  # CoreML and TF.js
+            assert i != 9 or LINUX, "Edge TPU export only supported on Linux"
+            if i in {5, 10}:  # CoreML and TF.js
                 assert MACOS or LINUX, "export only supported on macOS and Linux"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
@@ -104,15 +100,7 @@ def benchmark(
                 filename = model.ckpt_path or model.cfg
                 exported_model = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, 
-                                        format=format, 
-                                        half=half, 
-                                        int8=int8, 
-                                        device=device, 
-                                        verbose=False,
-                                        separate_outputs=separate_outputs,
-                                        export_hw_optimized=export_hw_optimized
-                                        )
+                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False, separate_outputs=separate_outputs, export_hw_optimized=export_hw_optimized)
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded

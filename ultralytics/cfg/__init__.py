@@ -51,7 +51,7 @@ TASK2METRIC = {
     "segment": "metrics/mAP50-95(M)",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
-    "obb": "metrics/mAP50-95(B)",
+    "obb": "metrics/mAP50-95(OBB)",
 }
 TASK2YAML = {
     "detect": "yolov8.yaml",

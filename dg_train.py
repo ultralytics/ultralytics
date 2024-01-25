@@ -27,10 +27,7 @@ def parser_arguments():
     # Augmentation
     parser.add_argument('--scale', type=float, default=0.5, help='image scale (+/- gain)')
     parser.add_argument('--mixup', type=float, default=0.00, help='image mixup (probability)')
-    parser.add_argument('--copy_paste', type=float, default=0.00, help='copy-paste (probability)')
-    parser.add_argument('--mean', type=float, nargs='+', default=[0, 0, 0], help='channel-wise mean normalization')
-    parser.add_argument('--std', type=float, nargs='+', default=[1, 1, 1], help='channel-wise std normalization')
-    
+    parser.add_argument('--copy-paste', type=float, default=0.00, help='copy-paste (probability)')
     
     return parser.parse_args()
 

@@ -8,8 +8,8 @@ repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/en/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
-docs_dir: 'en/'  # where to find the markdown files
-site_dir: '../site/'  # where to publish to
+docs_dir: "en/" # where to find the markdown files
+site_dir: "../site/" # where to publish to
 
 theme:
   name: material
@@ -42,7 +42,7 @@ theme:
         icon: material/brightness-7
         name: Switch to dark mode
   features:
-#    - announce.dismiss
+    # - announce.dismiss
     - content.action.edit
     - content.code.annotate
     - content.code.copy
@@ -61,7 +61,7 @@ theme:
     - navigation.instant.progress
     - navigation.indexes
     - navigation.sections
-    - content.tabs.link  # all code tabs change simultaneously
+    - content.tabs.link # all code tabs change simultaneously
 
 # Customization
 copyright: <a href="https://ultralytics.com" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
@@ -71,46 +71,46 @@ extra: # version:
   analytics:
     provider: google
     property: G-2M5EHKC0BH
-  alternate: # language drop-down
-    - name: 🇬🇧 English
-      link: /
-      lang: en
-    - name: 🇨🇳 简体中文
-      link: /zh/
-      lang: zh
-    - name: 🇰🇷 한국어
-      link: /ko/
-      lang: ko
-    - name: 🇯🇵 日本語
-      link: /ja/
-      lang: ja
-    - name: 🇷🇺 Русский
-      link: /ru/
-      lang: ru
-    - name: 🇩🇪 Deutsch
-      link: /de/
-      lang: de
-    - name: 🇫🇷 Français
-      link: /fr/
-      lang: fr
-    - name: 🇪🇸 Español
-      link: /es/
-      lang: es
-    - name: 🇵🇹 Português
-      link: /pt/
-      lang: pt
-    - name: 🇮🇳 हिन्दी
-      link: /hi/
-      lang: hi
-    - name: 🇸🇦 العربية
-      link: /ar/
-      lang: ar
+  #  alternate: # language drop-down
+  #    - name: 🇬🇧 English
+  #      link: /
+  #      lang: en
+  #    - name: 🇨🇳 简体中文
+  #      link: /zh/
+  #      lang: zh
+  #    - name: 🇰🇷 한국어
+  #      link: /ko/
+  #      lang: ko
+  #    - name: 🇯🇵 日本語
+  #      link: /ja/
+  #      lang: ja
+  #    - name: 🇷🇺 Русский
+  #      link: /ru/
+  #      lang: ru
+  #    - name: 🇩🇪 Deutsch
+  #      link: /de/
+  #      lang: de
+  #    - name: 🇫🇷 Français
+  #      link: /fr/
+  #      lang: fr
+  #    - name: 🇪🇸 Español
+  #      link: /es/
+  #      lang: es
+  #    - name: 🇵🇹 Português
+  #      link: /pt/
+  #      lang: pt
+  #    - name: 🇮🇳 हिन्दी
+  #      link: /hi/
+  #      lang: hi
+  #    - name: 🇸🇦 العربية
+  #      link: /ar/
+  #      lang: ar
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/ultralytics/
-    - icon: fontawesome/brands/twitter
+    - icon: fontawesome/brands/x-twitter
       link: https://twitter.com/ultralytics
     - icon: fontawesome/brands/youtube
       link: https://www.youtube.com/ultralytics
@@ -343,17 +343,28 @@ nav:
       - TensorBoard: integrations/tensorboard.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
   - HUB:
-      - hub/index.md
-      - Quickstart: hub/quickstart.md
-      - Datasets: hub/datasets.md
-      - Projects: hub/projects.md
-      - Models: hub/models.md
-      - Integrations: hub/integrations.md
-      - Ultralytics HUB App:
+      - Cloud:
+          - hub/index.md
+          - Quickstart: hub/quickstart.md
+          - Datasets: hub/datasets.md
+          - Projects: hub/projects.md
+          - Models: hub/models.md
+          - Integrations: hub/integrations.md
+          - Inference API: hub/inference-api.md
+      - On-Premise:
+          - hub/on-premise/index.md
+      - App:
           - hub/app/index.md
-          - 'iOS': hub/app/ios.md
-          - 'Android': hub/app/android.md
-      - Inference API: hub/inference_api.md
+          - iOS: hub/app/ios.md
+          - Android: hub/app/android.md
+      - Python SDK:
+          - hub/sdk/index.md
+          - Quickstart: hub/sdk/quickstart.md
+          - Model: hub/sdk/model.md
+          - Dataset: hub/sdk/dataset.md
+          - Project: hub/sdk/project.md
+      - REST API:
+          - hub/api/index.md
 
   - Reference:
       - cfg:
@@ -522,7 +533,7 @@ plugins:
       add_desc: False
       add_image: True
       add_share_buttons: True
-      default_image: https://github.com/ultralytics/ultralytics/assets/26833433/6d09221c-c52a-4234-9a5d-b862e93c6529
+      default_image: https://github.com/ultralytics/assets/blob/main/yolov8/banner-yolov8.png
   - mkdocs-jupyter
   - redirects:
       redirect_maps:
@@ -542,6 +553,7 @@ plugins:
         quick-start.md: quickstart.md
         app.md: hub/app/index.md
         sdk.md: index.md
+        hub/inference_api.md: hub/inference-api.md
         usage/hyperparameter_tuning.md: integrations/ray-tune.md
         reference/base_pred.md: reference/engine/predictor.md
         reference/base_trainer.md: reference/engine/trainer.md

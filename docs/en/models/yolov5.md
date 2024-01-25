@@ -97,6 +97,7 @@ If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv
 !!! Quote ""
 
     === "BibTeX"
+
         ```bibtex
         @software{yolov5,
           title = {Ultralytics YOLOv5},

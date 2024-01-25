@@ -8,7 +8,7 @@ keywords: Ultralytics Explorer API, Dataset Exploration, SQL Queries, Vector Sim
 
 ## Introduction
 
-<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>  
+<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search and semantic search.
 
 ## Installation
@@ -42,7 +42,7 @@ dataframe = explorer.get_similar(idx=0)
     Embeddings table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
 
 In case you want to force update the embeddings table, you can pass `force=True` to `create_embeddings_table` method.
-You can direclty access the LanceDB table object to perform advanced analysis. Learn more about it in [Working with table section](#4-advanced---working-with-embeddings-table)
+You can directly access the LanceDB table object to perform advanced analysis. Learn more about it in [Working with table section](#4-advanced---working-with-embeddings-table)
 
 ## 1. Similarity Search
 
@@ -314,11 +314,11 @@ plt.show()
 
 Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the
 
-# Apps Built Using Ultralytics Explorer
+## Apps Built Using Ultralytics Explorer
 
 Try our GUI Demo based on Explorer API
 
-# Coming Soon
+## Coming Soon
 
 - [ ] Merge specific labels from datasets. Example - Import all `person` labels from COCO and `car` labels from Cityscapes
 - [ ] Remove images that have a higher similarity index than the given threshold

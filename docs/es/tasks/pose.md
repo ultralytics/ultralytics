@@ -42,7 +42,7 @@ Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/c
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose.pt)       | 640                      | 69.2                  | 90.2               | 1607.1                             | 3.73                                    | 69.4                   | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-pose-p6.pt) | 1280                     | 71.6                  | 91.2               | 4088.7                             | 10.04                                   | 99.1                   | 1066.4            |
 
-- Los valores de **mAP<sup>val</sup>** son para un solo modelo a una sola escala en el conjunto de datos [COCO Keypoints val2017](http://cocodataset.org).
+- Los valores de **mAP<sup>val</sup>** son para un solo modelo a una sola escala en el conjunto de datos [COCO Keypoints val2017](https://cocodataset.org).
   <br>Reproducir con `yolo val pose data=coco-pose.yaml device=0`
 - **Velocidad** promediada sobre imágenes COCO val usando una instancia [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/).
   <br>Reproducir con `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`

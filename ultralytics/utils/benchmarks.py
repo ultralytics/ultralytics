@@ -26,7 +26,6 @@ ncnn                    | `ncnn`                    | yolov8n_ncnn_model/
 
 import glob
 import platform
-import sys
 import time
 from pathlib import Path
 
@@ -84,11 +83,13 @@ def benchmark(
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = "❌", None  # export defaults
         try:
-            assert i != 9 or LINUX, "Edge TPU export only supported on Linux"
-            if i == 10:
-                assert MACOS or LINUX, "TF.js export only supported on macOS and Linux"
-            elif i == 11:
-                assert sys.version_info < (3, 11), "PaddlePaddle export only supported on Python<=3.10"
+            # Checks
+            if i == 9:
+                assert LINUX, "Edge TPU export only supported on Linux"
+            elif i == 7:
+                assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
+            elif i in {5, 10}:  # CoreML and TF.js
+                assert MACOS or LINUX, "export only supported on macOS and Linux"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

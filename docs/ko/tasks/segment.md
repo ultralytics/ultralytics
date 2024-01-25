@@ -41,7 +41,7 @@ keywords: yolov8, 인스턴스 세그멘테이션, Ultralytics, COCO 데이터�
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-seg.pt) | 640             | 52.3                | 42.6                 | 572.4                        | 2.79                              | 46.0             | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-seg.pt) | 640             | 53.4                | 43.4                 | 712.1                        | 4.02                              | 71.8             | 344.1             |
 
-- **mAP<sup>val</sup>** 값들은 [COCO val2017](http://cocodataset.org) 데이터셋에서 단일 모델 단일 스케일로 얻은 값입니다.
+- **mAP<sup>val</sup>** 값들은 [COCO val2017](https://cocodataset.org) 데이터셋에서 단일 모델 단일 스케일로 얻은 값입니다.
   <br>복제는 `yolo val segment data=coco.yaml device=0` 명령어로 실행할 수 있습니다.
 - **속도**는 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 인스턴스를 이용하여 COCO 검증 이미지로 평균 내었습니다.
   <br>복제는 `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu` 명령어로 실행할 수 있습니다.

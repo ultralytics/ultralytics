@@ -96,9 +96,7 @@ def on_train_end(trainer):
         for f in files:
             _log_plot(title=f.stem, plot_path=f)
         # Log the final model
-        run[f"weights/{trainer.args.name or trainer.args.task}/{str(trainer.best.name)}"].upload(
-            File(str(trainer.best))
-        )
+        run[f"weights/{trainer.args.name or trainer.args.task}/{trainer.best.name}"].upload(File(str(trainer.best)))
 
 
 callbacks = (

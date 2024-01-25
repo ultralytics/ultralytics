@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """Monkey patches to update/extend functionality of existing functions."""
 
+import time
 from pathlib import Path
 
 import cv2
@@ -61,7 +62,8 @@ _torch_save = torch.save  # copy to avoid recursion errors
 
 def torch_save(*args, **kwargs):
     """
-    Use dill (if exists) to serialize the lambda functions where pickle does not do this.
+    Use dill (if exists) to serialize the lambda functions where pickle does not do this. Also adds 3 retries with
+    exponential standoff in case of save failure to improve robustness to transient issues.
 
     Args:
         *args (tuple): Positional arguments to pass to torch.save.
@@ -74,4 +76,11 @@ def torch_save(*args, **kwargs):
 
     if "pickle_module" not in kwargs:
         kwargs["pickle_module"] = pickle  # noqa
-    return _torch_save(*args, **kwargs)
+
+    for i in range(4):  # 3 retries
+        try:
+            return _torch_save(*args, **kwargs)
+        except RuntimeError:  # unable to save, possibly waiting for device to flush or anti-virus to finish scanning
+            if i == 3:
+                raise
+            time.sleep((2**i) / 2)  # exponential standoff 0.5s, 1.0s, 2.0s

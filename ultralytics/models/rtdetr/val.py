@@ -122,8 +122,7 @@ class RTDETRValidator(DetectionValidator):
             bbox = ops.xywh2xyxy(bbox)  # target boxes
             bbox[..., [0, 2]] *= ori_shape[1]  # native-space pred
             bbox[..., [1, 3]] *= ori_shape[0]  # native-space pred
-        prepared_batch = dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
-        return prepared_batch
+        return dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
 
     def _prepare_pred(self, pred, pbatch):
         """Prepares and returns a batch with transformed bounding boxes and class labels."""

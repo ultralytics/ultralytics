@@ -37,7 +37,7 @@ TASK2DATA = {
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
-    "obb": "dota8-obb.yaml",
+    "obb": "dota8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolov8n.pt",
@@ -51,7 +51,7 @@ TASK2METRIC = {
     "segment": "metrics/mAP50-95(M)",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
-    "obb": "metrics/mAP50-95(OBB)",
+    "obb": "metrics/mAP50-95(B)",
 }
 
 CLI_HELP_MSG = f"""

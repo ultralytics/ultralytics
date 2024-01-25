@@ -41,7 +41,7 @@ keywords: YOLOv8, Ultralytics, 객체 감지, 사전 훈련된 모델, 훈련, �
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l.pt) | 640             | 52.9                 | 375.2                       | 2.39                             | 43.7             | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x.pt) | 640             | 53.9                 | 479.1                       | 3.53                             | 68.2             | 257.8             |
 
-- **mAP<sup>val</sup>** 값은 [COCO val2017](http://cocodataset.org) 데이터셋에서 단일 모델 단일 스케일을 사용한 값입니다.
+- **mAP<sup>val</sup>** 값은 [COCO val2017](https://cocodataset.org) 데이터셋에서 단일 모델 단일 스케일을 사용한 값입니다.
   <br>[COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) 데이터와 `yolo val detect data=coco.yaml device=0` 명령으로 재현할 수 있습니다.
 - **속도**는 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 인스턴스를 사용해 COCO val 이미지들을 평균한 것입니다.
   <br>[COCO128](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml) 데이터와 `yolo val detect data=coco128.yaml batch=1 device=0|cpu` 명령으로 재현할 수 있습니다.

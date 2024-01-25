@@ -696,6 +696,7 @@ class v8OBBLoss(v8DetectionLoss):
             anchor_points (torch.Tensor): Anchor points, (h*w, 2).
             pred_dist (torch.Tensor): Predicted rotated distance, (bs, h*w, 4).
             pred_angle (torch.Tensor): Predicted angle, (bs, h*w, 1).
+
         Returns:
             (torch.Tensor): Predicted rotated bounding boxes with angles, (bs, h*w, 5).
         """

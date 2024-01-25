@@ -46,7 +46,8 @@ class YOLODataset(BaseDataset):
         Cache dataset labels, check images and read shapes.
 
         Args:
-            path (Path): path where to save the cache file (default: Path('./labels.cache')).
+            path (Path): Path where to save the cache file. Default is Path('./labels.cache').
+
         Returns:
             (dict): labels.
         """

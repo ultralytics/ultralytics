@@ -314,11 +314,11 @@ plt.show()
 
 Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the
 
-# Apps Built Using Ultralytics Explorer
+## Apps Built Using Ultralytics Explorer
 
 Try our GUI Demo based on Explorer API
 
-# Coming Soon
+## Coming Soon
 
 - [ ] Merge specific labels from datasets. Example - Import all `person` labels from COCO and `car` labels from Cityscapes
 - [ ] Remove images that have a higher similarity index than the given threshold

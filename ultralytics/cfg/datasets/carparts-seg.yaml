@@ -16,7 +16,7 @@ test: test/images # test images (relative to 'path') 401 images
 # Classes
 names:
   0: back_bumper
-  1: back_door,
+  1: back_door
   2: back_glass
   3: back_left_door
   4: back_left_light

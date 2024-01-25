@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Access object detection capabilities of YOLOv8 via our RESTful API. Learn how to use the YOLO Inference API with Python or CLI for swift object detection.
-keywords: Ultralytics, YOLOv8, Inference API, object detection, RESTful API, Python, CLI, Quickstart
+description: Access object detection capabilities of YOLOv8 via our RESTful API. Learn how to use the YOLO Inference API with Python or cURL for swift object detection.
+keywords: Ultralytics, YOLOv8, Inference API, object detection, RESTful API, Python, cURL, Quickstart
 ---
 
 # YOLO Inference API
@@ -44,9 +44,9 @@ print(response.json())
 
 In this example, replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `path/to/image.jpg` with the path to the image you want to analyze.
 
-## Example Usage with CLI
+## Example Usage with cURL
 
-You can use the YOLO Inference API with the command-line interface (CLI) by utilizing the `curl` command. Replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `image.jpg` with the path to the image you want to analyze:
+You can use the YOLO Inference API with client URL (cURL) by utilizing the `curl` command. Replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `image.jpg` with the path to the image you want to analyze:
 
 ```bash
 curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
@@ -103,11 +103,11 @@ The JSON list contains information about the detected objects, their coordinates
 
 ### Detect Model Format
 
-YOLO detection models, such as `yolov8n.pt`, can return JSON responses from local inference, CLI inference, and Python inference. All of these methods produce the same JSON response format.
+YOLO detection models, such as `yolov8n.pt`, can return JSON responses from local inference, cURL inference, and Python inference. All of these methods produce the same JSON response format.
 
 !!! Example "Detect Model JSON Response"
 
-    === "Local"
+    === "`ultralytics`"
 
         ```python
         from ultralytics import YOLO
@@ -122,7 +122,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         print(results[0].tojson())
         ```
 
-    === "CLI"
+    === "cURL"
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
@@ -201,11 +201,11 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
 
 ### Segment Model Format
 
-YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses from local inference, CLI inference, and Python inference. All of these methods produce the same JSON response format.
+YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses from local inference, cURL inference, and Python inference. All of these methods produce the same JSON response format.
 
 !!! Example "Segment Model JSON Response"
 
-    === "Local"
+    === "`ultralytics`"
 
         ```python
         from ultralytics import YOLO
@@ -220,7 +220,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         print(results[0].tojson())
         ```
 
-    === "CLI"
+    === "cURL"
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
@@ -342,11 +342,11 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
 
 ### Pose Model Format
 
-YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from local inference, CLI inference, and Python inference. All of these methods produce the same JSON response format.
+YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from local inference, cURL inference, and Python inference. All of these methods produce the same JSON response format.
 
 !!! Example "Pose Model JSON Response"
 
-    === "Local"
+    === "`ultralytics`"
 
         ```python
         from ultralytics import YOLO
@@ -361,7 +361,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         print(results[0].tojson())
         ```
 
-    === "CLI"
+    === "cURL"
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \

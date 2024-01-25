@@ -6,7 +6,7 @@ keywords: CarParts Segmentation Dataset, Ultralytics, Vehicle Analytics, Spare p
 
 # Carparts Segmentation Dataset
 
-The [Roboflow](https://roboflow.com/) Carparts Segmentation Dataset is a curated collection of images and videos designed for computer vision applications, specifically focusing on segmentation tasks related to car parts. This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable annotated examples for training and testing segmentation models. 
+The [Roboflow](https://roboflow.com/?ref=ultralytics) Carparts Segmentation Dataset is a curated collection of images and videos designed for computer vision applications, specifically focusing on segmentation tasks related to car parts. This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable annotated examples for training and testing segmentation models. 
 
 Whether you're working on automotive research, developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing accuracy and efficiency in your projects.
 
@@ -65,6 +65,7 @@ The Carparts Segmentation dataset includes a diverse array of images and videos 
 
 - This image illustrates object segmentation within a sample, featuring annotated bounding boxes with masks surrounding identified objects. The dataset consists of a varied set of images captured in various locations, environments, and densities, serving as a comprehensive resource for crafting models specific to this task.
 - This instance highlights the diversity and complexity inherent in the dataset, emphasizing the crucial role of high-quality data in computer vision tasks, particularly in the realm of car parts segmentation.
+
 ## Citations and Acknowledgments
 
 If you integrate the Carparts Segmentation dataset into your research or development projects, please make reference to the following paper:

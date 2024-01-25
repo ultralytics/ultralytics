@@ -6,7 +6,7 @@ keywords: Packet Segmentation Dataset, Ultralytics, Manufacturing, Logistics, YO
 
 # Package Segmentation Dataset
 
-The [Roboflow](https://roboflow.com/) Package Segmentation Dataset is a curated collection of images specifically tailored for tasks related to package segmentation in the field of computer vision. This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
+The [Roboflow](https://roboflow.com/?ref=ultralytics) Package Segmentation Dataset is a curated collection of images specifically tailored for tasks related to package segmentation in the field of computer vision. This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
 
 Containing a diverse set of images showcasing various packages in different contexts and environments, the dataset serves as a valuable resource for training and evaluating segmentation models. Whether you are engaged in logistics, warehouse automation, or any application requiring precise package analysis, the Package Segmentation Dataset provides a targeted and comprehensive set of images to enhance the performance of your computer vision algorithms.
 
@@ -65,6 +65,7 @@ The Package Segmentation dataset comprises a varied collection of images and vid
 
 - This image displays an instance of image object detection, featuring annotated bounding boxes with masks outlining recognized objects. The dataset incorporates a diverse collection of images taken in different locations, environments, and densities. It serves as a comprehensive resource for developing models specific to this task.
 - The example emphasizes the diversity and complexity present in the VisDrone dataset, underscoring the significance of high-quality sensor data for computer vision tasks involving drones.
+
 ## Citations and Acknowledgments
 
 If you integrate the crack segmentation dataset into your research or development initiatives, please cite the following paper:

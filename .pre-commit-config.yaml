@@ -43,12 +43,10 @@ repos:
         name: MD formatting
         additional_dependencies:
           - mdformat-frontmatter>=2.0.8
-          - mdformat_tables>=0.4.1
-          - mdformat-mkdocs>=2.0.0rc3
-          - mdformat-gfm@git+https://github.com/hukkin/mdformat-gfm.git
+          - mdformat-mkdocs>=2.0.1
           # # TODO: defer additional plugins (black/beautysh/etc.) to minimize diff
-          # #   Note: 'mdformat-mkdocs[recommended]' includes frontmatter, tables, and mkdocs
-          # - mdformat-mkdocs[recommended]>=2.0.0
+          # #   Note: 'mdformat-mkdocs[recommended]' includes frontmatter, so this line is all you need:
+          # - mdformat-mkdocs[recommended]>=2.0.1
         args:
           - --wrap=no
           - --number

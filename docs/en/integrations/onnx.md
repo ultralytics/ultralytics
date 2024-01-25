@@ -54,11 +54,11 @@ ONNX models are often deployed on CPUs due to their compatibility with ONNX Runt
 
 While ONNX models are commonly used on CPUs, they can also be deployed on the following platforms:
 
-- GPU Acceleration: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. This enables efficient execution on NVIDIA GPUs for tasks that demand high computational power.
+- **GPU Acceleration**: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. This enables efficient execution on NVIDIA GPUs for tasks that demand high computational power.
 
-- Edge and Mobile Devices: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware.
+- **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware.
 
-- Web Browsers: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
+- **Web Browsers**: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
 
 ## Exporting YOLOv8 Models to ONNX
 
@@ -70,12 +70,12 @@ To install the required package, run:
 
 !!! Tip "Installation"
 
-=== "CLI"
-
-    ```bash
-    # Install the required package for YOLOv8
-    pip install ultralytics
-    ```
+    === "CLI"
+    
+        ```bash
+        # Install the required package for YOLOv8
+        pip install ultralytics
+        ```
 
 For detailed instructions and best practices related to the installation process, check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 

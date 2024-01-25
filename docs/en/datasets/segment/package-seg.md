@@ -6,7 +6,7 @@ keywords: Packet Segmentation Dataset, Ultralytics, Manufacturing, Logistics, YO
 
 # Package Segmentation Dataset
 
-The [Roboflow](https://roboflow.com/) Package Segmentation Dataset is a curated collection of images specifically tailored for tasks related to package segmentation in the field of computer vision. This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
+The [Roboflow](https://roboflow.com/?ref=ultralytics) Package Segmentation Dataset is a curated collection of images specifically tailored for tasks related to package segmentation in the field of computer vision. This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
 
 Containing a diverse set of images showcasing various packages in different contexts and environments, the dataset serves as a valuable resource for training and evaluating segmentation models. Whether you are engaged in logistics, warehouse automation, or any application requiring precise package analysis, the Package Segmentation Dataset provides a targeted and comprehensive set of images to enhance the performance of your computer vision algorithms.
 

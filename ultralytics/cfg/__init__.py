@@ -317,7 +317,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
         args (List[str]): A list of strings where each element is an argument.
 
     Returns:
-        List[str]: A list of strings where the arguments around isolated '=' are merged.
+        (List[str]): A list of strings where the arguments around isolated '=' are merged.
     """
     new_args = []
     for i, arg in enumerate(args):

@@ -510,7 +510,7 @@ class AutoBackend(nn.Module):
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
 
         Returns:
-            (None): This method runs the forward pass and don't return any value
+            None
         """
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):

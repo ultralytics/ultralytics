@@ -1,11 +1,20 @@
-path: "../datasets/crack-seg" # dataset root dir
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Package-seg dataset by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/segment/crack-seg/
+# Example usage: yolo train data=crack-seg.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── package-seg  ← downloads here (91.2 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/crack-seg # dataset root dir
 train: train/images  # training images directory
 val: valid/images    # validation images directory
 test: test/images   # testing images directory
 
-nc: 1    # number of classes
 
-# name of classes
+# Classes
 names:
   0: crack
 

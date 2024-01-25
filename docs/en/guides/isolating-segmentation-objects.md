@@ -29,7 +29,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ______________________________________________________________________
 
-1. Load a model and run `predict()` method on a source.
+2. Load a model and run `predict()` method on a source.
 
     ```py
     from ultralytics import YOLO
@@ -55,7 +55,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ______________________________________________________________________
 
-1. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
+3. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ```{ .py .annotate }
     # (2) Iterate detection results (helpful for multiple images)
@@ -71,14 +71,14 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ```
 
     1. To learn more about working with detection results, see [Boxes Section for Predict Mode](../modes/predict.md#boxes).
-    1. To learn more about `predict()` results see [Working with Results for Predict Mode](../modes/predict.md#working-with-results)
+    2. To learn more about `predict()` results see [Working with Results for Predict Mode](../modes/predict.md#working-with-results)
 
     ??? info "For-Loop"
         A single image will only iterate the first loop once. A single image with only a single detection will iterate each loop _only_ once.
 
     ______________________________________________________________________
 
-1. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
+4. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
@@ -105,9 +105,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     1. For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md#masks).
 
-    1. Here, the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
+    2. Here, the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
 
-    1. The OpenCV `drawContours()` function expects contours to have a shape of `[N, 1, 2]` expand section below for more details.
+    3. The OpenCV `drawContours()` function expects contours to have a shape of `[N, 1, 2]` expand section below for more details.
 
     <details>
     <summary> Expand to understand what is happening when defining the <code>contour</code> variable.</summary>
@@ -144,7 +144,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ______________________________________________________________________
 
-1. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+5. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
     ### Object Isolation Options
 
@@ -170,9 +170,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 There are no additional steps required if keeping full size image.
 
                 <figure markdown>
-                      ![Example Full size Isolated Object Image Black Background](https://github.com/ultralytics/ultralytics/assets/62214284/845c00d0-52a6-4b1e-8010-4ba73e011b99){ width=240 }
-                      <figcaption>Example full-size output</figcaption>
-                  </figure>
+                ![Example Full size Isolated Object Image Black Background](https://github.com/ultralytics/ultralytics/assets/62214284/845c00d0-52a6-4b1e-8010-4ba73e011b99){ width=240 }
+                <figcaption>Example full-size output</figcaption>
+                </figure>
 
             ??? info "Cropped object Image"
                 Additional steps required to crop image to only include object region.
@@ -214,9 +214,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 There are no additional steps required if keeping full size image.
 
                 <figure markdown>
-                      ![Example Full size Isolated Object Image No Background](https://github.com/ultralytics/ultralytics/assets/62214284/b1043ee0-369a-4019-941a-9447a9771042){ width=240 }
-                      <figcaption>Example full-size output + transparent background</figcaption>
-                  </figure>
+                ![Example Full size Isolated Object Image No Background](https://github.com/ultralytics/ultralytics/assets/62214284/b1043ee0-369a-4019-941a-9447a9771042){ width=240 }
+                <figcaption>Example full-size output + transparent background</figcaption>
+                </figure>
 
             ??? info "Cropped object Image"
                 Additional steps required to crop image to only include object region.
@@ -243,11 +243,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                     - Finally the image region for the bounding box is cropped using index slicing, where the bounds are set using the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
 
     ??? question "What if I want the cropped object **including** the background?"
-        This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
+        This is a built in feature for the Ultralytics library. See the `save_crop` argument for [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
 
     ______________________________________________________________________
 
-1. <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
+6. <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
@@ -306,8 +306,8 @@ for r in res:
 ```
 
 1. The line populating `contour` is combined into a single line here, where it was split to multiple above.
-1. {==What goes here is up to you!==}
-1. See [Predict Mode](../modes/predict.md) for additional information.
-1. See [Segment Task](../tasks/segment.md#models) for more information.
-1. Learn more about [Working with Results](../modes/predict.md#working-with-results)
-1. Learn more about [Segmentation Mask Results](../modes/predict.md#masks)
+2. {==What goes here is up to you!==}
+3. See [Predict Mode](../modes/predict.md) for additional information.
+4. See [Segment Task](../tasks/segment.md#models) for more information.
+5. Learn more about [Working with Results](../modes/predict.md#working-with-results)
+6. Learn more about [Segmentation Mask Results](../modes/predict.md#masks)

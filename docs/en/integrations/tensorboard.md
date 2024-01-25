@@ -27,9 +27,7 @@ Using TensorBoard while training YOLOv8 models is straightforward and offers sig
 To install the required package, run:
 
 !!! Tip "Installation"
-
     === "CLI"
-
         ```bash
         # Install the required package for YOLOv8 and Tensorboard
         pip install ultralytics
@@ -44,9 +42,7 @@ For detailed instructions and best practices related to the installation process
 When using Google Colab, it's important to set up TensorBoard before starting your training code:
 
 !!! Example "Configure TensorBoard for Google Collab"
-
     === "Python"
-
         ```python
         %load_ext tensorboard
         %tensorboard --logdir path/to/runs
@@ -57,9 +53,7 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
 !!! Example "Usage"
-
     === "Python"
-
         ```python
         from ultralytics import YOLO
 

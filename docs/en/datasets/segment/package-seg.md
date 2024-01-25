@@ -65,6 +65,7 @@ The Package Segmentation dataset comprises a varied collection of images and vid
 
 - This image displays an instance of image object detection, featuring annotated bounding boxes with masks outlining recognized objects. The dataset incorporates a diverse collection of images taken in different locations, environments, and densities. It serves as a comprehensive resource for developing models specific to this task.
 - The example emphasizes the diversity and complexity present in the VisDrone dataset, underscoring the significance of high-quality sensor data for computer vision tasks involving drones.
+
 ## Citations and Acknowledgments
 
 If you integrate the crack segmentation dataset into your research or development initiatives, please cite the following paper:

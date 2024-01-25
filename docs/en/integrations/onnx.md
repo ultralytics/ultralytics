@@ -83,7 +83,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example “Usage”
+!!! Example "Usage"
 
     === "Python"
 
@@ -129,6 +129,6 @@ Once you've successfully exported your Ultralytics YOLOv8 models to ONNX format,
 
 In this guide, you've learned how to export Ultralytics YOLOv8 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
 
-For further details on usage, visit [ONNX's official documentation](https://onnx.ai/onnx/intro/).
+For further details on usage, visit the [ONNX official documentation](https://onnx.ai/onnx/intro/).
 
 Also, if you’d like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.

@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv8, ONNX Format, Export YOLOv8, CUDA Support, Model D
 
 # ONNX Export for YOLOv8 Models
 
-Often, when deploying computer vision models, you’ll need a model format that's both flexible and compatible with multiple platforms. 
+Often, when deploying computer vision models, you’ll need a model format that's both flexible and compatible with multiple platforms.
 
 Exporting [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models to ONNX format streamlines deployment and ensures optimal performance across various environments. This guide will show you how to easily convert your YOLOv8 models to ONNX and enhance their scalability and effectiveness in real-world applications.
 
@@ -20,7 +20,7 @@ ONNX models can be used to transition between different frameworks seamlessly. F
   <img width="100%" src="https://www.aurigait.com/wp-content/uploads/2023/01/1_unnamed.png" alt="ONNX">
 </p>
 
-Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, TensorFlow, TFLite, scikit-learn, etc. 
+Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, TensorFlow, TFLite, scikit-learn, etc.
 
 ONNX Runtime optimizes the execution of ONNX models by leveraging hardware-specific capabilities. This optimization allows the models to run efficiently and with high performance on various hardware platforms, including CPUs, GPUs, and specialized accelerators.
 
@@ -44,7 +44,7 @@ The ability of ONNX to handle various formats can be attributed to the following
 
 ## Common Usage of ONNX
 
-Before we jump into how to export YOLOv8 models to the ONNX format, let’s take a look at where ONNX models are usually used. 
+Before we jump into how to export YOLOv8 models to the ONNX format, let’s take a look at where ONNX models are usually used.
 
 ### CPU Deployment
 
@@ -54,11 +54,11 @@ ONNX models are often deployed on CPUs due to their compatibility with ONNX Runt
 
 While ONNX models are commonly used on CPUs, they can also be deployed on the following platforms:
 
-- GPU Acceleration: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. This enables efficient execution on NVIDIA GPUs for tasks that demand high computational power.
+- **GPU Acceleration**: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. This enables efficient execution on NVIDIA GPUs for tasks that demand high computational power.
 
-- Edge and Mobile Devices: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware.
+- **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware.
 
-- Web Browsers: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
+- **Web Browsers**: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
 
 ## Exporting YOLOv8 Models to ONNX
 
@@ -70,12 +70,12 @@ To install the required package, run:
 
 !!! Tip "Installation"
 
-=== "CLI"
-
-    ```bash
-    # Install the required package for YOLOv8
-    pip install ultralytics
-    ```
+    === "CLI"
+    
+        ```bash
+        # Install the required package for YOLOv8
+        pip install ultralytics
+        ```
 
 For detailed instructions and best practices related to the installation process, check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
@@ -83,7 +83,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example “Usage”
+!!! Example "Usage"
 
     === "Python"
 
@@ -129,6 +129,6 @@ Once you've successfully exported your Ultralytics YOLOv8 models to ONNX format,
 
 In this guide, you've learned how to export Ultralytics YOLOv8 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
 
-For further details on usage, visit [ONNX's official documentation](https://onnx.ai/onnx/intro/).
+For further details on usage, visit the [ONNX official documentation](https://onnx.ai/onnx/intro/).
 
 Also, if you’d like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.

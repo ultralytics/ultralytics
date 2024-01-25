@@ -515,6 +515,8 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
     for l in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
         h, w = l["shape"]
         boxes = l["bboxes"]
+        if len(boxes) == 0:  # skip empty labels
+            continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
         im = cv2.imread(l["im_file"])

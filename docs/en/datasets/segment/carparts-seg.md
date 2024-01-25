@@ -65,6 +65,7 @@ The Carparts Segmentation dataset includes a diverse array of images and videos 
 
 - This image illustrates object segmentation within a sample, featuring annotated bounding boxes with masks surrounding identified objects. The dataset consists of a varied set of images captured in various locations, environments, and densities, serving as a comprehensive resource for crafting models specific to this task.
 - This instance highlights the diversity and complexity inherent in the dataset, emphasizing the crucial role of high-quality data in computer vision tasks, particularly in the realm of car parts segmentation.
+
 ## Citations and Acknowledgments
 
 If you integrate the Carparts Segmentation dataset into your research or development projects, please make reference to the following paper:

@@ -484,7 +484,7 @@ class Explorer:
             ```
         """
         label_counts = {}
-        dataset_labels = self.table.to_pandas().labels
+        dataset_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
         flatten_labels = [l for ls in list(dataset_labels) for l in ls]
         for label in labels:
             if label in flatten_labels:
@@ -508,7 +508,7 @@ class Explorer:
             ```
         """
         label_counts = {}
-        dataset_labels = self.table.to_pandas().labels
+        dataset_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
         flatten_labels = [l for ls in list(dataset_labels) for l in ls]
         unique_labels = list(set(flatten_labels))
 
@@ -530,7 +530,7 @@ class Explorer:
                 labels = exp.unique_labels()
             ```
         """
-        dataset_labels = self.table.to_pandas().labels
+        dataset_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
         flatten_labels = [l for ls in list(dataset_labels) for l in ls]
         unique_labels = list(set(flatten_labels))
         return unique_labels

@@ -515,7 +515,7 @@ class Explorer:
         for label in unique_labels:
             label_counts[label] = flatten_labels.count(label)
         return label_counts
-    
+
     def unique_labels(self) -> list:
         """
         List of unique labels present in dataset.

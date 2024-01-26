@@ -49,7 +49,7 @@ class BaseDataset(Dataset):
     def __init__(
         self,
         img_path,
-        imgsz=(640,640),
+        imgsz=(640, 640),
         cache=False,
         augment=True,
         hyp=DEFAULT_CFG,
@@ -157,7 +157,7 @@ class BaseDataset(Dataset):
                 im = cv2.imread(f)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
-            
+
             h0, w0 = im.shape[:2]  # orig hw
             target_h, target_w = self.imgsz
             if rect_mode:  # Resize while maintaining aspect ratio
@@ -166,7 +166,7 @@ class BaseDataset(Dataset):
                 im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
             else:  # Resize by stretching image to target dimensions
                 im = cv2.resize(im, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
-        
+
             # Add to buffer if training with augmentations
             if self.augment:
                 self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
@@ -174,9 +174,9 @@ class BaseDataset(Dataset):
                 if len(self.buffer) >= self.max_buffer_length:
                     j = self.buffer.pop(0)
                     self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-    
+
             return im, (h0, w0), im.shape[:2]
-    
+
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self, cache):
@@ -213,7 +213,7 @@ class BaseDataset(Dataset):
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
         cache = mem_required < mem.available  # to cache or not to cache, that is the question
-    
+
         if not cache:
             LOGGER.info(
                 f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
@@ -227,14 +227,14 @@ class BaseDataset(Dataset):
         """Sets the shape of bounding boxes for YOLO detections as rectangles."""
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
-    
+
         s = np.array([x.pop("shape") for x in self.labels])  # hw
         ar = s[:, 0] / s[:, 1]  # aspect ratio
         irect = ar.argsort()
         self.im_files = [self.im_files[i] for i in irect]
         self.labels = [self.labels[i] for i in irect]
         ar = ar[irect]
-    
+
         # Set training image shapes
         shapes = [[1, 1]] * nb
         for i in range(nb):
@@ -246,7 +246,9 @@ class BaseDataset(Dataset):
                 shapes[i] = [1, 1 / mini]
 
         imgsz_h, imgsz_w = self.imgsz
-        self.batch_shapes = np.ceil(np.array(shapes) * [imgsz_h, imgsz_w] / self.stride + self.pad).astype(int) * self.stride
+        self.batch_shapes = (
+            np.ceil(np.array(shapes) * [imgsz_h, imgsz_w] / self.stride + self.pad).astype(int) * self.stride
+        )
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index):

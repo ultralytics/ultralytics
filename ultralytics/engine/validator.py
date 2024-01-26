@@ -131,9 +131,9 @@ class BaseValidator:
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
 
             if engine or pt:
-                imgsz = check_imgsz(self.args.imgsz, max_dim=2, stride=stride)                
+                imgsz = check_imgsz(self.args.imgsz, max_dim=2, stride=stride)
             else:
-                #TODO: check if other formats are also working well with rectangular resolutions
+                # TODO: check if other formats are also working well with rectangular resolutions
                 imgsz = check_imgsz(self.args.imgsz, max_dim=1, stride=stride)
 
             if engine:
@@ -155,8 +155,7 @@ class BaseValidator:
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
-         
-         
+
             if len(imgsz) == 2:
                 height = imgsz[0]
                 width = imgsz[1]

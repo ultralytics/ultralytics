@@ -200,7 +200,9 @@ class Mosaic(BaseMixTransform):
             mosaic_labels.append(labels_patch)
         final_labels = self._cat_labels(mosaic_labels)
 
-        final_labels["img"] = img3[-self.border[1] : 3 * s_h + self.border[1], -self.border[0] : 3 * s_w + self.border[0]]
+        final_labels["img"] = img3[
+            -self.border[1] : 3 * s_h + self.border[1], -self.border[0] : 3 * s_w + self.border[0]
+        ]
         return final_labels
 
     def _mosaic4(self, labels):
@@ -213,7 +215,7 @@ class Mosaic(BaseMixTransform):
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch.pop("resized_shape")
-    
+
             # Place img in img4
             if i == 0:  # top left
                 img4 = np.full((s_h * 2, s_w * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
@@ -228,18 +230,17 @@ class Mosaic(BaseMixTransform):
             elif i == 3:  # bottom right
                 x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s_w * 2), min(s_h * 2, yc + h)
                 x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
-    
+
             img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
             padw = x1a - x1b
             padh = y1a - y1b
-    
+
             labels_patch = self._update_labels(labels_patch, padw, padh)
             mosaic_labels.append(labels_patch)
-    
+
         final_labels = self._cat_labels(mosaic_labels)
         final_labels["img"] = img4
         return final_labels
-
 
     def _mosaic9(self, labels):
         """Create a 3x3 image mosaic."""
@@ -287,7 +288,7 @@ class Mosaic(BaseMixTransform):
 
         final_labels = self._cat_labels(mosaic_labels)
 
-        final_labels["img"] = img9[-self.border[0]: self.border[0], -self.border[1]: self.border[1]]
+        final_labels["img"] = img9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return final_labels
 
     @staticmethod
@@ -699,7 +700,7 @@ class LetterBox:
             labels = {}
         img = labels.get("img") if image is None else image
         shape = img.shape[:2]  # current shape [height, width]
-      
+
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
             new_shape = (new_shape, new_shape)

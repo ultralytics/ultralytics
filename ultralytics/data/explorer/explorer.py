@@ -469,18 +469,19 @@ class Explorer:
 
     def label_count(self, labels: list) -> dict:
         """
-        Count of Occurrences of labels
+        Count occurrences of labels.
+        
         Args:
             labels (list): List of labels to count their occurrences.
 
         Returns:
-            label_counts(dict): Dictionary containing labels with their count
+            label_counts (dict): Dictionary containing labels with their count.
 
         Example:
             ```python
-                exp = Explorer()
-                exp.create_embeddings_table()
-                label_counts = exp.label_count()
+            exp = Explorer()
+            exp.create_embeddings_table()
+            label_counts = exp.label_count()
             ```
         """
         label_counts = {}
@@ -498,13 +499,13 @@ class Explorer:
         Count of Occurrences of all labels in dataset.
 
         Returns:
-            label_counts(dict): Dictionary containing labels with their count
+            label_counts (dict): Dictionary containing labels with their count.
 
         Example:
             ```python
-                exp = Explorer()
-                exp.create_embeddings_table()
-                label_count = exp.dataset_label_count()
+            exp = Explorer()
+            exp.create_embeddings_table()
+            label_count = exp.dataset_label_count()
             ```
         """
         label_counts = {}
@@ -521,16 +522,15 @@ class Explorer:
         List of unique labels present in dataset.
 
         Returns:
-            labels(list): list of labels present in dataset
+            (list): list of labels present in dataset.
 
         Example:
             ```python
-                exp = Explorer()
-                exp.create_embeddings_table()
-                labels = exp.unique_labels()
+            exp = Explorer()
+            exp.create_embeddings_table()
+            labels = exp.unique_labels()
             ```
         """
         dataset_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
         flatten_labels = [l for ls in list(dataset_labels) for l in ls]
-        unique_labels = list(set(flatten_labels))
-        return unique_labels
+        return list(set(flatten_labels))  # unique labels

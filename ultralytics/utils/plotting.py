@@ -388,6 +388,7 @@ class Annotator:
             a (float) : The value of pose point a
             b (float): The value of pose point b
             c (float): The value o pose point c
+
         Returns:
             angle (degree): Degree value of angle between three points
         """

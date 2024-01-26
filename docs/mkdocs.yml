@@ -367,6 +367,25 @@ nav:
           - Model: hub/sdk/model.md
           - Dataset: hub/sdk/dataset.md
           - Project: hub/sdk/project.md
+          - Reference:
+              - base:
+                  - api_client: hub/sdk/reference/base/api_client.md
+                  - auth: hub/sdk/reference/base/auth.md
+                  - crud_client: hub/sdk/reference/base/crud_client.md
+                  - paginated_list: hub/sdk/reference/base/paginated_list.md
+                  - server_clients: hub/sdk/reference/base/server_clients.md
+              - helpers:
+                  - error_handler: hub/sdk/reference/helpers/error_handler.md
+                  - exceptions: hub/sdk/reference/helpers/exceptions.md
+                  - logger: hub/sdk/reference/helpers/logger.md
+                  - utils: hub/sdk/reference/helpers/utils.md
+              - hub_client: hub/sdk/reference/hub_client.md
+              - modules:
+                  - datasets: hub/sdk/reference/modules/datasets.md
+                  - models: hub/sdk/reference/modules/models.md
+                  - projects: hub/sdk/reference/modules/projects.md
+                  - teams: hub/sdk/reference/modules/teams.md
+                  - users: hub/sdk/reference/modules/users.md
       - REST API:
           - hub/api/index.md
 

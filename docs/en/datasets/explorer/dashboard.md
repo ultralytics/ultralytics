@@ -12,6 +12,17 @@ Explorer GUI is like a playground build using [Ultralytics Explorer API](api.md)
     <img width="1709" alt="Explorer Dashboard Screenshot 1" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0">
 </p>
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/3VryynorQeo?start=306"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics Explorer Dashboard Overview
+</p>
+
 ### Installation
 
 ```bash

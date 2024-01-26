@@ -466,3 +466,77 @@ class Explorer:
         TODO
         """
         pass
+
+    def label_count(self, labels: list) -> dict:
+        """
+        Count of Occurances of labels
+        Args:
+            labels (list): List of labels to count their occurances.
+            
+        Returns:
+            label_counts(dict): Dictionary containing labels with their count
+
+        Example:
+            ```python
+                exp = Explorer()
+                exp.create_embeddings_table()
+                label_counts = exp.label_count()
+            ```
+        """
+        label_counts = {}
+        base_query = "SELECT * FROM 'table' WHERE"
+        for i in range(len(labels)):
+            if i == 0:
+                base_query += f" labels LIKE '%{labels[i]}%'"
+            else:
+                base_query += f" OR labels LIKE '%{labels[i]}%'"
+        result = self.sql_query(base_query)
+        flatten_labels = [l for ls in list(result.labels) for l in ls]
+        
+        for label in labels:
+            label_counts[label] = flatten_labels.count(label)
+        return label_counts
+
+    def dataset_label_count(self):
+        """
+        Count of Occurances of all labels in dataset
+            
+        Returns:
+            label_counts(dict): Dictionary containing labels with their count
+
+        Example:
+            ```python
+                exp = Explorer()
+                exp.create_embeddings_table()
+                label_count = exp.dataset_label_count()
+            ```
+        """
+        label_counts = {}
+        base_query = "SELECT * FROM 'table'"
+        result = self.sql_query(base_query)
+        flatten_labels = [l for ls in list(result.labels) for l in ls]
+        unique_labels = list(set(flatten_labels))
+
+        for label in unique_labels:
+            label_counts[label] = flatten_labels.count(label)
+        return label_counts
+    
+    def unique_labels(self):
+        """
+        List of unique labels present in dataset
+            
+        Returns:
+            labels(list): list of labels present in dataset
+
+        Example:
+            ```python
+                exp = Explorer()
+                exp.create_embeddings_table()
+                labels = exp.unique_labels()
+            ```
+        """
+        base_query = "SELECT * FROM 'table'"
+        result = self.sql_query(base_query)
+        flatten_labels = [l for ls in list(result.labels) for l in ls]
+        labels = list(set(flatten_labels))
+        return labels

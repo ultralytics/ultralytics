@@ -470,7 +470,7 @@ class Explorer:
     def label_count(self, labels: list) -> dict:
         """
         Count occurrences of labels.
-        
+
         Args:
             labels (list): List of labels to count their occurrences.
 

@@ -249,6 +249,9 @@ nav:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
           - COCO8-seg: datasets/segment/coco8-seg.md
+          - Crack-seg: datasets/segment/crack-seg.md
+          - Carparts-seg: datasets/segment/carparts-seg.md
+          - Package-seg: datasets/segment/package-seg.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md

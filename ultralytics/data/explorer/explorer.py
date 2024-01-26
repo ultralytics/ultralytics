@@ -469,10 +469,10 @@ class Explorer:
 
     def label_count(self, labels: list) -> dict:
         """
-        Count of Occurances of labels
+        Count of Occurrences of labels
         Args:
-            labels (list): List of labels to count their occurances.
-            
+            labels (list): List of labels to count their occurrences.
+
         Returns:
             label_counts(dict): Dictionary containing labels with their count
 
@@ -495,8 +495,8 @@ class Explorer:
 
     def dataset_label_count(self) -> dict:
         """
-        Count of Occurances of all labels in dataset
-            
+        Count of Occurrences of all labels in dataset.
+
         Returns:
             label_counts(dict): Dictionary containing labels with their count
 
@@ -518,8 +518,8 @@ class Explorer:
     
     def unique_labels(self) -> list:
         """
-        List of unique labels present in dataset
-            
+        List of unique labels present in dataset.
+
         Returns:
             labels(list): list of labels present in dataset
 

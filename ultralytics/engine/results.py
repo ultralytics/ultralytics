@@ -667,8 +667,11 @@ class OBB(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxy(self):
-        """Return the horizontal boxes in xyxy format, (N, 4)."""
-        # This way to fit both torch and numpy version
+        """
+        Return the horizontal boxes in xyxy format, (N, 4).
+
+        Accepts both torch and numpy boxes.
+        """
         x1 = self.xyxyxyxy[..., 0].min(1).values
         x2 = self.xyxyxyxy[..., 0].max(1).values
         y1 = self.xyxyxyxy[..., 1].min(1).values

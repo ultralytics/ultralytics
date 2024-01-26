@@ -75,7 +75,6 @@ def segment2box(segment, width=640, height=640):
     Returns:
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
-    # Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
     x, y = segment.T  # segment xy
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
     x = x[inside]

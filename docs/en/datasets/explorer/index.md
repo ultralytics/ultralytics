@@ -7,7 +7,7 @@ keywords: Ultralytics Explorer, CV Dataset Tools, Semantic Search, SQL Dataset Q
 # Ultralytics Explorer
 
 <p>
-    <img width="1709" alt="Ultralytics Explorer Screenshot 1" src="https://github.com/AyushExel/assets/assets/15766192/85675606-fb7f-4b0c-ad1b-d9d07c919414">
+    <img width="1709" alt="Ultralytics Explorer Screenshot 1" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0">
 </p>
 
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>

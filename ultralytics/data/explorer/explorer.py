@@ -469,10 +469,10 @@ class Explorer:
 
     def label_count(self, labels: list) -> dict:
         """
-        Count of Occurances of labels
+        Count of Occurrences of labels
         Args:
-            labels (list): List of labels to count their occurances.
-            
+            labels (list): List of labels to count their occurrences.
+
         Returns:
             label_counts(dict): Dictionary containing labels with their count
 
@@ -492,15 +492,15 @@ class Explorer:
                 base_query += f" OR labels LIKE '%{labels[i]}%'"
         result = self.sql_query(base_query)
         flatten_labels = [l for ls in list(result.labels) for l in ls]
-        
+
         for label in labels:
             label_counts[label] = flatten_labels.count(label)
         return label_counts
 
     def dataset_label_count(self):
         """
-        Count of Occurances of all labels in dataset
-            
+        Count of Occurrences of all labels in dataset.
+
         Returns:
             label_counts(dict): Dictionary containing labels with their count
 
@@ -520,11 +520,11 @@ class Explorer:
         for label in unique_labels:
             label_counts[label] = flatten_labels.count(label)
         return label_counts
-    
+
     def unique_labels(self):
         """
-        List of unique labels present in dataset
-            
+        List of unique labels present in dataset.
+
         Returns:
             labels(list): list of labels present in dataset
 

@@ -95,7 +95,6 @@ class BaseValidator:
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
-        self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -130,7 +129,13 @@ class BaseValidator:
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
-            imgsz = check_imgsz(self.args.imgsz, stride=stride)
+
+            if engine or pt:
+                imgsz = check_imgsz(self.args.imgsz, max_dim=2, stride=stride)                
+            else:
+                #TODO: check if other formats are also working well with rectangular resolutions
+                imgsz = check_imgsz(self.args.imgsz, max_dim=1, stride=stride)
+
             if engine:
                 self.args.batch = model.batch_size
             elif not pt and not jit:
@@ -150,9 +155,16 @@ class BaseValidator:
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
+         
+         
+            if len(imgsz) == 2:
+                height = imgsz[0]
+                width = imgsz[1]
+            else:
+                height = width = imgsz
 
             model.eval()
-            model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
+            model.warmup(imgsz=(1 if pt else self.args.batch, 3, height, width))  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (

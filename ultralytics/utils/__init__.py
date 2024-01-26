@@ -116,7 +116,11 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
-        """Initialize custom Ultralytics tqdm class with different default arguments. Note these can still be overridden when calling TQDM."""
+        """
+        Initialize custom Ultralytics tqdm class with different default arguments.
+
+        Note these can still be overridden when calling TQDM.
+        """
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)

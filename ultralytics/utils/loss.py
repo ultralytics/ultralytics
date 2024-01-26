@@ -90,7 +90,8 @@ class BboxLoss(nn.Module):
         """
         Return sum of left and right DFL losses.
 
-        Distribution Focal Loss (DFL) proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+        Distribution Focal Loss (DFL) proposed in Generalized Focal Loss
+        https://ieeexplore.ieee.org/document/9792391
         """
         tl = target.long()  # target left
         tr = tl + 1  # target right

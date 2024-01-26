@@ -215,7 +215,8 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks.clear()
 
     def pred_to_json(self, predn, filename, pred_masks):
-        """Save one JSON result.
+        """
+        Save one JSON result.
 
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}

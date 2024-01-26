@@ -7,9 +7,8 @@ keywords: Ultralytics Explorer, CV Dataset Tools, Semantic Search, SQL Dataset Q
 # Ultralytics Explorer
 
 <p>
-    <img width="1709" alt="explorer" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0">
+    <img width="1709" alt="Ultralytics Explorer Screenshot 1" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0">
 </p>
-
 
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 Ultralytics Explorer is a tool for exploring CV datasets using semantic search, SQL queries, vector similarity search and even using natural language. It is also a Python API for accessing the same functionality.

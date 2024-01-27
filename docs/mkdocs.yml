@@ -337,6 +337,7 @@ nav:
       - Comet ML: integrations/comet.md
       - OpenVINO: integrations/openvino.md
       - ONNX: integrations/onnx.md
+      - TensorRT: integrations/tensorrt.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md

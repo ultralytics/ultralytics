@@ -133,6 +133,7 @@ class DetectionValidator(BaseValidator):
             nl = len(cls)
             stat["target_cls"] = cls
             idx = batch["batch_idx"] == si
+            labelsn = torch.cat((batch["cls"][idx], bbox), 1)  # native-space labels
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():
@@ -140,9 +141,6 @@ class DetectionValidator(BaseValidator):
                     # TODO: obb has not supported confusion_matrix yet.
                     if self.args.plots and self.args.task != "obb":
                         self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
-
-                        # Have duplicate with code in following lines. Can create the labelsn as beginning
-                        labelsn = torch.cat((batch["cls"][idx], bbox), 1)  # native-space labels
                         self.output_bad_cases(None, labelsn, batch, si)
                 continue
 
@@ -159,8 +157,6 @@ class DetectionValidator(BaseValidator):
                 # TODO: obb has not supported confusion_matrix yet.
                 if self.args.plots and self.args.task != "obb":
                     self.confusion_matrix.process_batch(predn, bbox, cls)
-
-                    labelsn = torch.cat((batch["cls"][idx], bbox), 1)
                     self.output_bad_cases(predn, labelsn, batch, si)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])

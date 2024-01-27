@@ -150,7 +150,7 @@ def test_predict_grey_and_4ch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@Retry(times=3, delay=30)
+@Retry(times=3, delay=10)
 def test_youtube():
     """
     Test YouTube inference.

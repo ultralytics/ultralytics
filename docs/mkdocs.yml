@@ -71,46 +71,46 @@ extra: # version:
   analytics:
     provider: google
     property: G-2M5EHKC0BH
-  alternate: # language drop-down
-    - name: 🇬🇧 English
-      link: /
-      lang: en
-    - name: 🇨🇳 简体中文
-      link: /zh/
-      lang: zh
-    - name: 🇰🇷 한국어
-      link: /ko/
-      lang: ko
-    - name: 🇯🇵 日本語
-      link: /ja/
-      lang: ja
-    - name: 🇷🇺 Русский
-      link: /ru/
-      lang: ru
-    - name: 🇩🇪 Deutsch
-      link: /de/
-      lang: de
-    - name: 🇫🇷 Français
-      link: /fr/
-      lang: fr
-    - name: 🇪🇸 Español
-      link: /es/
-      lang: es
-    - name: 🇵🇹 Português
-      link: /pt/
-      lang: pt
-    - name: 🇮🇳 हिन्दी
-      link: /hi/
-      lang: hi
-    - name: 🇸🇦 العربية
-      link: /ar/
-      lang: ar
+  #  alternate: # language drop-down
+  #    - name: 🇬🇧 English
+  #      link: /
+  #      lang: en
+  #    - name: 🇨🇳 简体中文
+  #      link: /zh/
+  #      lang: zh
+  #    - name: 🇰🇷 한국어
+  #      link: /ko/
+  #      lang: ko
+  #    - name: 🇯🇵 日本語
+  #      link: /ja/
+  #      lang: ja
+  #    - name: 🇷🇺 Русский
+  #      link: /ru/
+  #      lang: ru
+  #    - name: 🇩🇪 Deutsch
+  #      link: /de/
+  #      lang: de
+  #    - name: 🇫🇷 Français
+  #      link: /fr/
+  #      lang: fr
+  #    - name: 🇪🇸 Español
+  #      link: /es/
+  #      lang: es
+  #    - name: 🇵🇹 Português
+  #      link: /pt/
+  #      lang: pt
+  #    - name: 🇮🇳 हिन्दी
+  #      link: /hi/
+  #      lang: hi
+  #    - name: 🇸🇦 العربية
+  #      link: /ar/
+  #      lang: ar
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/ultralytics/
-    - icon: fontawesome/brands/twitter
+    - icon: fontawesome/brands/x-twitter
       link: https://twitter.com/ultralytics
     - icon: fontawesome/brands/youtube
       link: https://www.youtube.com/ultralytics
@@ -249,6 +249,9 @@ nav:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
           - COCO8-seg: datasets/segment/coco8-seg.md
+          - Crack-seg: datasets/segment/crack-seg.md
+          - Carparts-seg: datasets/segment/carparts-seg.md
+          - Package-seg: datasets/segment/package-seg.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md
@@ -333,6 +336,7 @@ nav:
       - integrations/index.md
       - Comet ML: integrations/comet.md
       - OpenVINO: integrations/openvino.md
+      - ONNX: integrations/onnx.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md
@@ -343,17 +347,47 @@ nav:
       - TensorBoard: integrations/tensorboard.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
   - HUB:
-      - hub/index.md
-      - Quickstart: hub/quickstart.md
-      - Datasets: hub/datasets.md
-      - Projects: hub/projects.md
-      - Models: hub/models.md
-      - Integrations: hub/integrations.md
-      - Ultralytics HUB App:
+      - Cloud:
+          - hub/index.md
+          - Quickstart: hub/quickstart.md
+          - Datasets: hub/datasets.md
+          - Projects: hub/projects.md
+          - Models: hub/models.md
+          - Integrations: hub/integrations.md
+          - Inference API: hub/inference-api.md
+      - On-Premise:
+          - hub/on-premise/index.md
+      - App:
           - hub/app/index.md
           - iOS: hub/app/ios.md
           - Android: hub/app/android.md
-      - Inference API: hub/inference_api.md
+      - Python SDK:
+          - hub/sdk/index.md
+          - Quickstart: hub/sdk/quickstart.md
+          - Model: hub/sdk/model.md
+          - Dataset: hub/sdk/dataset.md
+          - Project: hub/sdk/project.md
+          - Reference:
+              - base:
+                  - api_client: hub/sdk/reference/base/api_client.md
+                  - auth: hub/sdk/reference/base/auth.md
+                  - crud_client: hub/sdk/reference/base/crud_client.md
+                  - paginated_list: hub/sdk/reference/base/paginated_list.md
+                  - server_clients: hub/sdk/reference/base/server_clients.md
+              - helpers:
+                  - error_handler: hub/sdk/reference/helpers/error_handler.md
+                  - exceptions: hub/sdk/reference/helpers/exceptions.md
+                  - logger: hub/sdk/reference/helpers/logger.md
+                  - utils: hub/sdk/reference/helpers/utils.md
+              - hub_client: hub/sdk/reference/hub_client.md
+              - modules:
+                  - datasets: hub/sdk/reference/modules/datasets.md
+                  - models: hub/sdk/reference/modules/models.md
+                  - projects: hub/sdk/reference/modules/projects.md
+                  - teams: hub/sdk/reference/modules/teams.md
+                  - users: hub/sdk/reference/modules/users.md
+      - REST API:
+          - hub/api/index.md
 
   - Reference:
       - cfg:
@@ -522,7 +556,7 @@ plugins:
       add_desc: False
       add_image: True
       add_share_buttons: True
-      default_image: https://github.com/ultralytics/ultralytics/assets/26833433/6d09221c-c52a-4234-9a5d-b862e93c6529
+      default_image: https://github.com/ultralytics/assets/blob/main/yolov8/banner-yolov8.png
   - mkdocs-jupyter
   - redirects:
       redirect_maps:
@@ -542,6 +576,7 @@ plugins:
         quick-start.md: quickstart.md
         app.md: hub/app/index.md
         sdk.md: index.md
+        hub/inference_api.md: hub/inference-api.md
         usage/hyperparameter_tuning.md: integrations/ray-tune.md
         reference/base_pred.md: reference/engine/predictor.md
         reference/base_trainer.md: reference/engine/trainer.md

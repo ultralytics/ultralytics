@@ -3,7 +3,7 @@
 name: Close stale issues
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs at 00:00 UTC every day
+    - cron: "0 0 * * *" # Runs at 00:00 UTC every day
 
 jobs:
   stale:
@@ -43,5 +43,5 @@ jobs:
           days-before-issue-close: 10
           days-before-pr-stale: 90
           days-before-pr-close: 30
-          exempt-issue-labels: 'documentation,tutorial,TODO'
-          operations-per-run: 300  # The maximum number of operations per run, used to control rate limiting.
+          exempt-issue-labels: "documentation,tutorial,TODO"
+          operations-per-run: 300 # The maximum number of operations per run, used to control rate limiting.

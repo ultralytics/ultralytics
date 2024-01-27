@@ -11,6 +11,17 @@ keywords: Ultralytics Explorer API, Dataset Exploration, SQL Queries, Vector Sim
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search and semantic search.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/3VryynorQeo?start=279"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics Explorer API Overview
+</p>
+
 ## Installation
 
 Explorer depends on external libraries for some of its functionality. These are automatically installed on usage. To manually install these dependencies, use the following command:
@@ -314,11 +325,11 @@ plt.show()
 
 Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the
 
-# Apps Built Using Ultralytics Explorer
+## Apps Built Using Ultralytics Explorer
 
 Try our GUI Demo based on Explorer API
 
-# Coming Soon
+## Coming Soon
 
 - [ ] Merge specific labels from datasets. Example - Import all `person` labels from COCO and `car` labels from Cityscapes
 - [ ] Remove images that have a higher similarity index than the given threshold

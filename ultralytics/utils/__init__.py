@@ -116,8 +116,11 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
-        """Initialize custom Ultralytics tqdm class with different default arguments."""
-        # Set new default values (these can still be overridden when calling TQDM)
+        """
+        Initialize custom Ultralytics tqdm class with different default arguments.
+
+        Note these can still be overridden when calling TQDM.
+        """
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
@@ -377,7 +380,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
 
     Returns:
-        None
+        (None)
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
     dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True)
@@ -610,7 +613,7 @@ def get_ubuntu_version():
 
 def get_user_config_dir(sub_dir="Ultralytics"):
     """
-    Get the user config directory.
+    Return the appropriate config directory based on the environment operating system.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -618,7 +621,6 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     Returns:
         (Path): The path to the user config directory.
     """
-    # Return the appropriate config directory for each operating system
     if WINDOWS:
         path = Path.home() / "AppData" / "Roaming" / sub_dir
     elif MACOS:  # macOS

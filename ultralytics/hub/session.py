@@ -42,8 +42,8 @@ class HUBTrainingSession:
         Raises:
             ValueError: If the provided model identifier is invalid.
             ConnectionError: If connecting with global API key is not supported.
+            ModuleNotFoundError: If hub-sdk package is not installed.
         """
-        checks.check_requirements("hub-sdk>=0.0.2")
         from hub_sdk import HUBClient
 
         self.rate_limits = {
@@ -225,13 +225,13 @@ class HUBTrainingSession:
                     break  # Timeout reached, exit loop
 
                 response = request_func(*args, **kwargs)
-                if progress_total:
-                    self._show_upload_progress(progress_total, response)
-
                 if response is None:
                     LOGGER.warning(f"{PREFIX}Received no response from the request. {HELP_MSG}")
                     time.sleep(2**i)  # Exponential backoff before retrying
                     continue  # Skip further processing and retry
+
+                if progress_total:
+                    self._show_upload_progress(progress_total, response)
 
                 if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
                     return response  # Success, no need to retry
@@ -277,7 +277,7 @@ class HUBTrainingSession:
             timeout: The maximum timeout duration.
 
         Returns:
-            str: The retry message.
+            (str): The retry message.
         """
         if self._should_retry(response.status_code):
             return f"Retrying {retry}x for {timeout}s." if retry else ""
@@ -341,7 +341,7 @@ class HUBTrainingSession:
             response (requests.Response): The response object from the file download request.
 
         Returns:
-            (None)
+            None
         """
         with TQDM(total=content_length, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):

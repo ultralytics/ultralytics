@@ -159,6 +159,9 @@ class DetectionValidator(BaseValidator):
                 # TODO: obb has not supported confusion_matrix yet.
                 if self.args.plots and self.args.task != "obb":
                     self.confusion_matrix.process_batch(predn, bbox, cls)
+
+                    labelsn = torch.cat((batch["cls"][idx], bbox), 1)
+                    self.output_bad_cases(predn, labelsn, batch, si)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
 

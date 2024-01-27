@@ -249,6 +249,9 @@ nav:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
           - COCO8-seg: datasets/segment/coco8-seg.md
+          - Crack-seg: datasets/segment/crack-seg.md
+          - Carparts-seg: datasets/segment/carparts-seg.md
+          - Package-seg: datasets/segment/package-seg.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md
@@ -333,6 +336,7 @@ nav:
       - integrations/index.md
       - Comet ML: integrations/comet.md
       - OpenVINO: integrations/openvino.md
+      - ONNX: integrations/onnx.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md
@@ -363,6 +367,25 @@ nav:
           - Model: hub/sdk/model.md
           - Dataset: hub/sdk/dataset.md
           - Project: hub/sdk/project.md
+          - Reference:
+              - base:
+                  - api_client: hub/sdk/reference/base/api_client.md
+                  - auth: hub/sdk/reference/base/auth.md
+                  - crud_client: hub/sdk/reference/base/crud_client.md
+                  - paginated_list: hub/sdk/reference/base/paginated_list.md
+                  - server_clients: hub/sdk/reference/base/server_clients.md
+              - helpers:
+                  - error_handler: hub/sdk/reference/helpers/error_handler.md
+                  - exceptions: hub/sdk/reference/helpers/exceptions.md
+                  - logger: hub/sdk/reference/helpers/logger.md
+                  - utils: hub/sdk/reference/helpers/utils.md
+              - hub_client: hub/sdk/reference/hub_client.md
+              - modules:
+                  - datasets: hub/sdk/reference/modules/datasets.md
+                  - models: hub/sdk/reference/modules/models.md
+                  - projects: hub/sdk/reference/modules/projects.md
+                  - teams: hub/sdk/reference/modules/teams.md
+                  - users: hub/sdk/reference/modules/users.md
       - REST API:
           - hub/api/index.md
 
@@ -533,7 +556,7 @@ plugins:
       add_desc: False
       add_image: True
       add_share_buttons: True
-      default_image: https://github.com/ultralytics/ultralytics/assets/26833433/6d09221c-c52a-4234-9a5d-b862e93c6529
+      default_image: https://github.com/ultralytics/assets/blob/main/yolov8/banner-yolov8.png
   - mkdocs-jupyter
   - redirects:
       redirect_maps:

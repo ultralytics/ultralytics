@@ -136,7 +136,6 @@ class ObjectCounter:
                 cv2.EVENT_FLAG_SHIFTKEY, etc.).
             params (dict): Additional parameters you may want to pass to the function.
         """
-        # global is_drawing, selected_point
         if event == cv2.EVENT_LBUTTONDOWN:
             for i, point in enumerate(self.reg_pts):
                 if (

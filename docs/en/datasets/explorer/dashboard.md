@@ -9,7 +9,7 @@ keywords: Ultralytics, Explorer GUI, semantic search, vector similarity search, 
 Explorer GUI is like a playground build using [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries and even search using natural language using our ask AI feature powered by LLMs.
 
 <p>
-<img width="1709" alt="Explorer Dashboard Screenshot 1" src="https://github.com/AyushExel/assets/assets/15766192/f9c3c704-df3f-4209-81e9-c777b1f6ed9c">
+    <img width="1709" alt="Explorer Dashboard Screenshot 1" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0">
 </p>
 
 <p align="center">

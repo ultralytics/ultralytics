@@ -180,7 +180,7 @@ def _get_covariance_matrix(boxes):
     Returns:
         (torch.Tensor): Covariance metrixs corresponding to original rotated bounding boxes.
     """
-    # Gaussian bounding boxes, ignored the center points(the first two columns) cause it's not needed here.
+    # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
     gbbs = torch.cat((torch.pow(boxes[:, 2:4], 2) / 12, boxes[:, 4:]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
     return (

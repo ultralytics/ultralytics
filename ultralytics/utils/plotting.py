@@ -521,13 +521,14 @@ class Annotator:
 
     def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):
         """
-        Plot the distance and line on frame
+        Plot the distance and line on frame.
+
         Args:
-            distance_m (float): Distance between two bbox centroids in meters
-            distance_mm (float): Distance between two bbox centroids in millimeters
-            centroids (list): Bounding box centroids data
-            line_color (RGB): distance line color
-            centroid_color (RGB): Bounding box centroid color
+            distance_m (float): Distance between two bbox centroids in meters.
+            distance_mm (float): Distance between two bbox centroids in millimeters.
+            centroids (list): Bounding box centroids data.
+            line_color (RGB): Distance line color.
+            centroid_color (RGB): Bounding box centroid color.
         """
         (text_width_m, text_height_m), _ = cv2.getTextSize(
             f"Distance M: {distance_m:.2f}m", cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2

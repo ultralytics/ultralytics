@@ -6,9 +6,10 @@ name: Ultralytics Actions
 
 on:
   push:
-    branches: [main,master]
-  pull_request:
-    branches: [main,master]
+    branches: [main]
+  pull_request_target:
+    branches: [main]
+    types: [opened, closed, synchronize]
 
 jobs:
   format:

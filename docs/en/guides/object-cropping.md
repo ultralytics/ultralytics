@@ -16,6 +16,15 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 - **Reduced Data Volume**: By extracting only relevant objects, object cropping helps in minimizing data size, making it efficient for storage, transmission, or subsequent computational tasks.
 - **Enhanced Precision**: YOLOv8's object detection accuracy ensures that the cropped objects maintain their spatial relationships, preserving the integrity of the visual information for detailed analysis.
 
+
+## Visuals
+
+|                                                                    Conveyor Belt at AirPort                                                                     |                                                                                                                         
+|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| ![Conveyor Belt Packets Counting Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/b41d2620-0a3b-487d-b3e7-5c8568702a96) | ![Fish Counting in Sea using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/c60d047b-3837-435f-8d29-bb9fc95d2191) |
+|                                                 Conveyor Belt at AirPort Bags Cropping using Ultralytics YOLOv8                                                 |                                                                                                       
+
+
 !!! Example "Object Cropping using YOLOv8 Example"
 
     === "Object Cropping"

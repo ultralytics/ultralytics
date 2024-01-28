@@ -105,7 +105,6 @@ class DistanceCalculation:
         self.clss = tracks[0].boxes.cls.cpu().tolist()
         self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
 
-
     def calculate_centroid(self, box):
         """
         Calculate the centroid of bounding box
@@ -122,8 +121,7 @@ class DistanceCalculation:
             centroid2 (point): Second bounding box data
         """
         pixel_distance = math.sqrt((centroid1[0] - centroid2[0]) ** 2 + (centroid1[1] - centroid2[1]) ** 2)
-        return pixel_distance / self.pixel_per_meter, (pixel_distance/self.pixel_per_meter) * 1000
-
+        return pixel_distance / self.pixel_per_meter, (pixel_distance / self.pixel_per_meter) * 1000
 
     def start_process(self, im0, tracks):
         """
@@ -155,8 +153,9 @@ class DistanceCalculation:
                 self.centroids.append(centroid)
 
             distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
-            self.annotator.plot_distance_and_line(distance_m, distance_mm,
-                                                  self.centroids, self.line_color, self.centroid_color)
+            self.annotator.plot_distance_and_line(
+                distance_m, distance_mm, self.centroids, self.line_color, self.centroid_color
+            )
 
         self.centroids = []
 

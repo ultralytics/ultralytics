@@ -57,7 +57,7 @@ def test_pose():
     assert isinstance(similar, PIL.Image.Image)
 
 def test_count():
-    """Test count labels"""
+    """Test count labels."""
     exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
     exp.create_embeddings_table(force=True)
     assert isinstance(exp.count_labels(["orange"])[1], dict)
@@ -66,7 +66,7 @@ def test_count():
     assert isinstance(exp.plot_count_labels(["orange","vase"]), PIL.Image.Image)
 
 def test_unique():
-    """Test Unique Labels present in dataset"""
+    """Test Unique Labels present in dataset."""
     exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
     exp.create_embeddings_table(force=True)
     assert len(exp.unique_labels()) > 0

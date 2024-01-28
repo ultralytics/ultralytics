@@ -490,7 +490,7 @@ class Explorer:
         """
         label_counts = {}
         df = self.table.to_pandas()
-        filtered_df = df[df['labels'].apply(lambda l: bool(set(l) & set(labels)))]
+        filtered_df = df[df["labels"].apply(lambda l: bool(set(l) & set(labels)))]
         flatten_labels = [l for ls in list(filtered_df.labels) for l in ls]
         for label in labels:
             if label in flatten_labels:
@@ -563,6 +563,7 @@ class Explorer:
             filtered_df, labels = exp.unique_labels()
             ```
         """
+
         def select_img_per_label(l):
             select_img = False
             for i in list(set(l)):
@@ -570,13 +571,13 @@ class Explorer:
                     select_img = True
                     selected_imgs.append(i)
             return select_img
-        
+
         df_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
-        unique_label = list(set([la for label in df_labels["labels"] for la in label])) # unique labels
+        unique_label = list(set([la for label in df_labels["labels"] for la in label]))  # unique labels
         selected_imgs = []
-        
+
         df = self.table.to_pandas()
-        filtered_df = df[df['labels'].apply(select_img_per_label)] 
+        filtered_df = df[df["labels"].apply(select_img_per_label)]
         return filtered_df, unique_label
 
     def plot_unique_labels(self) -> list:

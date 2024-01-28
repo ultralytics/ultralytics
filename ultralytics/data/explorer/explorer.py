@@ -54,7 +54,10 @@ class ExplorerDataset(YOLODataset):
 
 class Explorer:
     def __init__(
-        self, data: Union[str, Path] = "coco128.yaml", model: str = "yolov8n.pt", uri: str = USER_CONFIG_DIR / "explorer"
+        self,
+        data: Union[str, Path] = "coco128.yaml",
+        model: str = "yolov8n.pt",
+        uri: str = USER_CONFIG_DIR / "explorer",
     ) -> None:
         checks.check_requirements(["lancedb>=0.4.3", "duckdb"])
         import lancedb

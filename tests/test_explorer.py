@@ -11,6 +11,7 @@ def test_similarity():
     exp = Explorer()
     exp.create_embeddings_table()
     similar = exp.get_similar(idx=1)
+    print(similar)
     assert len(similar) == 25
     similar = exp.get_similar(img=ASSETS / "zidane.jpg")
     assert len(similar) == 25
@@ -54,3 +55,21 @@ def test_pose():
     assert len(similar) > 0
     similar = exp.plot_similar(idx=[1, 2], limit=10)
     assert isinstance(similar, PIL.Image.Image)
+
+def test_count():
+    """Test count labels"""
+    exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
+    exp.create_embeddings_table(force=True)
+    assert isinstance(exp.count_labels(["orange"])[1], dict)
+    assert isinstance(exp.count_labels(["orange","vase"])[1], dict)
+    print(exp.plot_count_labels(["orange","vase"]))
+    assert isinstance(exp.plot_count_labels(["orange","vase"]), PIL.Image.Image)
+
+def test_unique():
+    """Test Unique Labels present in dataset"""
+    exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
+    exp.create_embeddings_table(force=True)
+    assert len(exp.unique_labels()) > 0
+    assert isinstance(exp.plot_unique_labels(), PIL.Image.Image)
+    
+test_count()

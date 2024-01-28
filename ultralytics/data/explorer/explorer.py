@@ -10,6 +10,7 @@ import torch
 from PIL import Image
 from matplotlib import pyplot as plt
 from pandas import DataFrame
+import pyarrow as pa
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
@@ -235,6 +236,7 @@ class Explorer:
             LOGGER.info("No results found.")
             return None
         img = plot_query_result(result, plot_labels=labels)
+        print(img)
         return Image.fromarray(img)
 
     def get_similar(
@@ -305,6 +307,7 @@ class Explorer:
         if len(similar) == 0:
             LOGGER.info("No results found.")
             return None
+        print(similar)
         img = plot_query_result(similar, plot_labels=labels)
         return Image.fromarray(img)
 
@@ -467,34 +470,62 @@ class Explorer:
         """
         pass
 
-    def label_count(self, labels: list) -> dict:
+    def count_labels(self, labels: list):
         """
-        Count occurrences of labels.
+        Count occurrences of given labels in dataset.
 
         Args:
             labels (list): List of labels to count their occurrences.
 
         Returns:
+            filtered_df (pandas.DataFrame): Dataframe containing records containing given labels.
             label_counts (dict): Dictionary containing labels with their count.
 
         Example:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            label_counts = exp.label_count()
+            filtered_data, label_counts = exp.count_labels(labels)
             ```
         """
         label_counts = {}
-        dataset_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
-        flatten_labels = [l for ls in list(dataset_labels) for l in ls]
+        df = self.table.to_pandas()
+        filtered_df = df[df['labels'].apply(lambda l: bool(set(l) & set(labels)))]
+        flatten_labels = [l for ls in list(filtered_df.labels) for l in ls]
         for label in labels:
             if label in flatten_labels:
                 label_counts[label] = flatten_labels.count(label)
             else:
-                label_counts[label] = flatten_labels.count(label)
-        return label_counts
+                label_counts[label] = 0
+        return filtered_df, label_counts
 
-    def dataset_label_count(self) -> dict:
+    def plot_count_labels(self, labels: list) -> Image.Image:
+        """
+        Plot occurrences of given labels in dataset.
+
+        Args:
+            labels (list): List of labels to count their occurrences.
+
+        Returns:
+            (PIL.Image): Image containing the plot.
+
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            img = exp.plot_count_labels(labels)
+            ```
+        """
+        filtered_data, labels_count = self.count_labels(labels)
+        print(filtered_data)
+        if len(filtered_data) == 0:
+            LOGGER.info("No results found.")
+            return None
+        filtered_data = pa.Table.from_pandas(filtered_data)
+        img = plot_query_result(filtered_data)
+        return Image.fromarray(img)
+
+    def count_dataset_labels(self) -> dict:
         """
         Count of Occurrences of all labels in dataset.
 
@@ -517,20 +548,56 @@ class Explorer:
             label_counts[label] = flatten_labels.count(label)
         return label_counts
 
-    def unique_labels(self) -> list:
+    def unique_labels(self):
         """
         List of unique labels present in dataset.
 
         Returns:
+            filtered_df (pandas.DataFrame): Dataframe containing records containing each labels.
             (list): list of labels present in dataset.
 
         Example:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            labels = exp.unique_labels()
+            filtered_df, labels = exp.unique_labels()
             ```
         """
-        dataset_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
-        flatten_labels = [l for ls in list(dataset_labels) for l in ls]
-        return list(set(flatten_labels))  # unique labels
+        def select_img_per_label(l):
+            select_img = False
+            for i in list(set(l)):
+                if i not in selected_imgs:
+                    select_img = True
+                    selected_imgs.append(i)
+            return select_img
+        
+        df_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
+        unique_label = list(set([la for label in df_labels["labels"] for la in label])) # unique labels
+        selected_imgs = []
+        
+        df = self.table.to_pandas()
+        filtered_df = df[df['labels'].apply(select_img_per_label)] 
+        return filtered_df, unique_label
+
+    def plot_unique_labels(self) -> list:
+        """
+        Plot Unique labels present in dataset.
+
+        Returns:
+            (PIL.Image): Image containing the plot.
+
+        Example:
+            ```python
+            exp = Explorer()
+            exp.create_embeddings_table()
+            img = exp.plot_unique_labels()
+            ```
+        """
+        filtered_data, unique_labels = self.unique_labels()
+        print(filtered_data)
+        if len(filtered_data) == 0:
+            LOGGER.info("No results found.")
+            return None
+        filtered_data = pa.Table.from_pandas(filtered_data)
+        img = plot_query_result(filtered_data)
+        return Image.fromarray(img)

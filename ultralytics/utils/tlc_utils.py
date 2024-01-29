@@ -11,8 +11,8 @@ from typing import Callable, TypeVar
 
 import tlc
 import yaml
-from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (_TLCBoundingBox,
-                                                                                        _TLCBoundingBoxes)
+from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (_TLCPredictedBoundingBox,
+                                                                                        _TLCPredictedBoundingBoxes)
 from tlc.core.builtins.constants.paths import _ROW_CACHE_FILE_NAME
 from tlc.core.objects.tables.from_url.utils import get_hash
 
@@ -102,7 +102,7 @@ def construct_bbox_struct(
     image_width: int,
     image_height: int,
     inverse_label_mapping: dict[int, int] | None = None,
-) -> _TLCBoundingBoxes:
+) -> _TLCPredictedBoundingBoxes:
     """Construct a 3LC bounding box struct from a list of bounding boxes.
 
     :param predicted_annotations: A list of predicted bounding boxes.
@@ -111,7 +111,7 @@ def construct_bbox_struct(
     :param inverse_label_mapping: A mapping from predicted label to category id.
     """
 
-    bbox_struct = _TLCBoundingBoxes(
+    bbox_struct = _TLCPredictedBoundingBoxes(
         bb_list=[],
         image_width=image_width,
         image_height=image_height,
@@ -121,8 +121,8 @@ def construct_bbox_struct(
         bbox, label, score, iou = pred['bbox'], pred['category_id'], pred['score'], pred['iou']
         label_val = inverse_label_mapping[label] if inverse_label_mapping is not None else label
         bbox_struct['bb_list'].append(
-            _TLCBoundingBox(
-                label=label_val,
+            _TLCPredictedBoundingBox(
+                label_predicted=label_val,
                 confidence=score,
                 iou=iou,
                 x0=bbox[0],

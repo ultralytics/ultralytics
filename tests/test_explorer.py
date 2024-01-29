@@ -4,6 +4,8 @@ from ultralytics import Explorer
 from ultralytics.utils import ASSETS
 
 import PIL
+import numpy
+import yaml
 
 
 def test_similarity():
@@ -60,16 +62,21 @@ def test_count():
     """Test count labels."""
     exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
     exp.create_embeddings_table(force=True)
-    assert isinstance(exp.count_labels(["orange"])[1], dict)
-    assert isinstance(exp.count_labels(["orange","vase"])[1], dict)
-    print(exp.plot_count_labels(["orange","vase"]))
-    assert isinstance(exp.plot_count_labels(["orange","vase"]), PIL.Image.Image)
+    # test for counting selected labels
+    assert isinstance(exp.count_labels(["orange"]), dict)
+    assert isinstance(exp.count_labels(["orange","vase"]), dict)
+    assert isinstance(exp.plot_count_labels(["orange","vase"]), numpy.ndarray)
+    
+    # test for counting label in dataset
+    with open("ultralytics/cfg/datasets/coco8.yaml") as f:
+        my_dict = yaml.safe_load(f)
+    assert list(my_dict['names'].values()) == list(exp.count_dataset_labels().keys())
+    assert isinstance(exp.count_dataset_labels(), dict)
+    assert isinstance(exp.plot_dataset_labels(), numpy.ndarray)
 
 def test_unique():
     """Test Unique Labels present in dataset."""
     exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
     exp.create_embeddings_table(force=True)
     assert len(exp.unique_labels()) > 0
-    assert isinstance(exp.plot_unique_labels(), PIL.Image.Image)
-    
-test_count()
+    assert list(set(exp.unique_labels())).sort() == exp.unique_labels().sort()

@@ -392,13 +392,16 @@ class Model(nn.Module):
         This method facilitates the model validation process, allowing for a range of customization through various
         settings and configurations. It supports validation with a custom validator or the default validation approach.
         The method combines default configurations, method-specific defaults, and user-provided arguments to configure
-        the validation process. After validation, it updates the model's metrics with the results obtained from the validator.
+        the validation process. After validation, it updates the model's metrics with the results obtained from the
+        validator.
 
-        The method supports various arguments that allow customization of the validation process. For a comprehensive list
+        The method supports various arguments that allow customization of the validation process. For a comprehensive
+        list
         of all configurable options, users should refer to the 'configuration' section in the documentation.
 
         Args:
-            validator (BaseValidator, optional): An instance of a custom validator class for validating the model. If None,
+            validator (BaseValidator, optional): An instance of a custom validator class for validating the model. If
+            None,
                                                  the method uses a default validator. Defaults to None.
             **kwargs: Arbitrary keyword arguments representing the validation configuration. These arguments are used to
                       customize various aspects of the validation process.
@@ -421,14 +424,14 @@ class Model(nn.Module):
         """
         Benchmarks the model across various export formats to evaluate performance.
 
-        This method assesses the model's performance in different export formats, such as ONNX, TorchScript, etc. It uses
-        the 'benchmark' function from the ultralytics.utils.benchmarks module. The benchmarking is configured using a
-        combination of default configuration values, model-specific arguments, method-specific defaults, and any additional
-        user-provided keyword arguments.
+        This method assesses the model's performance in different export formats, such as ONNX, TorchScript, etc.
+        It uses the 'benchmark' function from the ultralytics.utils.benchmarks module. The benchmarking is configured
+        using a combination of default configuration values, model-specific arguments, method-specific defaults, and
+        any additional user-provided keyword arguments.
 
-        The method supports various arguments that allow customization of the benchmarking process, such as dataset choice,
-        image size, precision modes, device selection, and verbosity. For a comprehensive list of all configurable options,
-        users should refer to the 'configuration' section in the documentation.
+        The method supports various arguments that allow customization of the benchmarking process, such as dataset
+        choice, image size, precision modes, device selection, and verbosity. For a comprehensive list of all
+        configurable options, users should refer to the 'configuration' section in the documentation.
 
         Args:
             **kwargs: Arbitrary keyword arguments to customize the benchmarking process. These are combined with default
@@ -459,9 +462,9 @@ class Model(nn.Module):
         """
         Exports the model to a different format suitable for deployment.
 
-        This method facilitates the export of the model to various formats (e.g., ONNX, TorchScript) for deployment purposes.
-        It uses the 'Exporter' class for the export process, combining model-specific overrides, method defaults, and any
-        additional arguments provided. The combined arguments are used to configure the export settings.
+        This method facilitates the export of the model to various formats (e.g., ONNX, TorchScript) for deployment
+        purposes. It uses the 'Exporter' class for the export process, combining model-specific overrides, method
+        defaults, and any additional arguments provided. The combined arguments are used to configure export settings.
 
         The method supports a wide range of arguments to customize the export process. For a comprehensive list of all
         possible arguments, refer to the 'configuration' section in the documentation.
@@ -488,20 +491,20 @@ class Model(nn.Module):
         Trains the model using the specified dataset and training configuration.
 
         This method facilitates model training with a range of customizable settings and configurations. It supports
-        training with a custom trainer or the default training approach defined in the method. The method handles different
-        scenarios, such as resuming training from a checkpoint, integrating with Ultralytics HUB, and updating model and
-        configuration after training.
+        training with a custom trainer or the default training approach defined in the method. The method handles
+        different scenarios, such as resuming training from a checkpoint, integrating with Ultralytics HUB, and
+        updating model and configuration after training.
 
-        When using Ultralytics HUB, if the session already has a loaded model, the method prioritizes HUB training arguments
-        and issues a warning if local arguments are provided. It checks for pip updates and combines default configurations,
-        method-specific defaults, and user-provided arguments to configure the training process. After training, it updates
-        the model and its configurations, and optionally attaches metrics.
+        When using Ultralytics HUB, if the session already has a loaded model, the method prioritizes HUB training
+        arguments and issues a warning if local arguments are provided. It checks for pip updates and combines default
+        configurations, method-specific defaults, and user-provided arguments to configure the training process. After
+        training, it updates the model and its configurations, and optionally attaches metrics.
 
         Args:
             trainer (BaseTrainer, optional): An instance of a custom trainer class for training the model. If None, the
-                                             method uses a default trainer. Defaults to None.
+                method uses a default trainer. Defaults to None.
             **kwargs: Arbitrary keyword arguments representing the training configuration. These arguments are used to
-                      customize various aspects of the training process.
+                customize various aspects of the training process.
 
         Returns:
             (dict | None): Training metrics if available and training is successful; otherwise, None.

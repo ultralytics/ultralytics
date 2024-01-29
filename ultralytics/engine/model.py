@@ -202,6 +202,13 @@ class Model(nn.Module):
         self.model.load(weights)
         return self
 
+    def save(self, filename="model.pt"):
+        """Save the model to 'filename'."""
+        self._check_is_pytorch_model()
+        import torch
+
+        torch.save(self.ckpt, filename)
+
     def info(self, detailed=False, verbose=True):
         """
         Logs model info.

@@ -631,7 +631,7 @@ def torch_safe_load(weight):
                 "ultralytics.yolo.data": "ultralytics.data",
             }
         ):  # for legacy 8.0 Classify and Pose models
-            return torch.load(file, map_location="cpu"), file  # load
+            ckpt = torch.load(file, map_location="cpu")
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":
@@ -651,8 +651,14 @@ def torch_safe_load(weight):
             f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'"
         )
         check_requirements(e.name)  # install missing module
+        ckpt = torch.load(file, map_location="cpu")
 
-        return torch.load(file, map_location="cpu"), file  # load
+    if not isinstance(ckpt, dict):
+        # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
+        f"WARNING ⚠️ {weight} saved with torch.save(). Always use model.save('filename.pt') method to save YOLO models."
+        ckpt = {"model": ckpt.model}
+
+    return ckpt, file  # load
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):

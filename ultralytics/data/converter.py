@@ -495,12 +495,11 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
             - im_dir
                 ├─ 001.jpg
                 ├─ ..
-                ├─ NNN.jpg
-
+                └─ NNN.jpg
             - labels
                 ├─ 001.txt
                 ├─ ..
-                ├─ NNN.txt
+                └─ NNN.txt
     """
     from ultralytics.data import YOLODataset
     from ultralytics.utils.ops import xywh2xyxy

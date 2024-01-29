@@ -492,7 +492,7 @@ class Explorer:
         """
         label_counts = {}
         df = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
-        label_occurances = [l for ls in df['labels'] for l in ls]
+        label_occurances = [l for ls in df["labels"] for l in ls]
         for label in labels:
             if label in label_occurances:
                 label_counts[label] = label_occurances.count(label)
@@ -520,15 +520,15 @@ class Explorer:
         if len(labels_count) == 0:
             LOGGER.info("No results found.")
             return None
-        
-        plt.xlabel('Labels')
-        plt.ylabel('Count')
+
+        plt.xlabel("Labels")
+        plt.ylabel("Count")
         img = plt.bar(labels_count.keys(), labels_count.values(), color="blue")
         img_buf = io.BytesIO()
-        plt.savefig(img_buf, format='png')
+        plt.savefig(img_buf, format="png")
         img = np.asarray(Image.open(img_buf))
         return img
-        
+
     def count_dataset_labels(self) -> dict:
         """
         Count of Occurrences of all labels in dataset.
@@ -550,11 +550,11 @@ class Explorer:
             with open(self.data) as f:
                 my_dict = yaml.safe_load(f)
         else:
-            with open("ultralytics/cfg/datasets/"+self.data) as f:
+            with open("ultralytics/cfg/datasets/" + self.data) as f:
                 my_dict = yaml.safe_load(f)
 
-        all_labels = list(my_dict['names'].values())
-            
+        all_labels = list(my_dict["names"].values())
+
         for label in all_labels:
             label_counts[label] = flatten_labels.count(label)
         return label_counts
@@ -577,15 +577,20 @@ class Explorer:
         if len(labels_count) == 0:
             LOGGER.info("No results found.")
             return None
-        
-        plt.xlabel('Labels Indexes')
-        plt.ylabel('Count')
-        img = plt.bar(range(len(labels_count.keys())), labels_count.values(), color="blue", width=0.8, )
+
+        plt.xlabel("Labels Indexes")
+        plt.ylabel("Count")
+        img = plt.bar(
+            range(len(labels_count.keys())),
+            labels_count.values(),
+            color="blue",
+            width=0.8,
+        )
         img_buf = io.BytesIO()
-        plt.savefig(img_buf, format='png')
+        plt.savefig(img_buf, format="png")
         img = np.asarray(Image.open(img_buf))
         return img
-    
+
     def unique_labels(self) -> list:
         """
         List of unique labels present in dataset.
@@ -601,5 +606,5 @@ class Explorer:
             ```
         """
         df_labels = self.table.to_lance().to_table(columns=["labels"]).to_pandas()
-        unique_label = list(set([la for label in df_labels["labels"] for la in label])) # unique labels
+        unique_label = list(set([la for label in df_labels["labels"] for la in label]))  # unique labels
         return unique_label

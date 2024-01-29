@@ -235,20 +235,53 @@ class BaseTrainer:
         nc = self.data['nc']
 
         # decide if we're calculating class weights or not
-        if cls_weights == None:
-            print("Not using class weights")
+        if cls_weights is None:
+            LOGGER.info("Not using class weights")
         elif isinstance(cls_weights, list) and len(cls_weights) == nc:
             cls_weights = torch.Tensor(cls_weights)
-        elif cls_weights == "median":
-            cls_weights = self.get_median_frequency_weights(nc)
-        elif cls_weights == "inverse": 
+        elif cls_weights == "micc":  # median inverse class count
+            cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True)
+        elif cls_weights == "icc":  # inverse class count
             cls_weights = self.get_inverse_class_frequency_weights(nc)
+        elif cls_weights == "miscc":  # median inverse square root class count (good default)
+            cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True, sqrt=True)
+        elif cls_weights == "iscc":  # inverse square root class count
+            cls_weights = self.get_inverse_class_frequency_weights(nc, sqrt=True)
+        elif cls_weights == "effective":
+            cls_weights = self.get_inverse_class_frequency_weights(nc, effective=True)
         else:
-            raise ValueError("Invalid value for cls_weights. Please use None, a list of length num_classes, 'median', or 'inverse'.")
-        
+            raise ValueError(
+                f"Invalid value for cls_weights: {cls_weights}"
+                "Please use None, a list of length num_classes, or one of the following strings:"
+                " 'micc' - median inverse class count"
+                " 'icc' - inverse class count"
+                " 'miscc' - median inverse square root class count (good default)"
+                " 'iscc' - inverse square root class count"
+                " 'effective' - inverse effective class count"
+            )
         return cls_weights
 
-    def get_inverse_class_frequency_weights(self, nc):
+    def get_inverse_class_frequency_weights(
+            self,
+            nc,
+            effective=False,
+            effective_beta=0.999,
+            median_norm=False,
+            sqrt=False
+    ):
+        """
+        Calculates inverse class frequency weights for use in loss function
+        For more information on effective and square root, see https://arxiv.org/pdf/1901.05555.pdf
+
+        Args:
+            nc (int): number of classes
+            effective (bool): whether to use effective class count or not. supercedes median_norm and sqrt if True
+            effective_beta (float): beta value for effective class count. Only used if effective is True
+            median_norm (bool): whether to normalize weights by median or not
+            sqrt (bool): whether to square root weights or not
+        Returns:
+            torch.Tensor: class weights
+        """
         loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
 
         y = [batch['cls'].view(-1).numpy() for batch in loader]
@@ -256,28 +289,32 @@ class BaseTrainer:
         
         unique_classes, class_counts = np.unique(y, return_counts=True)
         if len(class_counts) != nc:
-            eps = 0.0001 # included for numerical stability
-            class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
-        
-        total_samples = len(y)
-        class_weights = total_samples / (nc * class_counts)
+            eps = 0.0001  # included for numerical stability
+            class_counts = np.array(
+                [
+                    eps if a not in unique_classes else
+                    class_counts[list(unique_classes).index(a)] for a in np.arange(nc)
+                ]
+            )
+
+        if effective:
+            effective_num = 1.0 - np.power(effective_beta, class_counts)
+            class_weights = (1.0 - effective_beta) / np.array(effective_num)
+            class_weights = class_weights / np.sum(class_weights) * nc  # normalize
+            return torch.Tensor(class_weights)
+
+        class_weights = 1.0 / class_counts
+
+        if median_norm:
+            class_weights *= np.median(class_counts)
+        else:
+            class_weights *= (len(y) / nc)
+
+        if sqrt:
+            class_weights = np.sqrt(class_weights)
+            
         return torch.Tensor(class_weights)
     
-    def get_median_frequency_weights(self, nc):
-        loader = self.get_dataloader(self.trainset, batch_size=self.batch_size, rank=-1, mode='val')
-
-        y = [batch['cls'].view(-1).numpy() for batch in loader]
-        y = list(chain(*y))
-        
-        unique_classes, class_counts = np.unique(y, return_counts=True)
-        if len(class_counts) != nc:
-            eps = 0.0001 # included for numerical stability
-            class_counts = np.array([eps if a not in unique_classes else class_counts[list(unique_classes).index(a)] for a in np.arange(nc)])
-        
-        median_frequency = np.median(class_counts)
-        class_weights = median_frequency / class_counts
-        return torch.Tensor(class_weights)
-
     def _setup_train(self, world_size):
         """Builds dataloaders and optimizer on correct rank process."""
 
@@ -383,10 +420,7 @@ class BaseTrainer:
             f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
             f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
             f"Logging results to {colorstr('bold', self.save_dir)}\n"
-            f'Starting training for '
-            f'{self.args.time} hours...'
-            if self.args.time
-            else f"{self.epochs} epochs..."
+            f'Starting training for ' + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
         )
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
@@ -617,8 +651,12 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """Returns a loss dict with labelled training loss items tensor."""
-        # Not needed for classification but necessary for segmentation & detection
+        """
+        Returns a loss dict with labelled training loss items tensor.
+
+        Note:
+            This is not needed for classification but necessary for segmentation & detection
+        """
         return {"loss": loss_items} if loss_items is not None else ["loss"]
 
     def set_model_attributes(self):

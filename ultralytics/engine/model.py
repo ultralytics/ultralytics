@@ -396,15 +396,13 @@ class Model(nn.Module):
         validator.
 
         The method supports various arguments that allow customization of the validation process. For a comprehensive
-        list
-        of all configurable options, users should refer to the 'configuration' section in the documentation.
+        list of all configurable options, users should refer to the 'configuration' section in the documentation.
 
         Args:
             validator (BaseValidator, optional): An instance of a custom validator class for validating the model. If
-            None,
-                                                 the method uses a default validator. Defaults to None.
+                None, the method uses a default validator. Defaults to None.
             **kwargs: Arbitrary keyword arguments representing the validation configuration. These arguments are used to
-                      customize various aspects of the validation process.
+                customize various aspects of the validation process.
 
         Returns:
             (dict): Validation metrics obtained from the validation process.

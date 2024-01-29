@@ -489,31 +489,81 @@ class Model(nn.Module):
 
     @property
     def names(self):
-        """Returns class names of the loaded model."""
+        """
+        Retrieves the class names associated with the loaded model.
+
+        This property returns the class names if they are defined in the model. It checks the class names for validity
+        using the 'check_class_names' function from the ultralytics.nn.autobackend module.
+
+        Returns:
+            (list | None): The class names of the model if available, otherwise None.
+        """
         from ultralytics.nn.autobackend import check_class_names
 
         return check_class_names(self.model.names) if hasattr(self.model, "names") else None
 
     @property
     def device(self):
-        """Returns device if PyTorch model."""
+        """
+        Retrieves the device on which the model's parameters are allocated.
+
+        This property is used to determine whether the model's parameters are on CPU or GPU. It only applies to models
+        that are instances of nn.Module.
+
+        Returns:
+            (torch.device | None): The device (CPU/GPU) of the model if it is a PyTorch model, otherwise None.
+        """
         return next(self.model.parameters()).device if isinstance(self.model, nn.Module) else None
 
     @property
     def transforms(self):
-        """Returns transform of the loaded model."""
+        """
+        Retrieves the transformations applied to the input data of the loaded model.
+
+        This property returns the transformations if they are defined in the model.
+
+        Returns:
+            (object | None): The transform object of the model if available, otherwise None.
+        """
         return self.model.transforms if hasattr(self.model, "transforms") else None
 
     def add_callback(self, event: str, func):
-        """Add a callback."""
+        """
+        Adds a callback function for a specified event.
+
+        This method allows the user to register a custom callback function that is triggered on a specific event during
+        model training or inference.
+
+        Args:
+            event (str): The name of the event to attach the callback to.
+            func (callable): The callback function to be registered.
+
+        Raises:
+            ValueError: If the event name is not recognized.
+        """
         self.callbacks[event].append(func)
 
     def clear_callback(self, event: str):
-        """Clear all event callbacks."""
+        """
+        Clears all callback functions registered for a specified event.
+
+        This method removes all custom and default callback functions associated with the given event.
+
+        Args:
+            event (str): The name of the event for which to clear the callbacks.
+
+        Raises:
+            ValueError: If the event name is not recognized.
+        """
         self.callbacks[event] = []
 
     def reset_callbacks(self):
-        """Reset all registered callbacks."""
+        """
+        Resets all callbacks to their default functions.
+
+        This method reinstates the default callback functions for all events, removing any custom callbacks that were
+        added previously.
+        """
         for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 

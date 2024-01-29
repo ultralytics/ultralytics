@@ -147,7 +147,7 @@ class Model(nn.Module):
                 Accepts various types, including file paths, URLs, PIL images, and numpy arrays. Defaults to None.
             stream (bool, optional): If True, treats the input source as a continuous stream for predictions.
                 Defaults to False.
-            **kwargs: Additional keyword arguments for configuring the prediction process.
+            **kwargs (dict): Additional keyword arguments for configuring the prediction process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of prediction results, encapsulated in the Results class.

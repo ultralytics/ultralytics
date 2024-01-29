@@ -60,6 +60,7 @@ class ClassificationValidator(BaseValidator):
         self.targets.append(batch["cls"])
 
     def finalize_metrics(self, *args, **kwargs):
+        print('selam')
         """Finalizes metrics of the model such as confusion_matrix and speed."""
         self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:

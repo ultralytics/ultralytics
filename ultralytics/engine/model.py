@@ -13,53 +13,91 @@ from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, 
 
 class Model(nn.Module):
     """
-    A base class to unify APIs for all models.
+    A base class for implementing YOLO models, unifying APIs across different model types.
+
+    This class provides a common interface for various operations related to YOLO models, such as training,
+    validation, prediction, exporting, and benchmarking. It handles different types of models, including those
+    loaded from local files, Ultralytics HUB, or Triton Server. The class is designed to be flexible and
+    extendable for different tasks and model configurations.
 
     Args:
-        model (str, Path): Path to the model file to load or create.
-        task (Any, optional): Task type for the YOLO model. Defaults to None.
+        model (Union[str, Path], optional): Path or name of the model to load or create. This can be a local file
+            path, a model name from Ultralytics HUB, or a Triton Server model. Defaults to 'yolov8n.pt'.
+        task (Any, optional): The task type associated with the YOLO model. This can be used to specify the model's
+            application domain, such as object detection, segmentation, etc. Defaults to None.
+        verbose (bool, optional): If True, enables verbose output during the model's operations. Defaults to False.
 
     Attributes:
-        predictor (Any): The predictor object.
-        model (Any): The model object.
-        trainer (Any): The trainer object.
-        task (str): The type of model task.
-        ckpt (Any): The checkpoint object if the model loaded from *.pt file.
-        cfg (str): The model configuration if loaded from *.yaml file.
-        ckpt_path (str): The checkpoint file path.
-        overrides (dict): Overrides for the trainer object.
-        metrics (Any): The data for metrics.
+        callbacks (dict): A dictionary of callback functions for various events during model operations.
+        predictor (BasePredictor): The predictor object used for making predictions.
+        model (nn.Module): The underlying PyTorch model.
+        trainer (BaseTrainer): The trainer object used for training the model.
+        ckpt (dict): The checkpoint data if the model is loaded from a *.pt file.
+        cfg (str): The configuration of the model if loaded from a *.yaml file.
+        ckpt_path (str): The path to the checkpoint file.
+        overrides (dict): A dictionary of overrides for model configuration.
+        metrics (dict): The latest training/validation metrics.
+        session (HUBTrainingSession): The Ultralytics HUB session, if applicable.
+        task (str): The type of task the model is intended for.
+        model_name (str): The name of the model.
 
     Methods:
-        __call__(source=None, stream=False, **kwargs):
-            Alias for the predict method.
-        _new(cfg:str, verbose:bool=True) -> None:
-            Initializes a new model and infers the task type from the model definitions.
-        _load(weights:str, task:str='') -> None:
-            Initializes a new model and infers the task type from the model head.
-        _check_is_pytorch_model() -> None:
-            Raises TypeError if the model is not a PyTorch model.
-        reset() -> None:
-            Resets the model modules.
-        info(verbose:bool=False) -> None:
-            Logs the model info.
-        fuse() -> None:
-            Fuses the model for faster inference.
-        predict(source=None, stream=False, **kwargs) -> List[ultralytics.engine.results.Results]:
-            Performs prediction using the YOLO model.
+        __call__: Alias for the predict method, enabling the model instance to be callable.
+        _new: Initializes a new model based on a configuration file.
+        _load: Loads a model from a checkpoint file.
+        _check_is_pytorch_model: Ensures that the model is a PyTorch model.
+        reset_weights: Resets the model's weights to their initial state.
+        load: Loads model weights from a specified file.
+        save: Saves the current state of the model to a file.
+        info: Logs or returns information about the model.
+        fuse: Fuses Conv2d and BatchNorm2d layers for optimized inference.
+        predict: Performs object detection predictions.
+        track: Performs object tracking.
+        val: Validates the model on a dataset.
+        benchmark: Benchmarks the model on various export formats.
+        export: Exports the model to different formats.
+        train: Trains the model on a dataset.
+        tune: Performs hyperparameter tuning.
+        _apply: Applies a function to the model's tensors.
+        add_callback: Adds a callback function for an event.
+        clear_callback: Clears all callbacks for an event.
+        reset_callbacks: Resets all callbacks to their default functions.
+        _get_hub_session: Retrieves or creates an Ultralytics HUB session.
+        is_triton_model: Checks if a model is a Triton Server model.
+        is_hub_model: Checks if a model is an Ultralytics HUB model.
+        _reset_ckpt_args: Resets checkpoint arguments when loading a PyTorch model.
+        _smart_load: Loads the appropriate module based on the model task.
+        task_map: Provides a mapping from model tasks to corresponding classes.
 
-    Returns:
-        list(ultralytics.engine.results.Results): The prediction results.
+    Raises:
+        FileNotFoundError: If the specified model file does not exist or is inaccessible.
+        ValueError: If the model file or configuration is invalid or unsupported.
+        ImportError: If required dependencies for specific model types (like HUB SDK) are not installed.
+        TypeError: If the model is not a PyTorch model when required.
+        AttributeError: If required attributes or methods are not implemented or available.
+        NotImplementedError: If a specific model task or mode is not supported.
     """
 
     def __init__(self, model: Union[str, Path] = "yolov8n.pt", task=None, verbose=False) -> None:
         """
-        Initializes the YOLO model.
+        Initializes a new instance of the YOLO model class.
+
+        This constructor sets up the model based on the provided model path or name. It handles various types of model
+        sources, including local files, Ultralytics HUB models, and Triton Server models. The method initializes several
+        important attributes of the model and prepares it for operations like training, prediction, or export.
 
         Args:
-            model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
-            task (Any, optional): Task type for the YOLO model. Defaults to None.
-            verbose (bool, optional): Whether to enable verbose mode.
+            model (Union[str, Path], optional): The path or model file to load or create. This can be a local
+                file path, a model name from Ultralytics HUB, or a Triton Server model. Defaults to 'yolov8n.pt'.
+            task (Any, optional): The task type associated with the YOLO model, specifying its application domain.
+                Defaults to None.
+            verbose (bool, optional): If True, enables verbose output during the model's initialization and subsequent
+                operations. Defaults to False.
+
+        Raises:
+            FileNotFoundError: If the specified model file does not exist or is inaccessible.
+            ValueError: If the model file or configuration is invalid or unsupported.
+            ImportError: If required dependencies for specific model types (like HUB SDK) are not installed.
         """
         super().__init__()
         self.callbacks = callbacks.get_default_callbacks()
@@ -98,7 +136,22 @@ class Model(nn.Module):
         self.model_name = model
 
     def __call__(self, source=None, stream=False, **kwargs):
-        """Calls the predict() method with given arguments to perform object detection."""
+        """
+        An alias for the predict method, enabling the model instance to be callable.
+
+        This method simplifies the process of making predictions by allowing the model instance to be called directly
+        with the required arguments for prediction.
+
+        Args:
+            source (str | int | PIL.Image | np.ndarray, optional): The source of the image for making predictions.
+                Accepts various types, including file paths, URLs, PIL images, and numpy arrays. Defaults to None.
+            stream (bool, optional): If True, treats the input source as a continuous stream for predictions.
+                Defaults to False.
+            **kwargs: Additional keyword arguments for configuring the prediction process.
+
+        Returns:
+            (List[ultralytics.engine.results.Results]): A list of prediction results, encapsulated in the Results class.
+        """
         return self.predict(source, stream, **kwargs)
 
     @staticmethod
@@ -193,7 +246,7 @@ class Model(nn.Module):
         to be updated during training.
 
         Returns:
-            self (object): The instance of the class with reset weights.
+            self (ultralytics.engine.model.Model): The instance of the class with reset weights.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
@@ -217,7 +270,7 @@ class Model(nn.Module):
             weights (str | Path): Path to the weights file or a weights object. Defaults to 'yolov8n.pt'.
 
         Returns:
-            self (object): The instance of the class with loaded weights.
+            self (ultralytics.engine.model.Model): The instance of the class with loaded weights.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
@@ -257,7 +310,7 @@ class Model(nn.Module):
             verbose (bool): If True, prints the information. If False, returns the information. Defaults to True.
 
         Returns:
-            Various types of information about the model, depending on the 'detailed' and 'verbose' parameters.
+            (list): Various types of information about the model, depending on the 'detailed' and 'verbose' parameters.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
@@ -288,7 +341,7 @@ class Model(nn.Module):
             source (str | int | PIL.Image | np.ndarray): The source of the image for generating embeddings.
                 The source can be a file path, URL, PIL image, numpy array, etc. Defaults to None.
             stream (bool): If True, predictions are streamed. Defaults to False.
-            **kwargs: Additional keyword arguments for configuring the embedding process.
+            **kwargs (dict): Additional keyword arguments for configuring the embedding process.
 
         Returns:
             (List[torch.Tensor]): A list containing the image embeddings.
@@ -320,11 +373,11 @@ class Model(nn.Module):
             stream (bool, optional): Treats the input source as a continuous stream for predictions. Defaults to False.
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions.
                 If None, the method uses a default predictor. Defaults to None.
-            **kwargs: Additional keyword arguments for configuring the prediction process. These arguments allow for
-                further customization of the prediction behavior.
+            **kwargs (dict): Additional keyword arguments for configuring the prediction process. These arguments allow
+                for further customization of the prediction behavior.
 
         Returns:
-            List[ultralytics.engine.results.Results]: A list of prediction results, encapsulated in the Results class.
+            (List[ultralytics.engine.results.Results]): A list of prediction results, encapsulated in the Results class.
 
         Raises:
             AttributeError: If the predictor is not properly set up.
@@ -368,8 +421,8 @@ class Model(nn.Module):
             source (str, optional): The input source for object tracking. It can be a file path, URL, or video stream.
             stream (bool, optional): Treats the input source as a continuous video stream. Defaults to False.
             persist (bool, optional): Persists the trackers between different calls to this method. Defaults to False.
-            **kwargs: Additional keyword arguments for configuring the tracking process. These arguments allow for
-                further customization of the tracking behavior.
+            **kwargs (dict): Additional keyword arguments for configuring the tracking process. These arguments allow
+                for further customization of the tracking behavior.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of tracking results, encapsulated in the Results class.
@@ -401,8 +454,8 @@ class Model(nn.Module):
         Args:
             validator (BaseValidator, optional): An instance of a custom validator class for validating the model. If
                 None, the method uses a default validator. Defaults to None.
-            **kwargs: Arbitrary keyword arguments representing the validation configuration. These arguments are used to
-                customize various aspects of the validation process.
+            **kwargs (dict): Arbitrary keyword arguments representing the validation configuration. These arguments are
+                used to customize various aspects of the validation process.
 
         Returns:
             (dict): Validation metrics obtained from the validation process.
@@ -432,11 +485,11 @@ class Model(nn.Module):
         configurable options, users should refer to the 'configuration' section in the documentation.
 
         Args:
-            **kwargs: Arbitrary keyword arguments to customize the benchmarking process. These are combined with default
-                      configurations, model-specific arguments, and method defaults.
+            **kwargs (dict): Arbitrary keyword arguments to customize the benchmarking process. These are combined with
+                default configurations, model-specific arguments, and method defaults.
 
         Returns:
-            (object): An object containing the results of the benchmarking process.
+            (dict): A dictionary containing the results of the benchmarking process.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
@@ -468,8 +521,8 @@ class Model(nn.Module):
         possible arguments, refer to the 'configuration' section in the documentation.
 
         Args:
-            **kwargs: Arbitrary keyword arguments to customize the export process. These are combined with the model's
-                      overrides and method defaults.
+            **kwargs (dict): Arbitrary keyword arguments to customize the export process. These are combined with the
+                model's overrides and method defaults.
 
         Returns:
             (object): The exported model in the specified format, or an object related to the export process.
@@ -501,8 +554,8 @@ class Model(nn.Module):
         Args:
             trainer (BaseTrainer, optional): An instance of a custom trainer class for training the model. If None, the
                 method uses a default trainer. Defaults to None.
-            **kwargs: Arbitrary keyword arguments representing the training configuration. These arguments are used to
-                customize various aspects of the training process.
+            **kwargs (dict): Arbitrary keyword arguments representing the training configuration. These arguments are
+                used to customize various aspects of the training process.
 
         Returns:
             (dict | None): Training metrics if available and training is successful; otherwise, None.
@@ -566,8 +619,8 @@ class Model(nn.Module):
         Args:
             use_ray (bool): If True, uses Ray Tune for hyperparameter tuning. Defaults to False.
             iterations (int): The number of tuning iterations to perform. Defaults to 10.
-            *args: Variable length argument list for additional arguments.
-            **kwargs: Arbitrary keyword arguments. These arguments are combined with the model's overrides and defaults.
+            *args (list): Variable length argument list for additional arguments.
+            **kwargs (dict): Arbitrary keyword arguments. These are combined with the model's overrides and defaults.
 
         Returns:
             (dict): A dictionary containing the results of the hyperparameter search.

@@ -5,11 +5,24 @@ from ultralytics.data import build_dataloader
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import (
     DEFAULT_CFG, LOGGER, RANK)
-from ultralytics.utils.tlc_validator import TLCDetectionValidator
+from ultralytics.utils.tlc.detect.validator import TLCDetectionValidator
 from ultralytics.utils.torch_utils import de_parallel
-from ultralytics.utils.tlc_dataset import build_tlc_dataset
-from ultralytics.utils.tlc_utils import parse_environment_variables, get_metrics_collection_epochs
+from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
+from ultralytics.utils.tlc.detect.utils import parse_environment_variables, get_metrics_collection_epochs
 from ultralytics.utils.torch_utils import torch_distributed_zero_first
+
+# elif SETTINGS['tlc'] is True and tlc:
+#     if self.args.task != "detect":
+#         raise NotImplementedError("The 3LC integration currently only supports task detection.")
+#     from ultralytics.utils.tlc.detect.utils import tlc_check_dataset
+#     tables = tlc_check_dataset(self.args.data)
+#     names = tables["train"].get_value_map_for_column(tlc.BOUNDING_BOXES)
+#     self.data = {
+#         "train": tables["train"],
+#         "val": tables["val"],
+#         "nc": len(names),
+#         "names": names,
+#     }
 
 class TLCDetectionTrainer(DetectionTrainer):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""

@@ -541,8 +541,8 @@ def tlc_task_map(task, key):
         LOGGER.info("3LC enabled, but currently only supports detect task. Defaulting to non-3LC mode.")
         return None
     
-    from ultralytics.utils.tlc_trainer import TLCDetectionTrainer
-    from ultralytics.utils.tlc_validator import TLCDetectionValidator
+    from ultralytics.utils.tlc.detect.trainer import TLCDetectionTrainer
+    from ultralytics.utils.tlc.detect.validator import TLCDetectionValidator
 
     if key == "trainer":
         return TLCDetectionTrainer

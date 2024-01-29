@@ -136,20 +136,6 @@ class BaseValidator:
             elif not pt and not jit:
                 self.args.batch = 1  # export.py models default to batch-size 1
                 LOGGER.info(f"Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models")
-
-            if self.args.data.startswith("3LC://"):
-                if self.args.task != "detect":
-                    raise NotImplementedError("The 3LC integration currently only supports task detect.")
-                import tlc
-                from ultralytics.utils.tlc_utils import tlc_check_dataset
-                tables = tlc_check_dataset(self.args.data)
-                names = tables["train"].get_value_map_for_column(tlc.BOUNDING_BOXES)
-                self.data = {
-                    "train": tables["train"],
-                    "val": tables["val"],
-                    "nc": len(names),
-                    "names": names,
-                }
             elif str(self.args.data).split(".")[-1] in ("yaml", "yml"):
                 self.data = check_det_dataset(self.args.data)
             elif self.args.task == "classify":

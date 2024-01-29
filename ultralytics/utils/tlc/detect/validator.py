@@ -2,7 +2,21 @@ import tlc
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
-from ultralytics.utils.tlc_utils import yolo_predicted_bounding_box_schema, construct_bbox_struct, parse_environment_variables, get_metrics_collection_epochs
+from ultralytics.utils.tlc.detect.utils import yolo_predicted_bounding_box_schema, construct_bbox_struct, parse_environment_variables, get_metrics_collection_epochs
+
+# if self.args.data.startswith("3LC://"):
+#     if self.args.task != "detect":
+#         raise NotImplementedError("The 3LC integration currently only supports task detect.")
+#     import tlc
+#     from ultralytics.utils.tlc_utils import tlc_check_dataset
+#     tables = tlc_check_dataset(self.args.data)
+#     names = tables["train"].get_value_map_for_column(tlc.BOUNDING_BOXES)
+#     self.data = {
+#         "train": tables["train"],
+#         "val": tables["val"],
+#         "nc": len(names),
+#         "names": names,
+#     }
 
 class TLCDetectionValidator(DetectionValidator):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""

@@ -197,7 +197,7 @@ def resolve_table_url(
     """
     _hash = get_hash(paths, dataset_name)
     table_name = f'{prefix or ""}{_hash}'
-    table_url = tlc.Table.get_url(project_name=project_name, dataset_name=dataset_name, table_name=table_name)
+    table_url = tlc.Url.create_table_url(project_name=project_name, dataset_name=dataset_name, table_name=table_name)
     return table_url
 
 

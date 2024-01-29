@@ -655,7 +655,7 @@ def torch_safe_load(weight):
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
-        f"WARNING ⚠️ {weight} saved with torch.save(). Always use model.save('filename.pt') method to save YOLO models."
+        # f"WARNING ⚠️ {weight} saved with torch.save(). Use model.save('filename.pt') method to save YOLO models."
         ckpt = {"model": ckpt.model}
 
     return ckpt, file  # load

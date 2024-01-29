@@ -185,7 +185,18 @@ class Model(nn.Module):
             )
 
     def reset_weights(self):
-        """Resets the model modules parameters to randomly initialized values, losing all training information."""
+        """
+        Resets the model parameters to randomly initialized values, effectively discarding all training information.
+
+        This method iterates through all modules in the model and resets their parameters if they have a 'reset_parameters' method.
+        It also ensures that all parameters have 'requires_grad' set to True, enabling them to be updated during training.
+
+        Returns:
+            self (object): The instance of the class with reset weights.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
+        """
         self._check_is_pytorch_model()
         for m in self.model.modules():
             if hasattr(m, "reset_parameters"):
@@ -195,7 +206,21 @@ class Model(nn.Module):
         return self
 
     def load(self, weights="yolov8n.pt"):
-        """Transfers parameters with matching names and shapes from 'weights' to model."""
+        """
+        Loads parameters from the specified weights file into the model.
+
+        This method supports loading weights from a file or directly from a weights object. It matches parameters by name
+        and shape and transfers them to the model.
+
+        Args:
+            weights (str | Path): Path to the weights file or a weights object. Defaults to 'yolov8n.pt'.
+
+        Returns:
+            self (object): The instance of the class with loaded weights.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
+        """
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             weights, self.ckpt = attempt_load_one_weight(weights)
@@ -203,7 +228,17 @@ class Model(nn.Module):
         return self
 
     def save(self, filename="model.pt"):
-        """Save the model to 'filename'."""
+        """
+        Saves the current model state to a file.
+
+        This method exports the model's checkpoint (ckpt) to the specified filename.
+
+        Args:
+            filename (str): The name of the file to save the model to. Defaults to 'model.pt'.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
+        """
         self._check_is_pytorch_model()
         import torch
 
@@ -211,33 +246,54 @@ class Model(nn.Module):
 
     def info(self, detailed=False, verbose=True):
         """
-        Logs model info.
+        Logs or returns model information.
+
+        This method provides an overview or detailed information about the model, depending on the arguments passed.
+        It can control the verbosity of the output.
 
         Args:
-            detailed (bool): Show detailed information about model.
-            verbose (bool): Controls verbosity.
+            detailed (bool): If True, shows detailed information about the model. Defaults to False.
+            verbose (bool): If True, prints the information. If False, returns the information. Defaults to True.
+
+        Returns:
+            Various types of information about the model, depending on the 'detailed' and 'verbose' parameters.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose)
 
     def fuse(self):
-        """Fuse PyTorch Conv2d and BatchNorm2d layers."""
+        """
+        Fuses Conv2d and BatchNorm2d layers in the model.
+
+        This method optimizes the model by fusing Conv2d and BatchNorm2d layers, which can improve inference speed.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
+        """
         self._check_is_pytorch_model()
         self.model.fuse()
 
     def embed(self, source=None, stream=False, **kwargs):
         """
-        Calls the predict() method and returns image embeddings.
+        Generates image embeddings based on the provided source.
+
+        This method is a wrapper around the 'predict()' method, focusing on generating embeddings from an image source.
+        It allows customization of the embedding process through various keyword arguments.
 
         Args:
-            source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
-                Accepts all source types accepted by the YOLO model.
-            stream (bool): Whether to stream the predictions or not. Defaults to False.
-            **kwargs : Additional keyword arguments passed to the predictor.
-                Check the 'configuration' section in the documentation for all available options.
+            source (str | int | PIL.Image | np.ndarray): The source of the image for generating embeddings.
+                The source can be a file path, URL, PIL image, numpy array, etc. Defaults to None.
+            stream (bool): If True, predictions are streamed. Defaults to False.
+            **kwargs: Additional keyword arguments for configuring the embedding process.
 
         Returns:
-            (List[torch.Tensor]): A list of image embeddings.
+            (List[torch.Tensor]): A list containing the image embeddings.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
         """
         if not kwargs.get("embed"):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed

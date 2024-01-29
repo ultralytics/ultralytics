@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Union
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
+from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
-from ultralytics.hub.utils import HUB_WEB_ROOT
 
 
 class Model(nn.Module):
@@ -301,18 +301,33 @@ class Model(nn.Module):
 
     def predict(self, source=None, stream=False, predictor=None, **kwargs):
         """
-        Perform prediction using the YOLO model.
+        Performs predictions on the given image source using the YOLO model.
+
+        This method facilitates the prediction process, allowing various configurations through keyword arguments.
+        It supports predictions with custom predictors or the default predictor method. The method handles different
+        types of image sources and can operate in a streaming mode. It also provides support for SAM-type models
+        through 'prompts'.
+
+        The method sets up a new predictor if not already present and updates its arguments with each call.
+        It also issues a warning and uses default assets if the 'source' is not provided. The method determines if it
+        is being called from the command line interface and adjusts its behavior accordingly, including setting defaults
+        for confidence threshold and saving behavior.
 
         Args:
-            source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
-                Accepts all source types accepted by the YOLO model.
-            stream (bool): Whether to stream the predictions or not. Defaults to False.
-            predictor (BasePredictor): Customized predictor.
-            **kwargs : Additional keyword arguments passed to the predictor.
-                Check the 'configuration' section in the documentation for all available options.
+            source (str | int | PIL.Image | np.ndarray, optional): The source of the image for making predictions.
+                                                                   Accepts various types, including file paths, URLs,
+                                                                   PIL images, and numpy arrays. Defaults to default assets.
+            stream (bool, optional): If True, treats the input source as a continuous stream for predictions. Defaults to False.
+            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If None,
+                                                 the method uses a default predictor. Defaults to None.
+            **kwargs: Additional keyword arguments for configuring the prediction process. These arguments allow for
+                      further customization of the prediction behavior.
 
         Returns:
-            (List[ultralytics.engine.results.Results]): The prediction results.
+            List[ultralytics.engine.results.Results]: A list of prediction results, encapsulated in the Results class.
+
+        Raises:
+            AttributeError: If the predictor is not properly set up.
         """
         if source is None:
             source = ASSETS
@@ -339,16 +354,29 @@ class Model(nn.Module):
 
     def track(self, source=None, stream=False, persist=False, **kwargs):
         """
-        Perform object tracking on the input source using the registered trackers.
+        Conducts object tracking on the specified input source using the registered trackers.
+
+        This method performs object tracking using the model's predictors and optionally registered trackers. It is capable
+        of handling different types of input sources such as file paths or video streams. The method supports customization
+        of the tracking process through various keyword arguments. It registers trackers if they are not already present and
+        optionally persists them based on the 'persist' flag.
+
+        The method sets a default confidence threshold specifically for ByteTrack-based tracking, which requires low
+        confidence predictions as input. The tracking mode is explicitly set in the keyword arguments.
 
         Args:
-            source (str, optional): The input source for object tracking. Can be a file path or a video stream.
-            stream (bool, optional): Whether the input source is a video stream. Defaults to False.
-            persist (bool, optional): Whether to persist the trackers if they already exist. Defaults to False.
-            **kwargs (optional): Additional keyword arguments for the tracking process.
+            source (str, optional): The input source for object tracking. It can be a file path, URL, or video stream.
+                                    Defaults to None.
+            stream (bool, optional): If True, treats the input source as a continuous video stream. Defaults to False.
+            persist (bool, optional): If True, persists the trackers between different calls to this method. Defaults to False.
+            **kwargs: Additional keyword arguments for configuring the tracking process. These arguments allow for further
+                      customization of the tracking behavior.
 
         Returns:
-            (List[ultralytics.engine.results.Results]): The tracking results.
+            (List[ultralytics.engine.results.Results]): A list of tracking results, encapsulated in the Results class.
+
+        Raises:
+            AttributeError: If the predictor does not have registered trackers.
         """
         if not hasattr(self.predictor, "trackers"):
             from ultralytics.trackers import register_tracker
@@ -360,11 +388,27 @@ class Model(nn.Module):
 
     def val(self, validator=None, **kwargs):
         """
-        Validate a model on a given dataset.
+        Validates the model using a specified dataset and validation configuration.
+
+        This method facilitates the model validation process, allowing for a range of customization through various settings
+        and configurations. It supports validation with a custom validator or the default validation approach. The method
+        combines default configurations, method-specific defaults, and user-provided arguments to configure the validation
+        process. After validation, it updates the model's metrics with the results obtained from the validator.
+
+        The method supports various arguments that allow customization of the validation process. For a comprehensive list
+        of all configurable options, users should refer to the 'configuration' section in the documentation.
 
         Args:
-            validator (BaseValidator): Customized validator.
-            **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
+            validator (BaseValidator, optional): An instance of a custom validator class for validating the model. If None,
+                                                 the method uses a default validator. Defaults to None.
+            **kwargs: Arbitrary keyword arguments representing the validation configuration. These arguments are used to
+                      customize various aspects of the validation process.
+
+        Returns:
+            (dict): Validation metrics obtained from the validation process.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
         """
         custom = {"rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
@@ -376,10 +420,26 @@ class Model(nn.Module):
 
     def benchmark(self, **kwargs):
         """
-        Benchmark a model on all export formats.
+        Benchmarks the model across various export formats to evaluate performance.
+
+        This method assesses the model's performance in different export formats, such as ONNX, TorchScript, etc. It uses
+        the 'benchmark' function from the ultralytics.utils.benchmarks module. The benchmarking is configured using a
+        combination of default configuration values, model-specific arguments, method-specific defaults, and any additional
+        user-provided keyword arguments.
+
+        The method supports various arguments that allow customization of the benchmarking process, such as dataset choice,
+        image size, precision modes, device selection, and verbosity. For a comprehensive list of all configurable options,
+        users should refer to the 'configuration' section in the documentation.
 
         Args:
-            **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
+            **kwargs: Arbitrary keyword arguments to customize the benchmarking process. These are combined with default
+                      configurations, model-specific arguments, and method defaults.
+
+        Returns:
+            (object): An object containing the results of the benchmarking process.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
         from ultralytics.utils.benchmarks import benchmark
@@ -398,10 +458,24 @@ class Model(nn.Module):
 
     def export(self, **kwargs):
         """
-        Export model.
+        Exports the model to a different format suitable for deployment.
+
+        This method facilitates the export of the model to various formats (e.g., ONNX, TorchScript) for deployment purposes.
+        It uses the 'Exporter' class for the export process, combining model-specific overrides, method defaults, and any
+        additional arguments provided. The combined arguments are used to configure the export settings.
+
+        The method supports a wide range of arguments to customize the export process. For a comprehensive list of all
+        possible arguments, refer to the 'configuration' section in the documentation.
 
         Args:
-            **kwargs : Any other args accepted by the Exporter. To see all args check 'configuration' section in docs.
+            **kwargs: Arbitrary keyword arguments to customize the export process. These are combined with the model's
+                      overrides and method defaults.
+
+        Returns:
+            (object): The exported model in the specified format, or an object related to the export process.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
         from .exporter import Exporter
@@ -412,11 +486,31 @@ class Model(nn.Module):
 
     def train(self, trainer=None, **kwargs):
         """
-        Trains the model on a given dataset.
+        Trains the model using the specified dataset and training configuration.
+
+        This method facilitates model training with a range of customizable settings and configurations. It supports
+        training with a custom trainer or the default training approach defined in the method. The method handles different
+        scenarios, such as resuming training from a checkpoint, integrating with Ultralytics HUB, and updating model and
+        configuration after training.
+
+        When using Ultralytics HUB, if the session already has a loaded model, the method prioritizes HUB training arguments
+        and issues a warning if local arguments are provided. It checks for pip updates and combines default configurations,
+        method-specific defaults, and user-provided arguments to configure the training process. After training, it updates
+        the model and its configurations, and optionally attaches metrics.
 
         Args:
-            trainer (BaseTrainer, optional): Customized trainer.
-            **kwargs (Any): Any number of arguments representing the training configuration.
+            trainer (BaseTrainer, optional): An instance of a custom trainer class for training the model. If None, the
+                                             method uses a default trainer. Defaults to None.
+            **kwargs: Arbitrary keyword arguments representing the training configuration. These arguments are used to
+                      customize various aspects of the training process.
+
+        Returns:
+            (dict | None): Training metrics if available and training is successful; otherwise, None.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
+            PermissionError: If there is a permission issue with the HUB session.
+            ModuleNotFoundError: If the HUB SDK is not installed.
         """
         self._check_is_pytorch_model()
         if hasattr(self.session, "model") and self.session.model.id:  # Ultralytics HUB session with loaded model
@@ -462,10 +556,24 @@ class Model(nn.Module):
 
     def tune(self, use_ray=False, iterations=10, *args, **kwargs):
         """
-        Runs hyperparameter tuning, optionally using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
+        Conducts hyperparameter tuning for the model, with an option to use Ray Tune.
+
+        This method supports two modes of hyperparameter tuning: using Ray Tune or a custom tuning method.
+        When Ray Tune is enabled, it leverages the 'run_ray_tune' function from the ultralytics.utils.tuner module.
+        Otherwise, it uses the internal 'Tuner' class for tuning. The method combines default, overridden, and
+        custom arguments to configure the tuning process.
+
+        Args:
+            use_ray (bool): If True, uses Ray Tune for hyperparameter tuning. Defaults to False.
+            iterations (int): The number of tuning iterations to perform. Defaults to 10.
+            *args: Variable length argument list for additional arguments.
+            **kwargs: Arbitrary keyword arguments. These arguments are combined with the model's overrides and defaults.
 
         Returns:
             (dict): A dictionary containing the results of the hyperparameter search.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
         if use_ray:

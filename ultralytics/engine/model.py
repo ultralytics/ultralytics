@@ -188,8 +188,9 @@ class Model(nn.Module):
         """
         Resets the model parameters to randomly initialized values, effectively discarding all training information.
 
-        This method iterates through all modules in the model and resets their parameters if they have a 'reset_parameters' method.
-        It also ensures that all parameters have 'requires_grad' set to True, enabling them to be updated during training.
+        This method iterates through all modules in the model and resets their parameters if they have a
+        'reset_parameters' method. It also ensures that all parameters have 'requires_grad' set to True, enabling them
+        to be updated during training.
 
         Returns:
             self (object): The instance of the class with reset weights.
@@ -209,8 +210,8 @@ class Model(nn.Module):
         """
         Loads parameters from the specified weights file into the model.
 
-        This method supports loading weights from a file or directly from a weights object. It matches parameters by name
-        and shape and transfers them to the model.
+        This method supports loading weights from a file or directly from a weights object. It matches parameters by
+        name and shape and transfers them to the model.
 
         Args:
             weights (str | Path): Path to the weights file or a weights object. Defaults to 'yolov8n.pt'.
@@ -315,13 +316,12 @@ class Model(nn.Module):
 
         Args:
             source (str | int | PIL.Image | np.ndarray, optional): The source of the image for making predictions.
-                                                                   Accepts various types, including file paths, URLs,
-                                                                   PIL images, and numpy arrays. Defaults to default assets.
-            stream (bool, optional): If True, treats the input source as a continuous stream for predictions. Defaults to False.
-            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If None,
-                                                 the method uses a default predictor. Defaults to None.
+                Accepts various types, including file paths, URLs, PIL images, and numpy arrays. Defaults to ASSETS.
+            stream (bool, optional): Treats the input source as a continuous stream for predictions. Defaults to False.
+            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions.
+                If None, the method uses a default predictor. Defaults to None.
             **kwargs: Additional keyword arguments for configuring the prediction process. These arguments allow for
-                      further customization of the prediction behavior.
+                further customization of the prediction behavior.
 
         Returns:
             List[ultralytics.engine.results.Results]: A list of prediction results, encapsulated in the Results class.
@@ -356,21 +356,20 @@ class Model(nn.Module):
         """
         Conducts object tracking on the specified input source using the registered trackers.
 
-        This method performs object tracking using the model's predictors and optionally registered trackers. It is capable
-        of handling different types of input sources such as file paths or video streams. The method supports customization
-        of the tracking process through various keyword arguments. It registers trackers if they are not already present and
-        optionally persists them based on the 'persist' flag.
+        This method performs object tracking using the model's predictors and optionally registered trackers. It is
+        capable of handling different types of input sources such as file paths or video streams. The method supports
+        customization of the tracking process through various keyword arguments. It registers trackers if they are not
+        already present and optionally persists them based on the 'persist' flag.
 
         The method sets a default confidence threshold specifically for ByteTrack-based tracking, which requires low
         confidence predictions as input. The tracking mode is explicitly set in the keyword arguments.
 
         Args:
             source (str, optional): The input source for object tracking. It can be a file path, URL, or video stream.
-                                    Defaults to None.
-            stream (bool, optional): If True, treats the input source as a continuous video stream. Defaults to False.
-            persist (bool, optional): If True, persists the trackers between different calls to this method. Defaults to False.
-            **kwargs: Additional keyword arguments for configuring the tracking process. These arguments allow for further
-                      customization of the tracking behavior.
+            stream (bool, optional): Treats the input source as a continuous video stream. Defaults to False.
+            persist (bool, optional): Persists the trackers between different calls to this method. Defaults to False.
+            **kwargs: Additional keyword arguments for configuring the tracking process. These arguments allow for
+                further customization of the tracking behavior.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of tracking results, encapsulated in the Results class.
@@ -390,10 +389,10 @@ class Model(nn.Module):
         """
         Validates the model using a specified dataset and validation configuration.
 
-        This method facilitates the model validation process, allowing for a range of customization through various settings
-        and configurations. It supports validation with a custom validator or the default validation approach. The method
-        combines default configurations, method-specific defaults, and user-provided arguments to configure the validation
-        process. After validation, it updates the model's metrics with the results obtained from the validator.
+        This method facilitates the model validation process, allowing for a range of customization through various
+        settings and configurations. It supports validation with a custom validator or the default validation approach.
+        The method combines default configurations, method-specific defaults, and user-provided arguments to configure
+        the validation process. After validation, it updates the model's metrics with the results obtained from the validator.
 
         The method supports various arguments that allow customization of the validation process. For a comprehensive list
         of all configurable options, users should refer to the 'configuration' section in the documentation.

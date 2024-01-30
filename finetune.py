@@ -24,8 +24,8 @@ model.train(
     save=False,
     device=[0,1,2,3],
     project='fine-tune-cdv2',
-    name=f'8s-{epochs}e-{batch}b_{optimizer}',
+    name=f'8sMask05-{epochs}e-{batch}b_{optimizer}',
     verbose=True,
     patience=25,
-
+    cache=True
 )

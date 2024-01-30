@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision.ops import sigmoid_focal_loss
 
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
@@ -23,14 +24,12 @@ class VarifocalLoss(nn.Module):
         super().__init__()
 
     @staticmethod
-    def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
+    def forward(pred_score, gt_score, alpha=0.75, gamma=2.0):
         """Computes varfocal loss."""
-        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+        weight = torch.where(gt_score > 0, gt_score, alpha * pred_score.sigmoid().pow(gamma))
         with torch.cuda.amp.autocast(enabled=False):
             loss = (
                 (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
-                .mean(1)
-                .sum()
             )
         return loss
 
@@ -43,21 +42,34 @@ class FocalLoss(nn.Module):
         super().__init__()
 
     @staticmethod
-    def forward(pred, label, gamma=1.5, alpha=0.25):
-        """Calculates and updates confusion matrix for object detection/classification tasks."""
-        loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
-        # p_t = torch.exp(-loss)
-        # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
+    def forward(pred_score, gt_score, gamma=2.0, alpha=0.25):
+        "Computes focal loss."""
+        with torch.cuda.amp.autocast(enabled=False):
+            loss = (
+                (sigmoid_focal_loss(pred_score.float(), gt_score.float(), gamma=gamma, alpha=alpha, reduction="none"))
+            )
+        return loss
 
-        # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
-        pred_prob = pred.sigmoid()  # prob from logits
-        p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
-        modulating_factor = (1.0 - p_t) ** gamma
-        loss *= modulating_factor
-        if alpha > 0:
-            alpha_factor = label * alpha + (1 - label) * (1 - alpha)
-            loss *= alpha_factor
-        return loss.mean(1).sum()
+
+class BackgroundRecalibrationLoss(nn.Module):
+    """
+    Background Recalibration Loss by Zhang et al.
+
+    https://arxiv.org/pdf/2002.05274.
+    """
+
+    def __init__(self):
+        """Initialize the class with no parameters."""
+        super().__init__()
+
+    @staticmethod
+    def forward(pred_score, gt_score, gamma=2.0, alpha=0.25):
+        "Computes background recalibration loss."""
+        with torch.cuda.amp.autocast(enabled=False):
+            loss = (
+                (sigmoid_focal_loss(pred_score.float(), gt_score.float(), gamma=gamma, alpha=alpha, reduction="none"))
+            )
+        return loss
 
 
 class BboxLoss(nn.Module):
@@ -150,6 +162,8 @@ class v8DetectionLoss:
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        self.varifocal_loss = VarifocalLoss()
+        self.focal_loss = FocalLoss()
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -226,8 +240,18 @@ class v8DetectionLoss:
         target_scores_sum = max(target_scores.sum(), 1)
 
         # Cls loss
-        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
+        masking = True
+        if masking:
+            bg_mask_threshold = 0.5
+            bg_mask = (~((target_scores.sum(dim=2, keepdim=True) == 0).repeat(1, 1, self.nc) & (
+                        pred_scores > bg_mask_threshold))).to(dtype)
+            pred_scores *= bg_mask
+
         loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        #loss[1] = self.varifocal_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum # VFL
+        #loss[1] = self.focal_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum # FL
+
+
 
         # Bbox loss
         if fg_mask.sum():

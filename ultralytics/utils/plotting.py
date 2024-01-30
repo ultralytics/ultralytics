@@ -172,13 +172,24 @@ class Annotator:
                 self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
                 w, h = self.font.getsize(label)  # text width, height
-                outside = p1[1] - h >= 0  # label fits outside box
+                outside_w = p1[0] + w <= self.im.size[0]  # label_w fits outside box
+                outside_h = p1[1] - h >= 0  # label_h fits outside box
                 self.draw.rectangle(
-                    (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
+                    (
+                        p1[0] if outside_w else self.im.size[0] - w - 1,
+                        p1[1] - h if outside_h else p1[1],
+                        p1[0] + w + 1 if outside_w else self.im.size[0] - 1,
+                        p1[1] + 1 if outside_h else p1[1] + h + 1,
+                    ),
                     fill=color,
                 )
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
-                self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
+                self.draw.text(
+                    (p1[0] if outside_w else self.im.size[0] - w, p1[1] - h if outside_h else p1[1]),
+                    label,
+                    fill=txt_color,
+                    font=self.font,
+                )
         else:  # cv2
             if rotated:
                 p1 = [int(b) for b in box[0]]
@@ -189,13 +200,15 @@ class Annotator:
                 cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
-                outside = p1[1] - h >= 3
-                p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+                outside_h = p1[1] - h >= 3
+                outside_w = p1[0] + w <= self.im.shape[1] - 3
+                p1 = p1[0] if outside_w else self.im.shape[1] - w - 3, p1[1]
+                p2 = p1[0] + w, p1[1] - h - 3 if outside_h else p1[1] + h + 3
                 cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
                 cv2.putText(
                     self.im,
                     label,
-                    (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+                    (p1[0], p1[1] - 2 if outside_h else p1[1] + h + 2),
                     0,
                     self.sf,
                     txt_color,
@@ -291,34 +304,41 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_style=False):
+    def text(self, xy, texts, color_c=None, anchor="top", txt_color=(255, 255, 255), box_style=True):
         """Adds text to an image using PIL or cv2."""
+        assert isinstance(texts, list), "texts must be a list"
         if anchor == "bottom":  # start y from font bottom
-            w, h = self.font.getsize(text)  # text width, height
-            xy[1] += 1 - h
-        if self.pil:
-            if box_style:
-                w, h = self.font.getsize(text)
-                self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
-            if "\n" in text:
-                lines = text.split("\n")
-                _, h = self.font.getsize(text)
-                for line in lines:
-                    self.draw.text(xy, line, fill=txt_color, font=self.font)
-                    xy[1] += h
+            xy[1] = round(self.im.size[1] * 0.97) if self.pil else round(self.im.shape[0] * 0.97)
+        if color_c is None:
+            color_c = [i for i in range(len(texts))]
+
+        for index, text in zip(*((color_c, texts) if anchor == "top" else (reversed(color_c), reversed(texts)))):
+            w, h = self.font.getsize(text) if self.pil else cv2.getTextSize(text, 0,
+                                                                            fontScale=self.sf, thickness=self.tf)[0]
+            p2 = [xy[0] + w + 1, xy[1] + h + 3 if anchor == "top" else xy[1] - h - 3]
+            if self.pil:
+                if box_style:
+                    self.draw.rectangle((xy[0], xy[1], p2[0], p2[1]) if anchor == "top"
+                                        else (xy[0], p2[1], p2[0], xy[1]), fill=colors(index, True))
+                self.draw.text(xy if anchor == "top" else [xy[0], xy[1] - h - 2],
+                               text,
+                               fill=txt_color if box_style else colors(index, True),
+                               font=self.font)
             else:
-                self.draw.text(xy, text, fill=txt_color, font=self.font)
-        else:
-            if box_style:
-                w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
-                outside = xy[1] - h >= 3
-                p2 = xy[0] + w, xy[1] - h - 3 if outside else xy[1] + h + 3
-                cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
-            cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
+                if box_style:
+                    cv2.rectangle(self.im,
+                                  xy if anchor == "top" else [xy[0], p2[1]],
+                                  p2 if anchor == "top" else [p2[0], xy[1]],
+                                  colors(index, True), -1, cv2.LINE_AA)
+                cv2.putText(self.im,
+                            text,
+                            [xy[0], xy[1] + h + 3] if anchor == "top" else xy,
+                            0,
+                            self.sf,
+                            txt_color if box_style else colors(index, True),
+                            thickness=self.tf,
+                            lineType=cv2.LINE_AA)
+            xy[1] += h + 5 if anchor == "top" else -(h + 5)
 
     def fromarray(self, im):
         """Update self.im from a numpy array."""
@@ -743,7 +763,7 @@ def plot_images(
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
-            annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
+            annotator.text([x + 5, y + 5], texts=[Path(paths[i]).name[:40]], txt_color=(220, 220, 220))  # filenames
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype("int")
@@ -771,10 +791,9 @@ def plot_images(
                         annotator.box_label(box, label, color=color, rotated=is_obb)
 
             elif len(classes):
-                for c in classes:
-                    color = colors(c)
-                    c = names.get(c, c) if names else c
-                    annotator.text((x, y), f"{c}", txt_color=color, box_style=True)
+                c = [f"{names.get(c, c)}" if names else f"{c}" for c in classes]
+                num = [i for i in classes]
+                annotator.text([x, y], c, color_c=num, box_style=True)
 
             # Plot keypoints
             if len(kpts):

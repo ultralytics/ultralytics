@@ -10,11 +10,12 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from ultralytics.utils import ROOT
+# Get package root i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
+from ultralytics.utils import ROOT as PACKAGE_DIR
 
-NEW_YAML_DIR = ROOT.parent
-CODE_DIR = ROOT
-REFERENCE_DIR = ROOT.parent / "docs/en/reference"
+# Constants
+REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
+GITHUB_REPO = "ultralytics/ultralytics"
 
 
 def extract_classes_and_functions(filepath: Path) -> tuple:
@@ -44,8 +45,8 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
 
     module_name = module_path.replace(".__init__", "")
     module_path = module_path.replace(".", "/")
-    url = f"https://github.com/ultralytics/ultralytics/blob/main/{module_path}.py"
-    edit = f"https://github.com/ultralytics/ultralytics/edit/main/{module_path}.py"
+    url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path}.py"
+    edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path}.py"
     title_content = (
         f"# Reference for `{module_path}.py`\n\n"
         f"!!! Note\n\n"
@@ -60,7 +61,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     md_filepath.parent.mkdir(parents=True, exist_ok=True)
     md_filepath.write_text(md_content)
 
-    return md_filepath.relative_to(NEW_YAML_DIR)
+    return md_filepath.relative_to(PACKAGE_DIR.parent)
 
 
 def nested_dict() -> defaultdict:
@@ -73,7 +74,7 @@ def sort_nested_dict(d: dict) -> dict:
     return {key: sort_nested_dict(value) if isinstance(value, dict) else value for key, value in sorted(d.items())}
 
 
-def create_nav_menu_yaml(nav_items: list):
+def create_nav_menu_yaml(nav_items: list, save: bool = False):
     """Creates a YAML file for the navigation menu based on the provided list of items."""
     nav_tree = nested_dict()
 
@@ -104,20 +105,21 @@ def create_nav_menu_yaml(nav_items: list):
     print("Scan complete, new mkdocs.yaml reference section is:\n\n", _dict_to_yaml(nav_tree_sorted))
 
     # Save new YAML reference section
-    # (NEW_YAML_DIR / 'nav_menu_updated.yml').write_text(_dict_to_yaml(nav_tree_sorted))
+    if save:
+        (PACKAGE_DIR.parent / "nav_menu_updated.yml").write_text(_dict_to_yaml(nav_tree_sorted))
 
 
 def main():
     """Main function to extract class and function names, create Markdown files, and generate a YAML navigation menu."""
     nav_items = []
 
-    for py_filepath in CODE_DIR.rglob("*.py"):
+    for py_filepath in PACKAGE_DIR.rglob("*.py"):
         classes, functions = extract_classes_and_functions(py_filepath)
 
         if classes or functions:
-            py_filepath_rel = py_filepath.relative_to(CODE_DIR)
+            py_filepath_rel = py_filepath.relative_to(PACKAGE_DIR)
             md_filepath = REFERENCE_DIR / py_filepath_rel
-            module_path = f"ultralytics.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"
+            module_path = f"{PACKAGE_DIR.name}.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"
             md_rel_filepath = create_markdown(md_filepath, module_path, classes, functions)
             nav_items.append(str(md_rel_filepath))
 

@@ -36,7 +36,9 @@ from .block import (
     Proto,
     RepC3,
     ResNetLayer,
+    se_block, cbam_block, eca_block, CA_Block, CSPStage, BiLevelRoutingAttention, Involution,
 )
+
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -114,4 +116,5 @@ __all__ = (
     "MLP",
     "ResNetLayer",
     "OBB",
+    'se_block','cbam_block','eca_block','BiLevelRoutingAttention','CA_Block','CSPStage', 'Involution'
 )

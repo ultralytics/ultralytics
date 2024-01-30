@@ -109,4 +109,5 @@ class TLCDetectionTrainer(DetectionTrainer):
         super()._do_train(world_size=world_size)
 
         # Reduce embeddings
-        self._run.reduce_embeddings_by_example_table_url(table_url=self.data["val"].url, method="pacmap", n_components=2)
+        if self._env_vars['IMAGE_EMBEDDINGS_DIM'] > 0:
+            self._run.reduce_embeddings_by_example_table_url(table_url=self.data["val"].url, method="pacmap", n_components=self._env_vars['IMAGE_EMBEDDINGS_DIM'])

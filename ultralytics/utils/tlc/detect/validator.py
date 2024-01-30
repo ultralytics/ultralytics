@@ -21,14 +21,15 @@ class TLCDetectionValidator(DetectionValidator):
                 self._run = tlc.init(project_name=dataloader.dataset.table.project_name)
 
         if self._run is not None:
+            metrics_column_schemas = {
+                tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(dataloader.dataset.data['names']),
+            }
+            metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
             self.metrics_writer = tlc.MetricsWriter(
                 run_url=self._run.url,
                 dataset_url=dataloader.dataset.table.url,
                 dataset_name=dataloader.dataset.table.dataset_name,
-                override_column_schemas={
-                    tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(dataloader.dataset.data['names']),
-                    **yolo_image_embeddings_schema(activation_size=256),
-                },
+                override_column_schemas=metrics_column_schemas
             )
         self.epoch = 0
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
@@ -56,8 +57,9 @@ class TLCDetectionValidator(DetectionValidator):
                 tlc.EPOCH: [self.epoch] * batch_size,
                 tlc.EXAMPLE_ID: example_ids,
                 tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions),
-                "embeddings": TLCDetectionModel.activations.cpu(),
             }
+            if self._env_vars['IMAGE_EMBEDDINGS_DIM'] > 0:
+                metrics["embeddings"] = TLCDetectionModel.activations.cpu()
             self.metrics_writer.add_batch(metrics_batch=metrics)
 
             self._seen += batch_size

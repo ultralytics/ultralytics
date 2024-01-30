@@ -806,6 +806,7 @@ class DetMetrics(SimpleClass):
         names (tuple of str): A tuple of strings that represents the names of the classes.
         box (Metric): An instance of the Metric class for storing the results of the detection metrics.
         speed (dict): A dictionary for storing the execution time of different parts of the detection process.
+        cocoeval_df (pd.DataFrame): A pandas DataFrame for storing the results of the COCO evaluation.
 
     Methods:
         process(tp, conf, pred_cls, target_cls): Updates the metric results with the latest batch of predictions.
@@ -829,6 +830,7 @@ class DetMetrics(SimpleClass):
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "detect"
+        self.cocoeval_df = None
 
     def process(self, tp, conf, pred_cls, target_cls):
         """Process predicted results for object detection and update metrics."""

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import torch
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
@@ -284,23 +285,97 @@ class DetectionValidator(BaseValidator):
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements("pycocotools>=2.0.6")
                 from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
+                #from pycocotools.cocoeval import COCOeval  # noqa
+                from evaluation_tools.cocoeval import COCOeval
 
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
                 eval = COCOeval(anno, pred, "bbox")
+
+                # Set Custom Area Ranges
+                eval.params.areaRng = [[0 ** 2, 1e5 ** 2],
+                                       [0 ** 2, 16 ** 2],
+                                       [16 ** 2, 32 ** 2],
+                                       [32 ** 2, 96 ** 2],
+                                       [96 ** 2, 1e5 ** 2]]
+                eval.params.areaRngLbl = ['all', 'tiny', 'small', 'medium', 'large']
+                eval.params.maxDets = [3, 30, 300]
+
                 if self.is_coco:
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
                 eval.evaluate()
                 eval.accumulate()
                 eval.summarize()
-                stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
-                self.metrics.box.set_map_small_area(eval.stats[3])  # update mAP50-90Small
+                # Not updating mAP50-95 and mAP50 given that some images have more than 100 detections
+                #stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
+
+                # Get all metrics in a dictionary
+                self.extract_cocoeval_metrics(eval)
+
+                # Set some metrics in the stats dictionary
+                stats['metrics/AP(T)'] = eval.stats[1]
+                stats['metrics/AP(S)'] = eval.stats[2]
+                stats['metrics/AP(M)'] = eval.stats[3]
+                stats['metrics/AP(L)'] = eval.stats[4]
+                stats['metrics/AR(T)'] = eval.stats[-4]
+                stats['metrics/AR(S)'] = eval.stats[-3]
+                stats['metrics/AR(M)'] = eval.stats[-2]
+                stats['metrics/AR(L)'] = eval.stats[-1]
+
+                # Save results to file
                 results_file = self.save_dir / "evaluation_results.json"
                 with results_file.open("w") as file:
                     json.dump(stats, file)
             except Exception as e:
                 LOGGER.warning(f"pycocotools unable to run: {e}")
         return stats
+
+    def extract_cocoeval_metrics(self, eval):
+        """Extracts metrics from COCOeval object and saves them to a DataFrame."""
+
+        # Function to append metrics
+        def append_metrics(metrics, metric_type, iou, area, max_dets, value):
+            metrics.append({
+                'Metric Type': metric_type,
+                'IoU': iou,
+                'Area': area,
+                'Max Detections': max_dets,
+                'Value': value
+            })
+
+        # Initialize a list to store the metrics
+        metrics_ = []
+
+        # Extract metrics for bbox/segm evaluation
+        iou_types = ['0.50:0.95', '0.50', '0.75']
+        areas = eval.params.areaRngLbl
+        max_dets = eval.params.maxDets
+
+        # Extract AP metrics (indices 0-14: 3 IoUs * 5 areas)
+        for i, iou in enumerate(iou_types):
+            for j, area in enumerate(areas):
+                idx = i * len(areas) + j
+                append_metrics(metrics_, 'AP', iou, area, max_dets[-1], eval.stats[idx])
+
+        # Extract AR metrics (indices 15-17: 3 maxDets for 'all' area)
+        num_ap_metrics = len(iou_types) * len(areas)  # Total number of AP metrics
+
+        # Iterate over max_dets to append AR metrics
+        for i, md in enumerate(max_dets):
+            for j, area in enumerate(areas):
+                idx = num_ap_metrics + j + i * len(areas)  # Adjust index calculation for AR
+                append_metrics(metrics_, 'AR', '0.50:0.95', area, md, eval.stats[idx])
+
+        # Convert to DataFrame
+        df_metrics = pd.DataFrame(metrics_)
+
+        # Save to file
+        df_metrics.to_csv(self.save_dir / "cocoeval_results.csv", index=False)
+
+        # Write to log
+        self.metrics.cocoeval_df = df_metrics
+
+
+

@@ -306,7 +306,6 @@ class Annotator:
 
     def text(self, xy, texts, color_c=None, anchor="top", txt_color=(255, 255, 255), box_style=True):
         """Adds text to an image using PIL or cv2."""
-        assert isinstance(texts, list), "texts must be a list"
         if anchor == "bottom":  # start y from font bottom
             xy[1] = round(self.im.size[1] * 0.97) if self.pil else round(self.im.shape[0] * 0.97)
         if color_c is None:
@@ -344,7 +343,7 @@ class Annotator:
                 cv2.putText(
                     self.im,
                     text,
-                    [xy[0], xy[1] + h + 3] if anchor == "top" else xy,
+                    [xy[0], p2[1]] if anchor == "top" else xy,
                     0,
                     self.sf,
                     txt_color if box_style else colors(index, True),

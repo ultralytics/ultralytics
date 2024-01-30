@@ -304,7 +304,7 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, texts, color_c=None, anchor="top", txt_color=(255, 255, 255), box_style=True):
+    def text(self, xy, texts, color_c=None, anchor="top", txt_color=(255, 255, 255), box_style=False):
         """Adds text to an image using PIL or cv2."""
         if anchor == "bottom":  # start y from font bottom
             xy[1] = round(self.im.size[1] * 0.97) if self.pil else round(self.im.shape[0] * 0.97)

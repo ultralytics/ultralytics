@@ -9,7 +9,7 @@ class TLCYOLO(YOLO):
     """ YOLO (You Only Look Once) object detection model with 3LC integration. """
     @property
     def task_map(self):
-        """ Map head to model, trainer, validator, and predictor classes. """
+        """ Map head to 3LC model, trainer, validator, and predictor classes. """
         task_map = super().task_map
         task_map["detect"]["model"] = TLCDetectionModel
         task_map["detect"]["trainer"] = TLCDetectionTrainer

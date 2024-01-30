@@ -313,31 +313,44 @@ class Annotator:
             color_c = [i for i in range(len(texts))]
 
         for index, text in zip(*((color_c, texts) if anchor == "top" else (reversed(color_c), reversed(texts)))):
-            w, h = self.font.getsize(text) if self.pil else cv2.getTextSize(text, 0,
-                                                                            fontScale=self.sf, thickness=self.tf)[0]
+            w, h = (
+                self.font.getsize(text)
+                if self.pil
+                else cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
+            )
             p2 = [xy[0] + w + 1, xy[1] + h + 3 if anchor == "top" else xy[1] - h - 3]
             if self.pil:
                 if box_style:
-                    self.draw.rectangle((xy[0], xy[1], p2[0], p2[1]) if anchor == "top"
-                                        else (xy[0], p2[1], p2[0], xy[1]), fill=colors(index, True))
-                self.draw.text(xy if anchor == "top" else [xy[0], xy[1] - h - 2],
-                               text,
-                               fill=txt_color if box_style else colors(index, True),
-                               font=self.font)
+                    self.draw.rectangle(
+                        (xy[0], xy[1], p2[0], p2[1]) if anchor == "top" else (xy[0], p2[1], p2[0], xy[1]),
+                        fill=colors(index, True),
+                    )
+                self.draw.text(
+                    xy if anchor == "top" else [xy[0], xy[1] - h - 2],
+                    text,
+                    fill=txt_color if box_style else colors(index, True),
+                    font=self.font,
+                )
             else:
                 if box_style:
-                    cv2.rectangle(self.im,
-                                  xy if anchor == "top" else [xy[0], p2[1]],
-                                  p2 if anchor == "top" else [p2[0], xy[1]],
-                                  colors(index, True), -1, cv2.LINE_AA)
-                cv2.putText(self.im,
-                            text,
-                            [xy[0], xy[1] + h + 3] if anchor == "top" else xy,
-                            0,
-                            self.sf,
-                            txt_color if box_style else colors(index, True),
-                            thickness=self.tf,
-                            lineType=cv2.LINE_AA)
+                    cv2.rectangle(
+                        self.im,
+                        xy if anchor == "top" else [xy[0], p2[1]],
+                        p2 if anchor == "top" else [p2[0], xy[1]],
+                        colors(index, True),
+                        -1,
+                        cv2.LINE_AA,
+                    )
+                cv2.putText(
+                    self.im,
+                    text,
+                    [xy[0], xy[1] + h + 3] if anchor == "top" else xy,
+                    0,
+                    self.sf,
+                    txt_color if box_style else colors(index, True),
+                    thickness=self.tf,
+                    lineType=cv2.LINE_AA,
+                )
             xy[1] += h + 5 if anchor == "top" else -(h + 5)
 
     def fromarray(self, im):

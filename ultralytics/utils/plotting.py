@@ -325,7 +325,7 @@ class Annotator:
                         fill=colors(index, True),
                     )
                 self.draw.text(
-                    xy if anchor == "top" else [xy[0], xy[1] - h - 2],
+                    xy if anchor == "top" else [xy[0], p2[1]],
                     text,
                     fill=txt_color if box_style else colors(index, True),
                     font=self.font,

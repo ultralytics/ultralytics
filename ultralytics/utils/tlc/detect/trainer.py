@@ -7,6 +7,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import (
     DEFAULT_CFG, LOGGER, RANK)
 from ultralytics.utils.tlc.detect.validator import TLCDetectionValidator
+from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
 from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
 from ultralytics.utils.tlc.detect.utils import parse_environment_variables, get_metrics_collection_epochs, tlc_check_dataset
@@ -80,6 +81,13 @@ class TLCDetectionTrainer(DetectionTrainer):
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_tlc_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, table=self.data[split])
 
+    def get_model(self, cfg=None, weights=None, verbose=True):
+        """Return a YOLO detection model."""
+        model = TLCDetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
+        if weights:
+            model.load(weights)
+        return model
+
     def get_validator(self, loader=None):
         """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
@@ -96,3 +104,9 @@ class TLCDetectionTrainer(DetectionTrainer):
 
         # Validate on val/test set
         return super().validate()
+    
+    def _do_train(self, world_size=1):
+        super()._do_train(world_size=world_size)
+
+        # Reduce embeddings
+        self._run.reduce_embeddings_by_example_table_url(table_url=self.data["val"].url, method="pacmap", n_components=2)

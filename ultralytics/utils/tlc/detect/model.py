@@ -11,8 +11,8 @@ class TLCYOLO(YOLO):
     def task_map(self):
         """ Map head to model, trainer, validator, and predictor classes. """
         task_map = super().task_map
-        task_map["model"] = TLCDetectionModel
-        task_map["trainer"] = TLCDetectionTrainer
-        task_map["validator"] = TLCDetectionValidator
+        task_map["detect"]["model"] = TLCDetectionModel
+        task_map["detect"]["trainer"] = TLCDetectionTrainer
+        task_map["detect"]["validator"] = TLCDetectionValidator
 
         return task_map

@@ -4,7 +4,7 @@ import tlc
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
 from ultralytics.utils import LOGGER, ops
-from ultralytics.utils.tlc.detect.utils import yolo_predicted_bounding_box_schema, construct_bbox_struct, parse_environment_variables, get_metrics_collection_epochs, yolo_image_embeddings_schema
+from ultralytics.utils.tlc.detect.utils import yolo_predicted_bounding_box_schema, construct_bbox_struct, parse_environment_variables, get_metrics_collection_epochs, yolo_image_embeddings_schema, training_phase_schema
 
 class TLCDetectionValidator(DetectionValidator):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
@@ -14,6 +14,7 @@ class TLCDetectionValidator(DetectionValidator):
         self._env_vars = parse_environment_variables()
         self._run = None
         self._seen = 0
+        self._final_validation = True
         if run:
             self._run = run
         else:
@@ -23,8 +24,10 @@ class TLCDetectionValidator(DetectionValidator):
         if self._run is not None:
             metrics_column_schemas = {
                 tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(dataloader.dataset.data['names']),
+                "Training Phase": training_phase_schema(),
             }
             metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
+            
             self.metrics_writer = tlc.MetricsWriter(
                 run_url=self._run.url,
                 dataset_url=dataloader.dataset.table.url,
@@ -34,7 +37,7 @@ class TLCDetectionValidator(DetectionValidator):
         self.epoch = 0
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
 
-    def __call__(self, trainer=None, model=None, epoch=None):
+    def __call__(self, trainer=None, model=None, epoch=None, final_validation=False):
         self._trainer = trainer
         if trainer:
             self._collection_epochs = get_metrics_collection_epochs(
@@ -43,33 +46,35 @@ class TLCDetectionValidator(DetectionValidator):
                 self._env_vars['COLLECTION_EPOCH_INTERVAL'],
                 self._env_vars['COLLECTION_DISABLE']
             )
+        self._final_validation = final_validation
         if epoch:
             self.epoch = epoch
         return super().__call__(trainer, model)
     
     def _collect_metrics(self, predictions):
-        if self._should_collect_metrics(self.epoch):
-            batch_size = len(predictions)
-            example_index = np.arange(self._seen, self._seen + batch_size)
-            example_ids = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset, 'irect') else example_index
+        batch_size = len(predictions)
+        example_index = np.arange(self._seen, self._seen + batch_size)
+        example_ids = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset, 'irect') else example_index
 
-            metrics = {
-                tlc.EPOCH: [self.epoch] * batch_size,
-                tlc.EXAMPLE_ID: example_ids,
-                tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions),
-            }
-            if self._env_vars['IMAGE_EMBEDDINGS_DIM'] > 0:
-                metrics["embeddings"] = TLCDetectionModel.activations.cpu()
-            self.metrics_writer.add_batch(metrics_batch=metrics)
+        epoch = self.epoch - 1 if self._final_validation else self.epoch
+        metrics = {
+            tlc.EPOCH: [epoch] * batch_size,
+            "Training Phase": [1 if self._final_validation else 0] * batch_size,
+            tlc.EXAMPLE_ID: example_ids,
+            tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions),
+        }
+        if self._env_vars['IMAGE_EMBEDDINGS_DIM'] > 0:
+            metrics["embeddings"] = TLCDetectionModel.activations.cpu()
+        self.metrics_writer.add_batch(metrics_batch=metrics)
 
-            self._seen += batch_size
+        self._seen += batch_size
 
-            if self._seen == len(self.dataloader.dataset):
-                self.metrics_writer.flush()
-                metrics_infos = self.metrics_writer.get_written_metrics_infos()
-                self._run.update_metrics(metrics_infos)
-                self.epoch += 1
-                self._seen = 0
+        if self._seen == len(self.dataloader.dataset):
+            self.metrics_writer.flush()
+            metrics_infos = self.metrics_writer.get_written_metrics_infos()
+            self._run.update_metrics(metrics_infos)
+            self.epoch += 1
+            self._seen = 0
 
     def _process_batch_predictions(self, batch_predictions):
         predicted_boxes = []
@@ -115,10 +120,14 @@ class TLCDetectionValidator(DetectionValidator):
     def postprocess(self, preds):
         postprocessed = super().postprocess(preds)
 
-        self._collect_metrics(postprocessed)
+        if self._should_collect_metrics():
+            self._collect_metrics(postprocessed)
 
         return postprocessed
     
-    def _should_collect_metrics(self, epoch):
-        return self._trainer and self.epoch < self._trainer.args.epochs and self.epoch in self._collection_epochs
+    def _should_collect_metrics(self):
+        if self._final_validation and not self._env_vars['COLLECTION_DISABLE']:
+            return True
+        else:
+            return self._trainer and self.epoch < self._trainer.args.epochs and self.epoch in self._collection_epochs
     

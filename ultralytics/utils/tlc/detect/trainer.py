@@ -12,6 +12,7 @@ from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
 from ultralytics.utils.tlc.detect.utils import parse_environment_variables, get_metrics_collection_epochs, tlc_check_dataset
 from ultralytics.utils.torch_utils import torch_distributed_zero_first
+from ultralytics.utils.torch_utils import strip_optimizer
 
 
 def check_det_dataset(data: str):
@@ -27,8 +28,16 @@ def check_det_dataset(data: str):
 
 ultralytics.engine.trainer.check_det_dataset = check_det_dataset
 
-def resample_train_dataset(trainer):
+def _resample_train_dataset(trainer):
     trainer.train_loader.dataset.resample_indices()
+
+def _reduce_embeddings(trainer):
+    if trainer._env_vars["IMAGE_EMBEDDINGS_DIM"] > 0:
+        trainer._run.reduce_embeddings_by_example_table_url(
+            table_url=trainer.data["val"].url,
+            method="pacmap",
+            n_components=trainer._env_vars['IMAGE_EMBEDDINGS_DIM']
+        )
 
 class TLCDetectionTrainer(DetectionTrainer):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
@@ -50,7 +59,8 @@ class TLCDetectionTrainer(DetectionTrainer):
         if not self._env_vars['COLLECTION_DISABLE']:        
             self._run = tlc.init(project_name=self.data["train"].project_name)
 
-        self.add_callback("on_train_epoch_start", resample_train_dataset)
+        self.add_callback("on_train_epoch_start", _resample_train_dataset)
+        self.add_callback("on_train_end", _reduce_embeddings)
 
     @property
     def train_validator(self):
@@ -112,9 +122,15 @@ class TLCDetectionTrainer(DetectionTrainer):
         # Validate on val/test set
         return super().validate()
     
-    def _do_train(self, world_size=1):
-        super()._do_train(world_size=world_size)
-
-        # Reduce embeddings
-        if self._env_vars['IMAGE_EMBEDDINGS_DIM'] > 0:
-            self._run.reduce_embeddings_by_example_table_url(table_url=self.data["val"].url, method="pacmap", n_components=self._env_vars['IMAGE_EMBEDDINGS_DIM'])
+    def final_eval(self):
+        """Performs final evaluation and validation for object detection YOLO model."""
+        for f in self.last, self.best:
+            if f.exists():
+                strip_optimizer(f)  # strip optimizers
+                if f is self.best:
+                    LOGGER.info(f"\nValidating {f}...")
+                    self.validator.args.plots = self.args.plots
+                    self.train_validator(trainer=self, model=f, final_validation=True)
+                    self.metrics = self.validator(model=f, final_validation=True)
+                    self.metrics.pop("fitness", None)
+                    self.run_callbacks("on_fit_epoch_end")

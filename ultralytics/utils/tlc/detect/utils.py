@@ -4,7 +4,6 @@
 """
 from __future__ import annotations
 
-import importlib
 import os
 from pathlib import Path
 from typing import Callable, TypeVar
@@ -406,8 +405,6 @@ def parse_environment_variables() -> dict[str, int | float | bool | str | list[s
 
     # Sampling weights
     config['SAMPLING_WEIGHTS'] = parse_boolean_env_var('TLC_SAMPLING_WEIGHTS', default='false')
-    if config['SAMPLING_WEIGHTS']:
-        LOGGER.info("3LC Sampling Weights are not yet available for YOLOv8, defaulting to off.")
 
     # Loss
     config['COLLECT_LOSS'] = parse_boolean_env_var('TLC_COLLECT_LOSS', default='false')

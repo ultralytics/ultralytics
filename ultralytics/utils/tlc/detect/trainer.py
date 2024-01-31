@@ -27,6 +27,9 @@ def check_det_dataset(data: str):
 
 ultralytics.engine.trainer.check_det_dataset = check_det_dataset
 
+def resample_train_dataset(trainer):
+    trainer.train_loader.dataset.resample_indices()
+
 class TLCDetectionTrainer(DetectionTrainer):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
 
@@ -47,6 +50,8 @@ class TLCDetectionTrainer(DetectionTrainer):
         if not self._env_vars['COLLECTION_DISABLE']:        
             self._run = tlc.init(project_name=self.data["train"].project_name)
 
+        self.add_callback("on_train_epoch_start", resample_train_dataset)
+
     @property
     def train_validator(self):
         if not self._train_validator:
@@ -62,7 +67,8 @@ class TLCDetectionTrainer(DetectionTrainer):
         assert mode in ["train", "val"]
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size, split=split)
-        shuffle = mode == "train"
+        #shuffle = mode == "train"
+        shuffle = False
         if getattr(dataset, "rect", False) and shuffle:
             LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
@@ -79,7 +85,8 @@ class TLCDetectionTrainer(DetectionTrainer):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_tlc_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, table=self.data[split])
+        return build_tlc_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, table=self.data[split],
+                                 use_sampling_weights=self._env_vars['SAMPLING_WEIGHTS'])
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""

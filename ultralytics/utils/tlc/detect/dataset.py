@@ -39,7 +39,7 @@ def tlc_table_row_to_yolo_label(row):
     )
     
 
-def build_tlc_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, table=None):
+def build_tlc_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, table=None, use_sampling_weights=True):
     """Build TLC Dataset."""
     assert table is not None
     return TLCDataset(
@@ -59,19 +59,33 @@ def build_tlc_dataset(cfg, img_path, batch, data, mode="train", rect=False, stri
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
         table=table,
+        use_sampling_weights=mode == "train" and use_sampling_weights,
     )
 
 class TLCDataset(YOLODataset):
-    def __init__(self, *args, data=None, task="detect", table: tlc.Table, **kwargs):
+    def __init__(self, *args, data=None, task="detect", table: tlc.Table = None, use_sampling_weights: bool = False, **kwargs):
         assert task == "detect"
         self.table = table
+        if use_sampling_weights and kwargs['rect']:
+            raise ValueError("Cannot use sampling weights with rect=True.")
+        self._sampling_weights = self.get_sampling_weights() if use_sampling_weights else None
+        self._indices = np.arange(len(self.table))
         super().__init__(*args, data=data, task=task, **kwargs)
+
+    def resample_indices(self):
+        if self._sampling_weights is not None:
+            self._indices[:] = np.random.choice(len(self.table), len(self.table), p=self._sampling_weights)
 
     def get_img_files(self, _):
         return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for sample in self.table]
     
     def get_labels(self):
         return [tlc_table_row_to_yolo_label(row) for row in self.table]
+    
+    def get_sampling_weights(self):
+        weights = np.array([row[tlc.SAMPLE_WEIGHT] for row in self.table])
+        probabilities = weights / weights.sum()
+        return probabilities
     
     def set_rectangle(self):
         """Sets the shape of bounding boxes for YOLO detections as rectangles."""
@@ -99,4 +113,7 @@ class TLCDataset(YOLODataset):
         self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image
 
+    def __getitem__(self, index):
+        index = self._indices[index] # Use potentially resampled index
+        return super().__getitem__(index)
     

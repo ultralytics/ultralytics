@@ -53,6 +53,7 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    DeformConv2d,
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment
 from .transformer import (
@@ -116,5 +117,6 @@ __all__ = (
     "MLP",
     "ResNetLayer",
     "OBB",
-    'se_block','cbam_block','eca_block','BiLevelRoutingAttention','CA_Block','CSPStage', 'Involution'
+    'se_block','cbam_block','eca_block','BiLevelRoutingAttention','CA_Block','CSPStage', 'Involution',
+    'DeformConv2d'
 )

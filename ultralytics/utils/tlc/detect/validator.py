@@ -80,6 +80,9 @@ class TLCDetectionValidator(DetectionValidator):
         predicted_boxes = []
         for i, predictions in enumerate(batch_predictions):
             predictions = predictions.clone()
+            predictions = predictions[predictions[:,4] > self._env_vars['CONF_THRES']] # filter out low confidence predictions
+            # sort by confidence and remove excess boxes
+            predictions = predictions[predictions[:, 4].argsort(descending=True)[:self._env_vars['MAX_DET']]]
             ori_shape = self._curr_batch['ori_shape'][i]
             resized_shape = self._curr_batch['resized_shape'][i]
             ratio_pad = self._curr_batch['ratio_pad'][i]
@@ -95,13 +98,14 @@ class TLCDetectionValidator(DetectionValidator):
             annotations = []
             for pi in range(len(predictions)):
                 confidence = conf[pi].item()
-                if confidence >= self._env_vars['CONF_THRES']:
-                    annotations.append({
-                        'score': confidence,
-                        'category_id': pred_cls[pi].item(),
-                        'bbox': pred_xywh[pi,:].cpu().tolist(),
-                        'iou': 0.,
-                    })
+                annotations.append({
+                    'score': confidence,
+                    'category_id': pred_cls[pi].item(),
+                    'bbox': pred_xywh[pi,:].cpu().tolist(),
+                    'iou': 0.,
+                })
+
+            assert len(annotations) <= self._env_vars['MAX_DET'], "Should have at most MAX_DET predictions per image."
 
             predicted_boxes.append(
                 construct_bbox_struct(

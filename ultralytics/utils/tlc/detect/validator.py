@@ -1,9 +1,10 @@
 import numpy as np
 import tlc
+import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
-from ultralytics.utils import LOGGER, ops
+from ultralytics.utils import LOGGER, ops, metrics
 from ultralytics.utils.tlc.detect.utils import yolo_predicted_bounding_box_schema, construct_bbox_struct, parse_environment_variables, get_metrics_collection_epochs, yolo_image_embeddings_schema, training_phase_schema
 
 class TLCDetectionValidator(DetectionValidator):
@@ -79,6 +80,11 @@ class TLCDetectionValidator(DetectionValidator):
     def _process_batch_predictions(self, batch_predictions):
         predicted_boxes = []
         for i, predictions in enumerate(batch_predictions):
+            # Handle case with no predictions
+            if len(predictions) == 0:
+                predicted_boxes.append([])
+                continue
+
             predictions = predictions.clone()
             predictions = predictions[predictions[:,4] > self._env_vars['CONF_THRES']] # filter out low confidence predictions
             # sort by confidence and remove excess boxes
@@ -88,21 +94,29 @@ class TLCDetectionValidator(DetectionValidator):
             ratio_pad = self._curr_batch['ratio_pad'][i]
             height, width = ori_shape
 
-            pred_box = predictions[:,:4]
+            pred_box = predictions[:,:4].clone()
             pred_scaled = ops.scale_boxes(resized_shape, pred_box, ori_shape, ratio_pad)
+
+            # Compute IoUs
+            pbatch = self._prepare_batch(i, self._curr_batch)
+            if pbatch['bbox'].shape[0]:
+                ious = metrics.box_iou(pbatch['bbox'], pred_scaled) # IoU evaluated in xyxy format
+                box_ious = ious.max(dim=0)[0].cpu().tolist()
+            else:
+                box_ious = [0.0] * pred_scaled.shape[0] # No predictions
+
             pred_xywh = ops.xyxy2xywhn(pred_scaled, w=width, h=height)
 
-            conf = predictions[:,4]
-            pred_cls = predictions[:,5]
+            conf = predictions[:,4].cpu().tolist()
+            pred_cls = predictions[:,5].cpu().tolist()
 
             annotations = []
             for pi in range(len(predictions)):
-                confidence = conf[pi].item()
                 annotations.append({
-                    'score': confidence,
-                    'category_id': pred_cls[pi].item(),
+                    'score': conf[pi],
+                    'category_id': pred_cls[pi],
                     'bbox': pred_xywh[pi,:].cpu().tolist(),
-                    'iou': 0.,
+                    'iou': box_ious[pi],
                 })
 
             assert len(annotations) <= self._env_vars['MAX_DET'], "Should have at most MAX_DET predictions per image."

@@ -304,53 +304,41 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, texts, color_c=None, anchor="top", txt_color=(255, 255, 255), box_style=False):
+    def text(self, xy, texts, color_c=None, anchor="bottom", txt_color=(255, 255, 255), box_style=True):
         """Adds text to an image using PIL or cv2."""
+        assert isinstance(texts, list), "texts must be a list"
         if anchor == "bottom":  # start y from font bottom
             xy[1] = round(self.im.size[1] * 0.97) if self.pil else round(self.im.shape[0] * 0.97)
         if color_c is None:
             color_c = [i for i in range(len(texts))]
 
         for index, text in zip(*((color_c, texts) if anchor == "top" else (reversed(color_c), reversed(texts)))):
-            w, h = (
-                self.font.getsize(text)
-                if self.pil
-                else cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
-            )
-            p2 = [xy[0] + w + 1, xy[1] + h + 3 if anchor == "top" else xy[1] - h - 3]
+            w, h = self.font.getsize(text) if self.pil else cv2.getTextSize(text, 0,
+                                                                            fontScale=self.sf, thickness=self.tf)[0]
+            p2 = [xy[0] + w + 1, xy[1] + h + 6 if anchor == "top" else xy[1] - h - 6]
             if self.pil:
                 if box_style:
-                    self.draw.rectangle(
-                        (xy[0], xy[1], p2[0], p2[1]) if anchor == "top" else (xy[0], p2[1], p2[0], xy[1]),
-                        fill=colors(index, True),
-                    )
-                self.draw.text(
-                    xy if anchor == "top" else [xy[0], p2[1]],
-                    text,
-                    fill=txt_color if box_style else colors(index, True),
-                    font=self.font,
-                )
+                    self.draw.rectangle((xy[0], xy[1], p2[0], p2[1]) if anchor == "top"
+                                        else (xy[0], p2[1], p2[0], xy[1]), fill=colors(index, True))
+                self.draw.text(xy if anchor == "top" else [xy[0], p2[1]],
+                               text,
+                               fill=txt_color if box_style else colors(index, True),
+                               font=self.font)
             else:
                 if box_style:
-                    cv2.rectangle(
-                        self.im,
-                        xy if anchor == "top" else [xy[0], p2[1]],
-                        p2 if anchor == "top" else [p2[0], xy[1]],
-                        colors(index, True),
-                        -1,
-                        cv2.LINE_AA,
-                    )
-                cv2.putText(
-                    self.im,
-                    text,
-                    [xy[0], p2[1]] if anchor == "top" else xy,
-                    0,
-                    self.sf,
-                    txt_color if box_style else colors(index, True),
-                    thickness=self.tf,
-                    lineType=cv2.LINE_AA,
-                )
-            xy[1] += h + 5 if anchor == "top" else -(h + 5)
+                    cv2.rectangle(self.im,
+                                  xy if anchor == "top" else [xy[0], p2[1]],
+                                  p2 if anchor == "top" else [p2[0], xy[1]],
+                                  colors(index, True), -1, cv2.LINE_AA)
+                cv2.putText(self.im,
+                            text,
+                            [xy[0], xy[1] + h] if anchor == "top" else [xy[0], xy[1] - 6],
+                            0,
+                            self.sf,
+                            txt_color if box_style else colors(index, True),
+                            thickness=self.tf,
+                            lineType=cv2.LINE_AA)
+            xy[1] += h + 8 if anchor == "top" else -(h + 8)
 
     def fromarray(self, im):
         """Update self.im from a numpy array."""

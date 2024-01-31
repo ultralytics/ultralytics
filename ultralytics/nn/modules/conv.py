@@ -6,6 +6,8 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+import torchvision
+import torchvision.ops
 
 __all__ = (
     "Conv",
@@ -21,6 +23,7 @@ __all__ = (
     "CBAM",
     "Concat",
     "RepConv",
+    "DeformConv2d"
 )
 
 
@@ -42,6 +45,7 @@ class Conv(nn.Module):
         """Initialize Conv layer with given arguments including activation."""
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
+        # self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.bn = nn.BatchNorm2d(c2)
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
@@ -331,3 +335,94 @@ class Concat(nn.Module):
     def forward(self, x):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
+
+
+class Conv(nn.Module):
+    """Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)."""
+
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
+        """Initialize Conv layer with given arguments including activation."""
+        super().__init__()
+        self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
+
+        self.deform_conv = torchvision.ops.DeformConv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
+        # self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        """Apply convolution, batch normalization and activation to input tensor."""
+        return self.act(self.bn(self.conv(x)))
+
+    def forward_fuse(self, x):
+        """Perform transposed convolution of 2D data."""
+        return self.act(self.conv(x))
+    
+
+
+class DeformConv2d(nn.Module):
+    def __init__(self,
+                 in_channels,
+                 out_channels,
+                 kernel_size=3,
+                 stride=1,
+                 padding=1,
+                 dilation=1,
+                 bias=False):
+        super(DeformConv2d, self).__init__()
+
+        assert type(kernel_size) == tuple or type(kernel_size) == int
+
+        kernel_size = kernel_size if type(kernel_size) == tuple else (kernel_size, kernel_size)
+        self.stride = stride if type(stride) == tuple else (stride, stride)
+        self.padding = padding
+        self.dilation = dilation
+
+        self.offset_conv = nn.Conv2d(in_channels,
+                                     2 * kernel_size[0] * kernel_size[1],
+                                     kernel_size=kernel_size,
+                                     stride=stride,
+                                     padding=self.padding,
+                                     dilation=self.dilation,
+                                     bias=True)
+
+        nn.init.constant_(self.offset_conv.weight, 0.)
+        nn.init.constant_(self.offset_conv.bias, 0.)
+
+        self.modulator_conv = nn.Conv2d(in_channels,
+                                        1 * kernel_size[0] * kernel_size[1],
+                                        kernel_size=kernel_size,
+                                        stride=stride,
+                                        padding=self.padding,
+                                        dilation=self.dilation,
+                                        bias=True)
+
+        nn.init.constant_(self.modulator_conv.weight, 0.)
+        nn.init.constant_(self.modulator_conv.bias, 0.)
+
+        self.regular_conv = nn.Conv2d(in_channels=in_channels,
+                                      out_channels=out_channels,
+                                      kernel_size=kernel_size,
+                                      stride=stride,
+                                      padding=self.padding,
+                                      dilation=self.dilation,
+                                      bias=bias)
+
+    def forward(self, x):
+        # h, w = x.shape[2:]
+        # max_offset = max(h, w)/4.
+
+        offset = self.offset_conv(x)  # .clamp(-max_offset, max_offset)
+        modulator = 2. * torch.sigmoid(self.modulator_conv(x))
+        # op = (n - (k * d - 1) + 2p / s)
+        x = torchvision.ops.deform_conv2d(input=x,
+                                          offset=offset,
+                                          weight=self.regular_conv.weight,
+                                          bias=self.regular_conv.bias,
+                                          padding=self.padding,
+                                          mask=modulator,
+                                          stride=self.stride,
+                                          dilation=self.dilation)
+        return x

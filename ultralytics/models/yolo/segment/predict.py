@@ -42,7 +42,7 @@ class SegmentationPredictor(DetectionPredictor):
 
         results = []
         proto = (
-            preds[1][-1] if isinstance(preds[1], tuple) else pred[1]
+            preds[1][-1] if isinstance(preds[1], tuple) else preds[1]
         )  # second output is tuple if pt, but an array if exported
         for i, pred in enumerate(p):
             orig_img = orig_imgs[i]

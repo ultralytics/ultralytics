@@ -286,7 +286,7 @@ class DetectionValidator(BaseValidator):
                 check_requirements("pycocotools>=2.0.6")
                 from pycocotools.coco import COCO  # noqa
                 #from pycocotools.cocoeval import COCOeval  # noqa
-                from evaluation_tools.cocoeval import COCOeval
+                from ultralytics.utils.cocoeval import COCOeval
 
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"

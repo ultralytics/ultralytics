@@ -701,7 +701,7 @@ class Metric(SimpleClass):
         Returns the mean Average Precision (mAP) at an IoU threshold of 0.5.
 
         Returns:
-            (float): The mAP50 at an IoU threshold of 0.5.
+            (float): The mAP at an IoU threshold of 0.5.
         """
         return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
 
@@ -711,7 +711,7 @@ class Metric(SimpleClass):
         Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
 
         Returns:
-            (float): The mAP50 at an IoU threshold of 0.75.
+            (float): The mAP at an IoU threshold of 0.75.
         """
         return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
 

@@ -1,5 +1,3 @@
-print("Running")
-
 from ultralytics.utils.tlc.detect.model import TLCYOLO  # noqa: E402
 
 model = TLCYOLO("yolov8n.pt")  # initialize

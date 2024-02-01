@@ -10,6 +10,17 @@ Welcome to the Ultralytics' YOLO 🚀 Guides! Our comprehensive tutorials cover 
 
 Whether you're a beginner or an expert in deep learning, our tutorials offer valuable insights into the implementation and optimization of YOLO for your computer vision projects. Let's dive in!
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/96NkhsV-W1U"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLOv8 Guides Overview
+</p>
+
 ## Guides
 
 Here's a compilation of in-depth guides to help you master different aspects of Ultralytics YOLO.

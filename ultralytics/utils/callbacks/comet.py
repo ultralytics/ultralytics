@@ -208,6 +208,8 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
         max_categories=len(names),
         epoch=curr_epoch,
         step=curr_step,
+        row_label='Predicted Category',
+        column_label='Actual Category',
     )
 
 

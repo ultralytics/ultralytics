@@ -418,7 +418,7 @@ class ConfusionMatrix:
                 xticklabels=ticklabels,
                 yticklabels=ticklabels,
             ).set_facecolor((1, 1, 1))
-        title = "Confusion Matrix" + " Normalized" * normalize
+        title = f"Confusion Matrix @{self.iou_thres}" + " Normalized (Recall)" * (normalize)
         ax.set_xlabel("True")
         ax.set_ylabel("Predicted")
         ax.set_title(title)

@@ -50,7 +50,7 @@ def build_tlc_dataset(cfg,
                       rect=False,
                       stride=32,
                       table=None,
-                      use_sampling_weights=True):
+                      use_sampling_weights=False):
     """Build TLC Dataset."""
     assert table is not None
     return TLCDataset(

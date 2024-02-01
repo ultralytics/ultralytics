@@ -1,5 +1,10 @@
+from ultralytics.utils import colorstr
+
 # Column names
 TRAINING_PHASE = "Training Phase"
+
+TLC_PREFIX = '3LC://'
+TLC_COLORSTR = colorstr('3LC: ')
 
 # Environment Variables
 TLC_SUPPORTED_ENV_VARS = [
@@ -33,13 +38,15 @@ TLC_SUPPORTED_ENV_VARS = [
         "internal_name": "COLLECT_LOSS",
         "default": "false",
         "type": bool,
-        "description": "Flag to enable/disable loss collection"},
+        "description": "Flag to enable/disable loss collection",
+        "not_supported": True},
     {
         "name": "TLC_COLLECTION_VAL_ONLY",
         "internal_name": "COLLECTION_VAL_ONLY",
         "default": "false",
         "type": bool,
-        "description": "Flag to collect detections and metrics only on validation data"},
+        "description": "Flag to collect detections and metrics only on validation data",
+        "not_supported": True},
     {
         "name": "TLC_COLLECTION_DISABLE",
         "internal_name": "COLLECTION_DISABLE",

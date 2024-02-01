@@ -4,26 +4,22 @@
 """
 from __future__ import annotations
 
+import importlib
 import os
+from difflib import get_close_matches
 from pathlib import Path
 from typing import Callable, TypeVar
 
 import tlc
 import yaml
-from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (
-    _TLCPredictedBoundingBox,
-    _TLCPredictedBoundingBoxes,
-)
+from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (_TLCPredictedBoundingBox,
+                                                                                        _TLCPredictedBoundingBoxes)
 from tlc.core.builtins.constants.paths import _ROW_CACHE_FILE_NAME
 from tlc.core.objects.tables.from_url.utils import get_hash
 
 from ultralytics.data.utils import check_file
-from ultralytics.utils import LOGGER, colorstr
-from ultralytics.utils.tlc.detect.constants import TRAINING_PHASE
-
-# 3LC Constants
-TLC_PREFIX = '3LC://'
-TLC_COLORSTR = colorstr('3LC: ')
+from ultralytics.utils import LOGGER
+from ultralytics.utils.tlc.detect.constants import TLC_COLORSTR, TLC_PREFIX, TLC_SUPPORTED_ENV_VARS, TRAINING_PHASE
 
 T = TypeVar('T', bound=Callable)  # Generic type for environment variable parsing functions
 
@@ -149,16 +145,11 @@ def get_metrics_collection_epochs(start: int, epochs: int, interval: int, disabl
     if start >= epochs:
         return []
 
-    # If start is less than zero, we start that far away from the end
+    # If start is less than zero, we don't collect during training
     if start < 0:
-        # Raise if we end up with a negative start
-        if (start := epochs + start) < 0:
-            raise ValueError(f'Invalid start epoch {start} for {epochs} epochs')
+        return []
 
-    # Handle negative intervals
-    if interval < 0:
-        return list(reversed(range(start, -1, interval)))
-    elif interval == 0:
+    if interval <= 0:
         raise ValueError(f'Invalid interval {interval}, must be non-zero')
     else:
         return list(range(start, epochs, interval))
@@ -338,7 +329,7 @@ def check_table_compatibility(table: tlc.Table) -> bool:
     return True
 
 
-def parse_boolean_env_var(name: str, default: str) -> bool:
+def _parse_boolean_env_var(name: str, default: str) -> bool:
     """Parse a boolean environment variable. Supported values:
     - true/false (case insensitive)
     - y/n (case insensitive)
@@ -360,7 +351,7 @@ def parse_boolean_env_var(name: str, default: str) -> bool:
                          'should be a boolean on the form y/n, yes/no, 1/0 or true/false.')
 
 
-def parse_env_var(name: str, default: str, var_type: type[T]) -> T:
+def _parse_env_var(name: str, default: str, var_type: type[T]) -> T:
     """Generic function to parse an environment variable and cast it to a specific type.
 
     :param name: The name of the environment variable.
@@ -370,10 +361,51 @@ def parse_env_var(name: str, default: str, var_type: type[T]) -> T:
     :raises: ValueError if the value is not a valid type.
     """
     value = os.getenv(name, default)
-    try:
-        return var_type(value)
-    except ValueError:
-        raise ValueError(f'Invalid value {value} for environment variable {name}, should be a {var_type.__name__}.')
+
+    if var_type == bool:
+        return _parse_boolean_env_var(name, default)
+    elif var_type == list:
+        return value.split(',')
+    else:
+        try:
+            return var_type(value)
+        except ValueError:
+            raise ValueError(f'Invalid value {value} for environment variable {name}, should be a {var_type.__name__}.')
+
+
+def _supported_env_vars_str(sep: str = '\n  - ') -> str:
+    """ Print all supported environment variables.
+
+    :param sep: The separator to use between each variable.
+    :returns: A string sep-separated with all supported environment variables.
+
+    """
+    lines = [f'{var["name"]}: {var["description"]}. Default: {var["default"]}.' for var in TLC_SUPPORTED_ENV_VARS]
+    return f'Supported environment variables:{sep}{sep.join(lines)}'
+
+
+def _handle_unsupported_environment_variables():
+    """ Handle unsupported environment variables by issuing warnings and suggestions.
+
+    """
+    env_var_names = os.environ.keys()
+    tlc_env_var_names = [var['name'] for var in TLC_SUPPORTED_ENV_VARS]
+    unsupported = [name for name in env_var_names if name.startswith('TLC_') and name not in tlc_env_var_names]
+
+    # Output all environment variables if there are any unsupported ones
+    if len(unsupported) > 1:
+        LOGGER.warning(f'{TLC_COLORSTR}Found unsupported environment variables: '
+                       f'{", ".join(unsupported)}.\n{_supported_env_vars_str()}')
+
+    # If there is only one, look for the most similar one
+    elif len(unsupported) == 1:
+        closest_match = get_close_matches(unsupported[0], tlc_env_var_names, n=1, cutoff=0.4)
+        if closest_match:
+            LOGGER.warning(f'{TLC_COLORSTR}Found unsupported environment variable: {unsupported[0]}. '
+                           f'Did you mean {closest_match[0]}?')
+        else:
+            LOGGER.warning(f'{TLC_COLORSTR}Found unsupported environment variable: {unsupported[0]}.'
+                           f'\n{_supported_env_vars_str()}')
 
 
 def parse_environment_variables() -> dict[str, int | float | bool | str | list[str]]:
@@ -384,52 +416,31 @@ def parse_environment_variables() -> dict[str, int | float | bool | str | list[s
     """
     config = {}
 
-    # Validation settings
-    config['CONF_THRES'] = parse_env_var('TLC_CONF_THRES', default='0.1', var_type=float)
+    # Warn about unsupported environment variables
+    _handle_unsupported_environment_variables()
+
+    # Read all supported environment variables
+    for var in TLC_SUPPORTED_ENV_VARS:
+        config[var['internal_name']] = _parse_env_var(var['name'], var['default'], var['type'])
+
+    # Check for valid values
     if config['CONF_THRES'] < 0.0 or config['CONF_THRES'] > 1.0:
         raise ValueError(f'Invalid TLC_CONF_THRES={config["CONF_THRES"]}, must satisfy 0 <= TLC_CONF_THRES <= 1.')
 
-    config['MAX_DET'] = parse_env_var('TLC_MAX_DET', default='300', var_type=int)
     if config['MAX_DET'] < 1:
         raise ValueError(f'Invalid TLC_MAX_DET={config["MAX_DET"]}, must be > 0.')
 
     # Embeddings
-    image_embeddings_dim = parse_env_var('TLC_IMAGE_EMBEDDINGS_DIM', default='0', var_type=int)
-    if image_embeddings_dim in (2, 3):
-        LOGGER.info("3LC Image Embeddings are not yet available for YOLOv8, defaulting to 0.")
-        # umap_spec = importlib.util.find_spec('umap')
-        # if umap_spec is None:
-        #     raise ValueError('Missing UMAP dependency, run `pip install umap-learn` to enable embeddings collection.')
-    elif image_embeddings_dim != 0:
-        raise ValueError(f'Invalid TLC_IMAGE_EMBEDDINGS_DIM={image_embeddings_dim}, must be 0, 2 or 3.')
-
-    config['IMAGE_EMBEDDINGS_DIM'] = image_embeddings_dim
-
-    # Sampling weights
-    config['SAMPLING_WEIGHTS'] = parse_boolean_env_var('TLC_SAMPLING_WEIGHTS', default='false')
-
-    # Loss
-    config['COLLECT_LOSS'] = parse_boolean_env_var('TLC_COLLECT_LOSS', default='false')
-    if config['COLLECT_LOSS']:
-        LOGGER.info("3LC Loss Collection is not yet available for YOLOv8, defaulting to off.")
-
-    # Collection on val only
-    config['COLLECTION_VAL_ONLY'] = parse_boolean_env_var('TLC_COLLECTION_VAL_ONLY', default='false')
-
-    # Collection disabled
-    config['COLLECTION_DISABLE'] = parse_boolean_env_var('TLC_COLLECTION_DISABLE', default='false')
-
-    # Collection epochs
-    config['COLLECTION_EPOCH_START'] = parse_env_var('TLC_COLLECTION_EPOCH_START', default='0', var_type=int)
+    if config['IMAGE_EMBEDDINGS_DIM'] in (2, 3):
+        umap_spec = importlib.util.find_spec('pacmap')
+        if umap_spec is None:
+            raise ValueError('Missing PaCMAP dependency, run `pip install pacmap` to enable embeddings collection.')
+    elif config['IMAGE_EMBEDDINGS_DIM'] != 0:
+        raise ValueError(f'Invalid TLC_IMAGE_EMBEDDINGS_DIM={config["IMAGE_EMBEDDINGS_DIM"]}, must be 0, 2 or 3.')
 
     # Collection interval
-    collection_epoch_interval = parse_env_var('TLC_COLLECTION_EPOCH_INTERVAL', default='1', var_type=int)
-    if collection_epoch_interval < 1:
-        raise ValueError(f'Invalid TLC_COLLECTION_EPOCH_INTERVAL={collection_epoch_interval}, must be >= 1.')
-    config['COLLECTION_EPOCH_INTERVAL'] = collection_epoch_interval
-
-    # Collection splits
-    config['COLLECTION_SPLITS'] = os.getenv('TLC_COLLECTION_SPLITS', 'train,val').split(',')
+    if config['COLLECTION_EPOCH_INTERVAL'] < 1:
+        raise ValueError(f'Invalid TLC_COLLECTION_EPOCH_INTERVAL={config["COLLECTION_EPOCH_INTERVAL"]}, must be >= 1.')
 
     return config
 

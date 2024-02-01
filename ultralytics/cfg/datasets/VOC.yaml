@@ -7,7 +7,6 @@
 # └── datasets
 #     └── VOC  ← downloads here (2.8 GB)
 
-
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: ../datasets/VOC
 train: # train images (relative to 'path')  16551 images
@@ -42,7 +41,6 @@ names:
   17: sofa
   18: train
   19: tvmonitor
-
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |

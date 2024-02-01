@@ -58,4 +58,4 @@ We hope that the resources here will help you get the most out of HUB. Please br
 - [**Ultralytics HUB App**](app/index.md). Learn about the Ultralytics App for iOS and Android, which allows you to run models directly on your mobile device.
     - [**iOS**](app/ios.md). Learn about YOLO CoreML models accelerated on Apple's Neural Engine on iPhones and iPads.
     - [**Android**](app/android.md). Explore TFLite acceleration on mobile devices.
-- [**Inference API**](inference_api.md). Understand how to use the Inference API for running your trained models in the cloud to generate predictions.
+- [**Inference API**](inference-api.md). Understand how to use the Inference API for running your trained models in the cloud to generate predictions.

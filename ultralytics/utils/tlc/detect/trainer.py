@@ -117,7 +117,7 @@ class TLCDetectionTrainer(DetectionTrainer):
     def validate(self):
         # Validate on train set
         if not self._env_vars['COLLECTION_DISABLE'] and not self._env_vars['COLLECTION_VAL_ONLY'] and self.epoch in self._collection_epochs:
-            self.train_validator(trainer=self, epoch=self.epoch)
+            self.train_validator(trainer=self)
 
         # Validate on val/test set
         return super().validate()
@@ -131,6 +131,6 @@ class TLCDetectionTrainer(DetectionTrainer):
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
                     self.train_validator(trainer=self, model=f, final_validation=True)
-                    self.metrics = self.validator(model=f, final_validation=True)
+                    self.metrics = self.validator(trainer=self, model=f, final_validation=True)
                     self.metrics.pop("fitness", None)
                     self.run_callbacks("on_fit_epoch_end")

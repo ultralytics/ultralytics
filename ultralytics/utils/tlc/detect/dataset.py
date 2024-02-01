@@ -65,6 +65,7 @@ def build_tlc_dataset(cfg, img_path, batch, data, mode="train", rect=False, stri
 class TLCDataset(YOLODataset):
     def __init__(self, *args, data=None, task="detect", table: tlc.Table = None, use_sampling_weights: bool = False, **kwargs):
         assert task == "detect"
+        assert isinstance(table, tlc.Table)
         self.table = table
         if use_sampling_weights and kwargs['rect']:
             raise ValueError("Cannot use sampling weights with rect=True.")

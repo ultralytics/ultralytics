@@ -334,6 +334,8 @@ class ConfusionMatrix:
         if gt_cls.size(0) == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
+                if detections.size(0) == 0:
+                    self.matrix[self.nc, self.nc] += 1
                 detection_classes = detections[:, 5].int()
                 for dc in detection_classes:
                     self.matrix[dc, self.nc] += 1  # false positives

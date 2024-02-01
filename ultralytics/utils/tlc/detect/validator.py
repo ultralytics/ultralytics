@@ -4,11 +4,18 @@ import tlc
 import ultralytics
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, metrics, ops
+from ultralytics.utils.tlc.detect.constants import TRAINING_PHASE
 from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
 from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
-from ultralytics.utils.tlc.detect.utils import (construct_bbox_struct, get_metrics_collection_epochs,
-                                                parse_environment_variables, tlc_check_dataset, training_phase_schema,
-                                                yolo_image_embeddings_schema, yolo_predicted_bounding_box_schema)
+from ultralytics.utils.tlc.detect.utils import (
+    construct_bbox_struct,
+    get_metrics_collection_epochs,
+    parse_environment_variables,
+    tlc_check_dataset,
+    training_phase_schema,
+    yolo_image_embeddings_schema,
+    yolo_predicted_bounding_box_schema,
+)
 
 
 def check_det_dataset(data: str):
@@ -48,7 +55,7 @@ def set_up_metrics_writer(validator):
     metrics_column_schemas = {
         tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names), }
     if validator._trainer:
-        metrics_column_schemas["Training Phase"] = training_phase_schema()
+        metrics_column_schemas[TRAINING_PHASE] = training_phase_schema()
     metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
 
     validator.metrics_writer = tlc.MetricsWriter(run_url=validator._run.url,
@@ -110,7 +117,7 @@ class TLCDetectionValidator(DetectionValidator):
             tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions), }
         if self.epoch is not None:
             metrics[tlc.EPOCH] = [self.epoch] * batch_size
-            metrics["Training Phase"] = [1 if self._final_validation else 0] * batch_size
+            metrics[TRAINING_PHASE] = [1 if self._final_validation else 0] * batch_size
 
         if self._env_vars['IMAGE_EMBEDDINGS_DIM'] > 0:
             metrics["embeddings"] = TLCDetectionModel.activations.cpu()

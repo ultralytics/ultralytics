@@ -18,9 +18,8 @@ from tlc.core.builtins.constants.paths import _ROW_CACHE_FILE_NAME
 from tlc.core.objects.tables.from_url.utils import get_hash
 
 from ultralytics.data.utils import check_file
-
-# from utils.general import LOGGER, check_dataset
 from ultralytics.utils import LOGGER, colorstr
+from ultralytics.utils.tlc.detect.constants import TRAINING_PHASE
 
 # 3LC Constants
 TLC_PREFIX = '3LC://'
@@ -555,7 +554,7 @@ def tlc_task_map(task, key):
 
 def training_phase_schema() -> tlc.Schema:
     return tlc.Schema(
-        display_name="Training Phase",
+        display_name=TRAINING_PHASE,
         description=("'During' metrics are collected with EMA during training, "
                      "'After' is with the final model weights after completed training."),
         display_importance=tlc.DISPLAY_IMPORTANCE_EPOCH - 1,  # Right hand side of epoch in the Dashboard

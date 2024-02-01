@@ -8,7 +8,7 @@ keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, expo
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/252345644-0cf84257-4b34-404c-b7ce-eb73dfbcaff1.png" alt="OpenVINO Ecosystem">
 
-In this guide, we cover exporting YOLOv8 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2023.0/openvino_docs_OV_UG_supported_plugins_CPU.html) speedup as well as accelerating on other Intel hardware ([iGPU](https://docs.openvino.ai/2023.0/openvino_docs_OV_UG_supported_plugins_GPU.html), [dGPU](https://docs.openvino.ai/2023.0/openvino_docs_OV_UG_supported_plugins_GPU.html), [VPU](https://docs.openvino.ai/2022.3/openvino_docs_OV_UG_supported_plugins_VPU.html), etc.).
+In this guide, we cover exporting YOLOv8 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/nightly/openvino_docs_OV_UG_supported_plugins_CPU.html) speedup as well as accelerating on other Intel hardware ([iGPU](https://docs.openvino.ai/nightly/openvino_docs_OV_UG_supported_plugins_GPU.html), [dGPU](https://docs.openvino.ai/nightly/openvino_docs_OV_UG_supported_plugins_GPU.html), [VPU](https://docs.openvino.ai/2022.3/openvino_docs_OV_UG_supported_plugins_VPU.html), etc.).
 
 OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
@@ -83,7 +83,7 @@ You can use these files to run inference with the OpenVINO Inference Engine.
 
 ## Using OpenVINO Export in Deployment
 
-Once you have the OpenVINO files, you can use the OpenVINO Runtime to run the model. The Runtime provides a unified API to inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running the inference, refer to the [Inference with OpenVINO Runtime Guide](https://docs.openvino.ai/2023.0/openvino_docs_OV_UG_OV_Runtime_User_Guide.html).
+Once you have the OpenVINO files, you can use the OpenVINO Runtime to run the model. The Runtime provides a unified API to inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running the inference, refer to the [Inference with OpenVINO Runtime Guide](https://docs.openvino.ai/nightly/openvino_docs_OV_UG_OV_Runtime_User_Guide.html).
 
 Remember, you'll need the XML and BIN files as well as any application-specific settings like input size, scale factor for normalization, etc., to correctly set up and use the model with the Runtime.
 
@@ -114,7 +114,7 @@ The Intel® Data Center GPU Flex Series is a versatile and robust solution desig
 Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/253741543-62659bf8-1765-4d0b-b71c-8a4f9885506a.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/253741543-62659bf8-1765-4d0b-b71c-8a4f9885506a.jpg" alt="Flex GPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
@@ -153,7 +153,7 @@ Early reviews have praised the Arc™ series, particularly the integrated A770M 
 Benchmarks below run on Intel® Arc 770 GPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/253741545-8530388f-8fd1-44f7-a4ae-f875d59dc282.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/253741545-8530388f-8fd1-44f7-a4ae-f875d59dc282.jpg" alt="Arc GPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -188,7 +188,7 @@ Notably, Xeon® CPUs deliver high compute density and scalability, making them i
 Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/253741546-dcd8e52a-fc38-424f-b87e-c8365b6f28dc.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/253741546-dcd8e52a-fc38-424f-b87e-c8365b6f28dc.jpg" alt="Xeon CPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -221,7 +221,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/254559985-727bfa43-93fa-4fec-a417-800f869f3f9e.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/254559985-727bfa43-93fa-4fec-a417-800f869f3f9e.jpg" alt="Core CPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |

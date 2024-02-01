@@ -1,17 +1,17 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Argoverse-HD dataset (ring-front-center camera) http://www.cs.cmu.edu/~mengtial/proj/streaming/ by Argo AI
+# Argoverse-HD dataset (ring-front-center camera) https://www.cs.cmu.edu/~mengtial/proj/streaming/ by Argo AI
+# Documentation: https://docs.ultralytics.com/datasets/detect/argoverse/
 # Example usage: yolo train data=Argoverse.yaml
 # parent
 # ├── ultralytics
 # └── datasets
 #     └── Argoverse  ← downloads here (31.5 GB)
 
-
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/Argoverse  # dataset root dir
-train: Argoverse-1.1/images/train/  # train images (relative to 'path') 39384 images
-val: Argoverse-1.1/images/val/  # val images (relative to 'path') 15062 images
-test: Argoverse-1.1/images/test/  # test images (optional) https://eval.ai/web/challenges/challenge-page/800/overview
+path: ../datasets/Argoverse # dataset root dir
+train: Argoverse-1.1/images/train/ # train images (relative to 'path') 39384 images
+val: Argoverse-1.1/images/val/ # val images (relative to 'path') 15062 images
+test: Argoverse-1.1/images/test/ # test images (optional) https://eval.ai/web/challenges/challenge-page/800/overview
 
 # Classes
 names:
@@ -23,7 +23,6 @@ names:
   5: truck
   6: traffic_light
   7: stop_sign
-
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
@@ -64,7 +63,9 @@ download: |
   # Download 'https://argoverse-hd.s3.us-east-2.amazonaws.com/Argoverse-HD-Full.zip' (deprecated S3 link)
   dir = Path(yaml['path'])  # dataset root dir
   urls = ['https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link']
-  download(urls, dir=dir)
+  print("\n\nWARNING: Argoverse dataset MUST be downloaded manually, autodownload will NOT work.")
+  print(f"WARNING: Manually download Argoverse dataset '{urls[0]}' to '{dir}' and re-run your command.\n\n")
+  # download(urls, dir=dir)
 
   # Convert
   annotations_dir = 'Argoverse-HD/annotations/'

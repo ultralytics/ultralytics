@@ -43,14 +43,14 @@ To train a model using these OBB formats:
         model = YOLO('yolov8n-obb.yaml')
 
         # Train the model on the DOTAv2 dataset
-        results = model.train(data='DOTAv2.yaml', epochs=100, imgsz=640)
+        results = model.train(data='DOTAv1.yaml', epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
-        yolo detect train data=DOTAv2.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=DOTAv1.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -58,6 +58,8 @@ To train a model using these OBB formats:
 Currently, the following datasets with Oriented Bounding Boxes are supported:
 
 - [**DOTA v2**](dota-v2.md): DOTA (A Large-scale Dataset for Object Detection in Aerial Images) version 2, emphasizes detection from aerial perspectives and contains oriented bounding boxes with 1.7 million instances and 11,268 images.
+
+- [**DOTA8**](dota8.md): A small, 8-image subset of the full DOTA dataset suitable for testing workflows and Continuous Integration (CI) checks of OBB training in the `ultralytics` repository.
 
 ### Incorporating your own OBB dataset
 

@@ -10,7 +10,7 @@ keywords: ClearML, YOLOv5, Ultralytics, AI toolbox, training data, remote traini
 
 ## About ClearML
 
-[ClearML](https://cutt.ly/yolov5-tutorial-clearml) is an [open-source](https://github.com/allegroai/clearml) toolbox designed to save you time ⏱️.
+[ClearML](https://clear.ml/) is an [open-source](https://github.com/allegroai/clearml) toolbox designed to save you time ⏱️.
 
 🔨 Track every YOLOv5 training run in the <b>experiment manager</b>
 
@@ -22,37 +22,37 @@ keywords: ClearML, YOLOv5, Ultralytics, AI toolbox, training data, remote traini
 
 🔭 Turn your newly trained <b>YOLOv5 model into an API</b> with just a few commands using ClearML Serving
 
-<br />
+<br>
 And so much more. It's up to you how many of these tools you want to use, you can stick to the experiment manager, or chain them all together into an impressive pipeline!
-<br />
-<br />
+<br>
+<br>
 
 ![ClearML scalars dashboard](https://github.com/thepycoder/clearml_screenshots/raw/main/experiment_manager_with_compare.gif)
 
-<br />
-<br />
+<br>
+<br>
 
 ## 🦾 Setting Things Up
 
 To keep track of your experiments and/or data, ClearML needs to communicate to a server. You have 2 options to get one:
 
-Either sign up for free to the [ClearML Hosted Service](https://cutt.ly/yolov5-tutorial-clearml) or you can set up your own server, see [here](https://clear.ml/docs/latest/docs/deploying_clearml/clearml_server). Even the server is open-source, so even if you're dealing with sensitive data, you should be good to go!
+Either sign up for free to the [ClearML Hosted Service](https://clear.ml/) or you can set up your own server, see [here](https://clear.ml/docs/latest/docs/deploying_clearml/clearml_server). Even the server is open-source, so even if you're dealing with sensitive data, you should be good to go!
 
-1. Install the `clearml` python package:
+- Install the `clearml` python package:
 
-   ```bash
-   pip install clearml
-   ```
+    ```bash
+    pip install clearml
+    ```
 
-2. Connect the ClearML SDK to the server by [creating credentials](https://app.clear.ml/settings/workspace-configuration) (go right top to Settings -> Workspace -> Create new credentials), then execute the command below and follow the instructions:
+- Connect the ClearML SDK to the server by [creating credentials](https://app.clear.ml/settings/workspace-configuration) (go right top to Settings -> Workspace -> Create new credentials), then execute the command below and follow the instructions:
 
-   ```bash
-   clearml-init
-   ```
+    ```bash
+    clearml-init
+    ```
 
 That's it! You're done 😎
 
-<br />
+<br>
 
 ## 🚀 Training YOLOv5 With ClearML
 
@@ -89,15 +89,12 @@ This will capture:
 - Images with bounding boxes per epoch
 - Mosaic per epoch
 - Validation images per epoch
-- ...
 
 That's a lot right? 🤯 Now, we can visualize all of this information in the ClearML UI to get an overview of our training progress. Add custom columns to the table view (such as e.g. mAP_0.5) so you can easily sort on the best performing model. Or select multiple experiments and directly compare them!
 
 There even more we can do with all of this information, like hyperparameter optimization and remote execution, so keep reading if you want to see how that works!
 
-<br />
-
-## 🔗 Dataset Version Management
+### 🔗 Dataset Version Management
 
 Versioning your data separately from your code is generally a good idea and makes it easy to acquire the latest version too. This repository supports supplying a dataset version ID, and it will make sure to get the data if it's not there yet. Next to that, this workflow also saves the used dataset ID as part of the task parameters, so you will always know for sure which data was used in which experiment!
 
@@ -163,9 +160,9 @@ Now that you have a ClearML dataset, you can very simply use it to train custom 
 python train.py --img 640 --batch 16 --epochs 3 --data clearml://<your_dataset_id> --weights yolov5s.pt --cache
 ```
 
-<br />
+<br>
 
-## 👀 Hyperparameter Optimization
+### 👀 Hyperparameter Optimization
 
 Now that we have our experiments and data versioned, it's time to take a look at what we can build on top!
 

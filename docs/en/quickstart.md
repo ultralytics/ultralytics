@@ -8,9 +8,21 @@ keywords: Ultralytics installation, pip install Ultralytics, Docker install Ultr
 
 Ultralytics provides various installation methods including pip, conda, and Docker. Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most up-to-date version. Docker can be used to execute the package in an isolated container, avoiding local installation.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/_a7cVL9hqnk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
+</p>
+
 !!! Example "Install"
 
     === "Pip install (recommended)"
+
         Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
 
         [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
@@ -27,8 +39,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         pip install git+https://github.com/ultralytics/ultralytics.git@main
         ```
 
-
     === "Conda install"
+
         Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
 
 
@@ -116,18 +128,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
         For advanced Docker usage, feel free to explore the [Ultralytics Docker Guide](https://docs.ultralytics.com/guides/docker-quickstart/).
 
-See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) file for a list of dependencies. Note that all examples above install all required dependencies.
-
-<p align="center">
-  <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/_a7cVL9hqnk"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
-</p>
+See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
 
 !!! Tip "Tip"
 

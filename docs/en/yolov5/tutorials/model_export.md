@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv5, model export, PyTorch, TorchScript, ONNX, OpenVIN
 
 # TFLite, ONNX, CoreML, TensorRT Export
 
-📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats. UPDATED 8 December 2022.
+📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.
 
 ## Before You Start
 
@@ -134,10 +134,12 @@ Visualize:       https://netron.app/
 ```
 
 The 3 exported models will be saved alongside the original PyTorch model:
-<p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/122827190-57a8f880-d2e4-11eb-860e-dbb7f9fc57fb.png"></p>
+
+<p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/122827190-57a8f880-d2e4-11eb-860e-dbb7f9fc57fb.png" alt="YOLO export locations"></p>
 
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
-<p align="center"><img width="850" src="https://user-images.githubusercontent.com/26833433/191003260-f94011a7-5b2e-4fe3-93c1-e1a935e0a728.png"></p>
+
+<p align="center"><img width="850" src="https://user-images.githubusercontent.com/26833433/191003260-f94011a7-5b2e-4fe3-93c1-e1a935e0a728.png" alt="YOLO model visualization"></p>
 
 ## Exported Model Usage Examples
 
@@ -175,21 +177,21 @@ python val.py --weights yolov5s.pt                 # PyTorch
 
 Use PyTorch Hub with exported YOLOv5 models:
 
-``` python
+```python
 import torch
 
 # Model
 model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.pt')
-                                                       'yolov5s.torchscript ')       # TorchScript
-                                                       'yolov5s.onnx')               # ONNX Runtime
-                                                       'yolov5s_openvino_model')     # OpenVINO
-                                                       'yolov5s.engine')             # TensorRT
-                                                       'yolov5s.mlmodel')            # CoreML (macOS Only)
-                                                       'yolov5s_saved_model')        # TensorFlow SavedModel
-                                                       'yolov5s.pb')                 # TensorFlow GraphDef
-                                                       'yolov5s.tflite')             # TensorFlow Lite
-                                                       'yolov5s_edgetpu.tflite')     # TensorFlow Edge TPU
-                                                       'yolov5s_paddle_model')       # PaddlePaddle
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.torchscript ')  # TorchScript
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.onnx')  # ONNX Runtime
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_openvino_model')  # OpenVINO
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.engine')  # TensorRT
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.mlmodel')  # CoreML (macOS Only)
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_saved_model')  # TensorFlow SavedModel
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.pb')  # TensorFlow GraphDef
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.tflite')  # TensorFlow Lite
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_edgetpu.tflite')  # TensorFlow Edge TPU
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_paddle_model')  # PaddlePaddle
 
 # Images
 img = 'https://ultralytics.com/images/zidane.jpg'  # or file, Path, PIL, OpenCV, numpy, list
@@ -228,17 +230,18 @@ YOLOv5 OpenVINO C++ inference examples:
 
 - [https://aukerul-shuvo.github.io/YOLOv5_TensorFlow-JS/](https://aukerul-shuvo.github.io/YOLOv5_TensorFlow-JS/)
 
-## Environments
+## Supported Environments
 
-YOLOv5 is designed to be run in the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Notebooks** with free GPU: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
-- **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial/)
-- **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/)
-- **Docker Image**. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
+- **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
+- **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)
+- **Docker**: [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
-## Status
+## Project Status
 
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
-If this badge is green, all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are currently passing. CI tests verify correct operation of YOLOv5 [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py) and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py) on macOS, Windows, and Ubuntu every 24 hours and on every commit.
+This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.

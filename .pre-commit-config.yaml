@@ -5,7 +5,7 @@
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
-  autoupdate_commit_msg: '[pre-commit.ci] pre-commit suggestions'
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit suggestions"
   autoupdate_schedule: monthly
   submodules: true
 
@@ -22,7 +22,6 @@ repos:
       - id: check-case-conflict
       # - id: check-yaml
       - id: check-docstring-first
-      - id: double-quote-string-fixer
       - id: detect-private-key
 
   - repo: https://github.com/asottile/pyupgrade
@@ -31,17 +30,11 @@ repos:
       - id: pyupgrade
         name: Upgrade code
 
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.11
     hooks:
-      - id: isort
-        name: Sort imports
-
-  - repo: https://github.com/google/yapf
-    rev: v0.40.2
-    hooks:
-      - id: yapf
-        name: YAPF formatting
+      - id: ruff
+        args: [--fix]
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.17
@@ -50,28 +43,32 @@ repos:
         name: MD formatting
         additional_dependencies:
           - mdformat-gfm
-          - mdformat-black
+          - mdformat-frontmatter
+          - mdformat-mkdocs
+        args:
+          - --wrap=no
+          - --number
         exclude: 'docs/.*\.md'
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        name: PEP8
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:
       - id: codespell
-        exclude: 'docs/de|docs/fr|docs/pt|docs/es|docs/mkdocs_de.yml'
+        exclude: "docs/de|docs/fr|docs/pt|docs/es|docs/mkdocs_de.yml"
         args:
-          - --ignore-words-list=crate,nd,strack,dota,ane,segway,fo,gool,winn
+          - --ignore-words-list=crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall
 
-  - repo: https://github.com/PyCQA/docformatter
-    rev: v1.7.5
+  - repo: https://github.com/hadialqattan/pycln
+    rev: v2.4.0
     hooks:
-      - id: docformatter
+      - id: pycln
+        args: [--all]
+#
+#  - repo: https://github.com/PyCQA/docformatter
+#    rev: v1.7.5
+#    hooks:
+#      - id: docformatter
 
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0

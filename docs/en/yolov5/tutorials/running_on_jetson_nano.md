@@ -6,7 +6,7 @@ keywords: TensorRT, NVIDIA Jetson, DeepStream SDK, deployment, Ultralytics, YOLO
 
 # Deploy on NVIDIA Jetson using TensorRT and DeepStream SDK
 
-📚 This guide explains how to deploy a trained model into NVIDIA Jetson Platform and perform inference using TensorRT and DeepStream SDK. Here we use TensorRT to maximize the inference performance on the Jetson platform. UPDATED 18 November 2022.
+📚 This guide explains how to deploy a trained model into NVIDIA Jetson Platform and perform inference using TensorRT and DeepStream SDK. Here we use TensorRT to maximize the inference performance on the Jetson platform.
 
 ## Hardware Verification
 
@@ -84,15 +84,15 @@ Here are some of the versions supported by JetPack 4.6 and above.
 
 Supported by JetPack 4.4 (L4T R32.4.3) / JetPack 4.4.1 (L4T R32.4.4) / JetPack 4.5 (L4T R32.5.0) / JetPack 4.5.1 (L4T R32.5.1) / JetPack 4.6 (L4T R32.6.1) with Python 3.6
 
-**file_name:** torch-1.10.0-cp36-cp36m-linux_aarch64.whl
-**URL:** [https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl](https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl)
+- **file_name:** torch-1.10.0-cp36-cp36m-linux_aarch64.whl
+- **URL:** [https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl](https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl)
 
 **PyTorch v1.12.0**
 
 Supported by JetPack 5.0 (L4T R34.1.0) / JetPack 5.0.1 (L4T R34.1.1) / JetPack 5.0.2 (L4T R35.1.0) with Python 3.8
 
-**file_name:** torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl
-**URL:** [https://developer.download.nvidia.com/compute/redist/jp/v50/pytorch/torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl](https://developer.download.nvidia.com/compute/redist/jp/v50/pytorch/torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl)
+- **file_name:** torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl
+- **URL:** [https://developer.download.nvidia.com/compute/redist/jp/v50/pytorch/torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl](https://developer.download.nvidia.com/compute/redist/jp/v50/pytorch/torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl)
 
 - **Step 1.** Install torch according to your JetPack version in the following format
 
@@ -216,7 +216,7 @@ uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.m
 deepstream-app -c deepstream_app_config.txt
 ```
 
-<div align=center><img width=1000 src="https://files.seeedstudio.com/wiki/YOLOV5/FP32-yolov5s.gif"/></div>
+<div align=center><img width=1000 src="https://files.seeedstudio.com/wiki/YOLOV5/FP32-yolov5s.gif" alt="YOLOv5 with deepstream FP32"></div>
 
 The above result is running on **Jetson Xavier NX** with **FP32** and **YOLOv5s 640x640**. We can see that the **FPS** is around **30**.
 
@@ -299,7 +299,7 @@ network-mode=1
 deepstream-app -c deepstream_app_config.txt
 ```
 
-<div align=center><img width=1000  src="https://files.seeedstudio.com/wiki/YOLOV5/INT8-yolov5s.gif"/></div>
+<div align=center><img width=1000  src="https://files.seeedstudio.com/wiki/YOLOV5/INT8-yolov5s.gif" alt="YOLOv5 with deepstream INT8"></div>
 
 The above result is running on **Jetson Xavier NX** with **INT8** and **YOLOv5s 640x640**. We can see that the **FPS** is around **60**.
 

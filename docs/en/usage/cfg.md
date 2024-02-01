@@ -6,6 +6,17 @@ keywords: YOLOv8, settings, hyperparameters, YOLO CLI commands, YOLO tasks, YOLO
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings and hyperparameters can affect the model's behavior at various stages of the model development process, including training, validation, and prediction.
 
+<p align="center">
+  <br>
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=87"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Configuration
+</p>
+
 Ultralytics commands use the following syntax:
 
 !!! Example
@@ -40,10 +51,10 @@ Default `ARG` values are defined on this page from the `cfg/defaults.yaml` [file
 
 YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks differ in the type of output they produce and the specific problem they are designed to solve.
 
-**Detect**: For identifying and localizing objects or regions of interest in an image or video.
-**Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
-**Classify**: For predicting the class label of an input image.
-**Pose**: For identifying objects and estimating their keypoints in an image or video.
+- **Detect**: For identifying and localizing objects or regions of interest in an image or video.
+- **Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
+- **Classify**: For predicting the class label of an input image.
+- **Pose**: For identifying objects and estimating their keypoints in an image or video.
 
 | Key    | Value      | Description                                     |
 |--------|------------|-------------------------------------------------|
@@ -55,12 +66,12 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes include:
 
-**Train**: For training a YOLOv8 model on a custom dataset.
-**Val**: For validating a YOLOv8 model after it has been trained.
-**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
-**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
-**Track**: For tracking objects in real-time using a YOLOv8 model.
-**Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
+- **Train**: For training a YOLOv8 model on a custom dataset.
+- **Val**: For validating a YOLOv8 model after it has been trained.
+- **Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
+- **Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
+- **Track**: For tracking objects in real-time using a YOLOv8 model.
+- **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
 | Key    | Value     | Description                                                   |
 |--------|-----------|---------------------------------------------------------------|
@@ -77,6 +88,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                              |
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
+| `time`            | `None`   | number of hours to train for, overrides epochs if supplied                                     |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training                    |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                                  |
 | `imgsz`           | `640`    | size of input images as integer                                                                |
@@ -103,7 +115,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                                   |
 | `freeze`          | `None`   | (int or list, optional) freeze first n layers, or freeze list of layer indices during training |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                                               |
-| `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                                                |
+| `lrf`             | `0.01`   | final learning rate (`lr0 * lrf`)                                                              |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                                        |
 | `weight_decay`    | `0.0005` | optimizer weight decay 5e-4                                                                    |
 | `warmup_epochs`   | `3.0`    | warmup epochs (fractions ok)                                                                   |
@@ -144,8 +156,9 @@ Inference arguments:
 | `visualize`     | `bool`         | `False`                | visualize model features                                                   |
 | `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
 | `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
+| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
-| `classes`       | `None or list` | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
+| `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
 
 Visualization arguments:
 
@@ -153,6 +166,7 @@ Visualization arguments:
 |---------------|---------------|---------|-----------------------------------------------------------------|
 | `show`        | `bool`        | `False` | show predicted images and videos if environment allows          |
 | `save`        | `bool`        | `False` | save predicted images and videos                                |
+| `save_frames` | `bool`        | `False` | save predicted individual video frames                          |
 | `save_txt`    | `bool`        | `False` | save results as `.txt` file                                     |
 | `save_conf`   | `bool`        | `False` | save results with confidence scores                             |
 | `save_crop`   | `bool`        | `False` | save cropped images with results                                |
@@ -210,21 +224,23 @@ Export settings for YOLO models encompass configurations and options related to 
 
 Augmentation settings for YOLO models refer to the various transformations and modifications applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each transformation is applied, and the presence of additional features such as masks or multiple labels per box. Other factors that may affect the augmentation process include the size and composition of the original dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
 
-| Key           | Value   | Description                                     |
-|---------------|---------|-------------------------------------------------|
-| `hsv_h`       | `0.015` | image HSV-Hue augmentation (fraction)           |
-| `hsv_s`       | `0.7`   | image HSV-Saturation augmentation (fraction)    |
-| `hsv_v`       | `0.4`   | image HSV-Value augmentation (fraction)         |
-| `degrees`     | `0.0`   | image rotation (+/- deg)                        |
-| `translate`   | `0.1`   | image translation (+/- fraction)                |
-| `scale`       | `0.5`   | image scale (+/- gain)                          |
-| `shear`       | `0.0`   | image shear (+/- deg)                           |
-| `perspective` | `0.0`   | image perspective (+/- fraction), range 0-0.001 |
-| `flipud`      | `0.0`   | image flip up-down (probability)                |
-| `fliplr`      | `0.5`   | image flip left-right (probability)             |
-| `mosaic`      | `1.0`   | image mosaic (probability)                      |
-| `mixup`       | `0.0`   | image mixup (probability)                       |
-| `copy_paste`  | `0.0`   | segment copy-paste (probability)                |
+| Key            | Value           | Description                                                                    |
+|----------------|-----------------|--------------------------------------------------------------------------------|
+| `hsv_h`        | `0.015`         | image HSV-Hue augmentation (fraction)                                          |
+| `hsv_s`        | `0.7`           | image HSV-Saturation augmentation (fraction)                                   |
+| `hsv_v`        | `0.4`           | image HSV-Value augmentation (fraction)                                        |
+| `degrees`      | `0.0`           | image rotation (+/- deg)                                                       |
+| `translate`    | `0.1`           | image translation (+/- fraction)                                               |
+| `scale`        | `0.5`           | image scale (+/- gain)                                                         |
+| `shear`        | `0.0`           | image shear (+/- deg)                                                          |
+| `perspective`  | `0.0`           | image perspective (+/- fraction), range 0-0.001                                |
+| `flipud`       | `0.0`           | image flip up-down (probability)                                               |
+| `fliplr`       | `0.5`           | image flip left-right (probability)                                            |
+| `mosaic`       | `1.0`           | image mosaic (probability)                                                     |
+| `mixup`        | `0.0`           | image mixup (probability)                                                      |
+| `copy_paste`   | `0.0`           | segment copy-paste (probability)                                               |
+| `auto_augment` | `'randaugment'` | auto augmentation policy for classification (randaugment, autoaugment, augmix) |
+| `erasing`      | `0.4`           | probability o random erasing during classification training (0-1) training     |
 
 ## Logging, checkpoints, plotting and file management
 

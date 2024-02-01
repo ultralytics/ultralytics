@@ -4,28 +4,27 @@ description: Learn how to set up and use Comet to enhance your YOLOv5 model trai
 keywords: YOLOv5, Comet, Machine Learning, Ultralytics, Real time metrics tracking, Hyperparameters, Model checkpoints, Model predictions, YOLOv5 training, Comet Credentials
 ---
 
-<img src="https://cdn.comet.ml/img/notebook_logo.png">
+![Comet](https://cdn.comet.ml/img/notebook_logo.png)
 
 # YOLOv5 with Comet
 
 This guide will cover how to use YOLOv5 with [Comet](https://bit.ly/yolov5-readme-comet2)
 
-# About Comet
+## About Comet
 
 Comet builds tools that help data scientists, engineers, and team leaders accelerate and optimize machine learning and deep learning models.
 
-Track and visualize model metrics in real time, save your hyperparameters, datasets, and model checkpoints, and visualize your model predictions with [Comet Custom Panels](https://www.comet.com/docs/v2/guides/comet-dashboard/code-panels/about-panels/?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)!
-Comet makes sure you never lose track of your work and makes it easy to share results and collaborate across teams of all sizes!
+Track and visualize model metrics in real time, save your hyperparameters, datasets, and model checkpoints, and visualize your model predictions with [Comet Custom Panels](https://www.comet.com/docs/v2/guides/comet-dashboard/code-panels/about-panels/?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)! Comet makes sure you never lose track of your work and makes it easy to share results and collaborate across teams of all sizes!
 
-# Getting Started
+## Getting Started
 
-## Install Comet
+### Install Comet
 
 ```shell
 pip install comet_ml
 ```
 
-## Configure Comet Credentials
+### Configure Comet Credentials
 
 There are two ways to configure Comet with YOLOv5.
 
@@ -48,7 +47,7 @@ api_key=<Your Comet API Key>
 project_name=<Your Comet Project Name> # This will default to 'yolov5'
 ```
 
-## Run the Training Script
+### Run the Training Script
 
 ```shell
 # Train YOLOv5s on COCO128 for 5 epochs
@@ -59,7 +58,7 @@ That's it! Comet will automatically log your hyperparameters, command line argum
 
 <img width="1920" alt="yolo-ui" src="https://user-images.githubusercontent.com/26833433/202851203-164e94e1-2238-46dd-91f8-de020e9d6b41.png">
 
-# Try out an Example!
+## Try out an Example!
 
 Check out an example of a [completed run here](https://www.comet.com/examples/comet-example-yolov5/a0e29e0e9b984e4a822db2a62d0cb357?experiment-tab=chart&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step&utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 
@@ -67,7 +66,7 @@ Or better yet, try it out yourself in this Colab Notebook
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
 
-# Log automatically
+## Log automatically
 
 By default, Comet will log the following items
 
@@ -88,7 +87,7 @@ By default, Comet will log the following items
 - Plots for the PR and F1 curves across all classes
 - Correlogram of the Class Labels
 
-# Configure Comet Logging
+## Configure Comet Logging
 
 Comet can be configured to log additional data either through command line flags passed to the training script or through environment variables.
 
@@ -180,14 +179,11 @@ python train.py \
 --upload_dataset
 ```
 
-You can find the uploaded dataset in the Artifacts tab in your Comet Workspace
-<img width="1073" alt="artifact-1" src="https://user-images.githubusercontent.com/7529846/186929193-162718bf-ec7b-4eb9-8c3b-86b3763ef8ea.png">
+You can find the uploaded dataset in the Artifacts tab in your Comet Workspace <img width="1073" alt="artifact-1" src="https://user-images.githubusercontent.com/7529846/186929193-162718bf-ec7b-4eb9-8c3b-86b3763ef8ea.png">
 
-You can preview the data directly in the Comet UI.
-<img width="1082" alt="artifact-2" src="https://user-images.githubusercontent.com/7529846/186929215-432c36a9-c109-4eb0-944b-84c2786590d6.png">
+You can preview the data directly in the Comet UI. <img width="1082" alt="artifact-2" src="https://user-images.githubusercontent.com/7529846/186929215-432c36a9-c109-4eb0-944b-84c2786590d6.png">
 
-Artifacts are versioned and also support adding metadata about the dataset. Comet will automatically log the metadata from your dataset `yaml` file
-<img width="963" alt="artifact-3" src="https://user-images.githubusercontent.com/7529846/186929256-9d44d6eb-1a19-42de-889a-bcbca3018f2e.png">
+Artifacts are versioned and also support adding metadata about the dataset. Comet will automatically log the metadata from your dataset `yaml` file <img width="963" alt="artifact-3" src="https://user-images.githubusercontent.com/7529846/186929256-9d44d6eb-1a19-42de-889a-bcbca3018f2e.png">
 
 ### Using a saved Artifact
 
@@ -209,8 +205,7 @@ python train.py \
 --weights yolov5s.pt
 ```
 
-Artifacts also allow you to track the lineage of data as it flows through your Experimentation workflow. Here you can see a graph that shows you all the experiments that have used your uploaded dataset.
-<img width="1391" alt="artifact-4" src="https://user-images.githubusercontent.com/7529846/186929264-4c4014fa-fe51-4f3c-a5c5-f6d24649b1b4.png">
+Artifacts also allow you to track the lineage of data as it flows through your Experimentation workflow. Here you can see a graph that shows you all the experiments that have used your uploaded dataset. <img width="1391" alt="artifact-4" src="https://user-images.githubusercontent.com/7529846/186929264-4c4014fa-fe51-4f3c-a5c5-f6d24649b1b4.png">
 
 ## Resuming a Training Run
 
@@ -254,7 +249,7 @@ comet optimizer -j <set number of workers> utils/loggers/comet/hpo.py \
   utils/loggers/comet/optimizer_config.json"
 ```
 
-### Visualizing Results
+## Visualizing Results
 
 Comet provides a number of ways to visualize the results of your sweep. Take a look at a [project with a completed sweep here](https://www.comet.com/examples/comet-example-yolov5/view/PrlArHGuuhDTKC1UuBmTtOSXD/panels?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 

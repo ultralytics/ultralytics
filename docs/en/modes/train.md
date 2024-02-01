@@ -180,6 +180,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                              |
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
+| `time`            | `None`   | number of hours to train for, overrides epochs if supplied                                     |
 | `patience`        | `50`     | epochs to wait for no observable improvement for early stopping of training                    |
 | `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                                                  |
 | `imgsz`           | `640`    | size of input images as integer                                                                |
@@ -240,6 +241,7 @@ To use Comet:
 !!! Example
 
     === "Python"
+
         ```python
         # pip install comet_ml
         import comet_ml
@@ -258,6 +260,7 @@ To use ClearML:
 !!! Example
 
     === "Python"
+
         ```python
         # pip install clearml
         import clearml
@@ -276,6 +279,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
 !!! Example
 
     === "CLI"
+
         ```bash
         load_ext tensorboard
         tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
@@ -286,6 +290,7 @@ To use TensorBoard locally run the below command and view results at http://loca
 !!! Example
 
     === "CLI"
+
         ```bash
         tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
         ```

@@ -45,7 +45,7 @@ This section provides the Python code used to create the Gradio interface with t
 import PIL.Image as Image
 import gradio as gr
 
-from ultralytics import YOLO
+from ultralytics import ASSETS, YOLO
 
 model = YOLO("yolov8n.pt")
 
@@ -78,8 +78,8 @@ iface = gr.Interface(
     title="Ultralytics Gradio",
     description="Upload images for inference. The Ultralytics YOLOv8n model is used by default.",
     examples=[
-        ["https://ultralytics.com/images/bus.jpg", 0.25, 0.45],
-        ["https://ultralytics.com/images/zidane.jpg", 0.25, 0.45],
+        [ASSETS / "bus.jpg", 0.25, 0.45],
+        [ASSETS / "zidane.jpg", 0.25, 0.45],
     ]
 )
 

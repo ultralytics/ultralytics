@@ -298,7 +298,7 @@ class ConfusionMatrix:
         iou_thres (float): The Intersection over Union threshold.
     """
 
-    def __init__(self, nc, conf=0.25, iou_thres=0.45, task="detect"):
+    def __init__(self, nc, conf=0.25, iou_thres=0.4, task="detect"):
         """Initialize attributes for the YOLO model."""
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == "detect" else np.zeros((nc, nc))

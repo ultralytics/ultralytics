@@ -123,6 +123,31 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
         return iou - (c_area - union) / c_area  # GIoU https://arxiv.org/pdf/1902.09630.pdf
     return iou  # IoU
 
+def box_iou_batch(boxs):
+    """Compute the intersection over union of two set of boxes.
+
+    The box order must be (xmin, ymin, xmax, ymax).
+
+    Args:
+      box: (tensor) bounding boxes, sized [B,N,4].
+
+    Return:
+      (tensor) iou, sized [B,N,N].
+
+    """
+
+    lt = torch.max(boxs[:, :, None, :2], boxs[:, None, :, :2])  # [B,N,N,2]
+    rb = torch.min(boxs[:, :, None, 2:], boxs[:, None, :, 2:])  # [B,N,N,2]
+
+    wh = (rb - lt).clamp(min=0)  # [B,N,N,2]
+    inter = wh[:, :, :, 0] * wh[:, :, :, 1]  # [B,N,N]
+
+    area = (boxs[:,:, 2] - boxs[:,:, 0]) * (boxs[:,:, 3] - boxs[:,:, 1])  # [B,N]
+    area=(area[:,:, None] + area[:,None,:]).clamp(min=1)
+
+    iou = inter / (area - inter)
+    return iou
+
 
 def mask_iou(mask1, mask2, eps=1e-7):
     """

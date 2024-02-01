@@ -35,13 +35,13 @@ def set_up_metrics_writer(validator):
     else:
         if validator._split is None:
             raise ValueError("split must be provided when calling .val() directly.")
+        project_name = validator.data[validator._split].project_name
         if not validator._run:
-            if not validator._env_vars['COLLECTION_DISABLE']:
-                project_name = validator.data[validator._split].project_name
-                validator._run = tlc.init(project_name=project_name)
-                dataset_url = validator.data[validator._split].url
-                dataset_name = validator.data[validator._split].dataset_name
-                names = validator.data[validator._split].get_value_map_for_column(tlc.BOUNDING_BOXES)
+            # Use existing ongoing run if available
+            validator._run = tlc.active_run() if tlc.active_run() else tlc.init(project_name=project_name)
+        dataset_url = validator.data[validator._split].url
+        dataset_name = validator.data[validator._split].dataset_name
+        names = validator.data[validator._split].get_value_map_for_column(tlc.BOUNDING_BOXES)
 
     metrics_column_schemas = {
         tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names),

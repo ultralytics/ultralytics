@@ -41,9 +41,7 @@ class SegmentationPredictor(DetectionPredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        proto = (
-            preds[1][-1] if isinstance(preds[1], tuple) else preds[1]
-        )  # second output is tuple if pt, but an array if exported
+        proto = preds[1][-1] if isinstance(preds[1], tuple) else preds[1]  # second output is tuple if pt, but array if exported
         for i, pred in enumerate(p):
             orig_img = orig_imgs[i]
             img_path = self.batch[0][i]

@@ -129,12 +129,12 @@ class DetectionValidator(BaseValidator):
             nl = len(cls)
             stat["target_cls"] = cls
             if npr == 0:
-                if nl:
-                    for k in self.stats.keys():
-                        self.stats[k].append(stat[k])
-                    # TODO: obb has not supported confusion_matrix yet.
-                    if self.args.plots and self.args.task != "obb":
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                detections = None if nl else pred
+                for k in self.stats.keys():
+                    self.stats[k].append(stat[k])
+                # TODO: obb has not supported confusion_matrix yet.
+                if self.args.plots and self.args.task != "obb":
+                    self.confusion_matrix.process_batch(detections=detections, gt_bboxes=bbox, gt_cls=cls)
                 continue
 
             # Predictions
@@ -145,11 +145,10 @@ class DetectionValidator(BaseValidator):
             stat["pred_cls"] = predn[:, 5]
 
             # Evaluate
-            if nl:
-                stat["tp"] = self._process_batch(predn, bbox, cls)
-                # TODO: obb has not supported confusion_matrix yet.
-                if self.args.plots and self.args.task != "obb":
-                    self.confusion_matrix.process_batch(predn, bbox, cls)
+            stat["tp"] = self._process_batch(predn, bbox, cls)
+            # TODO: obb has not supported confusion_matrix yet.
+            if self.args.plots and self.args.task != "obb":
+                self.confusion_matrix.process_batch(predn, bbox, cls)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
 

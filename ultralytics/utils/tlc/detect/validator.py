@@ -1,12 +1,15 @@
 import numpy as np
 import tlc
-import ultralytics
 
+import ultralytics
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
-from ultralytics.utils import LOGGER, ops, metrics
+from ultralytics.utils import LOGGER, metrics, ops
 from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
-from ultralytics.utils.tlc.detect.utils import tlc_check_dataset, yolo_predicted_bounding_box_schema, construct_bbox_struct, parse_environment_variables, get_metrics_collection_epochs, yolo_image_embeddings_schema, training_phase_schema
+from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
+from ultralytics.utils.tlc.detect.utils import (construct_bbox_struct, get_metrics_collection_epochs,
+                                                parse_environment_variables, tlc_check_dataset, training_phase_schema,
+                                                yolo_image_embeddings_schema, yolo_predicted_bounding_box_schema)
+
 
 def check_det_dataset(data: str):
     """Check if the dataset is compatible with the 3LC."""
@@ -16,22 +19,21 @@ def check_det_dataset(data: str):
         "train": tables["train"],
         "val": tables["val"],
         "nc": len(names),
-        "names": names,
-    }
+        "names": names, }
+
 
 ultralytics.engine.validator.check_det_dataset = check_det_dataset
 
+
 def set_up_metrics_writer(validator):
     if validator._trainer:
-            validator._collection_epochs = get_metrics_collection_epochs(
-                validator._env_vars['COLLECTION_EPOCH_START'],
-                validator._trainer.args.epochs,
-                validator._env_vars['COLLECTION_EPOCH_INTERVAL'],
-                validator._env_vars['COLLECTION_DISABLE']
-            )
-            names = validator.dataloader.dataset.data['names']
-            dataset_url = validator.dataloader.dataset.table.url
-            dataset_name = validator.dataloader.dataset.table.dataset_name
+        validator._collection_epochs = get_metrics_collection_epochs(validator._env_vars['COLLECTION_EPOCH_START'],
+                                                                     validator._trainer.args.epochs,
+                                                                     validator._env_vars['COLLECTION_EPOCH_INTERVAL'],
+                                                                     validator._env_vars['COLLECTION_DISABLE'])
+        names = validator.dataloader.dataset.data['names']
+        dataset_url = validator.dataloader.dataset.table.url
+        dataset_name = validator.dataloader.dataset.table.dataset_name
     else:
         if validator._split is None:
             raise ValueError("split must be provided when calling .val() directly.")
@@ -44,18 +46,16 @@ def set_up_metrics_writer(validator):
         names = validator.data[validator._split].get_value_map_for_column(tlc.BOUNDING_BOXES)
 
     metrics_column_schemas = {
-        tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names),
-    }
+        tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names), }
     if validator._trainer:
         metrics_column_schemas["Training Phase"] = training_phase_schema()
     metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
-    
-    validator.metrics_writer = tlc.MetricsWriter(
-        run_url=validator._run.url,
-        dataset_url=dataset_url,
-        dataset_name=dataset_name,
-        override_column_schemas=metrics_column_schemas
-    )
+
+    validator.metrics_writer = tlc.MetricsWriter(run_url=validator._run.url,
+                                                 dataset_url=dataset_url,
+                                                 dataset_name=dataset_name,
+                                                 override_column_schemas=metrics_column_schemas)
+
 
 class TLCDetectionValidator(DetectionValidator):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
@@ -79,7 +79,7 @@ class TLCDetectionValidator(DetectionValidator):
         if trainer:
             self.epoch = trainer.epoch
         return super().__call__(trainer, model)
-    
+
     def build_dataset(self, img_path, mode="val", batch=None):
         """
         Build 3LC detection Dataset.
@@ -90,17 +90,24 @@ class TLCDetectionValidator(DetectionValidator):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         table = self.data[self._split]
-        return build_tlc_dataset(self.args, img_path, batch, self.data, mode=mode, stride=self.stride, table=table, use_sampling_weights=False)
-    
+        return build_tlc_dataset(self.args,
+                                 img_path,
+                                 batch,
+                                 self.data,
+                                 mode=mode,
+                                 stride=self.stride,
+                                 table=table,
+                                 use_sampling_weights=False)
+
     def _collect_metrics(self, predictions):
         batch_size = len(predictions)
         example_index = np.arange(self._seen, self._seen + batch_size)
-        example_ids = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset, 'irect') else example_index
+        example_ids = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset,
+                                                                              'irect') else example_index
 
         metrics = {
             tlc.EXAMPLE_ID: example_ids,
-            tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions),
-        }
+            tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions), }
         if self.epoch is not None:
             metrics[tlc.EPOCH] = [self.epoch] * batch_size
             metrics["Training Phase"] = [1 if self._final_validation else 0] * batch_size
@@ -128,7 +135,8 @@ class TLCDetectionValidator(DetectionValidator):
                 continue
 
             predictions = predictions.clone()
-            predictions = predictions[predictions[:,4] > self._env_vars['CONF_THRES']] # filter out low confidence predictions
+            predictions = predictions[predictions[:, 4]
+                                      > self._env_vars['CONF_THRES']]  # filter out low confidence predictions
             # sort by confidence and remove excess boxes
             predictions = predictions[predictions[:, 4].argsort(descending=True)[:self._env_vars['MAX_DET']]]
             ori_shape = self._curr_batch['ori_shape'][i]
@@ -136,43 +144,40 @@ class TLCDetectionValidator(DetectionValidator):
             ratio_pad = self._curr_batch['ratio_pad'][i]
             height, width = ori_shape
 
-            pred_box = predictions[:,:4].clone()
+            pred_box = predictions[:, :4].clone()
             pred_scaled = ops.scale_boxes(resized_shape, pred_box, ori_shape, ratio_pad)
 
             # Compute IoUs
             pbatch = self._prepare_batch(i, self._curr_batch)
             if pbatch['bbox'].shape[0]:
-                ious = metrics.box_iou(pbatch['bbox'], pred_scaled) # IoU evaluated in xyxy format
+                ious = metrics.box_iou(pbatch['bbox'], pred_scaled)  # IoU evaluated in xyxy format
                 box_ious = ious.max(dim=0)[0].cpu().tolist()
             else:
-                box_ious = [0.0] * pred_scaled.shape[0] # No predictions
+                box_ious = [0.0] * pred_scaled.shape[0]  # No predictions
 
             pred_xywh = ops.xyxy2xywhn(pred_scaled, w=width, h=height)
 
-            conf = predictions[:,4].cpu().tolist()
-            pred_cls = predictions[:,5].cpu().tolist()
+            conf = predictions[:, 4].cpu().tolist()
+            pred_cls = predictions[:, 5].cpu().tolist()
 
             annotations = []
             for pi in range(len(predictions)):
                 annotations.append({
                     'score': conf[pi],
                     'category_id': pred_cls[pi],
-                    'bbox': pred_xywh[pi,:].cpu().tolist(),
-                    'iou': box_ious[pi],
-                })
+                    'bbox': pred_xywh[pi, :].cpu().tolist(),
+                    'iou': box_ious[pi], })
 
             assert len(annotations) <= self._env_vars['MAX_DET'], "Should have at most MAX_DET predictions per image."
 
-            predicted_boxes.append(
-                construct_bbox_struct(
-                    annotations,
-                    image_width=width,
-                    image_height=height,
-                )
-            )
+            predicted_boxes.append(construct_bbox_struct(
+                annotations,
+                image_width=width,
+                image_height=height,
+            ))
 
         return predicted_boxes
-    
+
     def preprocess(self, batch):
         self._curr_batch = super().preprocess(batch)
         return self._curr_batch
@@ -184,7 +189,7 @@ class TLCDetectionValidator(DetectionValidator):
             self._collect_metrics(postprocessed)
 
         return postprocessed
-    
+
     def _should_collect_metrics(self):
         if self.epoch is None:
             return True
@@ -192,4 +197,3 @@ class TLCDetectionValidator(DetectionValidator):
             return True
         else:
             return self._trainer and self.epoch < self._trainer.args.epochs and self.epoch in self._collection_epochs
-    

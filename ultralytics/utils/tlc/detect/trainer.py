@@ -1,18 +1,20 @@
 import copy
-import tlc
-import ultralytics
 
+import tlc
+
+import ultralytics
 from ultralytics.data import build_dataloader
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.utils import (
-    DEFAULT_CFG, LOGGER, RANK)
-from ultralytics.utils.tlc.detect.validator import TLCDetectionValidator
-from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
-from ultralytics.utils.torch_utils import de_parallel
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
-from ultralytics.utils.tlc.detect.utils import parse_environment_variables, get_metrics_collection_epochs, tlc_check_dataset
-from ultralytics.utils.torch_utils import torch_distributed_zero_first
-from ultralytics.utils.torch_utils import strip_optimizer
+from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
+from ultralytics.utils.tlc.detect.utils import (
+    get_metrics_collection_epochs,
+    parse_environment_variables,
+    tlc_check_dataset,
+)
+from ultralytics.utils.tlc.detect.validator import TLCDetectionValidator
+from ultralytics.utils.torch_utils import de_parallel, strip_optimizer, torch_distributed_zero_first
 
 
 def check_det_dataset(data: str):
@@ -23,21 +25,22 @@ def check_det_dataset(data: str):
         "train": tables["train"],
         "val": tables["val"],
         "nc": len(names),
-        "names": names,
-    }
+        "names": names, }
+
 
 ultralytics.engine.trainer.check_det_dataset = check_det_dataset
+
 
 def _resample_train_dataset(trainer):
     trainer.train_loader.dataset.resample_indices()
 
+
 def _reduce_embeddings(trainer):
     if trainer._env_vars["IMAGE_EMBEDDINGS_DIM"] > 0:
-        trainer._run.reduce_embeddings_by_example_table_url(
-            table_url=trainer.data["val"].url,
-            method="pacmap",
-            n_components=trainer._env_vars['IMAGE_EMBEDDINGS_DIM']
-        )
+        trainer._run.reduce_embeddings_by_example_table_url(table_url=trainer.data["val"].url,
+                                                            method="pacmap",
+                                                            n_components=trainer._env_vars['IMAGE_EMBEDDINGS_DIM'])
+
 
 class TLCDetectionTrainer(DetectionTrainer):
     """A class extending the BaseTrainer class for training a detection model using the 3LC."""
@@ -47,16 +50,14 @@ class TLCDetectionTrainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
         self._train_validator = None
         self._env_vars = parse_environment_variables()
-        self._collection_epochs = get_metrics_collection_epochs(
-                self._env_vars['COLLECTION_EPOCH_START'],
-                self.args.epochs,
-                self._env_vars['COLLECTION_EPOCH_INTERVAL'],
-                self._env_vars['COLLECTION_DISABLE']
-            )
+        self._collection_epochs = get_metrics_collection_epochs(self._env_vars['COLLECTION_EPOCH_START'],
+                                                                self.args.epochs,
+                                                                self._env_vars['COLLECTION_EPOCH_INTERVAL'],
+                                                                self._env_vars['COLLECTION_DISABLE'])
 
         self._run = None
 
-        if not self._env_vars['COLLECTION_DISABLE']:        
+        if not self._env_vars['COLLECTION_DISABLE']:
             self._run = tlc.init(project_name=self.data["train"].project_name)
 
         self.add_callback("on_train_epoch_start", _resample_train_dataset)
@@ -65,9 +66,13 @@ class TLCDetectionTrainer(DetectionTrainer):
     @property
     def train_validator(self):
         if not self._train_validator:
-            if RANK in (-1,0):
+            if RANK in (-1, 0):
                 train_val_loader = self.get_dataloader(
-                    self.testset, batch_size=self.batch_size if self.args.task == "obb" else self.batch_size * 2, rank=-1, mode="val", split="train",
+                    self.testset,
+                    batch_size=self.batch_size if self.args.task == "obb" else self.batch_size * 2,
+                    rank=-1,
+                    mode="val",
+                    split="train",
                 )
                 self._train_validator = self.get_validator(loader=train_val_loader)
         return self._train_validator
@@ -95,7 +100,14 @@ class TLCDetectionTrainer(DetectionTrainer):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_tlc_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, table=self.data[split],
+        return build_tlc_dataset(self.args,
+                                 img_path,
+                                 batch,
+                                 self.data,
+                                 mode=mode,
+                                 rect=mode == "val",
+                                 stride=gs,
+                                 table=self.data[split],
                                  use_sampling_weights=self._env_vars['SAMPLING_WEIGHTS'])
 
     def get_model(self, cfg=None, weights=None, verbose=True):
@@ -111,17 +123,22 @@ class TLCDetectionTrainer(DetectionTrainer):
         if not loader:
             loader = self.test_loader
         return TLCDetectionValidator(
-            loader, save_dir=self.save_dir, args=copy.copy(self.args), _callbacks=self.callbacks, run=self._run,
+            loader,
+            save_dir=self.save_dir,
+            args=copy.copy(self.args),
+            _callbacks=self.callbacks,
+            run=self._run,
         )
 
     def validate(self):
         # Validate on train set
-        if not self._env_vars['COLLECTION_DISABLE'] and not self._env_vars['COLLECTION_VAL_ONLY'] and self.epoch in self._collection_epochs:
+        if not self._env_vars['COLLECTION_DISABLE'] and not self._env_vars[
+                'COLLECTION_VAL_ONLY'] and self.epoch in self._collection_epochs:
             self.train_validator(trainer=self)
 
         # Validate on val/test set
         return super().validate()
-    
+
     def final_eval(self):
         """Performs final evaluation and validation for object detection YOLO model."""
         for f in self.last, self.best:

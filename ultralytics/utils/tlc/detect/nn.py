@@ -4,10 +4,11 @@ import torch.nn as nn
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils.plotting import feature_visualization
 
+
 class TLCDetectionModel(DetectionModel):
     activations = None
-
     """ YOLO (You Only Look Once) object detection model with 3LC integration. """
+
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """
         Perform a forward pass through the network.
@@ -30,7 +31,8 @@ class TLCDetectionModel(DetectionModel):
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
             if m.type == 'ultralytics.nn.modules.block.SPPF':
-                TLCDetectionModel.activations = nn.functional.adaptive_avg_pool2d(x, (1,1)).squeeze(-1).squeeze(-1) # flatten
+                TLCDetectionModel.activations = nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(
+                    -1)  # flatten
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
@@ -38,4 +40,3 @@ class TLCDetectionModel(DetectionModel):
                 if m.i == max(embed):
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
-

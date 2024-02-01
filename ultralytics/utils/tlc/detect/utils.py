@@ -10,14 +10,17 @@ from typing import Callable, TypeVar
 
 import tlc
 import yaml
-from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (_TLCPredictedBoundingBox,
-                                                                                        _TLCPredictedBoundingBoxes)
+from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (
+    _TLCPredictedBoundingBox,
+    _TLCPredictedBoundingBoxes,
+)
 from tlc.core.builtins.constants.paths import _ROW_CACHE_FILE_NAME
 from tlc.core.objects.tables.from_url.utils import get_hash
 
+from ultralytics.data.utils import check_file
+
 # from utils.general import LOGGER, check_dataset
 from ultralytics.utils import LOGGER, colorstr
-from ultralytics.data.utils import check_file
 
 # 3LC Constants
 TLC_PREFIX = '3LC://'
@@ -533,11 +536,12 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
 
     return tables
 
+
 def tlc_task_map(task, key):
     if task != 'detect':
         LOGGER.info("3LC enabled, but currently only supports detect task. Defaulting to non-3LC mode.")
         return None
-    
+
     from ultralytics.utils.tlc.detect.trainer import TLCDetectionTrainer
     from ultralytics.utils.tlc.detect.validator import TLCDetectionValidator
 
@@ -547,7 +551,8 @@ def tlc_task_map(task, key):
         return TLCDetectionValidator
     else:
         return None
-    
+
+
 def training_phase_schema() -> tlc.Schema:
     return tlc.Schema(
         display_name="Training Phase",

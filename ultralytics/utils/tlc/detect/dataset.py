@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from ultralytics.data.dataset import YOLODataset
 import numpy as np
 import tlc
+
+from ultralytics.data.dataset import YOLODataset
 from ultralytics.utils import colorstr
+
 
 def unpack_box(bbox):
     return bbox[tlc.LABEL], [bbox[tlc.X0], bbox[tlc.Y0], bbox[tlc.X1], bbox[tlc.Y1]]
+
 
 def unpack_boxes(bboxes):
     classes_list, boxes_list = [], []
@@ -37,9 +40,17 @@ def tlc_table_row_to_yolo_label(row):
         normalized=True,
         bbox_format="xywh",
     )
-    
 
-def build_tlc_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, table=None, use_sampling_weights=True):
+
+def build_tlc_dataset(cfg,
+                      img_path,
+                      batch,
+                      data,
+                      mode="train",
+                      rect=False,
+                      stride=32,
+                      table=None,
+                      use_sampling_weights=True):
     """Build TLC Dataset."""
     assert table is not None
     return TLCDataset(
@@ -62,8 +73,16 @@ def build_tlc_dataset(cfg, img_path, batch, data, mode="train", rect=False, stri
         use_sampling_weights=mode == "train" and use_sampling_weights,
     )
 
+
 class TLCDataset(YOLODataset):
-    def __init__(self, *args, data=None, task="detect", table: tlc.Table = None, use_sampling_weights: bool = False, **kwargs):
+
+    def __init__(self,
+                 *args,
+                 data=None,
+                 task="detect",
+                 table: tlc.Table = None,
+                 use_sampling_weights: bool = False,
+                 **kwargs):
         assert task == "detect"
         assert isinstance(table, tlc.Table)
         self.table = table
@@ -79,15 +98,15 @@ class TLCDataset(YOLODataset):
 
     def get_img_files(self, _):
         return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for sample in self.table]
-    
+
     def get_labels(self):
         return [tlc_table_row_to_yolo_label(row) for row in self.table]
-    
+
     def get_sampling_weights(self):
         weights = np.array([row[tlc.SAMPLE_WEIGHT] for row in self.table])
         probabilities = weights / weights.sum()
         return probabilities
-    
+
     def set_rectangle(self):
         """Sets the shape of bounding boxes for YOLO detections as rectangles."""
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
@@ -115,6 +134,5 @@ class TLCDataset(YOLODataset):
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index):
-        index = self._indices[index] # Use potentially resampled index
+        index = self._indices[index]  # Use potentially resampled index
         return super().__getitem__(index)
-    

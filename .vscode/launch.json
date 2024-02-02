@@ -5,12 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "main",
+            "name": "Training",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false,
+        },
+        {
+            "name": "Training with settings",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "TLC_SAMPLING_WEIGHTS": "true",
+                "TLC_IMAGE_EMBEDDINGS_DIM": "2",
+                "TLC_COLLECTION_EPOCH_START": "0",
+                "TLC_COLLECTION_EPOCH_INTERVAL": "2",
+              }
+        },
+        {
+            "name": "Validation only",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/main_val.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
         }
     ]
 }

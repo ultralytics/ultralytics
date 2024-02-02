@@ -33,20 +33,20 @@ The [current guide](https://coral.ai/docs/accelerator/get-started/) by Coral on 
 
 This guide assumes that you already have a working Raspberry Pi OS install and have installed `ultralytics` and all dependencies. To get `ultralytics` installed, visit the [quickstart guide](../quickstart/) to get setup before continuing here.
 
-### Installing the Edge  runtime
+### Installing the Edge TPU runtime
 
 First, we need to install the Edge TPU runtime. There are many different versions available, so you need to choose the version for your device and operating system.
 
 | Raspberry Pi OS | High frequency mode | Version to download                      |
 |-----------------|:-------------------:|------------------------------------------|
-| Bullseye 32bit  | No                  | libedgetpu1-std_ ... .bullseye_armhf.deb |
-| Bullseye 64bit  | No                  | libedgetpu1-std_ ... .bullseye_arm64.deb |
-| Bullseye 32bit  | Yes                 | libedgetpu1-max_ ... .bullseye_armhf.deb |
-| Bullseye 64bit  | Yes                 | libedgetpu1-max_ ... .bullseye_arm64.deb |
-| Bookworm 32bit  | No                  | libedgetpu1-std_ ... .bookworm_armhf.deb |
-| Bookworm 64bit  | No                  | libedgetpu1-std_ ... .bookworm_arm64.deb |
-| Bookworm 32bit  | Yes                 | libedgetpu1-max_ ... .bookworm_armhf.deb |
-| Bookworm 64bit  | Yes                 | libedgetpu1-max_ ... .bookworm_arm64.deb |
+| Bullseye 32bit  |         No          | libedgetpu1-std_ ... .bullseye_armhf.deb |
+| Bullseye 64bit  |         No          | libedgetpu1-std_ ... .bullseye_arm64.deb |
+| Bullseye 32bit  |         Yes         | libedgetpu1-max_ ... .bullseye_armhf.deb |
+| Bullseye 64bit  |         Yes         | libedgetpu1-max_ ... .bullseye_arm64.deb |
+| Bookworm 32bit  |         No          | libedgetpu1-std_ ... .bookworm_armhf.deb |
+| Bookworm 64bit  |         No          | libedgetpu1-std_ ... .bookworm_arm64.deb |
+| Bookworm 32bit  |         Yes         | libedgetpu1-max_ ... .bookworm_armhf.deb |
+| Bookworm 64bit  |         Yes         | libedgetpu1-max_ ... .bookworm_arm64.deb |
 
 Download the latest version from [here](https://github.com/feranick/libedgetpu/releases).
 
@@ -90,7 +90,7 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
     === "CLI"
 
         ```bash
-        yolo export model=path/to/model format=edgetpu  # Export a official model or custom model
+        yolo export model=path/to/model.pt format=edgetpu  # Export a official model or custom model
         ```
 
 The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`.
@@ -107,10 +107,10 @@ After exporting your model, you can run inference with it using the following co
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/model.pt')  # Load a official model or custom model
+        model = YOLO('path/to/model.tflite')  # Load a official model or custom model
 
         # Run Prediction
-        model.predict()
+        model.predict("path/to/source.png")
         ```
 
 For a more detailed guide on how to use the Predict Mode for inference, visit the [Prediction Mode](../modes/predict/) page.

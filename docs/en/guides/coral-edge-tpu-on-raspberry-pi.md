@@ -79,7 +79,7 @@ This is because, according to the official guide, a new `udev` rule needs to tak
     sudo apt remove libedgetpu1-max 
     ```
 
-### Exporting your model to a edge tpu compatible model
+## Exporting your model to a edge tpu compatible model
 
 To use the Edge TPU, you need to convert your model to a format that is compatible with it.
 It is recommended that you export on Google Colab or an x86_64 linux machine,
@@ -108,7 +108,7 @@ since the Edge TPU compiler is not available on arm.
 The exported model will be saved in the `<model_name>_saved_model/` folder with the
 name `<model_name>_full_integer_quant_edgetpu.tflite`.
 
-### Running the model
+## Running the model
 
 After exporting your model, you can run it using the following code:
 

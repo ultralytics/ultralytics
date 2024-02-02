@@ -46,7 +46,8 @@ class YOLODataset(BaseDataset):
         Cache dataset labels, check images and read shapes.
 
         Args:
-            path (Path): path where to save the cache file (default: Path('./labels.cache')).
+            path (Path): Path where to save the cache file. Default is Path('./labels.cache').
+
         Returns:
             (dict): labels.
         """
@@ -178,9 +179,13 @@ class YOLODataset(BaseDataset):
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
-        """Custom your label format here."""
-        # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
-        # We can make it also support classification and semantic segmentation by add or remove some dict keys there.
+        """
+        Custom your label format here.
+
+        Note:
+            cls is not with bboxes now, classification and semantic segmentation need an independent cls label
+            Can also support classification and semantic segmentation by adding or removing dict keys there.
+        """
         bboxes = label.pop("bboxes")
         segments = label.pop("segments", [])
         keypoints = label.pop("keypoints", None)

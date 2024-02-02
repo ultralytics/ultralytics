@@ -124,7 +124,7 @@ You can preview your model if you click on the **Preview** tab and upload an ima
 
 ![Ultralytics HUB screenshot of the Preview tab (Test card) inside the Model page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_preview_model_1.jpg)
 
-You can also use our Ultralytics Cloud API to effortlessly [run inference](https://docs.ultralytics.com/hub/inference_api) with your custom model.
+You can also use our Ultralytics Cloud API to effortlessly [run inference](inference-api.md) with your custom model.
 
 ![Ultralytics HUB screenshot of the Preview tab (Ultralytics Cloud API card) inside the Model page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_preview_model_2.jpg)
 

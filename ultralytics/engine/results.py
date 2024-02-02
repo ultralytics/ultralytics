@@ -115,7 +115,7 @@ class Results(SimpleClass):
             if v is not None:
                 return len(v)
 
-    def update(self, boxes=None, masks=None, probs=None):
+    def update(self, boxes=None, masks=None, probs=None, obb=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
             self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
@@ -123,6 +123,8 @@ class Results(SimpleClass):
             self.masks = Masks(masks, self.orig_shape)
         if probs is not None:
             self.probs = probs
+        if obb is not None:
+            self.obb = OBB(obb, self.orig_shape)
 
     def _apply(self, fn, *args, **kwargs):
         """
@@ -605,7 +607,9 @@ class OBB(BaseTensor):
         conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
         cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
         id (torch.Tensor | numpy.ndarray): The track IDs of the boxes (if available).
-        xyxyxyxy (torch.Tensor | numpy.ndarray): The boxes in xyxyxyxy format normalized by original image size.
+        xyxyxyxyn (torch.Tensor | numpy.ndarray): The rotated boxes in xyxyxyxy format normalized by original image size.
+        xyxyxyxy (torch.Tensor | numpy.ndarray): The rotated boxes in xyxyxyxy format.
+        xyxy (torch.Tensor | numpy.ndarray): The horizontal boxes in xyxyxyxy format.
         data (torch.Tensor): The raw OBB tensor (alias for `boxes`).
 
     Methods:
@@ -663,8 +667,11 @@ class OBB(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxy(self):
-        """Return the horizontal boxes in xyxy format, (N, 4)."""
-        # This way to fit both torch and numpy version
+        """
+        Return the horizontal boxes in xyxy format, (N, 4).
+
+        Accepts both torch and numpy boxes.
+        """
         x1 = self.xyxyxyxy[..., 0].min(1).values
         x2 = self.xyxyxyxy[..., 0].max(1).values
         y1 = self.xyxyxyxy[..., 1].min(1).values

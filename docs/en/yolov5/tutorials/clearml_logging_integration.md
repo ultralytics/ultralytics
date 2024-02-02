@@ -10,7 +10,7 @@ keywords: ClearML, YOLOv5, Ultralytics, AI toolbox, training data, remote traini
 
 ## About ClearML
 
-[ClearML](https://cutt.ly/yolov5-tutorial-clearml) is an [open-source](https://github.com/allegroai/clearml) toolbox designed to save you time ⏱️.
+[ClearML](https://clear.ml/) is an [open-source](https://github.com/allegroai/clearml) toolbox designed to save you time ⏱️.
 
 🔨 Track every YOLOv5 training run in the <b>experiment manager</b>
 
@@ -36,7 +36,7 @@ And so much more. It's up to you how many of these tools you want to use, you ca
 
 To keep track of your experiments and/or data, ClearML needs to communicate to a server. You have 2 options to get one:
 
-Either sign up for free to the [ClearML Hosted Service](https://cutt.ly/yolov5-tutorial-clearml) or you can set up your own server, see [here](https://clear.ml/docs/latest/docs/deploying_clearml/clearml_server). Even the server is open-source, so even if you're dealing with sensitive data, you should be good to go!
+Either sign up for free to the [ClearML Hosted Service](https://clear.ml/) or you can set up your own server, see [here](https://clear.ml/docs/latest/docs/deploying_clearml/clearml_server). Even the server is open-source, so even if you're dealing with sensitive data, you should be good to go!
 
 - Install the `clearml` python package:
 

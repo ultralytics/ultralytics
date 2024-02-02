@@ -56,8 +56,8 @@ class TaskAlignedAssigner(nn.Module):
             fg_mask (Tensor): shape(bs, num_total_anchors)
             target_gt_idx (Tensor): shape(bs, num_total_anchors)
         """
-        self.bs = pd_scores.size(0)
-        self.n_max_boxes = gt_bboxes.size(1)
+        self.bs = pd_scores.shape[0]
+        self.n_max_boxes = gt_bboxes.shape[1]
 
         if self.n_max_boxes == 0:
             device = gt_bboxes.device
@@ -288,8 +288,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         norm_ad = (ad * ad).sum(dim=-1)
         ap_dot_ab = (ap * ab).sum(dim=-1)
         ap_dot_ad = (ap * ad).sum(dim=-1)
-        is_in_box = (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (ap_dot_ad <= norm_ad)
-        return is_in_box
+        return (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (ap_dot_ad <= norm_ad)  # is_in_box
 
 
 def make_anchors(feats, strides, grid_cell_offset=0.5):

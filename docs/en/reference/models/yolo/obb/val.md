@@ -1,3 +1,8 @@
+---
+description: Learn about Ultralytics' advanced OBBValidator, an extension of YOLO object detection for oriented bounding box validation.
+keywords: Ultralytics, YOLO, OBBValidator, object detection, oriented bounding box, OBB, machine learning, AI, deep learning, Python, YOLO model, image processing, computer vision, YOLO object detection
+---
+
 # Reference for `ultralytics/models/yolo/obb/val.py`
 
 !!! Note

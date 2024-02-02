@@ -109,7 +109,7 @@ def is_ascii(s) -> bool:
         s (str): String to be checked.
 
     Returns:
-        bool: True if the string is composed only of ASCII characters, False otherwise.
+        (bool): True if the string is composed only of ASCII characters, False otherwise.
     """
     # Convert list, tuple, None, etc. to string
     s = str(s)
@@ -214,9 +214,9 @@ def check_version(
         try:
             name = current  # assigned package name to 'name' arg
             current = metadata.version(current)  # get version string from package name
-        except metadata.PackageNotFoundError:
+        except metadata.PackageNotFoundError as e:
             if hard:
-                raise ModuleNotFoundError(emojis(f"WARNING ⚠️ {current} package is required but not installed"))
+                raise ModuleNotFoundError(emojis(f"WARNING ⚠️ {current} package is required but not installed")) from e
             else:
                 return False
 
@@ -327,7 +327,7 @@ def check_python(minimum: str = "3.8.0") -> bool:
         minimum (str): Required minimum version of python.
 
     Returns:
-        None
+        (bool): Whether the installed Python version meets the minimum constraints.
     """
     return check_version(platform.python_version(), minimum, name="Python ", hard=True)
 

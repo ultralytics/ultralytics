@@ -10,6 +10,12 @@ keywords: Ultralytics, YOLOv8, Object Detection, Distance Calculation, Object Tr
 
 Measuring the gap between two objects is known as distance calculation within a specified space. In the case of [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), the bounding box centroid is employed to calculate the distance for bounding boxes highlighted by the user.
 
+## Visuals
+
+|                                                  Distance Calculation using Ultralytics YOLOv8                                                  |                                                                
+|:-----------------------------------------------------------------------------------------------------------------------------------------------:|
+| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/940fe793-f34c-44e6-8cd7-c2153fde837b) |
+
 ## Advantages of Distance Calculation?
 
 - **Localization Precision:** Enhances accurate spatial positioning in computer vision tasks.
@@ -23,6 +29,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 !!! Example "Distance Calculation using YOLOv8 Example"
 
     === "Video Stream"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import distance_calculation
@@ -68,13 +75,13 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ### Optional Arguments `set_args`
 
-| Name           | Type   | Default         | Description                                            |
-|----------------|--------|-----------------|--------------------------------------------------------|
-| names          | `dict` | `None`          | Classes names                                          |
-| view_img       | `bool` | `False`         | Display frames with counts                             |
-| line_thickness | `int`  | `2`             | Increase bounding boxes thickness                      |
-| line_color     | `RGB`  | `(255, 255, 0)` | Line Color for centroids mapping on two bounding boxes |
-| centroid_color | `RGB`  | `(255, 0, 255)` | Centroid color for each bounding box                   |
+| Name             | Type   | Default         | Description                                            |
+|------------------|--------|-----------------|--------------------------------------------------------|
+| `names`          | `dict` | `None`          | Classes names                                          |
+| `view_img`       | `bool` | `False`         | Display frames with counts                             |
+| `line_thickness` | `int`  | `2`             | Increase bounding boxes thickness                      |
+| `line_color`     | `RGB`  | `(255, 255, 0)` | Line Color for centroids mapping on two bounding boxes |
+| `centroid_color` | `RGB`  | `(255, 0, 255)` | Centroid color for each bounding box                   |
 
 ### Arguments `model.track`
 

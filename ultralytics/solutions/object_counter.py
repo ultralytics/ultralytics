@@ -256,7 +256,7 @@ class ObjectCounter:
         if tracks[0].boxes.id is None:
             if self.view_img:
                 self.display_frames()
-            return
+            return im0
         self.extract_and_process_tracks(tracks)
 
         if self.view_img:

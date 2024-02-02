@@ -258,7 +258,7 @@ class GMC:
         #     import matplotlib.pyplot as plt
         #     matches_img = np.hstack((self.prevFrame, frame))
         #     matches_img = cv2.cvtColor(matches_img, cv2.COLOR_GRAY2BGR)
-        #     W = np.size(self.prevFrame, 1)
+        #     W = self.prevFrame.shape[1]
         #     for m in goodMatches:
         #         prev_pt = np.array(self.prevKeyPoints[m.queryIdx].pt, dtype=np.int_)
         #         curr_pt = np.array(keypoints[m.trainIdx].pt, dtype=np.int_)
@@ -275,7 +275,7 @@ class GMC:
         #     plt.show()
 
         # Find rigid matrix
-        if (np.size(prevPoints, 0) > 4) and (np.size(prevPoints, 0) == np.size(prevPoints, 0)):
+        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == prevPoints.shape[0]):
             H, inliers = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             # Handle downscale
@@ -343,7 +343,7 @@ class GMC:
         currPoints = np.array(currPoints)
 
         # Find rigid matrix
-        if np.size(prevPoints, 0) > 4 and np.size(prevPoints, 0) == np.size(prevPoints, 0):
+        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == prevPoints.shape[0]):
             H, inliers = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             if self.downscale > 1.0:

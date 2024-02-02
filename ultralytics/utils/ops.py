@@ -75,7 +75,6 @@ def segment2box(segment, width=640, height=640):
     Returns:
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
-    # Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
     x, y = segment.T  # segment xy
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
     x = x[inside]
@@ -220,7 +219,7 @@ def non_max_suppression(
 
     # Settings
     # min_wh = 2  # (pixels) minimum box width and height
-    time_limit = 0.5 + max_time_img * bs  # seconds to quit after
+    time_limit = 2.0 + max_time_img * bs  # seconds to quit after
     multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
@@ -362,8 +361,8 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     else:
         # gain = ratio_pad[0][0]
         pad = ratio_pad[1]
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))  # y, x
-    bottom, right = (int(round(im1_shape[0] - pad[1] + 0.1)), int(round(im1_shape[1] - pad[0] + 0.1)))
+    top, left = int(pad[1]), int(pad[0])  # y, x
+    bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
@@ -731,8 +730,8 @@ def scale_masks(masks, shape, padding=True):
     if padding:
         pad[0] /= 2
         pad[1] /= 2
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
-    bottom, right = (int(round(mh - pad[1] + 0.1)), int(round(mw - pad[0] + 0.1)))
+    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
+    bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
     masks = masks[..., top:bottom, left:right]
 
     masks = F.interpolate(masks, shape, mode="bilinear", align_corners=False)  # NCHW
@@ -772,6 +771,24 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
         coords[..., 0] /= img0_shape[1]  # width
         coords[..., 1] /= img0_shape[0]  # height
     return coords
+
+
+def regularize_rboxes(rboxes):
+    """
+    Regularize rotated boxes in range [0, pi/2].
+
+    Args:
+        rboxes (torch.Tensor): (N, 5), xywhr.
+
+    Returns:
+        (torch.Tensor): The regularized boxes.
+    """
+    x, y, w, h, t = rboxes.unbind(dim=-1)
+    # Swap edge and angle if h >= w
+    w_ = torch.where(w > h, w, h)
+    h_ = torch.where(w > h, h, w)
+    t = torch.where(w > h, t, t + math.pi / 2) % math.pi
+    return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
 def masks2segments(masks, strategy="largest"):

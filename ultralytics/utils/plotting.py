@@ -256,7 +256,7 @@ class Annotator:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
         nkpt, ndim = kpts.shape
-        is_pose = nkpt == 17 and ndim == 3
+        is_pose = nkpt == 17 and ndim in {2, 3}
         kpt_line &= is_pose  # `kpt_line=True` for now only supports human pose plotting
         for i, k in enumerate(kpts):
             color_k = [int(x) for x in self.kpt_color[i]] if is_pose else colors(i)
@@ -388,6 +388,7 @@ class Annotator:
             a (float) : The value of pose point a
             b (float): The value of pose point b
             c (float): The value o pose point c
+
         Returns:
             angle (degree): Degree value of angle between three points
         """
@@ -517,6 +518,51 @@ class Annotator:
         cv2.putText(
             self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255), 2
         )
+
+    def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):
+        """
+        Plot the distance and line on frame.
+
+        Args:
+            distance_m (float): Distance between two bbox centroids in meters.
+            distance_mm (float): Distance between two bbox centroids in millimeters.
+            centroids (list): Bounding box centroids data.
+            line_color (RGB): Distance line color.
+            centroid_color (RGB): Bounding box centroid color.
+        """
+        (text_width_m, text_height_m), _ = cv2.getTextSize(
+            f"Distance M: {distance_m:.2f}m", cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2
+        )
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), (255, 255, 255), -1)
+        cv2.putText(
+            self.im,
+            f"Distance M: {distance_m:.2f}m",
+            (20, 50),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 0, 0),
+            2,
+            cv2.LINE_AA,
+        )
+
+        (text_width_mm, text_height_mm), _ = cv2.getTextSize(
+            f"Distance MM: {distance_mm:.2f}mm", cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2
+        )
+        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), (255, 255, 255), -1)
+        cv2.putText(
+            self.im,
+            f"Distance MM: {distance_mm:.2f}mm",
+            (20, 100),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 0, 0),
+            2,
+            cv2.LINE_AA,
+        )
+
+        cv2.line(self.im, centroids[0], centroids[1], line_color, 3)
+        cv2.circle(self.im, centroids[0], 6, centroid_color, -1)
+        cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
     def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
         """

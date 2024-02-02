@@ -164,7 +164,7 @@ class SpeedEstimator:
         if tracks[0].boxes.id is None:
             if self.view_img and self.env_check:
                 self.display_frames()
-            return
+            return im0
         self.extract_tracks(tracks)
 
         self.annotator = Annotator(self.im0, line_width=2)

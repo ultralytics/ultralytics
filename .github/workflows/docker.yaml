@@ -109,10 +109,18 @@ jobs:
 
       - name: Build Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
-        run: |
-          docker build --platform ${{ matrix.platforms }} -f docker/${{ matrix.dockerfile }} \
-          -t ultralytics/ultralytics:${{ matrix.tags }} \
-          -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} .
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 60
+          retry_wait_seconds: 0
+          max_attempts: 1
+          command: |
+            docker build \
+            --platform ${{ matrix.platforms }} \
+            -f docker/${{ matrix.dockerfile }} \
+            -t ultralytics/ultralytics:${{ matrix.tags }} \
+            -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+            .
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners

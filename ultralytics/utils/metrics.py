@@ -331,7 +331,7 @@ class ConfusionMatrix:
             gt_bboxes (Array[M, 4]): Ground truth bounding boxes with xyxy format.
             gt_cls (Array[M]): The class labels.
         """
-        if gt_cls.size(0) == 0:  # Check if labels is empty
+        if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
                 detection_classes = detections[:, 5].int()

@@ -62,8 +62,8 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg
-from ultralytics.data.dataset import YOLODataset
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.dataset import ClassificationDataset, RegressionDataset, YOLODataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
@@ -401,7 +401,7 @@ class Exporter:
             ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
             ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
             ov_model.set_rt_info([v.replace(' ', '_') for v in self.model.names.values()], ['model_info', 'labels'])
-            if self.model.task != 'classify':
+            if self.model.task not in ('classify', 'regress'):
                 ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
 
             ov.serialize(ov_model, file)  # save
@@ -424,8 +424,15 @@ class Exporter:
 
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-            data = check_det_dataset(self.args.data)
-            dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
+            if self.model.task in ('classify', 'regress'):
+                data = check_cls_dataset(self.args.data)
+                if self.model.task == 'classify':
+                    dataset = ClassificationDataset(root=data['val'], args=self.args, augment=False, prefix=self.args.split)
+                else:
+                    dataset = RegressionDataset(root=data['val'], args=self.args, augment=False, prefix=self.args.split)
+            else:
+                data = check_det_dataset(self.args.data)
+                dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
             if not self.args.separate_outputs:
                 ignored_scope = nncf.IgnoredScope(types=['Multiply', 'Subtract', 'Sigmoid'])  # ignore operation
@@ -434,8 +441,9 @@ class Exporter:
             quantized_ov_model = nncf.quantize(ov_model,
                                                quantization_dataset,
                                                preset=nncf.QuantizationPreset.MIXED,
-                                               ignored_scope=ignored_scope)
-            serialize(quantized_ov_model, fq_ov)
+                                               ignored_scope=ignored_scope,
+                                               subset_size=self.args.max_ncalib_imgs)
+            ov.serialize(quantized_ov_model, fq_ov)
             return fq, None
 
         serialize(ov_model, f_ov)
@@ -697,8 +705,16 @@ class Exporter:
             if self.args.data:
                 # Generate calibration data for integer quantization
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-                data = check_det_dataset(self.args.data)
-                dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
+                print("***TASK = " + self.model.task + "***")
+                if self.model.task in ('classify', 'regress'):
+                    data = check_cls_dataset(self.args.data)
+                    if self.model.task == 'classify':
+                        dataset = ClassificationDataset(root=data['val'], args=self.args, augment=False, prefix=self.args.split)
+                    else:
+                        dataset = RegressionDataset(root=data['val'], args=self.args, augment=False, prefix=self.args.split)
+                else:
+                    data = check_det_dataset(self.args.data)
+                    dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)
                 images = []
                 for i, batch in enumerate(dataset):
                     if i >= self.args.max_ncalib_imgs:  # maximum number of calibration images
@@ -721,7 +737,7 @@ class Exporter:
         else:
             replace_json = ROOT / 'utils/replace.json'
 
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf {replace_json}'.strip()
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf {replace_json}'.strip() #f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8}'.strip() if self.model.task == 'regress' else 
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

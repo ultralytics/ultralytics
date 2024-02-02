@@ -301,12 +301,12 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         return samples
 
 # Regression dataloaders -------------------------------------------------------------------------------------------
-class RegressionDataset(torchvision.datasets.ImageFolder):
+class RegressionDataset(torchvision.datasets.vision.VisionDataset):
     """
     Regression Dataset.
 
     Args:
-        root (str): Dataset path.
+        data (dict): A dataset YAML dictionary. Defaults to None.
 
     Attributes:
         cache_ram (bool): True if images should be cached in RAM, False otherwise.
@@ -316,24 +316,18 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
         album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
     """
 
-    def __init__(self, root, args, augment=False, cache=False, prefix=''):
+    def __init__(self, args, img_path, data=None, augment=False, cache=False, prefix=''):
         """
-        Initialize YOLO object with root, image size, augmentations, and cache settings.
+        Initialize RegressionDataset object with data, image size, augmentations, and cache settings.
 
         Args:
-            root (str): Dataset path.
             args (Namespace): Argument parser containing dataset related settings.
+            data (dict): A dataset YAML dictionary.
             augment (bool, optional): True if dataset should be augmented, False otherwise. Defaults to False.
             cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
         """
-        super().__init__(root=root)
-        classes, class_to_val = self.find_classes(self.root)
-        samples = self.make_dataset(self.root, class_to_val, self.extensions)
-
-        self.classes = classes
-        self.class_to_idx = class_to_val
-        self.samples = samples
-        self.targets = [s[1] for s in samples]
+        super().__init__(root=img_path)
+        self.samples = self.get_samples(img_path)
         
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[:round(len(self.samples) * args.fraction)]
@@ -341,7 +335,7 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
         self.cache_ram = cache is True or cache == 'ram'
         self.cache_disk = cache == 'disk'
         self.samples = self.verify_images()  # filter out bad images
-        self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
+        self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, value, npy, im
         self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect, mean=args.mean, std=args.std)
         self.album_transforms = classify_albumentations(
             augment=augment,
@@ -358,7 +352,7 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
-        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        f, j, fn, im = self.samples[i]  # filename, value, filename.with_suffix('.npy'), image
         if self.cache_ram and im is None:
             im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
@@ -371,23 +365,30 @@ class RegressionDataset(torchvision.datasets.ImageFolder):
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         else:
             sample = self.torch_transforms(im)
+        #np.savetxt('inp_tensor.txt', sample.flatten().numpy())
         return {'img': sample, 'value': j, 'name': f}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
 
-    def find_classes(self, directory) :
-        """Finds the class folders in a dataset, and creates class_to_idx such that key:value is regression_value:regression_value
+    def get_samples(self, anno_path):
+        #Check that paths exist
+        assert os.path.exists(anno_path), "Path to annotations is invalid"
         
-        Override of method belonging to :class:`~torchvision.datasets.DatasetFolder`
-        """
-        classes = sorted(entry.name for entry in os.scandir(directory) if entry.is_dir())
-        if not classes:
-            raise FileNotFoundError(f"Couldn't find any class folder in {directory}.")
-
-        class_to_val = {cls_name: int(cls_name) for cls_name in classes}
-        return classes, class_to_val
+        #Load appropriate images and corresponding labels
+        import json
+        
+        samples = []
+        with open(anno_path, "r") as af:
+            anno_dict = json.load(af)
+        
+        parent_path = os.path.split(anno_path)[0]
+        print("Getting samples...")
+        for anno in anno_dict['images']:
+            samples.append([os.path.join(parent_path, anno['file_name']), anno['value']])
+        print("Done getting samples")
+        return samples
     
     def verify_images(self):
         """Verify all images in dataset."""

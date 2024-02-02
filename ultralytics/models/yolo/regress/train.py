@@ -16,14 +16,11 @@ class RegressionTrainer(BaseTrainer):
     """
     A class extending the BaseTrainer class for training based on a regression model.
 
-    Notes:
-        - Torchvision regression models can also be passed to the 'model' argument, i.e. model='resnet18'.
-
     Example:
         ```python
-        from ultralytics.models.yolo.classify import RegressionTrainer
+        from ultralytics.models.yolo.regress import RegressionTrainer
 
-        args = dict(model='yolov8n-cls.pt', data='imagenet10', epochs=3)
+        args = dict(model='yolov8n-regress.pt', data='imagenet10', epochs=3)
         trainer = RegressionTrainer(overrides=args)
         trainer.train()
         ```
@@ -80,7 +77,7 @@ class RegressionTrainer(BaseTrainer):
 
     def build_dataset(self, img_path, mode='train', batch=None):
         """Creates a RegressionDataset instance given an image path, and mode (train/test etc.)."""
-        return RegressionDataset(root=img_path, args=self.args, augment=mode == 'train', prefix=mode)
+        return RegressionDataset(args=self.args, img_path=img_path, data=self.data, augment=mode == 'train', prefix=mode)
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""

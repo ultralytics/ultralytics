@@ -18,9 +18,9 @@ class RegressionValidator(BaseValidator):
 
     Example:
         ```python
-        from ultralytics.models.yolo.classify import RegressionValidator
+        from ultralytics.models.yolo.regress import RegressionValidator
 
-        args = dict(model='yolov8n-cls.pt', data='imagenet10')
+        args = dict(model='yolov8n-regress.pt', data='imagenet10')
         validator = RegressionValidator(args=args)
         validator()
         ```
@@ -45,6 +45,9 @@ class RegressionValidator(BaseValidator):
         self.img_names = []
         self.pred = []
         self.targets = []
+        #head_idx = list(model.model._modules.keys())[-1]
+        #self.metrics.max = model.model._modules[head_idx].max
+        #self.metrics.min = model.model._modules[head_idx].min
 
     def preprocess(self, batch):
         """Preprocesses input batch and returns it."""
@@ -66,12 +69,12 @@ class RegressionValidator(BaseValidator):
 
     def get_stats(self):
         """Returns a dictionary of metrics obtained by processing targets and predictions."""
-        self.metrics.process(self.targets, self.pred, self.img_names)
+        self.metrics.process(self.targets, self.pred, self.img_names, self.save_dir)
         return self.metrics.results_dict
 
     def build_dataset(self, img_path):
-        """Creates and returns a ClassificationDataset instance using given image path and preprocessing parameters."""
-        return RegressionDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
+        """Creates and returns a RegressionDataset instance using given image path and preprocessing parameters."""
+        return RegressionDataset(args=self.args, img_path=img_path, data=self.data, augment=False, prefix=self.args.split)
 
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader for classification tasks with given parameters."""
@@ -80,24 +83,23 @@ class RegressionValidator(BaseValidator):
 
     def print_results(self):
         """Prints evaluation metrics for YOLO regression model."""
-        pf = '%22s' + '%11.3g' * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ('all', self.metrics.mae, self.metrics.mse))
+        pf = '%11.3g' * len(self.metrics.keys)  # print format
+        LOGGER.info(pf % (self.metrics.mae, self.metrics.mse))
 
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
         plot_images(
             images=batch['img'],
             batch_idx=torch.arange(len(batch['img'])),
-            cls=batch['value'].view(-1),  # warning: use .view(), not .squeeze() for Classify models
+            cls=batch['value'].view(-1),  # warning: use .view(), not .squeeze() for Regress models
             fname=self.save_dir / f'val_batch{ni}_labels.jpg',
             names=self.names,
             on_plot=self.on_plot)
 
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
-        pass
         plot_images(batch['img'],
-                    batch_idx=torch.arange(len(batch['img'])),
-                    cls=preds,
-                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
-                    on_plot=self.on_plot)  # pred
+            batch_idx=torch.arange(len(batch['img'])),
+            cls=preds,
+            fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+            on_plot=self.on_plot)  # pred

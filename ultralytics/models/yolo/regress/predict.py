@@ -17,16 +17,16 @@ class RegressionPredictor(BasePredictor):
     Example:
         ```python
         from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.classify import ClassificationPredictor
+        from ultralytics.models.yolo.regress import RegressionPredictor
 
-        args = dict(model='yolov8n-cls.pt', source=ASSETS)
-        predictor = ClassificationPredictor(overrides=args)
+        args = dict(model='yolov8n-regress.pt', source=ASSETS)
+        predictor = RegressionPredictor(overrides=args)
         predictor.predict_cli()
         ```
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes ClassificationPredictor setting the task to 'classify'."""
+        """Initializes RegressionPredictor setting the task to 'regress'."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'regress'
 

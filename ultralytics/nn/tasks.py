@@ -9,7 +9,7 @@ import torch.nn as nn
 
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
                                     Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d,
-                                    Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, Regress, RepC3, RepConv,
+                                    Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, Regress, Regress1, Regress1_1, Regress2, Regress3, RepC3, RepConv,
                                     ResNetLayer, RTDETRDecoder, Segment)
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -754,9 +754,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
-        elif m is Regress:
+        elif m in (Regress, Regress1, Regress1_1, Regress2, Regress3):
             c1, c2 = ch[f], args[0]
-            args = [c1, c2]
+            args = [c1, c2, d.get('min_value'), d.get('max_value')]
         else:
             c2 = ch[f]
 
@@ -835,7 +835,7 @@ def guess_model_task(model):
             return 'segment'
         if m == 'pose':
             return 'pose'
-        if m == 'regress':
+        if 'regress' in m:
             return 'regress'
 
     # Guess from model cfg

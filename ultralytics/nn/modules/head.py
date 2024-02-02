@@ -14,7 +14,7 @@ from .conv import Conv, FullConn
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init_
 
-__all__ = 'Detect', 'Segment', 'Pose', 'Classify', 'RTDETRDecoder'
+__all__ = 'Detect', 'Segment', 'Pose', 'Classify', 'Regress', 'Regress1', 'Regress1_1', 'Regress2', 'Regress3', 'RTDETRDecoder'
 
 
 class Detect(nn.Module):
@@ -186,12 +186,39 @@ class Classify(nn.Module):
         if isinstance(x, list):
             x = torch.cat(x, 1)
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
-        return x if self.training else x.softmax(1)
+        return x #if self.training else x.softmax(1)
 
-class Regress(nn.Module):
+class Regress1(nn.Module):
     """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
+    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
+        padding, and groups.
+        """
+        super().__init__()
+        c_ = 1280
+        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.conv2 = Conv(c_, c2, k, s, p, g, act=False) #1 output channel
+        self.min = min
+        self.max = max
+
+    def forward(self, x):
+        """Performs a forward pass of the YOLO model on input image data."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        x = self.conv1(x)
+        x = self.pool(x)
+        x = self.drop(x)
+        x = self.conv2(x)
+        x = x.flatten(1)
+        return x
+    
+class Regress1_1(nn.Module):
+    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
+
+    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
         """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
         padding, and groups.
         """
@@ -204,8 +231,12 @@ class Regress(nn.Module):
         self.pool = nn.AdaptiveAvgPool2d(1)
         self.drop = nn.Dropout(p=0.0, inplace=True)
         #self.fc1 = FullConn(c_, c_)
-        self.conv2_postpool = Conv(c_, c2, k, s, p, g, act=False)
-        #self.linear = nn.Linear(c_, c2)  #1 output channel
+        #self.conv1_postpool = Conv(c_, c_, k, s, p, g)
+        #self.conv2_postpool = Conv(c_, c2, k, s, p, g, act=False)
+        self.linear = nn.Linear(c_, c2)  #1 output channel
+        self.output_act = nn.ReLU6()
+        self.min = min
+        self.max = max
 
     def forward(self, x):
         """Performs a forward pass of the YOLO model on input image data."""
@@ -214,11 +245,100 @@ class Regress(nn.Module):
         x = self.conv1(x)
         #x = self.conv2(x)
         #x = self.conv3(x)
-        x = self.pool(x)#.flatten(1)
+        x = self.pool(x).flatten(1)
         x = self.drop(x)
         #x = self.fc1(x)
-        x = self.conv2_postpool(x)
-        #x = self.linear(x)
+        #x = self.conv1_postpool(x)
+        #x = self.conv2_postpool(x)
+        x = self.linear(x)
+        x = self.output_act(x)
+        #x = x * (self.max - self.min) / 6 + self.min
+        return x
+    
+class Regress2(nn.Module):
+    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
+
+    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
+        padding, and groups.
+        """
+        super().__init__()
+        c_ = 1280
+        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
+        self.conv2 = Conv(c_, c_, k, s, p, g) #1280 output channels
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.linear = nn.Linear(c_, c2)  #1 output channel
+
+    def forward(self, x):
+        """Performs a forward pass of the YOLO model on input image data."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.pool(x).flatten(1)
+        x = self.drop(x)
+        x = self.linear(x)
+        return x
+    
+class Regress3(nn.Module):
+    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
+
+    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
+        padding, and groups.
+        """
+        super().__init__()
+        c_ = 1280
+        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.conv2 = Conv(c_, c_ // 2, k, s, p, g) #640 output channels
+        self.conv_relu6 = Conv(c_ // 2, c2, k, s, p, g, act=nn.ReLU6) #1 output channel
+        self.min = min
+        self.max = max
+
+    def forward(self, x):
+        """Performs a forward pass of the YOLO model on input image data."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        x = self.conv1(x)
+        x = self.pool(x)
+        x = self.drop(x)
+        x = self.conv2(x)
+        x = self.conv_relu6(x)
+        x = x * (self.max - self.min) / 6 + self.min
+        x = x.flatten(1)
+        return x
+    
+class Regress(nn.Module):
+    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
+
+    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
+        padding, and groups.
+        """
+        super().__init__()
+        c_ = 1280
+        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.conv_relu6 = Conv(c_, c2, k, s, p, g) #1 output channel
+        self.conv_relu6.act = nn.ReLU6()
+        self.min = min
+        self.max = max
+
+    def forward(self, x):
+        """Performs a forward pass of the YOLO model on input image data."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        x = self.conv1(x)
+        x = self.pool(x)
+        x = self.drop(x)
+        x = self.conv_relu6(x)
+        x = x.flatten(1)
+        if self.training:
+            x = x * (self.max - self.min) / 6 + self.min
         return x
 
 class RTDETRDecoder(nn.Module):

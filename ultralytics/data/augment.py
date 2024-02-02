@@ -1030,6 +1030,14 @@ def classify_albumentations(
                     T += [A.VerticalFlip(p=vflip)]
                 if any((hsv_h, hsv_s, hsv_v)):
                     T += [A.ColorJitter(*hsv2colorjitter(hsv_h, hsv_s, hsv_v))]  # brightness, contrast, saturation, hue
+                # Fixed transforms
+                #T += [
+                #    A.Blur(p=0.05),
+                #    A.MedianBlur(p=0.1),
+                #    A.ToGray(p=0.1),
+                #    A.CLAHE(p=0.1),
+                #    A.Cutout(p=0.1),
+                #]
         else:  # Use fixed crop for eval set (reproducibility)
             T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
         T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor
@@ -1137,6 +1145,9 @@ class ToTensor:
             (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized to [0, 1].
         """
         im = np.ascontiguousarray(im.transpose((2, 0, 1))[::-1])  # HWC to CHW -> BGR to RGB -> contiguous
+        #im = im.astype(np.float32())
+        #im /= 255.0  # 0-255 to 0.0-1.0'
+        #np.savetxt('inp_tensor.txt', im.flatten())
         im = torch.from_numpy(im)  # to torch
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255.0  # 0-255 to 0.0-1.0

@@ -435,8 +435,9 @@ class Exporter:
                     f"{prefix} WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                     f"Using default 'data={self.args.data}'."
                 )
-            check_requirements("nncf>=2.5.0")
+            check_requirements(["nncf>=2.5.0", "onnx>=1.12.0"])
             import nncf
+            import onnx
 
             def transform_fn(data_item):
                 """Quantization transform function."""
@@ -454,7 +455,24 @@ class Exporter:
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
-            ignored_scope = nncf.IgnoredScope(types=["Multiply", "Subtract", "Sigmoid"])  # ignore operation
+            ignored_scope = None
+            if isinstance(self.model.model[-1], Detect):
+                # get detection module name in onnx
+                model_onnx = onnx.load(f_onnx)
+                detect_module_name = model_onnx.graph.node[-1].name.split('/')[1]
+
+                ignored_scope = nncf.IgnoredScope( # ignore operations
+                    patterns=[
+                        f"/{detect_module_name}/Add",
+                        f"/{detect_module_name}/Sub",
+                        f"/{detect_module_name}/Mul",
+                        f"/{detect_module_name}/Div",
+                        f"/{detect_module_name}/dfl",
+                    ],
+                    names=[
+                        f"/{detect_module_name}/Sigmoid",
+                    ],
+                )
             quantized_ov_model = nncf.quantize(
                 ov_model, quantization_dataset, preset=nncf.QuantizationPreset.MIXED, ignored_scope=ignored_scope
             )

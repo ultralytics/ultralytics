@@ -12,7 +12,7 @@ Whether you're a beginner or an expert in deep learning, our tutorials offer val
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/96NkhsV-W1U"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/96NkhsV-W1U"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>

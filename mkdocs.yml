@@ -8,13 +8,13 @@ repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs/en/
 repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
-docs_dir: "en/" # where to find the markdown files
-site_dir: "../site/" # where to publish to
+docs_dir: "docs/en/" # where to find the markdown files
+site_dir: "site/" # where to publish to
 
 theme:
   name: material
   language: en
-  custom_dir: overrides/
+  custom_dir: docs/overrides/
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
   icon:
@@ -179,7 +179,7 @@ nav:
       - NEW 🚀 Explorer:
           - datasets/explorer/index.md
       - Languages:
-          - 🇬🇧&nbsp English: https://docs.ultralytics.com/
+          - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
           - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko/
           - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja/
@@ -337,6 +337,7 @@ nav:
       - Comet ML: integrations/comet.md
       - OpenVINO: integrations/openvino.md
       - ONNX: integrations/onnx.md
+      - TensorRT: integrations/tensorrt.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md
@@ -344,6 +345,7 @@ nav:
       - DVC: integrations/dvc.md
       - Weights & Biases: integrations/weights-biases.md
       - Neural Magic: integrations/neural-magic.md
+      - Gradio: integrations/gradio.md
       - TensorBoard: integrations/tensorboard.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
   - HUB:

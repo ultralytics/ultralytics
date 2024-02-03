@@ -16,7 +16,7 @@ from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks
+from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks, USER_CONFIG_DIR
 from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
@@ -54,7 +54,10 @@ class ExplorerDataset(YOLODataset):
 
 class Explorer:
     def __init__(
-        self, data: Union[str, Path] = "coco128.yaml", model: str = "yolov8n.pt", uri: str = "~/ultralytics/explorer"
+        self,
+        data: Union[str, Path] = "coco128.yaml",
+        model: str = "yolov8n.pt",
+        uri: str = USER_CONFIG_DIR / "explorer",
     ) -> None:
         checks.check_requirements(["lancedb>=0.4.3", "duckdb"])
         import lancedb

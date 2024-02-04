@@ -90,7 +90,7 @@ def on_train_epoch_end(trainer):
                 **SANITIZE(trainer.lr),
                 **SANITIZE(trainer.label_loss_items(trainer.tloss, prefix="train")),
             },
-            step=trainer.epoch
+            step=trainer.epoch,
         )
 
 

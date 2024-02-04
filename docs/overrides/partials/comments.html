@@ -1,47 +1,51 @@
 {% if page.meta.comments %}
 <h2 id="__comments">{{ lang.t("meta.comments") }}</h2>
 
+<!-- Insert Giscus code snippet from https://giscus.app/ here -->
+<script async
+        crossorigin="anonymous"
+        data-category="Docs"
+        data-category-id="DIC_kwDOH-jzvc4CWLkL"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-lang="en"
+        data-loading="lazy"
+        data-mapping="pathname"
+        data-reactions-enabled="1"
+        data-repo="ultralytics/ultralytics"
+        data-repo-id="R_kgDOH-jzvQ"
+        data-strict="0"
+        data-theme="preferred_color_scheme"
+        src="https://giscus.app/client.js">
+</script>
+
+<!-- Synchronize Giscus theme with palette -->
 <script>
+    var giscus = document.querySelector("script[src*=giscus]")
+
+    /* Set palette on initial load */
+    var palette = __md_get("__palette")
+    if (palette && typeof palette.color === "object") {
+      var theme = palette.color.scheme === "slate" ? "dark" : "light"
+      giscus.setAttribute("data-theme", theme)
+    }
+
+    /* Register event handlers after documented loaded */
     document.addEventListener("DOMContentLoaded", function() {
-      var observer = new IntersectionObserver(function(entries) {
-        if(entries[0].isIntersecting === true) {
-          console.log("Comments section is now in view. Loading...");
+      var ref = document.querySelector("[data-md-component=palette]")
+      ref.addEventListener("change", function() {
+        var palette = __md_get("__palette")
+        if (palette && typeof palette.color === "object") {
+          var theme = palette.color.scheme === "slate" ? "dark" : "light"
 
-          var script = document.createElement('script');
-          script.async = true;
-          script.crossorigin = "anonymous";
-          script.src = "https://giscus.app/client.js";
-          // Set all the Giscus data attributes here
-          script.setAttribute("data-repo", "ultralytics/ultralytics");
-          script.setAttribute("data-repo-id", "R_kgDOH-jzvQ");
-          script.setAttribute("data-category", "Docs");
-          script.setAttribute("data-category-id", "DIC_kwDOH-jzvc4CWLkL");
-          script.setAttribute("data-mapping", "pathname");
-          script.setAttribute("data-reactions-enabled", "1");
-          script.setAttribute("data-emit-metadata", "0");
-          script.setAttribute("data-input-position", "top");
-          script.setAttribute("data-theme", "preferred_color_scheme");
-          script.setAttribute("data-lang", "en");
-          script.setAttribute("data-strict", "0");
-
-          // Find the target element where to append the Giscus script
-          var targetElement = document.querySelector(".md-content__inner.md-typeset");
-          if(targetElement) {
-            targetElement.appendChild(script);
-          } else {
-            console.error("Target element for Giscus not found.");
-          }
-
-          observer.disconnect(); // Optional: Disconnect the observer if not needed further
+          /* Instruct Giscus to change theme */
+          var frame = document.querySelector(".giscus-frame")
+          frame.contentWindow.postMessage(
+            { giscus: { setConfig: { theme } } },
+            "https://giscus.app"
+          )
         }
-      }, { threshold: [0] });
-
-      var placeholder = document.getElementById("__comments");
-      if(placeholder) {
-        observer.observe(placeholder);
-      } else {
-        console.error("Placeholder for comments not found.");
-      }
-    });
+      })
+    })
 </script>
 {% endif %}

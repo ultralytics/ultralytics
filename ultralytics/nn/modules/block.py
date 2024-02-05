@@ -460,17 +460,16 @@ class C2fAttn(nn.Module):
 class ImagePoolingAttn(nn.Module):
     """ImagePoolingAttn: Enhance the text embeddings with image-aware information."""
 
-    def __init__(self, ec=256, ct=512, nh=8, k=3, scale=False, ch=()):
+    def __init__(self, ec=256, ch=(), ct=512, nh=8, k=3, scale=False):
         super().__init__()
 
-        assert isinstance(ch, list)
         nf = len(ch)
         self.query = nn.Sequential(nn.LayerNorm(ct), nn.Linear(ct, ec))
         self.key = nn.Sequential(nn.LayerNorm(ec), nn.Linear(ec, ec))
         self.value = nn.Sequential(nn.LayerNorm(ec), nn.Linear(ec, ec))
         self.proj = nn.Linear(ec, ct)
         self.scale = nn.Parameter(torch.tensor([0.0]), requires_grad=True) if scale else 1.0
-        self.projections = nn.ModuleList([Conv(in_channels, ec, 1, act_cfg=None) for in_channels in ch])
+        self.projections = nn.ModuleList([Conv(in_channels, ec, 1, act=False) for in_channels in ch])
         self.im_pools = nn.ModuleList([nn.AdaptiveMaxPool2d((k, k)) for _ in range(nf)])
         self.ct = ct
         self.ec = ec
@@ -500,3 +499,23 @@ class ImagePoolingAttn(nn.Module):
         x = torch.einsum("bmnk,bkmc->bnmc", aw, v)
         x = self.proj(x.reshape(bs, -1, self.ec))
         return x * self.scale + text
+
+
+class ContrastiveHead(nn.Module):
+    """Contrastive Head for YOLO-World
+    compute the region-text scores according to the
+    similarity between image and text features
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.bias = nn.Parameter(torch.zeros([]))
+        self.logit_scale = nn.Parameter(torch.ones([]) * torch.tensor(1 / 0.07).log())
+
+    def forward(self, x, w):
+        """Forward function of contrastive learning."""
+        x = F.normalize(x, dim=1, p=2)
+        w = F.normalize(w, dim=-1, p=2)
+        x = torch.einsum("bchw,bkc->bkhw", x, w)
+        x = x * self.logit_scale.exp() + self.bias
+        return x

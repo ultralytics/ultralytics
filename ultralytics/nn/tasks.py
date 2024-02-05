@@ -569,6 +569,7 @@ class WorldModel(DetectionModel):
         txt_feats = model.encode_text(text).to(dtype=torch.float32)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         self.txt_feats = txt_feats.reshape(-1, num_per_batch[0], txt_feats.shape[-1])
+        self.model[-1].nc = self.txt_feats.shape[1]
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""

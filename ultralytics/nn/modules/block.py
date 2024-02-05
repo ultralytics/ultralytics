@@ -469,7 +469,7 @@ class ImagePoolingAttn(nn.Module):
         self.value = nn.Sequential(nn.LayerNorm(ec), nn.Linear(ec, ec))
         self.proj = nn.Linear(ec, ct)
         self.scale = nn.Parameter(torch.tensor([0.0]), requires_grad=True) if scale else 1.0
-        self.projections = nn.ModuleList([Conv(in_channels, ec, 1, act=False) for in_channels in ch])
+        self.projections = nn.ModuleList([nn.Conv2d(in_channels, ec, kernel_size=1) for in_channels in ch])
         self.im_pools = nn.ModuleList([nn.AdaptiveMaxPool2d((k, k)) for _ in range(nf)])
         self.ct = ct
         self.ec = ec

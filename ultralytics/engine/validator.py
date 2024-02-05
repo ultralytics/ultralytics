@@ -108,6 +108,13 @@ class BaseValidator:
         """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
         gets priority).
         """
+        device = torch.device('cuda')
+        properties = torch.cuda.get_device_properties(device)
+        total_memory = properties.total_memory / 1024**3
+        used_memory = (torch.cuda.memory_allocated(device) / 1024**3)
+        available_memory = (properties.total_memory - torch.cuda.memory_allocated(device)) / 1024**3
+        print(f'Total used CUDA memory: {used_memory:.2f} GB')
+        print(f'Total available CUDA memory: {available_memory:.2f} GB')
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:

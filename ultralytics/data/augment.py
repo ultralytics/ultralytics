@@ -883,7 +883,7 @@ class Format:
 
     def __init__(self,
                  bbox_format='xywh',
-                 normalize=True,
+                 normalizeBoundingBoxes=True,
                  return_mask=False,
                  return_keypoint=False,
                  mask_ratio=4,
@@ -891,7 +891,7 @@ class Format:
                  batch_idx=True):
         """Initializes the Format class with given parameters."""
         self.bbox_format = bbox_format
-        self.normalize = normalize
+        self.normalizeBoundingBoxes = normalizeBoundingBoxes
         self.return_mask = return_mask  # set False when training detection only
         self.return_keypoint = return_keypoint
         self.mask_ratio = mask_ratio
@@ -916,7 +916,7 @@ class Format:
                 masks = torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio,
                                     img.shape[1] // self.mask_ratio)
             labels['masks'] = masks
-        if self.normalize:
+        if self.normalizeBoundingBoxes:
             instances.normalize(w, h)
         labels['img'] = self._format_img(img)
         labels['cls'] = torch.from_numpy(cls) if nl else torch.zeros(nl)

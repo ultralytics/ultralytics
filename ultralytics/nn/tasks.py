@@ -190,6 +190,7 @@ class BaseModel(nn.Module):
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
             verbose (bool, optional): Whether to log the transfer progress. Defaults to True.
         """
+        LOGGER.info("Loading weights...")
         model = weights['model'] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
         csd = intersect_dicts(csd, self.state_dict())  # intersect
@@ -254,15 +255,20 @@ class DetectionModel(BaseModel):
         if backbonePath != None and backbonePath != '':
             LOGGER.info("Loading backbone weights from: " + backbonePath)
             self.load_backbone(backbonePath)
+        else:
+            LOGGER.info("No backbone weights loaded.")
 
     def load_backbone(self, backbonePath):
         backbone = torch.load(backbonePath)
         backbone = backbone['model']
         backbone = backbone.float().state_dict()
         backbone = intersect_dicts(backbone, self.state_dict())
+        new_state_dict = {}
+        for x in self.state_dict():
+            new_state_dict[x] = self.state_dict()[x]
         for key in backbone:
-            self.state_dict()[key] = backbone[key]
-        self.load_state_dict(self.state_dict())
+            new_state_dict[key] = backbone[key]
+        self.load_state_dict(new_state_dict)
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""

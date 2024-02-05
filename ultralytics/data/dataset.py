@@ -144,7 +144,7 @@ class YOLODataset(BaseDataset):
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
             Format(bbox_format='xywh',
-                   normalize=True,
+                   normalizeBoundingBoxes=True,
                    return_mask=self.use_segments,
                    return_keypoint=self.use_keypoints,
                    batch_idx=True,

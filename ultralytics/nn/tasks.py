@@ -596,8 +596,10 @@ class WorldModel(DetectionModel):
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
                 self._profile_one_layer(m, x, dt)
-            if isinstance(m, (C2fAttn, WorldDetect)):
+            if isinstance(m, C2fAttn):
                 x = m(x, txt_feats)
+            elif isinstance(m, WorldDetect):
+                x = m(x, self.txt_feats)
             elif isinstance(m, ImagePoolingAttn):
                 txt_feats = m(x, txt_feats)
             else:

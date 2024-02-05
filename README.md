@@ -66,7 +66,7 @@ For alternative installation methods including [Conda](https://anaconda.org/cond
 <details open>
 <summary>Usage</summary>
 
-### CLI
+### CLI test
 
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 

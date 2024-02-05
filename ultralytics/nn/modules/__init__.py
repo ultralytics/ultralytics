@@ -28,6 +28,8 @@ from .block import (
     Bottleneck,
     BottleneckCSP,
     C2f,
+    C2fAttn,
+    ImagePoolingAttn,
     C3Ghost,
     C3x,
     GhostBottleneck,

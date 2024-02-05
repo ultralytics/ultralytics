@@ -8,7 +8,7 @@ Both the Ultralytics YOLO command-line and Python interfaces are simply a high-l
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=104"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=104"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -21,8 +21,8 @@ Both the Ultralytics YOLO command-line and Python interfaces are simply a high-l
 
 BaseTrainer contains the generic boilerplate training routine. It can be customized for any task based over overriding the required functions or operations as long the as correct formats are followed. For example, you can support your own custom model and dataloader by just overriding these functions:
 
-* `get_model(cfg, weights)` - The function that builds the model to be trained
-* `get_dataloader()` - The function that builds the dataloader More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
+- `get_model(cfg, weights)` - The function that builds the model to be trained
+- `get_dataloader()` - The function that builds the dataloader More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
 
 ## DetectionTrainer
 
@@ -55,9 +55,8 @@ trainer.train()
 
 You now realize that you need to customize the trainer further to:
 
-* Customize the `loss function`.
-* Add `callback` that uploads model to your Google Drive after every 10 `epochs`
-  Here's how you can do it:
+- Customize the `loss function`.
+- Add `callback` that uploads model to your Google Drive after every 10 `epochs` Here's how you can do it:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -89,5 +88,4 @@ To know more about Callback triggering events and entry point, checkout our [Cal
 
 ## Other engine components
 
-There are other components that can be customized similarly like `Validators` and `Predictors`
-See Reference section for more information on these.
+There are other components that can be customized similarly like `Validators` and `Predictors`. See Reference section for more information on these.

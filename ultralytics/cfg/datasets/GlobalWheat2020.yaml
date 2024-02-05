@@ -1,14 +1,14 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Global Wheat 2020 dataset http://www.global-wheat.com/ by University of Saskatchewan
+# Global Wheat 2020 dataset https://www.global-wheat.com/ by University of Saskatchewan
+# Documentation: https://docs.ultralytics.com/datasets/detect/globalwheat2020/
 # Example usage: yolo train data=GlobalWheat2020.yaml
 # parent
 # ├── ultralytics
 # └── datasets
 #     └── GlobalWheat2020  ← downloads here (7.0 GB)
 
-
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/GlobalWheat2020  # dataset root dir
+path: ../datasets/GlobalWheat2020 # dataset root dir
 train: # train images (relative to 'path') 3422 images
   - images/arvalis_1
   - images/arvalis_2
@@ -28,7 +28,6 @@ test: # test images (optional) 1276 images
 # Classes
 names:
   0: wheat_head
-
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |

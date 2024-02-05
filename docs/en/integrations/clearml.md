@@ -119,22 +119,27 @@ By clicking on the URL link to the ClearML results page in the output of the usa
 #### Key Features of the ClearML Results Page
 
 - **Real-Time Metrics Tracking**
+
     - Track critical metrics like loss, accuracy, and validation scores as they occur.
     - Provides immediate feedback for timely model performance adjustments.
 
 - **Experiment Comparison**
+
     - Compare different training runs side-by-side.
     - Essential for hyperparameter tuning and identifying the most effective models.
 
 - **Detailed Logs and Outputs**
+
     - Access comprehensive logs, graphical representations of metrics, and console outputs.
     - Gain a deeper understanding of model behavior and issue resolution.
 
 - **Resource Utilization Monitoring**
+
     - Monitor the utilization of computational resources, including CPU, GPU, and memory.
     - Key to optimizing training efficiency and costs.
 
 - **Model Artifacts Management**
+
     - View, download, and share model artifacts like trained models and checkpoints.
     - Enhances collaboration and streamlines model deployment and sharing.
 
@@ -142,7 +147,7 @@ For a visual walkthrough of what the ClearML Results Page looks like, watch the 
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/iLcC7m3bCes?si=oSEAoZbrg8inCg_2"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/iLcC7m3bCes?si=oSEAoZbrg8inCg_2"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>

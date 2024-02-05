@@ -31,6 +31,10 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 
 <br><br>
 
+## ::: ultralytics.utils.Retry
+
+<br><br>
+
 ## ::: ultralytics.utils.SettingsManager
 
 <br><br>

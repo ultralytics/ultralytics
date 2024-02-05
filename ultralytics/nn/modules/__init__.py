@@ -118,7 +118,7 @@ __all__ = (
     "MLP",
     "ResNetLayer",
     "OBB",
-    'se_block','cbam_block','eca_block','BiLevelRoutingAttention','CA_Block','CSPStage', 'Involution',
+    'se_block', 'cbam_block', 'eca_block', 'BiLevelRoutingAttention', 'CA_Block', 'CSPStage', 'Involution',
     'DeformConv2d',
     'CoordAtt'
 )

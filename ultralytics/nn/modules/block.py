@@ -1115,6 +1115,7 @@ class Involution(nn.Module):
             return out
         
 # ===== COORDINATE ATTENTION ==== # 
+# Code taken from https://github.com/houqb/CoordAttention/tree/main?tab=readme-ov-file
 class h_sigmoid(nn.Module):
     def __init__(self, inplace=True):
         super(h_sigmoid, self).__init__()

@@ -11,7 +11,7 @@ import torch
 from PIL import Image
 from torchvision.transforms import ToTensor
 
-from ultralytics import RTDETR, YOLO
+from ultralytics import RTDETR, YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
@@ -281,6 +281,8 @@ def test_all_model_yamls():
         if "rtdetr" in m.name:
             if TORCH_1_9:  # torch<=1.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
                 _ = RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
+        elif "world" in m.name:
+            YOLOWorld(m.name)
         else:
             YOLO(m.name)
 

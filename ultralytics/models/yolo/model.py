@@ -2,7 +2,7 @@
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 
 
 class YOLO(Model):
@@ -43,3 +43,21 @@ class YOLO(Model):
                 "predictor": yolo.obb.OBBPredictor,
             },
         }
+
+
+class YOLOWorld(Model):
+    """YOLO-World object detection model."""
+    @property
+    def task_map(self):
+        """Map head to model, validator, and predictor classes."""
+        return {
+            "detect": {
+                "model": WorldModel,
+                "validator": yolo.detect.DetectionValidator,
+                "predictor": yolo.detect.DetectionPredictor,
+            }
+        }
+
+    def set_classes(self, classes):
+        """Set classes."""
+        self.model.set_classes(classes)

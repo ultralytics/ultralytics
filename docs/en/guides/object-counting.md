@@ -12,7 +12,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -172,8 +172,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Optional Arguments `set_args`
 
-| Name                | Type        | Default                    | Description                                   |
-|---------------------|-------------|----------------------------|-----------------------------------------------|
+| Name                  | Type        | Default                    | Description                                   |
+|-----------------------|-------------|----------------------------|-----------------------------------------------|
 | `view_img`            | `bool`      | `False`                    | Display frames with counts                    |
 | `view_in_counts`      | `bool`      | `True`                     | Display incounts only on video frame          |
 | `view_out_counts`     | `bool`      | `True`                     | Display outcounts only on video frame         |

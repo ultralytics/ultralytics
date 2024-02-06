@@ -10,6 +10,12 @@ keywords: Ultralytics, YOLOv8, Object Detection, Distance Calculation, Object Tr
 
 Measuring the gap between two objects is known as distance calculation within a specified space. In the case of [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), the bounding box centroid is employed to calculate the distance for bounding boxes highlighted by the user.
 
+## Visuals
+
+|                                                  Distance Calculation using Ultralytics YOLOv8                                                  |                                                                
+|:-----------------------------------------------------------------------------------------------------------------------------------------------:|
+| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/940fe793-f34c-44e6-8cd7-c2153fde837b) |
+
 ## Advantages of Distance Calculation?
 
 - **Localization Precision:** Enhances accurate spatial positioning in computer vision tasks.

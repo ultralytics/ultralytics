@@ -8,11 +8,8 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
 from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
-from ultralytics.utils.tlc.detect.utils import (
-    get_metrics_collection_epochs,
-    parse_environment_variables,
-    tlc_check_dataset,
-)
+from ultralytics.utils.tlc.detect.settings import Settings
+from ultralytics.utils.tlc.detect.utils import get_metrics_collection_epochs, tlc_check_dataset
 from ultralytics.utils.tlc.detect.validator import TLCDetectionValidator
 from ultralytics.utils.torch_utils import de_parallel, strip_optimizer, torch_distributed_zero_first
 
@@ -36,10 +33,10 @@ def _resample_train_dataset(trainer):
 
 
 def _reduce_embeddings(trainer):
-    if trainer._env_vars["IMAGE_EMBEDDINGS_DIM"] > 0:
+    if trainer._settings.image_embeddings_dim > 0:
         trainer._run.reduce_embeddings_by_example_table_url(table_url=trainer.data["val"].url,
                                                             method="pacmap",
-                                                            n_components=trainer._env_vars['IMAGE_EMBEDDINGS_DIM'])
+                                                            n_components=trainer._settings.image_embeddings_dim)
 
 
 class TLCDetectionTrainer(DetectionTrainer):
@@ -47,17 +44,16 @@ class TLCDetectionTrainer(DetectionTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         LOGGER.info("Using 3LC Trainer 🌟")
+        self._settings = Settings() if 'settings' not in overrides else overrides.pop('settings')
         super().__init__(cfg, overrides, _callbacks)
         self._train_validator = None
-        self._env_vars = parse_environment_variables()
-        self._collection_epochs = get_metrics_collection_epochs(self._env_vars['COLLECTION_EPOCH_START'],
-                                                                self.args.epochs,
-                                                                self._env_vars['COLLECTION_EPOCH_INTERVAL'],
-                                                                self._env_vars['COLLECTION_DISABLE'])
+        self._collection_epochs = get_metrics_collection_epochs(self._settings.collection_epoch_start, self.args.epochs,
+                                                                self._settings.collection_epoch_interval,
+                                                                self._settings.collection_disable)
 
         self._run = None
 
-        if not self._env_vars['COLLECTION_DISABLE']:
+        if not self._settings.collection_disable:
             self._run = tlc.init(project_name=self.data["train"].project_name)
 
         self.add_callback("on_train_epoch_start", _resample_train_dataset)
@@ -108,7 +104,7 @@ class TLCDetectionTrainer(DetectionTrainer):
                                  rect=mode == "val",
                                  stride=gs,
                                  table=self.data[split],
-                                 use_sampling_weights=self._env_vars['SAMPLING_WEIGHTS'])
+                                 use_sampling_weights=self._settings.sampling_weights)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""
@@ -128,12 +124,12 @@ class TLCDetectionTrainer(DetectionTrainer):
             args=copy.copy(self.args),
             _callbacks=self.callbacks,
             run=self._run,
+            settings=self._settings,
         )
 
     def validate(self):
         # Validate on train set
-        if not self._env_vars['COLLECTION_DISABLE'] and not self._env_vars[
-                'COLLECTION_VAL_ONLY'] and self.epoch in self._collection_epochs:
+        if not self._settings.collection_disable and not self._settings.collection_val_only and self.epoch in self._collection_epochs:
             self.train_validator(trainer=self)
 
         # Validate on val/test set

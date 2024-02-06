@@ -9,6 +9,7 @@ import re
 import subprocess
 import sys
 import threading
+import time
 import urllib
 import uuid
 from pathlib import Path
@@ -116,8 +117,11 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
-        """Initialize custom Ultralytics tqdm class with different default arguments."""
-        # Set new default values (these can still be overridden when calling TQDM)
+        """
+        Initialize custom Ultralytics tqdm class with different default arguments.
+
+        Note these can still be overridden when calling TQDM.
+        """
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
@@ -377,7 +381,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
 
     Returns:
-        None
+        (None)
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
     dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True)
@@ -610,7 +614,7 @@ def get_ubuntu_version():
 
 def get_user_config_dir(sub_dir="Ultralytics"):
     """
-    Get the user config directory.
+    Return the appropriate config directory based on the environment operating system.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -618,7 +622,6 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     Returns:
         (Path): The path to the user config directory.
     """
-    # Return the appropriate config directory for each operating system
     if WINDOWS:
         path = Path.home() / "AppData" / "Roaming" / sub_dir
     elif MACOS:  # macOS
@@ -719,9 +722,19 @@ def remove_colorstr(input_string):
 
 class TryExcept(contextlib.ContextDecorator):
     """
-    YOLOv8 TryExcept class.
+    Ultralytics TryExcept class. Use as @TryExcept() decorator or 'with TryExcept():' context manager.
 
-    Use as @TryExcept() decorator or 'with TryExcept():' context manager.
+    Examples:
+        As a decorator:
+        >>> @TryExcept(msg="Error occurred in func", verbose=True)
+        >>> def func():
+        >>>    # Function logic here
+        >>>     pass
+
+        As a context manager:
+        >>> with TryExcept(msg="Error occurred in block", verbose=True):
+        >>>     # Code block here
+        >>>     pass
     """
 
     def __init__(self, msg="", verbose=True):
@@ -738,6 +751,64 @@ class TryExcept(contextlib.ContextDecorator):
         if self.verbose and value:
             print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
         return True
+
+
+class Retry(contextlib.ContextDecorator):
+    """
+    Retry class for function execution with exponential backoff.
+
+    Can be used as a decorator or a context manager to retry a function or block of code on exceptions, up to a
+    specified number of times with an exponentially increasing delay between retries.
+
+    Examples:
+        Example usage as a decorator:
+        >>> @Retry(times=3, delay=2)
+        >>> def test_func():
+        >>>     # Replace with function logic that may raise exceptions
+        >>>     return True
+
+        Example usage as a context manager:
+        >>> with Retry(times=3, delay=2):
+        >>>     # Replace with code block that may raise exceptions
+        >>>     pass
+    """
+
+    def __init__(self, times=3, delay=2):
+        """Initialize Retry class with specified number of retries and delay."""
+        self.times = times
+        self.delay = delay
+        self._attempts = 0
+
+    def __call__(self, func):
+        """Decorator implementation for Retry with exponential backoff."""
+
+        def wrapped_func(*args, **kwargs):
+            self._attempts = 0
+            while self._attempts < self.times:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    self._attempts += 1
+                    print(f"Retry {self._attempts}/{self.times} failed: {e}")
+                    if self._attempts >= self.times:
+                        raise e
+                    time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
+
+        return wrapped_func
+
+    def __enter__(self):
+        """Enter the runtime context related to this object."""
+        self._attempts = 0
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exit the runtime context related to this object with exponential backoff."""
+        if exc_type is not None:
+            self._attempts += 1
+            if self._attempts < self.times:
+                print(f"Retry {self._attempts}/{self.times} failed: {exc_value}")
+                time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
+                return True  # Suppresses the exception and retries
+        return False  # Re-raises the exception if retries are exhausted
 
 
 def threaded(func):

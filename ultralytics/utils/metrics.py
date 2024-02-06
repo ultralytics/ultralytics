@@ -180,7 +180,7 @@ def _get_covariance_matrix(boxes):
     Returns:
         (torch.Tensor): Covariance metrixs corresponding to original rotated bounding boxes.
     """
-    # Gaussian bounding boxes, ignored the center points(the first two columns) cause it's not needed here.
+    # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
     gbbs = torch.cat((torch.pow(boxes[:, 2:4], 2) / 12, boxes[:, 4:]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
     return (
@@ -239,13 +239,16 @@ def batch_probiou(obb1, obb2, eps=1e-7):
     Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
 
     Args:
-        obb1 (torch.Tensor): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
-        obb2 (torch.Tensor): A tensor of shape (M, 5) representing predicted obbs, with xywhr format.
+        obb1 (torch.Tensor | np.ndarray): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
+        obb2 (torch.Tensor | np.ndarray): A tensor of shape (M, 5) representing predicted obbs, with xywhr format.
         eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
         (torch.Tensor): A tensor of shape (N, M) representing obb similarities.
     """
+    obb1 = torch.from_numpy(obb1) if isinstance(obb1, np.ndarray) else obb1
+    obb2 = torch.from_numpy(obb2) if isinstance(obb2, np.ndarray) else obb2
+
     x1, y1 = obb1[..., :2].split(1, dim=-1)
     x2, y2 = (x.squeeze(-1)[None] for x in obb2[..., :2].split(1, dim=-1))
     a1, b1, c1 = _get_covariance_matrix(obb1)
@@ -328,7 +331,7 @@ class ConfusionMatrix:
             gt_bboxes (Array[M, 4]): Ground truth bounding boxes with xyxy format.
             gt_cls (Array[M]): The class labels.
         """
-        if gt_cls.size(0) == 0:  # Check if labels is empty
+        if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
                 detection_classes = detections[:, 5].int()
@@ -698,7 +701,7 @@ class Metric(SimpleClass):
         Returns the mean Average Precision (mAP) at an IoU threshold of 0.5.
 
         Returns:
-            (float): The mAP50 at an IoU threshold of 0.5.
+            (float): The mAP at an IoU threshold of 0.5.
         """
         return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
 
@@ -708,7 +711,7 @@ class Metric(SimpleClass):
         Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
 
         Returns:
-            (float): The mAP50 at an IoU threshold of 0.75.
+            (float): The mAP at an IoU threshold of 0.75.
         """
         return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
 

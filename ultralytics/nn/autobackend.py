@@ -392,6 +392,8 @@ class AutoBackend(nn.Module):
             im = im.cpu().numpy()  # torch to numpy
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
         elif self.xml:  # OpenVINO
+            # Add throughput mode logic here
+            
             im = im.cpu().numpy()  # FP32
             y = list(self.ov_compiled_model(im).values())
         elif self.engine:  # TensorRT

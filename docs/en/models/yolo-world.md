@@ -22,7 +22,7 @@ YOLO-World is designed to address the limitations of current Open-Vocabulary det
 
 3. **Inference with Offline Vocabulary:** At the inference stage, YOLO-World present a prompt-then-detect strategy with an offline vocabulary for further efficiency. Users can define a series of custom prompts, which might include captions or categories. The model then utilize the text encoder to encode these prompts and obtain offline vocabulary embeddings. The offline vocabulary allows for avoiding computation for each input and provides the flexibility to adjust the vocabulary as needed.
 
-4. **Based on YOLOv8:** YOLO-World is based on [YOLOv8](../tasks/detect.md), an real-time object detector offering cutting-edge performance in terms of accuracy and speed. This allows it to effectively produce open-vocabulary detection in an image.
+4. **Based on YOLOv8:** YOLO-World is based on [YOLOv8](../tasks/detect.md), a real-time object detector offering cutting-edge performance in terms of accuracy and speed. This allows it to effectively produce open-vocabulary detection in an image.
 
 5. **Competitive Results on Benchmarks:** On the object proposal task on LVIS minival, YOLO-World achieves high scores at a significantly faster speed than other open-vocabulary detectors(i.e MDETR, GLIP series, Grounding DINO models) on a single NVIDIA V100, demonstrating its efficiency and capability.
 
@@ -128,6 +128,9 @@ Validation of the model on a dataset can be done as follows:
     === "Save model with offline vocabulary"
 
         ```python
+        from ultralytics import YOLOWorld
+
+        # Create a YOLO-World model
         model = YOLOWorld('yolov8s-world.pt')  # or yolov8m/l-world.pt
         
         # Setup prompts

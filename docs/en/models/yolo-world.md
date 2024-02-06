@@ -32,6 +32,10 @@ YOLO-World is designed to address the limitations of current Open-Vocabulary det
 
 This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
+!!! Note
+
+    Currently all the yolov8-world weights are directly migrated from official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repo. Appreciate their excellent work!
+
 | Model Type | Pre-trained Weights                                                                         | Tasks Supported                              | Inference | Validation | Training | Export |
 |------------|---------------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
 | yolov8s-world  | [yolov8s-world](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
@@ -101,7 +105,7 @@ Validation of the model on a dataset can be done as follows:
         yolo detect val model=yolov8s-world.pt data=coco8.yaml imgsz=640
         ```
 
-!!! Tip "Tip"
+!!! Note
 
     The YOLO-World weights in Ultralytics has already embedded COCO categories as offline vocabulary for further efficiency, which means yolov8-world models can be used directly to predict 80 categories of COCO.
 

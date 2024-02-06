@@ -135,7 +135,7 @@ jobs:
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: Benchmarks
         env:
@@ -190,7 +190,7 @@ jobs:
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: Tests
         env:
@@ -211,7 +211,7 @@ jobs:
       - name: Pytest tests
         run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
       - name: Upload Coverage Reports to CodeCov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: GPU
         env:

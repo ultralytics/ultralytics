@@ -60,7 +60,7 @@ theme:
     - navigation.instant
     - navigation.instant.progress
     - navigation.indexes
-    - navigation.sections
+    - navigation.sections  # navigation.expand or navigation.sections
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization
@@ -345,6 +345,7 @@ nav:
       - DVC: integrations/dvc.md
       - Weights & Biases: integrations/weights-biases.md
       - Neural Magic: integrations/neural-magic.md
+      - Gradio: integrations/gradio.md
       - TensorBoard: integrations/tensorboard.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
   - HUB:

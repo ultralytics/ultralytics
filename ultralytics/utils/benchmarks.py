@@ -83,8 +83,12 @@ def benchmark(
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = "❌", None  # export defaults
         try:
-            assert i != 9 or LINUX, "Edge TPU export only supported on Linux"
-            if i in {5, 10}:  # CoreML and TF.js
+            # Checks
+            if i == 9:
+                assert LINUX, "Edge TPU export only supported on Linux"
+            elif i == 7:
+                assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
+            elif i in {5, 10}:  # CoreML and TF.js
                 assert MACOS or LINUX, "export only supported on macOS and Linux"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
@@ -254,8 +258,7 @@ class ProfileModels:
         """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
         file.
         """
-        # return (num_layers, num_params, num_gradients, num_flops)
-        return 0.0, 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     def iterative_sigma_clipping(self, data, sigma=2, max_iters=3):
         """Applies an iterative sigma clipping algorithm to the given data times number of iterations."""

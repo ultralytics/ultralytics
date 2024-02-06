@@ -1,0 +1,9 @@
+pretrained: True
+seed: 0
+imgsz: 1280 # do not change!!!
+batch: 16 
+epochs: 15 
+patience: 5 # choices=[3, 5, 7, 10]
+optimizer: RAdam # choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]
+lr0: 0.01  # learning rate 
+name: 'yolov8s_exp_v0' # experiment name

@@ -60,7 +60,7 @@ theme:
     - navigation.instant
     - navigation.instant.progress
     - navigation.indexes
-    - navigation.sections
+    - navigation.sections  # navigation.expand or navigation.sections
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization

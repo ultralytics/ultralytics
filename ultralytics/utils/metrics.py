@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
+import pandas as pd
+import json
+
 from ultralytics.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
 OKS_SIGMA = (
@@ -527,6 +530,43 @@ def compute_ap(recall, precision):
 
     return ap, mpre, mrec
 
+def export_optimal_thresholds(save_dir, prefix, names, f1_curve, x):
+    """
+    Export optimal thresholds and maximum F1 values for each class to CSV and JSON formats.
+
+    Args:
+        save_dir (Path): Directory where the CSV and JSON files will be saved.
+        prefix (str): Prefix string for the filenames of the exported files.
+        names (dict): Dictionary mapping class indices to class names.
+        f1_curve (np.ndarray): F1-score curves for each class. Shape: (nc, 1000).
+        x (np.ndarray): X-axis values for the curves. Shape: (1000,).
+
+    Returns:
+        None
+
+    Saves:
+        - CSV file containing optimal thresholds and maximum F1 values: save_dir/{prefix}thresholds.csv
+        - JSON file containing optimal thresholds: save_dir/{prefix}thresholds.json
+    """
+    thresholds = {}
+    for i, y in enumerate(f1_curve):
+        name = names[i]
+        max_f1 = round(y.max(), 3)
+        optimal_threshold = round(x[y.argmax()], 3)
+        thresholds[name] = {"optimal_threshold": optimal_threshold, "max_value": max_f1}
+
+    # For CSV
+    df = pd.DataFrame.from_dict(thresholds, orient="index").reset_index()
+    df.columns = ["class", "optimal_threshold", "max_value"]
+    df = df[["class", "max_value", "optimal_threshold"]]  # reorder columns
+    csv_file_path = save_dir / f"{prefix}optimal_thresholds.csv"
+    df.to_csv(csv_file_path, index=False)
+
+    # For JSON
+    json_data = {k: v["optimal_threshold"] for k, v in thresholds.items()}
+    json_file_path = save_dir / f"{prefix}optimal_thresholds.json"
+    with open(json_file_path, "w") as f:
+        json.dump(json_data, f, indent=4)
 
 def ap_per_class(
     tp, conf, pred_cls, target_cls, plot=False, on_plot=None, save_dir=Path(), names=(), eps=1e-16, prefix=""
@@ -606,6 +646,9 @@ def ap_per_class(
     f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)
     names = [v for k, v in names.items() if k in unique_classes]  # list: only classes that have data
     names = dict(enumerate(names))  # to dict
+
+    export_optimal_thresholds(save_dir, prefix, names, f1_curve, x)
+
     if plot:
         plot_pr_curve(x, prec_values, ap, save_dir / f"{prefix}PR_curve.png", names, on_plot=on_plot)
         plot_mc_curve(x, f1_curve, save_dir / f"{prefix}F1_curve.png", names, ylabel="F1", on_plot=on_plot)

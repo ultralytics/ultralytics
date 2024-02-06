@@ -558,7 +558,13 @@ class WorldModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def set_classes(self, text):
-        import clip
+        try:
+            import clip
+        except ImportError:
+            from ultralytics.utils.checks import check_requirements
+
+            check_requirements("git+https://github.com/openai/CLIP.git")
+            import clip
 
         model, _ = clip.load("ViT-B/32")
         device = next(model.parameters()).device

@@ -93,7 +93,7 @@ dev = [
     "mkdocstrings[python]",
     "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics-plugin>=0.0.42", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics-plugin>=0.0.43", # for meta descriptions and images, dates and authors
 ]
 export = [
     "onnx>=1.12.0", # ONNX export

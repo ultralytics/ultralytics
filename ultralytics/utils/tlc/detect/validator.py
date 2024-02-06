@@ -51,7 +51,8 @@ def set_up_metrics_writer(validator):
         tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names), }
     if validator._trainer:
         metrics_column_schemas[TRAINING_PHASE] = training_phase_schema()
-    metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
+    if validator._settings.image_embeddings_dim > 0:
+        metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
 
     validator.metrics_writer = tlc.MetricsWriter(run_url=validator._run.url,
                                                  dataset_url=dataset_url,

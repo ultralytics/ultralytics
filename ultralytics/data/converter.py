@@ -336,6 +336,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
 
     Notes:
         The directory structure assumed for the DOTA dataset:
+
             - DOTA
                 ├─ images
                 │   ├─ train
@@ -345,6 +346,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
                     └─ val_original
 
         After execution, the function will organize the labels into:
+
             - DOTA
                 └─ labels
                     ├─ train
@@ -489,14 +491,15 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
     Notes:
         The input directory structure assumed for dataset:
+
             - im_dir
                 ├─ 001.jpg
                 ├─ ..
-                ├─ NNN.jpg
+                └─ NNN.jpg
             - labels
                 ├─ 001.txt
                 ├─ ..
-                ├─ NNN.txt
+                └─ NNN.txt
     """
     from ultralytics.data import YOLODataset
     from ultralytics.utils.ops import xywh2xyxy
@@ -515,6 +518,8 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
     for l in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
         h, w = l["shape"]
         boxes = l["bboxes"]
+        if len(boxes) == 0:  # skip empty labels
+            continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
         im = cv2.imread(l["im_file"])

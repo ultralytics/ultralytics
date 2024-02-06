@@ -33,60 +33,31 @@ from tqdm import tqdm
 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
-LANGUAGES = False
 
 
-def build_docs():
+def build_docs(clone_repos=True):
     """Build docs using mkdocs."""
     if SITE.exists():
         print(f"Removing existing {SITE}")
         shutil.rmtree(SITE)
 
+    # Get hub-sdk repo
+    if clone_repos:
+        repo = "https://github.com/ultralytics/hub-sdk"
+        local_dir = DOCS.parent / Path(repo).name
+        if not local_dir.exists():
+            os.system(f"git clone {repo} {local_dir}")
+        os.system(f"git -C {local_dir} pull")  # update repo
+        shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
+        shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
+        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)  # delete if exists
+        shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
+        print(f"Cloned/Updated {repo} in {local_dir}")
+
     # Build the main documentation
     print(f"Building docs from {DOCS}")
-    subprocess.run(f"mkdocs build -f {DOCS}/mkdocs.yml", check=True, shell=True)
-
-    # Build other localized documentations
-    if LANGUAGES:
-        for file in DOCS.glob("mkdocs_*.yml"):
-            print(f"Building MkDocs site with configuration file: {file}")
-            subprocess.run(f"mkdocs build -f {file}", check=True, shell=True)
+    subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml", check=True, shell=True)
     print(f"Site built at {SITE}")
-
-
-def update_html_links():
-    """Update href links in HTML files to remove '.md' and '/index.md', excluding links starting with 'https://'."""
-    html_files = Path(SITE).rglob("*.html")
-    total_updated_links = 0
-
-    for html_file in html_files:
-        with open(html_file, "r+", encoding="utf-8") as file:
-            content = file.read()
-            # Find all links to be updated, excluding those starting with 'https://'
-            links_to_update = re.findall(r'href="(?!https://)([^"]+?)(/index)?\.md"', content)
-
-            # Update the content and count the number of links updated
-            updated_content, number_of_links_updated = re.subn(
-                r'href="(?!https://)([^"]+?)(/index)?\.md"', r'href="\1"', content
-            )
-            total_updated_links += number_of_links_updated
-
-            # Special handling for '/index' links
-            updated_content, number_of_index_links_updated = re.subn(
-                r'href="([^"]+)/index"', r'href="\1/"', updated_content
-            )
-            total_updated_links += number_of_index_links_updated
-
-            # Write the updated content back to the file
-            file.seek(0)
-            file.write(updated_content)
-            file.truncate()
-
-            # Print updated links for this file
-            for link in links_to_update:
-                print(f"Updated link in {html_file}: {link[0]}")
-
-    print(f"Total number of links updated: {total_updated_links}")
 
 
 def update_page_title(file_path: Path, new_title: str):
@@ -104,21 +75,13 @@ def update_page_title(file_path: Path, new_title: str):
         file.write(updated_content)
 
 
-def update_html_head(key=""):
+def update_html_head(script=""):
     """Update the HTML head section of each file."""
     html_files = Path(SITE).rglob("*.html")
     for html_file in tqdm(html_files, desc="Processing HTML files"):
         with html_file.open("r", encoding="utf-8") as file:
             html_content = file.read()
 
-        script = f"""
-<script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js"></script>
-<script>
-    Weglot.initialize({{
-        api_key: '{key}'
-    }});
-</script>
-"""
         if script in html_content:  # script already in HTML file
             return
 
@@ -130,6 +93,27 @@ def update_html_head(key=""):
                 file.write(new_html_content)
 
 
+def update_subdir_edit_links(subdir="", docs_url=""):
+    """Update the HTML head section of each file."""
+    from bs4 import BeautifulSoup
+
+    if str(subdir[0]) == "/":
+        subdir = str(subdir[0])[1:]
+    html_files = (SITE / subdir).rglob("*.html")
+    for html_file in tqdm(html_files, desc="Processing subdir files"):
+        with html_file.open("r", encoding="utf-8") as file:
+            soup = BeautifulSoup(file, "html.parser")
+
+        # Find the anchor tag and update its href attribute
+        a_tag = soup.find("a", {"class": "md-content__button md-icon"})
+        if a_tag and a_tag["title"] == "Edit this page":
+            a_tag["href"] = f"{docs_url}{a_tag['href'].split(subdir)[-1]}"
+
+        # Write the updated HTML back to the file
+        with open(html_file, "w", encoding="utf-8") as file:
+            file.write(str(soup))
+
+
 def main():
     # Build the docs
     build_docs()
@@ -137,13 +121,16 @@ def main():
     # Update titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
-    # Update .md in href links
-    if LANGUAGES:
-        update_html_links()
+    # Update edit links
+    update_subdir_edit_links(
+        subdir="hub/sdk/",  # do not use leading slash
+        docs_url="https://github.com/ultralytics/hub-sdk/tree/develop/docs/",
+    )
 
     # Update HTML file head section
-    if not LANGUAGES and False:
-        update_html_head(key=os.environ.get("WEGLOT_KEY"))
+    script = ""
+    if any(script):
+        update_html_head(script)
 
     # Show command to serve built website
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')

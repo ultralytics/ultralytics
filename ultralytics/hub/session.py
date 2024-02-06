@@ -277,7 +277,7 @@ class HUBTrainingSession:
             timeout: The maximum timeout duration.
 
         Returns:
-            str: The retry message.
+            (str): The retry message.
         """
         if self._should_retry(response.status_code):
             return f"Retrying {retry}x for {timeout}s." if retry else ""
@@ -341,7 +341,7 @@ class HUBTrainingSession:
             response (requests.Response): The response object from the file download request.
 
         Returns:
-            (None)
+            None
         """
         with TQDM(total=content_length, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):

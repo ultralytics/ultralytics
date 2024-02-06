@@ -87,7 +87,7 @@ class Auth:
         Attempt to authenticate with the server using either id_token or API key.
 
         Returns:
-            bool: True if authentication is successful, False otherwise.
+            (bool): True if authentication is successful, False otherwise.
         """
         try:
             if header := self.get_auth_header():
@@ -107,7 +107,7 @@ class Auth:
         supported browser.
 
         Returns:
-            bool: True if authentication is successful, False otherwise.
+            (bool): True if authentication is successful, False otherwise.
         """
         if not is_colab():
             return False  # Currently only works with Colab

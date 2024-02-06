@@ -508,9 +508,6 @@ class AutoBackend(nn.Module):
 
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
-
-        Returns:
-            (None): This method runs the forward pass and don't return any value
         """
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
@@ -521,13 +518,16 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p="path/to/model.pt"):
         """
-        This function takes a path to a model file and returns the model type.
+        This function takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml,
+        engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
 
         Args:
             p: path to the model file. Defaults to path/to/model.pt
+
+        Examples:
+            >>> model = AutoBackend(weights="path/to/model.onnx")
+            >>> model_type = model._model_type()  # returns "onnx"
         """
-        # Return model type from model path, i.e. path='path/to/model.onnx' -> type=onnx
-        # types = [pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle]
         from ultralytics.engine.exporter import export_formats
 
         sf = list(export_formats().Suffix)  # export suffixes

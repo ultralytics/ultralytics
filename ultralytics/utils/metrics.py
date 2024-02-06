@@ -530,6 +530,7 @@ def compute_ap(recall, precision):
 
     return ap, mpre, mrec
 
+
 def export_optimal_thresholds(save_dir, prefix, names, f1_curve, x):
     """
     Export optimal thresholds and maximum F1 values for each class to CSV and JSON formats.
@@ -567,6 +568,7 @@ def export_optimal_thresholds(save_dir, prefix, names, f1_curve, x):
     json_file_path = save_dir / f"{prefix}optimal_thresholds.json"
     with open(json_file_path, "w") as f:
         json.dump(json_data, f, indent=4)
+
 
 def ap_per_class(
     tp, conf, pred_cls, target_cls, plot=False, on_plot=None, save_dir=Path(), names=(), eps=1e-16, prefix=""

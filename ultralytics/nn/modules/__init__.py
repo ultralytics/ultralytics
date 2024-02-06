@@ -37,7 +37,7 @@ from .block import (
     RepC3,
     ResNetLayer,
     se_block, cbam_block, eca_block, CA_Block, CSPStage, BiLevelRoutingAttention, Involution,
-    CoordAtt
+    CoordAtt,
 )
 
 from .conv import (
@@ -120,5 +120,6 @@ __all__ = (
     "OBB",
     'se_block', 'cbam_block', 'eca_block', 'BiLevelRoutingAttention', 'CA_Block', 'CSPStage', 'Involution',
     'DeformConv2d',
-    'CoordAtt'
+    'CoordAtt',
+    'CBAM'
 )

@@ -278,7 +278,6 @@ class RepConv(nn.Module):
         if hasattr(self, "id_tensor"):
             self.__delattr__("id_tensor")
 
-
 class ChannelAttention(nn.Module):
     """Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet."""
 
@@ -297,7 +296,7 @@ class ChannelAttention(nn.Module):
 class SpatialAttention(nn.Module):
     """Spatial-attention module."""
 
-    def __init__(self, kernel_size=7):
+    def __init__(self, kernel_size):
         """Initialize Spatial-attention module with kernel size argument."""
         super().__init__()
         assert kernel_size in (3, 7), "kernel size must be 3 or 7"
@@ -316,6 +315,7 @@ class CBAM(nn.Module):
     def __init__(self, c1, kernel_size=7):
         """Initialize CBAM with given input channel (c1) and kernel size."""
         super().__init__()
+        kernel_size=7
         self.channel_attention = ChannelAttention(c1)
         self.spatial_attention = SpatialAttention(kernel_size)
 

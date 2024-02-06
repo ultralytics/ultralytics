@@ -39,7 +39,7 @@ __all__ = (
     "RepC3",
     "ResNetLayer",
     'se_block','cbam_block','eca_block','CA_Block', 'BiLevelRoutingAttention', 'CSPStage', 'Involution',
-    'CoordAtt'
+    'CoordAtt',
 )
 
 
@@ -476,12 +476,9 @@ class cbam_block(nn.Module):  #CBAM
         self.spatialattention = SpatialAttention(kernel_size=kernel_size)
 
     def forward(self, x):
-        #print("======> " ,x.shape , self.tt)
         x = x * self.channelattention(x)
         x = x * self.spatialattention(x)
         return x
-# model=cbam_block(512)
-# print(model)
 
 class eca_block(nn.Module): 
     def __init__(self, channel, b=1, gamma=2):

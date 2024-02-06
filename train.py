@@ -14,8 +14,6 @@ import argparse
 
 def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30):
 
-    
-
     data_path = '/home/vemund-sigurd/Documents/master/specialization_project/data/data.yaml'
     model_path = f'ultralytics/cfg/models/v8/{model}'
     # Define the command as a list of arguments

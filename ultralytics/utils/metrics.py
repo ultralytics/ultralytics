@@ -331,7 +331,7 @@ class ConfusionMatrix:
             gt_bboxes (Array[M, 4]): Ground truth bounding boxes with xyxy format.
             gt_cls (Array[M]): The class labels.
         """
-        if gt_cls.size(0) == 0:  # Check if labels is empty
+        if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
                 detection_classes = detections[:, 5].int()
@@ -701,7 +701,7 @@ class Metric(SimpleClass):
         Returns the mean Average Precision (mAP) at an IoU threshold of 0.5.
 
         Returns:
-            (float): The mAP50 at an IoU threshold of 0.5.
+            (float): The mAP at an IoU threshold of 0.5.
         """
         return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
 
@@ -711,7 +711,7 @@ class Metric(SimpleClass):
         Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
 
         Returns:
-            (float): The mAP50 at an IoU threshold of 0.75.
+            (float): The mAP at an IoU threshold of 0.75.
         """
         return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
 

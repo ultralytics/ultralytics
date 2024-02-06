@@ -40,7 +40,13 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
 
-- [OpenVino](openvino.md): OpenVINO is Intel's toolkit for optimizing and deploying computer vision models efficiently across various Intel hardware platforms.
+- [Gradio](../integrations/gradio.md) 🚀 NEW: Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
+
+- [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying computer vision models efficiently across various Intel CPU and GPU platforms.
+
+- [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
+
+- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance deep learning inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
 ### Export Formats
 
@@ -50,7 +56,7 @@ We also support a variety of model export formats for deployment in different en
 |--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [ONNX](onnx.md)                                                    | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
 | [OpenVINO](openvino.md)                                            | `openvino`        | `yolov8n_openvino_model/` | ✅        | `imgsz`, `half`, `int8`                             |
 | [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
 | [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |

@@ -47,6 +47,16 @@ class YOLO(Model):
 
 class YOLOWorld(Model):
     """YOLO-World object detection model."""
+
+    def __init__(self, model="yolov8s-world.pt") -> None:
+        """
+        Initializes the yolov8-world model with the given pre-trained model file. Supports .pt and .yaml formats.
+
+        Args:
+            model (str): Path to the pre-trained model. Defaults to 'yolov8s-world.pt'.
+        """
+        super().__init__(model=model, task="detect")
+
     @property
     def task_map(self):
         """Map head to model, validator, and predictor classes."""

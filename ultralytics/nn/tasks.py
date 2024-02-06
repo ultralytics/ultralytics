@@ -42,7 +42,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     Segment,
-    WorldDetect
+    WorldDetect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -554,22 +554,19 @@ class WorldModel(DetectionModel):
 
     def __init__(self, cfg="yolov8s-world.yaml", ch=3, nc=None, verbose=True):
         """Initialize YOLOv8 world model with given config and parameters."""
-        self.txt_feats = torch.randn(1, 81, 512)
+        self.txt_feats = torch.randn(1, nc, 512)   # placeholder
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def set_classes(self, text):
-        import itertools
         import clip
 
-        model, _ = clip.load("ViT-B/32", device="cuda")
-        num_per_batch = [len(t) for t in text]
-        assert max(num_per_batch) == min(num_per_batch), "number of sequences not equal in batch"
-        text = list(itertools.chain(*text))
-        text = clip.tokenize(text).cuda()
-        txt_feats = model.encode_text(text).to(dtype=torch.float32)
+        model, _ = clip.load("ViT-B/32")
+        device = next(model.parameters()).device
+        text_token = clip.tokenize(text).to(device)
+        txt_feats = model.encode_text(text_token).to(dtype=torch.float32)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        self.txt_feats = txt_feats.reshape(-1, num_per_batch[0], txt_feats.shape[-1])
-        self.model[-1].nc = self.txt_feats.shape[1]
+        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        self.model[-1].nc = len(text)
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
@@ -589,6 +586,7 @@ class WorldModel(DetectionModel):
         Returns:
             (torch.Tensor): Model's output tensor.
         """
+        self.txt_feats = self.txt_feats.to(device=x.device, dtype=x.dtype)
         txt_feats = self.txt_feats
         y, dt, embeddings = [], [], []  # outputs
         for m in self.model:  # except the head part
@@ -861,7 +859,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:
                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)  # embed channels
-                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])  # num heads
+                args[2] = int(
+                    max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2]
+                )  # num heads
 
             args = [c1, c2, *args[1:]]
             if m in (BottleneckCSP, C1, C2, C2f, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3):

@@ -501,9 +501,8 @@ class ImagePoolingAttn(nn.Module):
 
 
 class ContrastiveHead(nn.Module):
-    """Contrastive Head for YOLO-World
-    compute the region-text scores according to the
-    similarity between image and text features
+    """Contrastive Head for YOLO-World compute the region-text scores according to the similarity between image and text
+    features.
     """
 
     def __init__(self):

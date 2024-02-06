@@ -554,7 +554,7 @@ class WorldModel(DetectionModel):
 
     def __init__(self, cfg="yolov8s-world.yaml", ch=3, nc=None, verbose=True):
         """Initialize YOLOv8 world model with given config and parameters."""
-        self.txt_feats = torch.randn(1, nc, 512)   # placeholder
+        self.txt_feats = torch.randn(1, nc, 512)  # placeholder
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def set_classes(self, text):

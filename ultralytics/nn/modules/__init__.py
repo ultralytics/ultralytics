@@ -118,5 +118,5 @@ __all__ = (
     "ResNetLayer",
     "OBB",
     "WorldDetect",
-    "ImagePoolingAttn"
+    "ImagePoolingAttn",
 )

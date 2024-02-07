@@ -9,8 +9,6 @@ from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector 
     _TLCPredictedBoundingBox,
     _TLCPredictedBoundingBoxes,
 )
-from tlc.core.builtins.constants.paths import _ROW_CACHE_FILE_NAME
-from tlc.core.objects.tables.from_url.utils import get_hash
 
 from ultralytics.data.utils import check_file
 from ultralytics.engine.trainer import BaseTrainer
@@ -185,130 +183,84 @@ def create_tlc_info_string_before_training(metrics_collection_epochs: list[int])
 
     return tlc_mc_string
 
-
-def resolve_table_url(
-    paths: list[str],
-    dataset_name: str | None,
-    project_name: str | None,
-    prefix: str | None,
-) -> tlc.Url:
-    """Resolves a unique table url from the given parameters.
-
-    :param paths: A list of paths to use to create the hash.
-    :param dataset_name: The name of the dataset.
-    :param project_name: The name of the project.
-    :param prefix: The prefix to use for the table name.
-
-    :returns: The unique table url.
-    """
-    _hash = get_hash(paths, dataset_name)
-    table_name = f'{prefix or ""}{_hash}'
-    table_url = tlc.Url.create_table_url(project_name=project_name, dataset_name=dataset_name, table_name=table_name)
-    return table_url
-
-
-def get_cache_file_name(table_url: tlc.Url) -> tlc.Url:
-    """Returns the name of the cache file for the given table url.
-
-    :param table_url: The table url.
-    :returns: The cache file url.
-    """
-    return tlc.Url(f'./{_ROW_CACHE_FILE_NAME}.parquet')
-
-
-def get_or_create_tlc_table(yolo_yaml_file: tlc.Url | str | None = None,
-                            split: str | None = None,
-                            revision_url: str | None = '',
-                            root_url: tlc.Url | str | None = None) -> tlc.Table:
-    """Get or create a 3LC Table for the given inputs.
+def get_or_create_tlc_table_from_yolo(yolo_yaml_file: tlc.Url | str, split: str) -> tlc.Table:
+    """ Get or create a 3LC table from a YOLO YAML file.
 
     :param yolo_yaml_file: The path to the YOLO YAML file.
-    :param split: The split to use.
-    :param revision_url: The revision url to use.
-    :param root_url: The root url to use.
+    :param split: The split to get the table for.
+    :returns: The 3LC table.
     """
-
-    if not yolo_yaml_file and not revision_url:
-        raise ValueError('Either yolo_yaml_file or revision_url must be specified')
-
-    if not split and not revision_url:
-        raise ValueError('split must be specified if revision_url is not specified')
-
-    # Ensure complete index before resolving any Tables
     tlc.TableIndexingTable.instance().ensure_fully_defined()
 
-    if yolo_yaml_file:
-        # Infer dataset and project names
-        dataset_name_base = Path(yolo_yaml_file).stem
-        dataset_name = dataset_name_base + '-' + split
-        project_name = 'yolov8-' + dataset_name_base
+    # Resolving logic for YOLO YAML file
+    dataset_name_base = Path(yolo_yaml_file).stem
+    dataset_name = dataset_name_base + '-' + split
+    project_name = 'yolov8-' + dataset_name_base
 
-        # if yolo_yaml_file:  # review this
-        yolo_yaml_file = str(Path(yolo_yaml_file).resolve())  # Ensure absolute path for resolving Table Url
+    yolo_yaml_file = str(Path(yolo_yaml_file).resolve())  # Ensure absolute path for resolving Table Url
 
-        # Resolve a unique Table name using dataset_name, yaml file path, yaml file size (and optionally root_url path and size), and split to create a deterministic url
-        # The Table Url will be <3LC Table root> / <dataset_name> / <key><unique name>.json
-        table_url_from_yaml = resolve_table_url([yolo_yaml_file, root_url if root_url else '', split],
-                                                dataset_name,
-                                                project_name,
-                                                prefix='yolo_')
+    try:
+        table = tlc.Table.from_yolo(
+            dataset_yaml_file=yolo_yaml_file,
+            split=split,
+            structure=None,
+            table_name=split,
+            dataset_name=dataset_name,
+            project_name=project_name,
+            if_exists='raise',
+            add_weight_column=True,
+        )
+        table.write_to_row_cache(create_url_if_empty=True)  # Always cache for YOLO tables
+        LOGGER.info(f'{TLC_COLORSTR}Created {split} table {table.url} from YAML file {yolo_yaml_file}')
 
-    # If revision_url is specified as an argument, use that Table
-    if revision_url:
-        try:
-            table = tlc.Table.from_url(revision_url)
-        except FileNotFoundError:
-            raise ValueError(f'Could not find Table {revision_url} for {split} split')
+    except FileExistsError:
+        # Table already exists, reuse it instead and log it
+        table = tlc.Table.from_yolo(
+            dataset_yaml_file=yolo_yaml_file,
+            split=split,
+            structure=None,
+            table_name=split,
+            dataset_name=dataset_name,
+            project_name=project_name,
+            if_exists='reuse',
+            add_weight_column=True,
+        )
+        LOGGER.info(f'{TLC_COLORSTR}Using existing {split} table for YAML file {yolo_yaml_file}')
 
-        # If YAML file (--data argument) is also set, write appropriate log messages
-        if yolo_yaml_file:
-            try:
-                root_table = tlc.Table.from_url(table_url_from_yaml)
-                if not table.is_descendant_of(root_table):
-                    LOGGER.info(
-                        f"{TLC_COLORSTR}Revision URL is not a descendant of the Table corresponding to the YAML file's {split} split. Ignoring YAML file."
-                    )
-            except FileNotFoundError:
-                LOGGER.warning(
-                    f'{TLC_COLORSTR}Ignoring YAML file {yolo_yaml_file} because --tlc-{split}{"-" if split else ""}revision-url is set'
-                )
-        try:
-            check_table_compatibility(table)
-        except AssertionError as e:
-            raise ValueError(f'Table {revision_url} is not compatible with YOLOv5') from e
+    table.ensure_fully_defined()
+    # Always get latest when going from YAML file
+    previous_table = table
+    latest_table = table.latest()
 
-        LOGGER.info(f'{TLC_COLORSTR}Using {split} revision {revision_url}')
-    else:
+    if previous_table.url != latest_table.url:
+        LOGGER.info(f'  Using latest {split} table {table.url} from YAML file {yolo_yaml_file}')
 
-        try:
-            table = tlc.Table.from_url(table_url_from_yaml)
-            initial_url = table.url
-            table = table.latest()
-            latest_url = table.url
-            if initial_url != latest_url:
-                LOGGER.info(f'{TLC_COLORSTR}Using latest version of {split} table: {latest_url.to_str()}')
-            else:
-                LOGGER.info(f'{TLC_COLORSTR}Using root {split} table: {initial_url.to_str()}')
-        except FileNotFoundError:
-            cache_url = get_cache_file_name(table_url_from_yaml)
-            table = tlc.TableFromYolo(
-                url=table_url_from_yaml,
-                row_cache_url=cache_url,
-                input_url=yolo_yaml_file,
-                root_url=root_url,
-                split=split,
-            )
-            table.get_rows_as_binary()  # Force immediate creation of row cache
-            LOGGER.info(f'{TLC_COLORSTR}Using {split} table {table.url}')
+    return latest_table
 
-        try:
-            check_table_compatibility(table)
-        except AssertionError as e:
-            raise ValueError(f'Table {table_url_from_yaml.to_str()} is not compatible with YOLOv5') from e
+
+def get_tlc_table_from_url(table_url: tlc.Url, split: str) -> tlc.Table:
+    """ Get a 3LC table from a URL.
+
+    :param table_url: The Url of the table.
+    :param split: The split the table corresponds to.
+    :returns: The 3LC table.
+    :raises: ValueError if the table does not exist.
+    :raises: ValueError if the table is not compatible with YOLOv5.
+    """
+
+    try:
+        table = tlc.Table.from_url(table_url)
+        LOGGER.info(f'{TLC_COLORSTR}Using {split} revision {table_url}')
+    except FileNotFoundError:
+        raise ValueError(f'Could not find Table {table_url} for {split} split')
+
+    try:
+        check_table_compatibility(table)
+    except AssertionError as e:
+        raise ValueError(f'Table {table_url} is not compatible with YOLOv5') from e
 
     table.ensure_fully_defined()
     return table
-
 
 def check_table_compatibility(table: tlc.Table) -> bool:
     """Check that the 3LC Table is compatible with YOLOv5.
@@ -395,7 +347,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
             key for key in data_file_content if key not in ('path', 'names', 'download') and data_file_content[key]]
 
         # Create 3LC tables, get root table if already registered
-        tables = {split: get_or_create_tlc_table(data_file, split=split) for split in splits}
+        tables = {split: get_or_create_tlc_table_from_yolo(data_file, split=split) for split in splits}
 
         # Write all tables to the 3LC YAML file
         write_3lc_yaml(data_file, tables)
@@ -427,7 +379,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
                 raise ValueError(f'Found more than one : in the split path {split_path} for split {split}')
             url = tlc.Url(path) / split_path if path else tlc.Url(split_path)
 
-            table = get_or_create_tlc_table(split=split, revision_url=url)
+            table = get_tlc_table_from_url(table_url=url, split=split)
 
             # Use latest revision if :latest is specified
             if latest:

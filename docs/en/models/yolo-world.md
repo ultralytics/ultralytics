@@ -42,6 +42,14 @@ This table presents the available models with their specific pre-trained weights
 | yolov8m-world  | [yolov8m-world](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
 | yolov8l-world  | [yolov8l-world](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
 
+## Zero-shot transfer on COCO dataset
+
+| Model Type    | mAP  | mAP50 | mAP75 |
+|---------------|------|-------|-------|
+| yolov8s-world | 37.4 | 52.0  | 40.6  |
+| yolov8m-world | 42.0 | 57.0  | 45.6  |
+| yolov8l-world | 45.7 | 61.3  | 49.8  |
+
 ## Usage Examples
 
 The YOLO-World models are easy to integrate into your Python applications. Ultralytics provides user-friendly Python API and CLI commands to streamline development.

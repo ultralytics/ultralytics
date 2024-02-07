@@ -459,9 +459,9 @@ class Exporter:
             if isinstance(self.model.model[-1], Detect):
                 # get detection module name in onnx
                 model_onnx = onnx.load(f_onnx)
-                detect_module_name = model_onnx.graph.node[-1].name.split('/')[1]
+                detect_module_name = model_onnx.graph.node[-1].name.split("/")[1]
 
-                ignored_scope = nncf.IgnoredScope( # ignore operations
+                ignored_scope = nncf.IgnoredScope(  # ignore operations
                     patterns=[
                         f"/{detect_module_name}/Add",
                         f"/{detect_module_name}/Sub",

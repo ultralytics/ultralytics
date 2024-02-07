@@ -10,8 +10,16 @@ keywords: Ultralytics, HUB datasets, YOLO model training, upload datasets, datas
 
 Once uploaded, datasets can be immediately utilized for model training. This integrated approach facilitates a seamless transition from dataset management to model training, significantly simplifying the entire process.
 
-<iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/R42s2zFtNIY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen> </iframe>
-Watch: Upload Datasets to Ultralytics HUB | Complete Walkthrough of Dataset Upload Feature
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/R42s2zFtNIY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Watch: Upload Datasets to Ultralytics HUB | Complete Walkthrough of Dataset Upload Feature
+</p>
 
 ## Upload Dataset
 

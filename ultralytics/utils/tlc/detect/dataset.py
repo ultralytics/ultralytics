@@ -1,4 +1,7 @@
+# Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
 from __future__ import annotations
+
+from typing import Any
 
 import numpy as np
 import tlc
@@ -7,11 +10,11 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.utils import colorstr
 
 
-def unpack_box(bbox):
+def unpack_box(bbox: dict[str, int | float]) -> tuple[int | float]:
     return bbox[tlc.LABEL], [bbox[tlc.X0], bbox[tlc.Y0], bbox[tlc.X1], bbox[tlc.Y1]]
 
 
-def unpack_boxes(bboxes):
+def unpack_boxes(bboxes: list[dict[str, int | float]]) -> tuple[np.ndarray, np.ndarray]:
     classes_list, boxes_list = [], []
     for bbox in bboxes:
         _class, box = unpack_box(bbox)
@@ -28,7 +31,7 @@ def unpack_boxes(bboxes):
     return classes, boxes
 
 
-def tlc_table_row_to_yolo_label(row):
+def tlc_table_row_to_yolo_label(row) -> dict[str, Any]:
     classes, bboxes = unpack_boxes(row[tlc.BOUNDING_BOXES][tlc.BOUNDING_BOX_LIST])
     return dict(
         im_file=tlc.Url(row[tlc.IMAGE]).to_absolute().to_str(),
@@ -75,6 +78,10 @@ def build_tlc_dataset(cfg,
 
 
 class TLCDataset(YOLODataset):
+    """ A 3LC dataset for YOLO training and validation. Populates the dataset with samples from a 3LC table
+    and supports sampling weights.
+    
+    """
 
     def __init__(self,
                  *args,
@@ -82,7 +89,7 @@ class TLCDataset(YOLODataset):
                  task="detect",
                  table: tlc.Table = None,
                  use_sampling_weights: bool = False,
-                 **kwargs):
+                 **kwargs) -> None:
         assert task == "detect"
         assert isinstance(table, tlc.Table)
         self.table = table
@@ -92,23 +99,32 @@ class TLCDataset(YOLODataset):
         self._indices = np.arange(len(self.table))
         super().__init__(*args, data=data, task=task, **kwargs)
 
-    def resample_indices(self):
+    def resample_indices(self) -> None:
+        """Resample the indices inplace using the sampling weights."""
         if self._sampling_weights is not None:
             self._indices[:] = np.random.choice(len(self.table), len(self.table), p=self._sampling_weights)
 
-    def get_img_files(self, _):
+    def get_img_files(self, _: Any) -> list[str]:
+        """Get the image files, converting possibly aliased 3LC Urls to absolute paths.
+        
+        :return: A list of absolute paths to the images.
+        """
         return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for sample in self.table]
 
-    def get_labels(self):
+    def get_labels(self) -> list[dict[str, Any]]:
+        """Get the labels for the dataset.
+        
+        :return: A list of YOLOv8 labels.
+        """
         return [tlc_table_row_to_yolo_label(row) for row in self.table]
 
-    def get_sampling_weights(self):
+    def get_sampling_weights(self) -> np.ndarray:
         weights = np.array([row[tlc.SAMPLE_WEIGHT] for row in self.table])
         probabilities = weights / weights.sum()
         return probabilities
 
-    def set_rectangle(self):
-        """Sets the shape of bounding boxes for YOLO detections as rectangles."""
+    def set_rectangle(self) -> None:
+        """Save the batch shapes and inidices for the dataset. """
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
 

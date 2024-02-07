@@ -1,29 +1,36 @@
-# YOLOv5 🚀 AGPL-3.0 license
-"""
-3LC utils
-"""
+# Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
 from __future__ import annotations
 
-import importlib
-import os
-from difflib import get_close_matches
 from pathlib import Path
-from typing import Callable, TypeVar
 
 import tlc
 import yaml
-from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (
-    _TLCPredictedBoundingBox,
-    _TLCPredictedBoundingBoxes,
-)
+from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (_TLCPredictedBoundingBox,
+                                                                                        _TLCPredictedBoundingBoxes)
 from tlc.core.builtins.constants.paths import _ROW_CACHE_FILE_NAME
 from tlc.core.objects.tables.from_url.utils import get_hash
 
 from ultralytics.data.utils import check_file
+from ultralytics.engine.trainer import BaseTrainer
+from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.tlc.constants import TLC_COLORSTR, TLC_PREFIX, TRAINING_PHASE
 
-T = TypeVar('T', bound=Callable)  # Generic type for environment variable parsing functions
+
+def check_det_dataset(data: str) -> dict[str, tlc.Table | int | dict[int, str]]:
+    """Check if the dataset is compatible with the 3LC. Use to patch the YOLOv8 check_det_dataset
+    to have 3LC parse the dataset.
+
+    :param data: The path to the dataset YAML file.
+    :returns: A YOLO-style data dict with 3LC tables instead of paths.
+    """
+    tables = tlc_check_dataset(data)
+    names = tables["train"].get_value_map_for_column(tlc.BOUNDING_BOXES)
+    return {
+        "train": tables["train"],
+        "val": tables["val"],
+        "nc": len(names),
+        "names": names, }
 
 
 def yolo_predicted_bounding_box_schema(categories: dict[int, str]) -> tlc.Schema:
@@ -133,15 +140,18 @@ def construct_bbox_struct(
     return bbox_struct
 
 
-def get_metrics_collection_epochs(start: int, epochs: int, interval: int, disable: bool) -> list[int]:
+def get_metrics_collection_epochs(start: int | None, epochs: int, interval: int, disable: bool) -> list[int]:
     """ Compute the epochs to collect metrics for.
 
-    :param start: The starting epoch.
+    :param start: The starting epoch. If None, metrics are not collected during training.
     :param epochs: The total number of epochs.
     :param interval: How frequently to collect metrics. 1 means every epoch, 2 means every other epoch, and so on.
     :param disable: Whether metrics collection is disabled.
     """
     if disable:
+        return []
+
+    if start is None:
         return []
 
     if start >= epochs:
@@ -433,7 +443,8 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
     return tables
 
 
-def tlc_task_map(task, key):
+def tlc_task_map(task: str, key: str) -> BaseTrainer | BaseValidator | None:
+    """Map a task and key to a 3LC Trainer or Validator. Currently only supports the detect task."""
     if task != 'detect':
         LOGGER.info("3LC enabled, but currently only supports detect task. Defaulting to non-3LC mode.")
         return None
@@ -450,6 +461,10 @@ def tlc_task_map(task, key):
 
 
 def training_phase_schema() -> tlc.Schema:
+    """Create a 3LC schema for the training phase.
+
+    :returns: The training phase schema.
+    """
     return tlc.Schema(
         display_name=TRAINING_PHASE,
         description=("'During' metrics are collected with EMA during training, "

@@ -1,8 +1,4 @@
-# YOLOv5 🚀 AGPL-3.0 license
-"""
-3LC settings parsing
-"""
-
+# Ultralytics YOLO 🚀, 3LC Integration, AGPL-3.0 license
 from __future__ import annotations
 
 import argparse
@@ -20,7 +16,7 @@ from ultralytics.utils.tlc.constants import TLC_COLORSTR
 class Settings:
     """ Settings dataclass for the 3LC integration. Defines and handles user settings for the 3LC integration.
 
-    Supports parsing values from environment variables, with names set to TLC_ followed by the upper cased attribute.
+    Supports parsing values from environment variables.
     """
     conf_thres: float = field(default=0.1, metadata={'description': 'Confidence threshold for detections'})
     max_det: int = field(default=300, metadata={'description': 'Maximum number of detections collected per image'})
@@ -30,14 +26,15 @@ class Settings:
             'description':
             'Image embeddings dimension. 0 means no embeddings, 2 means 2D embeddings, 3 means 3D embeddings'})
     image_embeddings_reducer: str = field(
-        default='pacmap',
+        default='umap',
         metadata={
             'description':
             'Reduction algorithm for image embeddings. Options: pacmap and umap. Only used if IMAGE_EMBEDDINGS_DIM > 0'
         })
     sampling_weights: bool = field(default=False, metadata={'description': 'Whether to use 3LC Sampling Weights'})
-    collect_loss: bool = field(default=False,
-                               metadata={'description': 'Whether to collect loss values during training'})
+    # TODO: Restore when loss is supported.
+    # collect_loss: bool = field(default=False,
+    #                            metadata={'description': 'Whether to collect loss values during training'})
     collection_val_only: bool = field(default=False,
                                       metadata={'description': 'Whether to collect metrics only on the val set'})
     collection_disable: bool = field(default=False,
@@ -52,7 +49,7 @@ class Settings:
                                          metadata={'description': 'Splits to collect metrics on'})
 
     @classmethod
-    def from_env(cls):
+    def from_env(cls) -> Settings:
         """ Create a Settings instance from environment variables.
 
         :returns: A Settings instance with values parsed from environment variables.
@@ -68,12 +65,20 @@ class Settings:
                 value = Settings._parse_env_var(env_var, env_value, _field.type)
                 kwargs[_field.name] = value
 
-        return cls(**kwargs)
+        instance = cls(**kwargs)
+
+        instance._from_env = True  # Mark the instance as created from environment variables
+
+        return instance
+
+    def __post_init__(self) -> None:
+        # Mark as not created from environment variables
+        if not hasattr(self, '_from_env'):
+            self._from_env = False
 
     def verify(self, training: bool = True) -> None:
         """ Verify that the settings are valid.
 
-        :param opt: The argparse namespace containing YOLOv5 settings.
         :param training: Whether the settings are for training or validation.
 
         :raises: AssertionError if the settings are invalid.
@@ -90,7 +95,7 @@ class Settings:
         # Train / collect specific settings
         self._verify_training() if training else self._verify_collection()
 
-    def _verify_training(self, opt: argparse.Namespace) -> None:
+    def _verify_training(self) -> None:
         """ Verify that the settings are valid for training.
 
         :param opt: The argparse namespace containing YOLOv5 settings.
@@ -142,19 +147,18 @@ class Settings:
         """
         return f'TLC_{_field.name.upper()}'
 
-    @classmethod
-    def _handle_unsupported_env_vars(cls) -> None:
+    def _handle_unsupported_env_vars(self) -> None:
         """Handle environment variables starting with TLC which are not supported.
 
         Appropriate warnings are logged when unsupported environment variables are encountered.
         """
-        supported_env_vars = [cls._field_to_env_var(_field) for _field in fields(cls)]
+        supported_env_vars = [self._field_to_env_var(_field) for _field in fields(Settings)]
         unsupported_env_vars = [var for var in os.environ if var.startswith('TLC_') and var not in supported_env_vars]
 
         # Output all environment variables if there are any unsupported ones
         if len(unsupported_env_vars) > 1:
             LOGGER.warning(f'{TLC_COLORSTR}Found unsupported environment variables: '
-                           f'{", ".join(unsupported_env_vars)}.\n{cls._supported_env_vars_str()}')
+                           f'{", ".join(unsupported_env_vars)}.\n{self._supported_env_vars_str()}')
 
         # If there is only one, look for the most similar one
         elif len(unsupported_env_vars) == 1:
@@ -164,23 +168,32 @@ class Settings:
                                f'Did you mean {closest_match[0]}?')
             else:
                 LOGGER.warning(f'{TLC_COLORSTR}Found unsupported environment variable: {unsupported_env_vars[0]}.'
-                               f'\n{cls._supported_env_vars_str()}')
+                               f'\n{self._supported_env_vars_str()}')
 
     @classmethod
-    def _supported_env_vars_str(cls, sep: str = '\n  - ') -> str:
+    def _supported_env_vars_str(self, sep: str = '\n  - ') -> str:
         """ Print all supported environment variables.
 
         :param sep: The separator to use between each variable.
         :returns: A sep-separated string with all supported environment variables.
 
         """
-        default_settings_instance = cls()
+        default_settings_instance = Settings()  # Create an instance to get the default values
+
+        # Display defaults differently for environment variables as they are provided differently
+        if self._from_env:
+            formatter = lambda x: x if not isinstance(x, list) else ','.join(x)
+        else:
+            formatter = lambda x: x
+
         field_info_list = [{
-            'name': cls._field_to_env_var(_field),
+            'name': self._field_to_env_var(_field),
             'description': _field.metadata['description'],
-            'default': getattr(default_settings_instance, _field.name)} for _field in fields(cls)]
+            'default': formatter(getattr(default_settings_instance, _field.name))} for _field in fields(Settings)]
+
+        # Display each line as TLC_<FIELD_NAME>: <DESCRIPTION>. Default: '<DEFAULT>'
         lines = [
-            f'{field_info["name"]}: {field_info["description"]}. Default: {field_info["default"]}.'
+            f"{field_info['name']}: {field_info['description']}. Default: '{field_info['default']}'."
             for field_info in field_info_list]
         return f'Supported environment variables:{sep}{sep.join(lines)}'
 

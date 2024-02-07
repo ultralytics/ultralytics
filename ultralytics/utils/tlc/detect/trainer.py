@@ -1,4 +1,8 @@
+# Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
+from __future__ import annotations
+
 import copy
+from typing import Any
 
 import tlc
 
@@ -6,45 +10,24 @@ import ultralytics
 from ultralytics.data import build_dataloader
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
-from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
+from ultralytics.utils.tlc.detect.dataset import TLCDataset, build_tlc_dataset
+from ultralytics.utils.tlc.detect.model import TLCDetectionModel
 from ultralytics.utils.tlc.detect.settings import Settings
-from ultralytics.utils.tlc.detect.utils import get_metrics_collection_epochs, tlc_check_dataset
+from ultralytics.utils.tlc.detect.utils import check_det_dataset, get_metrics_collection_epochs
 from ultralytics.utils.tlc.detect.validator import TLCDetectionValidator
 from ultralytics.utils.torch_utils import de_parallel, strip_optimizer, torch_distributed_zero_first
 
-
-def check_det_dataset(data: str):
-    """Check if the dataset is compatible with the 3LC."""
-    tables = tlc_check_dataset(data)
-    names = tables["train"].get_value_map_for_column(tlc.BOUNDING_BOXES)
-    return {
-        "train": tables["train"],
-        "val": tables["val"],
-        "nc": len(names),
-        "names": names, }
-
-
+# Patch the check_det_dataset function so 3LC parses the dataset
 ultralytics.engine.trainer.check_det_dataset = check_det_dataset
 
 
-def _resample_train_dataset(trainer):
-    trainer.train_loader.dataset.resample_indices()
-
-
-def _reduce_embeddings(trainer):
-    if trainer._settings.image_embeddings_dim > 0:
-        trainer._run.reduce_embeddings_by_example_table_url(table_url=trainer.data["val"].url,
-                                                            method="pacmap",
-                                                            n_components=trainer._settings.image_embeddings_dim)
-
-
 class TLCDetectionTrainer(DetectionTrainer):
-    """A class extending the BaseTrainer class for training a detection model using the 3LC."""
+    """Trainer class for YOLOv8 object detection with 3LC"""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         LOGGER.info("Using 3LC Trainer 🌟")
         self._settings = Settings() if 'settings' not in overrides else overrides.pop('settings')
+        self._settings.verify(training=True)
         super().__init__(cfg, overrides, _callbacks)
         self._train_validator = None
         self._collection_epochs = get_metrics_collection_epochs(self._settings.collection_epoch_start, self.args.epochs,
@@ -84,14 +67,15 @@ class TLCDetectionTrainer(DetectionTrainer):
         workers = self.args.workers if mode == "train" else self.args.workers * 2
         return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
-    def build_dataset(self, img_path, mode="train", batch=None, split="train"):
+    def build_dataset(self, img_path: str, mode: str = "train", batch=None, split: str = "train") -> TLCDataset:
         """
         Build YOLO Dataset.
 
-        Args:
-            img_path (str): Path to the folder containing images.
-            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
+        :param img_path: Path to the folder containing images.
+        :param mode: `train` mode or `val` mode, users are able to customize different augmentations for each mode.
+        :param batch: Size of batches, this is for `rect`. Defaults to None.
+        :param split: Split of the dataset, defaults to "train".
+        :return: A YOLO dataset populated with 3LC values.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_tlc_dataset(self.args,
@@ -125,7 +109,7 @@ class TLCDetectionTrainer(DetectionTrainer):
             settings=self._settings,
         )
 
-    def validate(self):
+    def validate(self) -> Any:
         # Validate on train set
         if not self._settings.collection_disable and not self._settings.collection_val_only and self.epoch in self._collection_epochs:
             self.train_validator(trainer=self)
@@ -145,3 +129,29 @@ class TLCDetectionTrainer(DetectionTrainer):
                     self.metrics = self.validator(trainer=self, model=f, final_validation=True)
                     self.metrics.pop("fitness", None)
                     self.run_callbacks("on_fit_epoch_end")
+
+
+### CALLBACKS ############################################################################################################
+
+
+def _resample_train_dataset(trainer: TLCDetectionTrainer) -> None:
+    """ Callback to be used for resampling the training dataset using 3LC Sample Weights.
+
+    :param trainer: The trainer object.
+    :raises AssertionError: If the trainer is not an instance of TLCDetectionTrainer.
+    """
+    assert isinstance(trainer, TLCDetectionTrainer)
+    trainer.train_loader.dataset.resample_indices()
+
+
+def _reduce_embeddings(trainer: TLCDetectionTrainer) -> None:
+    """ Callback to be used for reducing the image embeddings using 3LC. Should be called at the end of training.
+
+    :param trainer: The trainer object.
+    :raises AssertionError: If the trainer is not an instance of TLCDetectionTrainer.
+    """
+    assert isinstance(trainer, TLCDetectionTrainer)
+    if trainer._settings.image_embeddings_dim > 0:
+        trainer._run.reduce_embeddings_by_example_table_url(table_url=trainer.data["val"].url,
+                                                            method=trainer._settings.image_embeddings_reducer,
+                                                            n_components=trainer._settings.image_embeddings_dim)

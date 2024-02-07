@@ -6,7 +6,6 @@ model = TLCYOLO("yolov8n.pt")  # initialize
 # Set 3LC specific settings
 settings = Settings(
     image_embeddings_dim=2,
-    image_embeddings_reducer='umap',
     collection_epoch_start=0,
     collection_epoch_interval=2,
     conf_thres=0.2,

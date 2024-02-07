@@ -338,6 +338,7 @@ nav:
       - OpenVINO: integrations/openvino.md
       - ONNX: integrations/onnx.md
       - TensorRT: integrations/tensorrt.md
+      - CoreML: integrations/coreml.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md

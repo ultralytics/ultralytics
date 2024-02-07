@@ -45,4 +45,4 @@ head:
   - [[-1, 9], 1, Concat, [1]] # cat head P5
   - [-1, 3, C2fAttn, [1024, 512, 16]] # 22 (P5/32-large)
 
-  - [[15, 19, 22], 1, WorldDetect, [nc, 512]] # Detect(P3, P4, P5)
+  - [[15, 19, 22], 1, WorldDetect, [nc, 512, False]] # Detect(P3, P4, P5)
